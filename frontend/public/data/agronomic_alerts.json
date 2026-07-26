@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-25T04:57:51+00:00",
+  "generated_at": "2026-07-26T05:20:44+00:00",
   "ruleset_version": "iphm-v2-frost",
   "origins": {
     "colombia": {
@@ -11,8 +11,8 @@
           "timeframe": "forecast",
           "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
           "triggers": {
-            "spei_3": -2.2,
-            "forecast_7d_rain": 139.8
+            "spei_3": -2.21,
+            "forecast_7d_rain": 83.6
           }
         }
       ]
@@ -26,8 +26,8 @@
           "timeframe": "current",
           "market_impact": "Irreversible yield reduction likely. Bean size shrinkage.",
           "triggers": {
-            "vhi": 32.67,
-            "spei_3": -2.74
+            "vhi": 31.49,
+            "spei_3": -2.72
           }
         }
       ],
@@ -39,7 +39,7 @@
           "timeframe": "current",
           "market_impact": "Irreversible yield reduction likely. Bean size shrinkage.",
           "triggers": {
-            "vhi": 18.73,
+            "vhi": 12.62,
             "spei_3": -1.51
           }
         }
@@ -52,8 +52,8 @@
           "timeframe": "current",
           "market_impact": "Irreversible yield reduction likely. Bean size shrinkage.",
           "triggers": {
-            "vhi": 23.83,
-            "spei_3": -2.16
+            "vhi": 21.12,
+            "spei_3": -2.18
           }
         }
       ],
@@ -65,8 +65,8 @@
           "timeframe": "current",
           "market_impact": "Irreversible yield reduction likely. Bean size shrinkage.",
           "triggers": {
-            "vhi": 23.83,
-            "spei_3": -2.09
+            "vhi": 21.12,
+            "spei_3": -2.1
           }
         }
       ]
@@ -80,19 +80,8 @@
           "timeframe": "current",
           "market_impact": "Irreversible yield reduction likely. Bean size shrinkage.",
           "triggers": {
-            "vhi": 21.2,
-            "spei_3": -1.85
-          }
-        },
-        {
-          "threat_id": "blossom_drop",
-          "name": "Flowering Disruption / Blossom Drop",
-          "severity": "watch",
-          "timeframe": "forecast",
-          "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
-          "triggers": {
-            "spei_3": -1.85,
-            "forecast_7d_rain": 52.5
+            "vhi": 21.62,
+            "spei_3": -1.83
           }
         }
       ]
@@ -106,8 +95,8 @@
           "timeframe": "forecast",
           "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
           "triggers": {
-            "spei_3": -1.14,
-            "forecast_7d_rain": 52.2
+            "spei_3": -1.09,
+            "forecast_7d_rain": 51.0
           }
         }
       ],
@@ -120,7 +109,7 @@
           "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
           "triggers": {
             "spei_3": -1.42,
-            "forecast_7d_rain": 116.3
+            "forecast_7d_rain": 132.4
           }
         }
       ],
@@ -132,8 +121,8 @@
           "timeframe": "forecast",
           "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
           "triggers": {
-            "spei_3": -2.06,
-            "forecast_7d_rain": 76.1
+            "spei_3": -2.04,
+            "forecast_7d_rain": 72.6
           }
         }
       ],
@@ -145,21 +134,21 @@
           "timeframe": "forecast",
           "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
           "triggers": {
-            "spei_3": -1.99,
-            "forecast_7d_rain": 93.3
+            "spei_3": -1.89,
+            "forecast_7d_rain": 95.5
           }
         }
       ]
     }
   },
   "summary": {
-    "total_alerts": 11,
+    "total_alerts": 10,
     "by_severity": {
-      "watch": 6,
+      "watch": 5,
       "critical": 5
     },
     "by_threat": {
-      "blossom_drop": 6,
+      "blossom_drop": 5,
       "severe_defoliation": 5
     }
   }
