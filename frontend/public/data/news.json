@@ -1,5 +1,49 @@
 [
   {
+    "id": 8882,
+    "title": "ICE RC Robusta Certified Stocks \u2013 2026-07-24",
+    "body": "RC Robusta certified stocks shifted by 0 lots today, bringing global visible exchange inventory to 4,200 lots. 38 lots graded.",
+    "source": "ICE",
+    "category": "supply",
+    "lat": null,
+    "lng": null,
+    "tags": [
+      "ice",
+      "certified-stocks",
+      "rc",
+      "auto-commentary"
+    ],
+    "meta": "{\"source_url\": \"https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260724_103022.csv\", \"_commentary\": {\"text\": \"RC Robusta certified stocks shifted by 0 lots today, bringing global visible exchange inventory to 4,200 lots. 38 lots graded.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-07-27T05:13:22.277616",
+    "commentary": {
+      "text": "RC Robusta certified stocks shifted by 0 lots today, bringing global visible exchange inventory to 4,200 lots. 38 lots graded.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    }
+  },
+  {
+    "id": 8881,
+    "title": "ICE KC Arabica Certified Stocks \u2013 2026-07-24",
+    "body": "KC Arabica certified stocks shifted by -4,566 bags today, bringing global visible exchange inventory to 311,317 bags.",
+    "source": "ICE",
+    "category": "supply",
+    "lat": null,
+    "lng": null,
+    "tags": [
+      "ice",
+      "certified-stocks",
+      "kc",
+      "auto-commentary"
+    ],
+    "meta": "{\"source_url\": \"https://www.ice.com/publicdocs/futures_us_reports/coffee/coffee_cert_stock_20260724.xls\", \"_commentary\": {\"text\": \"KC Arabica certified stocks shifted by -4,566 bags today, bringing global visible exchange inventory to 311,317 bags.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-07-27T05:13:19.991736",
+    "commentary": {
+      "text": "KC Arabica certified stocks shifted by -4,566 bags today, bringing global visible exchange inventory to 311,317 bags.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    }
+  },
+  {
     "id": 8880,
     "title": "World Bank Population \u2013 2026-07-27",
     "body": "Tracked 15 countries for demand-tab per-capita normalization.",
@@ -3916,57 +3960,5 @@
     "sentiment_confidence": 75.0,
     "sentiment_method": "deterministic",
     "sentiment_reason": "Honduras: no regions flagged at risk"
-  },
-  {
-    "id": 8442,
-    "title": "Colombia Agronomic Status \u2013 2026-07-19",
-    "body": "Agronomic Status Update: Colombia (Huila, Antioquia, Cauca, Caldas, Nari\u00f1o) is currently flagged as normal.",
-    "source": "Open-Meteo + NOAA STAR",
-    "category": "supply",
-    "lat": 4.71,
-    "lng": -74.07,
-    "tags": [
-      "weather",
-      "colombia",
-      "agronomic",
-      "auto-commentary"
-    ],
-    "meta": "{\"origin\": \"colombia\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Colombia (Huila, Antioquia, Cauca, Caldas, Nari\u00f1o) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-07-19T05:01:42.188768",
-    "commentary": {
-      "text": "Agronomic Status Update: Colombia (Huila, Antioquia, Cauca, Caldas, Nari\u00f1o) is currently flagged as normal.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Neutral",
-    "sentiment_confidence": 75.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "Colombia: no regions flagged at risk"
-  },
-  {
-    "id": 8441,
-    "title": "Brazil Agronomic Status \u2013 2026-07-19",
-    "body": "Agronomic Status Update: Brazil (Sul de Minas, Cerrado, Esp\u00edrito Santo, Paran\u00e1) is currently flagged as normal.",
-    "source": "Open-Meteo + NOAA STAR",
-    "category": "supply",
-    "lat": -15.78,
-    "lng": -47.93,
-    "tags": [
-      "weather",
-      "brazil",
-      "agronomic",
-      "auto-commentary"
-    ],
-    "meta": "{\"origin\": \"brazil\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 4, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Brazil (Sul de Minas, Cerrado, Esp\u00edrito Santo, Paran\u00e1) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-07-19T05:01:38.726260",
-    "commentary": {
-      "text": "Agronomic Status Update: Brazil (Sul de Minas, Cerrado, Esp\u00edrito Santo, Paran\u00e1) is currently flagged as normal.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Neutral",
-    "sentiment_confidence": 75.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "Brazil: no regions flagged at risk"
   }
 ]
