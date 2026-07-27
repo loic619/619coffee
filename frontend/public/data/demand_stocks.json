@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-26T05:48:16.596670Z",
+  "generated_at": "2026-07-27T06:07:08.902514Z",
   "eu": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-16",
@@ -7195,8 +7195,8 @@
       "name": "Brazil",
       "latest_year": "2025",
       "consumption_mt": 1336800,
-      "population": null,
-      "per_capita_kg": null,
+      "population": 212812405,
+      "per_capita_kg": 6.28,
       "annual": [
         {
           "year": "1960",
@@ -9233,8 +9233,8 @@
       "name": "Indonesia",
       "latest_year": "2025",
       "consumption_mt": 288600,
-      "population": null,
-      "per_capita_kg": null,
+      "population": 285721236,
+      "per_capita_kg": 1.01,
       "annual": [
         {
           "year": "1960",
@@ -10893,8 +10893,8 @@
       "name": "Mexico",
       "latest_year": "2025",
       "consumption_mt": 186000,
-      "population": null,
-      "per_capita_kg": null,
+      "population": 131946900,
+      "per_capita_kg": 1.41,
       "annual": [
         {
           "year": "1960",
@@ -11723,8 +11723,8 @@
       "name": "India",
       "latest_year": "2025",
       "consumption_mt": 81600,
-      "population": null,
-      "per_capita_kg": null,
+      "population": 1463865525,
+      "per_capita_kg": 0.06,
       "annual": [
         {
           "year": "1960",
@@ -12551,7 +12551,7 @@
   ],
   "populations": {
     "source": "World Bank API (SP.POP.TOTL)",
-    "last_updated": "2026-07-26",
+    "last_updated": "2026-07-27",
     "countries": {
       "eu": {
         "name": "European Union",
@@ -12577,6 +12577,24 @@
         "latest_year": "2025",
         "latest_population": 1406585000
       },
+      "india": {
+        "name": "India",
+        "iso3": "IND",
+        "latest_year": "2025",
+        "latest_population": 1463865525
+      },
+      "brazil": {
+        "name": "Brazil",
+        "iso3": "BRA",
+        "latest_year": "2025",
+        "latest_population": 212812405
+      },
+      "indonesia": {
+        "name": "Indonesia",
+        "iso3": "IDN",
+        "latest_year": "2025",
+        "latest_population": 285721236
+      },
       "vietnam": {
         "name": "Vietnam",
         "iso3": "VNM",
@@ -12588,6 +12606,12 @@
         "iso3": "RUS",
         "latest_year": "2025",
         "latest_population": 143513328
+      },
+      "mexico": {
+        "name": "Mexico",
+        "iso3": "MEX",
+        "latest_year": "2025",
+        "latest_population": 131946900
       },
       "turkey": {
         "name": "Turkey",
