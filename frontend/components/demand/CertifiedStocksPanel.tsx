@@ -1385,8 +1385,10 @@ type Market = "kc" | "rc";
 type ActivityKind = "grading" | "issuance" | "reception" | "decert";
 interface ActivityEvent { date: string; kind: ActivityKind; detail: string }
 
+// Short exchange-style labels: grading→cert, issuance→issued (issuer side),
+// reception→stopped (stopper/receiver side), decertification→decert.
 const _ACTIVITY_LABEL: Record<ActivityKind, string> = {
-  grading: "Grading", issuance: "Issuance", reception: "Reception", decert: "Decertification",
+  grading: "cert", issuance: "issued", reception: "stopped", decert: "decert",
 };
 // Identical colour code across both markets.
 const _ACTIVITY_COLOR: Record<ActivityKind, string> = {
@@ -1410,6 +1412,12 @@ function _feedPort(code: string, market: Market): string {
   return ROBUSTA_PORT_NAMES[c] ?? c;
 }
 
+// Shorten long origin names in the compact feed (add more as needed).
+const _FEED_ORIGIN_SHORT: Record<string, string> = {
+  "Papua New Guinea": "PNG",
+};
+const _feedOrigin = (o: string): string => _FEED_ORIGIN_SHORT[o] ?? o;
+
 // Native→display amount (bare number) for the feed. KC native = bags, RC = lots.
 const _amt = (v: number, unit: Unit, market: Market): string =>
   fmt(market === "kc" ? fromBags(v, unit) : fromLots(v, unit), unit);
@@ -1419,9 +1427,9 @@ function _gradingDetail(
   graded: number, origin: string, passedByPort: Record<string, number>,
   failed: number, unit: Unit, market: Market,
 ): string {
-  const parts = [`${_amt(graded, unit, market)} ${unitSuffix(unit)} ${origin} graded`];
+  const parts = [`${_amt(graded, unit, market)} ${unitSuffix(unit)} ${_feedOrigin(origin)} graded`];
   for (const [p, v] of Object.entries(passedByPort).sort((a, b) => b[1] - a[1])) {
-    if (v > 0) parts.push(`${_amt(v, unit, market)} passed in ${_feedPort(p, market)} port`);
+    if (v > 0) parts.push(`${_amt(v, unit, market)} passed (${_feedPort(p, market)})`);
   }
   if (failed > 0) parts.push(`${_amt(failed, unit, market)} failed`);
   return parts.join(", ");
@@ -1433,15 +1441,15 @@ function _flowDetail(
   broker: string | undefined, unit: Unit, market: Market,
 ): string {
   const parts = [`${_amt(lots, unit, market)} ${unitSuffix(unit)}`];
-  if (origin) parts.push(origin);
+  if (origin) parts.push(_feedOrigin(origin));
   if (broker) parts.push(`by ${market === "kc" ? _displayFirmName(broker) : broker}`);
-  if (port) parts.push(`in ${_feedPort(port, market)} port`);
+  if (port) parts.push(`(${_feedPort(port, market)})`);
   return parts.join(" ");
 }
 
 // "Decertification" sentence — amount, origin, port it left from.
 function _decertDetail(lots: number, origin: string, port: string, unit: Unit, market: Market): string {
-  return `−${_amt(lots, unit, market)} ${unitSuffix(unit)} ${origin} in ${_feedPort(port, market)}`;
+  return `−${_amt(lots, unit, market)} ${unitSuffix(unit)} ${_feedOrigin(origin)} (${_feedPort(port, market)})`;
 }
 
 // Largest tenderable origin at a port — implies the origin behind a decert.
