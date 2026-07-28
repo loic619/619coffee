@@ -65,13 +65,16 @@ function firstNoticeDay(symbol: string): string {
 
 interface ChainData { pub_date: string; contracts: Contract[]; }
 
-function ChainTable({ market, data }: { market: "arabica" | "robusta"; data: ChainData }) {
+function ChainTable({ market, data, showAll }: { market: "arabica" | "robusta"; data: ChainData; showAll?: boolean }) {
   if (!data?.contracts?.length) return null;
 
   const isArabica = market === "arabica";
   const unit   = isArabica ? "¢/lb" : "$/t";
   const sublabel = isArabica ? "ICE NY · Arabica (KC)" : "ICE London · Robusta (RC)";
   const accent = isArabica ? "text-amber-400" : "text-emerald-400";
+  // "Show all" (phone) reveals the columns otherwise hidden below `bp`; at lg+
+  // everything is visible regardless.
+  const hideAt = (bp: "sm" | "md" | "lg") => (showAll ? "" : `hidden ${bp}:table-cell`);
 
   function fmtExpiry(raw: string): string {
     const d = new Date(raw);
@@ -80,7 +83,7 @@ function ChainTable({ market, data }: { market: "arabica" | "robusta"; data: Cha
   }
 
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
+    <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-x-auto">
       <div className="px-2 sm:px-4 py-2 bg-slate-800 border-b border-slate-700 flex items-center justify-between min-h-[40px]">
         <div className="truncate">
           <span className="font-semibold text-sm text-white hidden sm:inline">Daily Quotes</span>
@@ -92,20 +95,23 @@ function ChainTable({ market, data }: { market: "arabica" | "robusta"; data: Cha
         </div>
         <span className="text-xs text-slate-500 whitespace-nowrap ml-2 hidden sm:inline">Barchart · {data.pub_date ?? ""}</span>
       </div>
-      <table className="w-full text-[10px] sm:text-[11px] font-mono">
+      {/* In "show all" the table takes its natural (max-content) width so the
+          revealed OI/Vol columns overflow and the wrapper scrolls; w-full would
+          instead cap it at the viewport and squeeze them out of view. */}
+      <table className={`text-[10px] sm:text-[11px] font-mono ${showAll ? "w-max lg:w-full" : "w-full"}`}>
         <thead>
           <tr className="text-slate-500 bg-slate-800/40">
             {/* Phone keeps Ct · Last · Chg so the 3-up view fits; the rest
                 reappear as the viewport widens. */}
             <th className="text-left  px-1 sm:px-1.5 py-1 w-10 whitespace-nowrap">Ct.</th>
-            <th className="text-center px-1 sm:px-1.5 py-1 w-14 whitespace-nowrap hidden md:table-cell">FND</th>
-            <th className="text-center px-1 sm:px-1.5 py-1 w-11 whitespace-nowrap hidden lg:table-cell">Exp.</th>
-            <th className="text-right px-1 sm:px-1.5 py-1 whitespace-nowrap">Last<span className="hidden sm:inline"> ({unit})</span></th>
+            <th className={`text-center px-1 sm:px-1.5 py-1 w-14 whitespace-nowrap ${hideAt("md")}`}>FND</th>
+            <th className={`text-center px-1 sm:px-1.5 py-1 w-11 whitespace-nowrap ${hideAt("lg")}`}>Exp.</th>
+            <th className="text-right px-1 sm:px-1.5 py-1 whitespace-nowrap">Last<span className={showAll ? "" : "hidden sm:inline"}> ({unit})</span></th>
             <th className="text-right px-1 sm:px-1.5 py-1 whitespace-nowrap">Chg</th>
-            <th className="text-right px-1.5 py-1 whitespace-nowrap hidden sm:table-cell">Sprd</th>
-            <th className="text-right px-1.5 py-1 whitespace-nowrap hidden lg:table-cell">Sprd Chg</th>
-            <th className="text-right px-1.5 py-1 whitespace-nowrap hidden lg:table-cell">OI</th>
-            <th className="text-right px-1.5 py-1 whitespace-nowrap hidden lg:table-cell">Vol</th>
+            <th className={`text-right px-1.5 py-1 whitespace-nowrap ${hideAt("sm")}`}>Sprd</th>
+            <th className={`text-right px-1.5 py-1 whitespace-nowrap ${hideAt("lg")}`}>Sprd Chg</th>
+            <th className={`text-right px-1.5 py-1 whitespace-nowrap ${hideAt("lg")}`}>OI</th>
+            <th className={`text-right px-1.5 py-1 whitespace-nowrap ${hideAt("lg")}`}>Vol</th>
           </tr>
         </thead>
         <tbody>
@@ -119,18 +125,18 @@ function ChainTable({ market, data }: { market: "arabica" | "robusta"; data: Cha
             return (
               <tr key={c.symbol} className={`border-t border-slate-700 ${i === 0 ? "text-white bg-slate-800/60" : "text-slate-300"}`}>
                 <td className="px-1 sm:px-1.5 py-1.5 font-bold whitespace-nowrap">{shortSym}</td>
-                <td className="px-1 sm:px-1.5 py-1.5 text-center text-amber-400/80 whitespace-nowrap hidden md:table-cell">{firstNoticeDay(c.symbol)}</td>
-                <td className="px-1 sm:px-1.5 py-1.5 text-center text-slate-500 whitespace-nowrap hidden lg:table-cell">{fmtExpiry(c.expiry)}</td>
+                <td className={`px-1 sm:px-1.5 py-1.5 text-center text-amber-400/80 whitespace-nowrap ${hideAt("md")}`}>{firstNoticeDay(c.symbol)}</td>
+                <td className={`px-1 sm:px-1.5 py-1.5 text-center text-slate-500 whitespace-nowrap ${hideAt("lg")}`}>{fmtExpiry(c.expiry)}</td>
                 <td className={`px-1 sm:px-1.5 py-1.5 text-right font-bold ${i === 0 ? accent : ""}`}>{c.last?.toFixed(dec)}</td>
                 <td className={`px-1 sm:px-1.5 py-1.5 text-right ${chgColor}`}>{c.chg == null ? "—" : (c.chg >= 0 ? "+" : "") + c.chg.toFixed(dec)}</td>
-                <td className={`px-1.5 py-1.5 text-right hidden sm:table-cell ${spread === null ? "text-slate-600" : spread >= 0 ? "text-sky-400" : "text-orange-400"}`}>
+                <td className={`px-1.5 py-1.5 text-right ${hideAt("sm")} ${spread === null ? "text-slate-600" : spread >= 0 ? "text-sky-400" : "text-orange-400"}`}>
                   {spread !== null ? (spread >= 0 ? "+" : "") + spread.toFixed(dec) : "—"}
                 </td>
-                <td className={`px-1.5 py-1.5 text-right hidden lg:table-cell ${spreadChg === null ? "text-slate-600" : spreadChg >= 0 ? "text-sky-400" : "text-orange-400"}`}>
+                <td className={`px-1.5 py-1.5 text-right ${hideAt("lg")} ${spreadChg === null ? "text-slate-600" : spreadChg >= 0 ? "text-sky-400" : "text-orange-400"}`}>
                   {spreadChg !== null ? (spreadChg >= 0 ? "+" : "") + spreadChg.toFixed(dec) : "—"}
                 </td>
-                <td className="px-1.5 py-1.5 text-right hidden lg:table-cell">{fmt(c.oi)}</td>
-                <td className="px-1.5 py-1.5 text-right text-slate-400 hidden lg:table-cell">{fmt(c.volume)}</td>
+                <td className={`px-1.5 py-1.5 text-right ${hideAt("lg")}`}>{fmt(c.oi)}</td>
+                <td className={`px-1.5 py-1.5 text-right text-slate-400 ${hideAt("lg")}`}>{fmt(c.volume)}</td>
               </tr>
             );
           })}
@@ -921,6 +927,10 @@ function FuturesPageInner() {
   const [tab, setTab] = useUrlState<FuturesTab>("tab", "price", (raw) =>
     (FUTURES_TABS as string[]).includes(raw) ? (raw as FuturesTab) : "price"
   );
+  // Phone-only: reveal the Barchart Daily Quotes secondary columns (FND, Exp,
+  // spreads, OI, Vol). On by default at lg+, so this toggle only matters on
+  // phones where the compact 3-up hides them.
+  const [showAllBarchart, setShowAllBarchart] = useState(false);
 
   // Static JSON, no backend needed. useFetchJson handles AbortController +
   // error states; on fetch failure we fall back to an empty chain so the
@@ -972,10 +982,19 @@ function FuturesPageInner() {
           <AcapheLiveQuotes />
 
           {/* Daily quotes separator */}
-          <div className="border-t border-slate-800 pt-4">
-            <h2 className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-3">
+          <div className="border-t border-slate-800 pt-4 flex items-center justify-between mb-3">
+            <h2 className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">
               Daily Quotes · Barchart
             </h2>
+            {/* Phone-only: reveal FND/Exp/spreads/OI/Vol (stacks the tables so
+                each gets full width to scroll). Hidden at lg+ where all show. */}
+            <button
+              onClick={() => setShowAllBarchart(v => !v)}
+              className="lg:hidden text-[10px] text-slate-300 hover:text-white flex items-center gap-1 border border-slate-600 rounded px-1.5 py-0.5"
+              aria-expanded={showAllBarchart}
+            >
+              {showAllBarchart ? "Compact" : "Show all"}<span className="text-[8px]">{showAllBarchart ? "◀" : "▶"}</span>
+            </button>
           </div>
 
           {loading && (
@@ -991,15 +1010,15 @@ function FuturesPageInner() {
               No futures data yet — check back after the next scrape run.
             </p>
           )}
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-1.5 lg:gap-4 items-start">
-            {arabicaChain && <ChainTable market="arabica" data={arabicaChain} />}
+          <div className={`grid gap-1.5 lg:gap-4 items-start ${showAllBarchart ? "grid-cols-1 lg:grid-cols-[1fr_auto_1fr]" : "grid-cols-[1fr_auto_1fr]"}`}>
+            {arabicaChain && <ChainTable market="arabica" data={arabicaChain} showAll={showAllBarchart} />}
             {arabicaChain && robustaChain && (
               <KcRcCentsPanel
                 arabica={arabicaChain.contracts}
                 robusta={robustaChain.contracts}
               />
             )}
-            {robustaChain && <ChainTable market="robusta" data={robustaChain} />}
+            {robustaChain && <ChainTable market="robusta" data={robustaChain} showAll={showAllBarchart} />}
           </div>
           {/* OI Evolution to FND — NY + LDN side-by-side; each chart shows
               OI buildup over the trading days leading into First Notice Day

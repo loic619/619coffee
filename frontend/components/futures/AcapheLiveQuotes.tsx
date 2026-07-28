@@ -259,7 +259,10 @@ function MergedPhoneQuotes({ arabica, robusta }: { arabica: AcapheContract[]; ro
   const kcFields = active.slice().reverse();                    // KC (left) mirrors RC
 
   const headCell = (f: { head: string; center?: boolean }, side: string, i: number) => (
-    <th key={`${side}-${i}`} className={`px-0.5 py-1 font-normal ${f.center ? "text-center" : "text-right"}`}>{f.head}</th>
+    <th key={`${side}-${i}`} className={`px-0.5 py-1 font-normal ${f.center ? "text-center" : "text-right"}`}>
+      {/* The code column is labelled by exchange: NY (arabica) / LD (robusta). */}
+      {f.head === "Ct" ? (side === "kc" ? "NY" : "LD") : f.head}
+    </th>
   );
 
   return (
@@ -295,7 +298,7 @@ function MergedPhoneQuotes({ arabica, robusta }: { arabica: AcapheContract[]; ro
                 <td className={`px-0.5 py-1 text-center font-semibold whitespace-nowrap ${isFront ? "text-sky-300" : "text-sky-400/70"}`}>
                   {arb != null ? arb.toFixed(1) : "—"}
                 </td>
-                {active.map((f, i) => <React.Fragment key={`rc-${i}`}>{f.cell(r, 0, isFront, "text-emerald-400", key)}</React.Fragment>)}
+                {active.map((f, i) => <React.Fragment key={`rc-${i}`}>{f.cell(r, 0, isFront, "text-amber-400", key)}</React.Fragment>)}
               </tr>
             );
           })}
