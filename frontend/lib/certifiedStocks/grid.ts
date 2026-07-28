@@ -39,18 +39,19 @@ export const CLASS_LABEL_RC: Record<number, string> = {
 };
 
 // Per-card grid sizing. Hard rule (locked at user's request):
-//   • Every Robusta square is exactly 13 px — matches the baseline size
-//     a Houston-Arabica square previously rendered at (small warehouse,
-//     used as the reference point).
-//   • Every Arabica square is 17 px (= 13 × √(17 MT / 10 MT) ≈ 13 × 1.30
-//     so the square area scales with the contract's warrant volume —
-//     Arabica 17 MT lot vs Robusta 10 MT lot).
+//   • Arabica : Robusta square size stays in the ratio √(17 MT / 10 MT) ≈ 1.30
+//     so the square area scales with the contract's warrant volume (Arabica
+//     17 MT lot vs Robusta 10 MT lot).
+//   • Sizes halved from the original 17/13 px at the user's request — the
+//     full-size grids overflowed the warehouse cards on narrow screens (a
+//     26-wide Antwerp grid was ~442 px, past a phone's width). Half size keeps
+//     the same relative areas while fitting the card.
 // cols = ceil(√squares) keeps the grid square-ish; cards grow to fit and
 // the parent row wraps. This means visual area is comparable across
 // warehouses and contracts — one Antwerp lot covers the same number of
 // pixels regardless of how many lots Antwerp holds.
-export const CELL_PX_KC = 17;
-export const CELL_PX_RC = 13;
+export const CELL_PX_KC = 8.5;
+export const CELL_PX_RC = 6.5;
 export const _gridCols = (squares: number) => (squares <= 0 ? 4 : Math.max(4, Math.ceil(Math.sqrt(squares))));
 export const _rowsForCount = (n: number, cols: number) => (n <= 0 ? 0 : Math.ceil(n / cols));
 
