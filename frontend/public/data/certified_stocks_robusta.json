@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-27T21:25:41+00:00",
-  "as_of": "2026-07-24",
+  "generated_at": "2026-07-28T04:45:04+00:00",
+  "as_of": "2026-07-27",
   "snapshots": [
     {
       "date": "2025-05-28",
@@ -5595,16 +5595,42 @@
         "ROT": 0,
         "TRI": 0
       }
+    },
+    {
+      "date": "2026-07-27",
+      "cut_off_date": "2026-07-26",
+      "total_lots_certified": 4228,
+      "total_bags_60kg_equivalent": 704667,
+      "non_tend_lots": 2,
+      "suspended_lots": 0,
+      "lots_graded_today": 0,
+      "lots_sold_today": 14,
+      "lots_bought_today": 14,
+      "tenders_today": 14,
+      "by_port_lots": {
+        "ANT": 2655,
+        "LON": 1542,
+        "FEL": 26,
+        "BAR": 5,
+        "AMS": 0,
+        "BRE": 0,
+        "HAM": 0,
+        "LEH": 0,
+        "LIV": 0,
+        "NOR": 0,
+        "ROT": 0,
+        "TRI": 0
+      }
     }
   ],
   "latest_detail": {
     "stock_report": {
-      "cut_off_date": "2026-07-23",
+      "cut_off_date": "2026-07-26",
       "ports": [
         {
           "port_id": "ANT",
           "port_name": "Antwerp",
-          "with_val_cert": 2627,
+          "with_val_cert": 2655,
           "non_tend": 2,
           "suspended": 0
         },
@@ -5687,12 +5713,12 @@
         }
       ],
       "grand_total": {
-        "with_val_cert": 4200,
+        "with_val_cert": 4228,
         "non_tend": 2,
         "suspended": 0
       }
     },
-    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260724_103022.csv"
+    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260727_103028.csv"
   },
   "recent_activity": {
     "gradings": [
@@ -12401,6 +12427,34 @@
           "sold": 0,
           "bought": 0
         }
+      },
+      {
+        "date": "2026-07-27",
+        "report_date": "2026-07-27",
+        "delivery_date": "2026-07-27",
+        "members": [
+          {
+            "code": "ICS",
+            "rows": [
+              {
+                "origin": "Brazilian Conillon",
+                "sold": 6,
+                "bought": 6
+              },
+              {
+                "origin": "Indonesia",
+                "sold": 8,
+                "bought": 8
+              }
+            ],
+            "total_sold": 14,
+            "total_bought": 14
+          }
+        ],
+        "grand_total": {
+          "sold": 14,
+          "bought": 14
+        }
       }
     ],
     "tenders": [
@@ -15888,6 +15942,56 @@
         "grand_totals": {
           "originals": 0,
           "originals_month": 366,
+          "retenders": 0,
+          "retenders_month": 1,
+          "originals_rejected": 0,
+          "originals_rejected_month": 0,
+          "retenders_rejected": 0,
+          "retenders_rejected_month": 0,
+          "originals_withdrawn": 0,
+          "originals_withdrawn_month": 0,
+          "retenders_withdrawn": 0,
+          "retenders_withdrawn_month": 0,
+          "originals_substituted": 0,
+          "originals_substituted_month": 0,
+          "retenders_substituted": 0,
+          "retenders_substituted_month": 0,
+          "original_substitutions": 0,
+          "original_substitutions_month": 0,
+          "retender_substitutions": 0,
+          "retender_substitutions_month": 0
+        }
+      },
+      {
+        "date": "2026-07-27",
+        "report_date": "2026-07-27",
+        "delivery_period": "2026-07",
+        "business_date": "2026-07-27",
+        "by_origin": [
+          {
+            "origin": "Brazilian Conillon",
+            "originals_today": 6,
+            "originals_month": 241,
+            "retenders_today": 0,
+            "retenders_month": 1
+          },
+          {
+            "origin": "Indonesia",
+            "originals_today": 8,
+            "originals_month": 139,
+            "retenders_today": 0,
+            "retenders_month": 0
+          }
+        ],
+        "totals_today": {
+          "originals": 14,
+          "originals_month": 380,
+          "retenders": 0,
+          "retenders_month": 1
+        },
+        "grand_totals": {
+          "originals": 14,
+          "originals_month": 380,
           "retenders": 0,
           "retenders_month": 1,
           "originals_rejected": 0,
