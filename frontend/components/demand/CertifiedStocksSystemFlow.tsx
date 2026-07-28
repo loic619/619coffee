@@ -18,7 +18,7 @@ import { KC_ORIGIN_COLORS, RC_ORIGIN_COLORS, _originColor } from "@/lib/certifie
 import { type DensitySquare } from "@/lib/certifiedStocks/types";
 import {
   CLASS_BORDER_RC, CLASS_LABEL_RC, CELL_PX_KC, CELL_PX_RC,
-  _gridCols, _rowsForCount, buildDensityGrid,
+  _rowsForCount, buildDensityGrid,
 } from "@/lib/certifiedStocks/grid";
 import { type ArabicaJsonShape, type RobustaJsonShape } from "@/lib/certifiedStocks/shapes";
 import { buildArabica, buildRobusta, type SystemFlowMarket } from "@/lib/certifiedStocks/builders";
@@ -352,7 +352,10 @@ export default function CertifiedStocksSystemFlow({ arabica, robusta, start, end
             <div className="text-xs text-slate-600 italic">No port data loaded.</div>
           ) : (
             <div className="flex flex-wrap items-start gap-1.5 w-full">
-              {mkt.ports.slice(0, 8).map((p) => {
+              {[...mkt.ports]
+                .sort((a, b) => Math.ceil(b.current / b.squareUnit) - Math.ceil(a.current / a.squareUnit))
+                .slice(0, 8)
+                .map((p) => {
                 const {
                   existing, netGained, ghosts, transited,
                   byOriginExisting, byOriginNetGained, byOriginGhost, byOriginTransit,
@@ -389,14 +392,18 @@ export default function CertifiedStocksSystemFlow({ arabica, robusta, start, end
                 // and contracts — the user can eyeball "this is twice as
                 // much coffee" because the squares ARE the same size.
                 const cellPx = p.market === "KC" ? CELL_PX_KC : CELL_PX_RC;
-                const cols = _gridCols(existing.length + netGained.length);
+                // Horizontal axis (columns) is a fixed step per warehouse size, so
+                // the grid width reads the warehouse's magnitude at a glance:
+                //   > 2000 lots → 50 wide · 500–2000 → 30 · < 500 → 15.
+                // 1 square = 1 lot, so rows = ceil(lots / cols); the total area
+                // still equals the lot count. Ports are rendered biggest-first.
+                const cols = totalWarrants > 2000 ? 50 : totalWarrants >= 500 ? 30 : 15;
                 const colsTemplate = `repeat(${cols}, ${cellPx}px)`;
-                // Size the card to its grid instead of stretching to the widest
-                // text/flow bar: width = the grid's own pixel width (cols squares
-                // + 1px gaps + grid p-1) + card p-1.5, floored at 156px so the
-                // header/poison/flow text stays readable. Small warehouses shrink
-                // and pack several per row; the header text wraps within.
-                const cardPx = Math.max(156, cols * cellPx + (cols - 1) + 8 + 12);
+                // Card width tracks the grid (cols squares + 1px gaps + grid p-1
+                // + card p-1.5). A low floor keeps tiny cards readable while still
+                // letting a medium (30-wide) + small (15-wide) pair share one
+                // phone row and small ones pack several-up.
+                const cardPx = Math.max(120, cols * cellPx + (cols - 1) + 8 + 12);
                 const dimLabel = (n: number) => {
                   const r = _rowsForCount(n, cols);
                   return r === 0 ? "" : `${cols}×${r}`;
@@ -425,7 +432,7 @@ export default function CertifiedStocksSystemFlow({ arabica, robusta, start, end
                 return (
                   <div key={`${p.market}-${p.code}`}
                        className="bg-slate-950/60 border border-slate-800 rounded-md p-1.5 flex flex-col shrink-0"
-                       style={{ width: cardPx }}>
+                       style={{ width: cardPx, maxWidth: "100%" }}>
                     {/* Header */}
                     <div className="flex justify-between items-baseline mb-1">
                       <div>
