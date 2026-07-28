@@ -235,33 +235,28 @@ function MergedPhoneQuotes({ arabica, robusta }: { arabica: AcapheContract[]; ro
   const signed = (n: number | null | undefined, dec: number) =>
     n == null ? "—" : (n >= 0 ? "+" : "") + n.toFixed(dec);
 
-  // Render one market's cells (FND·Exp before price, OI·Vol after) for a row.
-  function legCells(leg: Leg | undefined, dec: number, accent: string) {
-    return (
-      <>
-        {showMore && <td className="px-0.5 py-1 text-center text-amber-400/70 whitespace-nowrap">{leg ? leg.fnd : ""}</td>}
-        {showMore && <td className="px-0.5 py-1 text-center text-slate-500 whitespace-nowrap">{leg ? leg.exp : ""}</td>}
-        <td className={`px-0.5 py-1 text-right font-bold whitespace-nowrap ${accent}`}>{leg ? fmt(leg.last, dec) : ""}</td>
-        <td className={`px-0.5 py-1 text-right whitespace-nowrap ${chgColor(leg?.change)}`}>{leg ? signed(leg.change, dec) : ""}</td>
-        <td className={`px-0.5 py-1 text-right whitespace-nowrap ${sprdColor(leg?.spread)}`}>{leg ? signed(leg.spread, dec) : ""}</td>
-        <td className={`px-0.5 py-1 text-right whitespace-nowrap ${sprdColor(leg?.spreadChg)}`}>{leg ? signed(leg.spreadChg, dec) : ""}</td>
-        {showMore && <td className="px-0.5 py-1 text-right whitespace-nowrap text-slate-400">{leg ? fmt(leg.oi) : ""}</td>}
-        {showMore && <td className="px-0.5 py-1 text-right whitespace-nowrap text-slate-400">{leg ? fmt(leg.vol) : ""}</td>}
-      </>
-    );
-  }
+  // Column fields for one market, ordered CENTER → OUTER. The row is symmetric:
+  // the RC (right) side renders these in order and the KC (left) side in reverse,
+  // so both markets fan out from the central contract code + arbitrage. Compact
+  // stops at SpΔ; the extras (FND, Exp, OI, Vol) appear only when expanded.
+  const fields: Array<{
+    head: string; extra?: boolean; center?: boolean;
+    cell: (leg: Leg | undefined, dec: number, isFront: boolean, accent: string) => React.ReactNode;
+  }> = [
+    { head: "FND", extra: true, center: true, cell: (l) => <td className="px-0.5 py-1 text-center text-amber-400/70 whitespace-nowrap">{l ? l.fnd : ""}</td> },
+    { head: "Exp", extra: true, center: true, cell: (l) => <td className="px-0.5 py-1 text-center text-slate-500 whitespace-nowrap">{l ? l.exp : ""}</td> },
+    { head: "Last", cell: (l, dec, isFront, accent) => <td className={`px-0.5 py-1 text-right font-bold whitespace-nowrap ${isFront ? accent : ""}`}>{l ? fmt(l.last, dec) : ""}</td> },
+    { head: "Δ",   cell: (l, dec) => <td className={`px-0.5 py-1 text-right whitespace-nowrap ${chgColor(l?.change)}`}>{l ? signed(l.change, dec) : ""}</td> },
+    { head: "Sp",  cell: (l, dec) => <td className={`px-0.5 py-1 text-right whitespace-nowrap ${sprdColor(l?.spread)}`}>{l ? signed(l.spread, dec) : ""}</td> },
+    { head: "SpΔ", cell: (l, dec) => <td className={`px-0.5 py-1 text-right whitespace-nowrap ${sprdColor(l?.spreadChg)}`}>{l ? signed(l.spreadChg, dec) : ""}</td> },
+    { head: "OI",  extra: true, cell: (l) => <td className="px-0.5 py-1 text-right whitespace-nowrap text-slate-400">{l ? fmt(l.oi) : ""}</td> },
+    { head: "Vol", extra: true, cell: (l) => <td className="px-0.5 py-1 text-right whitespace-nowrap text-slate-400">{l ? fmt(l.vol) : ""}</td> },
+  ];
+  const active   = fields.filter(f => showMore || !f.extra);   // RC (right), center→outer
+  const kcFields = active.slice().reverse();                    // KC (left) mirrors RC
 
-  const HeadCells = ({ accent }: { accent: string }) => (
-    <>
-      {showMore && <th className="px-0.5 py-1 text-center font-normal">FND</th>}
-      {showMore && <th className="px-0.5 py-1 text-center font-normal">Exp</th>}
-      <th className={`px-0.5 py-1 text-right ${accent}`}>Last</th>
-      <th className="px-0.5 py-1 text-right">Δ</th>
-      <th className="px-0.5 py-1 text-right">Sp</th>
-      <th className="px-0.5 py-1 text-right">SpΔ</th>
-      {showMore && <th className="px-0.5 py-1 text-right font-normal">OI</th>}
-      {showMore && <th className="px-0.5 py-1 text-right font-normal">Vol</th>}
-    </>
+  const headCell = (f: { head: string; center?: boolean }, side: string, i: number) => (
+    <th key={`${side}-${i}`} className={`px-0.5 py-1 font-normal ${f.center ? "text-center" : "text-right"}`}>{f.head}</th>
   );
 
   return (
@@ -281,10 +276,10 @@ function MergedPhoneQuotes({ arabica, robusta }: { arabica: AcapheContract[]; ro
       <table className="w-full text-[10px] font-mono">
         <thead>
           <tr className="text-slate-500 bg-slate-800/40">
-            <th className="px-0.5 py-1 text-left">Ct</th>
-            <HeadCells accent="text-amber-400/90" />
-            <th className="px-0.5 py-1 text-right text-sky-300">×</th>
-            <HeadCells accent="text-emerald-400/90" />
+            {kcFields.map((f, i) => headCell(f, "kc", i))}
+            <th className="px-0.5 py-1 text-center text-sky-300">×</th>
+            <th className="px-0.5 py-1 text-center text-slate-300">Ct</th>
+            {active.map((f, i) => headCell(f, "rc", i))}
           </tr>
         </thead>
         <tbody>
@@ -294,12 +289,12 @@ function MergedPhoneQuotes({ arabica, robusta }: { arabica: AcapheContract[]; ro
             const isFront = idx === 0;
             return (
               <tr key={key} className={`border-t border-slate-700 ${isFront ? "text-white bg-slate-800/60" : "text-slate-300"}`}>
-                <td className="px-0.5 py-1 font-bold whitespace-nowrap">{key}</td>
-                {legCells(k, 2, isFront ? "text-amber-400" : "")}
-                <td className={`px-0.5 py-1 text-right whitespace-nowrap ${isFront ? "text-sky-300" : "text-sky-400/70"}`}>
+                {kcFields.map((f, i) => <React.Fragment key={`kc-${i}`}>{f.cell(k, 2, isFront, "text-amber-400")}</React.Fragment>)}
+                <td className={`px-0.5 py-1 text-center whitespace-nowrap ${isFront ? "text-sky-300" : "text-sky-400/70"}`}>
                   {arb != null ? `×${arb.toFixed(2)}` : "—"}
                 </td>
-                {legCells(r, 0, isFront ? "text-emerald-400" : "")}
+                <td className="px-0.5 py-1 text-center font-bold whitespace-nowrap">{key}</td>
+                {active.map((f, i) => <React.Fragment key={`rc-${i}`}>{f.cell(r, 0, isFront, "text-emerald-400")}</React.Fragment>)}
               </tr>
             );
           })}
