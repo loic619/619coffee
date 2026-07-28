@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-07-21T09:08:08+00:00",
+  "scraped_at": "2026-07-28T09:16:08+00:00",
   "nino34": {
     "source": "NOAA CPC weekly SST anomalies (wksst8110.for)",
     "source_url": "https://www.cpc.ncep.noaa.gov/data/indices/wksst9120.for",
@@ -9,8 +9,8 @@
       "la_nina": -0.5
     },
     "latest": {
-      "week_ending": "2026-07-15",
-      "sst_anomaly": 2.1,
+      "week_ending": "2026-07-22",
+      "sst_anomaly": 2.2,
       "phase": "el-nino"
     },
     "weekly": [
@@ -9372,7 +9372,7 @@
       },
       {
         "week_ending": "2026-07-01",
-        "sst_anomaly": 1.8
+        "sst_anomaly": 1.7
       },
       {
         "week_ending": "2026-07-08",
@@ -9381,6 +9381,10 @@
       {
         "week_ending": "2026-07-15",
         "sst_anomaly": 2.1
+      },
+      {
+        "week_ending": "2026-07-22",
+        "sst_anomaly": 2.2
       }
     ]
   },
