@@ -104,7 +104,7 @@ export default function CertifiedStocksTilesReport({ isReportMode = true }: { is
         {aSnaps.length > 0 && (
           <div>
             <div className="text-sm font-semibold text-amber-400 mb-1.5">
-              Arabica · ICE Futures US (KC) <span className="text-[10px] font-normal text-slate-500">as of {arabica?.as_of ?? "—"}</span>
+              Arabica · ICE US (KC) <span className="text-[10px] font-normal text-slate-500">as of {arabica?.as_of ?? "—"}</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <Tile label="Total certified" value={fmt(aTotal)} unit="bags" />
@@ -118,7 +118,7 @@ export default function CertifiedStocksTilesReport({ isReportMode = true }: { is
         {rSnaps.length > 0 && (
           <div>
             <div className="text-sm font-semibold text-emerald-400 mb-1.5">
-              Robusta · ICE Futures Europe (RC) <span className="text-[10px] font-normal text-slate-500">as of {robusta?.as_of ?? "—"}</span>
+              Robusta · ICE Europe (RC) <span className="text-[10px] font-normal text-slate-500">as of {robusta?.as_of ?? "—"}</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <Tile label="Total certified" value={fmt(rTotal)} unit="lots" />

@@ -1352,7 +1352,7 @@ function ArabicaColumn({ d, unit, cutoff, end, sinceLabel }: { d: ArabicaJson | 
     <div className="space-y-3">
       <div className="flex items-baseline justify-between gap-2 flex-wrap">
         <div>
-          <div className="text-sm font-semibold text-amber-400">Arabica · ICE Futures US (KC)</div>
+          <div className="text-sm font-semibold text-amber-400">Arabica · ICE US (KC)</div>
           <div className="text-[10px] text-slate-500">
             as of <span className="font-mono">{d?.as_of ?? "—"}</span>
             {d && <span className="ml-2">· {d.snapshots.length} snapshots in window</span>}
@@ -2374,7 +2374,7 @@ function RobustaColumn({ d, unit, cutoff, end, sinceLabel }: { d: RobustaJson | 
     <div className="space-y-3">
       <div className="flex items-baseline justify-between gap-2 flex-wrap">
         <div>
-          <div className="text-sm font-semibold text-emerald-400">Robusta · ICE Futures Europe (RC)</div>
+          <div className="text-sm font-semibold text-emerald-400">Robusta · ICE Europe (RC)</div>
           <div className="text-[10px] text-slate-500">
             as of <span className="font-mono">{d?.as_of ?? "—"}</span>
             {d && <span className="ml-2">· {d.snapshots.length} snapshots in window</span>}
