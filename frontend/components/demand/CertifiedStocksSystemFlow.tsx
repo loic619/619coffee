@@ -391,6 +391,12 @@ export default function CertifiedStocksSystemFlow({ arabica, robusta, start, end
                 const cellPx = p.market === "KC" ? CELL_PX_KC : CELL_PX_RC;
                 const cols = _gridCols(existing.length + netGained.length);
                 const colsTemplate = `repeat(${cols}, ${cellPx}px)`;
+                // Size the card to its grid instead of stretching to the widest
+                // text/flow bar: width = the grid's own pixel width (cols squares
+                // + 1px gaps + grid p-1) + card p-1.5, floored at 156px so the
+                // header/poison/flow text stays readable. Small warehouses shrink
+                // and pack several per row; the header text wraps within.
+                const cardPx = Math.max(156, cols * cellPx + (cols - 1) + 8 + 12);
                 const dimLabel = (n: number) => {
                   const r = _rowsForCount(n, cols);
                   return r === 0 ? "" : `${cols}×${r}`;
@@ -418,8 +424,8 @@ export default function CertifiedStocksSystemFlow({ arabica, robusta, start, end
                     : {};
                 return (
                   <div key={`${p.market}-${p.code}`}
-                       className="bg-slate-950/60 border border-slate-800 rounded-md p-1.5 flex flex-col"
-                       style={{ minWidth: 0 }}>
+                       className="bg-slate-950/60 border border-slate-800 rounded-md p-1.5 flex flex-col shrink-0"
+                       style={{ width: cardPx }}>
                     {/* Header */}
                     <div className="flex justify-between items-baseline mb-1">
                       <div>
