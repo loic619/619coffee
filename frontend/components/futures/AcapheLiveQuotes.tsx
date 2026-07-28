@@ -173,6 +173,142 @@ function RatioColumn({ arabica, robusta }: { arabica: AcapheContract[]; robusta:
   );
 }
 
+// ── Merged phone view: one row per contract month ─────────────────────────────
+// Phones can't fit the three desktop panels side-by-side, so below `lg` we
+// collapse Arabica · Arbitrage · Robusta into ONE month-keyed table. The shared
+// month code (e.g. "U26") is printed once; the arbitrage is a single value
+// (KC¢ ÷ RC$). A "More"/"Less" toggle reveals the secondary columns (FND,
+// expiry, OI, volume). Months that trade in only one market leave the other
+// side blank; the arbitrage still pairs the nearest cross-market leg
+// (RC Nov ↔ KC Dec, KC Dec ↔ RC Jan of the next year).
+
+interface Leg {
+  last: number; change: number; spread: number | null; spreadChg: number | null;
+  oi: number | null; vol: number; fnd: string; exp: string;
+}
+
+function buildLegs(contracts: AcapheContract[], isArabica: boolean): Map<string, Leg> {
+  const m = new Map<string, Leg>();
+  contracts.forEach((c, i) => {
+    const next = contracts[i + 1];
+    const sym  = acapheToSymbol(c.month, isArabica);
+    m.set(c.month[1] + c.month.slice(-2), {
+      last: c.last, change: c.change,
+      spread:    next ? c.last - next.last : null,
+      spreadChg: next ? c.change - next.change : null,
+      oi: c.oi, vol: c.vol, fnd: calcFnd(sym), exp: calcOptLtd(sym),
+    });
+  });
+  return m;
+}
+
+const _monthOrder = (key: string) =>
+  (2000 + parseInt(key.slice(1))) * 12 + (LETTER_TO_MONTH[key[0]] ?? 0);
+
+function MergedPhoneQuotes({ arabica, robusta }: { arabica: AcapheContract[]; robusta: AcapheContract[] }) {
+  const [showMore, setShowMore] = useState(false);
+  const kc = buildLegs(arabica, true);
+  const rc = buildLegs(robusta, false);
+  const keys = Array.from(new Set(Array.from(kc.keys()).concat(Array.from(rc.keys()))))
+    .sort((a, b) => _monthOrder(a) - _monthOrder(b));
+
+  // Arbitrage ratio (KC¢ ÷ RC$·22.046) for a row, pairing the nearest cross leg
+  // when the month trades in only one market.
+  function arbRatio(key: string): number | null {
+    const yr = key.slice(1);
+    let k: Leg | undefined, r: Leg | undefined;
+    if (key[0] === "X") {            // RC Nov ↔ KC Dec (same year)
+      r = rc.get(key); k = kc.get("Z" + yr);
+    } else if (key[0] === "Z") {     // KC Dec ↔ RC Jan (next year)
+      k = kc.get(key); r = rc.get("F" + String(parseInt(yr) + 1).padStart(2, "0"));
+    } else {                         // shared month
+      k = kc.get(key); r = rc.get(key);
+    }
+    if (!k || !r || r.last <= 0) return null;
+    return (k.last * 22.046) / r.last;
+  }
+
+  const sprdColor = (n: number | null | undefined) =>
+    n == null ? "text-slate-600" : n >= 0 ? "text-sky-400" : "text-orange-400";
+  const chgColor = (n: number | null | undefined) =>
+    n == null ? "text-slate-600" : n >= 0 ? "text-emerald-400" : "text-red-400";
+  const signed = (n: number | null | undefined, dec: number) =>
+    n == null ? "—" : (n >= 0 ? "+" : "") + n.toFixed(dec);
+
+  // Render one market's cells (FND·Exp before price, OI·Vol after) for a row.
+  function legCells(leg: Leg | undefined, dec: number, accent: string) {
+    return (
+      <>
+        {showMore && <td className="px-0.5 py-1 text-center text-amber-400/70 whitespace-nowrap">{leg ? leg.fnd : ""}</td>}
+        {showMore && <td className="px-0.5 py-1 text-center text-slate-500 whitespace-nowrap">{leg ? leg.exp : ""}</td>}
+        <td className={`px-0.5 py-1 text-right font-bold whitespace-nowrap ${accent}`}>{leg ? fmt(leg.last, dec) : ""}</td>
+        <td className={`px-0.5 py-1 text-right whitespace-nowrap ${chgColor(leg?.change)}`}>{leg ? signed(leg.change, dec) : ""}</td>
+        <td className={`px-0.5 py-1 text-right whitespace-nowrap ${sprdColor(leg?.spread)}`}>{leg ? signed(leg.spread, dec) : ""}</td>
+        <td className={`px-0.5 py-1 text-right whitespace-nowrap ${sprdColor(leg?.spreadChg)}`}>{leg ? signed(leg.spreadChg, dec) : ""}</td>
+        {showMore && <td className="px-0.5 py-1 text-right whitespace-nowrap text-slate-400">{leg ? fmt(leg.oi) : ""}</td>}
+        {showMore && <td className="px-0.5 py-1 text-right whitespace-nowrap text-slate-400">{leg ? fmt(leg.vol) : ""}</td>}
+      </>
+    );
+  }
+
+  const HeadCells = ({ accent }: { accent: string }) => (
+    <>
+      {showMore && <th className="px-0.5 py-1 text-center font-normal">FND</th>}
+      {showMore && <th className="px-0.5 py-1 text-center font-normal">Exp</th>}
+      <th className={`px-0.5 py-1 text-right ${accent}`}>Last</th>
+      <th className="px-0.5 py-1 text-right">Δ</th>
+      <th className="px-0.5 py-1 text-right">Sp</th>
+      <th className="px-0.5 py-1 text-right">SpΔ</th>
+      {showMore && <th className="px-0.5 py-1 text-right font-normal">OI</th>}
+      {showMore && <th className="px-0.5 py-1 text-right font-normal">Vol</th>}
+    </>
+  );
+
+  return (
+    <div className="lg:hidden bg-slate-900 border border-slate-700 rounded-lg overflow-x-auto">
+      <div className="px-2 py-2 bg-slate-800 border-b border-slate-700 flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold text-white whitespace-nowrap">
+          Live Quotes · <span className="text-amber-400">KC</span> <span className="text-slate-500">/</span> <span className="text-emerald-400">RC</span>
+        </span>
+        <button
+          onClick={() => setShowMore(v => !v)}
+          className="text-[10px] text-slate-300 hover:text-white flex items-center gap-1 border border-slate-600 rounded px-1.5 py-0.5"
+          aria-expanded={showMore}
+        >
+          {showMore ? "Less" : "More"}<span className="text-[8px]">{showMore ? "◀" : "▶"}</span>
+        </button>
+      </div>
+      <table className="w-full text-[10px] font-mono">
+        <thead>
+          <tr className="text-slate-500 bg-slate-800/40">
+            <th className="px-0.5 py-1 text-left">Ct</th>
+            <HeadCells accent="text-amber-400/90" />
+            <th className="px-0.5 py-1 text-right text-sky-300">×</th>
+            <HeadCells accent="text-emerald-400/90" />
+          </tr>
+        </thead>
+        <tbody>
+          {keys.map((key, idx) => {
+            const k = kc.get(key), r = rc.get(key);
+            const arb = arbRatio(key);
+            const isFront = idx === 0;
+            return (
+              <tr key={key} className={`border-t border-slate-700 ${isFront ? "text-white bg-slate-800/60" : "text-slate-300"}`}>
+                <td className="px-0.5 py-1 font-bold whitespace-nowrap">{key}</td>
+                {legCells(k, 2, isFront ? "text-amber-400" : "")}
+                <td className={`px-0.5 py-1 text-right whitespace-nowrap ${isFront ? "text-sky-300" : "text-sky-400/70"}`}>
+                  {arb != null ? `×${arb.toFixed(2)}` : "—"}
+                </td>
+                {legCells(r, 0, isFront ? "text-emerald-400" : "")}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 // ── Chain table (matches Daily Quotes columns exactly) ────────────────────────
 
 function ChainTable({
@@ -484,11 +620,12 @@ export default function AcapheLiveQuotes() {
         </div>
       )}
 
-      {/* Chain tables + KC/RC ratio column. Stay 3-up (Arabica · Arbitrage ·
-          Robusta) on phones too — the tables drop to Ct·Last·Chg and the
-          arbitrage shows the ratio only, so the desktop side-by-side view is
-          preserved at 390px. Tight gap on phone, normal from lg. */}
-      <div className="grid grid-cols-[1fr_auto_1fr] gap-1.5 lg:gap-4 items-start">
+      {/* Phone: one merged month-keyed table (Arabica · Arb · Robusta) with a
+          More/Less toggle for the secondary columns. */}
+      <MergedPhoneQuotes arabica={data.arabica} robusta={data.robusta} />
+
+      {/* Desktop (lg+): the three panels side-by-side. */}
+      <div className="hidden lg:grid lg:grid-cols-[1fr_auto_1fr] gap-4 items-start">
         <ChainTable title="ICE NY · Arabica (KC)"     contracts={data.arabica} unit="¢/lb" accent="text-amber-400"   isArabica={true}  />
         <RatioColumn arabica={data.arabica} robusta={data.robusta} />
         <ChainTable title="ICE London · Robusta (RC)" contracts={data.robusta} unit="$/t"  accent="text-emerald-400" isArabica={false} />
