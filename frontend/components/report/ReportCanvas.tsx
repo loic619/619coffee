@@ -138,7 +138,12 @@ const ReportCanvas = forwardRef<HTMLDivElement>(function ReportCanvas(_props, re
   const selectedIds = useReportStore((s) => s.selectedIds);
 
   return (
-    <div ref={ref} id="report-canvas" className="bg-slate-950 text-slate-100 mx-auto w-[700px] max-w-full">
+    // Fixed ~A4 content width (700px) at ALL viewports — the parent is
+    // overflow-x-auto, so on a phone the preview scrolls horizontally instead of
+    // shrinking. max-w-full used to cap it to the phone width (~360px), which
+    // made the Recharts containers measure half their intended size and render
+    // squeezed SVGs that then stretched to A4 in the printed PDF.
+    <div ref={ref} id="report-canvas" className="bg-slate-950 text-slate-100 mx-auto w-[700px]">
       {/* Auto-injected briefing header */}
       <header className="border-b border-slate-700 pb-2 mb-3">
         <h1 className="text-base font-semibold text-amber-400">Coffee Intel Map — Market Briefing</h1>
