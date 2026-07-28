@@ -212,9 +212,9 @@ function MergedPhoneQuotes({ arabica, robusta }: { arabica: AcapheContract[]; ro
   const keys = Array.from(new Set(Array.from(kc.keys()).concat(Array.from(rc.keys()))))
     .sort((a, b) => _monthOrder(a) - _monthOrder(b));
 
-  // Arbitrage ratio (KC¢ ÷ RC$·22.046) for a row, pairing the nearest cross leg
-  // when the month trades in only one market.
-  function arbRatio(key: string): number | null {
+  // Arbitrage in ¢/lb (KC¢ − RC converted to ¢/lb) for a row, pairing the
+  // nearest cross leg when the month trades in only one market.
+  function arbSpread(key: string): number | null {
     const yr = key.slice(1);
     let k: Leg | undefined, r: Leg | undefined;
     if (key[0] === "X") {            // RC Nov ↔ KC Dec (same year)
@@ -225,7 +225,7 @@ function MergedPhoneQuotes({ arabica, robusta }: { arabica: AcapheContract[]; ro
       k = kc.get(key); r = rc.get(key);
     }
     if (!k || !r || r.last <= 0) return null;
-    return (k.last * 22.046) / r.last;
+    return k.last - r.last / 22.046;   // both legs in ¢/lb
   }
 
   const sprdColor = (n: number | null | undefined) =>
@@ -235,14 +235,17 @@ function MergedPhoneQuotes({ arabica, robusta }: { arabica: AcapheContract[]; ro
   const signed = (n: number | null | undefined, dec: number) =>
     n == null ? "—" : (n >= 0 ? "+" : "") + n.toFixed(dec);
 
-  // Column fields for one market, ordered CENTER → OUTER. The row is symmetric:
-  // the RC (right) side renders these in order and the KC (left) side in reverse,
-  // so both markets fan out from the central contract code + arbitrage. Compact
-  // stops at SpΔ; the extras (FND, Exp, OI, Vol) appear only when expanded.
+  // Column fields for one market, ordered CENTER → OUTER. The row is perfectly
+  // symmetric around the single central ¢/lb arbitrage column: the RC (right)
+  // side renders these in order, the KC (left) side in reverse. The contract
+  // code is each side's innermost field, so the two codes flank the arbitrage
+  // (arabica just left, robusta just right). Compact stops at SpΔ; the extras
+  // (FND, Exp, OI, Vol) appear only when expanded.
   const fields: Array<{
     head: string; extra?: boolean; center?: boolean;
-    cell: (leg: Leg | undefined, dec: number, isFront: boolean, accent: string) => React.ReactNode;
+    cell: (leg: Leg | undefined, dec: number, isFront: boolean, accent: string, key: string) => React.ReactNode;
   }> = [
+    { head: "Ct", center: true, cell: (l, _d, _f, _a, key) => <td className="px-0.5 py-1 text-center font-bold whitespace-nowrap">{l ? key : ""}</td> },
     { head: "FND", extra: true, center: true, cell: (l) => <td className="px-0.5 py-1 text-center text-amber-400/70 whitespace-nowrap">{l ? l.fnd : ""}</td> },
     { head: "Exp", extra: true, center: true, cell: (l) => <td className="px-0.5 py-1 text-center text-slate-500 whitespace-nowrap">{l ? l.exp : ""}</td> },
     { head: "Last", cell: (l, dec, isFront, accent) => <td className={`px-0.5 py-1 text-right font-bold whitespace-nowrap ${isFront ? accent : ""}`}>{l ? fmt(l.last, dec) : ""}</td> },
@@ -277,24 +280,22 @@ function MergedPhoneQuotes({ arabica, robusta }: { arabica: AcapheContract[]; ro
         <thead>
           <tr className="text-slate-500 bg-slate-800/40">
             {kcFields.map((f, i) => headCell(f, "kc", i))}
-            <th className="px-0.5 py-1 text-center text-sky-300">×</th>
-            <th className="px-0.5 py-1 text-center text-slate-300">Ct</th>
+            <th className="px-0.5 py-1 text-center text-sky-300 font-normal">¢/lb</th>
             {active.map((f, i) => headCell(f, "rc", i))}
           </tr>
         </thead>
         <tbody>
           {keys.map((key, idx) => {
             const k = kc.get(key), r = rc.get(key);
-            const arb = arbRatio(key);
+            const arb = arbSpread(key);
             const isFront = idx === 0;
             return (
               <tr key={key} className={`border-t border-slate-700 ${isFront ? "text-white bg-slate-800/60" : "text-slate-300"}`}>
-                {kcFields.map((f, i) => <React.Fragment key={`kc-${i}`}>{f.cell(k, 2, isFront, "text-amber-400")}</React.Fragment>)}
-                <td className={`px-0.5 py-1 text-center whitespace-nowrap ${isFront ? "text-sky-300" : "text-sky-400/70"}`}>
-                  {arb != null ? `×${arb.toFixed(2)}` : "—"}
+                {kcFields.map((f, i) => <React.Fragment key={`kc-${i}`}>{f.cell(k, 2, isFront, "text-amber-400", key)}</React.Fragment>)}
+                <td className={`px-0.5 py-1 text-center font-semibold whitespace-nowrap ${isFront ? "text-sky-300" : "text-sky-400/70"}`}>
+                  {arb != null ? arb.toFixed(1) : "—"}
                 </td>
-                <td className="px-0.5 py-1 text-center font-bold whitespace-nowrap">{key}</td>
-                {active.map((f, i) => <React.Fragment key={`rc-${i}`}>{f.cell(r, 0, isFront, "text-emerald-400")}</React.Fragment>)}
+                {active.map((f, i) => <React.Fragment key={`rc-${i}`}>{f.cell(r, 0, isFront, "text-emerald-400", key)}</React.Fragment>)}
               </tr>
             );
           })}
