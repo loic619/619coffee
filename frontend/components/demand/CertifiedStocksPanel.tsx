@@ -2619,16 +2619,18 @@ export default function CertifiedStocksPanel(
 
       {/* 1 · the 4 tiles per contract. The flow metrics (Graded · Passed ·
           Decertified) aggregate over the same window the "Since" selector
-          drives, so the tiles and the system flow below always agree. */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          drives, so the tiles and the system flow below always agree.
+          Arabica | Robusta stay side-by-side on phones too (grid-cols-2) so the
+          headline comparison matches desktop; tighter gap on small screens. */}
+      <div className="grid grid-cols-2 gap-2 lg:gap-4">
         <ArabicaColumn d={arabica} unit={unit} cutoff={startDate} end={endDate} sinceLabel={startWin.label} />
         <RobustaColumn d={robusta} unit={unit} cutoff={startDate} end={endDate} sinceLabel={startWin.label} />
       </div>
 
       {/* 2 · recent activity feed per contract — sits between the tiles and
           the system flow. Arabica + Robusta share one renderer so wording and
-          colour code are identical across markets. */}
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          colour code are identical across markets. Side-by-side on phone too. */}
+      <div className="mt-6 grid grid-cols-2 gap-2 lg:gap-4">
         <ArabicaActivityFeed d={arabica} unit={unit} />
         <RobustaActivityFeed d={robusta} unit={unit} />
       </div>
