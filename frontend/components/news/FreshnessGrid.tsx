@@ -187,7 +187,7 @@ export default function FreshnessGrid() {
           <span className="text-slate-500">{nMissing}</span> missing
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {CATEGORY_ORDER.map((cat) => {
           const list = byCategory.get(cat) ?? [];
           if (list.length === 0) return null;

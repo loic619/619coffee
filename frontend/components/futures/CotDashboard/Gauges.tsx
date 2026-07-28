@@ -124,7 +124,7 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
         </div>
       )}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-4 lg:gap-x-8">
           {marketColumn("Arabica · NY", ny)}
           {marketColumn("Robusta · LDN", ldn)}
         </div>
