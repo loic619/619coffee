@@ -81,25 +81,31 @@ function ChainTable({ market, data }: { market: "arabica" | "robusta"; data: Cha
 
   return (
     <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
-      <div className="px-4 py-2 bg-slate-800 border-b border-slate-700 flex items-center justify-between min-h-[40px]">
-        <div>
-          <span className="font-semibold text-sm text-white">Daily Quotes</span>
-          <span className={`text-xs ml-2 ${accent}`}>{sublabel}</span>
+      <div className="px-2 sm:px-4 py-2 bg-slate-800 border-b border-slate-700 flex items-center justify-between min-h-[40px]">
+        <div className="truncate">
+          <span className="font-semibold text-sm text-white hidden sm:inline">Daily Quotes</span>
+          {/* Phone: short market name; wider: the full ICE sublabel. */}
+          <span className={`text-xs sm:ml-2 font-semibold ${accent}`}>
+            <span className="sm:hidden">{isArabica ? "Arabica" : "Robusta"}</span>
+            <span className="hidden sm:inline font-normal">{sublabel}</span>
+          </span>
         </div>
-        <span className="text-xs text-slate-500 whitespace-nowrap ml-2">Barchart · {data.pub_date ?? ""}</span>
+        <span className="text-xs text-slate-500 whitespace-nowrap ml-2 hidden sm:inline">Barchart · {data.pub_date ?? ""}</span>
       </div>
-      <table className="w-full text-[11px] font-mono">
+      <table className="w-full text-[10px] sm:text-[11px] font-mono">
         <thead>
           <tr className="text-slate-500 bg-slate-800/40">
-            <th className="text-left  px-1.5 py-1 w-10 whitespace-nowrap">Ct.</th>
-            <th className="text-center px-1.5 py-1 w-14 whitespace-nowrap">FND</th>
-            <th className="text-center px-1.5 py-1 w-11 whitespace-nowrap">Exp.</th>
-            <th className="text-right px-1.5 py-1 whitespace-nowrap">Last ({unit})</th>
-            <th className="text-right px-1.5 py-1 whitespace-nowrap">Chg</th>
-            <th className="text-right px-1.5 py-1 whitespace-nowrap">Sprd</th>
-            <th className="text-right px-1.5 py-1 whitespace-nowrap">Sprd Chg</th>
-            <th className="text-right px-1.5 py-1 whitespace-nowrap">OI</th>
-            <th className="text-right px-1.5 py-1 whitespace-nowrap">Vol</th>
+            {/* Phone keeps Ct · Last · Chg so the 3-up view fits; the rest
+                reappear as the viewport widens. */}
+            <th className="text-left  px-1 sm:px-1.5 py-1 w-10 whitespace-nowrap">Ct.</th>
+            <th className="text-center px-1 sm:px-1.5 py-1 w-14 whitespace-nowrap hidden md:table-cell">FND</th>
+            <th className="text-center px-1 sm:px-1.5 py-1 w-11 whitespace-nowrap hidden lg:table-cell">Exp.</th>
+            <th className="text-right px-1 sm:px-1.5 py-1 whitespace-nowrap">Last<span className="hidden sm:inline"> ({unit})</span></th>
+            <th className="text-right px-1 sm:px-1.5 py-1 whitespace-nowrap">Chg</th>
+            <th className="text-right px-1.5 py-1 whitespace-nowrap hidden sm:table-cell">Sprd</th>
+            <th className="text-right px-1.5 py-1 whitespace-nowrap hidden lg:table-cell">Sprd Chg</th>
+            <th className="text-right px-1.5 py-1 whitespace-nowrap hidden lg:table-cell">OI</th>
+            <th className="text-right px-1.5 py-1 whitespace-nowrap hidden lg:table-cell">Vol</th>
           </tr>
         </thead>
         <tbody>
@@ -112,19 +118,19 @@ function ChainTable({ market, data }: { market: "arabica" | "robusta"; data: Cha
             const dec       = isArabica ? 2 : 0;
             return (
               <tr key={c.symbol} className={`border-t border-slate-700 ${i === 0 ? "text-white bg-slate-800/60" : "text-slate-300"}`}>
-                <td className="px-1.5 py-1.5 font-bold whitespace-nowrap">{shortSym}</td>
-                <td className="px-1.5 py-1.5 text-center text-amber-400/80 whitespace-nowrap">{firstNoticeDay(c.symbol)}</td>
-                <td className="px-1.5 py-1.5 text-center text-slate-500 whitespace-nowrap">{fmtExpiry(c.expiry)}</td>
-                <td className={`px-1.5 py-1.5 text-right font-bold ${i === 0 ? accent : ""}`}>{c.last?.toFixed(dec)}</td>
-                <td className={`px-1.5 py-1.5 text-right ${chgColor}`}>{c.chg == null ? "—" : (c.chg >= 0 ? "+" : "") + c.chg.toFixed(dec)}</td>
-                <td className={`px-1.5 py-1.5 text-right ${spread === null ? "text-slate-600" : spread >= 0 ? "text-sky-400" : "text-orange-400"}`}>
+                <td className="px-1 sm:px-1.5 py-1.5 font-bold whitespace-nowrap">{shortSym}</td>
+                <td className="px-1 sm:px-1.5 py-1.5 text-center text-amber-400/80 whitespace-nowrap hidden md:table-cell">{firstNoticeDay(c.symbol)}</td>
+                <td className="px-1 sm:px-1.5 py-1.5 text-center text-slate-500 whitespace-nowrap hidden lg:table-cell">{fmtExpiry(c.expiry)}</td>
+                <td className={`px-1 sm:px-1.5 py-1.5 text-right font-bold ${i === 0 ? accent : ""}`}>{c.last?.toFixed(dec)}</td>
+                <td className={`px-1 sm:px-1.5 py-1.5 text-right ${chgColor}`}>{c.chg == null ? "—" : (c.chg >= 0 ? "+" : "") + c.chg.toFixed(dec)}</td>
+                <td className={`px-1.5 py-1.5 text-right hidden sm:table-cell ${spread === null ? "text-slate-600" : spread >= 0 ? "text-sky-400" : "text-orange-400"}`}>
                   {spread !== null ? (spread >= 0 ? "+" : "") + spread.toFixed(dec) : "—"}
                 </td>
-                <td className={`px-1.5 py-1.5 text-right ${spreadChg === null ? "text-slate-600" : spreadChg >= 0 ? "text-sky-400" : "text-orange-400"}`}>
+                <td className={`px-1.5 py-1.5 text-right hidden lg:table-cell ${spreadChg === null ? "text-slate-600" : spreadChg >= 0 ? "text-sky-400" : "text-orange-400"}`}>
                   {spreadChg !== null ? (spreadChg >= 0 ? "+" : "") + spreadChg.toFixed(dec) : "—"}
                 </td>
-                <td className="px-1.5 py-1.5 text-right">{fmt(c.oi)}</td>
-                <td className="px-1.5 py-1.5 text-right text-slate-400">{fmt(c.volume)}</td>
+                <td className="px-1.5 py-1.5 text-right hidden lg:table-cell">{fmt(c.oi)}</td>
+                <td className="px-1.5 py-1.5 text-right text-slate-400 hidden lg:table-cell">{fmt(c.volume)}</td>
               </tr>
             );
           })}
@@ -151,14 +157,20 @@ function KcRcCentsPanel({ arabica, robusta }: { arabica: Contract[]; robusta: Co
 
   return (
     <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-x-auto self-start">
-      <div className="px-3 py-2 bg-slate-800 border-b border-slate-700 text-center min-h-[40px] flex items-center justify-center">
-        <span className="text-[9px] font-semibold text-slate-300 uppercase tracking-widest whitespace-nowrap">Arbitrage</span>
+      <div className="px-1.5 sm:px-3 py-2 bg-slate-800 border-b border-slate-700 text-center min-h-[40px] flex items-center justify-center">
+        <span className="text-[9px] font-semibold text-slate-300 uppercase tracking-wider sm:tracking-widest whitespace-nowrap">
+          <span className="sm:hidden">Arb</span>
+          <span className="hidden sm:inline">Arbitrage</span>
+        </span>
       </div>
-      <table className="text-[11px] font-mono w-full">
+      <table className="text-[10px] sm:text-[11px] font-mono w-full">
         <thead>
           <tr className="text-slate-500 bg-slate-800/40">
-            <th className="px-1.5 py-1 text-left whitespace-nowrap">Pair</th>
-            <th className="px-1.5 py-1 text-right whitespace-nowrap">¢/lb (×)</th>
+            <th className="px-1 sm:px-1.5 py-1 text-left whitespace-nowrap">Pair</th>
+            <th className="px-1 sm:px-1.5 py-1 text-right whitespace-nowrap">
+              <span className="sm:hidden">×</span>
+              <span className="hidden sm:inline">¢/lb (×)</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -170,19 +182,28 @@ function KcRcCentsPanel({ arabica, robusta }: { arabica: Contract[]; robusta: Co
             const rcLetter = KC_TO_RC_LETTER[kcLetter] ?? kcLetter;
             const rcYr     = kcLetter === "Z" ? String(parseInt(kcYr) + 1).slice(-2) : kcYr;
             const rc       = rcByKey.get(rcLetter + rcYr);
-            const kcCents  = c.last;
-            const rcCents  = rc != null ? rc / 22.046 : null;
-            const spread   = rcCents != null ? kcCents - rcCents : null;
-            const ratio    = rc != null ? (c.last * 22.046 / rc).toFixed(2) : null;
+            // Guard against a 0/absent RC leg (far months print 0) — otherwise
+            // the ratio is Infinity, which both misleads and widens the column.
+            const hasRc    = rc != null && rc > 0;
+            const spread   = hasRc ? c.last - rc / 22.046 : null;
+            const ratio    = hasRc ? (c.last * 22.046 / rc).toFixed(2) : null;
             const rcSym    = `RC${rcLetter}${rcYr}`;
             const isFront  = i === 0;
             return (
               <tr key={c.symbol} className={`border-t border-slate-700 ${isFront ? "bg-slate-800/60" : ""}`}>
-                <td className={`px-1.5 py-1.5 whitespace-nowrap ${isFront ? "text-slate-200" : "text-slate-500"}`}>
-                  {c.symbol}-{rcSym}
+                <td className={`px-1 sm:px-1.5 py-1.5 whitespace-nowrap ${isFront ? "text-slate-200" : "text-slate-500"}`}>
+                  {/* Phone: compact key (e.g. "K26"); wider: full "KCK26-RCK26". */}
+                  <span className="sm:hidden">{kcLetter}{kcYr}</span>
+                  <span className="hidden sm:inline">{c.symbol}-{rcSym}</span>
                 </td>
-                <td className={`px-1.5 py-1.5 text-right whitespace-nowrap ${isFront ? "text-sky-300" : "text-slate-500"}`}>
-                  {spread != null ? `${spread.toFixed(1)} (×${ratio})` : "—"}
+                <td className={`px-1 sm:px-1.5 py-1.5 text-right whitespace-nowrap ${isFront ? "text-sky-300" : "text-slate-500"}`}>
+                  {/* Phone: ratio only (×N); wider: spread + ratio. */}
+                  {ratio != null && spread != null ? (
+                    <>
+                      <span className="sm:hidden">×{ratio}</span>
+                      <span className="hidden sm:inline">{spread.toFixed(1)} (×{ratio})</span>
+                    </>
+                  ) : "—"}
                 </td>
               </tr>
             );
@@ -970,7 +991,7 @@ function FuturesPageInner() {
               No futures data yet — check back after the next scrape run.
             </p>
           )}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-4 items-start">
+          <div className="grid grid-cols-[1fr_auto_1fr] gap-1.5 lg:gap-4 items-start">
             {arabicaChain && <ChainTable market="arabica" data={arabicaChain} />}
             {arabicaChain && robustaChain && (
               <KcRcCentsPanel

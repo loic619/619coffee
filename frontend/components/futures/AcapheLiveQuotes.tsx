@@ -118,14 +118,20 @@ function RatioColumn({ arabica, robusta }: { arabica: AcapheContract[]; robusta:
 
   return (
     <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-x-auto self-start">
-      <div className="px-3 py-2 bg-slate-800 border-b border-slate-700 text-center min-h-[40px] flex items-center justify-center">
-        <span className="text-[9px] font-semibold text-slate-300 uppercase tracking-widest whitespace-nowrap">Arbitrage</span>
+      <div className="px-1.5 sm:px-3 py-2 bg-slate-800 border-b border-slate-700 text-center min-h-[40px] flex items-center justify-center">
+        <span className="text-[9px] font-semibold text-slate-300 uppercase tracking-wider sm:tracking-widest whitespace-nowrap">
+          <span className="sm:hidden">Arb</span>
+          <span className="hidden sm:inline">Arbitrage</span>
+        </span>
       </div>
       <table className="text-[11px] font-mono w-full">
         <thead>
           <tr className="text-slate-500 bg-slate-800/40">
             <th className="px-1.5 py-1 text-left whitespace-nowrap">Pair</th>
-            <th className="px-1.5 py-1 text-right whitespace-nowrap">¢/lb (×)</th>
+            <th className="px-1.5 py-1 text-right whitespace-nowrap">
+              <span className="sm:hidden">×</span>
+              <span className="hidden sm:inline">¢/lb (×)</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -135,20 +141,28 @@ function RatioColumn({ arabica, robusta }: { arabica: AcapheContract[]; robusta:
             const rcLetter = KC_TO_RC_LETTER[kcLetter] ?? kcLetter;
             const rcYr     = kcLetter === "Z" ? String(parseInt(kcYr) + 1).slice(-2) : kcYr;
             const rc       = rcByKey.get(rcLetter + rcYr);
-            const kcCents  = c.last;
-            const rcCents  = rc != null ? rc / 22.046 : null;
-            const spread   = rcCents != null ? kcCents - rcCents : null;
-            const ratio    = rc != null ? (c.last * 22.046 / rc).toFixed(2) : null;
+            // Guard a 0/absent RC leg (far months print 0) — else ratio=Infinity.
+            const hasRc    = rc != null && rc > 0;
+            const spread   = hasRc ? c.last - rc / 22.046 : null;
+            const ratio    = hasRc ? (c.last * 22.046 / rc).toFixed(2) : null;
             const sym      = acapheToSymbol(c.month, true);
             const rcSym    = `RC${rcLetter}${rcYr}`;
             const isFront  = i === 0;
             return (
               <tr key={c.month} className={`border-t border-slate-700 ${isFront ? "bg-slate-800/60" : ""}`}>
                 <td className={`px-1.5 py-1.5 whitespace-nowrap ${isFront ? "text-slate-200" : "text-slate-500"}`}>
-                  {sym}-{rcSym}
+                  {/* Phone: compact key (e.g. "K26"); wider: full "KCK26-RCK26". */}
+                  <span className="sm:hidden">{kcLetter}{kcYr}</span>
+                  <span className="hidden sm:inline">{sym}-{rcSym}</span>
                 </td>
                 <td className={`px-1.5 py-1.5 text-right whitespace-nowrap ${isFront ? "text-sky-300" : "text-slate-500"}`}>
-                  {spread != null ? `${spread.toFixed(1)} (×${ratio})` : "—"}
+                  {/* Phone: ratio only (×N); wider: spread + ratio. */}
+                  {ratio != null && spread != null ? (
+                    <>
+                      <span className="sm:hidden">×{ratio}</span>
+                      <span className="hidden sm:inline">{spread.toFixed(1)} (×{ratio})</span>
+                    </>
+                  ) : "—"}
                 </td>
               </tr>
             );
@@ -175,25 +189,32 @@ function ChainTable({
 
   return (
     <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
-      <div className="px-4 py-2 bg-slate-800 border-b border-slate-700 flex items-center justify-between min-h-[40px]">
-        <div>
-          <span className="font-semibold text-sm text-white">Live Quotes</span>
-          <span className={`text-xs ml-2 ${accent}`}>{title}</span>
+      <div className="px-2 sm:px-4 py-2 bg-slate-800 border-b border-slate-700 flex items-center justify-between min-h-[40px]">
+        <div className="truncate">
+          <span className="font-semibold text-sm text-white hidden sm:inline">Live Quotes</span>
+          {/* Phone: just the short market name; wider: the full ICE sublabel. */}
+          <span className={`text-xs sm:ml-2 font-semibold ${accent}`}>
+            <span className="sm:hidden">{isArabica ? "Arabica" : "Robusta"}</span>
+            <span className="hidden sm:inline font-normal">{title}</span>
+          </span>
         </div>
       </div>
 
-      <table className="w-full text-[11px] font-mono">
+      <table className="w-full text-[10px] sm:text-[11px] font-mono">
         <thead>
           <tr className="text-slate-500 bg-slate-800/40">
-            <th className="text-left   px-1.5 py-1 w-10  whitespace-nowrap">Ct.</th>
-            <th className="text-center px-1.5 py-1 w-14  whitespace-nowrap">FND</th>
-            <th className="text-center px-1.5 py-1 w-11  whitespace-nowrap">Exp.</th>
-            <th className="text-right  px-1.5 py-1        whitespace-nowrap">Last ({unit})</th>
-            <th className="text-right  px-1.5 py-1        whitespace-nowrap">Chg</th>
-            <th className="text-right  px-1.5 py-1        whitespace-nowrap">Sprd</th>
-            <th className="text-right  px-1.5 py-1        whitespace-nowrap">Sprd Chg</th>
-            <th className="text-right  px-1.5 py-1        whitespace-nowrap">OI</th>
-            <th className="text-right  px-1.5 py-1        whitespace-nowrap">Vol</th>
+            {/* On phones the three panels sit side-by-side (like desktop), so
+                only the essentials stay: Ct · Last · Chg. Secondary columns
+                progressively reappear as the viewport widens. */}
+            <th className="text-left   px-1 sm:px-1.5 py-1 w-10  whitespace-nowrap">Ct.</th>
+            <th className="text-center px-1 sm:px-1.5 py-1 w-14  whitespace-nowrap hidden md:table-cell">FND</th>
+            <th className="text-center px-1 sm:px-1.5 py-1 w-11  whitespace-nowrap hidden lg:table-cell">Exp.</th>
+            <th className="text-right  px-1 sm:px-1.5 py-1        whitespace-nowrap">Last<span className="hidden sm:inline"> ({unit})</span></th>
+            <th className="text-right  px-1 sm:px-1.5 py-1 whitespace-nowrap">Chg</th>
+            <th className="text-right  px-1.5 py-1        whitespace-nowrap hidden sm:table-cell">Sprd</th>
+            <th className="text-right  px-1.5 py-1        whitespace-nowrap hidden lg:table-cell">Sprd Chg</th>
+            <th className="text-right  px-1.5 py-1        whitespace-nowrap hidden lg:table-cell">OI</th>
+            <th className="text-right  px-1.5 py-1        whitespace-nowrap hidden lg:table-cell">Vol</th>
           </tr>
         </thead>
         <tbody>
@@ -216,23 +237,23 @@ function ChainTable({
                 key={c.month}
                 className={`border-t border-slate-700 ${isFront ? "text-white bg-slate-800/60" : "text-slate-300"}`}
               >
-                <td className="px-1.5 py-1.5 font-bold whitespace-nowrap">{sym}</td>
-                <td className="px-1.5 py-1.5 text-center text-amber-400/80 whitespace-nowrap">{fnd}</td>
-                <td className="px-1.5 py-1.5 text-center text-slate-500 whitespace-nowrap">{expiry}</td>
-                <td className={`px-1.5 py-1.5 text-right font-bold ${isFront ? accent : ""}`}>
+                <td className="px-1 sm:px-1.5 py-1.5 font-bold whitespace-nowrap">{sym}</td>
+                <td className="px-1 sm:px-1.5 py-1.5 text-center text-amber-400/80 whitespace-nowrap hidden md:table-cell">{fnd}</td>
+                <td className="px-1 sm:px-1.5 py-1.5 text-center text-slate-500 whitespace-nowrap hidden lg:table-cell">{expiry}</td>
+                <td className={`px-1 sm:px-1.5 py-1.5 text-right font-bold ${isFront ? accent : ""}`}>
                   {fmt(c.last, dec)}
                 </td>
-                <td className={`px-1.5 py-1.5 text-right ${chgColor}`}>
+                <td className={`px-1 sm:px-1.5 py-1.5 text-right ${chgColor}`}>
                   {(c.change >= 0 ? "+" : "")}{c.change.toFixed(dec)}
                 </td>
-                <td className={`px-1.5 py-1.5 text-right ${sprdColor(spread)}`}>
+                <td className={`px-1.5 py-1.5 text-right hidden sm:table-cell ${sprdColor(spread)}`}>
                   {spread != null ? (spread >= 0 ? "+" : "") + spread.toFixed(dec) : "—"}
                 </td>
-                <td className={`px-1.5 py-1.5 text-right ${sprdColor(spreadChg)}`}>
+                <td className={`px-1.5 py-1.5 text-right hidden lg:table-cell ${sprdColor(spreadChg)}`}>
                   {spreadChg != null ? (spreadChg >= 0 ? "+" : "") + spreadChg.toFixed(dec) : "—"}
                 </td>
-                <td className="px-1.5 py-1.5 text-right">{fmt(c.oi)}</td>
-                <td className="px-1.5 py-1.5 text-right text-slate-400">{fmt(c.vol)}</td>
+                <td className="px-1.5 py-1.5 text-right hidden lg:table-cell">{fmt(c.oi)}</td>
+                <td className="px-1.5 py-1.5 text-right text-slate-400 hidden lg:table-cell">{fmt(c.vol)}</td>
               </tr>
             );
           })}
@@ -463,8 +484,11 @@ export default function AcapheLiveQuotes() {
         </div>
       )}
 
-      {/* Chain tables + KC/RC ratio column */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-4 items-start">
+      {/* Chain tables + KC/RC ratio column. Stay 3-up (Arabica · Arbitrage ·
+          Robusta) on phones too — the tables drop to Ct·Last·Chg and the
+          arbitrage shows the ratio only, so the desktop side-by-side view is
+          preserved at 390px. Tight gap on phone, normal from lg. */}
+      <div className="grid grid-cols-[1fr_auto_1fr] gap-1.5 lg:gap-4 items-start">
         <ChainTable title="ICE NY · Arabica (KC)"     contracts={data.arabica} unit="¢/lb" accent="text-amber-400"   isArabica={true}  />
         <RatioColumn arabica={data.arabica} robusta={data.robusta} />
         <ChainTable title="ICE London · Robusta (RC)" contracts={data.robusta} unit="$/t"  accent="text-emerald-400" isArabica={false} />
