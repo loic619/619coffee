@@ -17,6 +17,8 @@ const TABS = [
 
 export default function TabNav() {
   const pathname = usePathname();
+  // The name gate is a standalone page — no app chrome.
+  if (pathname === "/welcome") return null;
   return (
     <nav className="relative border-b border-slate-700 bg-slate-900">
       <div className="flex overflow-x-auto px-4 scrollbar-thin">

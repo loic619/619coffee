@@ -27,6 +27,11 @@ const MAX_LOG_ENTRIES = 5000;
 const IP_HASH_TTL_SECONDS = 60 * 24 * 60 * 60; // 60 days
 const UPSTASH_TIMEOUT_MS = 2000;
 
+// Name gate: redirect un-identified visitors to /welcome (first name + surname,
+// no password). On by default; set SITE_GATE_ENABLED="false" in the env to
+// disable (kill-switch — the app goes fully open again, still logged).
+const GATE_ENABLED = process.env.SITE_GATE_ENABLED !== "false";
+
 // Substring matches against the lowercased User-Agent. Conservative list —
 // uptime monitors, search-engine crawlers, headless browsers, generic CLI.
 const BOT_UA_FRAGMENTS = [
@@ -83,11 +88,32 @@ async function logAccess(payload: unknown): Promise<void> {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Never log the admin surface itself — would flood the log with the
-  // owner's own visits to the dashboard.
+  // Never log/gate the admin surface itself — would flood the log with the
+  // owner's own visits and could lock the owner out of their own dashboard.
   if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
     return NextResponse.next();
   }
+
+  // The gate's own surface must always be reachable, cookie or not.
+  const isGateRoute = pathname === "/welcome" || pathname.startsWith("/api/identify");
+
+  // Who is this? `cid` is set by /api/identify (first name + surname). Next
+  // decodes the cookie value on read, so this is the plain name.
+  const name = (request.cookies.get("cid")?.value ?? "").trim();
+
+  // ── Name gate ────────────────────────────────────────────────────────────
+  // Redirect any un-identified real page navigation to /welcome. Data/asset
+  // sub-requests are left alone (the page they belong to is already gated).
+  if (GATE_ENABLED && !name && !isGateRoute && isPageLoad(request, pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/welcome";
+    url.search = "";
+    url.searchParams.set("next", pathname + request.nextUrl.search);
+    return NextResponse.redirect(url);
+  }
+
+  // Don't log the gate page itself — pre-identify noise.
+  if (isGateRoute) return NextResponse.next();
 
   const ua = request.headers.get("user-agent") ?? "";
   if (isBot(ua)) return NextResponse.next();
@@ -103,6 +129,7 @@ export async function middleware(request: NextRequest) {
   const entry = {
     ts,
     ip,
+    name,
     country: geo.country ?? null,
     region: geo.region ?? null,
     city: geo.city ?? null,
@@ -114,19 +141,25 @@ export async function middleware(request: NextRequest) {
   // Single round-trip pipeline so the response only waits once on Upstash.
   // Field-list HSET uses Upstash's "HSET key f v f v …" form.
   const ipKey = `access:ips:${ip}`;
+  // Field-list HSET (Upstash "HSET key f v f v …"). Include the visitor's name
+  // when we know it so the rollup stays fresh even between logins; omit the
+  // field entirely when unknown so we never blank out a previously-set name.
+  const hsetArgs = [
+    "HSET", ipKey,
+    "last_seen", ts,
+    "last_path", entry.path,
+    "last_country", entry.country ?? "",
+    "last_region", entry.region ?? "",
+    "last_city", entry.city ?? "",
+    "last_ua", entry.ua,
+  ];
+  if (name) hsetArgs.push("name", name);
+
   const pipeline = [
     ["LPUSH", "access:log", JSON.stringify(entry)],
     ["LTRIM", "access:log", "0", String(MAX_LOG_ENTRIES - 1)],
     ["SADD", "access:ips", ip],
-    [
-      "HSET", ipKey,
-      "last_seen", ts,
-      "last_path", entry.path,
-      "last_country", entry.country ?? "",
-      "last_region", entry.region ?? "",
-      "last_city", entry.city ?? "",
-      "last_ua", entry.ua,
-    ],
+    hsetArgs,
     ["HSETNX", ipKey, "first_seen", ts],
     ["HINCRBY", ipKey, "hits", "1"],
     ["EXPIRE", ipKey, String(IP_HASH_TTL_SECONDS)],

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { cachedFetchStatic } from "@/lib/api";
 import { FOBBING_USD } from "@/lib/originCosts";
 
@@ -89,6 +90,7 @@ const ARABICA_PHYSICAL = new Set(["GT SHB"]);
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function MarketTicker() {
+  const pathname = usePathname();
   const [tickers, setTickers] = useState<TickerItem[]>([]);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [acaphe, setAcaphe] = useState<AcapheData | null>(null);
@@ -225,6 +227,9 @@ export default function MarketTicker() {
   const staticTs   = generatedAt;
   // Use acaphe ts for KC/RC, static ts for FX/physical
   const hasFutures = futureTickers.length > 0 && futuresTs;
+
+  // The name gate is a standalone page — no app chrome.
+  if (pathname === "/welcome") return null;
 
   if (allTickers.length === 0) return (
     <div className="h-8 bg-slate-950 border-b border-slate-800 flex items-center shrink-0 px-3">

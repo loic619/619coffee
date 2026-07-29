@@ -25,6 +25,7 @@ export const revalidate = 0;
 interface LogEntry {
   ts: string;
   ip: string;
+  name?: string;
   country: string | null;
   region: string | null;
   city: string | null;
@@ -35,6 +36,7 @@ interface LogEntry {
 
 interface VisitorRollup {
   ip: string;
+  name: string;
   hits: number;
   firstSeen: string;
   lastSeen: string;
@@ -70,6 +72,7 @@ function hashToRollup(ip: string, fields: string[]): VisitorRollup {
   for (let i = 0; i < fields.length - 1; i += 2) h[fields[i]] = fields[i + 1] ?? "";
   return {
     ip,
+    name: h.name ?? "",
     hits: Number(h.hits ?? 0),
     firstSeen: h.first_seen ?? "",
     lastSeen: h.last_seen ?? "",
@@ -189,6 +192,7 @@ export default async function AdminAccessPage({
                   <thead>
                     <tr className="text-slate-500 bg-slate-800/40">
                       <th className="text-right px-2 py-1.5 w-12">Hits</th>
+                      <th className="text-left  px-2 py-1.5">Name</th>
                       <th className="text-left  px-2 py-1.5">IP</th>
                       <th className="text-left  px-2 py-1.5">Location</th>
                       <th className="text-left  px-2 py-1.5">Last path</th>
@@ -200,7 +204,7 @@ export default async function AdminAccessPage({
                   <tbody>
                     {data.visitors.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-2 py-3 text-center text-slate-600">
+                        <td colSpan={8} className="px-2 py-3 text-center text-slate-600">
                           No visitors logged yet.
                         </td>
                       </tr>
@@ -210,6 +214,7 @@ export default async function AdminAccessPage({
                         return (
                           <tr key={v.ip} className="border-t border-slate-800/60 align-top">
                             <td className="px-2 py-1.5 text-right text-amber-300 font-bold">{v.hits}</td>
+                            <td className="px-2 py-1.5 text-slate-100 font-semibold whitespace-nowrap">{v.name || "—"}</td>
                             <td className="px-2 py-1.5 text-slate-200">{v.ip}</td>
                             <td className="px-2 py-1.5 text-slate-300">{loc}</td>
                             <td className="px-2 py-1.5 text-slate-400">{v.lastPath || "—"}</td>
@@ -237,6 +242,7 @@ export default async function AdminAccessPage({
                   <thead>
                     <tr className="text-slate-500 bg-slate-800/40">
                       <th className="text-left  px-2 py-1.5 w-44">When</th>
+                      <th className="text-left  px-2 py-1.5">Name</th>
                       <th className="text-left  px-2 py-1.5">IP</th>
                       <th className="text-left  px-2 py-1.5">Location</th>
                       <th className="text-left  px-2 py-1.5">Path</th>
@@ -247,7 +253,7 @@ export default async function AdminAccessPage({
                   <tbody>
                     {data.recent.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-2 py-3 text-center text-slate-600">
+                        <td colSpan={7} className="px-2 py-3 text-center text-slate-600">
                           No hits logged yet — first page load after deploy will populate this.
                         </td>
                       </tr>
@@ -257,6 +263,7 @@ export default async function AdminAccessPage({
                         return (
                           <tr key={`${e.ts}-${i}`} className="border-t border-slate-800/60 align-top">
                             <td className="px-2 py-1.5 text-slate-500">{e.ts.replace("T", " ").slice(0, 19)}Z</td>
+                            <td className="px-2 py-1.5 text-slate-100">{e.name || "—"}</td>
                             <td className="px-2 py-1.5 text-slate-200">{e.ip}</td>
                             <td className="px-2 py-1.5 text-slate-300">{loc}</td>
                             <td className="px-2 py-1.5 text-slate-300">{e.path}</td>
