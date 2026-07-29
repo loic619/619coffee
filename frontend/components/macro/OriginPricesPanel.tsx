@@ -1,12 +1,13 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  ComposedChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   Legend, CartesianGrid, ReferenceLine,
 } from "recharts";
 
 import { fmtDateLabel } from "@/lib/formatters";
 import { CIF_FINANCING_RATE, FEU_MT, ORIGIN_EXPORT_COSTS } from "@/lib/originCosts";
+import { PARITY_ADDERS_USD } from "@/lib/research/certStocksParity";
 
 interface HistoryPoint {
   date:  string;
@@ -285,6 +286,14 @@ export default function OriginPricesPanel() {
   // — comparing CIF Antwerp against the exchange front month IS the point).
   const showFutures = futuresSeries.length > 0 && (axisMode === "index" || effUsd);
 
+  // Cost bands: on the USD/MT Value view of the farmgate basis, stack each
+  // origin's export costs above its line as translucent same-color surfaces —
+  // farmgate→FOB (fobbing) then FOB→tendering (freight + exchange-delivery
+  // adders). The top edge vs the KC/RC overlay reads directly as whether the
+  // origin delivers above or below the exchange. On FOB/CIF bases the line
+  // itself is already lifted, so the bands would double-count.
+  const showCostBands = effUsd && axisMode === "value" && basis === "farmgate";
+
   const chartData = useMemo(() => {
     if (!data) return [];
     const days = WINDOW_DAYS[window];
@@ -316,11 +325,22 @@ export default function OriginPricesPanel() {
     const fBase  = futuresSeries.filter(f => f.date >= cutoffIso).find(f => f.value > 0)?.value ?? null;
 
     return dates.map(d => {
-      const row: Record<string, number | string | null> = { date: d, label: fmtDateLabel(d) };
+      const row: Record<string, number | string | null | [number, number]> = { date: d, label: fmtDateLabel(d) };
       for (const k of presentOrigins) {
         const point = data.origins[k]?.history.find(h => h.date === d);
         const v = point ? valueOf(k, point) : null;
         row[k] = v == null ? null : rebase ? (base[k] ? (v / base[k]!) * 100 : null) : v;
+        // Range-area bands stacked on the farmgate USD/MT value (value view
+        // only, so `v` is the unrebased USD/MT figure).
+        if (showCostBands && v != null) {
+          const cost = ORIGIN_EXPORT_COSTS[k];
+          if (cost) {
+            const fob = v + cost.fobbingUsdMt;
+            row[`${k}__fob`] = [v, fob];
+            const fr = freightMtOnDate(cost.freightRoute, d);
+            if (fr != null) row[`${k}__tender`] = [fob, fob + fr + PARITY_ADDERS_USD];
+          }
+        }
       }
       if (showFutures) {
         const fv = fMap.get(d) ?? null;
@@ -328,7 +348,7 @@ export default function OriginPricesPanel() {
       }
       return row;
     });
-  }, [data, window, presentOrigins, convertPoint, axisMode, futuresSeries, showFutures]);
+  }, [data, window, presentOrigins, convertPoint, axisMode, futuresSeries, showFutures, showCostBands, freightMtOnDate]);
 
   const stats = useMemo(() => {
     if (!data) return [] as { key: OriginKey; name: string; latest: HistoryPoint | null; pct: number | null; color: string; unit: string; currency: string; source: string; count: number }[];
@@ -489,24 +509,50 @@ export default function OriginPricesPanel() {
             : "farmgate basis"}
           {" · "}{effUsd ? "USD/MT, per-day FX" : "local currency, native unit"}
           {showFutures ? ` · ${futuresName} overlay` : ""}
+          {showCostBands ? " · shaded: +fobbing, +freight & adders (tendering)" : ""}
         </div>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}>
+            <ComposedChart data={chartData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}>
               <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
               <XAxis dataKey="label" stroke="#64748b" tick={{ fontSize: 9 }} minTickGap={20} />
               <YAxis stroke="#64748b" tick={{ fontSize: 9 }} domain={["auto","auto"]} tickFormatter={fmtTick} width={48} />
               <Tooltip
                 contentStyle={TT_STYLE}
                 labelStyle={{ color: "#94a3b8", fontSize: 10 }}
-                formatter={(v) => typeof v === "number"
-                  ? (axisMode === "index"
-                      ? v.toFixed(1)
-                      : usd ? `$${Math.round(v).toLocaleString()}/MT` : v.toLocaleString())
-                  : "—"}
+                formatter={(v) => Array.isArray(v) && v.length === 2 && typeof v[0] === "number" && typeof v[1] === "number"
+                  ? `$${Math.round(v[0]).toLocaleString()} → $${Math.round(v[1]).toLocaleString()}/MT`
+                  : typeof v === "number"
+                    ? (axisMode === "index"
+                        ? v.toFixed(1)
+                        : effUsd ? `$${Math.round(v).toLocaleString()}/MT` : v.toLocaleString())
+                    : "—"}
               />
               <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
               {axisMode === "index" && <ReferenceLine y={100} stroke="#475569" strokeDasharray="3 3" />}
+              {/* Cost bands under the lines: same hue as the origin, two opacity
+                  steps — denser = fobbing (farmgate→FOB), fainter = tendering
+                  (FOB→delivered-to-exchange). Range areas: dataKey is [lo, hi]. */}
+              {showCostBands && presentOrigins.map(k => {
+                const o = data.origins[k];
+                if (!o) return null;
+                return (
+                  <Area key={`${k}__fob`} type="monotone" dataKey={`${k}__fob`}
+                    name={`${o.name} + fobbing`} legendType="none"
+                    stroke="none" fill={o.color} fillOpacity={0.28}
+                    activeDot={false} connectNulls />
+                );
+              })}
+              {showCostBands && presentOrigins.map(k => {
+                const o = data.origins[k];
+                if (!o) return null;
+                return (
+                  <Area key={`${k}__tender`} type="monotone" dataKey={`${k}__tender`}
+                    name={`${o.name} + freight & adders`} legendType="none"
+                    stroke="none" fill={o.color} fillOpacity={0.13}
+                    activeDot={false} connectNulls />
+                );
+              })}
               {presentOrigins.map(k => {
                 const o = data.origins[k];
                 if (!o) return null;
@@ -519,7 +565,7 @@ export default function OriginPricesPanel() {
                 <Line type="monotone" dataKey={FUTURES_KEY} name={futuresName}
                   stroke={FUTURES_COLOR} strokeWidth={1.5} strokeDasharray="4 3" dot={false} connectNulls />
               )}
-            </LineChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </div>
