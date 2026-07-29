@@ -1,29 +1,43 @@
 "use client";
 /**
- * Auto-comment generators for the briefing builder.
+ * Auto-comment generators for the briefing builder — structured house style.
  *
- * Each report chart id maps to a builder that fetches the same small JSON the
- * chart reads, extracts a few variables (latest value, change vs prior, trend,
- * threshold flags) and fills a 2–3 sentence rule-based template. ReportCanvas
- * seeds the editable note box with this text; the user can edit or clear it,
- * and an untouched note refreshes as the data updates.
+ * Every chart builder returns a structured Note:
+ *   { facts: [{label, value}], read?, flag? }
+ *   - facts  — scannable `**Label:** value` bullets. The FIRST fact's label
+ *              identifies subject + period (it feeds the Executive Summary).
+ *   - read   — ONE takeaway line, rendered as "→ …". MUST be data-conditional:
+ *              it only appears when a rule fires (extreme, streak, divergence,
+ *              band breach). Never a static educational sentence.
+ *   - flag   — true when the read is notable enough to surface in the
+ *              Executive Summary's "⚠ Watch" line.
  *
- * SAFETY: every builder is wrapped in try/catch by getInsight — a builder that
- * can't parse its data returns null and the note simply falls back to the empty
- * placeholder. So a wrong field name degrades gracefully, never crashes the UI.
+ * Rendering to markdown happens in ONE place (renderNote), so the house format
+ * is a single edit for all charts. Split-note charts (NY/London,
+ * Arabica/Robusta) return a Record<noteKey, Note>.
  *
- * Split-note charts (NY/London, Arabica/Robusta) return a Record keyed by the
- * note key; single-note charts return a string.
+ * SAFETY: unchanged — getInsight try/catches every builder; a failure yields
+ * null and the note box falls back to the empty placeholder.
  */
 import { transformApiData } from "@/lib/cot/transformApiData";
-import type { CotRawRow } from "@/lib/cot/types";
+import type { CotRawRow, ProcessedCotRow } from "@/lib/cot/types";
 import { buildMarketMetrics } from "@/lib/pdf/dataHelpers";
 import { evaluateSignals } from "@/lib/cot/signalEngine";
 import { buildIndonesiaData, type RawIndonesiaExports } from "@/components/supply/IndonesiaExports/data";
 import type { IndonesiaExportsData } from "@/components/supply/IndonesiaExports/types";
 
-type Insight = string | Record<string, string> | null;
+// ── structured note core ──────────────────────────────────────────────────────
+export interface Fact { label: string; value: string }
+export interface Note { facts: Fact[]; read?: string; flag?: boolean }
+type Insight = Note | Record<string, Note> | null;
 type Builder = () => Promise<Insight>;
+
+/** THE house format. Change this once to restyle every auto-comment. */
+const renderNote = (n: Note): string => {
+  const lines = n.facts.map((f) => `- **${f.label}:** ${f.value}`);
+  if (n.read) lines.push(`- **→** ${n.read}`);
+  return lines.join("\n");
+};
 
 // ── fetch cache (one request per file, shared across notes) ───────────────────
 const _cache = new Map<string, Promise<unknown>>();
@@ -44,151 +58,239 @@ const kt = (bags: number) => bags * 0.06 / 1000;          // 60-kg bags → kt
 const n0 = (v: number) => Math.round(v).toLocaleString("en-US");
 const n1 = (v: number) => v.toLocaleString("en-US", { maximumFractionDigits: 1 });
 const pct = (v: number | null) => (v == null ? "—" : `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`);
-const klots = (lots: number) => `${(lots / 1000).toFixed(1)}k lots`;
+const klots = (lots: number) => `${lots >= 0 ? "+" : ""}${(lots / 1000).toFixed(1)}k lots`;
 const cropKey = (ym: string) => {
   const [y, m] = ym.split("-").map(Number);
   const s = m >= 4 ? y : y - 1;
   return `${s}/${String((s + 1) % 100).padStart(2, "0")}`;
 };
+const prevCrop = (ck: string) => `${+ck.slice(0, 4) - 1}/${String((+ck.slice(0, 4)) % 100).padStart(2, "0")}`;
 const chgPct = (cur: number, prev: number) => (prev ? ((cur - prev) / Math.abs(prev)) * 100 : null);
 
-// ── Brazil (cecafe.json) ──────────────────────────────────────────────────────
-interface CecafeRow { date: string; total: number; arabica?: number; conillon?: number; soluvel?: number; }
-interface Cecafe { series?: CecafeRow[]; by_country?: Record<string, number>; by_country_prev?: Record<string, number>; updated?: string; }
-
-async function cecafe(): Promise<Cecafe | null> { return load<Cecafe>("/data/cecafe.json"); }
-
-const brazilMonthly: Builder = async () => {
-  const d = await cecafe(); const s = d?.series; if (!s?.length) return null;
-  const latest = s[s.length - 1]; const ya = s[s.length - 13];
-  const yoy = ya ? chgPct(latest.total, ya.total) : null;
-  const ck = cropKey(latest.date);
-  const ctd = s.filter((r) => cropKey(r.date) === ck);
-  const months = new Set(ctd.map((r) => r.date.slice(5)));
-  const prevCk = `${+ck.slice(0, 4) - 1}/${String((+ck.slice(0, 4)) % 100).padStart(2, "0")}`;
-  const prevCtd = s.filter((r) => cropKey(r.date) === prevCk && months.has(r.date.slice(5)));
-  const ctdT = ctd.reduce((a, r) => a + r.total, 0);
-  const prevT = prevCtd.reduce((a, r) => a + r.total, 0);
-  const ctdPct = chgPct(ctdT, prevT);
-  return `Brazil shipped **${n1(kt(latest.total))} kt** in ${monthLabel(latest.date)}, **${pct(yoy)}** versus the same month a year earlier. `
-    + `Crop-year-to-date (${ck}) exports of **${n1(kt(ctdT))} kt** run **${pct(ctdPct)}** against ${prevCk} at the same point in the season.`;
+// ── series helpers (streaks / percentiles / extremes) ─────────────────────────
+/** Percentile (0–100) of v within series; null when the sample is too thin. */
+const pctileOf = (series: number[], v: number): number | null => {
+  const s = series.filter((x) => Number.isFinite(x));
+  if (s.length < 8) return null;
+  return Math.round((s.filter((x) => x <= v).length / s.length) * 100);
 };
-
-const brazilAnnual: Builder = async () => {
-  const d = await cecafe(); const s = d?.series; if (!s?.length) return null;
-  const r = s[s.length - 1]; const a = r.arabica ?? 0, c = r.conillon ?? 0, so = r.soluvel ?? 0;
-  const tot = a + c + so || r.total || 1;
-  return `In ${monthLabel(r.date)} the Brazilian export mix was **${(a / tot * 100).toFixed(0)}% arabica**, `
-    + `**${(c / tot * 100).toFixed(0)}% conilon** and **${(so / tot * 100).toFixed(0)}% soluble**, on **${n1(kt(r.total))} kt** total. `
-    + `Watch the arabica/conilon balance as the crop year progresses for demand-mix and grading signals.`;
+/** Consecutive rises (dir=1) or falls (dir=-1) counted back from the end. */
+const endStreak = (series: number[], dir: 1 | -1): number => {
+  let n = 0;
+  for (let i = series.length - 1; i > 0; i--) {
+    const d = series[i] - series[i - 1];
+    if (dir === 1 ? d > 0 : d < 0) n++;
+    else break;
+  }
+  return n;
 };
-
-const brazilPace: Builder = async () => {
-  const d = await cecafe(); const s = d?.series; if (!s?.length) return null;
-  const latest = s[s.length - 1]; const ck = cropKey(latest.date);
-  const ctd = s.filter((r) => cropKey(r.date) === ck);
-  const months = new Set(ctd.map((r) => r.date.slice(5)));
-  const prevCk = `${+ck.slice(0, 4) - 1}/${String((+ck.slice(0, 4)) % 100).padStart(2, "0")}`;
-  const prevCtd = s.filter((r) => cropKey(r.date) === prevCk && months.has(r.date.slice(5)));
-  const ctdT = ctd.reduce((a, r) => a + r.total, 0), prevT = prevCtd.reduce((a, r) => a + r.total, 0);
-  return `Through ${MONTHS[+latest.date.slice(5) - 1]}, ${ck} crop-year exports total **${n1(kt(ctdT))} kt**, `
-    + `**${pct(chgPct(ctdT, prevT))}** versus ${prevCk} (${n1(kt(prevT))} kt) at the same stage. `
-    + `Cumulative pace ${ctdT >= prevT ? "ahead of" : "behind"} last year points to ${ctdT >= prevT ? "ample" : "tightening"} near-term availability.`;
+/** Months of consecutive same-sign YoY change at the end of a monthly series. */
+const yoyStreak = (vals: number[]): { n: number; up: boolean } | null => {
+  if (vals.length < 14) return null;
+  const yoy = (i: number) => vals[i] - vals[i - 12];
+  const lastI = vals.length - 1;
+  if (yoy(lastI) === 0) return null;
+  const up = yoy(lastI) > 0;
+  let n = 0;
+  for (let i = lastI; i >= 12; i--) {
+    if (yoy(i) !== 0 && (yoy(i) > 0) === up) n++;
+    else break;
+  }
+  return { n, up };
 };
+const streakText = (s: { n: number; up: boolean } | null): string =>
+  s && s.n >= 2 ? `, ${s.n}${s.n === 2 ? "nd" : s.n === 3 ? "rd" : "th"} straight YoY ${s.up ? "gain" : "decline"}` : "";
 
-const brazilDest: Builder = async () => {
-  const d = await cecafe(); const by = d?.by_country; if (!by) return null;
-  const tot = Object.values(by).reduce((a, b) => a + b, 0) || 1;
-  const top = Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 3);
-  if (!top.length) return null;
-  const [c0, v0] = top[0];
-  const prev0 = d?.by_country_prev?.[c0];
-  const mv = prev0 != null ? chgPct(v0, prev0) : null;
-  return `Top destination is **${c0}** at **${n1(kt(v0))} kt** (**${(v0 / tot * 100).toFixed(0)}%** of shipments)`
-    + `${mv != null ? `, **${pct(mv)}** versus the prior period` : ""}. `
-    + `Next largest: ${top.slice(1).map(([c, v]) => `${c} (${(v / tot * 100).toFixed(0)}%)`).join(", ")}.`;
-};
-
-const brazilDaily: Builder = async () => {
-  const d = await cecafe(); const s = d?.series; if (!s?.length) return null;
-  const latest = s[s.length - 1];
-  return `Daily Cecafé registrations are accumulating through ${monthLabel(latest.date)}; the latest monthly total stands at **${n1(kt(latest.total))} kt** (arabica + conilon). `
-    + `Compare the current curve against prior crop years to gauge whether the month is tracking ahead of or behind the seasonal norm.`;
-};
-
-// ── Vietnam exports (vietnam_supply.json) ─────────────────────────────────────
-interface VnMonth { month: string; total_k_bags?: number; yoy_pct?: number | null; }
-async function vnMonthly(): Promise<VnMonth[] | null> {
-  const d = await load<{ exports?: { monthly?: VnMonth[] } }>("/data/vietnam_supply.json");
-  const m = d?.exports?.monthly;
-  return Array.isArray(m) && m.length ? m : null;
-}
-const vnKt = (kb: number) => kb * 0.06; // thousand 60-kg bags → kt
-const vnCrop = (ym: string) => { const [y, m] = ym.split("-").map(Number); const s = m >= 10 ? y : y - 1; return `${s}/${String((s + 1) % 100).padStart(2, "0")}`; };
-
-const vietnamMonthly: Builder = async () => {
-  const m = await vnMonthly(); if (!m) return null;
-  const last = m[m.length - 1];
-  return `Vietnam exported **${n1(vnKt(last.total_k_bags ?? 0))} kt** (${n0(last.total_k_bags ?? 0)}k bags) in ${monthLabel(last.month)}, **${pct(last.yoy_pct ?? null)}** year-on-year. `
-    + `As the dominant robusta origin, Vietnam's monthly pace is a primary driver of the London supply picture.`;
-};
-const vietnamPace: Builder = async () => {
-  const m = await vnMonthly(); if (!m) return null;
-  const last = m[m.length - 1]; const ck = vnCrop(last.month);
-  const ctd = m.filter((r) => vnCrop(r.month) === ck);
-  const months = new Set(ctd.map((r) => r.month.slice(5)));
-  const prevCk = `${+ck.slice(0, 4) - 1}/${String((+ck.slice(0, 4)) % 100).padStart(2, "0")}`;
-  const prevCtd = m.filter((r) => vnCrop(r.month) === prevCk && months.has(r.month.slice(5)));
-  const ctdT = ctd.reduce((a, r) => a + (r.total_k_bags ?? 0), 0);
-  const prevT = prevCtd.reduce((a, r) => a + (r.total_k_bags ?? 0), 0);
-  return `Through ${MONTHS[+last.month.slice(5) - 1]}, ${ck} crop-year (Oct–Sep) exports total **${n1(vnKt(ctdT))} kt**, **${pct(chgPct(ctdT, prevT))}** versus ${prevCk} at the same stage. `
-    + `Pace ${ctdT >= prevT ? "ahead of" : "behind"} last year signals ${ctdT >= prevT ? "comfortable" : "tightening"} robusta availability into the marketing year.`;
-};
-const vietnamAnnual: Builder = async () => {
-  const m = await vnMonthly(); if (!m || m.length < 24) return null;
-  const last12 = m.slice(-12).reduce((a, r) => a + (r.total_k_bags ?? 0), 0);
-  const prev12 = m.slice(-24, -12).reduce((a, r) => a + (r.total_k_bags ?? 0), 0);
-  return `Trailing 12-month Vietnamese exports total **${n1(vnKt(last12))} kt**, **${pct(chgPct(last12, prev12))}** versus the prior 12 months. `
-    + `The annual trajectory frames how much robusta the world's top producer is releasing across the full cycle.`;
-};
-
-// ── COT (cot.json, reuse the dashboard's own metric engine) ───────────────────
-async function cotRows() {
+// ── COT shared (cot.json → processed rows + metric engine) ────────────────────
+async function cotRows(): Promise<ProcessedCotRow[] | null> {
   const rows = await load<CotRawRow[]>("/data/cot.json");
   if (!Array.isArray(rows) || !rows.length) return null;
   return transformApiData(rows);
 }
-function cotMarketLine(data: ReturnType<typeof transformApiData>, mkt: "ny" | "ldn", name: string): string | null {
-  const m = buildMarketMetrics(data.slice(-52), data, mkt);
-  if (!m) return null;
-  const longVerb = m.mmLongChangeLots < 0 ? "trimmed" : m.mmLongChangeLots > 0 ? "added to" : "held";
-  const shortVerb = m.mmShortChangeLots > 0 ? "increased" : m.mmShortChangeLots < 0 ? "covered" : "held";
-  return `${name}: managed money ${longVerb} longs (**${klots(m.mmLongChangeLots)}**) and ${shortVerb} shorts (**${klots(m.mmShortChangeLots)}**) over the latest COT week, `
-    + `with total open interest changing **${klots(m.oiChangeLots)}** and price **${pct(m.priceChangePct)}**. Industry coverage at **${(m.roasterCovPct ?? 0).toFixed(0)}%** of range.`;
-}
+const mmNet = (r: ProcessedCotRow, mkt: "ny" | "ldn") =>
+  (mkt === "ny" ? r.ny : r.ldn).mmLong - (mkt === "ny" ? r.ny : r.ldn).mmShort;
+const mmNetSeries = (data: ProcessedCotRow[], mkt: "ny" | "ldn") =>
+  data.slice(-52).map((r) => mmNet(r, mkt));
+const cotMetrics = (data: ProcessedCotRow[], mkt: "ny" | "ldn") =>
+  buildMarketMetrics(data.slice(-52), data, mkt);
+
 const cotOverview: Builder = async () => {
   const data = await cotRows(); if (!data) return null;
+  const side = (mkt: "ny" | "ldn"): Note | null => {
+    const m = cotMetrics(data, mkt); if (!m) return null;
+    const net = m.mmLongChangeLots - m.mmShortChangeLots;
+    const priceUp = m.priceChangePct > 0.5, priceDn = m.priceChangePct < -0.5;
+    let read: string | undefined; let flag = false;
+    if (net > 1000 && priceUp) read = "Fresh fund longs driving the rally.";
+    else if (net < -1000 && priceUp) { read = "Price up while funds sold — short-covering, weaker foundation."; flag = true; }
+    else if (net > 1000 && priceDn) { read = "Funds bought into a falling tape — positioning leading price."; flag = true; }
+    else if (net < -1000 && priceDn) read = "Fund selling pressing price lower.";
+    return {
+      facts: [
+        { label: "MM flow WoW", value: `longs **${klots(m.mmLongChangeLots)}**, shorts **${klots(m.mmShortChangeLots)}** (net **${klots(net)}**)` },
+        { label: "OI / price", value: `OI **${klots(m.oiChangeLots)}**, price **${pct(m.priceChangePct)}**` },
+        { label: "Industry coverage", value: `roasters **${m.roasterCovPct.toFixed(0)}%**, producers **${m.producerCovPct.toFixed(0)}%** of 52w range` },
+      ],
+      read, flag,
+    };
+  };
+  const ny = side("ny"), ldn = side("ldn");
+  if (!ny || !ldn) return null;
+  return { ny, ldn };
+};
+
+const cotHeatmapNote: Builder = async () => {
+  const data = await cotRows(); if (!data) return null;
+  const sig = evaluateSignals(data);
+  const count = (mkt: string) => {
+    const ms = sig.filter((s) => String(s.market).toUpperCase().includes(mkt));
+    return { bull: ms.filter((s) => s.score > 0).length, bear: ms.filter((s) => s.score < 0).length };
+  };
+  const ny = count("NY"), ldn = count("LDN");
+  const skew = ny.bull + ldn.bull - (ny.bear + ldn.bear);
   return {
-    ny: cotMarketLine(data, "ny", "NY arabica") ?? "",
-    ldn: cotMarketLine(data, "ldn", "London robusta") ?? "",
+    facts: [
+      { label: "NY signals", value: `**${ny.bull} bullish / ${ny.bear} bearish** firing this week` },
+      { label: "LDN signals", value: `**${ldn.bull} bullish / ${ldn.bear} bearish**` },
+    ],
+    read: Math.abs(skew) >= 3 ? `Signal cluster skews ${skew > 0 ? "bullish" : "bearish"} across the rule set.` : undefined,
+    flag: Math.abs(skew) >= 5,
   };
 };
-const cotSignals: Builder = async () => {
+
+const cotGaugesNote: Builder = async () => {
+  const data = await cotRows(); if (!data) return null;
+  const side = (mkt: "ny" | "ldn") => {
+    const s = mmNetSeries(data, mkt);
+    const cur = s[s.length - 1] ?? 0;
+    return { cur, p: pctileOf(s, cur) };
+  };
+  const ny = side("ny"), ldn = side("ldn");
+  const ex = (p: number | null) => p != null && (p >= 85 || p <= 15);
+  const extremes = [ny, ldn]
+    .map((x, i) => (ex(x.p) ? `${i === 0 ? "NY" : "London"} MM net ${x.p! >= 85 ? "stretched long" : "stretched short"} (${x.p}th pctile)` : null))
+    .filter((x): x is string => !!x);
+  return {
+    facts: [
+      { label: "NY MM net", value: `**${klots(ny.cur)}** — **${ny.p ?? "—"}th pctile** of 52w` },
+      { label: "LDN MM net", value: `**${klots(ldn.cur)}** — **${ldn.p ?? "—"}th pctile** of 52w` },
+    ],
+    read: extremes.length ? `${extremes.join("; ")}.` : "Both markets mid-range — no positioning extreme.",
+    flag: extremes.length > 0,
+  };
+};
+
+const cotGlobalFlowNote: Builder = async () => {
+  const data = await cotRows(); if (!data) return null;
+  const ny = cotMetrics(data, "ny"), ldn = cotMetrics(data, "ldn");
+  if (!ny || !ldn) return null;
+  const dNy = ny.mmLongChangeLots - ny.mmShortChangeLots;
+  const dLdn = ldn.mmLongChangeLots - ldn.mmShortChangeLots;
+  const comb = dNy + dLdn;
+  const same = Math.sign(dNy) === Math.sign(dLdn) && dNy !== 0;
+  return {
+    facts: [
+      { label: "Fund flow WoW", value: `NY net **${klots(dNy)}**, LDN net **${klots(dLdn)}**` },
+      { label: "Combined", value: `**${klots(comb)}** across both coffee markets` },
+    ],
+    read: same && Math.abs(comb) > 8000
+      ? `Coordinated cross-market ${comb > 0 ? "buying" : "selling"} — reads as macro fund flow, not a single-market story.`
+      : !same && Math.abs(dNy) > 2000 && Math.abs(dLdn) > 2000
+      ? "Flows diverge between NY and London — market-specific drivers at work."
+      : undefined,
+    flag: same && Math.abs(comb) > 8000,
+  };
+};
+
+const cotIndustryPulseNote: Builder = async () => {
+  const data = await cotRows(); if (!data) return null;
+  const ny = cotMetrics(data, "ny"), ldn = cotMetrics(data, "ldn");
+  if (!ny || !ldn) return null;
+  const thin = [
+    ny.roasterCovPct <= 15 ? "NY roaster" : null, ldn.roasterCovPct <= 15 ? "LDN roaster" : null,
+    ny.producerCovPct <= 15 ? "NY producer" : null, ldn.producerCovPct <= 15 ? "LDN producer" : null,
+  ].filter(Boolean);
+  return {
+    facts: [
+      { label: "NY coverage", value: `roasters **${ny.roasterCovPct.toFixed(0)}%** / producers **${ny.producerCovPct.toFixed(0)}%** of 52w range (roasters **${n0(ny.roasterMTWoW)} MT** WoW)` },
+      { label: "LDN coverage", value: `roasters **${ldn.roasterCovPct.toFixed(0)}%** / producers **${ldn.producerCovPct.toFixed(0)}%** of 52w range` },
+    ],
+    read: thin.length ? `${thin.join(", ")} coverage thin — an under-hedged side tends to chase adverse moves.` : undefined,
+    flag: thin.length > 0,
+  };
+};
+
+const cotDryPowderNote: Builder = async () => {
+  const data = await cotRows(); if (!data) return null;
+  const side = (mkt: "ny" | "ldn") => {
+    const s = mmNetSeries(data, mkt);
+    const cur = s[s.length - 1] ?? 0;
+    const max = Math.max(...s), min = Math.min(...s), range = max - min || 1;
+    return { toMax: max - cur, toMin: cur - min, nearMax: (max - cur) / range < 0.1, nearMin: (cur - min) / range < 0.1 };
+  };
+  const ny = side("ny"), ldn = side("ldn");
+  const notes: string[] = [];
+  if (ny.nearMax) notes.push("NY longs near 52w capacity — squeeze fuel is low");
+  if (ny.nearMin) notes.push("NY at max-short territory — flush risk spent");
+  if (ldn.nearMax) notes.push("London longs near 52w capacity");
+  if (ldn.nearMin) notes.push("London at max-short territory");
+  return {
+    facts: [
+      { label: "NY room", value: `**${n0(ny.toMax / 1000)}k lots** to 52w max-long, **${n0(ny.toMin / 1000)}k** to max-short` },
+      { label: "LDN room", value: `**${n0(ldn.toMax / 1000)}k lots** to max-long, **${n0(ldn.toMin / 1000)}k** to max-short` },
+    ],
+    read: notes.length ? `${notes.join("; ")}.` : "Meaningful dry powder in both directions — positioning is not the constraint.",
+    flag: notes.length > 0,
+  };
+};
+
+const cotCycleLocationNote: Builder = async () => {
+  const data = await cotRows(); if (!data) return null;
+  const ny = cotMetrics(data, "ny"), ldn = cotMetrics(data, "ldn");
+  if (!ny || !ldn) return null;
+  const flags = [ny, ldn].map((m, i) => m.obosFlag !== "neutral" ? `${i === 0 ? "NY" : "London"} ${m.obosFlag}` : null).filter(Boolean);
+  return {
+    facts: [
+      { label: "NY location", value: `price rank **${ny.priceRank.toFixed(0)}** / OI rank **${ny.oiRank.toFixed(0)}** (0–100)` },
+      { label: "LDN location", value: `price rank **${ldn.priceRank.toFixed(0)}** / OI rank **${ldn.oiRank.toFixed(0)}**` },
+    ],
+    read: flags.length ? `${flags.join("; ")} — cycle extreme in play.` : "Neither market at an overbought/oversold extreme.",
+    flag: flags.length > 0,
+  };
+};
+
+const cotSignalsNote: Builder = async () => {
   const data = await cotRows(); if (!data) return null;
   const sig = evaluateSignals(data);
   const a = sig.filter((s) => s.severity === "alert").length;
   const w = sig.filter((s) => s.severity === "warn").length;
   const top = sig.find((s) => s.severity === "alert") ?? sig.find((s) => s.severity === "warn");
-  return `The rule engine is firing **${a} alert${a === 1 ? "" : "s"}** and **${w} warning${w === 1 ? "" : "s"}** this week. `
-    + `${top ? `Lead signal: ${top.name}. ` : ""}Treat clustered same-direction signals as higher-conviction.`;
+  const score = sig.reduce((t, s) => t + s.score, 0);
+  return {
+    facts: [
+      { label: "Rule engine", value: `**${a} alert${a === 1 ? "" : "s"}**, **${w} warning${w === 1 ? "" : "s"}** firing` },
+      ...(top ? [{ label: "Lead signal", value: top.name }] : []),
+    ],
+    read: score !== 0 ? `Net rule score skews ${score > 0 ? "bullish" : "bearish"} this week.` : undefined,
+    flag: a > 0,
+  };
 };
-const cotGeneric = (title: string): Builder => async () => {
+
+const cotReportNote: Builder = async () => {
   const data = await cotRows(); if (!data) return null;
-  const ny = buildMarketMetrics(data.slice(-52), data, "ny");
-  const ldn = buildMarketMetrics(data.slice(-52), data, "ldn");
+  const ny = cotMetrics(data, "ny"), ldn = cotMetrics(data, "ldn");
   if (!ny || !ldn) return null;
-  return `${title} for NY arabica and London robusta. Latest COT week: NY managed-money net change **${klots(ny.mmLongChangeLots - ny.mmShortChangeLots)}**, `
-    + `London **${klots(ldn.mmLongChangeLots - ldn.mmShortChangeLots)}**. Read alongside price and open-interest to confirm whether positioning is leading or lagging the move.`;
+  const mism = [ny.positionMismatch ? "NY" : null, ldn.positionMismatch ? "London" : null].filter(Boolean);
+  return {
+    facts: [
+      { label: "NY", value: `MM net **${klots(ny.mmLongChangeLots - ny.mmShortChangeLots)}** WoW, MM concentration **${ny.mmConcentrationPct.toFixed(0)}%** of OI` },
+      { label: "LDN", value: `MM net **${klots(ldn.mmLongChangeLots - ldn.mmShortChangeLots)}** WoW, concentration **${ldn.mmConcentrationPct.toFixed(0)}%**` },
+    ],
+    read: mism.length
+      ? `${mism.join(" and ")} show a lots-vs-trader-count mismatch — a few large accounts drive the position (concentration risk).`
+      : "No crowd-risk or concentration flags this week.",
+    flag: mism.length > 0,
+  };
 };
 
 // ── Futures chain (futures_chain.json) ────────────────────────────────────────
@@ -196,262 +298,242 @@ interface Contract { contract?: string; last?: number; chg?: number; oi?: number
 interface Chain { contracts?: Contract[]; pub_date?: string; }
 const dailyQuotes: Builder = async () => {
   const d = await load<{ arabica?: Chain; robusta?: Chain }>("/data/futures_chain.json"); if (!d) return null;
-  const line = (c: Chain | undefined, unit: string, dec: number) => {
-    // The liquid front is the max-open-interest contract, NOT contracts[0]:
-    // near a roll the nearest-expiry contract is a thin, stale-looking print
-    // (e.g. KCN26 on ~1 lot) while OI has moved to the next delivery. Quoting
-    // [0] put a wrong price in the exported briefing. Mirror MarketTicker.frontByOI.
-    const cs = (c?.contracts ?? []).filter(x => x.last != null);
-    if (!cs.length) return "";
-    const f = cs.reduce((best, x) => (x.oi ?? 0) > (best.oi ?? 0) ? x : best, cs[0]);
-    if (f.last == null) return "";
-    const dir = (f.chg ?? 0) >= 0 ? "up" : "down";
-    return `Front month **${f.symbol?.slice(0, 5) ?? f.contract}** last **${f.last.toFixed(dec)} ${unit}**, ${dir} **${f.chg != null ? Math.abs(f.chg).toFixed(dec) : "—"}** on the day; front open interest **${n0(f.oi ?? 0)}** lots.`;
+  const side = (c: Chain | undefined, unit: string, dec: number): Note | null => {
+    // Liquid front = max-OI contract, not nearest expiry (see MarketTicker.frontByOI).
+    const cs = (c?.contracts ?? []).filter((x) => x.last != null);
+    if (!cs.length) return null;
+    const f = cs.reduce((best, x) => ((x.oi ?? 0) > (best.oi ?? 0) ? x : best), cs[0]);
+    if (f.last == null) return null;
+    const sym = f.symbol?.slice(0, 5) ?? f.contract ?? "front";
+    const dayPct = f.chg != null && f.last - f.chg !== 0 ? (f.chg / (f.last - f.chg)) * 100 : null;
+    return {
+      facts: [
+        { label: sym, value: `last **${f.last.toFixed(dec)} ${unit}**, ${(f.chg ?? 0) >= 0 ? "up" : "down"} **${f.chg != null ? Math.abs(f.chg).toFixed(dec) : "—"}**${dayPct != null ? ` (${pct(dayPct)})` : ""}` },
+        { label: "Front OI", value: `**${n0(f.oi ?? 0)}** lots` },
+      ],
+      read: dayPct != null && Math.abs(dayPct) > 2 ? `Outsized daily move — ${dayPct > 0 ? "rally" : "sell-off"} of ${Math.abs(dayPct).toFixed(1)}%.` : undefined,
+      flag: dayPct != null && Math.abs(dayPct) > 2,
+    };
   };
-  return { ny: line(d.arabica, "¢/lb", 2), ldn: line(d.robusta, "$/t", 0) };
+  const ny = side(d.arabica, "¢/lb", 2), ldn = side(d.robusta, "$/t", 0);
+  if (!ny && !ldn) return null;
+  return { ny: ny ?? { facts: [] }, ldn: ldn ?? { facts: [] } };
 };
 
 // ── OI to FND (oi_fnd_chart.json) ─────────────────────────────────────────────
 interface Spread { frontLabel?: string; nextLabel?: string; data?: { day: number; spread: number }[]; }
 const oiFnd: Builder = async () => {
   const d = await load<{ arabica_front_spread?: Spread; robusta_front_spread?: Spread }>("/data/oi_fnd_chart.json"); if (!d) return null;
-  const line = (sp: Spread | undefined, unit: string) => {
-    if (!sp?.frontLabel) return "";
-    const last = sp.data?.length ? sp.data[sp.data.length - 1].spread : null;
-    return `Front contract **${sp.frontLabel}** is rolling its open interest down into First Notice Day${sp.nextLabel ? `, with **${sp.nextLabel}** taking over as the active month` : ""}. `
-      + `${last != null ? `Front spread (${sp.frontLabel}–${sp.nextLabel}) at **${last} ${unit}** — watch for an accelerating roll into FND.` : ""}`;
+  const side = (sp: Spread | undefined, unit: string): Note | null => {
+    if (!sp?.frontLabel) return null;
+    const vals = (sp.data ?? []).map((x) => x.spread);
+    const last = vals.length ? vals[vals.length - 1] : null;
+    const narrowing = vals.length >= 4 ? endStreak(vals, -1) >= 3 : false;
+    const widening = vals.length >= 4 ? endStreak(vals, 1) >= 3 : false;
+    return {
+      facts: [
+        { label: "Roll", value: `**${sp.frontLabel}** → **${sp.nextLabel ?? "next"}** into FND` },
+        ...(last != null ? [{ label: "Front spread", value: `**${last} ${unit}**` }] : []),
+      ],
+      read: narrowing ? "Front spread narrowing session after session — roll pressure building." :
+            widening ? "Front spread widening into the roll — front holding a premium." : undefined,
+      flag: narrowing,
+    };
   };
-  return { ny: line(d.arabica_front_spread, "¢/lb"), ldn: line(d.robusta_front_spread, "$/t") };
+  const ny = side(d.arabica_front_spread, "¢/lb"), ldn = side(d.robusta_front_spread, "$/t");
+  if (!ny && !ldn) return null;
+  return { ny: ny ?? { facts: [] }, ldn: ldn ?? { facts: [] } };
 };
 
-// ── Freight (freight.json) ────────────────────────────────────────────────────
-interface Route { from?: string; to?: string; rate?: number; prev?: number; unit?: string; }
+// ── Freight (freight.json / port_activity) ────────────────────────────────────
+interface Route { id?: string; from?: string; to?: string; rate?: number; prev?: number; unit?: string; }
+async function routes(): Promise<Route[] | null> {
+  const d = await load<{ routes?: Route[] }>("/data/freight.json");
+  return d?.routes?.length ? d.routes : null;
+}
 const freightSpot: Builder = async () => {
-  const d = await load<{ routes?: Route[] }>("/data/freight.json"); const rs = d?.routes; if (!rs?.length) return null;
+  const rs = await routes(); if (!rs) return null;
   const moved = rs.map((r) => ({ ...r, mv: chgPct(r.rate ?? 0, r.prev ?? 0) ?? 0 })).sort((a, b) => Math.abs(b.mv) - Math.abs(a.mv));
   const top = moved[0];
-  return `Container spot rates across ${rs.length} coffee corridors. Biggest move: **${top.from}→${top.to}** at **${n0(top.rate ?? 0)} ${top.unit ?? ""}** (**${pct(top.mv)}** vs prior reading). `
-    + `Rising freight lifts landed cost at destination and can widen origin differentials.`;
+  const up = rs.filter((r) => (r.rate ?? 0) > (r.prev ?? 0)).length;
+  const broad = up >= rs.length - 1 && Math.abs(top.mv) > 3;
+  return {
+    facts: [
+      { label: "Biggest move", value: `**${top.from}→${top.to}** at **${n0(top.rate ?? 0)} ${top.unit ?? ""}** (**${pct(top.mv)}**)` },
+      { label: "Breadth", value: `**${up}/${rs.length}** corridors higher vs prior reading` },
+    ],
+    read: broad ? "Broad freight pressure building — landed costs rising across corridors." :
+          up === 0 ? "Rates easing across the board." : undefined,
+    flag: broad,
+  };
 };
 const freightEvolution: Builder = async () => {
-  const d = await load<{ routes?: Route[] }>("/data/freight.json"); const rs = d?.routes; if (!rs?.length) return null;
+  const rs = await routes(); if (!rs) return null;
   const up = rs.filter((r) => (r.rate ?? 0) > (r.prev ?? 0)).length;
-  return `Historical freight-rate trend across the key coffee corridors (VN→EU, BR→EU, VN→US, ET→EU). `
-    + `Of ${rs.length} tracked routes, **${up}** ${up === 1 ? "is" : "are"} higher than the prior reading — a proxy for shipping-cost pressure feeding into delivered prices.`;
+  const avgMv = rs.reduce((a, r) => a + (chgPct(r.rate ?? 0, r.prev ?? 0) ?? 0), 0) / rs.length;
+  return {
+    facts: [
+      { label: "Corridor trend", value: `**${up}/${rs.length}** routes higher; average move **${pct(avgMv)}**` },
+    ],
+    read: Math.abs(avgMv) > 5 ? `Freight trending ${avgMv > 0 ? "up" : "down"} meaningfully across the corridor set.` : undefined,
+    flag: avgMv > 5,
+  };
+};
+const portActivity: Builder = async () => {
+  const d = await load<{ label?: string; country?: string; series?: { date: string; portcalls?: number }[] }>("/data/port_activity/hcmc.json");
+  const s = d?.series; if (!Array.isArray(s) || !s.length) return null;
+  const last = s[s.length - 1].date; const yr = last.slice(0, 4); const md = last.slice(5);
+  const ytd = (y: string) => s.filter((r) => r.date.slice(0, 4) === y && r.date.slice(5) <= md).reduce((a, r) => a + (r.portcalls ?? 0), 0);
+  const cur = ytd(yr); const prev = ytd(String(+yr - 1));
+  const dp = chgPct(cur, prev);
+  return {
+    facts: [{ label: `${d?.label ?? "Gateway"} YTD`, value: `**${n0(cur)}** vessel calls (**${pct(dp)}** vs same point last year)` }],
+    read: dp != null && Math.abs(dp) > 10 ? `Throughput running well ${dp > 0 ? "above" : "below"} last year at the ${d?.country ?? "origin"} export gateway.` : undefined,
+    flag: dp != null && dp < -10,
+  };
+};
+const originFreightCosts: Builder = async () => {
+  const rs = await routes(); if (!rs) return null;
+  const find = (from: string, to: string) => rs.find((r) => (r.from ?? "").includes(from) && (r.to ?? "").includes(to));
+  const vn = find("Ho Chi Minh", "Rotterdam"), br = find("Santos", "Rotterdam");
+  const moved = rs.map((r) => ({ ...r, mv: chgPct(r.rate ?? 0, r.prev ?? 0) ?? 0 })).sort((a, b) => Math.abs(b.mv) - Math.abs(a.mv))[0];
+  const facts: Fact[] = [];
+  if (vn?.rate != null && br?.rate != null) {
+    facts.push({ label: "VN→EU vs BR→EU", value: `**${n0(vn.rate)}** vs **${n0(br.rate)} ${vn.unit ?? "USD/FEU"}** (spread **${n0(vn.rate - br.rate)}**)` });
+  }
+  facts.push({ label: "Biggest move", value: `**${moved.from}→${moved.to}** **${pct(moved.mv)}**` });
+  return {
+    facts,
+    read: Math.abs(moved.mv) > 8 ? `Fresh move on ${moved.from}→${moved.to} — differentials on that corridor will feel it.` : undefined,
+    flag: Math.abs(moved.mv) > 8,
+  };
 };
 
-// ── Certified stocks (certified_stocks_*.json) ────────────────────────────────
-interface CSnap { date: string; total_bags?: number; total_lots_certified?: number; passed_today_bags?: number; failed_today_bags?: number; lots_graded_today?: number; lots_sold_today?: number; }
-interface CJson { snapshots?: CSnap[]; as_of?: string; }
-function mtdWindow(snaps: CSnap[]) {
-  const last = snaps[snaps.length - 1]?.date; if (!last) return snaps.slice(0);
-  const ym = last.slice(0, 7);
-  return snaps.filter((s) => s.date.slice(0, 7) === ym);
+// ── Brazil (cecafe.json) ──────────────────────────────────────────────────────
+interface CecafeRow { date: string; total: number; arabica?: number; conillon?: number; soluvel?: number; }
+interface Cecafe { series?: CecafeRow[]; by_country?: Record<string, number>; by_country_prev?: Record<string, number>; }
+async function cecafe(): Promise<Cecafe | null> { return load<Cecafe>("/data/cecafe.json"); }
+
+/** Crop-year-to-date totals for the latest crop vs the prior crop at the same stage. */
+function ctdPair(series: { key: string; month: string; v: number }[]): { ck: string; pk: string; cur: number; prev: number } {
+  const last = series[series.length - 1];
+  const ck = last.key; const pk = prevCrop(ck);
+  const ctd = series.filter((r) => r.key === ck);
+  const months = new Set(ctd.map((r) => r.month));
+  const prev = series.filter((r) => r.key === pk && months.has(r.month));
+  return { ck, pk, cur: ctd.reduce((a, r) => a + r.v, 0), prev: prev.reduce((a, r) => a + r.v, 0) };
 }
-const certifiedTiles: Builder = async () => {
-  const a = await load<CJson>("/data/certified_stocks_arabica.json");
-  const r = await load<CJson>("/data/certified_stocks_robusta.json");
-  const out: Record<string, string> = {};
-  const aS = a?.snapshots ?? [];
-  if (aS.length) {
-    const win = mtdWindow(aS);
-    const graded = win.reduce((s, x) => s + (x.passed_today_bags ?? 0) + (x.failed_today_bags ?? 0), 0);
-    out.arabica = `ICE-certified **arabica** stocks stand at **${n0(aS[aS.length - 1].total_bags ?? 0)} bags** as of ${a?.as_of ?? aS[aS.length - 1].date}, `
-      + `with **${n0(graded)} bags** graded month-to-date. ${graded > 0 ? "Active grading is replenishing the deliverable pool." : "Grading activity is quiet this month."}`;
-  }
-  const rS = r?.snapshots ?? [];
-  if (rS.length) {
-    const win = mtdWindow(rS);
-    const graded = win.reduce((s, x) => s + (x.lots_graded_today ?? 0), 0);
-    const sold = win.reduce((s, x) => s + (x.lots_sold_today ?? 0), 0);
-    out.robusta = `ICE-certified **robusta** stocks stand at **${n0(rS[rS.length - 1].total_lots_certified ?? 0)} lots** as of ${r?.as_of ?? rS[rS.length - 1].date}, `
-      + `with **${n0(graded)} lots** graded and **${n0(sold)} sold** month-to-date.`;
-  }
-  return Object.keys(out).length ? out : null;
-};
-const certifiedActivity: Builder = async () => {
-  const a = await load<CJson>("/data/certified_stocks_arabica.json");
-  const r = await load<CJson>("/data/certified_stocks_robusta.json");
-  const ad = a?.snapshots?.at(-1), rd = r?.snapshots?.at(-1);
-  if (!ad && !rd) return null;
-  return `Recent exchange activity per contract. Arabica certified **${n0(ad?.total_bags ?? 0)} bags** and robusta **${n0(rd?.total_lots_certified ?? 0)} lots** at the latest read. `
-    + `Watch gradings (inflow) against decertifications/sales (outflow) for the net direction of deliverable supply.`;
-};
-const certifiedFlow: Builder = async () => {
-  const a = await load<CJson>("/data/certified_stocks_arabica.json"); const aS = a?.snapshots ?? [];
-  if (!aS.length) return null;
-  const win = mtdWindow(aS);
-  const graded = win.reduce((s, x) => s + (x.passed_today_bags ?? 0) + (x.failed_today_bags ?? 0), 0);
-  return `Month-to-date certified-stock flow: **${n0(graded)} bags** entered grading. `
-    + `The system-flow view nets gradings-in against decertifications-out — a sustained net drawdown is a tightening signal for the deliverable pool.`;
-};
-const certifiedPeriod = (which: "arabica" | "robusta"): Builder => async () => {
-  const j = await load<CJson>(`/data/certified_stocks_${which}.json`); const s = j?.snapshots ?? [];
-  if (!s.length) return null;
-  const last = s[s.length - 1];
-  const total = which === "arabica" ? last.total_bags : last.total_lots_certified;
-  const unit = which === "arabica" ? "bags" : "lots";
-  return `${which === "arabica" ? "Arabica" : "Robusta"} certified stock totals **${n0(total ?? 0)} ${unit}** as of ${j?.as_of ?? last.date}. `
-    + `The period table breaks this into gradings, ageing and ${which === "arabica" ? "decertifications" : "sales/issuance"} so you can see how the balance was built over the window.`;
+const paceNote = (label: string, unit: (v: number) => string, p: { ck: string; pk: string; cur: number; prev: number }, tightFlagPct = -8): Note => {
+  const dp = chgPct(p.cur, p.prev);
+  return {
+    facts: [
+      { label: `${label} · crop ${p.ck} YTD`, value: `**${unit(p.cur)}** (**${pct(dp)}** vs ${p.pk} at the same stage)` },
+      { label: `${p.pk} same stage`, value: `**${unit(p.prev)}**` },
+    ],
+    read: dp != null && Math.abs(dp) > 3 ? `Pace ${dp > 0 ? "ahead of" : "behind"} last season — ${dp > 0 ? "ample" : "tightening"} availability.` : undefined,
+    flag: dp != null && dp < tightFlagPct,
+  };
 };
 
-// ── Spot (spot_coffee.json) ───────────────────────────────────────────────────
-interface Spot { rows?: { Type?: string }[]; by_type?: Record<string, number>; row_count?: number; as_of?: string; }
-const spotTiles: Builder = async () => {
-  const d = await load<Spot>("/data/spot_coffee.json"); if (!d?.row_count) return null;
-  const bt = d.by_type ?? {};
-  const tot = Object.values(bt).reduce((a, b) => a + b, 0) || 1;
-  const parts = Object.entries(bt).map(([t, v]) => `${(v / tot * 100).toFixed(0)}% ${t.toLowerCase()}`);
-  return `**${d.row_count}** physical spot offers are live as of ${d.as_of ?? "the latest scrape"} (ATTE), split ${parts.join(" / ")} by offer count. `
-    + `Spot supply gauges how much physical coffee sellers are pushing to market right now — a near-term availability and differential signal.`;
+const brazilMonthly: Builder = async () => {
+  const d = await cecafe(); const s = d?.series; if (!s?.length) return null;
+  const latest = s[s.length - 1]; const ya = s[s.length - 13];
+  const yoy = ya ? chgPct(latest.total, ya.total) : null;
+  const st = streakText(yoyStreak(s.map((r) => r.total)));
+  const p = ctdPair(s.map((r) => ({ key: cropKey(r.date), month: r.date.slice(5), v: r.total })));
+  const dp = chgPct(p.cur, p.prev);
+  return {
+    facts: [
+      { label: `Brazil · ${monthLabel(latest.date)}`, value: `**${n1(kt(latest.total))} kt** shipped (**${pct(yoy)}** YoY${st})` },
+      { label: `Crop ${p.ck} YTD`, value: `**${n1(kt(p.cur))} kt** (**${pct(dp)}** vs ${p.pk} pace)` },
+    ],
+    read: dp != null && Math.abs(dp) > 3 ? `Pace ${dp > 0 ? "ahead of" : "behind"} last season — ${dp > 0 ? "ample" : "tightening"} near-term availability.` : undefined,
+    flag: dp != null && dp < -8,
+  };
 };
-const spotGeneric = (lead: string): Builder => async () => {
-  const d = await load<Spot>("/data/spot_coffee.json"); if (!d?.row_count) return null;
-  return `${lead} Based on **${d.row_count}** live spot offers as of ${d.as_of ?? "the latest scrape"} (ATTE). `
-    + `Use it to spot where physical availability is concentrating and how it compares to exchange-reported stocks.`;
+const brazilAnnual: Builder = async () => {
+  const d = await cecafe(); const s = d?.series; if (!s?.length) return null;
+  const r = s[s.length - 1]; const ya = s[s.length - 13];
+  const mix = (row: CecafeRow) => {
+    const a = row.arabica ?? 0, c = row.conillon ?? 0, so = row.soluvel ?? 0;
+    const t = a + c + so || row.total || 1;
+    return { a: (a / t) * 100, c: (c / t) * 100, so: (so / t) * 100 };
+  };
+  const now = mix(r); const then = ya ? mix(ya) : null;
+  const conShift = then ? now.c - then.c : null;
+  return {
+    facts: [
+      { label: `Mix · ${monthLabel(r.date)}`, value: `**${now.a.toFixed(0)}% arabica / ${now.c.toFixed(0)}% conilon / ${now.so.toFixed(0)}% soluble** on **${n1(kt(r.total))} kt**` },
+    ],
+    read: conShift != null && Math.abs(conShift) >= 5
+      ? `Conilon share ${conShift > 0 ? "up" : "down"} ${Math.abs(conShift).toFixed(0)}pp YoY — ${conShift > 0 ? "more" : "less"} robusta-substitutable supply on the water.`
+      : undefined,
+    flag: conShift != null && conShift >= 8,
+  };
 };
-
-// ── ECF (ecf_history.json) ────────────────────────────────────────────────────
-interface EcfM { period?: string; value_mt?: number; robusta_mt?: number; }
-const ecf: Builder = async () => {
-  const d = await load<{ monthly?: EcfM[] }>("/data/ecf_history.json"); const m = d?.monthly; if (!m?.length) return null;
-  const last = m[m.length - 1], prev = m[m.length - 2];
-  const mv = prev ? chgPct(last.value_mt ?? 0, prev.value_mt ?? 0) : null;
-  return `European port stocks (ECF) stood at **${n1((last.value_mt ?? 0) / 1000)} kt** in ${last.period}, **${pct(mv)}** versus the prior reading. `
-    + `${last.robusta_mt != null ? `Robusta accounts for **${n1(last.robusta_mt / 1000)} kt** of that. ` : ""}Falling port stocks tighten near-term physical availability in the consuming region.`;
+const brazilPace: Builder = async () => {
+  const d = await cecafe(); const s = d?.series; if (!s?.length) return null;
+  return paceNote("Brazil", (v) => `${n1(kt(v))} kt`, ctdPair(s.map((r) => ({ key: cropKey(r.date), month: r.date.slice(5), v: r.total }))));
 };
-
-// ── Kaffeesteuer (kaffeesteuer.json: {YYYY-MM: value}) ────────────────────────
-const kaffee: Builder = async () => {
-  const d = await load<Record<string, number>>("/data/kaffeesteuer.json"); if (!d) return null;
-  const keys = Object.keys(d).filter((k) => /^\d{4}-\d{2}$/.test(k)).sort();
-  if (keys.length < 13) return null;
-  const last = keys[keys.length - 1];
-  const cur = d[last];
-  const avg12 = keys.slice(-13, -1).reduce((a, k) => a + d[k], 0) / 12;
-  return `German coffee-tax (Kaffeesteuer) revenue was **${n0(cur)}** in ${monthLabel(last)}, **${pct(chgPct(cur, avg12))}** versus its trailing 12-month average. `
-    + `As a near-real-time proxy for German consumption, sustained moves here hint at demand strength or softness in Europe's largest market.`;
+const brazilDest: Builder = async () => {
+  const d = await cecafe(); const by = d?.by_country; if (!by) return null;
+  const tot = Object.values(by).reduce((a, b) => a + b, 0) || 1;
+  const top = Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  if (!top.length) return null;
+  const [c0, v0] = top[0];
+  const mv = d?.by_country_prev?.[c0] != null ? chgPct(v0, d.by_country_prev[c0]) : null;
+  const share0 = (v0 / tot) * 100;
+  return {
+    facts: [
+      { label: "Top destination", value: `**${c0}** — **${n1(kt(v0))} kt** (**${share0.toFixed(0)}%**${mv != null ? `, ${pct(mv)} vs prior` : ""})` },
+      { label: "Next", value: top.slice(1).map(([c, v]) => `${c} (${((v / tot) * 100).toFixed(0)}%)`).join(", ") },
+    ],
+    read: share0 > 40 ? `High concentration — ${c0} alone takes ${share0.toFixed(0)}% of shipments.` : undefined,
+  };
 };
-
-// ── Currency index (quant_report.json) ────────────────────────────────────────
-const currency: Builder = async () => {
-  const d = await load<{ currency_index?: { index_value?: number; daily_delta_pct?: number; zscore?: number } }>("/data/quant_report.json");
-  const ci = d?.currency_index; if (!ci || ci.index_value == null) return null;
-  const z = ci.zscore ?? 0;
-  return `The trade-weighted producer-currency index is at **${n1(ci.index_value)}** (**${pct(ci.daily_delta_pct ?? null)}** on the day, z-score **${z.toFixed(1)}**). `
-    + `${z > 1 ? "Producer currencies are unusually strong vs USD — supportive of higher local prices and farmer retention." : z < -1 ? "Producer currencies are unusually weak vs USD — incentivising origin selling." : "Producer FX is near its recent norm vs USD."}`;
+const brazilDaily: Builder = async () => {
+  const d = await cecafe(); const s = d?.series; if (!s?.length) return null;
+  const latest = s[s.length - 1]; const ya = s[s.length - 13];
+  return {
+    facts: [
+      { label: `Registrations · ${monthLabel(latest.date)}`, value: `**${n1(kt(latest.total))} kt** (arabica + conilon)` },
+      ...(ya ? [{ label: "vs same month LY", value: `**${pct(chgPct(latest.total, ya.total))}**` }] : []),
+    ],
+  };
 };
-
-// ── Origin farmgate (origin_prices_history.json) ──────────────────────────────
-const farmgate: Builder = async () => {
-  const d = await load<{ origins?: Record<string, unknown> }>("/data/origin_prices_history.json");
-  const o = d?.origins; if (!o) return null;
-  const names = Object.keys(o).map((k) => k.replace(/_/g, " "));
-  return `Reindexed farmgate price trends across ${names.join(", ")}. `
-    + `Compare the lines to see which origins are seeing the strongest local-price momentum — a driver of farmer selling behaviour and forward availability.`;
-};
-
-// ── Fertilizer (farmer_economics.json) ────────────────────────────────────────
-interface FertItem { name?: string; price_usd_mt?: number; mom_pct?: number; }
-const fertilizer: Builder = async () => {
-  const d = await load<{ fertilizer?: { items?: FertItem[] } }>("/data/farmer_economics.json");
-  const items = d?.fertilizer?.items; if (!items?.length) return null;
-  const parts = items.map((it) => `${it.name} **$${n0(it.price_usd_mt ?? 0)}/MT** (${pct(it.mom_pct ?? null)})`);
-  const rising = items.filter((it) => (it.mom_pct ?? 0) > 0).length;
-  return `Headline N-P-K input prices: ${parts.join(", ")}. `
-    + `${rising >= 2 ? "Broad fertilizer cost pressure squeezes farmer margins and feeds into next-cycle break-even economics." : "Easing input costs support producer margins into the next application window."}`;
-};
-
-// ── News sentiment (quant_report.json → sentiment) ────────────────────────────
-const newsSentiment: Builder = async () => {
-  const d = await load<{ sentiment?: { available?: boolean; net_index?: number; overall_sentiment?: string; overall_confidence?: number; bull_count?: number; bear_count?: number; neutral_count?: number; total?: number } }>("/data/quant_report.json");
-  const s = d?.sentiment;
-  if (!s?.available || !s.total) return null;
-  const net = s.net_index ?? ((s.bull_count ?? 0) - (s.bear_count ?? 0)) / (s.total || 1) * 100;
-  const lean = net > 8 ? "bullish" : net < -8 ? "bearish" : "balanced/neutral";
-  return `Coffee-news sentiment is **net ${net > 0 ? "+" : ""}${net.toFixed(0)}** (${lean}) across **${s.total}** editorial headlines — `
-    + `${s.bull_count ?? 0} bullish / ${s.bear_count ?? 0} bearish / ${s.neutral_count ?? 0} neutral, lead class **${s.overall_sentiment}** at ${(s.overall_confidence ?? 0).toFixed(0)}% confidence. `
-    + `A confidence-weighted read of how the latest news flow leans for KC/RC prices.`;
-};
-
-// ── ENSO (enso.json) ──────────────────────────────────────────────────────────
-const enso: Builder = async () => {
-  const d = await load<{ phase?: string; intensity?: string; oni?: number; forecast_direction?: string; analogs?: { year?: number }[] }>("/data/enso.json");
-  if (!d?.phase) return null;
-  const an = d.analogs?.[0]?.year;
-  return `ENSO is in a **${d.phase}${d.intensity ? ` (${d.intensity})` : ""}** state with the latest ONI at **${d.oni ?? "—"}**${d.forecast_direction ? `, forecast to ${d.forecast_direction}` : ""}. `
-    + `${an ? `The closest historical analog is **${an}**. ` : ""}ENSO phase shifts rainfall odds across Brazil, Vietnam and Colombia — a leading input to crop-weather risk.`;
-};
-
-// ── Weather pack (per origin {origin}_weather.json) ───────────────────────────
-interface WxDaily { day: number; accum_mm: number | null; avg_accum_mm?: number; min_accum_mm?: number; max_accum_mm?: number; }
-interface Wx { label?: string; updated?: string; station?: string; daily_station?: WxDaily[]; forecast_7d?: { rain_mm?: number }[]; }
-const weatherPack = (origin: string, label: string): Builder => async () => {
-  const d = await load<Wx>(`/data/${origin}_weather.json`);
-  const ds = d?.daily_station;
-  if (!Array.isArray(ds) || !ds.length) return null;
-  // Latest day with an actual (non-null) accumulation = month-to-date so far.
-  const actual = [...ds].reverse().find((r) => r.accum_mm != null);
-  if (!actual || actual.accum_mm == null) return null;
-  const mtd = actual.accum_mm, avg = actual.avg_accum_mm, lo = actual.min_accum_mm, hi = actual.max_accum_mm;
-  const mo = +(d?.updated ?? "").slice(5, 7);
-  const monAbbr = mo >= 1 && mo <= 12 ? MONTHS[mo - 1] : "";
-  const fc = (d?.forecast_7d ?? []).reduce((a, r) => a + (r.rain_mm ?? 0), 0);
-  const vsAvg = avg != null ? chgPct(mtd, avg) : null;
-  let zone = "within", risk = "tracking in line with the seasonal norm";
-  if (lo != null && mtd < lo) { zone = "below"; risk = "a dry start worth watching for crop-moisture stress"; }
-  else if (hi != null && mtd > hi) { zone = "above"; risk = "wetter than normal — flag flowering/harvest disruption risk"; }
-  const band = lo != null && hi != null ? `${n0(lo)}–${n0(hi)} mm safe zone` : "seasonal band";
-  return `${label} month-to-date rainfall${d?.station ? ` (${d.station})` : ""} is **${n0(mtd)} mm** through ${actual.day} ${monAbbr}`
-    + `${avg != null ? ` — **${pct(vsAvg)}** vs the ${n0(avg)} mm normal` : ""}, **${zone}** the ${band}. `
-    + `The 7-day forecast adds **${n0(fc)} mm**, ${risk}.`;
-};
-const weatherAnalogs = (origin: string, label: string): Builder => async () => {
-  const d = await load<{ analogs?: { year?: number | string }[] }>(`/data/weather_analogs_${origin}.json`);
-  const an = d?.analogs; if (!an?.length) return null;
-  const yrs = an.slice(0, 3).map((a) => a.year).filter(Boolean);
-  return `The closest historical weather analogs for ${label} are **${yrs.join(", ")}**. `
-    + `Their detrended crop outcomes frame a plausible range for this season — useful context for production-risk and balance-sheet scenarios.`;
-};
-
-// ── Producer S&D (demand_stocks.json) ─────────────────────────────────────────
-const supplyDemand = (key: string, label: string): Builder => async () => {
-  const d = await load<{ producers?: Record<string, { latest_year?: string | number; latest_production_mt?: number; latest_exports_mt?: number; latest_stocks_mt?: number }> }>("/data/demand_stocks.json");
-  const p = d?.producers?.[key]; if (!p) return null;
-  const bits: string[] = [];
-  if (p.latest_production_mt != null) bits.push(`production **${n1(p.latest_production_mt / 1000)} kt**`);
-  if (p.latest_exports_mt != null) bits.push(`exports **${n1(p.latest_exports_mt / 1000)} kt**`);
-  if (p.latest_stocks_mt != null) bits.push(`ending stocks **${n1(p.latest_stocks_mt / 1000)} kt**`);
-  if (!bits.length) return null;
-  return `USDA PSD balance for **${label}** (${p.latest_year ?? "latest year"}): ${bits.join(", ")}. `
-    + `The production-minus-use gap drives the ending-stocks trajectory and, with it, the structural tightness of the origin.`;
-};
-
-// ── Brazil type-mix (cecafe.json) ─────────────────────────────────────────────
 const brazilTypeShare: Builder = async () => {
   const d = await cecafe(); const s = d?.series; if (!s?.length) return null;
   const r = s[s.length - 1]; const ya = s[s.length - 13];
   const share = (row: CecafeRow) => {
     const a = row.arabica ?? 0, c = row.conillon ?? 0, so = row.soluvel ?? 0;
     const t = a + c + so || row.total || 1;
-    return { a: a / t * 100, c: c / t * 100, so: so / t * 100 };
+    return (a / t) * 100;
   };
   const now = share(r); const then = ya ? share(ya) : null;
-  return `Arabica is **${now.a.toFixed(0)}%** of Brazil's export mix in ${monthLabel(r.date)} (conilon ${now.c.toFixed(0)}%, soluble ${now.so.toFixed(0)}%)`
-    + `${then ? `, versus **${then.a.toFixed(0)}%** arabica a year earlier` : ""}. `
-    + `A rising conilon share signals more robusta-substitutable supply reaching the market.`;
+  const shift = then != null ? now - then : null;
+  return {
+    facts: [
+      { label: `Arabica share · ${monthLabel(r.date)}`, value: `**${now.toFixed(0)}%**${then != null ? ` (vs ${then.toFixed(0)}% a year ago)` : ""}` },
+    ],
+    read: shift != null && Math.abs(shift) >= 3
+      ? `Mix shifting ${shift > 0 ? "toward arabica" : "toward conilon"} — ${Math.abs(shift).toFixed(0)}pp YoY.`
+      : undefined,
+    flag: shift != null && shift <= -5,
+  };
 };
-
 const brazilYoyType: Builder = async () => {
   const d = await cecafe(); const s = d?.series; if (!s?.length) return null;
   const r = s[s.length - 1]; const ya = s[s.length - 13]; if (!ya) return null;
   const a = chgPct(r.arabica ?? 0, ya.arabica ?? 0);
   const c = chgPct(r.conillon ?? 0, ya.conillon ?? 0);
-  const so = chgPct(r.soluvel ?? 0, ya.soluvel ?? 0);
-  return `Year-on-year in ${monthLabel(r.date)}: arabica exports **${pct(a)}**, conilon **${pct(c)}**, soluble **${pct(so)}**. `
-    + `Diverging growth by type shifts the arabica/robusta balance Brazil is putting on the water.`;
+  const gap = a != null && c != null ? c - a : null;
+  return {
+    facts: [
+      { label: `YoY · ${monthLabel(r.date)}`, value: `arabica **${pct(a)}**, conilon **${pct(c)}**, soluble **${pct(chgPct(r.soluvel ?? 0, ya.soluvel ?? 0))}**` },
+    ],
+    read: gap != null && Math.abs(gap) > 15 ? `${gap > 0 ? "Conilon" : "Arabica"} strongly outpacing (${Math.abs(gap).toFixed(0)}pp gap) — the exported mix is tilting.` : undefined,
+  };
 };
-
 const brazilSeasonality: Builder = async () => {
   const d = await cecafe(); const s = d?.series; if (!s?.length) return null;
   const byMonth: Record<number, number[]> = {};
@@ -460,11 +542,311 @@ const brazilSeasonality: Builder = async () => {
   const peak = Object.keys(byMonth).map(Number).sort((x, y) => avg(y) - avg(x))[0];
   const latest = s[s.length - 1]; const lm = +latest.date.slice(5, 7);
   const vsNorm = chgPct(latest.total, avg(lm));
-  return `Brazil's shipments seasonally peak around **${MONTHS[peak - 1]}**. ${MONTHS[lm - 1]} printed **${n1(kt(latest.total))} kt** this year, `
-    + `**${pct(vsNorm)}** versus its multi-year seasonal norm — a read on whether the flow is running hot or cold for the calendar.`;
+  return {
+    facts: [
+      { label: "Seasonal peak", value: `**${MONTHS[peak - 1]}**` },
+      { label: `${MONTHS[lm - 1]} vs its norm`, value: `**${pct(vsNorm)}**` },
+    ],
+    read: vsNorm != null && Math.abs(vsNorm) > 15 ? `Flow running ${vsNorm > 0 ? "hot" : "cold"} against the seasonal calendar.` : undefined,
+  };
+};
+const brazilWeatherRisk: Builder = async () => {
+  const d = await load<{ weather?: { regions?: { name?: string; frost?: string; drought?: string }[] } }>("/data/farmer_economics.json");
+  const rg = d?.weather?.regions; if (!Array.isArray(rg) || !rg.length) return null;
+  const frostAt = rg.filter((r) => r.frost && r.frost.toUpperCase() !== "NONE");
+  const droughtHi = rg.filter((r) => ["HIGH", "MED", "H", "M"].includes((r.drought ?? "").toUpperCase()));
+  return {
+    facts: [
+      { label: "Brazil frost", value: `**${frostAt.length}/${rg.length}** regions flagged${frostAt[0]?.name ? ` (${frostAt.map((r) => r.name).join(", ")})` : ""}` },
+      { label: "Drought (CSI)", value: `**${droughtHi.length}/${rg.length}** regions elevated` },
+    ],
+    read: frostAt.length > 0 ? `Frost risk live in ${frostAt.length} region${frostAt.length === 1 ? "" : "s"} — the sharpest weather threat to the arabica crop.`
+      : droughtHi.length >= 2 ? "Multiple regions under drought stress — monitor soil-moisture recovery."
+      : "No acute frost or drought flags in the forecast window.",
+    flag: frostAt.length > 0 || droughtHi.length >= 3,
+  };
 };
 
-// ── ENSO extras (enso.json) ───────────────────────────────────────────────────
+// ── Vietnam (vietnam_supply.json + vn_export_by_destination.json) ─────────────
+interface VnMonth { month: string; total_k_bags?: number; yoy_pct?: number | null; }
+async function vnMonthly(): Promise<VnMonth[] | null> {
+  const d = await load<{ exports?: { monthly?: VnMonth[] } }>("/data/vietnam_supply.json");
+  const m = d?.exports?.monthly;
+  return Array.isArray(m) && m.length ? m : null;
+}
+const vnKt = (kb: number) => kb * 0.06;
+const vnCrop = (ym: string) => { const [y, m] = ym.split("-").map(Number); const s = m >= 10 ? y : y - 1; return `${s}/${String((s + 1) % 100).padStart(2, "0")}`; };
+
+const vietnamMonthly: Builder = async () => {
+  const m = await vnMonthly(); if (!m) return null;
+  const last = m[m.length - 1];
+  const st = streakText(yoyStreak(m.map((r) => r.total_k_bags ?? 0)));
+  return {
+    facts: [
+      { label: `Vietnam · ${monthLabel(last.month)}`, value: `**${n1(vnKt(last.total_k_bags ?? 0))} kt** exported (**${pct(last.yoy_pct ?? null)}** YoY${st})` },
+    ],
+    read: last.yoy_pct != null && Math.abs(last.yoy_pct) > 15 ? `Robusta flow from the top origin ${last.yoy_pct > 0 ? "surging" : "contracting"} — a direct London supply signal.` : undefined,
+    flag: last.yoy_pct != null && last.yoy_pct < -15,
+  };
+};
+const vietnamPace: Builder = async () => {
+  const m = await vnMonthly(); if (!m) return null;
+  return paceNote("Vietnam", (v) => `${n1(vnKt(v))} kt`, ctdPair(m.map((r) => ({ key: vnCrop(r.month), month: r.month.slice(5), v: r.total_k_bags ?? 0 }))));
+};
+const vietnamAnnual: Builder = async () => {
+  const m = await vnMonthly(); if (!m || m.length < 24) return null;
+  const last12 = m.slice(-12).reduce((a, r) => a + (r.total_k_bags ?? 0), 0);
+  const prev12 = m.slice(-24, -12).reduce((a, r) => a + (r.total_k_bags ?? 0), 0);
+  const dp = chgPct(last12, prev12);
+  return {
+    facts: [{ label: "Vietnam trailing 12m", value: `**${n1(vnKt(last12))} kt** (**${pct(dp)}** vs prior 12m)` }],
+    read: dp != null && Math.abs(dp) > 8 ? `Annual release rate ${dp > 0 ? "expanding" : "shrinking"} — structural robusta supply ${dp > 0 ? "growth" : "pullback"}.` : undefined,
+  };
+};
+const vietnamDest: Builder = async () => {
+  const d = await load<{ countries?: Record<string, Record<string, number>> }>("/data/vn_export_by_destination.json");
+  const c = d?.countries; if (!c) return null;
+  const totals = Object.entries(c).map(([country, months]) => [country, Object.values(months).reduce((a, b) => a + (b || 0), 0)] as [string, number]);
+  const grand = totals.reduce((a, [, v]) => a + v, 0) || 1;
+  const top = totals.sort((a, b) => b[1] - a[1]).slice(0, 3);
+  if (!top.length) return null;
+  const share0 = (top[0][1] / grand) * 100;
+  return {
+    facts: [
+      { label: "Top buyer", value: `**${top[0][0]}** — **${share0.toFixed(0)}%** of tracked volume` },
+      { label: "Next", value: top.slice(1).map(([n, v]) => `${n} (${((v / grand) * 100).toFixed(0)}%)`).join(", ") },
+    ],
+    read: share0 > 25 ? `Buyer concentration: ${top[0][0]} dominates offtake from the top robusta origin.` : undefined,
+  };
+};
+
+// ── Uganda (uganda_monthly.json) ──────────────────────────────────────────────
+interface UgRow { month: string; total_bags?: number; robusta_bags?: number; arabica_bags?: number; by_destination?: { country?: string; bags?: number }[]; }
+async function ugSeries(): Promise<UgRow[] | null> {
+  const d = await load<{ series?: UgRow[] }>("/data/uganda_monthly.json");
+  return Array.isArray(d?.series) && d!.series!.length ? d!.series! : null;
+}
+const ugKt = (bags: number) => bags * 6e-5;
+
+const ugandaMonthly: Builder = async () => {
+  const s = await ugSeries(); if (!s) return null;
+  const last = s[s.length - 1]; const ya = s[s.length - 13];
+  const yoy = ya ? chgPct(last.total_bags ?? 0, ya.total_bags ?? 0) : null;
+  const rob = last.robusta_bags ?? 0, ara = last.arabica_bags ?? 0; const tot = last.total_bags || rob + ara || 1;
+  const st = streakText(yoyStreak(s.map((r) => r.total_bags ?? 0)));
+  return {
+    facts: [
+      { label: `Uganda · ${monthLabel(last.month)}`, value: `**${n1(ugKt(last.total_bags ?? 0))} kt** (**${pct(yoy)}** YoY${st})` },
+      { label: "Mix", value: `**${((rob / tot) * 100).toFixed(0)}% robusta / ${((ara / tot) * 100).toFixed(0)}% arabica**` },
+    ],
+    read: yoy != null && Math.abs(yoy) > 15 ? `Africa's top robusta exporter ${yoy > 0 ? "accelerating" : "slowing"} — feeds directly into London availability.` : undefined,
+    flag: yoy != null && yoy < -15,
+  };
+};
+const ugandaPace: Builder = async () => {
+  const s = await ugSeries(); if (!s) return null;
+  return paceNote("Uganda", (v) => `${n1(ugKt(v))} kt`, ctdPair(s.map((r) => ({ key: vnCrop(r.month), month: r.month.slice(5), v: r.total_bags ?? 0 }))));
+};
+const ugandaAnnual: Builder = async () => {
+  const s = await ugSeries(); if (!s) return null;
+  const ck = vnCrop(s[s.length - 1].month); const ctd = s.filter((r) => vnCrop(r.month) === ck);
+  const rob = ctd.reduce((a, r) => a + (r.robusta_bags ?? 0), 0), ara = ctd.reduce((a, r) => a + (r.arabica_bags ?? 0), 0);
+  const tot = rob + ara || 1;
+  return {
+    facts: [
+      { label: `Uganda · crop ${ck} YTD`, value: `**${((rob / tot) * 100).toFixed(0)}% robusta** (${n1(ugKt(rob))} kt) / **${((ara / tot) * 100).toFixed(0)}% arabica** (${n1(ugKt(ara))} kt)` },
+    ],
+  };
+};
+const ugandaTypeShare: Builder = async () => {
+  const s = await ugSeries(); if (!s) return null;
+  const last = s[s.length - 1]; const ya = s[s.length - 13];
+  const shr = (r: UgRow) => { const t = (r.robusta_bags ?? 0) + (r.arabica_bags ?? 0) || 1; return ((r.robusta_bags ?? 0) / t) * 100; };
+  const now = shr(last); const then = ya ? shr(ya) : null;
+  const shift = then != null ? now - then : null;
+  return {
+    facts: [
+      { label: `Robusta share · ${monthLabel(last.month)}`, value: `**${now.toFixed(0)}%**${then != null ? ` (vs ${then.toFixed(0)}% a year ago)` : ""}` },
+    ],
+    read: shift != null && Math.abs(shift) >= 5 ? `Mix shifting ${shift > 0 ? "further into robusta" : "toward arabica"} (${Math.abs(shift).toFixed(0)}pp YoY).` : undefined,
+  };
+};
+const ugandaDest: Builder = async () => {
+  const s = await ugSeries(); if (!s) return null;
+  const last = [...s].reverse().find((r) => Array.isArray(r.by_destination) && r.by_destination!.length);
+  const bd = last?.by_destination; if (!bd?.length) return null;
+  const tot = bd.reduce((a, r) => a + (r.bags ?? 0), 0) || 1;
+  const top = [...bd].sort((a, b) => (b.bags ?? 0) - (a.bags ?? 0)).slice(0, 3);
+  const share0 = ((top[0].bags ?? 0) / tot) * 100;
+  return {
+    facts: [
+      { label: `Top buyer · ${monthLabel(last!.month)}`, value: `**${top[0].country}** — **${share0.toFixed(0)}%**` },
+      { label: "Next", value: top.slice(1).map((t) => `${t.country} (${(((t.bags ?? 0) / tot) * 100).toFixed(0)}%)`).join(", ") },
+    ],
+    read: share0 > 25 ? `Concentrated offtake — ${top[0].country} anchors Uganda's export demand.` : undefined,
+  };
+};
+
+// ── Indonesia (indonesia_exports.json → buildIndonesiaData) ───────────────────
+async function indoData(): Promise<IndonesiaExportsData | null> {
+  const raw = await load<RawIndonesiaExports>("/data/indonesia_exports.json");
+  if (!raw) return null;
+  try { return buildIndonesiaData(raw); } catch { return null; }
+}
+const idKt = (kg: number) => kg / 1e6;
+type IdRow = { date: string; total: number; arabica: number; robusta: number; other: number };
+
+const indoMonthly: Builder = async () => {
+  const d = await indoData(); const s = d?.series as IdRow[] | undefined; if (!s?.length) return null;
+  const last = s[s.length - 1]; const ya = s[s.length - 13];
+  const yoy = ya ? chgPct(last.total, ya.total) : null;
+  const st = streakText(yoyStreak(s.map((r) => r.total)));
+  return {
+    facts: [{ label: `Indonesia · ${monthLabel(last.date)}`, value: `**${n1(idKt(last.total))} kt** exported (**${pct(yoy)}** YoY${st})` }],
+    read: yoy != null && Math.abs(yoy) > 15 ? `Flow from the dual-species origin ${yoy > 0 ? "surging" : "contracting"} — touches both KC and RC balances.` : undefined,
+    flag: yoy != null && yoy < -15,
+  };
+};
+const indoPace: Builder = async () => {
+  const d = await indoData(); const s = d?.series as IdRow[] | undefined; if (!s?.length) return null;
+  return paceNote("Indonesia", (v) => `${n1(idKt(v))} kt`, ctdPair(s.map((r) => ({ key: cropKey(r.date), month: r.date.slice(5), v: r.total }))));
+};
+const indoAnnual: Builder = async () => {
+  const d = await indoData(); const s = d?.series as IdRow[] | undefined; if (!s?.length) return null;
+  const r = s[s.length - 1]; const tot = r.arabica + r.robusta + r.other || r.total || 1;
+  return {
+    facts: [
+      { label: `Mix · ${monthLabel(r.date)}`, value: `**${((r.arabica / tot) * 100).toFixed(0)}% arabica / ${((r.robusta / tot) * 100).toFixed(0)}% robusta / ${((r.other / tot) * 100).toFixed(0)}% other** on **${n1(idKt(r.total))} kt**` },
+    ],
+  };
+};
+const indoTypeShare: Builder = async () => {
+  const d = await indoData(); const s = d?.series as IdRow[] | undefined; if (!s?.length) return null;
+  const r = s[s.length - 1]; const ya = s[s.length - 13];
+  const shr = (x: IdRow) => (x.robusta / (x.arabica + x.robusta + x.other || 1)) * 100;
+  const now = shr(r); const then = ya ? shr(ya) : null;
+  const shift = then != null ? now - then : null;
+  return {
+    facts: [{ label: `Robusta share · ${monthLabel(r.date)}`, value: `**${now.toFixed(0)}%**${then != null ? ` (vs ${then.toFixed(0)}% a year ago)` : ""}` }],
+    read: shift != null && Math.abs(shift) >= 5 ? `Mix shifting ${shift > 0 ? "into robusta" : "toward arabica"} (${Math.abs(shift).toFixed(0)}pp YoY).` : undefined,
+  };
+};
+const indoYoy: Builder = async () => {
+  const d = await indoData(); const s = d?.series as IdRow[] | undefined; if (!s?.length) return null;
+  const r = s[s.length - 1]; const ya = s[s.length - 13]; if (!ya) return null;
+  const a = chgPct(r.arabica, ya.arabica), rb = chgPct(r.robusta, ya.robusta);
+  const gap = a != null && rb != null ? rb - a : null;
+  return {
+    facts: [{ label: `YoY · ${monthLabel(r.date)}`, value: `arabica **${pct(a)}**, robusta **${pct(rb)}**` }],
+    read: gap != null && Math.abs(gap) > 15 ? `${gap > 0 ? "Robusta" : "Arabica"} strongly outpacing (${Math.abs(gap).toFixed(0)}pp gap).` : undefined,
+  };
+};
+const indoSeasonality: Builder = async () => {
+  const d = await indoData(); const s = d?.series as IdRow[] | undefined; if (!s?.length) return null;
+  const byMonth: Record<number, number[]> = {};
+  for (const r of s) { const m = +r.date.slice(5, 7); (byMonth[m] ||= []).push(r.total); }
+  const avg = (m: number) => (byMonth[m]?.reduce((x, y) => x + y, 0) ?? 0) / (byMonth[m]?.length || 1);
+  const peak = Object.keys(byMonth).map(Number).sort((x, y) => avg(y) - avg(x))[0];
+  const last = s[s.length - 1]; const lm = +last.date.slice(5, 7);
+  const vsNorm = chgPct(last.total, avg(lm));
+  return {
+    facts: [
+      { label: "Seasonal peak", value: `**${MONTHS[peak - 1]}**` },
+      { label: `${MONTHS[lm - 1]} vs its norm`, value: `**${pct(vsNorm)}**` },
+    ],
+    read: vsNorm != null && Math.abs(vsNorm) > 15 ? `Flow running ${vsNorm > 0 ? "hot" : "cold"} against the seasonal calendar.` : undefined,
+  };
+};
+const indoDest: Builder = async () => {
+  const d = await indoData();
+  const cc = d?.by_country?.countries; if (!cc) return null;
+  const totals = Object.entries(cc)
+    .map(([c, months]) => [c, Object.values(months || {}).reduce((a, b) => a + (b || 0), 0)] as [string, number])
+    .filter(([, v]) => v > 0);
+  if (!totals.length) return null;
+  const grand = totals.reduce((a, [, v]) => a + v, 0) || 1;
+  const top = totals.sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const share0 = (top[0][1] / grand) * 100;
+  return {
+    facts: [
+      { label: "Top destination", value: `**${top[0][0]}** — **${share0.toFixed(0)}%** of shipments` },
+      { label: "Next", value: top.slice(1).map(([c, v]) => `${c} (${((v / grand) * 100).toFixed(0)}%)`).join(", ") },
+    ],
+    read: share0 > 25 ? `Concentrated offtake — ${top[0][0]} anchors Indonesian export demand.` : undefined,
+  };
+};
+
+// ── Producer S&D (demand_stocks.json) ─────────────────────────────────────────
+const supplyDemand = (key: string, label: string): Builder => async () => {
+  const d = await load<{ producers?: Record<string, { latest_year?: string | number; latest_production_mt?: number; latest_exports_mt?: number; latest_stocks_mt?: number }> }>("/data/demand_stocks.json");
+  const p = d?.producers?.[key]; if (!p) return null;
+  const facts: Fact[] = [];
+  const bits: string[] = [];
+  if (p.latest_production_mt != null) bits.push(`production **${n1(p.latest_production_mt / 1000)} kt**`);
+  if (p.latest_exports_mt != null) bits.push(`exports **${n1(p.latest_exports_mt / 1000)} kt**`);
+  if (p.latest_stocks_mt != null) bits.push(`ending stocks **${n1(p.latest_stocks_mt / 1000)} kt**`);
+  if (!bits.length) return null;
+  facts.push({ label: `${label} PSD (${p.latest_year ?? "latest"})`, value: bits.join(", ") });
+  let read: string | undefined; let flag = false;
+  if (p.latest_stocks_mt != null && p.latest_exports_mt) {
+    const cover = (p.latest_stocks_mt / p.latest_exports_mt) * 100;
+    facts.push({ label: "Stock cover", value: `ending stocks = **${cover.toFixed(0)}%** of a year's exports` });
+    if (cover < 15) { read = "Thin buffer — the balance sheet has little room for a crop disappointment."; flag = true; }
+    else if (cover > 35) read = "Comfortable stock buffer relative to export commitments.";
+  }
+  return { facts, read, flag };
+};
+
+// ── Weather packs & analogs ───────────────────────────────────────────────────
+interface WxDaily { day: number; accum_mm: number | null; avg_accum_mm?: number; min_accum_mm?: number; max_accum_mm?: number; }
+interface Wx { updated?: string; station?: string; daily_station?: WxDaily[]; forecast_7d?: { rain_mm?: number }[]; }
+const weatherPack = (origin: string, label: string): Builder => async () => {
+  const d = await load<Wx>(`/data/${origin}_weather.json`);
+  const ds = d?.daily_station;
+  if (!Array.isArray(ds) || !ds.length) return null;
+  const actual = [...ds].reverse().find((r) => r.accum_mm != null);
+  if (!actual || actual.accum_mm == null) return null;
+  const mtd = actual.accum_mm, avg = actual.avg_accum_mm, lo = actual.min_accum_mm, hi = actual.max_accum_mm;
+  const mo = +(d?.updated ?? "").slice(5, 7);
+  const monAbbr = mo >= 1 && mo <= 12 ? MONTHS[mo - 1] : "";
+  const fc = (d?.forecast_7d ?? []).reduce((a, r) => a + (r.rain_mm ?? 0), 0);
+  let zone: "below" | "within" | "above" = "within";
+  if (lo != null && mtd < lo) zone = "below";
+  else if (hi != null && mtd > hi) zone = "above";
+  return {
+    facts: [
+      { label: `${label} MTD rain${d?.station ? ` (${d.station})` : ""}`, value: `**${n0(mtd)} mm** through ${actual.day} ${monAbbr}${avg != null ? ` (**${pct(chgPct(mtd, avg))}** vs normal)` : ""}` },
+      ...(lo != null && hi != null ? [{ label: "Safe zone", value: `**${zone}** the ${n0(lo)}–${n0(hi)} mm band` }] : []),
+      { label: "7-day forecast", value: `+**${n0(fc)} mm**` },
+    ],
+    read: zone === "below" ? "Rainfall below the safe zone — watch for crop-moisture stress." :
+          zone === "above" ? "Wetter than the safe zone — flowering/harvest disruption risk." : undefined,
+    flag: zone !== "within",
+  };
+};
+const weatherAnalogs = (origin: string, label: string): Builder => async () => {
+  const d = await load<{ analogs?: { year?: number | string }[] }>(`/data/weather_analogs_${origin}.json`);
+  const an = d?.analogs; if (!an?.length) return null;
+  const yrs = an.slice(0, 3).map((a) => a.year).filter(Boolean);
+  return {
+    facts: [{ label: `${label} closest analogs`, value: `**${yrs.join(", ")}**` }],
+  };
+};
+
+// ── ENSO ──────────────────────────────────────────────────────────────────────
+const enso: Builder = async () => {
+  const d = await load<{ phase?: string; intensity?: string; oni?: number; forecast_direction?: string; analogs?: { year?: number }[] }>("/data/enso.json");
+  if (!d?.phase) return null;
+  const strong = (d.intensity ?? "").toLowerCase().includes("strong");
+  return {
+    facts: [
+      { label: "ENSO phase", value: `**${d.phase}${d.intensity ? ` (${d.intensity})` : ""}**, ONI **${d.oni ?? "—"}**` },
+      ...(d.analogs?.[0]?.year ? [{ label: "Closest analog", value: `**${d.analogs[0].year}**` }] : []),
+    ],
+    read: d.forecast_direction ? `Forecast: ${d.forecast_direction}.` : undefined,
+    flag: strong,
+  };
+};
 const ensoPlume: Builder = async () => {
   const d = await load<{ oni_forecast?: { season?: string; la_nina?: number; neutral?: number; el_nino?: number }[] }>("/data/enso.json");
   const f = d?.oni_forecast; if (!Array.isArray(f) || !f.length) return null;
@@ -473,43 +855,277 @@ const ensoPlume: Builder = async () => {
   const probs = entries.filter((p) => typeof p[1] === "number").sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
   if (!probs.length) return null;
   const [lead, p] = probs[0];
-  return `The IRI/CPC plume favours **${lead}** at **${((p ?? 0) * 100).toFixed(0)}%** for ${first.season ?? "the coming season"}. `
-    + `The evolving phase probability sets the rainfall-risk backdrop for Brazil, Vietnam and Colombia over the next two quarters.`;
+  const strong = (p ?? 0) >= 0.7 && lead !== "Neutral";
+  return {
+    facts: [{ label: `Plume · ${first.season ?? "next season"}`, value: `**${lead}** at **${((p ?? 0) * 100).toFixed(0)}%**` }],
+    read: strong ? `High-confidence ${lead} call — rainfall-risk regime for Brazil/Vietnam/Colombia likely to shift.` : undefined,
+    flag: strong,
+  };
 };
-
 const ensoRiskTable: Builder = async () => {
-  const d = await load<{ risk?: { summary?: string; pins?: { region?: string; country?: string; level?: string; driver?: string; severity?: number }[] } }>("/data/enso.json");
+  const d = await load<{ risk?: { pins?: { region?: string; country?: string; level?: string; driver?: string; severity?: number }[] } }>("/data/enso.json");
   const pins = d?.risk?.pins; if (!Array.isArray(pins) || !pins.length) return null;
   const lv = (x: string) => pins.filter((p) => (p.level ?? "").toLowerCase() === x).length;
   const high = lv("high"), mod = lv("moderate");
   const top = [...pins].sort((a, b) => (b.severity ?? 0) - (a.severity ?? 0))[0];
-  return `Of **${pins.length}** tracked growing regions, **${high}** are flagged high-risk and **${mod}** moderate for the coming six months. `
-    + `${top?.region ? `**${top.region}${top.country ? `, ${top.country}` : ""}** carries the highest ENSO-driven risk (${top.driver ?? "—"}). ` : ""}`
-    + `A regional map of where the current phase most threatens the crop.`;
+  return {
+    facts: [
+      { label: "Region risk", value: `**${high} high / ${mod} moderate** of ${pins.length} tracked` },
+      ...(top?.region ? [{ label: "Highest", value: `**${top.region}${top.country ? `, ${top.country}` : ""}** (${top.driver ?? "—"})` }] : []),
+    ],
+    read: high > 0 ? "High-risk growing regions on the board — production risk is live." : "No region currently at high ENSO-driven risk.",
+    flag: high > 0,
+  };
+};
+const ensoDivergence: Builder = async () => {
+  const d = await load<{ nino34?: { latest?: { sst_anomaly?: number; phase?: string } }; soi?: { latest?: { soi?: number } } }>("/data/enso_indices.json");
+  const n = d?.nino34?.latest; const s = d?.soi?.latest;
+  if (!n || n.sst_anomaly == null) return null;
+  const sst = n.sst_anomaly; const soi = s?.soi ?? null;
+  let read: string | undefined; let flag = false;
+  if (soi != null) {
+    if (sst >= 0.5 && soi <= -0.5) { read = "Ocean and atmosphere coupled warm — El Niño locked in."; flag = true; }
+    else if (sst <= -0.5 && soi >= 0.5) { read = "Ocean and atmosphere coupled cool — La Niña locked in."; flag = true; }
+    else if (Math.abs(sst) >= 0.5) read = "Atmosphere not yet confirming the ocean signal — phase less entrenched.";
+    else read = "Near-neutral coupling.";
+  }
+  return {
+    facts: [
+      { label: "Niño 3.4 SST", value: `**${sst >= 0 ? "+" : ""}${sst}°C**${n.phase ? ` (${n.phase.replace(/-/g, " ")})` : ""}` },
+      ...(soi != null ? [{ label: "SOI", value: `**${soi}**` }] : []),
+    ],
+    read, flag,
+  };
+};
+const ensoSubsurface: Builder = async () => {
+  const d = await load<{ wwv?: { latest?: { wwv_anomaly?: number; lead_signal?: string }; lead_months?: string } }>("/data/enso_subsurface.json");
+  const w = d?.wwv?.latest; if (!w || w.wwv_anomaly == null) return null;
+  const lm = d?.wwv?.lead_months ?? "4–6";
+  const big = Math.abs(w.wwv_anomaly) >= 1;
+  return {
+    facts: [
+      { label: "Warm Water Volume", value: `**${w.wwv_anomaly >= 0 ? "+" : ""}${w.wwv_anomaly}** ×10¹⁴ m³${w.lead_signal ? ` — **${w.lead_signal.replace(/-/g, " ")}**` : ""}` },
+    ],
+    read: big ? `Subsurface anomaly beyond the ±1.0 lead threshold — ${w.wwv_anomaly > 0 ? "El Niño" : "La Niña"} odds building over the next ~${lm} months.` : undefined,
+    flag: big,
+  };
 };
 
-// ── Freight & Port (freight.json / port_activity) ─────────────────────────────
-const originFreightCosts: Builder = async () => {
-  const d = await load<{ routes?: Route[] }>("/data/freight.json"); const rs = d?.routes; if (!rs?.length) return null;
-  const moved = rs.map((r) => ({ ...r, mv: chgPct(r.rate ?? 0, r.prev ?? 0) ?? 0 })).sort((a, b) => Math.abs(b.mv) - Math.abs(a.mv));
-  const top = moved[0];
-  return `Container freight from the key coffee origins across ${rs.length} routes — biggest move **${top.from}→${top.to}** at **${n0(top.rate ?? 0)} ${top.unit ?? ""}** (**${pct(top.mv)}**). `
-    + `The VN→EU vs BR→EU spread is a robusta-vs-arabica logistics-arbitrage signal feeding delivered cost.`;
+// ── Certified stocks (certified_stocks_*.json) ────────────────────────────────
+interface CSnap { date: string; total_bags?: number; total_lots_certified?: number; passed_today_bags?: number; failed_today_bags?: number; lots_graded_today?: number; lots_sold_today?: number; }
+interface CJson { snapshots?: CSnap[]; as_of?: string; }
+const mtdWindow = (snaps: CSnap[]) => {
+  const last = snaps[snaps.length - 1]?.date; if (!last) return snaps.slice(0);
+  return snaps.filter((s) => s.date.slice(0, 7) === last.slice(0, 7));
+};
+/** ~6-week trend: % change of the level vs ~30 snapshots ago. */
+const snapTrend = (snaps: CSnap[], level: (s: CSnap) => number): number | null => {
+  if (snaps.length < 31) return null;
+  return chgPct(level(snaps[snaps.length - 1]), level(snaps[snaps.length - 31]));
 };
 
-const portActivity: Builder = async () => {
-  const d = await load<{ label?: string; country?: string; series?: { date: string; portcalls?: number }[] }>("/data/port_activity/hcmc.json");
-  const s = d?.series; if (!Array.isArray(s) || !s.length) return null;
-  const last = s[s.length - 1].date; const yr = last.slice(0, 4); const md = last.slice(5);
-  const ytd = (y: string) => s.filter((r) => r.date.slice(0, 4) === y && r.date.slice(5) <= md).reduce((a, r) => a + (r.portcalls ?? 0), 0);
-  const cur = ytd(yr); const prev = ytd(String(+yr - 1));
-  return `**${d?.label ?? "The gateway"}** handled **${n0(cur)}** vessel calls year-to-date, **${pct(chgPct(cur, prev))}** versus the same point last year. `
-    + `IMF PortWatch daily calls are a near-real-time proxy for export throughput at the ${d?.country ?? "origin"} coffee gateway.`;
+const certifiedTiles: Builder = async () => {
+  const a = await load<CJson>("/data/certified_stocks_arabica.json");
+  const r = await load<CJson>("/data/certified_stocks_robusta.json");
+  const out: Record<string, Note> = {};
+  const aS = a?.snapshots ?? [];
+  if (aS.length) {
+    const graded = mtdWindow(aS).reduce((s, x) => s + (x.passed_today_bags ?? 0) + (x.failed_today_bags ?? 0), 0);
+    const trend = snapTrend(aS, (x) => x.total_bags ?? 0);
+    out.arabica = {
+      facts: [
+        { label: "Arabica certified", value: `**${n0(aS[aS.length - 1].total_bags ?? 0)} bags** (as of ${a?.as_of ?? aS[aS.length - 1].date})` },
+        { label: "Graded MTD", value: `**${n0(graded)} bags**` },
+        ...(trend != null ? [{ label: "~6-week trend", value: `**${pct(trend)}**` }] : []),
+      ],
+      read: trend != null && Math.abs(trend) > 5 ? `Deliverable pool ${trend < 0 ? "draining" : "rebuilding"} — ${trend < 0 ? "a tightening signal for KC" : "supply cushion growing"}.` : undefined,
+      flag: trend != null && trend < -10,
+    };
+  }
+  const rS = r?.snapshots ?? [];
+  if (rS.length) {
+    const graded = mtdWindow(rS).reduce((s, x) => s + (x.lots_graded_today ?? 0), 0);
+    const sold = mtdWindow(rS).reduce((s, x) => s + (x.lots_sold_today ?? 0), 0);
+    const trend = snapTrend(rS, (x) => x.total_lots_certified ?? 0);
+    out.robusta = {
+      facts: [
+        { label: "Robusta certified", value: `**${n0(rS[rS.length - 1].total_lots_certified ?? 0)} lots** (as of ${r?.as_of ?? rS[rS.length - 1].date})` },
+        { label: "MTD", value: `**${n0(graded)} lots** graded, **${n0(sold)}** sold` },
+        ...(trend != null ? [{ label: "~6-week trend", value: `**${pct(trend)}**` }] : []),
+      ],
+      read: trend != null && Math.abs(trend) > 5 ? `Deliverable pool ${trend < 0 ? "draining" : "rebuilding"} on the RC side.` : undefined,
+      flag: trend != null && trend < -10,
+    };
+  }
+  return Object.keys(out).length ? out : null;
+};
+const certifiedActivity: Builder = async () => {
+  const a = await load<CJson>("/data/certified_stocks_arabica.json");
+  const r = await load<CJson>("/data/certified_stocks_robusta.json");
+  const aS = a?.snapshots ?? [], rS = r?.snapshots ?? [];
+  if (!aS.length && !rS.length) return null;
+  const aT = snapTrend(aS, (x) => x.total_bags ?? 0), rT = snapTrend(rS, (x) => x.total_lots_certified ?? 0);
+  return {
+    facts: [
+      { label: "Arabica", value: `**${n0(aS.at(-1)?.total_bags ?? 0)} bags**${aT != null ? ` (**${pct(aT)}** ~6wk)` : ""}` },
+      { label: "Robusta", value: `**${n0(rS.at(-1)?.total_lots_certified ?? 0)} lots**${rT != null ? ` (**${pct(rT)}** ~6wk)` : ""}` },
+    ],
+    read: aT != null && rT != null && aT < -5 && rT < -5 ? "Both contracts drawing down simultaneously — broad deliverable tightening." : undefined,
+    flag: aT != null && rT != null && aT < -5 && rT < -5,
+  };
+};
+const certifiedFlow: Builder = async () => {
+  const a = await load<CJson>("/data/certified_stocks_arabica.json"); const aS = a?.snapshots ?? [];
+  if (!aS.length) return null;
+  const win = mtdWindow(aS);
+  const graded = win.reduce((s, x) => s + (x.passed_today_bags ?? 0) + (x.failed_today_bags ?? 0), 0);
+  const net = win.length >= 2 ? (win[win.length - 1].total_bags ?? 0) - (win[0].total_bags ?? 0) : null;
+  return {
+    facts: [
+      { label: "Graded MTD", value: `**${n0(graded)} bags** entered grading` },
+      ...(net != null ? [{ label: "Net MTD", value: `**${net >= 0 ? "+" : ""}${n0(net)} bags**` }] : []),
+    ],
+    read: net != null && net < 0 ? "Net drawdown this month — outflows beating gradings-in." : undefined,
+    flag: net != null && net < -10000,
+  };
+};
+const certifiedPeriod = (which: "arabica" | "robusta"): Builder => async () => {
+  const j = await load<CJson>(`/data/certified_stocks_${which}.json`); const s = j?.snapshots ?? [];
+  if (!s.length) return null;
+  const last = s[s.length - 1];
+  const total = which === "arabica" ? last.total_bags : last.total_lots_certified;
+  const unit = which === "arabica" ? "bags" : "lots";
+  const trend = snapTrend(s, (x) => (which === "arabica" ? x.total_bags : x.total_lots_certified) ?? 0);
+  return {
+    facts: [
+      { label: `${which === "arabica" ? "Arabica" : "Robusta"} certified`, value: `**${n0(total ?? 0)} ${unit}** (as of ${j?.as_of ?? last.date})` },
+      ...(trend != null ? [{ label: "~6-week trend", value: `**${pct(trend)}**` }] : []),
+    ],
+    read: trend != null && Math.abs(trend) > 5 ? `Pool ${trend < 0 ? "draining" : "building"} over the period.` : undefined,
+  };
 };
 
-// ── Macro (fx / cross-commodity / CPI) ────────────────────────────────────────
+// ── Spot (spot_coffee.json) ───────────────────────────────────────────────────
+interface SpotJson { by_type?: Record<string, number>; row_count?: number; as_of?: string; }
+const spotNote = (lead: string): Builder => async () => {
+  const d = await load<SpotJson>("/data/spot_coffee.json"); if (!d?.row_count) return null;
+  const bt = d.by_type ?? {};
+  const tot = Object.values(bt).reduce((a, b) => a + b, 0) || 1;
+  const split = Object.entries(bt).map(([t, v]) => `${((v / tot) * 100).toFixed(0)}% ${t.toLowerCase()}`).join(" / ");
+  return {
+    facts: [
+      { label: lead, value: `**${d.row_count}** live offers (as of ${d.as_of ?? "latest scrape"}, ATTE)` },
+      { label: "Split", value: split },
+    ],
+  };
+};
+
+// ── ECF / Kaffeesteuer ────────────────────────────────────────────────────────
+interface EcfM { period?: string; value_mt?: number; robusta_mt?: number; }
+const ecf: Builder = async () => {
+  const d = await load<{ monthly?: EcfM[] }>("/data/ecf_history.json"); const m = d?.monthly; if (!m?.length) return null;
+  const last = m[m.length - 1], prev = m[m.length - 2];
+  const mv = prev ? chgPct(last.value_mt ?? 0, prev.value_mt ?? 0) : null;
+  const vals = m.map((x) => x.value_mt ?? 0);
+  const draws = endStreak(vals, -1), builds = endStreak(vals, 1);
+  return {
+    facts: [
+      { label: `ECF ports · ${last.period}`, value: `**${n1((last.value_mt ?? 0) / 1000)} kt** (**${pct(mv)}** MoM)` },
+      ...(last.robusta_mt != null ? [{ label: "of which robusta", value: `**${n1(last.robusta_mt / 1000)} kt**` }] : []),
+    ],
+    read: draws >= 3 ? `${draws} consecutive monthly draws — European availability tightening.` :
+          builds >= 3 ? `${builds} consecutive monthly builds — consuming-region cushion growing.` : undefined,
+    flag: draws >= 3,
+  };
+};
+const kaffee: Builder = async () => {
+  const d = await load<Record<string, number>>("/data/kaffeesteuer.json"); if (!d) return null;
+  const keys = Object.keys(d).filter((k) => /^\d{4}-\d{2}$/.test(k)).sort();
+  if (keys.length < 13) return null;
+  const last = keys[keys.length - 1];
+  const cur = d[last];
+  const avg12 = keys.slice(-13, -1).reduce((a, k) => a + d[k], 0) / 12;
+  const dv = chgPct(cur, avg12);
+  return {
+    facts: [{ label: `Kaffeesteuer · ${monthLabel(last)}`, value: `**${n0(cur)}** (**${pct(dv)}** vs trailing 12m avg)` }],
+    read: dv != null && Math.abs(dv) > 10 ? `German consumption proxy running ${dv > 0 ? "strong" : "soft"} vs its own trend.` : undefined,
+    flag: dv != null && dv < -10,
+  };
+};
+
+// ── Demand — consumption & imports ────────────────────────────────────────────
+const worldConsumption: Builder = async () => {
+  const d = await load<{ world_consumption?: { tracked_consumption_mt?: number; tracked_countries?: number; tracked_latest_year?: number | string; tracked_vs_ico_pct?: number } }>("/data/demand_stocks.json");
+  const w = d?.world_consumption; if (!w?.tracked_consumption_mt) return null;
+  return {
+    facts: [
+      { label: `World consumption (${w.tracked_latest_year ?? "latest"})`, value: `**${n1(w.tracked_consumption_mt / 1e6)} M tonnes** across ${w.tracked_countries ?? "—"} countries${w.tracked_vs_ico_pct != null ? ` (**${w.tracked_vs_ico_pct.toFixed(0)}%** of ICO reference)` : ""}` },
+    ],
+  };
+};
+const ageCohort: Builder = async () => {
+  const d = await load<{ age_cohort_18plus?: { countries?: Record<string, { annual?: { year: number; pop_18plus?: number }[] }> } }>("/data/demand_stocks.json");
+  const c = d?.age_cohort_18plus?.countries; if (!c) return null;
+  const names = Object.keys(c); if (!names.length) return null;
+  const sumAt = (fromEnd: number) => names.reduce((a, k) => { const arr = c[k].annual ?? []; return a + (arr[arr.length - fromEnd]?.pop_18plus ?? 0); }, 0);
+  const last = sumAt(1); const decadeAgo = sumAt(11);
+  if (!last || !decadeAgo) return null;
+  const yr = (c[names[0]].annual ?? []).at(-1)?.year;
+  return {
+    facts: [{ label: `18+ population (${names.length} markets)`, value: `**${pct(chgPct(last, decadeAgo))}** over the past decade${yr ? ` (to ${yr})` : ""}` }],
+  };
+};
+interface ImportsJson { total_by_year?: Record<string, number>; origins?: { name?: string; latest_mt?: number }[]; }
+const importsByOrigin = (src: string, label: string): Builder => async () => {
+  const d = await load<ImportsJson>(src); const tby = d?.total_by_year; const origins = d?.origins;
+  if (!tby || !Array.isArray(origins) || !origins.length) return null;
+  const years = Object.keys(tby).sort(); const ly = years[years.length - 1]; const py = years[years.length - 2];
+  const total = tby[ly]; if (total == null) return null;
+  const top = [...origins].sort((a, b) => (b.latest_mt ?? 0) - (a.latest_mt ?? 0))[0];
+  const share = top?.latest_mt != null ? (top.latest_mt / total) * 100 : null;
+  const yoy = py != null ? chgPct(total, tby[py]) : null;
+  return {
+    facts: [
+      { label: `${label} imports · ${ly}`, value: `**${n1(total / 1000)} kt** green coffee${yoy != null ? ` (**${pct(yoy)}** YoY)` : ""}` },
+      ...(top?.name ? [{ label: "Top origin", value: `**${top.name}**${share != null ? ` at **${share.toFixed(0)}%**` : ""}` }] : []),
+    ],
+    read: share != null && share > 30 ? `Concentrated sourcing — a ${top!.name} supply shock hits this bloc hardest.` : undefined,
+  };
+};
+
+// ── Macro ─────────────────────────────────────────────────────────────────────
+const currency: Builder = async () => {
+  const d = await load<{ currency_index?: { index_value?: number; daily_delta_pct?: number; zscore?: number } }>("/data/quant_report.json");
+  const ci = d?.currency_index; if (!ci || ci.index_value == null) return null;
+  const z = ci.zscore ?? 0;
+  return {
+    facts: [{ label: "Producer-FX index", value: `**${n1(ci.index_value)}** (**${pct(ci.daily_delta_pct ?? null)}** today, z **${z.toFixed(1)}**)` }],
+    read: z > 1 ? "Producer currencies unusually strong vs USD — supports local prices and farmer retention." :
+          z < -1 ? "Producer currencies unusually weak vs USD — incentivises origin selling." : undefined,
+    flag: Math.abs(z) > 1.5,
+  };
+};
+const farmgate: Builder = async () => {
+  const d = await load<{ origins?: Record<string, unknown> }>("/data/origin_prices_history.json");
+  const o = d?.origins; if (!o) return null;
+  return {
+    facts: [{ label: "Farmgate trends", value: `reindexed local prices across **${Object.keys(o).map((k) => k.replace(/_/g, " ")).join(", ")}**` }],
+  };
+};
+interface FertItem { name?: string; price_usd_mt?: number; mom_pct?: number; }
+const fertilizer: Builder = async () => {
+  const d = await load<{ fertilizer?: { items?: FertItem[] } }>("/data/farmer_economics.json");
+  const items = d?.fertilizer?.items; if (!items?.length) return null;
+  const rising = items.filter((it) => (it.mom_pct ?? 0) > 0).length;
+  return {
+    facts: [{ label: "N-P-K inputs", value: items.map((it) => `${it.name} **$${n0(it.price_usd_mt ?? 0)}/MT** (${pct(it.mom_pct ?? null)})`).join(", ") }],
+    read: rising >= 2 ? "Broad input-cost pressure — squeezes next-cycle farmer break-evens." :
+          rising === 0 ? "Input costs easing across the board — margin relief for producers." : undefined,
+    flag: rising >= 3,
+  };
+};
 const fxTimeseries: Builder = async () => {
-  const d = await load<{ pairs?: Record<string, { name?: string; type?: string; history?: { close: number }[] }> }>("/data/fx_history.json");
+  const d = await load<{ pairs?: Record<string, { history?: { close: number }[] }> }>("/data/fx_history.json");
   const pairs = d?.pairs; if (!pairs) return null;
   const mv = (sym: string, days = 90) => {
     const h = pairs[sym]?.history; if (!h?.length) return null;
@@ -519,10 +1135,15 @@ const fxTimeseries: Builder = async () => {
   const vals = [brl, vnd, cop].filter((x): x is number => x != null);
   if (!vals.length) return null;
   const avg = vals.reduce((a, b) => a + b, 0) / vals.length; // USD/local: negative = local stronger
-  return `Over ~3 months USD/BRL **${pct(brl)}**, USD/VND **${pct(vnd)}**, USD/COP **${pct(cop)}**. `
-    + `${avg < 0 ? "Producer currencies are strengthening vs USD — supportive of higher local prices and farmer retention." : "Producer currencies are weakening vs USD — incentivising origin selling and a headwind for USD-priced futures."}`;
+  return {
+    facts: [{ label: "FX ~3m", value: `USD/BRL **${pct(brl)}**, USD/VND **${pct(vnd)}**, USD/COP **${pct(cop)}**` }],
+    read: Math.abs(avg) > 2
+      ? avg < 0 ? "Producer currencies strengthening — supportive of local prices and farmer retention."
+                : "Producer currencies weakening — incentivises origin selling, a headwind for USD futures."
+      : undefined,
+    flag: Math.abs(avg) > 4,
+  };
 };
-
 const crossCommodity: Builder = async () => {
   const m = await load<{ date: string; commodities?: { symbol: string; close_price?: number }[] }[]>("/data/macro_cot.json");
   if (!Array.isArray(m) || m.length < 5) return null;
@@ -530,277 +1151,113 @@ const crossCommodity: Builder = async () => {
   const chg = (sym: string) => { const cur = price(m[m.length - 1], sym), old = price(m[m.length - 5], sym); return cur != null && old != null ? chgPct(cur, old) : null; };
   const ar = chg("arabica"); if (ar == null) return null;
   const su = chg("sugar11"), co = chg("cocoa_ny");
-  return `Over the past ~month arabica coffee is **${pct(ar)}**, versus sugar **${pct(su)}** and cocoa **${pct(co)}**. `
-    + `When coffee diverges from the softs complex the move is coffee-specific; when it tracks them it's macro / fund flow driving the tape.`;
+  const peers = [su, co].filter((x): x is number => x != null);
+  const div = peers.length ? ar - peers.reduce((a, b) => a + b, 0) / peers.length : null;
+  return {
+    facts: [{ label: "~1 month", value: `arabica **${pct(ar)}** vs sugar **${pct(su)}**, cocoa **${pct(co)}**` }],
+    read: div != null && Math.abs(div) > 8
+      ? `Coffee decoupled from the softs complex (${pct(div)} gap) — the move is coffee-specific, not macro flow.`
+      : div != null ? "Tracking the softs complex — macro/fund flow dominant." : undefined,
+    flag: div != null && Math.abs(div) > 15,
+  };
 };
-
-const cpiLatest = (series: Record<string, { name?: string; monthly?: { period: string; yoy_pct?: number | null }[] }> | undefined, key: string) => {
+const cpiLatest = (series: Record<string, { monthly?: { period: string; yoy_pct?: number | null }[] }> | undefined, key: string) => {
   const m = series?.[key]?.monthly; if (!m?.length) return null;
   const last = [...m].reverse().find((r) => r.yoy_pct != null);
   return last ? { period: last.period, yoy: last.yoy_pct as number } : null;
 };
-
 const usCpi: Builder = async () => {
-  const d = await load<{ series?: Record<string, { name?: string; monthly?: { period: string; yoy_pct?: number | null }[] }> }>("/data/us_cpi.json");
+  const d = await load<{ series?: Record<string, { monthly?: { period: string; yoy_pct?: number | null }[] }> }>("/data/us_cpi.json");
   const all = cpiLatest(d?.series, "all_items"); const core = cpiLatest(d?.series, "core");
   if (!all) return null;
-  return `US CPI ran **${pct(all.yoy)}** year-on-year in ${all.period}${core ? ` (core **${pct(core.yoy)}**)` : ""}. `
-    + `${Math.abs(all.yoy - 2) < 0.6 ? "Near the Fed's 2% goal" : all.yoy > 2 ? "Above the Fed's 2% goal" : "Below the Fed's 2% goal"} — the driver of the USD and real-rate backdrop that coffee is priced against.`;
+  return {
+    facts: [{ label: `US CPI · ${all.period}`, value: `**${pct(all.yoy)}** YoY${core ? ` (core **${pct(core.yoy)}**)` : ""}` }],
+    read: Math.abs(all.yoy - 2) >= 0.6 ? `${all.yoy > 2 ? "Above" : "Below"} the Fed's 2% goal — shapes the USD / real-rate backdrop coffee trades against.` : undefined,
+    flag: all.yoy > 4,
+  };
 };
-
 const retailCpi: Builder = async () => {
-  const d = await load<{ series?: Record<string, { name?: string; monthly?: { period: string; yoy_pct?: number | null }[] }> }>("/data/retail_cpi.json");
+  const d = await load<{ series?: Record<string, { monthly?: { period: string; yoy_pct?: number | null }[] }> }>("/data/retail_cpi.json");
   const us = cpiLatest(d?.series, "us_coffee") ?? cpiLatest(d?.series, "us");
   const eu = cpiLatest(d?.series, "eu"); const br = cpiLatest(d?.series, "brazil");
   if (!us) return null;
-  const entries: [string, { period: string; yoy: number } | null][] = [["US", us], ["EU", eu], ["Brazil", br]];
+  const entries: [string, { yoy: number } | null][] = [["US", us], ["EU", eu], ["Brazil", br]];
   const parts = entries.filter((p) => p[1]).map(([n, v]) => `${n} **${pct(v!.yoy)}**`);
-  return `Retail coffee inflation (latest): ${parts.join(", ")} year-on-year. `
-    + `Shelf prices lag futures by months, so elevated retail inflation can weigh on consumer demand even after futures cool.`;
+  const max = Math.max(...entries.filter((p) => p[1]).map(([, v]) => v!.yoy));
+  return {
+    facts: [{ label: "Retail coffee CPI", value: `${parts.join(", ")} YoY` }],
+    read: max > 10 ? "Retail coffee inflation elevated — a lagged demand headwind even if futures cool." : undefined,
+    flag: max > 15,
+  };
 };
 
-// ── Signals (quant_report.json / open_direction_history.json) ─────────────────
+// ── Signals ───────────────────────────────────────────────────────────────────
+const newsSentiment: Builder = async () => {
+  const d = await load<{ sentiment?: { available?: boolean; net_index?: number; overall_sentiment?: string; overall_confidence?: number; bull_count?: number; bear_count?: number; neutral_count?: number; total?: number } }>("/data/quant_report.json");
+  const s = d?.sentiment;
+  if (!s?.available || !s.total) return null;
+  const net = s.net_index ?? (((s.bull_count ?? 0) - (s.bear_count ?? 0)) / (s.total || 1)) * 100;
+  return {
+    facts: [
+      { label: "News sentiment", value: `net **${net > 0 ? "+" : ""}${net.toFixed(0)}** across **${s.total}** headlines (${s.bull_count ?? 0}B / ${s.bear_count ?? 0}S / ${s.neutral_count ?? 0}N)` },
+      { label: "Lead class", value: `**${s.overall_sentiment}** at ${(s.overall_confidence ?? 0).toFixed(0)}% confidence` },
+    ],
+    read: Math.abs(net) > 8 ? `News flow leans ${net > 0 ? "bullish" : "bearish"} for KC/RC.` : undefined,
+    flag: Math.abs(net) > 25,
+  };
+};
 const priceDirection: Builder = async () => {
   const d = await load<{ open_direction?: { available?: boolean; direction?: string; prob_up?: number; for_session?: string } }>("/data/quant_report.json");
   const od = d?.open_direction; if (!od?.available || od.prob_up == null) return null;
-  return `The open-direction model calls **${od.direction}** for ${od.for_session ?? "the next session"} with **P(up) ${(od.prob_up * 100).toFixed(0)}%**. `
-    + `A pre-open, out-of-sample classifier on COT positioning, DXY and price momentum — logged before the open, not backfit.`;
+  const conv = Math.abs(od.prob_up * 100 - 50);
+  return {
+    facts: [{ label: `Open call · ${od.for_session ?? "next session"}`, value: `**${od.direction}** — P(up) **${(od.prob_up * 100).toFixed(0)}%**` }],
+    read: conv >= 15 ? "High-conviction call from the pre-open classifier." : "Low conviction — near a coin-flip; treat accordingly.",
+    flag: conv >= 15,
+  };
 };
-
 const openDirectionCalendar: Builder = async () => {
-  const rows = await load<{ hit?: boolean | null; status?: string }[]>("/data/open_direction_history.json");
+  const rows = await load<{ hit?: boolean | null }[]>("/data/open_direction_history.json");
   if (!Array.isArray(rows) || !rows.length) return null;
   const graded = rows.filter((r) => typeof r.hit === "boolean");
   if (!graded.length) return null;
-  const hits = graded.filter((r) => r.hit === true).length;
-  return `Across **${graded.length}** graded sessions the open-direction model has a **${(hits / graded.length * 100).toFixed(0)}%** hit rate. `
-    + `Each call is logged pre-open and graded after the open — a forward, out-of-sample track record rather than an in-sample fit.`;
+  const hr = (graded.filter((r) => r.hit === true).length / graded.length) * 100;
+  return {
+    facts: [{ label: "Track record", value: `**${hr.toFixed(0)}%** hit rate over **${graded.length}** graded sessions (logged pre-open)` }],
+    read: hr >= 55 ? "Demonstrated forward edge over the graded window." :
+          hr <= 45 ? "Hit rate below coin-flip — treat the signal with caution." :
+          "No demonstrated edge yet — sample still consistent with chance.",
+    flag: hr >= 60 || hr <= 40,
+  };
 };
-
 const robustaForecast: Builder = async () => {
   const d = await load<{ robusta_factors?: { available?: boolean; prediction?: { direction?: string; delta_p?: number }; model?: { r_squared?: number; n_obs?: number } } }>("/data/quant_report.json");
   const rf = d?.robusta_factors; if (!rf?.available) return null;
   const p = rf.prediction ?? {}; const m = rf.model ?? {};
-  return `The multi-factor OLS model projects robusta **${p.direction}** with ΔP **${p.delta_p ?? "—"} USD/MT** over the next four weeks `
-    + `(R² ${m.r_squared != null ? m.r_squared.toFixed(2) : "—"}, n=${m.n_obs ?? "—"}). Positioning, DXY and momentum scored into a single price path.`;
-};
-
-// ── COT report (cot.json, reuse metric engine) ────────────────────────────────
-const cotReport: Builder = async () => {
-  const data = await cotRows(); if (!data) return null;
-  const ny = buildMarketMetrics(data.slice(-52), data, "ny");
-  const ldn = buildMarketMetrics(data.slice(-52), data, "ldn");
-  if (!ny || !ldn) return null;
-  return `Automated positioning analysis — latest COT week: NY managed-money net change **${klots(ny.mmLongChangeLots - ny.mmShortChangeLots)}**, `
-    + `London **${klots(ldn.mmLongChangeLots - ldn.mmShortChangeLots)}**. The report grades positioning, week-over-week flow, price divergence and crowd risk into an overall directional bias per market.`;
-};
-
-// ── ENSO indices (enso_indices.json / enso_subsurface.json) ───────────────────
-const ensoDivergence: Builder = async () => {
-  const d = await load<{ nino34?: { latest?: { sst_anomaly?: number; phase?: string } }; soi?: { latest?: { soi?: number } } }>("/data/enso_indices.json");
-  const n = d?.nino34?.latest; const s = d?.soi?.latest;
-  if (!n || n.sst_anomaly == null) return null;
-  const phase = (n.phase ?? "").replace(/-/g, " ");
-  return `Niño 3.4 SST anomaly at **${n.sst_anomaly >= 0 ? "+" : ""}${n.sst_anomaly}°C**${phase ? ` (${phase})` : ""}${s?.soi != null ? `, with SOI at **${s.soi}**` : ""}. `
-    + `The ocean-temperature signal and the SOI atmospheric response together gauge how coupled — and therefore how entrenched — the current ENSO phase is.`;
-};
-
-const ensoSubsurface: Builder = async () => {
-  const d = await load<{ wwv?: { latest?: { wwv_anomaly?: number; lead_signal?: string }; lead_months?: string } }>("/data/enso_subsurface.json");
-  const w = d?.wwv?.latest; if (!w || w.wwv_anomaly == null) return null;
-  const lm = d?.wwv?.lead_months ?? "4–6";
-  return `Subsurface Warm Water Volume anomaly at **${w.wwv_anomaly >= 0 ? "+" : ""}${w.wwv_anomaly}** (10¹⁴ m³)${w.lead_signal ? `, signalling **${w.lead_signal.replace(/-/g, " ")}**` : ""}. `
-    + `WWV leads surface ENSO by ~${lm} months, so a positive anomaly points to El Niño building (negative → La Niña) — an early read on next season's crop-weather odds.`;
-};
-
-// ── Demand — consumption & imports (demand_stocks.json / *_coffee_imports.json)
-const worldConsumption: Builder = async () => {
-  const d = await load<{ world_consumption?: { tracked_consumption_mt?: number; tracked_countries?: number; tracked_latest_year?: number | string; tracked_vs_ico_pct?: number } }>("/data/demand_stocks.json");
-  const w = d?.world_consumption; if (!w?.tracked_consumption_mt) return null;
-  return `Tracked world coffee consumption is **${n1(w.tracked_consumption_mt / 1e6)} M tonnes** across ${w.tracked_countries ?? "the tracked"} countries (${w.tracked_latest_year ?? "latest year"})`
-    + `${w.tracked_vs_ico_pct != null ? `, **${w.tracked_vs_ico_pct.toFixed(0)}%** of the ICO reference total` : ""}. The demand base the global balance is measured against.`;
-};
-
-const ageCohort: Builder = async () => {
-  const d = await load<{ age_cohort_18plus?: { countries?: Record<string, { annual?: { year: number; pop_18plus?: number }[] }> } }>("/data/demand_stocks.json");
-  const c = d?.age_cohort_18plus?.countries; if (!c) return null;
-  const names = Object.keys(c); if (!names.length) return null;
-  const sumAt = (fromEnd: number) => names.reduce((a, k) => { const arr = c[k].annual ?? []; return a + (arr[arr.length - fromEnd]?.pop_18plus ?? 0); }, 0);
-  const last = sumAt(1); const decadeAgo = sumAt(11);
-  if (!last || !decadeAgo) return null;
-  const yr = (c[names[0]].annual ?? []).at(-1)?.year;
-  return `Across **${names.length}** tracked markets the coffee-drinking-age (18+) population has grown **${pct(chgPct(last, decadeAgo))}** over the past decade${yr ? ` (to ${yr})` : ""}. `
-    + `A structural tailwind for consumption that is largely independent of the price cycle.`;
-};
-
-interface ImportsJson { total_by_year?: Record<string, number>; origins?: { name?: string; latest_mt?: number }[]; }
-const importsByOrigin = (src: string, label: string): Builder => async () => {
-  const d = await load<ImportsJson>(src); const tby = d?.total_by_year; const origins = d?.origins;
-  if (!tby || !Array.isArray(origins) || !origins.length) return null;
-  const years = Object.keys(tby).sort(); const ly = years[years.length - 1]; const py = years[years.length - 2];
-  const total = tby[ly]; if (total == null) return null;
-  const top = [...origins].sort((a, b) => (b.latest_mt ?? 0) - (a.latest_mt ?? 0))[0];
-  const share = top?.latest_mt != null ? top.latest_mt / total * 100 : null;
-  const yoy = py != null ? chgPct(total, tby[py]) : null;
-  return `${label} imported **${n1(total / 1000)} kt** of green coffee in ${ly}${yoy != null ? ` (**${pct(yoy)}** YoY)` : ""}. `
-    + `${top?.name ? `Top origin **${top.name}**${share != null ? ` at **${share.toFixed(0)}%**` : ""} of the total. ` : ""}Origin concentration is a supply-security and differential signal for the importing bloc.`;
-};
-
-// ── Uganda exports (uganda_monthly.json) ──────────────────────────────────────
-interface UgRow { month: string; total_bags?: number; robusta_bags?: number; arabica_bags?: number; by_destination?: { country?: string; bags?: number }[]; }
-async function ugSeries(): Promise<UgRow[] | null> {
-  const d = await load<{ series?: UgRow[] }>("/data/uganda_monthly.json");
-  return Array.isArray(d?.series) && d!.series!.length ? d!.series! : null;
-}
-const ugKt = (bags: number) => bags * 6e-5; // raw 60-kg bags → kt
-
-const ugandaMonthly: Builder = async () => {
-  const s = await ugSeries(); if (!s) return null;
-  const last = s[s.length - 1]; const ya = s[s.length - 13];
-  const yoy = ya ? chgPct(last.total_bags ?? 0, ya.total_bags ?? 0) : null;
-  const rob = last.robusta_bags ?? 0, ara = last.arabica_bags ?? 0; const tot = last.total_bags || (rob + ara) || 1;
-  return `Uganda exported **${n1(ugKt(last.total_bags ?? 0))} kt** in ${monthLabel(last.month)}${yoy != null ? ` (**${pct(yoy)}** YoY)` : ""}, `
-    + `**${(rob / tot * 100).toFixed(0)}% robusta / ${(ara / tot * 100).toFixed(0)}% arabica**. Africa's top robusta exporter — a key London-market supply read.`;
-};
-const ugandaPace: Builder = async () => {
-  const s = await ugSeries(); if (!s) return null;
-  const last = s[s.length - 1]; const ck = vnCrop(last.month);
-  const ctd = s.filter((r) => vnCrop(r.month) === ck); const months = new Set(ctd.map((r) => r.month.slice(5)));
-  const prevCk = `${+ck.slice(0, 4) - 1}/${String((+ck.slice(0, 4)) % 100).padStart(2, "0")}`;
-  const prevCtd = s.filter((r) => vnCrop(r.month) === prevCk && months.has(r.month.slice(5)));
-  const ctdT = ctd.reduce((a, r) => a + (r.total_bags ?? 0), 0), prevT = prevCtd.reduce((a, r) => a + (r.total_bags ?? 0), 0);
-  return `Through ${MONTHS[+last.month.slice(5) - 1]}, ${ck} crop-year (Oct–Sep) exports total **${n1(ugKt(ctdT))} kt**, **${pct(chgPct(ctdT, prevT))}** versus ${prevCk} at the same stage. `
-    + `Pace ${ctdT >= prevT ? "ahead of" : "behind"} last year gauges robusta availability into the marketing year.`;
-};
-const ugandaAnnual: Builder = async () => {
-  const s = await ugSeries(); if (!s) return null;
-  const ck = vnCrop(s[s.length - 1].month); const ctd = s.filter((r) => vnCrop(r.month) === ck);
-  const rob = ctd.reduce((a, r) => a + (r.robusta_bags ?? 0), 0), ara = ctd.reduce((a, r) => a + (r.arabica_bags ?? 0), 0);
-  const tot = rob + ara || 1;
-  return `In ${ck} crop-year-to-date, Uganda's exports are **${(rob / tot * 100).toFixed(0)}% robusta** (${n1(ugKt(rob))} kt) and **${(ara / tot * 100).toFixed(0)}% arabica** (${n1(ugKt(ara))} kt). `
-    + `The robusta/arabica split decides which futures market the origin feeds.`;
-};
-const ugandaTypeShare: Builder = async () => {
-  const s = await ugSeries(); if (!s) return null;
-  const last = s[s.length - 1]; const rob = last.robusta_bags ?? 0, ara = last.arabica_bags ?? 0; const tot = rob + ara || 1;
-  const ya = s[s.length - 13];
-  const yaRob = ya ? (ya.robusta_bags ?? 0) / ((ya.robusta_bags ?? 0) + (ya.arabica_bags ?? 0) || 1) * 100 : null;
-  return `Robusta is **${(rob / tot * 100).toFixed(0)}%** of Uganda's export mix in ${monthLabel(last.month)}${yaRob != null ? `, versus ${yaRob.toFixed(0)}% a year earlier` : ""}. `
-    + `The robusta share tracks how much London-deliverable supply Uganda is contributing.`;
-};
-const ugandaDest: Builder = async () => {
-  const s = await ugSeries(); if (!s) return null;
-  const last = [...s].reverse().find((r) => Array.isArray(r.by_destination) && r.by_destination!.length);
-  const bd = last?.by_destination; if (!bd?.length) return null;
-  const tot = bd.reduce((a, r) => a + (r.bags ?? 0), 0) || 1;
-  const top = [...bd].sort((a, b) => (b.bags ?? 0) - (a.bags ?? 0)).slice(0, 3);
-  return `Top destination **${top[0].country}** at **${((top[0].bags ?? 0) / tot * 100).toFixed(0)}%** of ${monthLabel(last!.month)} exports; `
-    + `next: ${top.slice(1).map((t) => `${t.country} (${((t.bags ?? 0) / tot * 100).toFixed(0)}%)`).join(", ")}. Destination concentration maps Uganda's key buyer relationships.`;
-};
-
-// ── Indonesia exports (indonesia_exports.json → buildIndonesiaData) ────────────
-async function indoData(): Promise<IndonesiaExportsData | null> {
-  const raw = await load<RawIndonesiaExports>("/data/indonesia_exports.json");
-  if (!raw) return null;
-  try { return buildIndonesiaData(raw); } catch { return null; }
-}
-const idKt = (kg: number) => kg / 1e6; // kg → kt
-type IdRow = { date: string; total: number; arabica: number; robusta: number; other: number };
-
-const indoMonthly: Builder = async () => {
-  const d = await indoData(); const s = d?.series as IdRow[] | undefined; if (!s?.length) return null;
-  const last = s[s.length - 1]; const ya = s[s.length - 13];
-  const yoy = ya ? chgPct(last.total, ya.total) : null;
-  return `Indonesia exported **${n1(idKt(last.total))} kt** in ${monthLabel(last.date)}${yoy != null ? ` (**${pct(yoy)}** YoY)` : ""}. `
-    + `A dual arabica/robusta origin whose monsoon-driven crop feeds both the KC and RC markets.`;
-};
-const indoPace: Builder = async () => {
-  const d = await indoData(); const s = d?.series as IdRow[] | undefined; if (!s?.length) return null;
-  const last = s[s.length - 1]; const ck = cropKey(last.date);
-  const ctd = s.filter((r) => cropKey(r.date) === ck); const months = new Set(ctd.map((r) => r.date.slice(5)));
-  const prevCk = `${+ck.slice(0, 4) - 1}/${String((+ck.slice(0, 4)) % 100).padStart(2, "0")}`;
-  const prevCtd = s.filter((r) => cropKey(r.date) === prevCk && months.has(r.date.slice(5)));
-  const ctdT = ctd.reduce((a, r) => a + r.total, 0), prevT = prevCtd.reduce((a, r) => a + r.total, 0);
-  return `Through ${MONTHS[+last.date.slice(5) - 1]}, ${ck} crop-year exports total **${n1(idKt(ctdT))} kt**, **${pct(chgPct(ctdT, prevT))}** versus ${prevCk} at the same stage.`;
-};
-const indoAnnual: Builder = async () => {
-  const d = await indoData(); const s = d?.series as IdRow[] | undefined; if (!s?.length) return null;
-  const r = s[s.length - 1]; const tot = r.arabica + r.robusta + r.other || r.total || 1;
-  return `In ${monthLabel(r.date)} Indonesia's export mix was **${(r.arabica / tot * 100).toFixed(0)}% arabica**, `
-    + `**${(r.robusta / tot * 100).toFixed(0)}% robusta** and **${(r.other / tot * 100).toFixed(0)}% other**, on **${n1(idKt(r.total))} kt**. Robusta dominance ties Indonesia to the London market.`;
-};
-const indoTypeShare: Builder = async () => {
-  const d = await indoData(); const s = d?.series as IdRow[] | undefined; if (!s?.length) return null;
-  const r = s[s.length - 1]; const ya = s[s.length - 13]; const tot = r.arabica + r.robusta + r.other || 1;
-  const yaRob = ya ? ya.robusta / (ya.arabica + ya.robusta + ya.other || 1) * 100 : null;
-  return `Robusta is **${(r.robusta / tot * 100).toFixed(0)}%** of Indonesia's export mix in ${monthLabel(r.date)}${yaRob != null ? `, versus ${yaRob.toFixed(0)}% a year earlier` : ""}. `
-    + `The arabica/robusta balance shows which market Indonesian supply lands in.`;
-};
-const indoYoy: Builder = async () => {
-  const d = await indoData(); const s = d?.series as IdRow[] | undefined; if (!s?.length) return null;
-  const r = s[s.length - 1]; const ya = s[s.length - 13]; if (!ya) return null;
-  return `Year-on-year in ${monthLabel(r.date)}: arabica **${pct(chgPct(r.arabica, ya.arabica))}**, robusta **${pct(chgPct(r.robusta, ya.robusta))}**. `
-    + `Diverging growth by type shifts the arabica/robusta balance Indonesia supplies.`;
-};
-const indoSeasonality: Builder = async () => {
-  const d = await indoData(); const s = d?.series as IdRow[] | undefined; if (!s?.length) return null;
-  const byMonth: Record<number, number[]> = {};
-  for (const r of s) { const m = +r.date.slice(5, 7); (byMonth[m] ||= []).push(r.total); }
-  const avg = (m: number) => (byMonth[m]?.reduce((x, y) => x + y, 0) ?? 0) / (byMonth[m]?.length || 1);
-  const peak = Object.keys(byMonth).map(Number).sort((x, y) => avg(y) - avg(x))[0];
-  const last = s[s.length - 1]; const lm = +last.date.slice(5, 7);
-  return `Indonesia's shipments seasonally peak around **${MONTHS[peak - 1]}**. ${MONTHS[lm - 1]} printed **${n1(idKt(last.total))} kt**, **${pct(chgPct(last.total, avg(lm)))}** versus its seasonal norm.`;
-};
-const indoDest: Builder = async () => {
-  const d = await indoData();
-  const cc = d?.by_country?.countries; if (!cc) return null; // CountryYear.countries: ctr → ym → kg
-  const totals = Object.entries(cc)
-    .map(([c, months]) => [c, Object.values(months || {}).reduce((a, b) => a + (b || 0), 0)] as [string, number])
-    .filter(([, v]) => v > 0);
-  if (!totals.length) return null;
-  const grand = totals.reduce((a, [, v]) => a + v, 0) || 1;
-  const top = totals.sort((a, b) => b[1] - a[1]).slice(0, 3);
-  return `Top destination is **${top[0][0]}** at **${(top[0][1] / grand * 100).toFixed(0)}%** of shipments; `
-    + `next ${top.slice(1).map(([c, v]) => `${c} (${(v / grand * 100).toFixed(0)}%)`).join(", ")}. Where Indonesian coffee lands shapes its regional differential.`;
-};
-
-// ── Vietnam destination (vn_export_by_destination.json) ───────────────────────
-const vietnamDest: Builder = async () => {
-  const d = await load<{ countries?: Record<string, Record<string, number>> }>("/data/vn_export_by_destination.json");
-  const c = d?.countries; if (!c) return null;
-  const totals = Object.entries(c).map(([country, months]) => [country, Object.values(months).reduce((a, b) => a + (b || 0), 0)] as [string, number]);
-  const grand = totals.reduce((a, [, v]) => a + v, 0) || 1;
-  const top = totals.sort((a, b) => b[1] - a[1]).slice(0, 3);
-  if (!top.length) return null;
-  return `Top destination for Vietnamese coffee: **${top[0][0]}** at **${(top[0][1] / grand * 100).toFixed(0)}%** of tracked volume; `
-    + `next ${top.slice(1).map(([n, v]) => `${n} (${(v / grand * 100).toFixed(0)}%)`).join(", ")}. Buyer concentration for the world's top robusta exporter.`;
-};
-
-// ── Brazil frost & drought risk (farmer_economics.json → weather) ─────────────
-const brazilWeatherRisk: Builder = async () => {
-  const d = await load<{ weather?: { regions?: { name?: string; frost?: string; drought?: string }[] } }>("/data/farmer_economics.json");
-  const rg = d?.weather?.regions; if (!Array.isArray(rg) || !rg.length) return null;
-  const frostAt = rg.filter((r) => r.frost && r.frost.toUpperCase() !== "NONE");
-  const droughtHi = rg.filter((r) => ["HIGH", "MED", "H", "M"].includes((r.drought ?? "").toUpperCase()));
-  const worst = frostAt[0];
-  return `Across ${rg.length} Brazil growing regions, **${frostAt.length}** show frost risk and **${droughtHi.length}** elevated drought (CSI) risk in the forecast window`
-    + `${worst?.name ? `; ${worst.name} flags frost **${worst.frost}**` : ""}. Frost and drought are the two dominant weather threats to the arabica crop.`;
+  return {
+    facts: [
+      { label: "4-week robusta call", value: `**${p.direction}**, ΔP **${p.delta_p ?? "—"} USD/MT**` },
+      { label: "Model", value: `R² ${m.r_squared != null ? m.r_squared.toFixed(2) : "—"}, n=${m.n_obs ?? "—"}` },
+    ],
+    read: m.r_squared != null ? (m.r_squared >= 0.5 ? "Reasonable in-sample fit — directional signal worth weighing." : "Weak fit — low confidence in the point estimate.") : undefined,
+  };
 };
 
 // ── id → builder map ──────────────────────────────────────────────────────────
 const INSIGHTS: Record<string, Builder> = {
-  // Futures
+  // Price
   daily_quotes: dailyQuotes,
   cot_overview: cotOverview,
   oi_fnd: oiFnd,
-  cot_heatmap: cotGeneric("Rolling 13-week positioning-signal heatmap"),
-  cot_gauges: cotGeneric("52-week positioning gauges"),
-  cot_global_flow: cotGeneric("Cross-market managed-money flow"),
-  cot_industry_pulse: cotGeneric("Industry coverage in metric tons"),
-  cot_dry_powder: cotGeneric("Dry-powder positioning (room to add vs extremes)"),
-  cot_cycle_location: cotGeneric("Overbought/oversold cycle-location matrix"),
-  cot_signals: cotSignals,
-  cot_report: cotReport,
+  cot_heatmap: cotHeatmapNote,
+  cot_gauges: cotGaugesNote,
+  cot_global_flow: cotGlobalFlowNote,
+  cot_industry_pulse: cotIndustryPulseNote,
+  cot_dry_powder: cotDryPowderNote,
+  cot_cycle_location: cotCycleLocationNote,
+  cot_signals: cotSignalsNote,
+  cot_report: cotReportNote,
+  origin_farmgate_prices: farmgate,
   // Freight
   freight_spot: freightSpot,
   freight_evolution: freightEvolution,
@@ -855,19 +1312,18 @@ const INSIGHTS: Record<string, Builder> = {
   certified_stocks_flow: certifiedFlow,
   certified_stocks_period_arabica: certifiedPeriod("arabica"),
   certified_stocks_period_robusta: certifiedPeriod("robusta"),
-  spot_tiles: spotTiles,
-  spot_origin_port: spotGeneric("Where each origin's offered spot volume sits across European ports."),
-  spot_ecf: spotGeneric("Offered spot volume as a share of ECF reported European port stocks."),
-  spot_square_map: spotGeneric("Each square is roughly one lot, coloured by origin and crop-year freshness."),
+  spot_tiles: spotNote("Spot offers"),
+  spot_origin_port: spotNote("Origin × port coverage"),
+  spot_ecf: spotNote("Spot vs ECF stocks"),
+  spot_square_map: spotNote("Port square-map"),
   ecf_port_stocks: ecf,
   kaffeesteuer: kaffee,
   world_consumption: worldConsumption,
   age_cohort: ageCohort,
-  us_imports_origin: importsByOrigin("/data/us_coffee_imports.json", "The US"),
-  eu_imports_origin: importsByOrigin("/data/eu_coffee_imports.json", "The EU"),
+  us_imports_origin: importsByOrigin("/data/us_coffee_imports.json", "US"),
+  eu_imports_origin: importsByOrigin("/data/eu_coffee_imports.json", "EU"),
   // Macro
   coffee_currency_index: currency,
-  origin_farmgate_prices: farmgate,
   fertilizer_inputs: fertilizer,
   fx_timeseries: fxTimeseries,
   cross_commodity: crossCommodity,
@@ -881,63 +1337,8 @@ const INSIGHTS: Record<string, Builder> = {
 };
 
 /**
- * Selection-aware executive summary for the whole briefing.
- *
- * Reuses the per-chart builders: for every selected chart (registry order) it
- * takes the FIRST sentence of that chart's auto-comment — the headline fact,
- * before the interpretation clause — and groups the facts into one markdown
- * bullet per report category (Price / Freight / Supply / Demand / Macro),
- * capped at 3 facts per category so the summary stays executive-length.
- *
- * Same guarantees as getInsight: any builder failure just drops that chart's
- * fact; an all-fail selection returns null and the box falls back to empty.
- */
-const _firstSentence = (t: string): string => t.trim().split(/(?<=\.)\s+/)[0]?.trim() ?? "";
-
-export async function getExecutiveSummary(selectedIds: string[]): Promise<string | null> {
-  if (!selectedIds.length) return null;
-  const { REPORT_REGISTRY, REPORT_CATEGORIES } = await import("./registry");
-  const selected = new Set(selectedIds);
-
-  const factsByCat = new Map<string, string[]>();
-  const countByCat = new Map<string, number>();
-  for (const def of REPORT_REGISTRY) {
-    if (!selected.has(def.id)) continue;
-    countByCat.set(def.category, (countByCat.get(def.category) ?? 0) + 1);
-    const fn = INSIGHTS[def.id];
-    if (!fn) continue;
-    try {
-      const r = await fn();
-      if (r == null) continue;
-      const fact = typeof r === "string"
-        ? _firstSentence(r)
-        // Split-note charts (NY/London, Arabica/Robusta): one headline fact per side.
-        : Object.values(r).filter(Boolean).map(_firstSentence).filter(Boolean).join(" ");
-      if (!fact) continue;
-      const arr = factsByCat.get(def.category) ?? [];
-      arr.push(fact);
-      factsByCat.set(def.category, arr);
-    } catch {
-      continue;
-    }
-  }
-
-  const lines: string[] = [];
-  for (const cat of REPORT_CATEGORIES) {
-    const facts = factsByCat.get(cat);
-    if (!facts?.length) continue;
-    const shown = facts.slice(0, 3);
-    const extra = (countByCat.get(cat) ?? 0) - shown.length;
-    lines.push(
-      `- **${cat}:** ${shown.join(" ")}${extra > 0 ? ` *(+${extra} more visual${extra === 1 ? "" : "s"} in section)*` : ""}`,
-    );
-  }
-  return lines.length ? lines.join("\n") : null;
-}
-
-/**
- * Resolve the auto-comment for a note id (`chartId` or `chartId__noteKey`).
- * Returns null on any failure so the caller falls back to the empty placeholder.
+ * Resolve the auto-comment markdown for a note id (`chartId` or
+ * `chartId__noteKey`). Null on any failure → empty placeholder.
  */
 export async function getInsight(noteId: string): Promise<string | null> {
   const [id, key] = noteId.split("__");
@@ -946,10 +1347,76 @@ export async function getInsight(noteId: string): Promise<string | null> {
   try {
     const r = await fn();
     if (r == null) return null;
-    if (typeof r === "string") return r.trim() || null;
-    const picked = key ? r[key] : Object.values(r)[0];
-    return (picked ?? "").trim() || null;
+    const note: Note | undefined = "facts" in r ? (r as Note) : key ? (r as Record<string, Note>)[key] : Object.values(r as Record<string, Note>)[0];
+    if (!note || !note.facts.length) return null;
+    const md = renderNote(note);
+    return md.trim() || null;
   } catch {
     return null;
   }
+}
+
+/**
+ * Selection-aware executive summary — structured consumption.
+ *
+ * Per category: up to 3 headline facts (flagged charts first, then registry
+ * order), each `label value` from the chart's first fact, joined by " · ".
+ * A final "⚠ Watch" bullet collects the flagged reads (max 3) so the summary
+ * leads with what is actually anomalous today.
+ */
+export async function getExecutiveSummary(selectedIds: string[]): Promise<string | null> {
+  if (!selectedIds.length) return null;
+  const { REPORT_REGISTRY, REPORT_CATEGORIES } = await import("./registry");
+  const selected = new Set(selectedIds);
+
+  interface Item { headline: string; flag: boolean; read?: string }
+  const byCat = new Map<string, Item[]>();
+  const countByCat = new Map<string, number>();
+
+  for (const def of REPORT_REGISTRY) {
+    if (!selected.has(def.id)) continue;
+    countByCat.set(def.category, (countByCat.get(def.category) ?? 0) + 1);
+    const fn = INSIGHTS[def.id];
+    if (!fn) continue;
+    try {
+      const r = await fn();
+      if (r == null) continue;
+      let item: Item | null = null;
+      if ("facts" in r) {
+        const note = r as Note;
+        if (note.facts.length) item = { headline: `${note.facts[0].label} ${note.facts[0].value}`, flag: !!note.flag, read: note.flag ? note.read : undefined };
+      } else {
+        // Split-note chart: one headline per side, labelled from the registry.
+        const rec = r as Record<string, Note>;
+        const parts: string[] = []; let flag = false; let read: string | undefined;
+        for (const [k, note] of Object.entries(rec)) {
+          if (!note.facts.length) continue;
+          const sideLabel = def.notes?.find((n) => n.key === k)?.label ?? k;
+          parts.push(`${sideLabel}: ${note.facts[0].value}`);
+          if (note.flag) { flag = true; read = read ?? note.read; }
+        }
+        if (parts.length) item = { headline: parts.join(" · "), flag, read };
+      }
+      if (!item) continue;
+      const arr = byCat.get(def.category) ?? [];
+      arr.push(item);
+      byCat.set(def.category, arr);
+    } catch {
+      continue;
+    }
+  }
+
+  const lines: string[] = [];
+  const watch: string[] = [];
+  for (const cat of REPORT_CATEGORIES) {
+    const items = byCat.get(cat);
+    if (!items?.length) continue;
+    const ordered = [...items.filter((i) => i.flag), ...items.filter((i) => !i.flag)];
+    const shown = ordered.slice(0, 3);
+    const extra = (countByCat.get(cat) ?? 0) - shown.length;
+    lines.push(`- **${cat}:** ${shown.map((i) => i.headline).join(" · ")}${extra > 0 ? ` *(+${extra} more in section)*` : ""}`);
+    for (const i of ordered) if (i.flag && i.read) watch.push(i.read);
+  }
+  if (watch.length) lines.push(`- **⚠ Watch:** ${Array.from(new Set(watch)).slice(0, 3).join(" · ")}`);
+  return lines.length ? lines.join("\n") : null;
 }
