@@ -1412,9 +1412,10 @@ function _feedPort(code: string, market: Market): string {
   return ROBUSTA_PORT_NAMES[c] ?? c;
 }
 
-// Shorten long origin names in the compact feed (add more as needed).
+// Shorten/normalise origin names in the compact feed (add more as needed).
 const _FEED_ORIGIN_SHORT: Record<string, string> = {
   "Papua New Guinea": "PNG",
+  "Brazilian Conillon": "Brazil",
 };
 const _feedOrigin = (o: string): string => _FEED_ORIGIN_SHORT[o] ?? o;
 
