@@ -856,6 +856,36 @@ const idsWhere = (pred: (d: ReportChartDef) => boolean): string[] =>
 
 export const REPORT_PRESETS: ReportPreset[] = [
   {
+    id: "briefing",
+    label: "Briefing",
+    description:
+      "Quick daily briefing — prices, OI, farmgate, COT positioning, freight, " +
+      "per-origin export pace & weather (Brazil · Vietnam · Uganda · Indonesia), " +
+      "ENSO, certified-stock tiles and the coffee currency index",
+    // Ordered as the briefing reads top-to-bottom (addMany preserves this order).
+    ids: [
+      "daily_quotes",               // last prices
+      "oi_fnd",                     // OI evolution to FND
+      "origin_farmgate_prices",     // origin farmgate prices
+      "cot_industry_pulse",         // COT industry pulse
+      "cot_dry_powder",             // COT dry-powder indicator
+      "origin_freight_costs",       // origin freight cost
+      "brazil_daily_registration",  // Brazil daily export registration
+      "brazil_cumulative_pace",     // Brazil cumulative export pace
+      "brazil_weather_pack",        // Brazil rainfall & temperature
+      "vietnam_cumulative_pace",    // Vietnam cumulative export pace
+      "vietnam_weather_pack",       // Vietnam rainfall & temperature
+      "uganda_cumulative_pace",     // Uganda cumulative export pace
+      "uganda_weather_pack",        // Uganda rainfall & temperature
+      "indonesia_cumulative_pace",  // Indonesia cumulative export pace
+      "indonesia_weather_pack",     // Indonesia rainfall & temperature
+      "enso_divergence",            // ENSO — Ocean/Atmosphere Coupling
+      "enso_subsurface",            // ENSO — Subsurface Warm Water Volume
+      "certified_stocks_tiles",     // certified stocks headline tiles
+      "coffee_currency_index",      // coffee currency index
+    ],
+  },
+  {
     id: "brazil",
     label: "Brazil",
     description: "All Brazil visuals — exports, supply & demand, weather and analogs",
