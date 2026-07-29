@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-28T21:27:01+00:00",
-  "as_of": "2026-07-27",
+  "generated_at": "2026-07-29T04:46:46+00:00",
+  "as_of": "2026-07-28",
   "snapshots": [
     {
       "date": "2025-05-28",
@@ -5621,30 +5621,56 @@
         "ROT": 0,
         "TRI": 0
       }
+    },
+    {
+      "date": "2026-07-28",
+      "cut_off_date": "2026-07-27",
+      "total_lots_certified": 4139,
+      "total_bags_60kg_equivalent": 689833,
+      "non_tend_lots": 2,
+      "suspended_lots": 0,
+      "lots_graded_today": 0,
+      "lots_sold_today": 0,
+      "lots_bought_today": 0,
+      "tenders_today": 0,
+      "by_port_lots": {
+        "ANT": 2653,
+        "LON": 1462,
+        "FEL": 19,
+        "BAR": 5,
+        "AMS": 0,
+        "BRE": 0,
+        "HAM": 0,
+        "LEH": 0,
+        "LIV": 0,
+        "NOR": 0,
+        "ROT": 0,
+        "TRI": 0
+      }
     }
   ],
   "latest_detail": {
     "stock_report": {
-      "cut_off_date": "2026-07-26",
+      "cut_off_date": "2026-07-27",
       "ports": [
         {
           "port_id": "ANT",
           "port_name": "Antwerp",
-          "with_val_cert": 2655,
+          "with_val_cert": 2653,
           "non_tend": 2,
           "suspended": 0
         },
         {
           "port_id": "LON",
           "port_name": "London",
-          "with_val_cert": 1542,
+          "with_val_cert": 1462,
           "non_tend": 0,
           "suspended": 0
         },
         {
           "port_id": "FEL",
           "port_name": "Felixstowe",
-          "with_val_cert": 26,
+          "with_val_cert": 19,
           "non_tend": 0,
           "suspended": 0
         },
@@ -5713,12 +5739,12 @@
         }
       ],
       "grand_total": {
-        "with_val_cert": 4228,
+        "with_val_cert": 4139,
         "non_tend": 2,
         "suspended": 0
       }
     },
-    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260727_103028.csv"
+    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260728_103231.csv"
   },
   "recent_activity": {
     "gradings": [
