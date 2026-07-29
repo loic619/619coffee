@@ -31,11 +31,19 @@ jobs:
         run: pip install openpyxl pdfplumber sqlalchemy psycopg2-binary python-dotenv jinja2
 
       - name: Run Cecafe scraper (3 attempts)
+        # Run from backend/ (like the daily sibling) so the module's
+        # `from scraper....` imports resolve. The root-style
+        # `python -m backend.scraper.fetch_cecafe` invocation broke on
+        # 2026-07-15: everything downloaded and parsed, then the final
+        # `from scraper.validate_export import safe_write_json` raised
+        # ModuleNotFoundError and the whole harvest was discarded — and the
+        # _emit_news imports had been failing silently the same way.
+        working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           for attempt in 1 2 3; do
-            python -m backend.scraper.fetch_cecafe && break
+            python -m scraper.fetch_cecafe && break
             [ $attempt -lt 3 ] && echo "Attempt $attempt failed, retrying in 5m..." && sleep 300 || exit 1
           done
 
