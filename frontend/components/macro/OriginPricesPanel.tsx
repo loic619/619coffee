@@ -6,7 +6,7 @@ import {
 } from "recharts";
 
 import { fmtDateLabel } from "@/lib/formatters";
-import { CIF_FINANCING_RATE, FEU_MT, ORIGIN_EXPORT_COSTS } from "@/lib/originCosts";
+import { CIF_FINANCING_RATE, FEU_MT, ORIGIN_EXPORT_COSTS, SAMPLING_GRADING_USD_MT } from "@/lib/originCosts";
 import { PARITY_ADDERS_USD } from "@/lib/research/certStocksParity";
 
 interface HistoryPoint {
@@ -286,13 +286,16 @@ export default function OriginPricesPanel() {
   // — comparing CIF Antwerp against the exchange front month IS the point).
   const showFutures = futuresSeries.length > 0 && (axisMode === "index" || effUsd);
 
-  // Cost bands: on the USD/MT Value view of the farmgate basis, stack each
-  // origin's export costs above its line as translucent same-color surfaces —
-  // farmgate→FOB (fobbing) then FOB→tendering (freight + exchange-delivery
-  // adders). The top edge vs the KC/RC overlay reads directly as whether the
-  // origin delivers above or below the exchange. On FOB/CIF bases the line
-  // itself is already lifted, so the bands would double-count.
-  const showCostBands = effUsd && axisMode === "value" && basis === "farmgate";
+  // Cost bands: on the USD/MT Value view, stack the REMAINING export costs
+  // above each origin line as translucent same-color surfaces, so the top edge
+  // vs the KC/RC overlay reads directly as delivering above or below the
+  // exchange. What remains depends on the basis:
+  //   farmgate → +fobbing, then +freight & adders (tendering)
+  //   FOB      → +freight & adders (tendering) only
+  //   CIF ANR  → +ICE sampling/grading fees, plus the origin/quality delivery
+  //              adjustment where the growth isn't par (e.g. BR semi-washed
+  //              tenders to KC at a 900-pt discount → +$198/MT to match).
+  const showCostBands = effUsd && axisMode === "value";
 
   const chartData = useMemo(() => {
     if (!data) return [];
@@ -330,15 +333,25 @@ export default function OriginPricesPanel() {
         const point = data.origins[k]?.history.find(h => h.date === d);
         const v = point ? valueOf(k, point) : null;
         row[k] = v == null ? null : rebase ? (base[k] ? (v / base[k]!) * 100 : null) : v;
-        // Range-area bands stacked on the farmgate USD/MT value (value view
-        // only, so `v` is the unrebased USD/MT figure).
+        // Range-area bands stacked on the line's USD/MT value (value view
+        // only, so `v` is the unrebased figure on the selected basis).
         if (showCostBands && v != null) {
           const cost = ORIGIN_EXPORT_COSTS[k];
           if (cost) {
-            const fob = v + cost.fobbingUsdMt;
-            row[`${k}__fob`] = [v, fob];
-            const fr = freightMtOnDate(cost.freightRoute, d);
-            if (fr != null) row[`${k}__tender`] = [fob, fob + fr + PARITY_ADDERS_USD];
+            if (basis === "farmgate") {
+              const fob = v + cost.fobbingUsdMt;
+              row[`${k}__fob`] = [v, fob];
+              const fr = freightMtOnDate(cost.freightRoute, d);
+              if (fr != null) row[`${k}__tender`] = [fob, fob + fr + PARITY_ADDERS_USD];
+            } else if (basis === "fob") {
+              const fr = freightMtOnDate(cost.freightRoute, d);
+              if (fr != null) row[`${k}__tender`] = [v, v + fr + PARITY_ADDERS_USD];
+            } else {
+              // CIF: only the exchange fixed fees + quality/origin adjustment.
+              const sg = SAMPLING_GRADING_USD_MT[commodity];
+              const qualityAdj = Math.max(0, -(cost.exchangePremiumUsdMt ?? 0));
+              row[`${k}__cert`] = [v, v + sg + qualityAdj];
+            }
           }
         }
       }
@@ -348,7 +361,7 @@ export default function OriginPricesPanel() {
       }
       return row;
     });
-  }, [data, window, presentOrigins, convertPoint, axisMode, futuresSeries, showFutures, showCostBands, freightMtOnDate]);
+  }, [data, window, presentOrigins, convertPoint, axisMode, futuresSeries, showFutures, showCostBands, freightMtOnDate, basis, commodity]);
 
   const stats = useMemo(() => {
     if (!data) return [] as { key: OriginKey; name: string; latest: HistoryPoint | null; pct: number | null; color: string; unit: string; currency: string; source: string; count: number }[];
@@ -509,7 +522,11 @@ export default function OriginPricesPanel() {
             : "farmgate basis"}
           {" · "}{effUsd ? "USD/MT, per-day FX" : "local currency, native unit"}
           {showFutures ? ` · ${futuresName} overlay` : ""}
-          {showCostBands ? " · shaded: +fobbing, +freight & adders (tendering)" : ""}
+          {showCostBands
+            ? basis === "farmgate" ? " · shaded: +fobbing, +freight & adders (tendering)"
+            : basis === "fob"      ? " · shaded: +freight & adders (tendering)"
+            :                        " · shaded: +sampling/grading & quality adj"
+            : ""}
         </div>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
@@ -530,10 +547,12 @@ export default function OriginPricesPanel() {
               />
               <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
               {axisMode === "index" && <ReferenceLine y={100} stroke="#475569" strokeDasharray="3 3" />}
-              {/* Cost bands under the lines: same hue as the origin, two opacity
+              {/* Cost bands under the lines: same hue as the origin, opacity
                   steps — denser = fobbing (farmgate→FOB), fainter = tendering
-                  (FOB→delivered-to-exchange). Range areas: dataKey is [lo, hi]. */}
-              {showCostBands && presentOrigins.map(k => {
+                  (→delivered-to-exchange); on CIF a single band for the ICE
+                  sampling/grading fees + origin-quality adjustment. Range
+                  areas: dataKey is [lo, hi]; keys absent on a basis no-op. */}
+              {showCostBands && basis === "farmgate" && presentOrigins.map(k => {
                 const o = data.origins[k];
                 if (!o) return null;
                 return (
@@ -543,13 +562,23 @@ export default function OriginPricesPanel() {
                     activeDot={false} connectNulls />
                 );
               })}
-              {showCostBands && presentOrigins.map(k => {
+              {showCostBands && basis !== "cif" && presentOrigins.map(k => {
                 const o = data.origins[k];
                 if (!o) return null;
                 return (
                   <Area key={`${k}__tender`} type="monotone" dataKey={`${k}__tender`}
                     name={`${o.name} + freight & adders`} legendType="none"
                     stroke="none" fill={o.color} fillOpacity={0.13}
+                    activeDot={false} connectNulls />
+                );
+              })}
+              {showCostBands && basis === "cif" && presentOrigins.map(k => {
+                const o = data.origins[k];
+                if (!o) return null;
+                return (
+                  <Area key={`${k}__cert`} type="monotone" dataKey={`${k}__cert`}
+                    name={`${o.name} + sampling/grading & quality adj`} legendType="none"
+                    stroke="none" fill={o.color} fillOpacity={0.2}
                     activeDot={false} connectNulls />
                 );
               })}
