@@ -63,8 +63,8 @@ function NoteField({ noteId, label }: { noteId: string; label?: string }) {
       <textarea
         value={value}
         onChange={(e) => setComment(noteId, e.target.value)}
-        placeholder="Add your executive summary… Markdown supported: **bold**, *italic*, `code`, - bullets"
-        rows={3}
+        placeholder="Add your note… Markdown supported: **bold**, *italic*, `code`, - bullets"
+        rows={Math.min(8, Math.max(3, value.split("\n").length + 1))}
         className="print:hidden w-full resize-y rounded-md bg-slate-950 border border-slate-700 px-2 py-1.5
                    text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60"
       />
