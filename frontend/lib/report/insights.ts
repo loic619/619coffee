@@ -25,6 +25,7 @@ import { buildMarketMetrics } from "@/lib/pdf/dataHelpers";
 import { evaluateSignals } from "@/lib/cot/signalEngine";
 import { buildIndonesiaData, type RawIndonesiaExports } from "@/components/supply/IndonesiaExports/data";
 import type { IndonesiaExportsData } from "@/components/supply/IndonesiaExports/types";
+import { offerTons, cropTier, type SpotRow } from "@/components/demand/spot/spotLib";
 
 // ── structured note core ──────────────────────────────────────────────────────
 export interface Fact { label: string; value: string }
@@ -1005,18 +1006,82 @@ const certifiedPeriod = (which: "arabica" | "robusta"): Builder => async () => {
   };
 };
 
-// ── Spot (spot_coffee.json) ───────────────────────────────────────────────────
-interface SpotJson { by_type?: Record<string, number>; row_count?: number; as_of?: string; }
-const spotNote = (lead: string): Builder => async () => {
-  const d = await load<SpotJson>("/data/spot_coffee.json"); if (!d?.row_count) return null;
-  const bt = d.by_type ?? {};
-  const tot = Object.values(bt).reduce((a, b) => a + b, 0) || 1;
-  const split = Object.entries(bt).map(([t, v]) => `${((v / tot) * 100).toFixed(0)}% ${t.toLowerCase()}`).join(" / ");
+// ── Spot (spot_coffee.json — chart-specific aggregates from the raw rows,
+//     using the SAME normalization helpers as the Spot tab: spotLib) ──────────
+interface SpotJson { rows?: SpotRow[]; row_count?: number; as_of?: string; }
+async function spotData(): Promise<{ rows: SpotRow[]; asOf: string } | null> {
+  const d = await load<SpotJson>("/data/spot_coffee.json");
+  if (!Array.isArray(d?.rows) || !d!.rows!.length) return null;
+  return { rows: d!.rows!, asOf: d!.as_of ?? "latest scrape" };
+}
+const sumTons = (rows: SpotRow[]) => rows.reduce((a, r) => a + offerTons(r), 0);
+
+const spotTiles: Builder = async () => {
+  const d = await spotData(); if (!d) return null;
+  const tot = sumTons(d.rows);
+  const ara = sumTons(d.rows.filter((r) => r.Type === "Arabica"));
+  const rob = sumTons(d.rows.filter((r) => r.Type === "Robusta"));
+  const araPct = tot ? (ara / tot) * 100 : 0;
   return {
     facts: [
-      { label: lead, value: `**${d.row_count}** live offers (as of ${d.as_of ?? "latest scrape"}, ATTE)` },
-      { label: "Split", value: split },
+      { label: `Spot offers · ${d.asOf}`, value: `**${n0(tot)} t** across **${d.rows.length}** offers (ATTE)` },
+      { label: "Split", value: `arabica **${n0(ara)} t** (${araPct.toFixed(0)}%) / robusta **${n0(rob)} t**` },
     ],
+    read: araPct >= 85 ? "Offer book heavily arabica-weighted." : araPct <= 15 ? "Offer book heavily robusta-weighted." : undefined,
+  };
+};
+const spotOriginPort: Builder = async () => {
+  const d = await spotData(); if (!d) return null;
+  const tot = sumTons(d.rows) || 1;
+  const agg = (key: (r: SpotRow) => string) => {
+    const m = new Map<string, number>();
+    for (const r of d.rows) { const k = key(r); if (k) m.set(k, (m.get(k) ?? 0) + offerTons(r)); }
+    return Array.from(m.entries()).sort((a, b) => b[1] - a[1]);
+  };
+  const byOrigin = agg((r) => r.Origin || "");
+  const byCell = agg((r) => (r.Origin && r.Port ? `${r.Origin} @ ${r.Port}` : ""));
+  if (!byOrigin.length) return null;
+  const share0 = (byOrigin[0][1] / tot) * 100;
+  return {
+    facts: [
+      { label: "Top origin offered", value: `**${byOrigin[0][0]}** — **${n0(byOrigin[0][1])} t** (**${share0.toFixed(0)}%** of the book)` },
+      ...(byCell.length ? [{ label: "Largest cell", value: `**${byCell[0][0]}** (${n0(byCell[0][1])} t)` }] : []),
+    ],
+    read: share0 > 40 ? `Offer book concentrated — ${byOrigin[0][0]} alone is ${share0.toFixed(0)}% of visible spot supply.` : undefined,
+    flag: share0 > 50,
+  };
+};
+const spotEcf: Builder = async () => {
+  const d = await spotData(); if (!d) return null;
+  const e = await load<{ monthly?: (EcfM & { arabica_unwashed_mt?: number; arabica_washed_mt?: number })[] }>("/data/ecf_history.json");
+  const last = e?.monthly?.length ? e.monthly[e.monthly.length - 1] : null;
+  if (!last?.value_mt) return null;
+  const offered = sumTons(d.rows);
+  const ratio = (offered / last.value_mt) * 100;
+  return {
+    facts: [
+      { label: "Offered vs ECF", value: `**${n0(offered)} t** on offer = **${ratio.toFixed(1)}%** of European port stocks (${n1(last.value_mt / 1000)} kt, ${last.period})` },
+    ],
+    read: ratio > 10 ? "A large slice of port stocks is actively offered — visible selling pressure in Europe." :
+          ratio < 3 ? "Only a sliver of port stocks is on offer — holders sitting tight." : undefined,
+    flag: ratio > 10,
+  };
+};
+const spotSquareMap: Builder = async () => {
+  const d = await spotData(); if (!d) return null;
+  const tot = sumTons(d.rows) || 1;
+  const fresh = sumTons(d.rows.filter((r) => cropTier(r.Crop).label === "fresh"));
+  const freshPct = (fresh / tot) * 100;
+  const byPort = new Map<string, number>();
+  for (const r of d.rows) if (r.Port) byPort.set(r.Port, (byPort.get(r.Port) ?? 0) + offerTons(r));
+  const topPort = Array.from(byPort.entries()).sort((a, b) => b[1] - a[1])[0];
+  return {
+    facts: [
+      { label: "Crop freshness", value: `**${freshPct.toFixed(0)}%** of offered tonnage is fresh crop` },
+      ...(topPort ? [{ label: "Top port", value: `**${topPort[0]}** — **${((topPort[1] / tot) * 100).toFixed(0)}%** of offers` }] : []),
+    ],
+    read: freshPct < 50 ? "Older crop dominates the visible offer book — quality-discount pressure on differentials." : undefined,
+    flag: freshPct < 40,
   };
 };
 
@@ -1312,10 +1377,10 @@ const INSIGHTS: Record<string, Builder> = {
   certified_stocks_flow: certifiedFlow,
   certified_stocks_period_arabica: certifiedPeriod("arabica"),
   certified_stocks_period_robusta: certifiedPeriod("robusta"),
-  spot_tiles: spotNote("Spot offers"),
-  spot_origin_port: spotNote("Origin × port coverage"),
-  spot_ecf: spotNote("Spot vs ECF stocks"),
-  spot_square_map: spotNote("Port square-map"),
+  spot_tiles: spotTiles,
+  spot_origin_port: spotOriginPort,
+  spot_ecf: spotEcf,
+  spot_square_map: spotSquareMap,
   ecf_port_stocks: ecf,
   kaffeesteuer: kaffee,
   world_consumption: worldConsumption,
