@@ -1,6 +1,6 @@
 {
   "_note": "Climatology (avg/min/max) from committed per-region seed; actual-cur, daily MTD, last-year (once accumulated) and 7-day forecast are live from Open-Meteo's forecast API, accumulated daily in backend/seed/weather_history/.",
-  "updated": "2026-07-28",
+  "updated": "2026-07-29",
   "cur_year": 2026,
   "last_year": 2025,
   "label": "Vietnam",
@@ -141,13 +141,13 @@
         22.8
       ],
       "forecast_7d_rain": [
-        7.1,
-        17.5,
-        7.4,
-        11.1,
-        1.2,
-        2.8,
-        5.6
+        6.8,
+        9.9,
+        8.0,
+        5.4,
+        6.3,
+        14.0,
+        7.0
       ],
       "monthly_actual_cur": [
         0.0,
@@ -156,7 +156,7 @@
         22.2,
         144.6,
         189.5,
-        187.5
+        245.4
       ],
       "monthly_actual_temp_cur": [
         21.3,
@@ -194,9 +194,9 @@
         154.9,
         159.0,
         180.3,
-        187.5,
-        null,
-        null,
+        194.1,
+        226.7,
+        245.4,
         null,
         null
       ],
@@ -233,16 +233,8 @@
         213.2,
         215.3
       ],
-      "essm_fraction": 0.337,
+      "essm_fraction": 0.36,
       "essm_recent": [
-        {
-          "date": "2025-06-23",
-          "essm": 0.348
-        },
-        {
-          "date": "2025-06-24",
-          "essm": 0.355
-        },
         {
           "date": "2025-06-25",
           "essm": 0.351
@@ -1834,6 +1826,14 @@
         {
           "date": "2026-07-27",
           "essm": 0.337
+        },
+        {
+          "date": "2026-07-28",
+          "essm": 0.367
+        },
+        {
+          "date": "2026-07-29",
+          "essm": 0.36
         }
       ],
       "spi_1": 0.7,
@@ -1964,9 +1964,9 @@
           1.3,
           4.1,
           21.3,
-          7.2,
-          null,
-          null,
+          13.8,
+          32.6,
+          18.7,
           null,
           null
         ],
@@ -4624,13 +4624,13 @@
         17.3
       ],
       "forecast_7d_rain": [
-        13.6,
-        7.1,
-        4.4,
-        1.8,
-        4.5,
+        7.5,
+        7.3,
+        2.2,
+        2.4,
         10.2,
-        11.4
+        3.0,
+        1.8
       ],
       "monthly_actual_cur": [
         13.2,
@@ -4639,7 +4639,7 @@
         83.9,
         174.0,
         208.6,
-        136.4
+        156.4
       ],
       "monthly_actual_temp_cur": [
         15.5,
@@ -4678,8 +4678,8 @@
         112.6,
         117.4,
         133.9,
-        136.4,
-        null,
+        142.5,
+        156.4,
         null,
         null
       ],
@@ -4716,12 +4716,8 @@
         183.9,
         186.6
       ],
-      "essm_fraction": 0.216,
+      "essm_fraction": 0.243,
       "essm_recent": [
-        {
-          "date": "2025-06-24",
-          "essm": 0.483
-        },
         {
           "date": "2025-06-25",
           "essm": 0.486
@@ -6316,7 +6312,11 @@
         },
         {
           "date": "2026-07-28",
-          "essm": 0.216
+          "essm": 0.222
+        },
+        {
+          "date": "2026-07-29",
+          "essm": 0.243
         }
       ],
       "spi_1": 0.06,
@@ -6448,8 +6448,8 @@
           10.2,
           4.8,
           16.5,
-          2.5,
-          null,
+          8.6,
+          13.9,
           null,
           null
         ],
@@ -9107,13 +9107,13 @@
         21.8
       ],
       "forecast_7d_rain": [
-        12.4,
-        8.0,
         11.0,
+        14.0,
+        6.9,
+        6.0,
+        9.3,
         7.0,
-        2.2,
-        5.2,
-        10.0
+        8.0
       ],
       "monthly_actual_cur": [
         0.0,
@@ -9122,7 +9122,7 @@
         31.9,
         160.8,
         217.7,
-        220.9
+        231.1
       ],
       "monthly_actual_temp_cur": [
         20.5,
@@ -9131,7 +9131,7 @@
         25.5,
         25.3,
         24.2,
-        23.3
+        23.4
       ],
       "daily_accum_cur": [
         4.8,
@@ -9161,8 +9161,8 @@
         178.5,
         191.8,
         208.3,
-        220.9,
-        null,
+        222.4,
+        231.1,
         null,
         null
       ],
@@ -9199,12 +9199,8 @@
         285.1,
         291.4
       ],
-      "essm_fraction": 0.393,
+      "essm_fraction": 0.376,
       "essm_recent": [
-        {
-          "date": "2025-06-24",
-          "essm": 0.462
-        },
         {
           "date": "2025-06-25",
           "essm": 0.45
@@ -10799,7 +10795,11 @@
         },
         {
           "date": "2026-07-28",
-          "essm": 0.393
+          "essm": 0.392
+        },
+        {
+          "date": "2026-07-29",
+          "essm": 0.376
         }
       ],
       "spi_1": 0.03,
@@ -10931,8 +10931,8 @@
           10.1,
           13.3,
           16.5,
-          12.6,
-          null,
+          14.1,
+          8.7,
           null,
           null
         ],
@@ -13590,13 +13590,13 @@
         21.2
       ],
       "forecast_7d_rain": [
-        8.6,
-        11.5,
-        10.5,
-        3.6,
-        3.7,
-        4.0,
-        4.6
+        8.8,
+        12.6,
+        7.3,
+        4.6,
+        8.5,
+        7.4,
+        7.2
       ],
       "monthly_actual_cur": [
         0.0,
@@ -13605,7 +13605,7 @@
         27.7,
         95.4,
         124.2,
-        398.9
+        380.7
       ],
       "monthly_actual_temp_cur": [
         19.3,
@@ -13614,7 +13614,7 @@
         26.0,
         25.2,
         24.1,
-        22.4
+        22.5
       ],
       "daily_accum_cur": [
         7.2,
@@ -13644,8 +13644,8 @@
         310.6,
         335.7,
         345.0,
-        398.9,
-        null,
+        375.5,
+        380.7,
         null,
         null
       ],
@@ -13682,12 +13682,8 @@
         403.5,
         419.5
       ],
-      "essm_fraction": 0.449,
+      "essm_fraction": 0.44,
       "essm_recent": [
-        {
-          "date": "2025-06-24",
-          "essm": 0.483
-        },
         {
           "date": "2025-06-25",
           "essm": 0.488
@@ -15283,6 +15279,10 @@
         {
           "date": "2026-07-28",
           "essm": 0.449
+        },
+        {
+          "date": "2026-07-29",
+          "essm": 0.44
         }
       ],
       "spei_1": -1.54,
@@ -15411,8 +15411,8 @@
           3.9,
           25.1,
           9.3,
-          53.9,
-          null,
+          30.5,
+          5.2,
           null,
           null
         ],
@@ -18070,13 +18070,13 @@
         22.4
       ],
       "forecast_7d_rain": [
-        14.9,
-        9.8,
+        7.4,
         9.2,
-        4.9,
-        4.2,
-        4.6,
-        11.0
+        5.2,
+        3.0,
+        9.2,
+        3.4,
+        3.0
       ],
       "monthly_actual_cur": [
         0.0,
@@ -18085,7 +18085,7 @@
         34.0,
         107.7,
         135.6,
-        302.5
+        313.5
       ],
       "monthly_actual_temp_cur": [
         20.4,
@@ -18124,8 +18124,8 @@
         258.2,
         274.6,
         291.8,
-        302.5,
-        null,
+        303.4,
+        313.5,
         null,
         null
       ],
@@ -18162,12 +18162,8 @@
         344.7,
         351.0
       ],
-      "essm_fraction": 0.278,
+      "essm_fraction": 0.275,
       "essm_recent": [
-        {
-          "date": "2025-06-24",
-          "essm": 0.438
-        },
         {
           "date": "2025-06-25",
           "essm": 0.456
@@ -19763,6 +19759,10 @@
         {
           "date": "2026-07-28",
           "essm": 0.278
+        },
+        {
+          "date": "2026-07-29",
+          "essm": 0.275
         }
       ],
       "spi_1": -0.78,
@@ -19894,8 +19894,8 @@
           5.4,
           16.4,
           17.2,
-          10.7,
-          null,
+          11.6,
+          10.1,
           null,
           null
         ],
@@ -22685,8 +22685,8 @@
     },
     {
       "day": 27,
-      "rain_mm": 7.2,
-      "accum_mm": 187.5,
+      "rain_mm": 13.8,
+      "accum_mm": 194.1,
       "avg_accum_mm": 287.9,
       "min_accum_mm": 172.8,
       "max_accum_mm": 431.9,
@@ -22695,23 +22695,23 @@
     },
     {
       "day": 28,
-      "rain_mm": 0.0,
-      "accum_mm": null,
+      "rain_mm": 32.6,
+      "accum_mm": 226.7,
       "avg_accum_mm": 298.6,
       "min_accum_mm": 179.2,
       "max_accum_mm": 447.9,
       "last_year_accum_mm": 204.3,
-      "temp_c": 0.0
+      "temp_c": 24.4
     },
     {
       "day": 29,
-      "rain_mm": 0.0,
-      "accum_mm": null,
+      "rain_mm": 18.7,
+      "accum_mm": 245.4,
       "avg_accum_mm": 309.3,
       "min_accum_mm": 185.6,
       "max_accum_mm": 463.9,
       "last_year_accum_mm": 208.9,
-      "temp_c": 0.0
+      "temp_c": 24.5
     },
     {
       "day": 30,
@@ -22736,53 +22736,53 @@
   ],
   "forecast_7d": [
     {
-      "date": "2026-07-28",
-      "label": "Jul 28",
-      "rain_mm": 7.1,
-      "temp_max_c": 27.6,
-      "temp_min_c": 22.1
-    },
-    {
-      "date": "2026-07-29",
-      "label": "Jul 29",
-      "rain_mm": 17.5,
-      "temp_max_c": 28.4,
-      "temp_min_c": 22.2
-    },
-    {
       "date": "2026-07-30",
       "label": "Jul 30",
-      "rain_mm": 7.4,
-      "temp_max_c": 28.7,
-      "temp_min_c": 22.9
+      "rain_mm": 6.8,
+      "temp_max_c": 29.3,
+      "temp_min_c": 22.4
     },
     {
       "date": "2026-07-31",
       "label": "Jul 31",
-      "rain_mm": 11.1,
-      "temp_max_c": 27.0,
-      "temp_min_c": 22.7
+      "rain_mm": 9.9,
+      "temp_max_c": 29.6,
+      "temp_min_c": 22.6
     },
     {
       "date": "2026-08-01",
       "label": "Aug 1",
-      "rain_mm": 1.2,
-      "temp_max_c": 29.9,
-      "temp_min_c": 22.6
+      "rain_mm": 8.0,
+      "temp_max_c": 30.2,
+      "temp_min_c": 22.9
     },
     {
       "date": "2026-08-02",
       "label": "Aug 2",
-      "rain_mm": 2.8,
-      "temp_max_c": 29.3,
-      "temp_min_c": 22.9
+      "rain_mm": 5.4,
+      "temp_max_c": 30.1,
+      "temp_min_c": 22.5
     },
     {
       "date": "2026-08-03",
       "label": "Aug 3",
-      "rain_mm": 5.6,
-      "temp_max_c": 29.8,
-      "temp_min_c": 22.9
+      "rain_mm": 6.3,
+      "temp_max_c": 29.9,
+      "temp_min_c": 22.5
+    },
+    {
+      "date": "2026-08-04",
+      "label": "Aug 4",
+      "rain_mm": 14.0,
+      "temp_max_c": 26.7,
+      "temp_min_c": 22.2
+    },
+    {
+      "date": "2026-08-05",
+      "label": "Aug 5",
+      "rain_mm": 7.0,
+      "temp_max_c": 30.1,
+      "temp_min_c": 22.4
     }
   ]
 }
