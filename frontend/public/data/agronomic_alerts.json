@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T05:00:32+00:00",
+  "generated_at": "2026-07-30T04:48:23+00:00",
   "ruleset_version": "iphm-v2-frost",
   "origins": {
     "colombia": {
@@ -12,7 +12,7 @@
           "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
           "triggers": {
             "spei_3": -2.21,
-            "forecast_7d_rain": 62.5
+            "forecast_7d_rain": 58.0
           }
         }
       ]
@@ -83,11 +83,7 @@
             "vhi": 21.62,
             "spei_3": -1.83
           }
-        }
-      ]
-    },
-    "vn": {
-      "Dak Nong": [
+        },
         {
           "threat_id": "blossom_drop",
           "name": "Flowering Disruption / Blossom Drop",
@@ -95,11 +91,13 @@
           "timeframe": "forecast",
           "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
           "triggers": {
-            "spei_3": -1.42,
-            "forecast_7d_rain": 62.2
+            "spei_3": -1.83,
+            "forecast_7d_rain": 70.1
           }
         }
-      ],
+      ]
+    },
+    "vn": {
       "Gia Lai": [
         {
           "threat_id": "blossom_drop",
@@ -109,7 +107,7 @@
           "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
           "triggers": {
             "spei_3": -2.04,
-            "forecast_7d_rain": 56.4
+            "forecast_7d_rain": 51.1
           }
         }
       ]
