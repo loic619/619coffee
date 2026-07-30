@@ -1,0 +1,82 @@
+{
+ "windows": "SPEI-3 in-sample vs 1995-2024 seeds; met-leg only (no VHI pre-2006)",
+ "region_months": 12172,
+ "met_leg_base_rates_pct": {
+  "watch": 16.3,
+  "alert": 11.5,
+  "critical": 5.4
+ },
+ "theoretical_normal_pct": {
+  "watch": 15.9,
+  "alert": 11.5,
+  "critical": 6.7
+ },
+ "critical_runs": {
+  "episodes": 297,
+  "share_lasting_2plus_months": 49.5,
+  "max_run_months": 20
+ },
+ "known_events": [
+  {
+   "origin": "brazil",
+   "label": "Brazil 2014 (SE drought)",
+   "start": "2014-01",
+   "end": "2014-04",
+   "min_spei3": -2.86,
+   "worst_region": "Sul de Minas",
+   "hit_alert_leg": true,
+   "hit_critical_leg": true
+  },
+  {
+   "origin": "brazil",
+   "label": "Brazil 2020-21 (pre-frost drought)",
+   "start": "2020-09",
+   "end": "2021-09",
+   "min_spei3": -2.14,
+   "worst_region": "Paraná",
+   "hit_alert_leg": true,
+   "hit_critical_leg": true
+  },
+  {
+   "origin": "vn",
+   "label": "Vietnam 2015-16 (El Niño)",
+   "start": "2015-11",
+   "end": "2016-05",
+   "min_spei3": -1.42,
+   "worst_region": "Dak Nong",
+   "hit_alert_leg": true,
+   "hit_critical_leg": false
+  },
+  {
+   "origin": "honduras",
+   "label": "Central America 2019",
+   "start": "2019-06",
+   "end": "2019-09",
+   "min_spei3": -1.83,
+   "worst_region": "El Paraíso",
+   "hit_alert_leg": true,
+   "hit_critical_leg": true
+  },
+  {
+   "origin": "ethiopia",
+   "label": "Ethiopia 2015-16 (El Niño)",
+   "start": "2015-10",
+   "end": "2016-03",
+   "min_spei3": -1.71,
+   "worst_region": "Harrar",
+   "hit_alert_leg": true,
+   "hit_critical_leg": true
+  },
+  {
+   "origin": "indonesia",
+   "label": "Indonesia 2015 (El Niño)",
+   "start": "2015-08",
+   "end": "2015-11",
+   "min_spei3": -1.58,
+   "worst_region": "Toraja",
+   "hit_alert_leg": true,
+   "hit_critical_leg": true
+  }
+ ],
+ "note": "Published-alert rarity comes from the VHI conjunction + persistence gates on top of these met-leg rates; see iphm_thresholds v3."
+}
