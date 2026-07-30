@@ -11,6 +11,7 @@ import EnsoExplainer from "./EnsoExplainer";
 import CertifiedStocksParity from "./CertifiedStocksParity";
 import SeptemberXray from "./SeptemberXray";
 import CropyearXray from "./CropyearXray";
+import DroughtRiskMethodology from "./methodology/DroughtRiskMethodology";
 import SignalsMethodology from "./methodology/SignalsMethodology";
 import OpenDirectionRecord from "./methodology/OpenDirectionRecord";
 import NewsSentimentMethodology from "./methodology/NewsSentimentMethodology";
@@ -1649,6 +1650,7 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
             <EnsoExplainer />
           </CollapsibleCard>
           <EnsoModelMethodology />
+          <DroughtRiskMethodology />
           <FrostRiskMethodology />
         </div>
       )}
