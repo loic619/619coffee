@@ -1,6 +1,6 @@
 {
   "country": "ethiopia",
-  "scraped_at": "2026-07-29T05:39:35.183134Z",
+  "scraped_at": "2026-07-30T05:28:21.006096Z",
   "exports": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-16",
@@ -346,7 +346,7 @@
     "grade": "All grades avg"
   },
   "weather": {
-    "scraped_at": "2026-07-29T04:33:37.459157Z",
+    "scraped_at": "2026-07-30T04:27:51.847058Z",
     "regions": [
       {
         "name": "Sidama/Yirgacheffe",
@@ -355,9 +355,9 @@
         "csi_60d": 0.046,
         "csi_30d_level": "LOW",
         "csi_60d_level": "LOW",
-        "rain_mtd_mm": 150.1,
-        "rain_hist_min": 69.6,
-        "rain_hist_max": 177.0
+        "rain_mtd_mm": 146.6,
+        "rain_hist_min": 70.0,
+        "rain_hist_max": 184.6
       },
       {
         "name": "Harrar",
@@ -369,7 +369,7 @@
       },
       {
         "name": "Kaffa",
-        "drought": "NONE",
+        "drought": "LOW",
         "csi_30d": 0.84,
         "csi_60d": 0.98,
         "csi_30d_level": "HIGH",
@@ -409,7 +409,6 @@
           "-",
           "-",
           "-",
-          "-",
           "L",
           "L",
           "L",
@@ -457,9 +456,10 @@
           "-",
           "-",
           "-",
-          "L",
-          "L",
-          "L",
+          "-",
+          "-",
+          "-",
+          "-",
           "-",
           "-",
           "-"
@@ -546,7 +546,6 @@
           "-",
           "-",
           "-",
-          "-",
           "L",
           "-",
           "L",
@@ -603,6 +602,7 @@
           "L",
           "L",
           "L",
+          "-",
           "L",
           "L",
           "L",
@@ -628,9 +628,9 @@
           "-",
           "-",
           "-",
+          "L",
+          "L",
           "-",
-          "L",
-          "L",
           "-",
           "-",
           "-",
@@ -800,7 +800,7 @@
       }
     ],
     "historical_stat": "Neutral ENSO: near-average Ethiopia arabica output expected",
-    "last_updated": "2026-07-29"
+    "last_updated": "2026-07-30"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Jan",

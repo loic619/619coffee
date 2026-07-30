@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T05:39:35.580938Z",
+  "generated_at": "2026-07-30T05:28:21.374909Z",
   "eu": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-16",
@@ -7799,8 +7799,8 @@
       "name": "Philippines",
       "latest_year": "2025",
       "consumption_mt": 405000,
-      "population": null,
-      "per_capita_kg": null,
+      "population": 116786962,
+      "per_capita_kg": 3.47,
       "annual": [
         {
           "year": "1960",
@@ -12551,7 +12551,7 @@
   ],
   "populations": {
     "source": "World Bank API (SP.POP.TOTL)",
-    "last_updated": "2026-07-29",
+    "last_updated": "2026-07-30",
     "countries": {
       "eu": {
         "name": "European Union",
@@ -12618,6 +12618,12 @@
         "iso3": "TUR",
         "latest_year": "2025",
         "latest_population": 85878556
+      },
+      "philippines": {
+        "name": "Philippines",
+        "iso3": "PHL",
+        "latest_year": "2025",
+        "latest_population": 116786962
       },
       "egypt": {
         "name": "Egypt",
