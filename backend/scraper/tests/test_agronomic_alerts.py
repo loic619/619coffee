@@ -19,20 +19,20 @@ class TestFungalRust:
     RULE = _rule("fungal_rust_outbreak")
 
     def test_fires_when_all_conditions_met(self):
-        out = ae.evaluate_rule(self.RULE, {"spi_1": 2.0, "temp_mean": 23.0}, "COL", 5)
+        out = ae.evaluate_rule(self.RULE, {"spi_1": 2.0, "temp_mean": 23.0, "arabica_share": 1.0}, "COL", 5)
         assert out is not None
         assert out["threat_id"] == "fungal_rust_outbreak"
         assert out["severity"] == "alert"
         assert out["timeframe"] == "current"
-        assert out["triggers"] == {"spi_1": 2.0, "temp_mean": 23.0}
+        assert out["triggers"] == {"spi_1": 2.0, "temp_mean": 23.0, "arabica_share": 1.0}
 
     def test_skips_when_spi_too_low(self):
         # SPI-1 = 1.4 fails the >= 1.5 floor
-        assert ae.evaluate_rule(self.RULE, {"spi_1": 1.4, "temp_mean": 23.0}, "COL", 5) is None
+        assert ae.evaluate_rule(self.RULE, {"spi_1": 1.4, "temp_mean": 23.0, "arabica_share": 1.0}, "COL", 5) is None
 
     def test_skips_when_temp_outside_band(self):
-        assert ae.evaluate_rule(self.RULE, {"spi_1": 2.0, "temp_mean": 19.0}, "COL", 5) is None
-        assert ae.evaluate_rule(self.RULE, {"spi_1": 2.0, "temp_mean": 28.0}, "COL", 5) is None
+        assert ae.evaluate_rule(self.RULE, {"spi_1": 2.0, "temp_mean": 19.0, "arabica_share": 1.0}, "COL", 5) is None
+        assert ae.evaluate_rule(self.RULE, {"spi_1": 2.0, "temp_mean": 28.0, "arabica_share": 1.0}, "COL", 5) is None
 
     def test_skips_when_field_missing(self):
         # No false fires when we lack the data — better silent than wrong.
@@ -234,11 +234,13 @@ def test_iphm_rules_all_use_lowercase_severities():
 
 def test_evaluate_region_returns_all_fired_rules():
     values = {
-        "spi_1": 2.0, "temp_mean": 23.0,       # fires fungal_rust_outbreak
-        "vhi": 30.0, "spei_3": -2.0,           # fires severe_defoliation
-        "forecast_7d_rain": 80.0,              # blossom_drop needs spei_3 max ≤ -1.0 too — satisfied
+        "spi_1": 2.0, "temp_mean": 23.0,       # fires fungal_rust_outbreak…
+        "arabica_share": 1.0,                  # …for an arabica region (v3)
+        "vhi": 30.0, "spei_3": -2.0,           # fires the drought ladder
+        "forecast_7d_rain": 80.0,              # blossom_drop needs spei_3 ≤ -1.0 too — satisfied
     }
-    fired = ae.evaluate_region(values, "COL", 5)
+    # month 9 sits inside Colombia's second flowering window (v3 phenology)
+    fired = ae.evaluate_region(values, "COL", 9)
     threat_ids = {a["threat_id"] for a in fired}
     assert "fungal_rust_outbreak" in threat_ids
     assert "severe_defoliation" in threat_ids
@@ -251,3 +253,113 @@ def test_evaluate_region_returns_empty_on_clear_data():
     values = {"spi_1": 0.2, "temp_mean": 24.0, "vhi": 70.0, "spei_3": 0.3,
               "forecast_7d_rain": 5.0, "temp_min": 12.0}
     assert ae.evaluate_region(values, "BRA", 6) == []
+
+
+# ── v3: robusta scoping, ladders, phenology, hysteresis, VN water ────────────
+
+class TestV3RobustaScoping:
+    RULE = _rule("fungal_rust_outbreak")
+
+    def test_rust_does_not_fire_for_robusta_region(self):
+        vals = {"spi_1": 2.0, "temp_mean": 23.0, "arabica_share": 0.0}
+        assert ae.evaluate_rule(self.RULE, vals, "VNM", 5) is None
+
+    def test_rust_fires_for_mixed_region(self):
+        vals = {"spi_1": 2.0, "temp_mean": 23.0, "arabica_share": 0.5}
+        assert ae.evaluate_rule(self.RULE, vals, "UGA", 5) is not None
+
+
+class TestV3DroughtLadder:
+    def test_reduce_keeps_highest_tier_only(self):
+        vals = {"vhi": 30.0, "spei_3": -2.0}          # trips all three tiers
+        fired = ae.evaluate_region(vals, "BRA", 6)
+        drought = [a for a in fired if a["family"] == "drought_stress"]
+        assert len(drought) == 3                       # raw: watch+alert+critical
+        reduced = ae.reduce_families(fired)
+        drought_r = [a for a in reduced if a["family"] == "drought_stress"]
+        assert len(drought_r) == 1
+        assert drought_r[0]["severity"] == "critical"
+        assert drought_r[0]["threat_id"] == "severe_defoliation"
+
+    def test_mid_tier_when_only_alert_conditions_met(self):
+        vals = {"vhi": 38.0, "spei_3": -1.3}          # watch+alert, not critical
+        reduced = ae.reduce_families(ae.evaluate_region(vals, "BRA", 6))
+        drought_r = [a for a in reduced if a["family"] == "drought_stress"]
+        assert len(drought_r) == 1
+        assert drought_r[0]["severity"] == "alert"
+
+
+class TestV3Phenology:
+    BLOSSOM_VALS = {"spei_3": -1.5, "forecast_7d_rain": 80.0}
+
+    def test_blossom_fires_in_brazil_flowering_window(self):
+        fired = ae.evaluate_region(self.BLOSSOM_VALS, "BRA", 9)
+        assert any(a["threat_id"] == "blossom_drop" for a in fired)
+
+    def test_blossom_silent_outside_flowering_window(self):
+        fired = ae.evaluate_region(self.BLOSSOM_VALS, "BRA", 6)
+        assert not any(a["threat_id"] == "blossom_drop" for a in fired)
+
+    def test_vietnam_window_differs_from_brazil(self):
+        assert any(a["threat_id"] == "blossom_drop"
+                   for a in ae.evaluate_region(self.BLOSSOM_VALS, "VNM", 2))
+        assert not any(a["threat_id"] == "blossom_drop"
+                       for a in ae.evaluate_region(self.BLOSSOM_VALS, "VNM", 9))
+
+
+class TestV3HeatStress:
+    def test_fires_in_brazil_fill_window_on_dry_heat(self):
+        vals = {"forecast_hot_days": 5.0, "spei_1": -0.8}
+        fired = ae.evaluate_region(vals, "BRA", 1)
+        heat = [a for a in fired if a["family"] == "heat_stress"]
+        assert heat and heat[0]["severity"] == "alert"
+        assert heat[0]["timeframe"] == "forecast"
+
+    def test_silent_outside_fill_window(self):
+        vals = {"forecast_hot_days": 5.0, "spei_1": -0.8}
+        assert not [a for a in ae.evaluate_region(vals, "BRA", 8)
+                    if a["family"] == "heat_stress"]
+
+    def test_tci_escalates_to_critical(self):
+        vals = {"forecast_hot_days": 5.0, "spei_1": -0.8, "tci": 20.0}
+        reduced = ae.reduce_families(ae.evaluate_region(vals, "BRA", 1))
+        heat = [a for a in reduced if a["family"] == "heat_stress"]
+        assert heat and heat[0]["severity"] == "critical"
+
+
+class TestV3Hysteresis:
+    EXITS = _rule("severe_defoliation")["exit_conditions"]
+
+    def test_not_clear_while_either_leg_stressed(self):
+        assert not ae.exit_conditions_clear(self.EXITS, {"vhi": 42.0, "spei_3": -1.4})
+        assert not ae.exit_conditions_clear(self.EXITS, {"vhi": 36.0, "spei_3": -0.5})
+
+    def test_clear_when_both_recover(self):
+        assert ae.exit_conditions_clear(self.EXITS, {"vhi": 45.0, "spei_3": -0.4})
+
+    def test_missing_field_keeps_alert_active(self):
+        assert not ae.exit_conditions_clear(self.EXITS, {"vhi": 45.0})
+
+
+class TestV3VnWaterConditioning:
+    ALERT = {"threat_id": "drought_stress_alert", "family": "drought_stress",
+             "severity": "alert", "market_impact": "x", "triggers": {}}
+
+    def test_low_flows_escalate(self):
+        out = ae._vn_water_adjust(dict(self.ALERT), "Dak Nong", {"Dak Nong": -42.0})
+        assert out["severity"] == "critical"
+        assert out["triggers"]["water_tbnn_pct"] == -42.0
+
+    def test_healthy_flows_cap_critical(self):
+        crit = {**self.ALERT, "threat_id": "severe_defoliation", "severity": "critical"}
+        out = ae._vn_water_adjust(crit, "Dak Nong", {"Dak Nong": -5.0})
+        assert out["severity"] == "alert"
+
+    def test_unmapped_region_passes_through(self):
+        out = ae._vn_water_adjust(dict(self.ALERT), "Gia Lai", {"Dak Nong": -42.0})
+        assert out["severity"] == "alert"
+
+    def test_non_drought_family_untouched(self):
+        heat = {**self.ALERT, "family": "heat_stress", "severity": "alert"}
+        out = ae._vn_water_adjust(heat, "Dak Nong", {"Dak Nong": -42.0})
+        assert out["severity"] == "alert"

@@ -5,10 +5,10 @@ export default function DroughtRiskMethodology() {
   return (
     <Paper
       tone="cyan"
-      updated="2026-07-22"
+      updated="2026-07-30"
       kicker="Weather · drought model"
       title="Drought risk — how the SPI / SPEI / VHI stack works"
-      subtitle="From 30-year calibrated rainfall z-scores to the IPHM alert rules that decide when dryness becomes a market signal"
+      subtitle="30-year calibrated SPI/SPEI z-scores, satellite cross-checks, and the backtested v3 alert ladder that decides when dryness becomes a market signal"
     >
       <P>
         Drought is coffee&rsquo;s <em>slow</em> weather trade — unlike frost it rarely reprices the market overnight,
@@ -96,35 +96,75 @@ SPI  = Φ⁻¹( H(current) )             Φ⁻¹ = inverse normal`}</Fml>
           &ldquo;When does rain become a supply shock?&rdquo;.</LI>
       </UL>
 
-      <H2>5 · The IPHM rule layer — from index to alert</H2>
+      <H2>5 · The IPHM rule layer (v3) — from index to alert</H2>
       <P>
         Indices don&rsquo;t page anyone. The <strong>IPHM (Integrated Plant Health Management) ruleset</strong> is a
         declarative table evaluated every run against each region&rsquo;s current values
-        (<Code>spi_1/3</Code>, <Code>spei_1/3</Code>, <Code>vhi</Code>, observed mean temp, forecast min temp,
-        7-day forecast rain). Each rule is a conjunction of thresholds with a severity tier
-        (<Code>watch</Code> → <Code>alert</Code> → <Code>critical</Code>) and a plain-language market impact. The
-        drought-side rules:
+        (<Code>spi_1/3</Code>, <Code>spei_1/3</Code>, <Code>vhi</Code>, <Code>tci</Code>, observed mean temp,
+        forecast min temp, 7-day forecast rain, forecast hot-day count, the region&rsquo;s arabica production share,
+        soil-moisture fraction). The v3 revision (Jul&nbsp;2026 threshold review) turned the single-cliff rules into
+        <strong> severity ladders</strong> with <strong>persistence gates</strong> and <strong>hysteresis</strong>:
       </P>
-      <RefTable head={["Rule", "Conditions", "Severity"]} rows={[
-        ["Severe defoliation / bean shrinkage", "VHI ≤ 35 AND SPEI-3 ≤ −1.5", "critical"],
-        ["Flowering disruption / blossom drop", "SPEI-3 ≤ −1.0 AND ≥ 50 mm rain forecast in 7d", "watch"],
-        ["Fungal / leaf-rust outbreak (wet tail)", "SPI-1 ≥ +1.5 AND mean temp 21–25 °C", "alert"],
+      <RefTable head={["Family / tier", "Conditions", "Severity"]} rows={[
+        ["Drought stress — early", "VHI ≤ 45 AND SPEI-3 ≤ −1.0, held ≥ 7 days", "watch"],
+        ["Drought stress — established", "VHI ≤ 40 AND SPEI-3 ≤ −1.2, held ≥ 7 days", "alert"],
+        ["Severe defoliation / bean shrinkage", "VHI ≤ 35 AND SPEI-3 ≤ −1.5, held ≥ 10 days", "critical"],
+        ["Blossom drop (per-origin flowering windows)", "SPEI-3 ≤ −1.0 AND ≥ 50 mm rain forecast in 7d", "watch"],
+        ["Fungal / leaf rust (arabica regions only)", "SPI-1 ≥ +1.5 AND temp 21–25 °C AND arabica share ≥ 25%", "alert"],
+        ["Cherry-fill heat spell (BRA/VNM fill windows)", "≥ 4 forecast days ≥ 34 °C AND SPEI-1 ≤ −0.3", "alert"],
+        ["Heat spell — satellite-confirmed", "…AND TCI ≤ 25", "critical"],
       ]} />
       <UL>
-        <LI><strong>The critical rule needs two independent witnesses</strong>: a met-model drought (SPEI-3 deep
-          negative) <em>and</em> the satellite seeing stressed vegetation (VHI ≤ 35, its drought bin being &lt; 40).
-          Neither alone fires it — that conjunction is the model&rsquo;s main false-positive defence.</LI>
-        <LI><strong>Blossom-drop encodes a sequence, not a level</strong>: drought first, sudden heavy rain next — the
-          classic false-flowering setup. Reading it needs both the state (SPEI-3) and the forecast, which is why the
-          forecast lives inside the index feed.</LI>
-        <LI><strong>The same engine polices both tails</strong> — extreme wet (rust) and extreme dry come from one
-          machinery, so severities are comparable across threat types.</LI>
+        <LI><strong>Ladders, not cliffs</strong>: only the highest tier that fires is published per region, so a
+          building drought escalates watch → alert → critical instead of appearing from nothing. (The backtest below
+          shows why this matters: Vietnam&rsquo;s flagship 2015-16 drought peaked at SPEI-3 −1.42 — under the old
+          single critical cliff, it would never have alerted.)</LI>
+        <LI><strong>Persistence &amp; hysteresis</strong>: conditions must hold continuously (7–10 days) before an
+          alert publishes — drought is persistent by nature, flapping data is not — and the critical tier stays
+          active until <em>both</em> recovery thresholds clear (VHI ≥ 40 and SPEI-3 ≥ −1.0), so one wet week
+          can&rsquo;t silently clear a real event.</LI>
+        <LI><strong>Two independent witnesses at every drought tier</strong>: the met-model water balance
+          <em> and</em> the satellite canopy read. Neither alone fires — the model&rsquo;s main false-positive
+          defence.</LI>
+        <LI><strong>Phenology scoping is now enforced</strong>: blossom-drop runs only inside each origin&rsquo;s
+          flowering window (Brazil Aug–Nov, Vietnam Jan–Apr, Colombia&rsquo;s two passes, Honduras Mar–May,
+          Ethiopia Feb–Apr, Uganda&rsquo;s bimodal rains) — the drought-then-sudden-rain sequence is meaningless
+          outside it.</LI>
+        <LI><strong>Rust is arabica-only</strong>: <em>Hemileia vastatrix</em> barely touches robusta, so the rule
+          now requires the region to actually grow arabica (per-region production splits where published,
+          origin-level shares otherwise). Pure-robusta regions can no longer false-fire.</LI>
+        <LI><strong>Heat stress is new</strong>: sustained forecast ≥34 °C days during the bean-fill window on a
+          dry balance — the mechanism SPEI only catches indirectly — with the satellite thermal index (TCI) as the
+          escalating second witness.</LI>
+        <LI><strong>Vietnam is irrigation-aware</strong>: drought severities there are conditioned on the NCHMF
+          river/reservoir bulletin — flows ≤ −30% vs normal escalate one tier (the irrigation buffer is thin);
+          near-normal flows cap severity at alert (the buffer absorbs the met-drought).</LI>
         <LI><strong>Frost is deliberately NOT here</strong> — it moved to a per-region physical model (radiative vs
-          advective, duration, black frost); see Weather → Frost risk. A single generic threshold was too crude for a
-          tail risk of that size.</LI>
+          advective, duration, black frost); see Weather → Frost risk.</LI>
       </UL>
 
-      <H2>6 · Design choices &amp; honest limits</H2>
+      <H2>6 · Calibration — the thresholds are backtested, not hand-set</H2>
+      <P>
+        The ladder numbers are replayed against the full <strong>1995–2024 seeds</strong> (12,172 region-months,
+        SPEI-3 met-leg, in-sample) by <Code>backend/scripts/backtest_drought_alerts.py</Code>, which commits its
+        evidence to <Code>drought_backtest_report.json</Code>:
+      </P>
+      <UL>
+        <LI><strong>Base rates are calibrated</strong>: the met legs mark 16.3% / 11.5% / 5.4% of region-months at
+          the watch/alert/critical thresholds vs 15.9% / 11.5% / 6.7% theoretical — the distribution fits are doing
+          their job. Published alerts are far rarer: the VHI conjunction and the persistence gates sit on top.</LI>
+        <LI><strong>All six benchmark droughts fire</strong> at the alert leg: Brazil 2014 (min SPEI-3 −2.86,
+          Sul de Minas) and 2020-21 (−2.14, Paraná), Vietnam 2015-16 (−1.42, Dak Nong), Central America 2019
+          (−1.83, El Paraíso), Ethiopia 2015-16 (−1.71, Harrar), Indonesia 2015 (−1.58, Toraja).</LI>
+        <LI><strong>The Vietnam case justifies the ladder</strong>: its worst modern drought never reached the
+          critical met-leg (−1.42 vs −1.5) — a critical-only rule would have stayed silent through the country&rsquo;s
+          defining supply event. The alert tier catches it; VHI and the reservoir conditioning carry the
+          escalation.</LI>
+        <LI><strong>Persistence gates are safe</strong>: half of all critical-leg episodes last ≥ 2 months (max 20
+          months) — day-scale persistence windows suppress flapping without eating real events.</LI>
+      </UL>
+
+      <H2>7 · Design choices &amp; honest limits</H2>
       <UL>
         <LI><strong>Z-scores are the whole point</strong>: SPI −1.8 in Dak Lak and SPI −1.8 in Sul de Minas are the
           same statistical rarity, so regions, seasons and origins compare on one scale — that is what lets one rule
@@ -132,9 +172,10 @@ SPI  = Φ⁻¹( H(current) )             Φ⁻¹ = inverse normal`}</Fml>
         <LI><strong>Point sampling, not gridded averages</strong> — one representative coordinate per producing zone.
           Cheap, transparent, and adequate at the 1–3-month scales the model trades on; it will under-represent
           intra-region variance in mountainous origins (Colombia, Ethiopia).</LI>
-        <LI><strong>ET₀ is a demand proxy, not a soil model</strong> — there is no explicit soil-moisture bucket, no
-          irrigation adjustment (parts of the Vietnamese basins are irrigated: reservoir levels are tracked separately
-          in the supply pages), and no runoff. SPEI-3 is the pragmatic stand-in for all three.</LI>
+        <LI><strong>ET₀ is a demand proxy, not a soil model</strong> — there is no explicit soil-moisture bucket or
+          runoff model. A satellite surface soil-moisture fraction now rides along in the field catalogue and the
+          Vietnamese reservoir bulletin conditions VN severities, but a full water-balance bucket remains future
+          work. SPEI-3 is the pragmatic stand-in.</LI>
         <LI><strong>VHI is admin-level</strong> — a province average can hide a stressed micro-region; conversely it
           catches irrigation and soil effects the met chain can&rsquo;t see. That complementarity is why the critical
           rule demands both.</LI>

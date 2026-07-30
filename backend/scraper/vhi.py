@@ -5,9 +5,9 @@ Source:
         ?country=BRA&provinceID=13&year1=2023&year2=2026&type=Mean
 
 VHI blends VCI (vegetation condition) and TCI (temperature condition) into
-a single 0–100 health score per ISO week. We only ship VHI to the frontend
-(traders read it as the headline signal); VCI/TCI are parsed but dropped
-to keep the per-origin JSON lean.
+a single 0–100 health score per ISO week. VHI is the headline signal; TCI
+also ships (it is the satellite heat-stress witness for the IPHM
+heat-stress rules); VCI is parsed but dropped to keep the JSON lean.
 
 Response shape (CSV-ish text with a header line + column-header line):
 
@@ -238,6 +238,9 @@ def latest_and_recent(rows: list[VhiRow], n_recent: int = 12,
             "week":      head.week,
             "iso_week":  head.iso_week_key(),
             "vhi":       head.vhi,
+            # TCI (thermal condition, low = heat stress) feeds the IPHM
+            # heat-stress rules as the satellite second witness.
+            "tci":       head.tci,
             "severity":  vhi_severity(head.vhi),
         },
         "vhi_recent": [
