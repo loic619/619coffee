@@ -13,7 +13,7 @@
  * `print:` variants instead.
  */
 import { forwardRef, useEffect, useState } from "react";
-import { REPORT_BY_ID } from "@/lib/report/registry";
+import { REPORT_BY_ID, REPORT_CATEGORIES } from "@/lib/report/registry";
 import { useReportStore } from "@/lib/report/store";
 import { getInsight, getExecutiveSummary } from "@/lib/report/insights";
 import Markdown from "@/lib/report/markdown";
@@ -106,12 +106,14 @@ function ExecutiveSummary({ selectedIds }: { selectedIds: string[] }) {
   const isAuto = userText === undefined && !!auto;
 
   return (
+    // Grey-tone editorial panel: hairline frame + a stronger left rule (the
+    // exec-accent class gets a darker print override in printStyles).
     <section
-      className="rounded-lg border border-amber-700/40 bg-amber-500/5 px-3 py-2 mb-3"
+      className="exec-accent rounded-md border border-slate-700 border-l-2 border-l-slate-400 bg-slate-900/50 px-3 py-2 mb-4"
       style={{ breakInside: "avoid" }}
     >
       <div className="flex items-baseline justify-between">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-amber-400">Executive Summary</h2>
+        <h2 className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-300">Executive Summary</h2>
         {isAuto && (
           <span className="print:hidden text-[8px] text-slate-500">✨ auto-composed from selection — edit to override</span>
         )}
@@ -143,11 +145,35 @@ const ReportCanvas = forwardRef<HTMLDivElement>(function ReportCanvas(_props, re
     // shrinking. max-w-full used to cap it to the phone width (~360px), which
     // made the Recharts containers measure half their intended size and render
     // squeezed SVGs that then stretched to A4 in the printed PDF.
-    <div ref={ref} id="report-canvas" className="bg-slate-950 text-slate-100 mx-auto w-[700px]">
-      {/* Auto-injected briefing header */}
-      <header className="border-b border-slate-700 pb-2 mb-3">
-        <h1 className="text-base font-semibold text-amber-400">Coffee Intel Map — Market Briefing</h1>
-        <p className="text-[10px] text-slate-400">{PRINT_DATE()}</p>
+    // tabular-nums keeps figures column-aligned across the whole briefing.
+    <div
+      ref={ref}
+      id="report-canvas"
+      className="bg-slate-950 text-slate-100 mx-auto w-[700px]"
+      style={{ fontVariantNumeric: "tabular-nums" }}
+    >
+      {/* Masthead — editorial two-tier: grey kicker, strong title, right-set
+          date, then the classic thick+thin double rule. The masthead-rule class
+          gets a near-black print override in printStyles. */}
+      <header className="mb-4">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <div className="text-[9px] font-semibold uppercase tracking-[0.32em] text-slate-500">
+              Coffee Intel Map
+            </div>
+            <h1 className="text-[22px] leading-7 font-semibold tracking-tight text-slate-100">
+              Market Briefing
+            </h1>
+          </div>
+          <div className="text-right pb-0.5">
+            <div className="text-[10px] font-medium text-slate-300">{PRINT_DATE()}</div>
+            <div className="text-[9px] uppercase tracking-wider text-slate-500">
+              {selectedIds.length} visual{selectedIds.length === 1 ? "" : "s"} · auto-annotated
+            </div>
+          </div>
+        </div>
+        <div className="masthead-rule mt-2 border-t-2 border-slate-300" />
+        <div className="border-t border-slate-700 mt-[3px]" />
       </header>
 
       {selectedIds.length > 0 && <ExecutiveSummary selectedIds={selectedIds} />}
@@ -157,48 +183,68 @@ const ReportCanvas = forwardRef<HTMLDivElement>(function ReportCanvas(_props, re
           Tick visuals on the left to build your briefing. Each one appears here with a note box.
         </div>
       ) : (
-        // flex-wrap so half-width visuals pack two-up; full-width ones take the
-        // whole row. gap-3 (12px) → half = calc(50% - 6px) keeps the pair flush.
-        <div className="flex flex-wrap items-start gap-3">
-          {selectedIds.map((id) => {
-            const def = REPORT_BY_ID[id];
-            if (!def) return null;
-            const Visual = def.Component;
-            const splitNotes = def.notes && def.notes.length > 1 ? def.notes : null;
-            const half = def.width === "half";
-            return (
-              // break-inside-avoid keeps a chart + its note on one printed page.
-              <section
-                key={id}
-                className="rounded-lg border border-slate-700 bg-slate-900/60 overflow-hidden"
-                style={{ breakInside: "avoid", width: half ? "calc(50% - 6px)" : "100%" }}
-              >
-                <div className="px-2 py-1 border-b border-slate-800">
-                  <h2 className="text-xs font-semibold text-slate-100">{def.label}</h2>
-                </div>
-                <div className="p-2 overflow-x-auto">
-                  <Visual isReportMode />
-                </div>
-                <div className="px-3 pb-3">
-                  {splitNotes ? (
-                    // One note per sub-chart, laid out to align under the chart's
-                    // columns (the multi-part visuals render their parts 2-up).
-                    <div
-                      className="grid gap-2"
-                      style={{ gridTemplateColumns: `repeat(${splitNotes.length}, minmax(0,1fr))` }}
+        // Charts grouped by report category (registry order), each group under a
+        // numbered grey section header. Selection order is preserved within a
+        // group. Group wrappers are <div>s on purpose: the print CSS keeps every
+        // <section> (chart card) unbroken across pages, and a whole category
+        // must stay free to flow across them.
+        REPORT_CATEGORIES
+          .map((cat) => ({ cat, ids: selectedIds.filter((id) => REPORT_BY_ID[id]?.category === cat) }))
+          .filter((g) => g.ids.length > 0)
+          .map((g, gi) => (
+            <div key={g.cat} className="mb-4">
+              <div className="flex items-baseline gap-2 mb-2">
+                <span className="text-[10px] font-bold text-slate-500">{String(gi + 1).padStart(2, "0")}</span>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">{g.cat}</span>
+                <span className="flex-1 self-center border-t border-slate-800" />
+                <span className="text-[9px] text-slate-600">{g.ids.length} visual{g.ids.length === 1 ? "" : "s"}</span>
+              </div>
+              {/* flex-wrap so half-width visuals pack two-up; gap-3 (12px) →
+                  half = calc(50% - 6px) keeps the pair flush. */}
+              <div className="flex flex-wrap items-start gap-3">
+                {g.ids.map((id) => {
+                  const def = REPORT_BY_ID[id];
+                  if (!def) return null;
+                  const Visual = def.Component;
+                  const splitNotes = def.notes && def.notes.length > 1 ? def.notes : null;
+                  const half = def.width === "half";
+                  return (
+                    // break-inside-avoid keeps a chart + its note on one printed page.
+                    <section
+                      key={id}
+                      className="rounded-md border border-slate-800 bg-slate-900/40 overflow-hidden"
+                      style={{ breakInside: "avoid", width: half ? "calc(50% - 6px)" : "100%" }}
                     >
-                      {splitNotes.map((n) => (
-                        <NoteField key={n.key} noteId={`${id}__${n.key}`} label={n.label} />
-                      ))}
-                    </div>
-                  ) : (
-                    <NoteField noteId={id} />
-                  )}
-                </div>
-              </section>
-            );
-          })}
-        </div>
+                      <div className="flex items-baseline justify-between gap-2 px-2.5 py-1.5 border-b border-slate-800 bg-slate-900/60">
+                        <h2 className="text-xs font-semibold tracking-tight text-slate-200">{def.label}</h2>
+                        <span className="shrink-0 text-[8.5px] uppercase tracking-wider text-slate-500">
+                          {def.group ? `${def.group}${def.subgroup ? ` · ${def.subgroup}` : ""}` : g.cat}
+                        </span>
+                      </div>
+                      <div className="p-2 overflow-x-auto">
+                        <Visual isReportMode />
+                      </div>
+                      <div className="px-3 pb-3">
+                        {splitNotes ? (
+                          // One note per sub-chart, aligned under the chart's columns.
+                          <div
+                            className="grid gap-2"
+                            style={{ gridTemplateColumns: `repeat(${splitNotes.length}, minmax(0,1fr))` }}
+                          >
+                            {splitNotes.map((n) => (
+                              <NoteField key={n.key} noteId={`${id}__${n.key}`} label={n.label} />
+                            ))}
+                          </div>
+                        ) : (
+                          <NoteField noteId={id} />
+                        )}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            </div>
+          ))
       )}
     </div>
   );

@@ -66,6 +66,12 @@ export const PRINT_CSS_LIGHT = `
     /* Borders → light grey. */
     [class*="border-slate-"], [class*="border-gray-"] { border-color:#cbd5e1 !important; }
 
+    /* Report chrome: the masthead's thick rule and the executive summary's left
+       accent print in strong greys (the generic border mapping above would wash
+       them out to hairline-grey). */
+    #report-canvas .masthead-rule { border-color:#0f172a !important; }
+    #report-canvas .exec-accent { border-left-color:#475569 !important; }
+
     /* Recharts: axis/legend text → dark, grid + axis lines → light grey. Bar/
        line fills come from inline SVG attributes and are deliberately left as-is. */
     .recharts-text, .recharts-cartesian-axis-tick text, .recharts-label, .recharts-legend-item-text {
