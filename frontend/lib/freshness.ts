@@ -89,29 +89,19 @@ export interface HealthFile {
 }
 
 /**
- * Load health.json with resilience: up to 3 attempts with backoff (a deploy
- * window or CDN blip must not blank every freshness surface), then fall back
- * to the last successfully-loaded copy from this browser session.
+ * Load health.json. Retry + last-known-good fallback are provided by the
+ * GLOBAL data-fetch guard (lib/dataFetchGuard — installed app-wide in the
+ * root layout), so this stays a single attempt with shape validation.
  */
 export async function loadHealth(): Promise<HealthFile | null> {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const r = await fetch(`/data/health.json?_=${Date.now()}`);
-      if (r.ok) {
-        const d = (await r.json()) as HealthFile;
-        if (d && typeof d === "object" && d.scrapers) {
-          try { sessionStorage.setItem("health-last-good", JSON.stringify(d)); } catch { /* private mode */ }
-          return d;
-        }
-      }
-    } catch { /* network — retry */ }
-    await new Promise((res) => setTimeout(res, 700 * (attempt + 1)));
-  }
   try {
-    const cached = sessionStorage.getItem("health-last-good");
-    if (cached) return JSON.parse(cached) as HealthFile;
-  } catch { /* ignore */ }
-  return null;
+    const r = await fetch(`/data/health.json?_=${Date.now()}`);
+    if (!r.ok) return null;
+    const d = (await r.json()) as HealthFile;
+    return d && typeof d === "object" && d.scrapers ? d : null;
+  } catch {
+    return null;
+  }
 }
 
 export type FeedStatus = "today" | "ok" | "stale" | "missing";
