@@ -1402,6 +1402,25 @@ const INSIGHTS: Record<string, Builder> = {
 };
 
 /**
+ * One-line headline fact for a chart — `**label:** value` from the note's first
+ * fact (first side for split notes). Used by the News tab's Recent-activity
+ * list to pair each feed update with its key datapoint. Null on any failure.
+ */
+export async function getHeadlineFact(chartId: string): Promise<string | null> {
+  const fn = INSIGHTS[chartId];
+  if (!fn) return null;
+  try {
+    const r = await fn();
+    if (r == null) return null;
+    const note: Note | undefined = "facts" in r ? (r as Note) : Object.values(r as Record<string, Note>)[0];
+    const f = note?.facts?.[0];
+    return f ? `**${f.label}:** ${f.value}` : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Resolve the auto-comment markdown for a note id (`chartId` or
  * `chartId__noteKey`). Null on any failure → empty placeholder.
  */
