@@ -37,6 +37,7 @@ const FEED_TO_CHART: Record<string, string> = {
   psd_coffee: "brazil_supply_demand",
   ice_certified_daily: "certified_stocks_tiles",
   cecafe_daily: "brazil_daily_registration",
+  vietnam_price: "vn_domestic_price",
   brazil_exports: "brazil_monthly_volume",
   vietnam_exports: "vietnam_monthly_volume",
   indonesia_exports: "indonesia_monthly_volume",
@@ -133,15 +134,31 @@ export default function FreshnessGrid() {
   const [data, setData] = useState<HealthFile | null>(null);
   const [error, setError] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
+  const [tryCount, setTryCount] = useState(0);
 
   useEffect(() => {
+    let alive = true;
+    setError(false);
     setNow(new Date());
-    loadHealth().then((d) => (d ? setData(d) : setError(true)));
-  }, []);
+    // loadHealth retries with backoff and falls back to the session's
+    // last-known-good copy — a deploy-window blip shouldn't blank the grid.
+    loadHealth().then((d) => { if (alive) { if (d) setData(d); else setError(true); } });
+    return () => { alive = false; };
+  }, [tryCount]);
 
   if (!now) return null;
   if (error) {
-    return <div className="text-xs text-slate-500 italic">Freshness signal unavailable — health.json missing.</div>;
+    return (
+      <div className="text-xs text-slate-500 italic flex items-center gap-2">
+        <span>Freshness signal temporarily unavailable — health.json could not be loaded.</span>
+        <button
+          onClick={() => setTryCount((c) => c + 1)}
+          className="not-italic px-1.5 py-0.5 rounded border border-slate-700 text-slate-300 hover:border-slate-500"
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
   if (!data) return <div className="text-xs text-slate-500 animate-pulse">Reading freshness…</div>;
 
