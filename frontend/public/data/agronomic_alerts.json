@@ -1,127 +1,96 @@
 {
-  "generated_at": "2026-07-30T04:48:23+00:00",
-  "ruleset_version": "iphm-v2-frost",
-  "origins": {
-    "colombia": {
-      "Caldas": [
-        {
-          "threat_id": "blossom_drop",
-          "name": "Flowering Disruption / Blossom Drop",
-          "severity": "watch",
-          "timeframe": "forecast",
-          "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
-          "triggers": {
-            "spei_3": -2.21,
-            "forecast_7d_rain": 58.0
-          }
-        }
-      ]
-    },
-    "uganda": {
-      "Masaka": [
-        {
-          "threat_id": "severe_defoliation",
-          "name": "Severe Defoliation / Bean Shrinkage",
-          "severity": "critical",
-          "timeframe": "current",
-          "market_impact": "Irreversible yield reduction likely. Bean size shrinkage.",
-          "triggers": {
-            "vhi": 31.49,
-            "spei_3": -2.72
-          }
-        }
-      ],
-      "Kasese": [
-        {
-          "threat_id": "severe_defoliation",
-          "name": "Severe Defoliation / Bean Shrinkage",
-          "severity": "critical",
-          "timeframe": "current",
-          "market_impact": "Irreversible yield reduction likely. Bean size shrinkage.",
-          "triggers": {
-            "vhi": 12.62,
-            "spei_3": -1.51
-          }
-        }
-      ],
-      "Mbale": [
-        {
-          "threat_id": "severe_defoliation",
-          "name": "Severe Defoliation / Bean Shrinkage",
-          "severity": "critical",
-          "timeframe": "current",
-          "market_impact": "Irreversible yield reduction likely. Bean size shrinkage.",
-          "triggers": {
-            "vhi": 21.12,
-            "spei_3": -2.18
-          }
-        }
-      ],
-      "Mt Elgon": [
-        {
-          "threat_id": "severe_defoliation",
-          "name": "Severe Defoliation / Bean Shrinkage",
-          "severity": "critical",
-          "timeframe": "current",
-          "market_impact": "Irreversible yield reduction likely. Bean size shrinkage.",
-          "triggers": {
-            "vhi": 21.12,
-            "spei_3": -2.1
-          }
-        }
-      ]
-    },
-    "ethiopia": {
-      "Kaffa": [
-        {
-          "threat_id": "severe_defoliation",
-          "name": "Severe Defoliation / Bean Shrinkage",
-          "severity": "critical",
-          "timeframe": "current",
-          "market_impact": "Irreversible yield reduction likely. Bean size shrinkage.",
-          "triggers": {
-            "vhi": 21.62,
-            "spei_3": -1.83
-          }
-        },
-        {
-          "threat_id": "blossom_drop",
-          "name": "Flowering Disruption / Blossom Drop",
-          "severity": "watch",
-          "timeframe": "forecast",
-          "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
-          "triggers": {
-            "spei_3": -1.83,
-            "forecast_7d_rain": 70.1
-          }
-        }
-      ]
-    },
-    "vn": {
-      "Gia Lai": [
-        {
-          "threat_id": "blossom_drop",
-          "name": "Flowering Disruption / Blossom Drop",
-          "severity": "watch",
-          "timeframe": "forecast",
-          "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
-          "triggers": {
-            "spei_3": -2.04,
-            "forecast_7d_rain": 51.1
-          }
-        }
-      ]
-    }
-  },
+  "generated_at": "2026-07-31T05:25:41+00:00",
+  "ruleset_version": "iphm-v3",
+  "origins": {},
   "summary": {
-    "total_alerts": 8,
-    "by_severity": {
-      "watch": 3,
-      "critical": 5
+    "total_alerts": 0,
+    "by_severity": {},
+    "by_threat": {}
+  },
+  "state": {
+    "colombia|Antioquia|drought_stress_watch": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
     },
-    "by_threat": {
-      "blossom_drop": 3,
-      "severe_defoliation": 5
+    "honduras|El Paraíso|drought_stress_watch": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "uganda|Masaka|drought_stress_watch": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "uganda|Masaka|drought_stress_alert": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "uganda|Masaka|severe_defoliation": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "uganda|Kasese|drought_stress_watch": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "uganda|Kasese|drought_stress_alert": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "uganda|Kasese|severe_defoliation": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "uganda|Rwenzori|drought_stress_watch": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "uganda|Mbale|drought_stress_watch": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "uganda|Mbale|drought_stress_alert": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "uganda|Mbale|severe_defoliation": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "uganda|Mt Elgon|drought_stress_watch": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "uganda|Mt Elgon|drought_stress_alert": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "uganda|Mt Elgon|severe_defoliation": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "ethiopia|Sidama/Yirgacheffe|drought_stress_watch": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "ethiopia|Kaffa|drought_stress_watch": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "ethiopia|Kaffa|drought_stress_alert": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "ethiopia|Kaffa|severe_defoliation": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "ethiopia|Harrar|drought_stress_watch": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
+    },
+    "vn|Lam Dong|drought_stress_watch": {
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31"
     }
   }
 }

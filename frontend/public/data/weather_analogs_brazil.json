@@ -1,7 +1,7 @@
 {
   "_schema": "v3",
   "_note": "Brazil arabica weather-analog forecast. Mahalanobis on 24-dim (rain, temp, rain_anom, SPI z, SPEI z, ONI) × 4 phenology stages. Detrended production residuals. Walk-forward backtest. Bootstrap 95% CI on ensemble.",
-  "generated_at": "2026-07-30T04:48:23+00:00",
+  "generated_at": "2026-07-31T05:25:41+00:00",
   "origin": "brazil_arabica",
   "origin_label": "Brazil arabica",
   "current_crop_year": 2026,
@@ -124,12 +124,12 @@
     {
       "name": "maturation",
       "rain_mm": 240.5,
-      "temp_c": 21.63,
+      "temp_c": 21.62,
       "et0_mm": 344.6,
       "oni_avg": 0.54,
       "vhi": null,
       "rain_anom_pct": 27.7,
-      "temp_anom_c": 0.35,
+      "temp_anom_c": 0.34,
       "spi_z": 1.138,
       "spei_z": 0.745,
       "vhi_z": null
@@ -138,7 +138,7 @@
   "top_analogs": [
     {
       "year": 2023,
-      "distance": 3.135,
+      "distance": 3.127,
       "features_compared": 24,
       "same_cycle_crop_year": 2023,
       "same_cycle_production_kbags": 38400,
@@ -205,7 +205,7 @@
     },
     {
       "year": 2005,
-      "distance": 3.388,
+      "distance": 3.382,
       "features_compared": 24,
       "same_cycle_crop_year": 2005,
       "same_cycle_production_kbags": 33500,
@@ -272,7 +272,7 @@
     },
     {
       "year": 2009,
-      "distance": 3.407,
+      "distance": 3.404,
       "features_compared": 24,
       "same_cycle_crop_year": 2009,
       "same_cycle_production_kbags": 41800,
@@ -339,7 +339,7 @@
     },
     {
       "year": 2015,
-      "distance": 3.752,
+      "distance": 3.743,
       "features_compared": 24,
       "same_cycle_crop_year": 2015,
       "same_cycle_production_kbags": 35200,
@@ -406,7 +406,7 @@
     },
     {
       "year": 2025,
-      "distance": 3.761,
+      "distance": 3.754,
       "features_compared": 24,
       "same_cycle_crop_year": 2025,
       "same_cycle_production_kbags": 39800,
