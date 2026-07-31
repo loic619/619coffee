@@ -44,7 +44,17 @@ const renderNote = (n: Note): string => {
 const _cache = new Map<string, Promise<unknown>>();
 function load<T = Record<string, unknown>>(path: string): Promise<T | null> {
   if (!_cache.has(path)) {
-    _cache.set(path, fetch(path).then((r) => (r.ok ? r.json() : null)).catch(() => null));
+    const p = fetch(path)
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null)
+      .then((d) => {
+        // Never cache a failure: drop the entry so the next consumer retries
+        // (transient-failure retries themselves live in the global data-fetch
+        // guard — lib/dataFetchGuard).
+        if (d == null) _cache.delete(path);
+        return d;
+      });
+    _cache.set(path, p);
   }
   return _cache.get(path)! as Promise<T | null>;
 }
