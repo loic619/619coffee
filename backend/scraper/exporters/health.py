@@ -250,11 +250,99 @@ def export_health(db, *, exporters_published_at: dict[str, str] | None = None) -
         **(exporters_published_at or {}),
     }
 
+    # ── Data as-of map ────────────────────────────────────────────────────────
+    # `scrapers` answers "when did the pipeline last run" (used by DataHealthBar
+    # and the stale-feed alert workflow — semantics unchanged). `data_asof`
+    # answers "what period does the DATA currently cover" — what a reader should
+    # see as freshness in the news-desk view. E.g. the Uganda scraper runs daily,
+    # but UCDA's latest report month may be three months back; the old display
+    # showed "today" for data from April.
+    #
+    # Starts as a copy of scrapers (for daily feeds run date ≈ data date) and
+    # overrides the periodic feeds from the period fields of the JSONs exported
+    # earlier in this run. Every override is defensive — on any failure the
+    # scrapers value stands.
+    def _fjson(fname: str) -> dict:
+        try:
+            p = OUT_DIR / fname
+            if p.exists():
+                return json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+        return {}
+
+    def _dig(d, *path):
+        cur = d
+        for k in path:
+            try:
+                cur = cur[k]
+            except Exception:
+                return None
+        return cur if isinstance(cur, str) and cur else None
+
+    data_asof: dict[str, str | None] = dict(scrapers)
+
+    def _set_asof(key: str, *candidates) -> None:
+        for v in candidates:
+            if v:
+                data_asof[key] = v
+                return
+
+    _set_asof("brazil_exports", _dig(_fjson("cecafe.json"), "series", -1, "date"))
+    _set_asof("vietnam_exports", _dig(_fjson("vietnam_supply.json"), "exports", "monthly", -1, "month"))
+    _set_asof(
+        "uganda_exports",
+        _dig(_fjson("uganda_monthly.json"), "series", -1, "month"),
+        _dig(_fjson("uganda_supply.json"), "exports", "monthly", -1, "month"),
+    )
+    _set_asof("indonesia_exports", _dig(_fjson("indonesia_exports.json"), "series", -1, "month"))
+    _set_asof("colombia_exports", _dig(_fjson("colombia_supply.json"), "exports", "monthly", -1, "month"))
+    _set_asof("honduras_exports", _dig(_fjson("honduras_supply.json"), "exports", "last_updated"))
+    _set_asof("ethiopia_exports", _dig(_fjson("ethiopia_supply.json"), "exports", "last_updated"))
+    _set_asof("ecf", _dig(_fjson("ecf_history.json"), "monthly", -1, "period"))
+
+    def _cpi_asof(fname: str) -> str | None:
+        best = None
+        for s in (_fjson(fname).get("series") or {}).values():
+            monthly = (s or {}).get("monthly") or []
+            if monthly and isinstance(monthly[-1], dict):
+                p = monthly[-1].get("period")
+                if p:
+                    best = max(best, p) if best else p
+        return best
+
+    _set_asof("us_cpi", _cpi_asof("us_cpi.json"))
+    _set_asof("retail_cpi", _cpi_asof("retail_cpi.json"))
+
+    def _enso_asof() -> str | None:
+        hist = _fjson("enso.json").get("oni_history") or []
+        raw = hist[-1].get("month") if hist and isinstance(hist[-1], dict) else None
+        if not raw:
+            return None
+        try:  # "May-26" → "2026-05"
+            return datetime.strptime(str(raw), "%b-%y").strftime("%Y-%m")
+        except Exception:
+            return None
+
+    _set_asof("enso", _enso_asof())
+
+    def _fert_asof() -> str | None:
+        raw = _dig(_fjson("farmer_economics.json"), "fertilizer", "prices_as_of")
+        if not raw:
+            return None
+        try:  # "Jun-2026" → "2026-06"
+            return datetime.strptime(raw, "%b-%Y").strftime("%Y-%m")
+        except Exception:
+            return None
+
+    _set_asof("fertilizer_wb", _fert_asof())
+
     healthy   = sum(1 for v in scrapers.values() if v)
     published = sum(1 for v in exporters_map.values() if v)
     result = {
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "scrapers":     scrapers,
+        "data_asof":    data_asof,
         "exporters":    exporters_map,
     }
     # Phase 3 sunset signal — present only when latest_prices had to use the
