@@ -16,6 +16,10 @@ import { useEffect, useState } from "react";
 interface HealthData {
   generated_at?: string | null;
   scrapers?: Record<string, string | null>;
+  /** True data period per feed ("data through 2026-06") — written by the health
+   *  exporter for periodic feeds whose scraper runs daily but whose DATA lags
+   *  (exports, ECF, CPI, ENSO…). Falls back to `scrapers` when absent. */
+  data_asof?: Record<string, string | null>;
 }
 
 // Editorial categories the news desk groups feeds under. Order = display order.
@@ -51,33 +55,40 @@ type Category = (typeof CATEGORY_ORDER)[number];
 //   - Monthly sources (CONAB, fertilizer, ENSO, ageing, AJCA): 35d.
 //   - Bi-monthly (ECF): 70d.
 //   - Biannual (USDA PSD coffee, released June + December): 210d.
-const SCRAPER_META: Record<string, { label: string; category: Category; thresholdDays: number }> = {
+// dataThresholdDays: how old the DATA period may be before the chip flags
+// overdue, for feeds where data_asof lags the scrape run (publication lag of
+// the underlying report). Falls back to thresholdDays when absent.
+const SCRAPER_META: Record<string, { label: string; category: Category; thresholdDays: number; dataThresholdDays?: number }> = {
   futures:              { label: "Barchart futures",      category: "Futures",          thresholdDays:  4  }, // daily M-F
   cot:                  { label: "CFTC COT",              category: "COT",              thresholdDays: 11  }, // Fri release of Tue data, worst-case = 3+7
   macro_cot:            { label: "Macro COT",             category: "COT",              thresholdDays: 11  },
   freight:              { label: "Freight rates",         category: "Freight",          thresholdDays:  4  }, // daily M-F
   weather:              { label: "Origin weather",        category: "Weather",          thresholdDays:  3  }, // daily 7-day cron
-  enso:                 { label: "NOAA ENSO ONI",         category: "ENSO",             thresholdDays: 35  }, // monthly
-  fertilizer_wb:        { label: "World Bank fert.",      category: "Fertilizer",       thresholdDays: 35  }, // monthly Pink Sheet
+  enso:                 { label: "NOAA ENSO ONI",         category: "ENSO",             thresholdDays: 35  , dataThresholdDays: 45 }, // monthly
+  fertilizer_wb:        { label: "World Bank fert.",      category: "Fertilizer",       thresholdDays: 35  , dataThresholdDays: 75 }, // monthly Pink Sheet
   fertilizer_comex:     { label: "Comex fert.",           category: "Fertilizer",       thresholdDays: 35  }, // monthly
-  ecf:                  { label: "ECF stocks",            category: "Demand & stocks",  thresholdDays: 70  }, // bi-monthly
+  ecf:                  { label: "ECF stocks",            category: "Demand & stocks",  thresholdDays: 70  , dataThresholdDays: 100 }, // bi-monthly
   psd_coffee:           { label: "USDA PSD",              category: "Demand & stocks",  thresholdDays: 210 }, // biannual (USDA coffee PSD: June + December)
   ajca:                 { label: "AJCA Japan stocks",     category: "Demand & stocks",  thresholdDays: 70  }, // upload-dated; AJCA posts ~5-9wk after period
   conab_costs:          { label: "CONAB costs",           category: "Supply (origins)", thresholdDays: 35  }, // monthly
   conab_safra:          { label: "CONAB safra",           category: "Supply (origins)", thresholdDays: 35  }, // monthly safra release
   cecafe_daily:         { label: "Cecafé daily",          category: "Supply (origins)", thresholdDays:  4  }, // daily M-F + Brazilian holidays
-  brazil_exports:       { label: "BR exports",            category: "Supply (origins)", thresholdDays: 35  }, // monthly (Cecafé export report, ~15th)
-  colombia_exports:     { label: "CO exports",            category: "Supply (origins)", thresholdDays:  4  }, // daily fetch (cumulative monthly)
-  honduras_exports:     { label: "HN exports",            category: "Supply (origins)", thresholdDays:  4  },
-  ethiopia_exports:     { label: "ET exports",            category: "Supply (origins)", thresholdDays:  4  },
-  vietnam_exports:      { label: "VN exports",            category: "Supply (origins)", thresholdDays:  4  },
-  indonesia_exports:    { label: "ID exports",            category: "Supply (origins)", thresholdDays:  4  },
-  uganda_exports:       { label: "UG exports",            category: "Supply (origins)", thresholdDays:  4  },
+  brazil_exports:       { label: "BR exports",            category: "Supply (origins)", thresholdDays: 35  , dataThresholdDays: 55 }, // monthly (Cecafé export report, ~15th)
+  colombia_exports:     { label: "CO exports",            category: "Supply (origins)", thresholdDays:  4  , dataThresholdDays: 90 }, // daily fetch (cumulative monthly)
+  honduras_exports:     { label: "HN exports",            category: "Supply (origins)", thresholdDays:  4  , dataThresholdDays: 120 },
+  ethiopia_exports:     { label: "ET exports",            category: "Supply (origins)", thresholdDays:  4  , dataThresholdDays: 120 },
+  vietnam_exports:      { label: "VN exports",            category: "Supply (origins)", thresholdDays:  4  , dataThresholdDays: 75 },
+  indonesia_exports:    { label: "ID exports",            category: "Supply (origins)", thresholdDays:  4  , dataThresholdDays: 130 },
+  uganda_exports:       { label: "UG exports",            category: "Supply (origins)", thresholdDays:  4  , dataThresholdDays: 130 },
   vietnam_price:        { label: "VN domestic price",     category: "Supply (origins)", thresholdDays:  4  }, // daily survey
   origin_prices:        { label: "Origin price hub",      category: "Supply (origins)", thresholdDays:  4  },
   quant_currency_index: { label: "Currency index",        category: "Macro",            thresholdDays:  4  }, // daily M-F FX
-  retail_cpi:           { label: "Retail CPI",            category: "Macro",            thresholdDays: 35  }, // monthly BLS/Eurostat/BCB
+  retail_cpi:           { label: "Retail CPI",            category: "Macro",            thresholdDays: 35  , dataThresholdDays: 75 }, // monthly BLS/Eurostat/BCB
+  us_cpi:               { label: "US CPI",                category: "Macro",            thresholdDays: 45, dataThresholdDays: 75 }, // monthly BLS release
   fx_history:           { label: "FX history",            category: "Macro",            thresholdDays:  4  }, // daily M-F
+  ice_certified_daily:       { label: "ICE certified (daily)",  category: "Demand & stocks", thresholdDays:  4 }, // daily M-F snapshot
+  ice_arabica_ageing:        { label: "ICE arabica ageing",     category: "Demand & stocks", thresholdDays: 40 }, // monthly report
+  ice_robusta_age_allowance: { label: "ICE robusta age-allow.", category: "Demand & stocks", thresholdDays: 40 }, // monthly report
 };
 
 function _ageDays(iso: string | null | undefined, now: Date): number | null {
@@ -107,21 +118,40 @@ function _ageStr(days: number | null): string {
   return `${Math.round(days / 30)}mo ago`;
 }
 
-interface ChipProps { skey: string; iso: string | null; now: Date; }
+interface ChipProps { skey: string; iso: string | null; pipelineIso: string | null; now: Date; }
 
-function FeedChip({ skey, iso, now }: ChipProps) {
+/** Month period ("2026-06") → "thru Jun-26"; full timestamps → relative age. */
+function _freshStr(iso: string | null, days: number | null): string {
+  if (!iso) return "—";
+  if (iso.length === 7) {
+    const [y, m] = iso.split("-").map(Number);
+    const mon = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][(m || 1) - 1];
+    return `thru ${mon}-${String(y).slice(2)}`;
+  }
+  return _ageStr(days);
+}
+
+function FeedChip({ skey, iso, pipelineIso, now }: ChipProps) {
   const meta = SCRAPER_META[skey] ?? { label: skey, category: "Other" as Category, thresholdDays: 30 };
+  // Data-period freshness when it lags the pipeline run; the threshold follows:
+  // a monthly report whose latest month is 2 months back is NORMAL, so the
+  // overdue tone keys off dataThresholdDays for those feeds.
+  const lagging = !!iso && !!pipelineIso && iso !== pipelineIso;
+  const threshold = lagging ? (meta.dataThresholdDays ?? meta.thresholdDays) : meta.thresholdDays;
   const days = _ageDays(iso, now);
   const pulse = days === 0 ? "animate-pulse-soft" : "";
+  const tip = iso
+    ? `${meta.label} · data as-of ${iso} (${_ageStr(days)})`
+      + (lagging ? `\npipeline last ran ${String(pipelineIso).slice(0, 10)}` : "")
+      + `\noverdue after ${threshold}d`
+    : `${meta.label} · no data`;
   return (
     <span
-      title={iso
-        ? `${meta.label} · latest = ${iso} · ${_ageStr(days)}\nThreshold: ${meta.thresholdDays}d`
-        : `${meta.label} · no data`}
-      className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded border text-[10px] font-mono ${_tone(days, meta.thresholdDays)} ${pulse}`}
+      title={tip}
+      className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded border text-[10px] font-mono ${_tone(days, threshold)} ${pulse}`}
     >
       <span className="opacity-75 uppercase tracking-wider truncate max-w-[10rem]">{meta.label}</span>
-      <span>{iso ? _ageStr(days) : "—"}</span>
+      <span>{_freshStr(iso, days)}</span>
     </span>
   );
 }
@@ -146,14 +176,18 @@ export default function FreshnessGrid() {
   if (!data) return <div className="text-xs text-slate-500 animate-pulse">Reading freshness…</div>;
 
   const scrapers = data.scrapers ?? {};
+  const dataAsof = data.data_asof ?? {};
+  // Effective freshness per feed: the DATA period when the exporter provides
+  // one, else the pipeline timestamp (identical for daily feeds).
+  const effective = (key: string): string | null => dataAsof[key] ?? scrapers[key] ?? null;
 
   // Group keys by editorial category. Unknown keys land in "Other" so a new
   // scraper never silently disappears.
   const byCategory = new Map<Category, [string, string | null][]>();
   for (const cat of CATEGORY_ORDER) byCategory.set(cat, []);
-  for (const [key, iso] of Object.entries(scrapers)) {
+  for (const key of Object.keys(scrapers)) {
     const cat = (SCRAPER_META[key]?.category ?? "Other") as Category;
-    byCategory.get(cat)!.push([key, iso]);
+    byCategory.get(cat)!.push([key, effective(key)]);
   }
   // Sort within each category by most-recent first.
   for (const list of Array.from(byCategory.values())) {
@@ -162,14 +196,18 @@ export default function FreshnessGrid() {
     );
   }
 
-  // Summary line: count refreshed today / stale (> threshold) / missing.
+  // Summary line: count refreshed today / stale (> threshold) / missing — on
+  // the same effective date + threshold the chips use.
   let nToday = 0, nStale = 0, nMissing = 0;
-  for (const [k, iso] of Object.entries(scrapers)) {
+  for (const k of Object.keys(scrapers)) {
     const meta = SCRAPER_META[k] ?? { thresholdDays: 30 };
+    const iso = effective(k);
+    const lagging = !!iso && !!scrapers[k] && iso !== scrapers[k];
+    const threshold = lagging ? (meta.dataThresholdDays ?? meta.thresholdDays) : meta.thresholdDays;
     const d = _ageDays(iso, now);
     if (d == null) nMissing++;
     else if (d === 0) nToday++;
-    else if (d > meta.thresholdDays) nStale++;
+    else if (d > threshold) nStale++;
   }
 
   return (
@@ -178,7 +216,7 @@ export default function FreshnessGrid() {
         <h2 className="text-sm font-semibold text-slate-200 uppercase tracking-wider">
           Hot off the press
           <span className="ml-2 font-normal normal-case text-[10px] text-slate-500">
-            data freshness across every feed
+            true data as-of per feed
           </span>
         </h2>
         <div className="text-[10px] text-slate-400 font-mono">
@@ -196,7 +234,7 @@ export default function FreshnessGrid() {
               <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-2">{cat}</div>
               <div className="flex flex-wrap gap-1.5">
                 {list.map(([key, iso]) => (
-                  <FeedChip key={key} skey={key} iso={iso} now={now} />
+                  <FeedChip key={key} skey={key} iso={iso} pipelineIso={scrapers[key] ?? null} now={now} />
                 ))}
               </div>
             </div>
