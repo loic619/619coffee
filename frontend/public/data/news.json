@@ -1,5 +1,205 @@
 [
   {
+    "id": 9110,
+    "title": "ICE RC Robusta Certified Stocks \u2013 2026-07-30",
+    "body": "RC Robusta certified stocks shifted by -3 lots today, bringing global visible exchange inventory to 4,133 lots. 53 lots graded.",
+    "source": "ICE",
+    "category": "supply",
+    "lat": null,
+    "lng": null,
+    "tags": [
+      "ice",
+      "certified-stocks",
+      "rc",
+      "auto-commentary"
+    ],
+    "meta": "{\"source_url\": \"https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260730_104009.csv\", \"_commentary\": {\"text\": \"RC Robusta certified stocks shifted by -3 lots today, bringing global visible exchange inventory to 4,133 lots. 53 lots graded.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-07-31T05:39:30.821986",
+    "commentary": {
+      "text": "RC Robusta certified stocks shifted by -3 lots today, bringing global visible exchange inventory to 4,133 lots. 53 lots graded.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    }
+  },
+  {
+    "id": 9109,
+    "title": "ICE KC Arabica Certified Stocks \u2013 2026-07-30",
+    "body": "KC Arabica certified stocks shifted by -7,964 bags today, bringing global visible exchange inventory to 266,204 bags.",
+    "source": "ICE",
+    "category": "supply",
+    "lat": null,
+    "lng": null,
+    "tags": [
+      "ice",
+      "certified-stocks",
+      "kc",
+      "auto-commentary"
+    ],
+    "meta": "{\"source_url\": \"https://www.ice.com/publicdocs/futures_us_reports/coffee/coffee_cert_stock_20260730.xls\", \"_commentary\": {\"text\": \"KC Arabica certified stocks shifted by -7,964 bags today, bringing global visible exchange inventory to 266,204 bags.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-07-31T05:39:28.675131",
+    "commentary": {
+      "text": "KC Arabica certified stocks shifted by -7,964 bags today, bringing global visible exchange inventory to 266,204 bags.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    }
+  },
+  {
+    "id": 9108,
+    "title": "Ethiopia Agronomic Status \u2013 2026-07-31",
+    "body": "Agronomic Status Update: Ethiopia (Jimma, Limu, Kaffa) is currently flagged as at drought risk. Forecasted rainfall of 114mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 29.8.",
+    "source": "Open-Meteo + NOAA STAR",
+    "category": "supply",
+    "lat": 9.15,
+    "lng": 40.49,
+    "tags": [
+      "weather",
+      "ethiopia",
+      "agronomic",
+      "auto-commentary"
+    ],
+    "meta": "{\"origin\": \"ethiopia\", \"evaluation\": {\"at_risk_count\": 3, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Ethiopia (Jimma, Limu, Kaffa) is currently flagged as at drought risk. Forecasted rainfall of 114mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 29.8.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-07-31T05:25:40.678255",
+    "commentary": {
+      "text": "Agronomic Status Update: Ethiopia (Jimma, Limu, Kaffa) is currently flagged as at drought risk. Forecasted rainfall of 114mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 29.8.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Bullish",
+    "sentiment_confidence": 88.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "Ethiopia: 3 growing regions flagged at agronomic risk"
+  },
+  {
+    "id": 9107,
+    "title": "Uganda Agronomic Status \u2013 2026-07-31",
+    "body": "Agronomic Status Update: Uganda (Mbale, Mt Elgon) is currently flagged as at drought risk. Forecasted rainfall of 58mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 21.1.",
+    "source": "Open-Meteo + NOAA STAR",
+    "category": "supply",
+    "lat": 1.37,
+    "lng": 32.29,
+    "tags": [
+      "weather",
+      "uganda",
+      "agronomic",
+      "auto-commentary"
+    ],
+    "meta": "{\"origin\": \"uganda\", \"evaluation\": {\"at_risk_count\": 2, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Uganda (Mbale, Mt Elgon) is currently flagged as at drought risk. Forecasted rainfall of 58mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 21.1.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-07-31T05:25:40.032530",
+    "commentary": {
+      "text": "Agronomic Status Update: Uganda (Mbale, Mt Elgon) is currently flagged as at drought risk. Forecasted rainfall of 58mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 21.1.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Bullish",
+    "sentiment_confidence": 88.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "Uganda: 2 growing regions flagged at agronomic risk"
+  },
+  {
+    "id": 9106,
+    "title": "Indonesia Agronomic Status \u2013 2026-07-31",
+    "body": "Agronomic Status Update: Indonesia (Lampung, Gayo, Java, Toraja, Flores) is currently flagged as normal.",
+    "source": "Open-Meteo + NOAA STAR",
+    "category": "supply",
+    "lat": -2.55,
+    "lng": 118.01,
+    "tags": [
+      "weather",
+      "indonesia",
+      "agronomic",
+      "auto-commentary"
+    ],
+    "meta": "{\"origin\": \"indonesia\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Indonesia (Lampung, Gayo, Java, Toraja, Flores) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-07-31T05:25:39.384233",
+    "commentary": {
+      "text": "Agronomic Status Update: Indonesia (Lampung, Gayo, Java, Toraja, Flores) is currently flagged as normal.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "Indonesia: no regions flagged at risk"
+  },
+  {
+    "id": 9105,
+    "title": "Honduras Agronomic Status \u2013 2026-07-31",
+    "body": "Agronomic Status Update: Honduras (El Para\u00edso, Cop\u00e1n, Santa B\u00e1rbara, Montecillos, Agalta) is currently flagged as normal.",
+    "source": "Open-Meteo + NOAA STAR",
+    "category": "supply",
+    "lat": 14.07,
+    "lng": -87.2,
+    "tags": [
+      "weather",
+      "honduras",
+      "agronomic",
+      "auto-commentary"
+    ],
+    "meta": "{\"origin\": \"honduras\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Honduras (El Para\u00edso, Cop\u00e1n, Santa B\u00e1rbara, Montecillos, Agalta) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-07-31T05:25:38.736561",
+    "commentary": {
+      "text": "Agronomic Status Update: Honduras (El Para\u00edso, Cop\u00e1n, Santa B\u00e1rbara, Montecillos, Agalta) is currently flagged as normal.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "Honduras: no regions flagged at risk"
+  },
+  {
+    "id": 9104,
+    "title": "Colombia Agronomic Status \u2013 2026-07-31",
+    "body": "Agronomic Status Update: Colombia (Huila, Antioquia, Cauca, Caldas, Nari\u00f1o) is currently flagged as normal.",
+    "source": "Open-Meteo + NOAA STAR",
+    "category": "supply",
+    "lat": 4.71,
+    "lng": -74.07,
+    "tags": [
+      "weather",
+      "colombia",
+      "agronomic",
+      "auto-commentary"
+    ],
+    "meta": "{\"origin\": \"colombia\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Colombia (Huila, Antioquia, Cauca, Caldas, Nari\u00f1o) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-07-31T05:25:38.090025",
+    "commentary": {
+      "text": "Agronomic Status Update: Colombia (Huila, Antioquia, Cauca, Caldas, Nari\u00f1o) is currently flagged as normal.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "Colombia: no regions flagged at risk"
+  },
+  {
+    "id": 9103,
+    "title": "Brazil Agronomic Status \u2013 2026-07-31",
+    "body": "Agronomic Status Update: Brazil (Sul de Minas, Cerrado, Esp\u00edrito Santo, Paran\u00e1) is currently flagged as normal.",
+    "source": "Open-Meteo + NOAA STAR",
+    "category": "supply",
+    "lat": -15.78,
+    "lng": -47.93,
+    "tags": [
+      "weather",
+      "brazil",
+      "agronomic",
+      "auto-commentary"
+    ],
+    "meta": "{\"origin\": \"brazil\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 4, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Brazil (Sul de Minas, Cerrado, Esp\u00edrito Santo, Paran\u00e1) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-07-31T05:25:34.855630",
+    "commentary": {
+      "text": "Agronomic Status Update: Brazil (Sul de Minas, Cerrado, Esp\u00edrito Santo, Paran\u00e1) is currently flagged as normal.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "Brazil: no regions flagged at risk"
+  },
+  {
     "id": 9102,
     "title": "World Bank Population \u2013 2026-07-31",
     "body": "Tracked 15 countries for demand-tab per-capita normalization.",
@@ -3805,133 +4005,5 @@
     "sentiment_confidence": 88.0,
     "sentiment_method": "deterministic",
     "sentiment_reason": "RMU26 -2.4% on the day"
-  },
-  {
-    "id": 8680,
-    "title": "ICE NY Arabica (KC) Futures \u2013 2026-07-21",
-    "body": "Front (Coffee (Sep '26)): 309.40 (-7.25) OI:61,239 | 2nd (Coffee (Dec '26)): 296.45 (-7.25) OI:57,276",
-    "source": "Barchart",
-    "category": "general",
-    "lat": 0.0,
-    "lng": 0.0,
-    "tags": [
-      "futures",
-      "price",
-      "arabica"
-    ],
-    "meta": "{\"contracts\": [{\"contract\": \"Coffee (Sep '26)\", \"expiry\": \"2026-09-18\", \"last\": 309.4, \"chg\": -7.25, \"oi\": 61239, \"volume\": 12905, \"symbol\": \"KCU26\"}, {\"contract\": \"Coffee (Dec '26)\", \"expiry\": \"2026-12-18\", \"last\": 296.45, \"chg\": -7.25, \"oi\": 57276, \"volume\": 8650, \"symbol\": \"KCZ26\"}, {\"contract\": \"Coffee (Mar '27)\", \"expiry\": \"2027-03-18\", \"last\": 290.55, \"chg\": -7, \"oi\": 21520, \"volume\": 3219, \"symbol\": \"KCH27\"}, {\"contract\": \"Coffee (May '27)\", \"expiry\": \"2027-05-18\", \"last\": 289.35, \"chg\": -6.75, \"oi\": 7418, \"volume\": 1219, \"symbol\": \"KCK27\"}, {\"contract\": \"Coffee (Jul '27)\", \"expiry\": \"2027-07-20\", \"last\": 288.15, \"chg\": -6.55, \"oi\": 4874, \"volume\": 274, \"symbol\": \"KCN27\"}, {\"contract\": \"Coffee (Sep '27)\", \"expiry\": \"2027-09-20\", \"last\": 286.25, \"chg\": -6.35, \"oi\": 4199, \"volume\": 195, \"symbol\": \"KCU27\"}, {\"contract\": \"Coffee (Dec '27)\", \"expiry\": \"2027-12-20\", \"last\": 283.45, \"chg\": -6.4, \"oi\": 5379, \"volume\": 101, \"symbol\": \"KCZ27\"}, {\"contract\": \"Coffee (Mar '28)\", \"expiry\": \"2028-03-21\", \"last\": 281.5, \"chg\": -6.45, \"oi\": 1223, \"volume\": 11, \"symbol\": \"KCH28\"}], \"quote_date\": \"2026-07-22\"}",
-    "pub_date": "2026-07-23T21:02:50.428172",
-    "sentiment": "Bearish",
-    "sentiment_confidence": 88.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "KCU26 -2.3% on the day"
-  },
-  {
-    "id": 8692,
-    "title": "Caf\u00e9 encerra sess\u00e3o desta quinta-feira em forte queda com press\u00e3o da colheita brasileira",
-    "body": "Ar\u00e1bica perde mais de 700 pontos em Nova York, robusta amplia baixas em Londres e mercado segue reagindo ao avan\u00e7o da safra no Brasil e \u00e0s proje\u00e7\u00f5es...",
-    "source": "Not\u00edcias Agr\u00edcolas",
-    "category": "macro",
-    "lat": null,
-    "lng": null,
-    "tags": [
-      "news",
-      "noticias_agricolas",
-      "cafe"
-    ],
-    "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/425238-cafe-encerra-sessao-desta-quinta-feira-em-forte-queda-com-pressao-da-colheita-brasileira.html",
-    "pub_date": "2026-07-23T19:25:00"
-  },
-  {
-    "id": 8822,
-    "title": "Can Regenerative Coffee Farming Deliver Living Incomes? It Depends, Analysis Shows",
-    "body": "Two of coffee\u2019s biggest sustainability concepts \u2014 regenerative agriculture and living income for farmers \u2014 have been gaining traction in parallel in recent years. A new paper from the nonprofits...",
-    "source": "Daily Coffee News",
-    "category": "general",
-    "lat": null,
-    "lng": null,
-    "tags": [
-      "news",
-      "daily_coffee_news"
-    ],
-    "meta": "https://dailycoffeenews.com/2026/07/23/can-regenerative-coffee-farming-deliver-living-incomes-it-depends-analysis-shows/",
-    "pub_date": "2026-07-23T16:01:55"
-  },
-  {
-    "id": 8693,
-    "title": "Caf\u00e9 amplia perdas nesta quinta-feira com avan\u00e7o da colheita no Brasil e perspectiva de maior oferta global",
-    "body": "Os futuros do caf\u00e9 aprofundaram as perdas nesta quinta-feira (23) nas bolsas internacionais. O mercado segue pressionado pelo avan\u00e7o da colheita no Brasil,...",
-    "source": "Not\u00edcias Agr\u00edcolas",
-    "category": "macro",
-    "lat": null,
-    "lng": null,
-    "tags": [
-      "news",
-      "noticias_agricolas",
-      "cafe"
-    ],
-    "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/425213-cafe-amplia-perdas-nesta-quinta-feira-com-avanco-da-colheita-no-brasil-e-perspectiva-de-maior-oferta-global.html",
-    "pub_date": "2026-07-23T15:44:00"
-  },
-  {
-    "id": 8689,
-    "title": "Ready To Drink: \u2018Berserker Mode\u2019 Nitro Cold Brew Cans From Horror Rock Heroes GWAR",
-    "body": "'Berserker Mode' nitro cold brew cans by Gwar.",
-    "source": "Sprudge",
-    "category": "general",
-    "lat": null,
-    "lng": null,
-    "tags": [
-      "news",
-      "sprudge"
-    ],
-    "meta": "https://sprudge.com/ready-to-drink-berserker-mode-nitro-cold-brew-cans-from-horror-rock-heroes-gwar-1098882.html",
-    "pub_date": "2026-07-23T14:00:11"
-  },
-  {
-    "id": 8823,
-    "title": "Bootstrapping BrootLegg Extracts Launches High-Pressure Cold Brew Production",
-    "body": "Columbus, Ohio-based BrootLegg Extracts has launched business-to-business cold brew production services using equipment of its own design. The company is also showcasing its capabilities through a house line of ready-to-drink...",
-    "source": "Daily Coffee News",
-    "category": "supply",
-    "lat": null,
-    "lng": null,
-    "tags": [
-      "news",
-      "daily_coffee_news"
-    ],
-    "meta": "https://dailycoffeenews.com/2026/07/23/bootstrapping-brootlegg-extracts-launches-high-pressure-cold-brew-production/",
-    "pub_date": "2026-07-23T13:01:53"
-  },
-  {
-    "id": 8690,
-    "title": "La Marzocco\u2019s Ice Cream Social Goes To Cleveland",
-    "body": "Ice Cream Social takes place Wednesday, July 29th at The Forge Cleveland, Ohio.",
-    "source": "Sprudge",
-    "category": "general",
-    "lat": null,
-    "lng": null,
-    "tags": [
-      "news",
-      "sprudge"
-    ],
-    "meta": "https://sprudge.com/la-marzoccos-ice-cream-social-goes-to-cleveland-1222006.html",
-    "pub_date": "2026-07-23T12:00:19"
-  },
-  {
-    "id": 8694,
-    "title": "Caf\u00e9 abre a 5\u00aa feira em queda nas bolsas e mercado acompanha clima",
-    "body": "Ar\u00e1bica e robusta recuam nas primeiras negocia\u00e7\u00f5es desta quinta-feira, enquanto estoques certificados seguem em queda e mercado f\u00edsico permanece travado...",
-    "source": "Not\u00edcias Agr\u00edcolas",
-    "category": "macro",
-    "lat": null,
-    "lng": null,
-    "tags": [
-      "news",
-      "noticias_agricolas",
-      "cafe"
-    ],
-    "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/425176-cafe-abre-a-5-feira-em-queda-nas-bolsas-e-mercado-acompanha-clima.html",
-    "pub_date": "2026-07-23T10:11:00"
   }
 ]
