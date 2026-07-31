@@ -1308,6 +1308,24 @@ const robustaForecast: Builder = async () => {
   };
 };
 
+// ── Vietnam domestic price (vn_physical_prices.json + history for DoD) ────────
+// Not a registry chart — feeds the News tab's Recent-activity datapoint for the
+// vietnam_price feed (getHeadlineFact only).
+const vnDomesticPrice: Builder = async () => {
+  const d = await load<{ vn_faq?: { vnd_per_kg?: number; usd_per_mt?: number } }>("/data/vn_physical_prices.json");
+  const pr = d?.vn_faq; if (!pr?.vnd_per_kg) return null;
+  const h = await load<{ origins?: { vietnam?: { history?: { date: string; price: number }[] } } }>("/data/origin_prices_history.json");
+  const hist = h?.origins?.vietnam?.history;
+  const dod = hist && hist.length >= 2 ? chgPct(hist[hist.length - 1].price, hist[hist.length - 2].price) : null;
+  return {
+    facts: [
+      { label: "VN FAQ farmgate (Đắk Lắk)", value: `**${n0(pr.vnd_per_kg)} VND/kg**${pr.usd_per_mt ? ` ($${n0(pr.usd_per_mt)}/MT)` : ""}${dod != null ? ` — **${pct(dod)}** DoD` : ""}` },
+    ],
+    read: dod != null && Math.abs(dod) > 3 ? `Sharp ${dod > 0 ? "jump" : "drop"} in the domestic robusta market.` : undefined,
+    flag: dod != null && Math.abs(dod) > 3,
+  };
+};
+
 // ── id → builder map ──────────────────────────────────────────────────────────
 const INSIGHTS: Record<string, Builder> = {
   // Price
@@ -1394,6 +1412,8 @@ const INSIGHTS: Record<string, Builder> = {
   cross_commodity: crossCommodity,
   us_cpi: usCpi,
   retail_cpi: retailCpi,
+  // Non-registry (Recent-activity datapoints only)
+  vn_domestic_price: vnDomesticPrice,
   // Macro — Signals
   news_sentiment: newsSentiment,
   price_direction: priceDirection,
