@@ -10,7 +10,15 @@ name: "3.4 – ECF stocks"
 
 on:
   schedule:
-    - cron: "0 4 5 * *"   # 5th of each month, 04:00 UTC (after ECF releases)
+    # ECF publishes every TWO months, with releases landing around the last
+    # day (±1) of every second month starting Jan 31 (Jan/Mar/May/Jul/Sep/Nov).
+    # Run on the last two days of those months + the 1st of the following
+    # month (the ±1 window), with a day-4 catch-up in case the release slips
+    # or GH cron skips a slot (documented flakiness on this repo). The commit
+    # step is idempotent — extra runs are no-ops when nothing new published.
+    # 04:13 (not :00) to dodge the GH cron skip on round marks.
+    - cron: "13 4 30,31 1,3,5,7,9,11 *"
+    - cron: "13 4 1,4 2,4,6,8,10,12 *"
   workflow_dispatch:
     inputs:
       debug:

@@ -1,0 +1,68 @@
+name: "Backfill – Sentiment history"
+
+# Reconstructs sentiment_history.json by re-classifying the editorial news
+# already in the DB, bucketed by publication day (backfill_sentiment.py).
+# One-shot/manual: run it to fill gaps (e.g. the Jun→Aug 2026 hole created
+# while the quant workflow wasn't committing the daily append). Existing dates
+# are never overwritten, so it's safe to run any time.
+#
+# Requires DATABASE_URL + GEMINI_API_KEY repo secrets (same as the quant
+# workflow). Costs ~one Gemini call per backfilled day.
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Look-back window in days"
+        default: "120"
+      min_per_day:
+        description: "Min editorial headlines required to score a day"
+        default: "3"
+
+concurrency:
+  group: data-commit          # serialize all main-pushers
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests pandas numpy sqlalchemy psycopg2-binary google-generativeai python-dotenv
+
+      - name: Run sentiment backfill
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        working-directory: backend
+        run: |
+          python -m scraper.quant_model.backfill_sentiment \
+            --days "${{ inputs.days }}" \
+            --min-per-day "${{ inputs.min_per_day }}"
+
+      - name: Commit sentiment_history.json if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data/sentiment_history.json
+          git diff --cached --quiet \
+            && echo "No new days backfilled." \
+            || (git commit -m "data: backfill sentiment history [skip ci]" && git pull --rebase --autostash --strategy-option=theirs origin main && git push)
+
+      - name: Notify on failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=🚨 ${{ github.workflow }} failed — $(date -u +'%Y-%m-%d %H:%M UTC') — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
