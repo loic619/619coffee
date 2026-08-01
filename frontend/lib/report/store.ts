@@ -23,6 +23,9 @@ interface ReportState {
   addMany: (ids: string[]) => void;
   removeMany: (ids: string[]) => void;
   setComment: (id: string, text: string) => void;
+  /** Drop the user's override for a note so the auto-generated comment returns
+   *  (a stored "" means "deliberately blank" and survives until reset). */
+  resetComment: (id: string) => void;
   clear: () => void;
 }
 
@@ -69,6 +72,12 @@ export const useReportStore = create<ReportState>()(
           return { selectedIds: s.selectedIds.filter((x) => !drop.has(x)), comments: rest };
         }),
       setComment: (id, text) => set((s) => ({ comments: { ...s.comments, [id]: text } })),
+      resetComment: (id) =>
+        set((s) => {
+          const rest = { ...s.comments };
+          delete rest[id];
+          return { comments: rest };
+        }),
       clear: () => set({ selectedIds: [], comments: {} }),
     }),
     { name: "coffee-intel-report-cart" },
