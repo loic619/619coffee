@@ -47,6 +47,14 @@ const FEED_TO_CHART: Record<string, string> = {
   us_cpi: "us_cpi",
   fx_history: "fx_timeseries",
   origin_prices: "origin_farmgate_prices",
+  news_sentiment: "news_sentiment",
+  open_direction: "open_direction_calendar",
+  port_activity: "port_activity",
+  spot_coffee: "spot_tiles",
+  us_imports: "us_imports_origin",
+  eu_imports: "eu_imports_origin",
+  enso_indices: "enso_divergence",
+  enso_subsurface: "enso_subsurface",
 };
 
 /**

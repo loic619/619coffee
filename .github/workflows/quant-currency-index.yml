@@ -99,15 +99,20 @@ jobs:
             [ $attempt -lt 3 ] && echo "Attempt $attempt failed, retrying in 5m..." && sleep 300 || exit 1
           done
 
-      - name: Commit Robusta additions (only if Robusta succeeded)
+      - name: Commit Robusta + sentiment-history additions (only if run_quant succeeded)
         if: steps.run_quant.outcome == 'success'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add frontend/public/data/quant_report.json
+          # run_quant appends today's sentiment snapshot to sentiment_history.json
+          # — without adding it here the daily append was discarded on every run,
+          # freezing the sentiment trend AND starving the calibration of paired
+          # days (stuck at 1/8 since the seed).
+          [ -f frontend/public/data/sentiment_history.json ] && git add frontend/public/data/sentiment_history.json || true
           git diff --cached --quiet \
-            && echo "No Robusta changes." \
-            || (git commit -m "data: update Robusta factors [skip ci]" && git pull --rebase --autostash --strategy-option=theirs origin main && git push)
+            && echo "No Robusta/sentiment changes." \
+            || (git commit -m "data: update Robusta factors + sentiment history [skip ci]" && git pull --rebase --autostash --strategy-option=theirs origin main && git push)
 
       - name: Notify on Robusta-only failure
         # Separate from the workflow failure path below. Robusta failure no
