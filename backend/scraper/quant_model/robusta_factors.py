@@ -31,8 +31,9 @@ import requests
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from database import SessionLocal
-from models import CotPosition, CotWeekly
+# database/SessionLocal imported lazily in __main__ only — run() reads cot.json
+# and needs no DB (keeps the module importable without a Postgres driver).
+DATA_DIR = Path(__file__).resolve().parents[3] / "frontend" / "public" / "data"
 
 _WINDOW = 52  # rolling z-score window in weeks
 _STOOQ_HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; coffee-intel/1.0)"}
@@ -97,55 +98,37 @@ def _pct_to_quantile(pct: float) -> int:
 def run(db) -> dict:
     warnings.filterwarnings("ignore")
 
-    # ── 1. Load COT data ──────────────────────────────────────────────────────
-    ldn_rows = (
-        db.query(CotWeekly)
-        .filter(CotWeekly.market == "ldn")
-        .order_by(CotWeekly.date.asc())
-        .all()
-    )
-    if len(ldn_rows) < 30:
-        return {"available": False, "reason": f"Insufficient COT history ({len(ldn_rows)} weeks)"}
-
-    ny_by_date = {
-        r.date: r for r in
-        db.query(CotWeekly).filter(CotWeekly.market == "ny").all()
-    }
-
-    # MM positions live in the narrow CotPosition table since the cot_weekly
-    # wide-column migration (the old row.mm_long attributes no longer exist —
-    # reading them crashed this model from the migration onward).
-    mm_net_by_date: dict = {}
-    mm_rows = (
-        db.query(CotPosition)
-        .filter(
-            CotPosition.market == "ldn",
-            CotPosition.crop == "all",
-            CotPosition.category == "mm",
-            CotPosition.side.in_(["long", "short"]),
-        )
-        .all()
-    )
-    for p_row in mm_rows:
-        mm_net_by_date[p_row.date] = mm_net_by_date.get(p_row.date, 0) + (
-            (p_row.oi or 0) if p_row.side == "long" else -(p_row.oi or 0)
-        )
-    if not mm_net_by_date:
-        return {"available": False, "reason": "No CotPosition MM rows for LDN"}
+    # ── 1. Load COT history from the exported cot.json ────────────────────────
+    # The DB position schema migrated wide→narrow (CotWeekly → CotPosition) and
+    # broke this model once already; the exported cot.json carries the full
+    # weekly history — mm_long/mm_short AND price_ny/price_ldn per market — and
+    # is schema-migration-proof, so it is the source of truth here. `db` is
+    # kept in the signature for run_quant compatibility.
+    _ = db
+    try:
+        rows = json.loads((DATA_DIR / "cot.json").read_text(encoding="utf-8"))
+    except Exception as e:  # noqa: BLE001
+        return {"available": False, "reason": f"cot.json unreadable: {e}"}
+    if not isinstance(rows, list) or len(rows) < 30:
+        return {"available": False, "reason": f"Insufficient COT history ({len(rows) if isinstance(rows, list) else 0} weeks)"}
 
     dates, mm_nets, rc_prices, kc_prices_usd = [], [], [], []
-    for row in ldn_rows:
-        if row.price_ldn is None:
+    for r in rows:
+        ldn = r.get("ldn") or {}
+        ny = r.get("ny") or {}
+        price_ldn = ldn.get("price_ldn")
+        mm_l, mm_s = ldn.get("mm_long"), ldn.get("mm_short")
+        if price_ldn is None or (mm_l is None and mm_s is None):
             continue
-        net = mm_net_by_date.get(row.date)
-        if net is None:
-            continue  # week without a position breakdown — skip cleanly
-        ny = ny_by_date.get(row.date)
-        kc_usd = (ny.price_ny * 22.046) if (ny and ny.price_ny) else None
-        dates.append(pd.Timestamp(row.date))
-        mm_nets.append(net)
-        rc_prices.append(row.price_ldn)
+        price_ny = ny.get("price_ny")
+        kc_usd = (price_ny * 22.046) if price_ny else None
+        dates.append(pd.Timestamp(r["date"]))
+        mm_nets.append((mm_l or 0) - (mm_s or 0))
+        rc_prices.append(price_ldn)
         kc_prices_usd.append(kc_usd)
+
+    if len(dates) < 30:
+        return {"available": False, "reason": f"Insufficient priced COT weeks ({len(dates)})"}
 
     df = pd.DataFrame({
         "mm_net":   mm_nets,
@@ -177,6 +160,13 @@ def run(db) -> dict:
 
     # ── 4. OLS regression ─────────────────────────────────────────────────────
     FEATURES = ["mm_net_z", "dxy_z", "rc_mom_4w_z", "rc_mom_13w_z", "kc_rc_spread_z"]
+    # A failed/blocked DXY fetch must not zero the whole model via dropna —
+    # drop the factor when its coverage is poor and note it downstream.
+    if df["dxy"].notna().mean() < 0.3:
+        FEATURES = [f for f in FEATURES if f != "dxy_z"]
+    # KC leg similarly (price_ny gaps on old rows).
+    if df["kc_price"].notna().mean() < 0.3:
+        FEATURES = [f for f in FEATURES if f != "kc_rc_spread_z"]
     df_model = df[FEATURES + ["target"]].dropna()
 
     if len(df_model) < 20:
@@ -217,9 +207,14 @@ def run(db) -> dict:
     factors_out = []
     total_contrib = 0.0
 
-    for i, (col, label, category) in enumerate(FACTOR_META):
+    # betas align with the ACTIVE feature list (a factor may have been dropped
+    # for poor coverage above) — index by feature name, skip inactive ones.
+    beta_by_col = {col: float(betas[i]) for i, col in enumerate(FEATURES)}
+    for col, label, category in FACTOR_META:
+        if col not in beta_by_col:
+            continue  # factor dropped this run (e.g. DXY fetch unavailable)
         val  = current.get(col)
-        beta = float(betas[i])
+        beta = beta_by_col[col]
 
         if pd.isna(val):
             factors_out.append({
@@ -273,6 +268,7 @@ def run(db) -> dict:
 
 
 if __name__ == "__main__":
+    from database import SessionLocal
     db = SessionLocal()
     try:
         result = run(db)
