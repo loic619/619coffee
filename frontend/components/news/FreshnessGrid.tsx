@@ -20,7 +20,7 @@ import {
   type FeedFreshness,
   type HealthFile,
 } from "@/lib/freshness";
-import { getHeadlineFact } from "@/lib/report/insights";
+import { getFeedNote } from "@/lib/report/insights";
 import Markdown from "@/lib/report/markdown";
 
 // Feed key → briefing chart id whose headline fact best summarises the update.
@@ -29,8 +29,8 @@ const FEED_TO_CHART: Record<string, string> = {
   futures: "daily_quotes",
   cot: "cot_overview",
   macro_cot: "cot_global_flow",
-  freight: "freight_spot",
-  weather: "brazil_weather_pack",
+  freight: "freight_hcm_eu",
+  weather: "origin_weather_all",
   enso: "enso_oni",
   fertilizer_wb: "fertilizer_inputs",
   ecf: "ecf_port_stocks",
@@ -70,7 +70,7 @@ function RecentActivity({ feeds }: { feeds: FeedFreshness[] }) {
     for (const f of shown) {
       const chart = FEED_TO_CHART[f.key];
       if (!chart) continue;
-      getHeadlineFact(chart).then((t) => {
+      getFeedNote(chart).then((t) => {
         if (alive && t) setFacts((prev) => (prev[f.key] === t ? prev : { ...prev, [f.key]: t }));
       });
     }
@@ -83,23 +83,23 @@ function RecentActivity({ feeds }: { feeds: FeedFreshness[] }) {
     <div className="bg-slate-900 border border-slate-700 rounded-lg p-3">
       <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-2">
         Recent activity
-        <span className="ml-2 font-normal normal-case text-slate-600">latest updates · one key datapoint each</span>
+        <span className="ml-2 font-normal normal-case text-slate-600">latest updates · key datapoints per feed</span>
       </div>
       <ul className="divide-y divide-slate-800">
         {shown.map((f) => (
-          <li key={f.key} className="flex items-baseline gap-2 py-1.5 first:pt-0 last:pb-0">
-            <span className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 self-center ${f.status === "today" ? "bg-emerald-400" : "bg-slate-500"}`} />
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 shrink-0 w-36 truncate" title={freshnessTooltip(f)}>
-              {f.meta.label}
-            </span>
-            <span className="text-[10px] font-mono text-slate-500 shrink-0 w-20">{freshnessLabel(f, "long")}</span>
-            <span className="text-[11px] text-slate-300 min-w-0 truncate">
-              {facts[f.key] ? (
-                <Markdown className="inline [&_p]:inline">{facts[f.key]!}</Markdown>
-              ) : (
-                <span className="text-slate-600">—</span>
-              )}
-            </span>
+          <li key={f.key} className="py-1.5 first:pt-0 last:pb-0">
+            <div className="flex items-baseline gap-2">
+              <span className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 self-center ${f.status === "today" ? "bg-emerald-400" : "bg-slate-500"}`} />
+              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-300" title={freshnessTooltip(f)}>
+                {f.meta.label}
+              </span>
+              <span className="text-[10px] font-mono text-slate-500">{freshnessLabel(f, "long")}</span>
+            </div>
+            {facts[f.key] && (
+              <Markdown className="mt-1 pl-3.5 text-[11px] leading-relaxed text-slate-300 space-y-0.5 [&_ul]:space-y-0.5">
+                {facts[f.key]!}
+              </Markdown>
+            )}
           </li>
         ))}
       </ul>
