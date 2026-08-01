@@ -57,7 +57,7 @@ export const FEED_META: Record<string, FeedMeta> = {
   enso:                 { label: "NOAA ENSO ONI",    category: "ENSO",             thresholdDays: 35, dataThresholdDays: 45 },
   fertilizer_wb:        { label: "World Bank fert.", category: "Fertilizer",       thresholdDays: 35, dataThresholdDays: 75 },
   fertilizer_comex:     { label: "Comex fert.",      category: "Fertilizer",       thresholdDays: 35 },
-  ecf:                  { label: "ECF stocks",       category: "Demand & stocks",  thresholdDays: 70, dataThresholdDays: 100 },
+  ecf:                  { label: "ECF stocks",       category: "Demand & stocks",  thresholdDays: 70, dataThresholdDays: 140 }, // Apr data publishes ~mid-Jun; worst-case data age pre-refresh ~4.5mo
   psd_coffee:           { label: "USDA PSD",         category: "Demand & stocks",  thresholdDays: 210 },
   ajca:                 { label: "AJCA Japan",       category: "Demand & stocks",  thresholdDays: 70 },
   ice_certified_daily:       { label: "ICE certified daily",   category: "Demand & stocks", thresholdDays: 4 },
@@ -79,6 +79,16 @@ export const FEED_META: Record<string, FeedMeta> = {
   retail_cpi:           { label: "Retail CPI",       category: "Macro",            thresholdDays: 35, dataThresholdDays: 75 },
   us_cpi:               { label: "US CPI",           category: "Macro",            thresholdDays: 45, dataThresholdDays: 75 },
   fx_history:           { label: "FX history",       category: "Macro",            thresholdDays: 4 },
+  // Newer feature feeds (news-desk revamp)
+  news_sentiment:       { label: "News sentiment",   category: "Macro",            thresholdDays: 4,  dataThresholdDays: 6 },
+  open_direction:       { label: "Open-direction log", category: "Macro",          thresholdDays: 4 },
+  port_activity:        { label: "Port activity",    category: "Freight",          thresholdDays: 9,  dataThresholdDays: 18 }, // weekly Wed fetch; PortWatch lags ~1wk + tolerate one missed cron
+  spot_coffee:          { label: "Spot offers (ATTE)", category: "Demand & stocks", thresholdDays: 9, dataThresholdDays: 12 }, // weekly Mon
+  us_imports:           { label: "US imports",       category: "Demand & stocks",  thresholdDays: 35, dataThresholdDays: 100 }, // USITC monthly, ~2mo lag
+  eu_imports:           { label: "EU imports",       category: "Demand & stocks",  thresholdDays: 35, dataThresholdDays: 100 }, // Eurostat monthly, ~2mo lag
+  enso_indices:         { label: "Niño3.4 / SOI",    category: "ENSO",             thresholdDays: 9,  dataThresholdDays: 14 }, // weekly Tue CPC
+  enso_subsurface:      { label: "Subsurface WWV",   category: "ENSO",             thresholdDays: 35, dataThresholdDays: 60 }, // monthly PMEL
+  vn_water:             { label: "VN river flow",    category: "Weather",          thresholdDays: 9 }, // NCHMF bulletins
 };
 
 export interface HealthFile {

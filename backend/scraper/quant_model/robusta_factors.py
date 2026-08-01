@@ -32,7 +32,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from database import SessionLocal
-from models import CotWeekly
+from models import CotPosition, CotWeekly
 
 _WINDOW = 52  # rolling z-score window in weeks
 _STOOQ_HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; coffee-intel/1.0)"}
@@ -112,14 +112,38 @@ def run(db) -> dict:
         db.query(CotWeekly).filter(CotWeekly.market == "ny").all()
     }
 
+    # MM positions live in the narrow CotPosition table since the cot_weekly
+    # wide-column migration (the old row.mm_long attributes no longer exist —
+    # reading them crashed this model from the migration onward).
+    mm_net_by_date: dict = {}
+    mm_rows = (
+        db.query(CotPosition)
+        .filter(
+            CotPosition.market == "ldn",
+            CotPosition.crop == "all",
+            CotPosition.category == "mm",
+            CotPosition.side.in_(["long", "short"]),
+        )
+        .all()
+    )
+    for p_row in mm_rows:
+        mm_net_by_date[p_row.date] = mm_net_by_date.get(p_row.date, 0) + (
+            (p_row.oi or 0) if p_row.side == "long" else -(p_row.oi or 0)
+        )
+    if not mm_net_by_date:
+        return {"available": False, "reason": "No CotPosition MM rows for LDN"}
+
     dates, mm_nets, rc_prices, kc_prices_usd = [], [], [], []
     for row in ldn_rows:
         if row.price_ldn is None:
             continue
+        net = mm_net_by_date.get(row.date)
+        if net is None:
+            continue  # week without a position breakdown — skip cleanly
         ny = ny_by_date.get(row.date)
         kc_usd = (ny.price_ny * 22.046) if (ny and ny.price_ny) else None
         dates.append(pd.Timestamp(row.date))
-        mm_nets.append((row.mm_long or 0) - (row.mm_short or 0))
+        mm_nets.append(net)
         rc_prices.append(row.price_ldn)
         kc_prices_usd.append(kc_usd)
 

@@ -82,9 +82,21 @@ def export_health(db, *, exporters_published_at: dict[str, str] | None = None) -
     row = db.query(FertilizerImport).order_by(FertilizerImport.scraped_at.desc()).first()
     scrapers["fertilizer_comex"] = _ts(row.scraped_at) if row else None
 
-    # ECF European port stocks (monthly, from latest NewsItem)
+    # ECF European port stocks. The PDF-history pipeline (ecf_history.json,
+    # workflow-updated) is the live path; the legacy NewsItem row from the old
+    # HTML parse stopped updating and made a healthy feed look stale (80d in
+    # Jul-2026 while ecf_history had refreshed 26d earlier). Prefer the
+    # pipeline's own last_updated; fall back to the NewsItem for old deploys.
+    def _ecf_ts() -> str | None:
+        try:
+            p = OUT_DIR / "ecf_history.json"
+            if p.exists():
+                return json.loads(p.read_text(encoding="utf-8")).get("last_updated")
+        except Exception:
+            pass
+        return None
     item = db.query(NewsItem).filter(NewsItem.source == "ECF").order_by(NewsItem.pub_date.desc()).first()
-    scrapers["ecf"] = _ts(item.pub_date) if item else None
+    scrapers["ecf"] = _ecf_ts() or (_ts(item.pub_date) if item else None)
 
     # USDA PSD coffee (EU + Japan, annual, from DB — cache file doesn't survive cross-job)
     item = db.query(NewsItem).filter(NewsItem.source == "PSD Coffee").order_by(NewsItem.pub_date.desc()).first()
@@ -250,6 +262,45 @@ def export_health(db, *, exporters_published_at: dict[str, str] | None = None) -
         **(exporters_published_at or {}),
     }
 
+    # ── Newer feature feeds (added with the news-desk freshness revamp) ───────
+    # Each reads the JSON its visual consumes, so the pipeline timestamp is the
+    # file's own publish stamp. All defensive: absent file → None (grey chip).
+    def _feed_ts(fname: str, *keys: str) -> str | None:
+        try:
+            p = OUT_DIR / fname
+            if p.exists():
+                d = json.loads(p.read_text(encoding="utf-8"))
+                for k in keys:
+                    v = d.get(k)
+                    if v:
+                        return str(v)
+        except Exception:
+            pass
+        return None
+
+    def _sentiment_ts() -> str | None:
+        try:
+            d = json.loads((OUT_DIR / "quant_report.json").read_text(encoding="utf-8"))
+            return (d.get("sentiment") or {}).get("scraped_at")
+        except Exception:
+            return None
+    scrapers["news_sentiment"]  = _sentiment_ts()
+
+    def _open_dir_ts() -> str | None:
+        try:
+            rows = json.loads((OUT_DIR / "open_direction_history.json").read_text(encoding="utf-8"))
+            return rows[-1].get("date") if rows else None
+        except Exception:
+            return None
+    scrapers["open_direction"]  = _open_dir_ts()
+    scrapers["port_activity"]   = _feed_ts("port_activity/index.json", "updated")
+    scrapers["spot_coffee"]     = _feed_ts("spot_coffee.json", "generated_at", "as_of")
+    scrapers["us_imports"]      = _feed_ts("us_coffee_imports.json", "updated")
+    scrapers["eu_imports"]      = _feed_ts("eu_coffee_imports.json", "updated")
+    scrapers["enso_indices"]    = _feed_ts("enso_indices.json", "scraped_at")
+    scrapers["enso_subsurface"] = _feed_ts("enso_subsurface.json", "scraped_at")
+    scrapers["vn_water"]        = _feed_ts("vn_water_levels.json", "updated")
+
     # ── Data as-of map ────────────────────────────────────────────────────────
     # `scrapers` answers "when did the pipeline last run" (used by DataHealthBar
     # and the stale-feed alert workflow — semantics unchanged). `data_asof`
@@ -336,6 +387,35 @@ def export_health(db, *, exporters_published_at: dict[str, str] | None = None) -
             return None
 
     _set_asof("fertilizer_wb", _fert_asof())
+
+    # New-feed data periods.
+    def _sentiment_asof() -> str | None:
+        try:
+            rows = json.loads((OUT_DIR / "sentiment_history.json").read_text(encoding="utf-8"))
+            return rows[-1].get("date") if rows else None
+        except Exception:
+            return None
+    _set_asof("news_sentiment", _sentiment_asof())
+    _set_asof("spot_coffee", _dig(_fjson("spot_coffee.json"), "as_of"))
+    def _imports_asof(fname: str) -> str | None:
+        mt = _fjson(fname).get("monthly_total")
+        if isinstance(mt, dict) and mt:
+            keys = sorted(k for k in mt if isinstance(k, str) and len(k) == 7)
+            return keys[-1] if keys else None
+        return None
+    _set_asof("us_imports", _imports_asof("us_coffee_imports.json"))
+    _set_asof("eu_imports", _imports_asof("eu_coffee_imports.json"))
+    _set_asof("enso_indices", _dig(_fjson("enso_indices.json"), "nino34", "latest", "week_ending"))
+    _set_asof("enso_subsurface", _dig(_fjson("enso_subsurface.json"), "wwv", "latest", "month"))
+    _set_asof("vn_water", _dig(_fjson("vn_water_levels.json"), "bulletin_date"))
+    def _port_asof() -> str | None:
+        try:
+            d = json.loads((OUT_DIR / "port_activity" / "hcmc.json").read_text(encoding="utf-8"))
+            s = d.get("series") or []
+            return s[-1].get("date") if s else None
+        except Exception:
+            return None
+    _set_asof("port_activity", _port_asof())
 
     healthy   = sum(1 for v in scrapers.values() if v)
     published = sum(1 for v in exporters_map.values() if v)
