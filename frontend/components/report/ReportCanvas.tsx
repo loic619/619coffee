@@ -35,11 +35,14 @@ const PRINT_DATE = () =>
  * The box is SEEDED with an auto-generated, rule-based comment (see lib/report/
  * insights). While the user hasn't typed anything (store has no entry for this
  * note) the auto text shows and refreshes with the data; once they edit, their
- * text takes over. Clearing back to empty falls through to the auto seed again.
+ * text takes over — INCLUDING deleting everything, which is a deliberate
+ * "blank note" (so a chart can print without a comment). The ↺ restore-auto
+ * button drops the override and brings the auto comment back.
  */
 function NoteField({ noteId, label }: { noteId: string; label?: string }) {
   const userNote = useReportStore((s) => s.comments[noteId]); // string | undefined
   const setComment = useReportStore((s) => s.setComment);
+  const resetComment = useReportStore((s) => s.resetComment);
   const [auto, setAuto] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,6 +55,7 @@ function NoteField({ noteId, label }: { noteId: string; label?: string }) {
   // entry) means "untouched" → use auto; an explicit "" means the user cleared it.
   const value = userNote !== undefined ? userNote : (auto ?? "");
   const isAuto = userNote === undefined && !!auto;
+  const isOverridden = userNote !== undefined;
 
   return (
     <div>
@@ -70,6 +74,20 @@ function NoteField({ noteId, label }: { noteId: string; label?: string }) {
       />
       {isAuto && (
         <div className="print:hidden text-[8px] text-slate-600 mt-0.5">✨ auto-generated — edit to override</div>
+      )}
+      {isOverridden && (
+        <div className="print:hidden flex items-center gap-2 text-[8px] text-slate-600 mt-0.5">
+          <span>✎ edited{value.trim() === "" ? " (blank — nothing prints)" : ""}</span>
+          {auto && (
+            <button
+              onClick={() => resetComment(noteId)}
+              className="px-1 py-px rounded border border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-500"
+              title="Discard your edit and restore the auto-generated comment"
+            >
+              ↺ restore auto
+            </button>
+          )}
+        </div>
       )}
       {value.trim() && (
         // Rendered Markdown — live preview on screen, the only note shown in
@@ -92,6 +110,7 @@ function NoteField({ noteId, label }: { noteId: string; label?: string }) {
 function ExecutiveSummary({ selectedIds }: { selectedIds: string[] }) {
   const userText = useReportStore((s) => s.comments[EXEC_KEY]); // string | undefined
   const setComment = useReportStore((s) => s.setComment);
+  const resetComment = useReportStore((s) => s.resetComment);
   const [auto, setAuto] = useState<string | null>(null);
 
   const selKey = selectedIds.join(",");
@@ -112,10 +131,24 @@ function ExecutiveSummary({ selectedIds }: { selectedIds: string[] }) {
       className="exec-accent rounded-md border border-slate-700 border-l-2 border-l-slate-400 bg-slate-900/50 px-3 py-2 mb-4"
       style={{ breakInside: "avoid" }}
     >
-      <div className="flex items-baseline justify-between">
+      <div className="flex items-baseline justify-between gap-2">
         <h2 className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-300">Executive Summary</h2>
         {isAuto && (
           <span className="print:hidden text-[8px] text-slate-500">✨ auto-composed from selection — edit to override</span>
+        )}
+        {userText !== undefined && (
+          <span className="print:hidden flex items-center gap-2 text-[8px] text-slate-500">
+            <span>✎ edited{(userText ?? "").trim() === "" ? " (blank)" : ""}</span>
+            {auto && (
+              <button
+                onClick={() => resetComment(EXEC_KEY)}
+                className="px-1 py-px rounded border border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-500"
+                title="Discard your edit and restore the auto-composed summary"
+              >
+                ↺ restore auto
+              </button>
+            )}
+          </span>
         )}
       </div>
       <textarea
