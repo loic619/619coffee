@@ -1180,11 +1180,39 @@ const currency: Builder = async () => {
     flag: Math.abs(z) > 1.5,
   };
 };
+interface FgOrigin { currency?: string; unit?: string; history?: { date: string; price: number }[] }
+const FG_UNIT: Record<string, string> = {
+  per_kg: "/kg", cents_lb: " ¢/lb", per_saca_60kg: "/sc", per_quintal_100lb: "/qq",
+};
+const FG_MAIN: [string, string][] = [
+  ["vietnam", "VN robusta"], ["brazil_arabica", "BR arabica"],
+  ["brazil_conilon", "BR conilon"], ["uganda", "UG robusta"],
+];
 const farmgate: Builder = async () => {
-  const d = await load<{ origins?: Record<string, unknown> }>("/data/origin_prices_history.json");
+  const d = await load<{ origins?: Record<string, FgOrigin> }>("/data/origin_prices_history.json");
   const o = d?.origins; if (!o) return null;
+  const facts: Fact[] = [];
+  let worst: { label: string; dod: number } | null = null;
+  for (const [key, label] of FG_MAIN) {
+    const og = o[key]; const h = og?.history;
+    if (!h?.length) continue;
+    const last = h[h.length - 1]; const prev = h[h.length - 2];
+    const dod = prev ? chgPct(last.price, prev.price) : null;
+    const unit = og.unit && FG_UNIT[og.unit] !== undefined ? FG_UNIT[og.unit] : "";
+    const cur = og.unit === "cents_lb" ? "" : `${og.currency ?? ""} `;
+    facts.push({
+      label,
+      value: `**${cur}${n1(last.price)}${unit}**${dod != null ? ` (**${pct(dod)}** DoD)` : ""}`,
+    });
+    if (dod != null && (worst == null || Math.abs(dod) > Math.abs(worst.dod))) worst = { label, dod };
+  }
+  if (!facts.length) return null;
+  const extra = Object.keys(o).length - FG_MAIN.length;
+  if (extra > 0) facts.push({ label: "Also tracked", value: `${extra} more origin series` });
   return {
-    facts: [{ label: "Farmgate trends", value: `reindexed local prices across **${Object.keys(o).map((k) => k.replace(/_/g, " ")).join(", ")}**` }],
+    facts,
+    read: worst && Math.abs(worst.dod) > 2 ? `${worst.label} moved ${pct(worst.dod)} on the day — the sharpest farmgate move.` : undefined,
+    flag: worst != null && Math.abs(worst.dod) > 4,
   };
 };
 interface FertItem { name?: string; price_usd_mt?: number; mom_pct?: number; }
@@ -1336,6 +1364,56 @@ const vnDomesticPrice: Builder = async () => {
   };
 };
 
+// ── Recent-activity-only builders (non-registry) ──────────────────────────────
+// FEED_TO_CHART in FreshnessGrid maps freshness feeds to these; they never
+// appear in the briefing cart.
+const freightHcmEu: Builder = async () => {
+  const rs = await routes(); if (!rs) return null;
+  const r = rs.find((x) => (x.from ?? "").includes("Ho Chi Minh") && (x.to ?? "").includes("Rotterdam"));
+  if (!r?.rate || r.prev == null) return null;
+  const d = r.rate - r.prev;
+  const dp = chgPct(r.rate, r.prev);
+  return {
+    facts: [
+      { label: "HCM → Rotterdam", value: `**${n0(r.rate)} ${r.unit ?? "USD/FEU"}** — **${d >= 0 ? "+" : "−"}${n0(Math.abs(d))} USD** WoW (${pct(dp)})` },
+    ],
+    read: dp != null && Math.abs(dp) > 8 ? `Sharp weekly move on the robusta corridor.` : undefined,
+    flag: dp != null && Math.abs(dp) > 8,
+  };
+};
+
+const WX_ALL: [string, string][] = [
+  ["brazil", "BR"], ["vn", "VN"], ["colombia", "CO"], ["honduras", "HN"],
+  ["ethiopia", "ET"], ["uganda", "UG"], ["indonesia", "ID"],
+];
+const originWeatherAll: Builder = async () => {
+  const facts: Fact[] = [];
+  const breaches: string[] = [];
+  for (const [file, code] of WX_ALL) {
+    const d = await load<Wx>(`/data/${file}_weather.json`);
+    const ds = d?.daily_station;
+    if (!Array.isArray(ds) || !ds.length) continue;
+    const actual = [...ds].reverse().find((r) => r.accum_mm != null);
+    if (!actual || actual.accum_mm == null) continue;
+    const mtd = actual.accum_mm, avg = actual.avg_accum_mm, lo = actual.min_accum_mm, hi = actual.max_accum_mm;
+    const anom = avg != null ? chgPct(mtd, avg) : null;
+    const fc = (d?.forecast_7d ?? []).reduce((a, r) => a + (r.rain_mm ?? 0), 0);
+    let zone = "";
+    if (lo != null && mtd < lo) { zone = " · below band"; breaches.push(`${code} dry`); }
+    else if (hi != null && mtd > hi) { zone = " · above band"; breaches.push(`${code} wet`); }
+    facts.push({
+      label: code,
+      value: `rain anomaly **${pct(anom)}** vs normal · 7-day fcst **+${n0(fc)} mm**${zone}`,
+    });
+  }
+  if (!facts.length) return null;
+  return {
+    facts,
+    read: breaches.length ? `Outside the seasonal band: ${breaches.join(", ")}.` : undefined,
+    flag: breaches.length > 0,
+  };
+};
+
 // ── id → builder map ──────────────────────────────────────────────────────────
 const INSIGHTS: Record<string, Builder> = {
   // Price
@@ -1424,6 +1502,8 @@ const INSIGHTS: Record<string, Builder> = {
   retail_cpi: retailCpi,
   // Non-registry (Recent-activity datapoints only)
   vn_domestic_price: vnDomesticPrice,
+  freight_hcm_eu: freightHcmEu,
+  origin_weather_all: originWeatherAll,
   // Macro — Signals
   news_sentiment: newsSentiment,
   price_direction: priceDirection,
@@ -1432,19 +1512,19 @@ const INSIGHTS: Record<string, Builder> = {
 };
 
 /**
- * One-line headline fact for a chart — `**label:** value` from the note's first
- * fact (first side for split notes). Used by the News tab's Recent-activity
- * list to pair each feed update with its key datapoint. Null on any failure.
+ * Full bullet-note markdown for a feed's Recent-activity entry — every fact of
+ * the mapped chart's note (first side for split notes) plus the fired read.
+ * Null on any failure.
  */
-export async function getHeadlineFact(chartId: string): Promise<string | null> {
+export async function getFeedNote(chartId: string): Promise<string | null> {
   const fn = INSIGHTS[chartId];
   if (!fn) return null;
   try {
     const r = await fn();
     if (r == null) return null;
     const note: Note | undefined = "facts" in r ? (r as Note) : Object.values(r as Record<string, Note>)[0];
-    const f = note?.facts?.[0];
-    return f ? `**${f.label}:** ${f.value}` : null;
+    if (!note || !note.facts.length) return null;
+    return renderNote(note);
   } catch {
     return null;
   }
