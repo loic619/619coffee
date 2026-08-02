@@ -75,11 +75,32 @@ jobs:
               # Weekly/rolling sources
               "cot":              11 * 24,   # CFTC COT report (weekly, Fri PM)
               "macro_cot":        11 * 24,
+              # Once-a-week scrapers (10d = 7-day cadence + GH cron delay + a
+              # weekend/holiday; still fires within days of a genuinely missed
+              # weekly cycle, e.g. a cancelled run).
+              "port_activity":    10 * 24,   # PortWatch (weekly, Wed)
+              "spot_coffee":      10 * 24,   # spot offers (weekly, Mon)
+              "enso_indices":     10 * 24,   # NOAA ENSO indices (weekly, Tue)
+              "enso_subsurface":  10 * 24,   # NOAA subsurface WWV (weekly, Tue)
+              # Weekday-only market log — Fri stamp sits over the weekend, and a
+              # Monday market holiday pushes it to Tue. 5 days covers Fri→Wed
+              # without crying wolf every Sunday (the 2-day default did).
+              "open_direction":   5 * 24,    # open-direction log (Mon–Fri)
               # Monthly sources (one missed cycle + buffer)
               "fertilizer_wb":    45 * 24,   # World Bank Pink Sheet (monthly)
               "fertilizer_comex": 45 * 24,   # MDIC Comex (monthly, mid-month)
               "brazil_exports":   45 * 24,   # Cecafe monthly green-coffee report
-              "psd_coffee":       45 * 24,   # USDA PSD (monthly)
+              # USDA "Coffee: World Markets and Trade" is SEMI-ANNUAL (Jun & Dec),
+              # not monthly — the DB only gains new PSD numbers twice a year, so a
+              # 45-day limit cried wolf every July–December. 210 days (≈7 months)
+              # clears the normal Jun→Dec gap yet still flags a genuinely missed
+              # publish within ~4 weeks.
+              "psd_coffee":       210 * 24,  # USDA PSD (semi-annual: Jun & Dec)
+              # Monthly trade-stats sources (published mid-month for the prior
+              # month; scraped once a month). One missed-cycle buffer, like the
+              # other monthly feeds above.
+              "us_imports":       45 * 24,   # USITC DataWeb (monthly, ~16th)
+              "eu_imports":       45 * 24,   # Eurostat Comext (monthly, ~17th)
               # AJCA is UPLOAD-dated (health.py takes the newest /uploads/YYYY/MM/
               # path from ajca.json = when AJCA last published anything, floored
               # to the 1st). Healthy worst case ≈ 30d month-floor + ~31d between
