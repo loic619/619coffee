@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-01T05:43:37.284370Z",
+  "generated_at": "2026-08-02T05:44:12.319655Z",
   "eu": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-16",
@@ -11723,8 +11723,8 @@
       "name": "India",
       "latest_year": "2025",
       "consumption_mt": 81600,
-      "population": 1463865525,
-      "per_capita_kg": 0.06,
+      "population": null,
+      "per_capita_kg": null,
       "annual": [
         {
           "year": "1960",
@@ -12551,7 +12551,7 @@
   ],
   "populations": {
     "source": "World Bank API (SP.POP.TOTL)",
-    "last_updated": "2026-08-01",
+    "last_updated": "2026-08-02",
     "countries": {
       "eu": {
         "name": "European Union",
@@ -12576,12 +12576,6 @@
         "iso3": "CHN",
         "latest_year": "2025",
         "latest_population": 1406585000
-      },
-      "india": {
-        "name": "India",
-        "iso3": "IND",
-        "latest_year": "2025",
-        "latest_population": 1463865525
       },
       "brazil": {
         "name": "Brazil",
