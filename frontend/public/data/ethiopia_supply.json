@@ -1,6 +1,6 @@
 {
   "country": "ethiopia",
-  "scraped_at": "2026-08-02T05:44:11.769147Z",
+  "scraped_at": "2026-08-03T06:04:50.757284Z",
   "exports": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-16",
@@ -356,21 +356,21 @@
         "csi_30d_level": "LOW",
         "csi_60d_level": "LOW",
         "rain_mtd_mm": 52.5,
-        "rain_hist_min": 1.3,
-        "rain_hist_max": 24.6
+        "rain_hist_min": 2.0,
+        "rain_hist_max": 31.0
       },
       {
         "name": "Harrar",
         "drought": "MED",
-        "csi_30d": 0.84,
-        "csi_60d": 0.746,
+        "csi_30d": 0.886,
+        "csi_60d": 0.77,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
       },
       {
         "name": "Kaffa",
         "drought": "LOW",
-        "csi_30d": 0.98,
+        "csi_30d": 1.0,
         "csi_60d": 0.98,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
@@ -469,7 +469,6 @@
         "region": "Harrar",
         "days": [
           "-",
-          "-",
           "L",
           "L",
           "L",
@@ -529,6 +528,7 @@
           "M",
           "M",
           "M",
+          "-",
           "L",
           "M",
           "M",
@@ -542,7 +542,6 @@
         "days": [
           "-",
           "-",
-          "-",
           "L",
           "-",
           "L",
@@ -600,12 +599,13 @@
           "L",
           "L",
           "L",
+          "-",
           "L",
           "L",
           "L",
           "L",
           "L",
-          "L",
+          "M",
           "M"
         ]
       },
@@ -624,9 +624,9 @@
           "-",
           "-",
           "-",
+          "L",
+          "L",
           "-",
-          "L",
-          "L",
           "-",
           "-",
           "-",
@@ -800,7 +800,7 @@
       }
     ],
     "historical_stat": "Neutral ENSO: near-average Ethiopia arabica output expected",
-    "last_updated": "2026-08-02"
+    "last_updated": "2026-08-03"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Jan",
