@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-02T10:47:58.678899Z",
+  "generated_at": "2026-08-03T19:57:44.602729Z",
   "count": 82,
   "workflows": [
     {
@@ -973,7 +973,7 @@
       ],
       "workflow_run_deps": [],
       "concurrency_group": "scraper-port-activity",
-      "timeout_minutes": 15
+      "timeout_minutes": 30
     },
     {
       "file": "scraper-prices.yml",
