@@ -68,6 +68,10 @@ jobs:
               # threshold — both files come out of the same workflow run.
               "quant_currency_index": 96,
               "fx_history":           96,  # Macro tab FX time-series; weekday-only workflow, 4-day buffer over weekends
+              # News sentiment ships in quant_report.json from the SAME weekday-only
+              # quant workflow (~21:30 UTC Mon–Fri), so Fri-night→Mon-morning ≈ 2.4d
+              # tripped the 2-day default every Monday. 96h matches its siblings.
+              "news_sentiment":       96,  # sentiment in quant_report.json, weekday-only
               "origin_prices":        48,  # Macro tab Origin Prices time-series (accumulator, runs in 1.4)
               # Monthly source — Retail CPI series publishes on the 10th–15th of each month
               "retail_cpi":           45 * 24,
