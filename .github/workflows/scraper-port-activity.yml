@@ -16,7 +16,12 @@ concurrency:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # The scrape step retries up to 3× with 5-min sleeps between attempts, so a
+    # slow-source week needs ~2×5min sleeps + 3 scrapes. 15 min killed those runs
+    # mid-retry (they surfaced as a confusing "cancelled", froze port_activity —
+    # e.g. 2026-07-29 ran 15.3 min then timed out). 30 min lets all 3 attempts
+    # complete so a genuine source outage fails cleanly instead of timing out.
+    timeout-minutes: 30
     permissions:
       contents: write
 
