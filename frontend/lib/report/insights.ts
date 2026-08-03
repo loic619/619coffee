@@ -1551,49 +1551,59 @@ export async function getInsight(noteId: string): Promise<string | null> {
 }
 
 /**
- * Selection-aware executive summary — structured consumption.
+ * Selection-aware executive summary — structured, line-per-fact format:
  *
- * Per category: up to 3 headline facts (flagged charts first, then registry
- * order), each `label value` from the chart's first fact, joined by " · ".
- * A final "⚠ Watch" bullet collects the flagged reads (max 3) so the summary
- * leads with what is actually anomalous today.
+ *   **Price**
+ *   - NY · Arabica: longs −2.8k lots …      (one line per fact; split-note
+ *   - London · Robusta: net +1.0k lots …     charts contribute one line per side)
+ *
+ *   **⚠ Watch**
+ *   - Price up while funds sold — short-covering …
+ *
+ * Flagged charts sort first within their category; max 4 lines per category
+ * with a "+N more" line beyond that. The Watch block collects fired reads so
+ * the summary leads with what is actually anomalous.
  */
 export async function getExecutiveSummary(selectedIds: string[]): Promise<string | null> {
   if (!selectedIds.length) return null;
   const { REPORT_REGISTRY, REPORT_CATEGORIES } = await import("./registry");
   const selected = new Set(selectedIds);
 
-  interface Item { headline: string; flag: boolean; read?: string }
+  interface Item { line: string; flag: boolean; read?: string }
   const byCat = new Map<string, Item[]>();
-  const countByCat = new Map<string, number>();
 
   for (const def of REPORT_REGISTRY) {
     if (!selected.has(def.id)) continue;
-    countByCat.set(def.category, (countByCat.get(def.category) ?? 0) + 1);
     const fn = INSIGHTS[def.id];
     if (!fn) continue;
     try {
       const r = await fn();
       if (r == null) continue;
-      let item: Item | null = null;
+      const items: Item[] = [];
       if ("facts" in r) {
         const note = r as Note;
-        if (note.facts.length) item = { headline: `${note.facts[0].label} ${note.facts[0].value}`, flag: !!note.flag, read: note.flag ? note.read : undefined };
+        if (note.facts.length) {
+          items.push({
+            line: `**${note.facts[0].label}:** ${note.facts[0].value}`,
+            flag: !!note.flag,
+            read: note.flag ? note.read : undefined,
+          });
+        }
       } else {
-        // Split-note chart: one headline per side, labelled from the registry.
-        const rec = r as Record<string, Note>;
-        const parts: string[] = []; let flag = false; let read: string | undefined;
-        for (const [k, note] of Object.entries(rec)) {
+        // Split-note chart: one LINE per side, labelled from the registry.
+        for (const [k, note] of Object.entries(r as Record<string, Note>)) {
           if (!note.facts.length) continue;
           const sideLabel = def.notes?.find((n) => n.key === k)?.label ?? k;
-          parts.push(`${sideLabel}: ${note.facts[0].value}`);
-          if (note.flag) { flag = true; read = read ?? note.read; }
+          items.push({
+            line: `**${sideLabel}:** ${note.facts[0].value}`,
+            flag: !!note.flag,
+            read: note.flag ? note.read : undefined,
+          });
         }
-        if (parts.length) item = { headline: parts.join(" · "), flag, read };
       }
-      if (!item) continue;
+      if (!items.length) continue;
       const arr = byCat.get(def.category) ?? [];
-      arr.push(item);
+      arr.push(...items);
       byCat.set(def.category, arr);
     } catch {
       continue;
@@ -1606,11 +1616,18 @@ export async function getExecutiveSummary(selectedIds: string[]): Promise<string
     const items = byCat.get(cat);
     if (!items?.length) continue;
     const ordered = [...items.filter((i) => i.flag), ...items.filter((i) => !i.flag)];
-    const shown = ordered.slice(0, 3);
-    const extra = (countByCat.get(cat) ?? 0) - shown.length;
-    lines.push(`- **${cat}:** ${shown.map((i) => i.headline).join(" · ")}${extra > 0 ? ` *(+${extra} more in section)*` : ""}`);
+    const shown = ordered.slice(0, 4);
+    const extra = ordered.length - shown.length;
+    lines.push(`**${cat}**`);
+    for (const i of shown) lines.push(`- ${i.line}`);
+    if (extra > 0) lines.push(`- *+${extra} more in section*`);
+    lines.push("");
     for (const i of ordered) if (i.flag && i.read) watch.push(i.read);
   }
-  if (watch.length) lines.push(`- **⚠ Watch:** ${Array.from(new Set(watch)).slice(0, 3).join(" · ")}`);
+  if (watch.length) {
+    lines.push("**⚠ Watch**");
+    for (const w of Array.from(new Set(watch)).slice(0, 4)) lines.push(`- ${w}`);
+  }
+  while (lines.length && lines[lines.length - 1] === "") lines.pop();
   return lines.length ? lines.join("\n") : null;
 }
