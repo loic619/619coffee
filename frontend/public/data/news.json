@@ -1,5 +1,101 @@
 [
   {
+    "id": 9248,
+    "title": "ICE RC Robusta Certified Stocks \u2013 2026-07-31",
+    "body": "RC Robusta certified stocks shifted by +15 lots today, bringing global visible exchange inventory to 4,148 lots. 66 lots graded.",
+    "source": "ICE",
+    "category": "supply",
+    "lat": null,
+    "lng": null,
+    "tags": [
+      "ice",
+      "certified-stocks",
+      "rc",
+      "auto-commentary"
+    ],
+    "meta": "{\"source_url\": \"https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260731_103249.csv\", \"_commentary\": {\"text\": \"RC Robusta certified stocks shifted by +15 lots today, bringing global visible exchange inventory to 4,148 lots. 66 lots graded.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-03T05:10:02.822934",
+    "commentary": {
+      "text": "RC Robusta certified stocks shifted by +15 lots today, bringing global visible exchange inventory to 4,148 lots. 66 lots graded.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    }
+  },
+  {
+    "id": 9247,
+    "title": "ICE KC Arabica Certified Stocks \u2013 2026-07-31",
+    "body": "KC Arabica certified stocks shifted by -2,025 bags today, bringing global visible exchange inventory to 264,179 bags.",
+    "source": "ICE",
+    "category": "supply",
+    "lat": null,
+    "lng": null,
+    "tags": [
+      "ice",
+      "certified-stocks",
+      "kc",
+      "auto-commentary"
+    ],
+    "meta": "{\"source_url\": \"https://www.ice.com/publicdocs/futures_us_reports/coffee/coffee_cert_stock_20260731.xls\", \"_commentary\": {\"text\": \"KC Arabica certified stocks shifted by -2,025 bags today, bringing global visible exchange inventory to 264,179 bags.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-03T05:10:00.539339",
+    "commentary": {
+      "text": "KC Arabica certified stocks shifted by -2,025 bags today, bringing global visible exchange inventory to 264,179 bags.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    }
+  },
+  {
+    "id": 9246,
+    "title": "ICE-EU RC Daily OI Snapshot \u2013 2026-07-30",
+    "body": "ICE-EU RC Open Interest changed by -255 over the last session, with -408 on nearby two contracts and +153 on forward contracts. Technical view: PRICE UP, SHORT LIQUIDATION.",
+    "source": "ICE",
+    "category": "futures",
+    "lat": 51.51,
+    "lng": -0.09,
+    "tags": [
+      "daily-oi",
+      "robusta",
+      "futures",
+      "auto-commentary"
+    ],
+    "meta": "{\"market\": \"robusta\", \"date\": \"2026-07-30\", \"_commentary\": {\"text\": \"ICE-EU RC Open Interest changed by -255 over the last session, with -408 on nearby two contracts and +153 on forward contracts. Technical view: PRICE UP, SHORT LIQUIDATION.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-03T04:55:07.923376",
+    "commentary": {
+      "text": "ICE-EU RC Open Interest changed by -255 over the last session, with -408 on nearby two contracts and +153 on forward contracts. Technical view: PRICE UP, SHORT LIQUIDATION.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 62.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "OI snapshot: no decisive technical view"
+  },
+  {
+    "id": 9245,
+    "title": "IFUS KC Daily OI Snapshot \u2013 2026-07-30",
+    "body": "IFUS KC Open Interest changed by +369 over the last session, with -144 on nearby two contracts and +513 on forward contracts. Technical view: PRICE DOWN, SHORT BUILDING.",
+    "source": "ICE",
+    "category": "futures",
+    "lat": 40.74,
+    "lng": -74.05,
+    "tags": [
+      "daily-oi",
+      "arabica",
+      "futures",
+      "auto-commentary"
+    ],
+    "meta": "{\"market\": \"arabica\", \"date\": \"2026-07-30\", \"_commentary\": {\"text\": \"IFUS KC Open Interest changed by +369 over the last session, with -144 on nearby two contracts and +513 on forward contracts. Technical view: PRICE DOWN, SHORT BUILDING.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-03T04:55:05.229690",
+    "commentary": {
+      "text": "IFUS KC Open Interest changed by +369 over the last session, with -144 on nearby two contracts and +513 on forward contracts. Technical view: PRICE DOWN, SHORT BUILDING.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 62.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "OI snapshot: no decisive technical view"
+  },
+  {
     "id": 9244,
     "title": "World Bank Population \u2013 2026-08-03",
     "body": "Tracked 12 countries for demand-tab per-capita normalization.",
@@ -3874,65 +3970,5 @@
     ],
     "meta": null,
     "pub_date": "2026-07-26T04:36:39.315610"
-  },
-  {
-    "id": 8805,
-    "title": "USD/IDR FX Rate \u2013 2026-07-26",
-    "body": "USD/IDR FX Rate price: 17935",
-    "source": "ExchangeRate-API",
-    "category": "general",
-    "lat": -0.789,
-    "lng": 113.921,
-    "tags": [
-      "fx",
-      "indonesia"
-    ],
-    "meta": null,
-    "pub_date": "2026-07-26T04:36:38.128385"
-  },
-  {
-    "id": 8804,
-    "title": "USD/VND FX Rate \u2013 2026-07-26",
-    "body": "USD/VND FX Rate price: 26257",
-    "source": "ExchangeRate-API",
-    "category": "general",
-    "lat": 14.058,
-    "lng": 108.277,
-    "tags": [
-      "fx",
-      "vietnam"
-    ],
-    "meta": null,
-    "pub_date": "2026-07-26T04:36:36.938264"
-  },
-  {
-    "id": 8803,
-    "title": "USD/BRL FX Rate \u2013 2026-07-26",
-    "body": "USD/BRL FX Rate price: 5.0793",
-    "source": "ExchangeRate-API",
-    "category": "general",
-    "lat": -14.235,
-    "lng": -51.925,
-    "tags": [
-      "fx",
-      "brazil"
-    ],
-    "meta": null,
-    "pub_date": "2026-07-26T04:36:35.745416"
-  },
-  {
-    "id": 8796,
-    "title": "Ocean Freight Rates (Searates) \u2013 2026-07-25",
-    "body": "Ocean freight market: FCL \u202220'ST",
-    "source": "Searates",
-    "category": "general",
-    "lat": 0.0,
-    "lng": 0.0,
-    "tags": [
-      "logistics",
-      "freight"
-    ],
-    "meta": null,
-    "pub_date": "2026-07-25T21:02:51.504580"
   }
 ]
