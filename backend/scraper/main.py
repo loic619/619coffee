@@ -43,7 +43,6 @@ from scraper.sources import honduras as _honduras
 from scraper.sources import honduras_weather as _honduras_weather
 from scraper.sources import indonesia_weather as _indonesia_weather
 from scraper.sources import macro_cot as _macro_cot
-from scraper.sources import population as _population
 from scraper.sources import uganda_weather as _uganda_weather
 
 # _guatemala (ANACAFE) proven live via the "Probe: ANACAFE" workflow (run #1:
@@ -131,11 +130,11 @@ async def run_all_scrapers():
                 ("macro_cot",         lambda p: _macro_cot.run(p),                               420),
                 ("farmer_economics",  lambda p: _farmer_economics.run(p, db_ref),                SCRAPER_TIMEOUT),
                 ("dry_bulk",          lambda p: _dry_bulk.run(p, db_ref),                        SCRAPER_TIMEOUT),
-                # psd_coffee + ajca are NOT run daily: USDA PSD releases twice a
-                # year (Jun/Dec) and AJCA monthly, so they run on the slow-data
-                # workflow (monthly_scraper) instead. Running them daily re-stamped
-                # their freshness to "today" every day. See monthly_scraper.py.
-                ("population",        lambda p: _population.run(p, db_ref),                      120),
+                # psd_coffee + ajca + population are NOT run daily: USDA PSD
+                # releases twice a year (Jun/Dec), AJCA monthly, and World Bank
+                # population annually — so they run on the slow-data workflow
+                # (monthly_scraper) instead. Running them daily re-stamped their
+                # freshness to "today" every day and wasted a fetch per run.
                 ("colombia_weather",  lambda p: _colombia_weather.run(p, db_ref),                60),
                 ("honduras_weather",  lambda p: _honduras_weather.run(p, db_ref),                60),
                 ("indonesia_weather", lambda p: _indonesia_weather.run(p, db_ref),               60),

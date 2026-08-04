@@ -26,10 +26,12 @@ name: "1.12 – Daily Publish (Vercel redeploy)"
 on:
   schedule:
     # NOTE: GH cron on this repo fires 4-5h LATE systematically (verified
-    # 2026-06-10). These crons are FALLBACKS — the primary trigger is the
+    # 2026-06-10). This cron is a FALLBACK — the primary trigger is the
     # workflow_run chain below, which fires within minutes of the data
-    # actually landing.
-    - cron: '41 3 * * *'
+    # actually landing. One daily fallback is enough: the old 03:41 cron
+    # only ever redeployed data the post-export chain had already shipped
+    # (if the export itself didn't run there is nothing new to deploy), so
+    # it was dropped in the 2026-08 Actions-efficiency pass.
     - cron: '0 10 * * *'
   workflow_dispatch:
   workflow_run:

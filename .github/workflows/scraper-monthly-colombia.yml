@@ -24,8 +24,11 @@ name: "0.10 – Colombia coffee exports (monthly · DANE + FNC)"
 
 on:
   schedule:
-    # 06:30 UTC daily — covers M+1 (FNC) and M+2 (DANE) publication.
-    - cron: '30 6 * * *'
+    # 06:30 UTC on days 1–22 — a poll-until-published window covering the
+    # M+1 (FNC, ~first half) and M+2 (DANE, ~mid-month) bulletins. Was a
+    # full daily cron, but days 23–31 were guaranteed no-data polls
+    # (~9 wasted runs/month) — 2026-08 Actions-efficiency pass.
+    - cron: '30 6 1-22 * *'
   workflow_dispatch:
     inputs:
       run_fnc:
