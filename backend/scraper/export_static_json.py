@@ -73,6 +73,7 @@ def _exporters(db):
     exported here (avoids clobbering 1.3's fresher copy with a stale one).
     """
     from scraper.exporters.cot_cropyear_xray import export_cot_cropyear_xray
+    from scraper.exporters.yield_rainfall import export_yield_rainfall
     from scraper.exporters.cot_sept_study import export_cot_sept_study
     from scraper.exporters.tender_parity import export_tender_parity
     from scraper.sources.brazil_arabica_fisico import export_brazil_arabica_fisico
@@ -119,6 +120,7 @@ def _exporters(db):
         ("tender_parity",         lambda: export_tender_parity()),
         ("cot_sept_study",        lambda: export_cot_sept_study()),
         ("cot_cropyear_xray",     lambda: export_cot_cropyear_xray()),
+        ("yield_rainfall",        lambda: export_yield_rainfall()),
         ("news",                  lambda: export_news(db)),
         ("country_pins",          _country_pins),
         ("enso",                  _enso_intel),
