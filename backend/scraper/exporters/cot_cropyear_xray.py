@@ -33,7 +33,7 @@ import json
 import urllib.request
 import zipfile
 from collections import Counter
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime
 
 from scraper.exporters.base import OUT_DIR
 from scraper.validate_export import safe_write_json, validate_cropyear_xray
@@ -131,7 +131,7 @@ def _coffee_fallback() -> list[dict]:
         ny = (r or {}).get("ny") or {}
         if ny.get("mm_long_old") is None:
             continue
-        g = lambda k: ny.get(k) or 0
+        g = lambda k, ny=ny: ny.get(k) or 0  # bind ny per-iteration (B023)
         oi_old = (g("pmpu_long_old") + g("swap_long_old") + g("swap_spread_old")
                   + g("mm_long_old") + g("mm_spread_old")
                   + g("other_long_old") + g("other_spread_old") + g("nr_long_old"))
@@ -189,7 +189,7 @@ def _build_market(records: list[dict], roll_month: int, source: str,
 
 
 def export_cot_cropyear_xray() -> None:
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
     existing = {}
     try:
         existing = json.loads(OUT_PATH.read_text(encoding="utf-8"))
@@ -240,7 +240,7 @@ def export_cot_cropyear_xray() -> None:
         markets_out[key] = built
 
     payload = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "meta": {
             "premise": "For each market, the CFTC old-crop bucket degenerates to the crop year's LAST "
                        "delivery contract as earlier months expire — single-contract cohort positioning.",

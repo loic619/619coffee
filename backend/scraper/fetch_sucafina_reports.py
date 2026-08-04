@@ -67,7 +67,7 @@ _ORIGINS = [
 ]
 
 
-def _parse_date(text: str) -> "str | None":
+def _parse_date(text: str) -> str | None:
     """'22 July 2026' / '24 Jun 2026' → '2026-07-22' (None if not a date)."""
     m = re.match(r"^\s*(\d{1,2})\s+([A-Za-z]{3,9})\.?\s+(\d{4})\s*$", text or "")
     if not m:
