@@ -15,6 +15,7 @@ import FreshnessGrid from "@/components/news/FreshnessGrid";
 import UpcomingCalendar from "@/components/news/UpcomingCalendar";
 import RiskRadar from "@/components/news/RiskRadar";
 import HeadlinesDigest from "@/components/news/HeadlinesDigest";
+import OriginReportsPanel from "@/components/news/OriginReportsPanel";
 import ReportBuilder from "@/components/report/ReportBuilder";
 
 export default function NewsPage() {
@@ -30,6 +31,7 @@ export default function NewsPage() {
         <UpcomingCalendar />
         <RiskRadar />
         <HeadlinesDigest />
+        <OriginReportsPanel />
       </div>
     </div>
   );
