@@ -311,6 +311,22 @@ def validate_cot_sept_study(data: dict) -> tuple[bool, str]:
     return True, "ok"
 
 
+def validate_yield_rainfall(data: dict) -> tuple[bool, str]:
+    if not isinstance(data, dict):
+        return False, "not a dict"
+    models = data.get("models")
+    if not isinstance(models, dict) or not models:
+        return False, "models is empty"
+    for k, m in models.items():
+        if len(m.get("theoretical_curve") or []) < 4:
+            return False, f"{k}: theoretical_curve too short"
+        if len(m.get("historical_scatter") or []) < 10:
+            return False, f"{k}: historical_scatter too short"
+        if not isinstance(m.get("current_year_live"), dict):
+            return False, f"{k}: current_year_live missing"
+    return True, "ok"
+
+
 def validate_cropyear_xray(data: dict) -> tuple[bool, str]:
     if not isinstance(data, dict):
         return False, "not a dict"

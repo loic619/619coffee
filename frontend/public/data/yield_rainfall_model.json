@@ -1,0 +1,649 @@
+{
+  "generated_at": "2026-08-04T13:13:14.905516+00:00",
+  "meta": {
+    "x_axis": "crop-year rainfall total (mm), production-weighted across growing regions",
+    "y_axis": "yield as % of normal \u2014 theory: potential vs max; scatter: production vs log-linear trend (=100)",
+    "windows": {
+      "arabica_brazil": "Oct \u2192 Sep",
+      "robusta_vietnam": "Nov \u2192 Oct",
+      "robusta_indonesia": "Jul \u2192 Jun"
+    },
+    "sources": "Curves: WCR/WMO bioclimatic envelopes; Embrapa arabica zoning (1,200\u20131,800 mm optimal); Carr (2001), DaMatta & Ramalho (2006); Cenicaf\u00e9/WCR robusta water demand. Scatter: USDA-derived production seeds \u00d7 Open-Meteo 30-yr regional rainfall.",
+    "note": "Rainfall total is one axis of yield \u2014 distribution, temperature, biennial bearing and management are absorbed by the trend/deviation framing, not modelled."
+  },
+  "models": {
+    "arabica_brazil": {
+      "label": "Brazil Arabica",
+      "window": "Oct \u2192 Sep",
+      "optimal_band": [
+        1200,
+        1800
+      ],
+      "theoretical_curve": [
+        {
+          "rain_mm": 500,
+          "yield_potential_pct": 5,
+          "stress": "Extreme drought \u2014 survival limit"
+        },
+        {
+          "rain_mm": 800,
+          "yield_potential_pct": 25,
+          "stress": "Severe deficit"
+        },
+        {
+          "rain_mm": 1000,
+          "yield_potential_pct": 60,
+          "stress": "Moderate deficit"
+        },
+        {
+          "rain_mm": 1200,
+          "yield_potential_pct": 90,
+          "stress": "Light deficit"
+        },
+        {
+          "rain_mm": 1400,
+          "yield_potential_pct": 100,
+          "stress": "Optimal"
+        },
+        {
+          "rain_mm": 1800,
+          "yield_potential_pct": 100,
+          "stress": "Optimal"
+        },
+        {
+          "rain_mm": 2200,
+          "yield_potential_pct": 75,
+          "stress": "Excess \u2014 leaf disease pressure"
+        },
+        {
+          "rain_mm": 2600,
+          "yield_potential_pct": 50,
+          "stress": "Excess \u2014 flowering disruption"
+        },
+        {
+          "rain_mm": 3000,
+          "yield_potential_pct": 30,
+          "stress": "Waterlogging / severe disease"
+        }
+      ],
+      "historical_scatter": [
+        {
+          "year": 1996,
+          "rain_mm": 1480.0,
+          "realized_pct": 111.0,
+          "label": "wettest window"
+        },
+        {
+          "year": 1997,
+          "rain_mm": 1479.0,
+          "realized_pct": 87.8
+        },
+        {
+          "year": 1998,
+          "rain_mm": 1340.0,
+          "realized_pct": 127.9
+        },
+        {
+          "year": 1999,
+          "rain_mm": 1144.0,
+          "realized_pct": 80.7
+        },
+        {
+          "year": 2000,
+          "rain_mm": 1284.0,
+          "realized_pct": 112.5
+        },
+        {
+          "year": 2001,
+          "rain_mm": 988.0,
+          "realized_pct": 82.1
+        },
+        {
+          "year": 2002,
+          "rain_mm": 1268.0,
+          "realized_pct": 141.6,
+          "label": "best realized"
+        },
+        {
+          "year": 2003,
+          "rain_mm": 1246.0,
+          "realized_pct": 83.6
+        },
+        {
+          "year": 2004,
+          "rain_mm": 1187.0,
+          "realized_pct": 111.2
+        },
+        {
+          "year": 2005,
+          "rain_mm": 1265.0,
+          "realized_pct": 84.6
+        },
+        {
+          "year": 2006,
+          "rain_mm": 1102.0,
+          "realized_pct": 119.6
+        },
+        {
+          "year": 2007,
+          "rain_mm": 1292.0,
+          "realized_pct": 100.1
+        },
+        {
+          "year": 2008,
+          "rain_mm": 1273.0,
+          "realized_pct": 128.1
+        },
+        {
+          "year": 2009,
+          "rain_mm": 1453.0,
+          "realized_pct": 98.2
+        },
+        {
+          "year": 2010,
+          "rain_mm": 1229.0,
+          "realized_pct": 116.0
+        },
+        {
+          "year": 2011,
+          "rain_mm": 1269.0,
+          "realized_pct": 94.7
+        },
+        {
+          "year": 2012,
+          "rain_mm": 1240.0,
+          "realized_pct": 122.8
+        },
+        {
+          "year": 2013,
+          "rain_mm": 1351.0,
+          "realized_pct": 105.4
+        },
+        {
+          "year": 2014,
+          "rain_mm": 860.0,
+          "realized_pct": 95.7,
+          "label": "driest window"
+        },
+        {
+          "year": 2015,
+          "rain_mm": 1138.0,
+          "realized_pct": 97.0
+        },
+        {
+          "year": 2016,
+          "rain_mm": 1231.0,
+          "realized_pct": 114.2
+        },
+        {
+          "year": 2017,
+          "rain_mm": 948.0,
+          "realized_pct": 83.3
+        },
+        {
+          "year": 2018,
+          "rain_mm": 940.0,
+          "realized_pct": 119.3
+        },
+        {
+          "year": 2019,
+          "rain_mm": 1105.0,
+          "realized_pct": 93.3
+        },
+        {
+          "year": 2020,
+          "rain_mm": 1128.0,
+          "realized_pct": 117.5
+        },
+        {
+          "year": 2021,
+          "rain_mm": 920.0,
+          "realized_pct": 74.0,
+          "label": "worst realized"
+        },
+        {
+          "year": 2022,
+          "rain_mm": 1378.0,
+          "realized_pct": 89.0
+        },
+        {
+          "year": 2023,
+          "rain_mm": 1239.0,
+          "realized_pct": 101.8
+        },
+        {
+          "year": 2024,
+          "rain_mm": 910.0,
+          "realized_pct": 88.7
+        }
+      ],
+      "theory_fit_corr": 0.34,
+      "theory_fit_corr_biennial_adj": 0.51,
+      "current_year_live": {
+        "year": 2026,
+        "rain_mm_to_date": 1167.0,
+        "months_observed": 10,
+        "projected_end": 1229.0,
+        "projected_potential_pct": 91.0,
+        "in_optimal_band": true
+      }
+    },
+    "robusta_vietnam": {
+      "label": "Vietnam Robusta",
+      "window": "Nov \u2192 Oct",
+      "optimal_band": [
+        1600,
+        2200
+      ],
+      "theoretical_curve": [
+        {
+          "rain_mm": 800,
+          "yield_potential_pct": 10,
+          "stress": "Extreme drought"
+        },
+        {
+          "rain_mm": 1200,
+          "yield_potential_pct": 45,
+          "stress": "Severe deficit (irrigation-dependent)"
+        },
+        {
+          "rain_mm": 1400,
+          "yield_potential_pct": 70,
+          "stress": "Moderate deficit"
+        },
+        {
+          "rain_mm": 1600,
+          "yield_potential_pct": 90,
+          "stress": "Light deficit"
+        },
+        {
+          "rain_mm": 1800,
+          "yield_potential_pct": 100,
+          "stress": "Optimal"
+        },
+        {
+          "rain_mm": 2200,
+          "yield_potential_pct": 100,
+          "stress": "Optimal"
+        },
+        {
+          "rain_mm": 2600,
+          "yield_potential_pct": 80,
+          "stress": "Excess \u2014 cherry drop"
+        },
+        {
+          "rain_mm": 3000,
+          "yield_potential_pct": 55,
+          "stress": "Excess \u2014 harvest & drying losses"
+        }
+      ],
+      "historical_scatter": [
+        {
+          "year": 1996,
+          "rain_mm": 1566.0,
+          "realized_pct": 60.3,
+          "label": "worst realized"
+        },
+        {
+          "year": 1997,
+          "rain_mm": 1455.0,
+          "realized_pct": 78.2
+        },
+        {
+          "year": 1998,
+          "rain_mm": 1209.0,
+          "realized_pct": 69.5
+        },
+        {
+          "year": 1999,
+          "rain_mm": 1776.0,
+          "realized_pct": 122.9
+        },
+        {
+          "year": 2000,
+          "rain_mm": 1556.0,
+          "realized_pct": 135.0,
+          "label": "best realized"
+        },
+        {
+          "year": 2001,
+          "rain_mm": 1349.0,
+          "realized_pct": 125.1
+        },
+        {
+          "year": 2002,
+          "rain_mm": 1200.0,
+          "realized_pct": 89.7
+        },
+        {
+          "year": 2003,
+          "rain_mm": 1296.0,
+          "realized_pct": 90.1
+        },
+        {
+          "year": 2004,
+          "rain_mm": 1021.0,
+          "realized_pct": 106.4,
+          "label": "driest window"
+        },
+        {
+          "year": 2005,
+          "rain_mm": 1096.0,
+          "realized_pct": 102.0
+        },
+        {
+          "year": 2006,
+          "rain_mm": 1554.0,
+          "realized_pct": 120.6
+        },
+        {
+          "year": 2007,
+          "rain_mm": 1704.0,
+          "realized_pct": 105.2
+        },
+        {
+          "year": 2008,
+          "rain_mm": 1439.0,
+          "realized_pct": 106.2
+        },
+        {
+          "year": 2009,
+          "rain_mm": 1791.0,
+          "realized_pct": 104.0
+        },
+        {
+          "year": 2010,
+          "rain_mm": 1480.0,
+          "realized_pct": 101.8
+        },
+        {
+          "year": 2011,
+          "rain_mm": 1565.0,
+          "realized_pct": 104.7
+        },
+        {
+          "year": 2012,
+          "rain_mm": 1510.0,
+          "realized_pct": 122.1
+        },
+        {
+          "year": 2013,
+          "rain_mm": 1505.0,
+          "realized_pct": 121.0
+        },
+        {
+          "year": 2014,
+          "rain_mm": 1415.0,
+          "realized_pct": 112.9
+        },
+        {
+          "year": 2015,
+          "rain_mm": 1214.0,
+          "realized_pct": 116.1
+        },
+        {
+          "year": 2016,
+          "rain_mm": 1347.0,
+          "realized_pct": 108.5
+        },
+        {
+          "year": 2017,
+          "rain_mm": 1612.0,
+          "realized_pct": 109.1
+        },
+        {
+          "year": 2018,
+          "rain_mm": 1341.0,
+          "realized_pct": 115.0
+        },
+        {
+          "year": 2019,
+          "rain_mm": 1451.0,
+          "realized_pct": 109.5
+        },
+        {
+          "year": 2020,
+          "rain_mm": 1870.0,
+          "realized_pct": 95.8,
+          "label": "wettest window"
+        },
+        {
+          "year": 2021,
+          "rain_mm": 1799.0,
+          "realized_pct": 90.3
+        },
+        {
+          "year": 2022,
+          "rain_mm": 1746.0,
+          "realized_pct": 91.4
+        },
+        {
+          "year": 2023,
+          "rain_mm": 1679.0,
+          "realized_pct": 85.3
+        },
+        {
+          "year": 2024,
+          "rain_mm": 1428.0,
+          "realized_pct": 76.8
+        }
+      ],
+      "theory_fit_corr": 0.05,
+      "theory_fit_corr_biennial_adj": null,
+      "current_year_live": {
+        "year": 2026,
+        "rain_mm_to_date": 978.0,
+        "months_observed": 9,
+        "projected_end": 1605.0,
+        "projected_potential_pct": 90.0,
+        "in_optimal_band": true
+      }
+    },
+    "robusta_indonesia": {
+      "label": "Indonesia Robusta",
+      "window": "Jul \u2192 Jun",
+      "optimal_band": [
+        2000,
+        2800
+      ],
+      "theoretical_curve": [
+        {
+          "rain_mm": 1200,
+          "yield_potential_pct": 30,
+          "stress": "Severe deficit"
+        },
+        {
+          "rain_mm": 1600,
+          "yield_potential_pct": 60,
+          "stress": "Moderate deficit"
+        },
+        {
+          "rain_mm": 2000,
+          "yield_potential_pct": 90,
+          "stress": "Light deficit"
+        },
+        {
+          "rain_mm": 2400,
+          "yield_potential_pct": 100,
+          "stress": "Optimal"
+        },
+        {
+          "rain_mm": 2800,
+          "yield_potential_pct": 95,
+          "stress": "Upper optimal"
+        },
+        {
+          "rain_mm": 3200,
+          "yield_potential_pct": 70,
+          "stress": "Excess \u2014 flowering disruption"
+        },
+        {
+          "rain_mm": 3600,
+          "yield_potential_pct": 45,
+          "stress": "Excess \u2014 harvest-season rain"
+        }
+      ],
+      "historical_scatter": [
+        {
+          "year": 1996,
+          "rain_mm": 2775.0,
+          "realized_pct": 79.1,
+          "label": "worst realized"
+        },
+        {
+          "year": 1997,
+          "rain_mm": 2665.0,
+          "realized_pct": 105.0
+        },
+        {
+          "year": 1998,
+          "rain_mm": 1937.0,
+          "realized_pct": 120.7,
+          "label": "driest window"
+        },
+        {
+          "year": 1999,
+          "rain_mm": 3381.0,
+          "realized_pct": 81.0,
+          "label": "wettest window"
+        },
+        {
+          "year": 2000,
+          "rain_mm": 2988.0,
+          "realized_pct": 100.6
+        },
+        {
+          "year": 2001,
+          "rain_mm": 3294.0,
+          "realized_pct": 98.2
+        },
+        {
+          "year": 2002,
+          "rain_mm": 3022.0,
+          "realized_pct": 89.1
+        },
+        {
+          "year": 2003,
+          "rain_mm": 2069.0,
+          "realized_pct": 93.7
+        },
+        {
+          "year": 2004,
+          "rain_mm": 2756.0,
+          "realized_pct": 98.0
+        },
+        {
+          "year": 2005,
+          "rain_mm": 2263.0,
+          "realized_pct": 102.0
+        },
+        {
+          "year": 2006,
+          "rain_mm": 2996.0,
+          "realized_pct": 83.4
+        },
+        {
+          "year": 2007,
+          "rain_mm": 2429.0,
+          "realized_pct": 85.1
+        },
+        {
+          "year": 2008,
+          "rain_mm": 2186.0,
+          "realized_pct": 110.4
+        },
+        {
+          "year": 2009,
+          "rain_mm": 3036.0,
+          "realized_pct": 135.6,
+          "label": "best realized"
+        },
+        {
+          "year": 2010,
+          "rain_mm": 2866.0,
+          "realized_pct": 109.7
+        },
+        {
+          "year": 2011,
+          "rain_mm": 3253.0,
+          "realized_pct": 88.4
+        },
+        {
+          "year": 2012,
+          "rain_mm": 2531.0,
+          "realized_pct": 127.2
+        },
+        {
+          "year": 2013,
+          "rain_mm": 2906.0,
+          "realized_pct": 133.7
+        },
+        {
+          "year": 2014,
+          "rain_mm": 2949.0,
+          "realized_pct": 117.2
+        },
+        {
+          "year": 2015,
+          "rain_mm": 2601.0,
+          "realized_pct": 121.4
+        },
+        {
+          "year": 2016,
+          "rain_mm": 2382.0,
+          "realized_pct": 100.9
+        },
+        {
+          "year": 2017,
+          "rain_mm": 3303.0,
+          "realized_pct": 103.3
+        },
+        {
+          "year": 2018,
+          "rain_mm": 2490.0,
+          "realized_pct": 99.5
+        },
+        {
+          "year": 2019,
+          "rain_mm": 2376.0,
+          "realized_pct": 104.8
+        },
+        {
+          "year": 2020,
+          "rain_mm": 2655.0,
+          "realized_pct": 102.4
+        },
+        {
+          "year": 2021,
+          "rain_mm": 2412.0,
+          "realized_pct": 102.5
+        },
+        {
+          "year": 2022,
+          "rain_mm": 2993.0,
+          "realized_pct": 97.6
+        },
+        {
+          "year": 2023,
+          "rain_mm": 3225.0,
+          "realized_pct": 80.3
+        },
+        {
+          "year": 2024,
+          "rain_mm": 2934.0,
+          "realized_pct": 80.9
+        }
+      ],
+      "theory_fit_corr": 0.26,
+      "theory_fit_corr_biennial_adj": null,
+      "current_year_live": {
+        "year": 2027,
+        "rain_mm_to_date": 41.0,
+        "months_observed": 1,
+        "projected_end": 2687.0,
+        "projected_potential_pct": 96.0,
+        "in_optimal_band": true
+      }
+    }
+  }
+}

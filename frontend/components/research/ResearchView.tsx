@@ -12,6 +12,7 @@ import CertifiedStocksParity from "./CertifiedStocksParity";
 import SeptemberXray from "./SeptemberXray";
 import CropyearXray from "./CropyearXray";
 import DroughtRiskMethodology from "./methodology/DroughtRiskMethodology";
+import YieldRainfall from "./YieldRainfall";
 import SignalsMethodology from "./methodology/SignalsMethodology";
 import OpenDirectionRecord from "./methodology/OpenDirectionRecord";
 import NewsSentimentMethodology from "./methodology/NewsSentimentMethodology";
@@ -1651,6 +1652,10 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
           </CollapsibleCard>
           <EnsoModelMethodology />
           <DroughtRiskMethodology />
+          <CollapsibleCard bare tone="cyan" updated="2026-07-30" kicker="Weather · yield model" title="Theoretical yield vs rainfall — theory, 29 harvests, and the live year"
+            subtitle="Literature-calibrated rain→yield curves (WCR/Embrapa/Cenicafé) overlaid with USDA production reality per origin, plus the running crop-year projection">
+            <YieldRainfall />
+          </CollapsibleCard>
           <FrostRiskMethodology />
         </div>
       )}
