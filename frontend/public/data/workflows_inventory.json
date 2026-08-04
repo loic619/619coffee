@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-03T20:23:21.496953Z",
-  "count": 82,
+  "generated_at": "2026-08-04T08:27:52.355862Z",
+  "count": 83,
   "workflows": [
     {
       "file": "audit-cftc-markets.yml",
@@ -1012,6 +1012,21 @@
       ],
       "crons": [
         "0 6 * * 1"
+      ],
+      "workflow_run_deps": [],
+      "concurrency_group": "data-commit",
+      "timeout_minutes": 15
+    },
+    {
+      "file": "scraper-sucafina.yml",
+      "name": "1.17 \u2013 Sucafina Origin Reports (weekly)",
+      "triggers": [
+        "schedule",
+        "workflow_dispatch"
+      ],
+      "crons": [
+        "23 6 * * 4",
+        "23 7 * * 6"
       ],
       "workflow_run_deps": [],
       "concurrency_group": "data-commit",
