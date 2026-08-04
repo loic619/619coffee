@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-04T08:35:12.231812Z",
-  "count": 66,
+  "generated_at": "2026-08-04T23:50:40.775956Z",
+  "count": 67,
   "workflows": [
     {
       "file": "audit-cftc-markets.yml",
@@ -753,7 +753,7 @@
         "0 2 14 * *"
       ],
       "workflow_run_deps": [],
-      "concurrency_group": "data-commit",
+      "concurrency_group": "uganda-ucda",
       "timeout_minutes": 20
     },
     {
@@ -884,6 +884,20 @@
       "timeout_minutes": 15
     },
     {
+      "file": "ucda-monthly-reports.yml",
+      "name": "3.3.6 \u2013 Monthly Scraper \u00b7 UCDA Uganda monthly reports (by-destination)",
+      "triggers": [
+        "schedule",
+        "workflow_dispatch"
+      ],
+      "crons": [
+        "0 3 16 * *"
+      ],
+      "workflow_run_deps": [],
+      "concurrency_group": "ucda-monthly-reports",
+      "timeout_minutes": 60
+    },
+    {
       "file": "vn-customs-by-country.yml",
       "name": "0.9 \u2013 VN Customs by-country (5X/5N) probe / backfill",
       "triggers": [
@@ -922,6 +936,11 @@
         "version": "1.98"
       },
       {
+        "file": "ucda-monthly-reports.yml",
+        "name": "3.3.6 \u2013 Monthly Scraper \u00b7 UCDA Uganda monthly reports (by-destination)",
+        "version": "3.3.6"
+      },
+      {
         "file": "audit-cftc-markets.yml",
         "name": "9.9 \u2013 Audit CFTC markets",
         "version": "9.9"
@@ -941,7 +960,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 3,
+    "uncovered_workflows_count": 4,
     "stale_curation_count": 2
   }
 }
