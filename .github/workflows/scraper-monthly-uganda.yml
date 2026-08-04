@@ -5,8 +5,13 @@ on:
     - cron: '0 2 14 * *'   # 14th of each month, 02:00 UTC (UCDA publishes mid-month)
   workflow_dispatch:
 
+# Own concurrency group, NOT the shared 'data-commit' one: GitHub allows only
+# one QUEUED run per group, so a monthly run queued behind daily jobs gets
+# silently bumped by the next arrival (exactly how the 2026-07-14 harvest was
+# cancelled and June/May UCDA reports were missed). The commit steps below
+# rebase-with-theirs before pushing, so global serialization isn't needed.
 concurrency:
-  group: data-commit          # serialize all main-pushers
+  group: uganda-ucda
   cancel-in-progress: false
 
 jobs:
@@ -56,12 +61,14 @@ jobs:
             git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
 
-      - name: Notify on failure
-        if: failure()
+      - name: Notify on failure or cancellation
+        # cancelled() included: a monthly harvest that gets bumped out of a
+        # concurrency queue is a silent month-long data gap otherwise.
+        if: failure() || cancelled()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             -d "chat_id=${TELEGRAM_CHAT_ID}" \
-            -d "text=🚨 ${{ github.workflow }} failed — $(date -u +'%Y-%m-%d %H:%M UTC') — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
+            -d "text=🚨 ${{ github.workflow }} ${{ job.status }} — $(date -u +'%Y-%m-%d %H:%M UTC') — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true

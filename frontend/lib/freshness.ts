@@ -72,7 +72,13 @@ export const FEED_META: Record<string, FeedMeta> = {
   ethiopia_exports:     { label: "ET exports",       category: "Supply (origins)", thresholdDays: 4,  dataThresholdDays: 120 },
   vietnam_exports:      { label: "VN exports",       category: "Supply (origins)", thresholdDays: 4,  dataThresholdDays: 75 },
   indonesia_exports:    { label: "ID exports",       category: "Supply (origins)", thresholdDays: 4,  dataThresholdDays: 130 },
-  uganda_exports:       { label: "UG exports",       category: "Supply (origins)", thresholdDays: 4,  dataThresholdDays: 130 },
+  // UG freshness now reads uganda_monthly.json's `updated` (stamped only when
+  // the UCDA scraper lands data, monthly on the 14th) — so the scrape
+  // threshold is ~a month + margin, and the data threshold matches UCDA's
+  // publish lag (~6 weeks after month end) + one missed cycle. The old
+  // 4/130 pair sat on the export pipeline's daily timestamp and stayed green
+  // through a silently-cancelled monthly harvest (Jul 2026).
+  uganda_exports:       { label: "UG exports",       category: "Supply (origins)", thresholdDays: 40, dataThresholdDays: 90 },
   vietnam_price:        { label: "VN domestic price", category: "Supply (origins)", thresholdDays: 4 },
   origin_prices:        { label: "Origin price hub", category: "Supply (origins)", thresholdDays: 4 },
   quant_currency_index: { label: "Currency index",   category: "Macro",            thresholdDays: 4 },

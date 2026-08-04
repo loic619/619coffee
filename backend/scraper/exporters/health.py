@@ -218,7 +218,12 @@ def export_health(db, *, exporters_published_at: dict[str, str] | None = None) -
     scrapers["ethiopia_exports"]  = _supply_ts("ethiopia_supply.json")
     scrapers["vietnam_exports"]   = _supply_ts("vietnam_supply.json")
     scrapers["indonesia_exports"] = _supply_ts("indonesia_supply.json")
-    scrapers["uganda_exports"]    = _supply_ts("uganda_supply.json")
+    # Uganda: uganda_supply.json's scraped_at refreshes on EVERY export run,
+    # so it reads green even when the underlying UCDA harvest has stalled
+    # (July-2026: the monthly run was silently cancelled and the panel stayed
+    # green for weeks). uganda_monthly.json's `updated` is stamped only when
+    # the UCDA scraper actually lands data — that is the honest signal.
+    scrapers["uganda_exports"]    = _supply_ts("uganda_monthly.json")
 
     # ICE certified stocks — three freshness rows on two cadences (the daily
     # stock scraper and the two monthly reports run as separate workflows):
