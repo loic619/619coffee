@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-04T08:27:52.355862Z",
-  "count": 83,
+  "generated_at": "2026-08-04T08:35:12.231812Z",
+  "count": 66,
   "workflows": [
     {
       "file": "audit-cftc-markets.yml",
@@ -14,72 +14,6 @@
       "timeout_minutes": 10
     },
     {
-      "file": "backfill-30yr-history.yml",
-      "name": "0.9 \u2013 One-shot \u2014 Backfill 30Y daily weather history (1995-2024)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 60
-    },
-    {
-      "file": "backfill-arabica-fisico.yml",
-      "name": "Z \u2013 Backfill: Brazil Arabica f\u00edsico",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 20
-    },
-    {
-      "file": "backfill-b3-arabica.yml",
-      "name": "Z \u2013 Backfill: Brazil B3 Arabica 4/5",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 20
-    },
-    {
-      "file": "backfill-brent-intraday.yml",
-      "name": "9.5 \u2013 Backfill Brent Overnight Anchors (one-off)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": "data-commit",
-      "timeout_minutes": 30
-    },
-    {
-      "file": "backfill-cot-deep.yml",
-      "name": "9.4 \u2013 Backfill Deep COT History (one-off)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": "data-commit",
-      "timeout_minutes": 25
-    },
-    {
-      "file": "backfill-cropyear-xray.yml",
-      "name": "9.7 \u2013 Backfill cross-commodity crop-year X-ray (one-off)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": "data-commit",
-      "timeout_minutes": 15
-    },
-    {
       "file": "backfill-enso-thermocline.yml",
       "name": "0.9 \u2013 Backfill \u2014 ENSO thermocline archive (TAO/TRITON 150m, multi-year)",
       "triggers": [
@@ -89,61 +23,6 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 30
-    },
-    {
-      "file": "backfill-essm-history.yml",
-      "name": "0.7 \u2013 One-shot \u2014 Backfill Surface Soil Moisture history (ERA5 archive)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 45
-    },
-    {
-      "file": "backfill-fx-history.yml",
-      "name": "1.99 \u2013 Backfill FX history (CCI, Yahoo, 2020+)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": "data-commit",
-      "timeout_minutes": 10
-    },
-    {
-      "file": "backfill-history-gap.yml",
-      "name": "0.7 \u2013 One-shot \u2014 Backfill 2025 history gap (Open-Meteo archive)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 30
-    },
-    {
-      "file": "backfill-intraday-5y.yml",
-      "name": "1.97 \u2013 Backfill Intraday KC/RC 5y (Barchart continuous)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": "data-commit",
-      "timeout_minutes": 20
-    },
-    {
-      "file": "backfill-kc-at-rc-close.yml",
-      "name": "1.95 \u2013 Backfill KC at RC Close (one-shot)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": "data-commit",
-      "timeout_minutes": 10
     },
     {
       "file": "backfill-missing-fields.yml",
@@ -166,39 +45,6 @@
       "workflow_run_deps": [],
       "concurrency_group": "data-commit",
       "timeout_minutes": null
-    },
-    {
-      "file": "backfill-sept-spreads.yml",
-      "name": "9.6 \u2013 Backfill KC Sept/Dec contract settles + event study (one-off)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": "data-commit",
-      "timeout_minutes": 25
-    },
-    {
-      "file": "backfill-sept-study.yml",
-      "name": "9.5 \u2013 Backfill September X-ray CFTC history (one-off)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": "data-commit",
-      "timeout_minutes": 15
-    },
-    {
-      "file": "backfill-vhi.yml",
-      "name": "0.10 \u2013 One-shot \u2014 Backfill VHI long-form history (NOAA STAR)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 20
     },
     {
       "file": "bps-indonesia-exim.yml",
@@ -238,28 +84,6 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 10
-    },
-    {
-      "file": "build-spei-baselines.yml",
-      "name": "0.4 \u2013 One-shot \u2014 Build SPEI baselines (Open-Meteo 30-yr archive)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 90
-    },
-    {
-      "file": "build-spi-baselines.yml",
-      "name": "0.3 \u2013 One-shot \u2014 Build SPI baselines (Open-Meteo 30-yr archive)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 25
     },
     {
       "file": "build-vhi.yml",
@@ -363,7 +187,7 @@
         "workflow_dispatch"
       ],
       "crons": [
-        "0 6 * * *"
+        "0 6 * * 1"
       ],
       "workflow_run_deps": [],
       "concurrency_group": null,
@@ -580,7 +404,6 @@
         "workflow_run"
       ],
       "crons": [
-        "41 3 * * *",
         "0 10 * * *"
       ],
       "workflow_run_deps": [
@@ -899,7 +722,7 @@
         "workflow_dispatch"
       ],
       "crons": [
-        "30 6 * * *"
+        "30 6 1-22 * *"
       ],
       "workflow_run_deps": [],
       "concurrency_group": "scraper-monthly-colombia",
@@ -1061,17 +884,6 @@
       "timeout_minutes": 15
     },
     {
-      "file": "ucda-monthly-backfill.yml",
-      "name": "0.8 \u2013 One-shot \u2014 UCDA Uganda monthly reports backfill",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": "ucda-monthly-backfill",
-      "timeout_minutes": 60
-    },
-    {
       "file": "vn-customs-by-country.yml",
       "name": "0.9 \u2013 VN Customs by-country (5X/5N) probe / backfill",
       "triggers": [
@@ -1100,19 +912,9 @@
   "drift": {
     "uncovered_workflows": [
       {
-        "file": "backfill-kc-at-rc-close.yml",
-        "name": "1.95 \u2013 Backfill KC at RC Close (one-shot)",
-        "version": "1.95"
-      },
-      {
         "file": "fetch-intraday-kc-rc.yml",
         "name": "1.96 \u2013 Fetch Intraday KC/RC 15min (Barchart)",
         "version": "1.96"
-      },
-      {
-        "file": "backfill-intraday-5y.yml",
-        "name": "1.97 \u2013 Backfill Intraday KC/RC 5y (Barchart continuous)",
-        "version": "1.97"
       },
       {
         "file": "refresh-intraday-15min.yml",
@@ -1120,42 +922,15 @@
         "version": "1.98"
       },
       {
-        "file": "backfill-fx-history.yml",
-        "name": "1.99 \u2013 Backfill FX history (CCI, Yahoo, 2020+)",
-        "version": "1.99"
-      },
-      {
-        "file": "backfill-cot-deep.yml",
-        "name": "9.4 \u2013 Backfill Deep COT History (one-off)",
-        "version": "9.4"
-      },
-      {
-        "file": "backfill-brent-intraday.yml",
-        "name": "9.5 \u2013 Backfill Brent Overnight Anchors (one-off)",
-        "version": "9.5"
-      },
-      {
-        "file": "backfill-sept-study.yml",
-        "name": "9.5 \u2013 Backfill September X-ray CFTC history (one-off)",
-        "version": "9.5"
-      },
-      {
-        "file": "backfill-sept-spreads.yml",
-        "name": "9.6 \u2013 Backfill KC Sept/Dec contract settles + event study (one-off)",
-        "version": "9.6"
-      },
-      {
-        "file": "backfill-cropyear-xray.yml",
-        "name": "9.7 \u2013 Backfill cross-commodity crop-year X-ray (one-off)",
-        "version": "9.7"
-      },
-      {
         "file": "audit-cftc-markets.yml",
         "name": "9.9 \u2013 Audit CFTC markets",
         "version": "9.9"
       }
     ],
-    "stale_curation": [],
+    "stale_curation": [
+      "0.3",
+      "0.4"
+    ],
     "non_workflow_entries": [
       "Acaphe poll",
       "1.3b Slow-data",
@@ -1166,7 +941,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 11,
-    "stale_curation_count": 0
+    "uncovered_workflows_count": 3,
+    "stale_curation_count": 2
   }
 }
