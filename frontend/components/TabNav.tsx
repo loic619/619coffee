@@ -11,8 +11,9 @@ const TABS = [
   { href: "/demand",  label: "Demand" },
   { href: "/macro",   label: "Macro" },
   { href: "/map",     label: "Map" },
-  { href: "/data-map",label: "Data Map" },
-  { href: "/research",label: "Research" },
+  // Hidden from the tab band (still reachable by direct URL):
+  //   { href: "/data-map", label: "Data Map" },
+  //   { href: "/research", label: "Research" },
 ];
 
 export default function TabNav() {
