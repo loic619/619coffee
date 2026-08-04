@@ -805,25 +805,35 @@ def _fetch_and_upsert(db) -> None:
         _next_tue = prev_arabica_date + timedelta(days=7)
         _release  = _release_date(_next_tue)
         if today <= _release:
-            _latest_syms = {s for (s,) in db.query(CommodityCot.symbol).filter_by(date=prev_arabica_date)}
-            _prev_date = (db.query(func.max(CommodityCot.date))
-                            .filter(CommodityCot.date < prev_arabica_date).scalar())
-            _prev_syms = ({s for (s,) in db.query(CommodityCot.symbol).filter_by(date=_prev_date)}
-                          if _prev_date else set())
-            _missing_syms = _prev_syms - _latest_syms
             _wstart = prev_arabica_date - timedelta(weeks=SELF_HEAL_WEEKS)
+            # Window completeness: for each symbol, every window report-date on
+            # or after its first appearance must have a row. Catches interior
+            # holes (robusta missing a middle week — the 2026-06-30 incident
+            # seen a week later) AND a symbol lagging the latest week (the
+            # incident on the day). A symbol that leaves the complex triggers
+            # downloads only until its rows age out of the window.
+            _rows = (db.query(CommodityCot.symbol, CommodityCot.date)
+                       .filter(CommodityCot.date >= _wstart).all())
+            _all_dates = sorted({d for (_, d) in _rows})
+            _by_sym: dict = {}
+            for (s, d) in _rows:
+                _by_sym.setdefault(s, set()).add(d)
+            _holes = {
+                (s, d) for s, ds in _by_sym.items()
+                for d in _all_dates if d >= min(ds) and d not in ds
+            }
             _prows = db.query(CommodityPrice).filter(CommodityPrice.date >= _wstart).all()
             _pb = _bases(_prows)
             _insane = [p for p in _prows
                        if p.close_price is not None and not _sane(p.close_price, _pb.get(p.symbol))]
             _jmp = _jumps(_prows)
-            if not _missing_syms and not _insane and not _jmp:
+            if not _holes and not _insane and not _jmp:
                 print(f"[macro_cot] gate: next report ({_next_tue}) not due until {_release}; "
-                      f"latest week complete ({len(_latest_syms)} symbols), prices sane — "
-                      "skipping CFTC/ICE downloads.", file=sys.stderr)
+                      f"window complete ({len(_by_sym)} symbols × {len(_all_dates)} weeks), "
+                      "prices sane — skipping CFTC/ICE downloads.", file=sys.stderr)
                 return
             print(f"[macro_cot] gate: no-new-report day but proceeding — "
-                  f"missing_syms={sorted(_missing_syms)[:6]} insane={len(_insane)} "
+                  f"holes={sorted(_holes)[:6]} insane={len(_insane)} "
                   f"jumps={len(_jmp)}", file=sys.stderr)
 
     # Download CFTC — fallback to prior year if current year returns 0 rows
