@@ -20200,7 +20200,7 @@
   "actual_gap_pct": null,
   "actual_dir": null,
   "hit": null,
-  "status": "pending",
+  "status": "void",
   "source": "live",
   "factors": [
    {
@@ -20216,6 +20216,32 @@
     "raw_fmt": "-0.06%",
     "z": -0.16,
     "phi": -0.0644
+   }
+  ]
+ },
+ {
+  "date": "2026-08-04",
+  "prob_up": 0.613,
+  "direction": "Bullish",
+  "actual_gap_pct": null,
+  "actual_dir": null,
+  "hit": null,
+  "status": "pending",
+  "source": "live",
+  "factors": [
+   {
+    "var_name": "kc_after_rc_diff",
+    "raw_value": 0.00832,
+    "raw_fmt": "+0.83%",
+    "z": 2.06,
+    "phi": 0.8304
+   },
+   {
+    "var_name": "days_since_roll",
+    "raw_value": 1.0,
+    "raw_fmt": "day 1",
+    "z": -1.18,
+    "phi": -0.2213
    }
   ]
  }
