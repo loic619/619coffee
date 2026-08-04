@@ -781,6 +781,51 @@ def _fetch_and_upsert(db) -> None:
     # Snapshot current max date before downloading — used for staleness guard below
     prev_arabica_date = db.query(func.max(CommodityCot.date)).filter_by(symbol="arabica").scalar()
 
+    # ── Pre-download gate (2026-08 Actions-efficiency pass) ───────────────────
+    # CFTC/ICE publish WEEKLY (Fri ~15:30 ET, holiday-shifted), but this runs
+    # daily inside scraper 1.1 — so ~5 runs a week downloaded + parsed both
+    # ZIPs just to hit the no-new-data early-return below. Skip the downloads
+    # entirely (pure-DB check, zero network) when ALL of:
+    #   • no manual deep-heal requested (MACRO_COT_HEAL_WEEKS unset);
+    #   • the next report physically can't be in the files yet (today <= its
+    #     holiday-aware release date — it publishes ~20:30 UTC that day, hours
+    #     AFTER the 01:07 UTC daily run, so first pickup is release+1 either way
+    #     and this gate adds zero data latency);
+    #   • the latest ingested week is COMPLETE — every symbol present the week
+    #     before is present now (keeps the ICE-file-lags-CFTC partial-week case
+    #     downloading daily until healed, per the 2026-06-30 incident);
+    #   • no stored price in the window is insane or a corrupt-batch jump
+    #     survivor (poisoned prices must keep retrying daily).
+    if prev_arabica_date is not None and not os.environ.get(_HEAL_WEEKS_ENV, ""):
+        from scraper.cot_calendar import cot_release_date as _release_date
+        from scraper.price_sanity import baselines_by_symbol as _bases
+        from scraper.price_sanity import is_price_sane as _sane
+        from scraper.price_sanity import weekly_jump_pairs as _jumps
+
+        _next_tue = prev_arabica_date + timedelta(days=7)
+        _release  = _release_date(_next_tue)
+        if today <= _release:
+            _latest_syms = {s for (s,) in db.query(CommodityCot.symbol).filter_by(date=prev_arabica_date)}
+            _prev_date = (db.query(func.max(CommodityCot.date))
+                            .filter(CommodityCot.date < prev_arabica_date).scalar())
+            _prev_syms = ({s for (s,) in db.query(CommodityCot.symbol).filter_by(date=_prev_date)}
+                          if _prev_date else set())
+            _missing_syms = _prev_syms - _latest_syms
+            _wstart = prev_arabica_date - timedelta(weeks=SELF_HEAL_WEEKS)
+            _prows = db.query(CommodityPrice).filter(CommodityPrice.date >= _wstart).all()
+            _pb = _bases(_prows)
+            _insane = [p for p in _prows
+                       if p.close_price is not None and not _sane(p.close_price, _pb.get(p.symbol))]
+            _jmp = _jumps(_prows)
+            if not _missing_syms and not _insane and not _jmp:
+                print(f"[macro_cot] gate: next report ({_next_tue}) not due until {_release}; "
+                      f"latest week complete ({len(_latest_syms)} symbols), prices sane — "
+                      "skipping CFTC/ICE downloads.", file=sys.stderr)
+                return
+            print(f"[macro_cot] gate: no-new-report day but proceeding — "
+                  f"missing_syms={sorted(_missing_syms)[:6]} insane={len(_insane)} "
+                  f"jumps={len(_jmp)}", file=sys.stderr)
+
     # Download CFTC — fallback to prior year if current year returns 0 rows
     _phase(f"download_cftc({year})")
     try:
