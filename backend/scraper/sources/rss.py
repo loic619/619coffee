@@ -29,11 +29,9 @@ RSS_FEEDS = [
         "source":   "Comunicaffe",
         "default_category": "macro",
     },
-    {
-        "url":      "https://dailycoffeenews.com/feed/",
-        "source":   "Daily Coffee News",
-        "default_category": "supply",
-    },
+    # Daily Coffee News removed 2026-07 (owner request): mostly culture/gear
+    # headlines that diluted the sentiment signal. Replaced by the Sucafina
+    # weekly origin reports (fetch_sucafina_reports.py) as the origin-news feed.
     {
         "url":      "https://www.globalcoffeereport.com/feed/",
         "source":   "Global Coffee Report",

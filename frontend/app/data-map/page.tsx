@@ -623,6 +623,13 @@ const ROWS: FlowMetadata[] = [
     resiliency: { onMissing: "panel shows UNAVAILABLE; history rows stay pending until resolvable" },
   },
   {
+    wf: "1.17 Sucafina Reports", output: "sucafina_reports.json", component: "OriginReportsPanel", visual: "News · Weekly notes from origin",
+    cadence: { recurrence: "Thu 06:23 UTC weekly (Sat backstop)", trigger: "cron" },
+    transport: { provider: "sucafina.com (Playwright) + Kontent CDN", method: "date links → PDF → pdfplumber → per-origin sections" },
+    storage: { target: "sucafina_reports.json", footprint: "last 30 weeks", units: "per-origin market notes" },
+    resiliency: { onMissing: "panel hidden until first run; unparsed weeks ship raw text + PDF link" },
+  },
+  {
     wf: "1.16 Open-Direction Log", output: "fx_intraday_snapshots.json", component: "(model input)", visual: "feeds cci_overnight feature",
     cadence: { recurrence: "03:00 UTC Mon-Fri (non-blocking step)", trigger: "cron" },
     transport: { provider: "Barchart queryminutes (Playwright)", method: "15-min FX bars → 17:30-London + 03:00-UTC anchors" },

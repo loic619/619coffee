@@ -1,0 +1,58 @@
+name: "1.17 – Sucafina Origin Reports (weekly)"
+
+# Fetches the weekly Sucafina EMEA origin-report PDF (replaces the removed
+# Daily Coffee News RSS source as the origin-news feed) and commits the parsed
+# per-origin sections for the News-tab panel. Reports publish Wednesdays;
+# fetching Thu + Sat catches late uploads. Idempotent — already-stored weeks
+# are skipped, so extra runs are free.
+
+on:
+  schedule:
+    - cron: '23 6 * * 4'    # Thu 06:23 UTC (off-round minute — GH cron skip)
+    - cron: '23 7 * * 6'    # Sat 07:23 UTC backstop
+  workflow_dispatch:
+
+concurrency:
+  group: data-commit
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install playwright pdfplumber
+
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}
+
+      - name: Install Playwright browser
+        run: sudo rm -f /etc/apt/sources.list.d/*microsoft* /etc/apt/sources.list.d/*azure* || true; playwright install chromium --with-deps || playwright install chromium
+
+      - name: Fetch Sucafina origin reports
+        working-directory: backend
+        run: python -m scraper.fetch_sucafina_reports
+
+      - name: Commit updated reports if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          [ -f frontend/public/data/sucafina_reports.json ] \
+            && git add frontend/public/data/sucafina_reports.json || true
+          git diff --cached --quiet \
+            && echo "No changes." \
+            || (git commit -m "data: sucafina origin reports [skip ci]" \
+                && git pull --rebase --autostash --strategy-option=theirs origin main \
+                && git push)
