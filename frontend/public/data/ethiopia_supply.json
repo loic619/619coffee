@@ -1,6 +1,6 @@
 {
   "country": "ethiopia",
-  "scraped_at": "2026-08-04T10:44:36.774660Z",
+  "scraped_at": "2026-08-05T05:38:34.162827Z",
   "exports": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-16",
@@ -346,7 +346,7 @@
     "grade": "All grades avg"
   },
   "weather": {
-    "scraped_at": "2026-08-04T04:34:25.858959Z",
+    "scraped_at": "2026-08-05T04:34:13.416102Z",
     "regions": [
       {
         "name": "Sidama/Yirgacheffe",
@@ -355,21 +355,21 @@
         "csi_60d": 0.046,
         "csi_30d_level": "LOW",
         "csi_60d_level": "LOW",
-        "rain_mtd_mm": 51.8,
-        "rain_hist_min": 3.0,
-        "rain_hist_max": 35.9
+        "rain_mtd_mm": 59.2,
+        "rain_hist_min": 6.7,
+        "rain_hist_max": 36.5
       },
       {
         "name": "Harrar",
         "drought": "MED",
-        "csi_30d": 0.934,
+        "csi_30d": 0.98,
         "csi_60d": 0.77,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
       },
       {
         "name": "Kaffa",
-        "drought": "LOW",
+        "drought": "MED",
         "csi_30d": 1.0,
         "csi_60d": 0.98,
         "csi_30d_level": "HIGH",
@@ -403,7 +403,6 @@
           "-",
           "-",
           "-",
-          "-",
           "L",
           "L",
           "L",
@@ -454,6 +453,7 @@
           "-",
           "-",
           "L",
+          "-",
           "-",
           "-",
           "-",
@@ -470,7 +470,6 @@
         "days": [
           "L",
           "L",
-          "L",
           "M",
           "-",
           "-",
@@ -530,8 +529,9 @@
           "-",
           "L",
           "M",
-          "L",
-          "L",
+          "M",
+          "M",
+          "M",
           "M",
           "M",
           "M"
@@ -540,8 +540,6 @@
       {
         "region": "Kaffa",
         "days": [
-          "-",
-          "-",
           "L",
           "-",
           "L",
@@ -605,6 +603,8 @@
           "L",
           "L",
           "L",
+          "M",
+          "M",
           "M",
           "M"
         ]
@@ -622,9 +622,9 @@
           "-",
           "-",
           "-",
+          "L",
+          "L",
           "-",
-          "L",
-          "L",
           "-",
           "-",
           "-",
@@ -685,22 +685,26 @@
   },
   "enso": {
     "phase": "neutral",
-    "intensity": "Moderate",
-    "oni": 1.39,
+    "intensity": "Weak",
+    "oni": 0.98,
     "peak_month": "Nov-25",
     "forecast_direction": "Neutral - No strong signal for 2026",
     "oni_history": [
       {
+        "month": "Dec-24",
+        "value": -0.42
+      },
+      {
         "month": "Jan-25",
-        "value": -0.46
+        "value": -0.45
       },
       {
         "month": "Feb-25",
-        "value": -0.22
+        "value": -0.24
       },
       {
         "month": "Mar-25",
-        "value": -0.08
+        "value": -0.06
       },
       {
         "month": "Apr-25",
@@ -708,61 +712,57 @@
       },
       {
         "month": "May-25",
-        "value": -0.04
-      },
-      {
-        "month": "Jun-25",
         "value": -0.02
       },
       {
+        "month": "Jun-25",
+        "value": -0.04
+      },
+      {
         "month": "Jul-25",
-        "value": -0.11
+        "value": -0.14
       },
       {
         "month": "Aug-25",
-        "value": -0.26
+        "value": -0.28
       },
       {
         "month": "Sep-25",
-        "value": -0.43
+        "value": -0.4
       },
       {
         "month": "Oct-25",
-        "value": -0.57
+        "value": -0.51
       },
       {
         "month": "Nov-25",
-        "value": -0.61
+        "value": -0.55
       },
       {
         "month": "Dec-25",
-        "value": -0.6
+        "value": -0.54
       },
       {
         "month": "Jan-26",
-        "value": -0.39
+        "value": -0.37
       },
       {
         "month": "Feb-26",
-        "value": -0.21
+        "value": -0.14
       },
       {
         "month": "Mar-26",
-        "value": 0.11
+        "value": 0.13,
+        "preliminary": true
       },
       {
         "month": "Apr-26",
-        "value": 0.46,
+        "value": 0.51,
         "preliminary": true
       },
       {
         "month": "May-26",
-        "value": 0.95,
-        "preliminary": true
-      },
-      {
-        "month": "Jun-26",
-        "value": 1.39,
+        "value": 0.98,
         "preliminary": true
       }
     ],
@@ -772,35 +772,35 @@
         "region": "Sidama/Yirgacheffe",
         "type": "WARM",
         "note": "near-normal bimodal rainfall",
-        "dots": 2
+        "dots": 1
       },
       {
         "region": "Harrar",
         "type": "WARM",
         "note": "near-normal conditions",
-        "dots": 2
+        "dots": 1
       },
       {
         "region": "Kaffa",
         "type": "WARM",
         "note": "near-normal southwest conditions",
-        "dots": 2
+        "dots": 1
       },
       {
         "region": "Limu",
         "type": "WARM",
         "note": "near-normal conditions",
-        "dots": 2
+        "dots": 1
       },
       {
         "region": "Jimma",
         "type": "WARM",
         "note": "near-normal conditions",
-        "dots": 2
+        "dots": 1
       }
     ],
     "historical_stat": "Neutral ENSO: near-average Ethiopia arabica output expected",
-    "last_updated": "2026-08-04"
+    "last_updated": "2026-08-05"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Jan",

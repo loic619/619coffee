@@ -1,21 +1,25 @@
 {
   "phase": "neutral",
-  "intensity": "Moderate",
-  "oni": 1.39,
+  "intensity": "Weak",
+  "oni": 0.98,
   "peak_month": "Nov-25",
   "forecast_direction": "Neutral · No strong signal for 2026",
   "oni_history": [
     {
+      "month": "Dec-24",
+      "value": -0.42
+    },
+    {
       "month": "Jan-25",
-      "value": -0.46
+      "value": -0.45
     },
     {
       "month": "Feb-25",
-      "value": -0.22
+      "value": -0.24
     },
     {
       "month": "Mar-25",
-      "value": -0.08
+      "value": -0.06
     },
     {
       "month": "Apr-25",
@@ -23,61 +27,57 @@
     },
     {
       "month": "May-25",
-      "value": -0.04
-    },
-    {
-      "month": "Jun-25",
       "value": -0.02
     },
     {
+      "month": "Jun-25",
+      "value": -0.04
+    },
+    {
       "month": "Jul-25",
-      "value": -0.11
+      "value": -0.14
     },
     {
       "month": "Aug-25",
-      "value": -0.26
+      "value": -0.28
     },
     {
       "month": "Sep-25",
-      "value": -0.43
+      "value": -0.4
     },
     {
       "month": "Oct-25",
-      "value": -0.57
+      "value": -0.51
     },
     {
       "month": "Nov-25",
-      "value": -0.61
+      "value": -0.55
     },
     {
       "month": "Dec-25",
-      "value": -0.6
+      "value": -0.54
     },
     {
       "month": "Jan-26",
-      "value": -0.39
+      "value": -0.37
     },
     {
       "month": "Feb-26",
-      "value": -0.21
+      "value": -0.14
     },
     {
       "month": "Mar-26",
-      "value": 0.11
+      "value": 0.13,
+      "preliminary": true
     },
     {
       "month": "Apr-26",
-      "value": 0.46,
+      "value": 0.51,
       "preliminary": true
     },
     {
       "month": "May-26",
-      "value": 0.95,
-      "preliminary": true
-    },
-    {
-      "month": "Jun-26",
-      "value": 1.39,
+      "value": 0.98,
       "preliminary": true
     }
   ],
@@ -768,5 +768,5 @@
       "low": 34
     }
   },
-  "last_updated": "2026-08-04"
+  "last_updated": "2026-08-05"
 }
