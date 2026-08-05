@@ -134,6 +134,20 @@ PHENOLOGY_ZONES: dict[str, dict] = {
     },
 }
 
+# Days after a crop-cycle flip during which an empty current-cycle feature
+# vector is treated as the normal "new cycle, nothing accumulated yet" state
+# (graceful skip) rather than an error. The first stage spans two months, so
+# features can legitimately take ~60 d to appear; 92 d matches the weather
+# fetcher's own history window and leaves margin before we alarm.
+ROLLOVER_GRACE_DAYS = 92
+
+
+def _days_into_cycle(today: "dt.date", flip_month: int) -> int:
+    """Days since the most recent cycle flip (the 1st of flip_month)."""
+    flip_year = today.year if today.month >= flip_month else today.year - 1
+    return (today - dt.date(flip_year, flip_month, 1)).days
+
+
 # Per-origin configuration — each origin references a phenology zone above
 # and adds its own region weights, production seed, history files.
 ORIGIN_CONFIGS = {
@@ -663,7 +677,24 @@ def run_for_origin(origin_key: str, cfg: dict) -> int:
     cur_vec = _project(signature_to_vector(all_signatures[cur_crop_year]))
     present_idx = [i for i, v in enumerate(cur_vec) if v is not None]
     if not present_idx:
-        print(f"[{origin_key}] current year has no features yet", file=sys.stderr)
+        # Right after the crop-cycle flip (Aug 1 southern / Feb 1 northern)
+        # the new cycle has zero accumulated stage features — an EXPECTED
+        # annual condition, not a failure. Treating it as an error made the
+        # whole workflow fail (with pointless 5-min retries + a Telegram
+        # alert) every day from Aug 1 until the first stage populated. Skip
+        # gracefully inside the grace window (first stage spans two months;
+        # 92 d ≈ the fetcher's own history window) and keep last cycle's
+        # analog file on disk; past the window an empty vector means the
+        # pipeline genuinely stopped accumulating — fail loudly then.
+        days_in = _days_into_cycle(today, flip_month)
+        if days_in <= ROLLOVER_GRACE_DAYS:
+            print(f"[{origin_key}] cycle {cur_crop_year} rolled {days_in}d ago — no "
+                  f"current-cycle features yet (expected); keeping previous analog file.",
+                  file=sys.stderr)
+            return 0
+        print(f"[{origin_key}] current year has no features yet "
+              f"({days_in}d into the cycle — past the {ROLLOVER_GRACE_DAYS}d grace)",
+              file=sys.stderr)
         return 1
     cov_full = np.linalg.inv(inv_cov_full)
     cov_present_inv = np.linalg.inv(cov_full[np.ix_(present_idx, present_idx)])
