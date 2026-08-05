@@ -11,7 +11,11 @@ export default function WelcomePage({
 }) {
   const rawNext = Array.isArray(searchParams.next) ? searchParams.next[0] : searchParams.next;
   const next = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
-  const hasErr = Boolean(searchParams.err);
+  const err = Array.isArray(searchParams.err) ? searchParams.err[0] : searchParams.err;
+  const errMsg =
+    err === "2" ? "That access code isn't right — check it and try again."
+    : err ? "Please enter your first name and surname."
+    : null;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
@@ -20,7 +24,7 @@ export default function WelcomePage({
           <div className="text-2xl">☕</div>
           <h1 className="mt-2 text-xl font-bold text-white">Coffee Intel Map</h1>
           <p className="mt-1 text-sm text-slate-400">
-            Tell us who you are to continue. No password — just your name.
+            Enter your name and your access code to continue.
           </p>
         </div>
 
@@ -29,9 +33,9 @@ export default function WelcomePage({
           method="POST"
           className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3"
         >
-          {hasErr && (
+          {errMsg && (
             <p className="text-xs text-rose-400 bg-rose-950/40 border border-rose-900/50 rounded-md px-3 py-2">
-              Please enter your first name and surname.
+              {errMsg}
             </p>
           )}
 
@@ -61,6 +65,20 @@ export default function WelcomePage({
               className="w-full rounded-md bg-slate-950 border border-slate-700 px-3 py-2 text-sm text-slate-100
                          placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60"
               placeholder="Doe"
+            />
+          </label>
+
+          <label className="block">
+            <span className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">Access code</span>
+            <input
+              name="password"
+              type="password"
+              required
+              autoComplete="current-password"
+              maxLength={60}
+              className="w-full rounded-md bg-slate-950 border border-slate-700 px-3 py-2 text-sm text-slate-100
+                         placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60"
+              placeholder="••••••••"
             />
           </label>
 

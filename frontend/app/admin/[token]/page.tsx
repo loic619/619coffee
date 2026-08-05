@@ -26,6 +26,7 @@ interface LogEntry {
   ts: string;
   ip: string;
   name?: string;
+  tier?: string;
   country: string | null;
   region: string | null;
   city: string | null;
@@ -37,6 +38,7 @@ interface LogEntry {
 interface VisitorRollup {
   ip: string;
   name: string;
+  tier: string;
   hits: number;
   firstSeen: string;
   lastSeen: string;
@@ -73,6 +75,7 @@ function hashToRollup(ip: string, fields: string[]): VisitorRollup {
   return {
     ip,
     name: h.name ?? "",
+    tier: h.tier ?? "",
     hits: Number(h.hits ?? 0),
     firstSeen: h.first_seen ?? "",
     lastSeen: h.last_seen ?? "",
@@ -214,7 +217,10 @@ export default async function AdminAccessPage({
                         return (
                           <tr key={v.ip} className="border-t border-slate-800/60 align-top">
                             <td className="px-2 py-1.5 text-right text-amber-300 font-bold">{v.hits}</td>
-                            <td className="px-2 py-1.5 text-slate-100 font-semibold whitespace-nowrap">{v.name || "—"}</td>
+                            <td className="px-2 py-1.5 text-slate-100 font-semibold whitespace-nowrap">
+                              {v.name || "—"}
+                              {v.tier && <span className="ml-1.5 text-[9px] font-normal text-slate-500 uppercase">{v.tier}</span>}
+                            </td>
                             <td className="px-2 py-1.5 text-slate-200">{v.ip}</td>
                             <td className="px-2 py-1.5 text-slate-300">{loc}</td>
                             <td className="px-2 py-1.5 text-slate-400">{v.lastPath || "—"}</td>
@@ -263,7 +269,10 @@ export default async function AdminAccessPage({
                         return (
                           <tr key={`${e.ts}-${i}`} className="border-t border-slate-800/60 align-top">
                             <td className="px-2 py-1.5 text-slate-500">{e.ts.replace("T", " ").slice(0, 19)}Z</td>
-                            <td className="px-2 py-1.5 text-slate-100">{e.name || "—"}</td>
+                            <td className="px-2 py-1.5 text-slate-100">
+                              {e.name || "—"}
+                              {e.tier && <span className="ml-1.5 text-[9px] text-slate-500 uppercase">{e.tier}</span>}
+                            </td>
                             <td className="px-2 py-1.5 text-slate-200">{e.ip}</td>
                             <td className="px-2 py-1.5 text-slate-300">{loc}</td>
                             <td className="px-2 py-1.5 text-slate-300">{e.path}</td>

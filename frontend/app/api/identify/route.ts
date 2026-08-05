@@ -1,11 +1,14 @@
-// POST /api/identify — the "who are you" gate submit.
+// POST /api/identify — the login-gate submit.
 //
-// No password: the welcome form posts a first name + surname. We (1) set a
-// long-lived `cid` cookie so the visitor isn't asked again, and (2) record the
-// name against their IP in Upstash so the /admin access log can show WHO each
-// IP is, not just the raw address. Fault-tolerant: a missing/slow Upstash never
-// blocks the redirect — the cookie (the actual gate) is set regardless.
+// The welcome form posts first name + surname + a shared tier password:
+//   admin (full incl. tracking) · user (no tracking/research/data-map) ·
+//   basic (supply/demand/futures/freight only) — see lib/gate.ts.
+// On success we set (1) the long-lived `cid` name cookie (feeds the /admin
+// IP↔name tracker), (2) the HMAC-signed `tid` tier cookie the middleware
+// enforces, and (3) a client-readable `tierv` used only to filter the tab
+// band. Upstash recording is best-effort — the cookies are the actual gate.
 import { NextResponse, type NextRequest } from "next/server";
+import { signTier, tierForPassword, tierHome, pathAllowed, TIER_COOKIE, TIER_VIEW_COOKIE } from "@/lib/gate";
 
 export const runtime = "nodejs";
 
@@ -14,9 +17,8 @@ const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 const IP_HASH_TTL_SECONDS = 60 * 24 * 60 * 60; // 60 days — matches the middleware
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;     // 1 year
 
-// Drop control chars, collapse whitespace, cap length. The name is rendered as
-// React text in the admin table (auto-escaped) so this is about tidiness, not
-// XSS — but we still strip anything that could break the Redis command/cookie.
+// Drop control chars, collapse whitespace, cap length (tidiness — the value is
+// rendered as React text in the admin table, which escapes it anyway).
 function clean(s: string): string {
   let out = "";
   for (const ch of s) {
@@ -26,8 +28,7 @@ function clean(s: string): string {
   return out.replace(/\s+/g, " ").trim().slice(0, 40);
 }
 
-// Only same-origin relative paths — never an absolute/protocol-relative URL
-// (open-redirect guard).
+// Only same-origin relative paths — never absolute/protocol-relative (open-redirect guard).
 function safeNext(next: string): string {
   return next.startsWith("/") && !next.startsWith("//") ? next : "/";
 }
@@ -40,12 +41,12 @@ function clientIp(req: NextRequest): string {
   );
 }
 
-async function recordName(ip: string, full: string): Promise<void> {
+async function recordIdentity(ip: string, full: string, tier: string): Promise<void> {
   if (!UPSTASH_URL || !UPSTASH_TOKEN) return;
   const ipKey = `access:ips:${ip}`;
   const pipeline = [
     ["SADD", "access:ips", ip],
-    ["HSET", ipKey, "name", full],
+    ["HSET", ipKey, "name", full, "tier", tier],
     ["EXPIRE", ipKey, String(IP_HASH_TTL_SECONDS)],
     // Keep every distinct name ever seen from this IP (shared/office IPs).
     ["SADD", `${ipKey}:names`, full],
@@ -58,7 +59,7 @@ async function recordName(ip: string, full: string): Promise<void> {
       body: JSON.stringify(pipeline),
     });
   } catch {
-    // best-effort — the cookie below is what actually lets them in
+    // best-effort — the cookies below are what actually let them in
   }
 }
 
@@ -66,27 +67,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const form = await req.formData().catch(() => null);
   const first = clean(String(form?.get("first") ?? ""));
   const last = clean(String(form?.get("last") ?? ""));
+  const password = String(form?.get("password") ?? "").trim();
   const next = safeNext(String(form?.get("next") ?? "/"));
   const full = [first, last].filter(Boolean).join(" ").trim();
 
-  // No name entered — bounce back to the form with an error flag.
-  if (!full) {
+  const bounce = (err: string) => {
     const url = new URL("/welcome", req.url);
     url.searchParams.set("next", next);
-    url.searchParams.set("err", "1");
+    url.searchParams.set("err", err);
     return NextResponse.redirect(url, 303);
-  }
+  };
 
-  await recordName(clientIp(req), full);
+  if (!full) return bounce("1");            // name missing
+  const tier = tierForPassword(password);
+  if (!tier) return bounce("2");            // wrong / missing password
 
-  const res = NextResponse.redirect(new URL(next, req.url), 303);
-  // Next encodes/decodes the cookie value itself — store the plain name.
-  res.cookies.set("cid", full, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: COOKIE_MAX_AGE,
-  });
+  await recordIdentity(clientIp(req), full, tier);
+
+  // Land on the requested page if this tier may see it, else its home tab.
+  const dest = pathAllowed(tier, next) ? next : tierHome(tier);
+  const res = NextResponse.redirect(new URL(dest, req.url), 303);
+  const base = { sameSite: "lax" as const, secure: process.env.NODE_ENV === "production", path: "/", maxAge: COOKIE_MAX_AGE };
+  res.cookies.set("cid", full, { ...base, httpOnly: true });
+  res.cookies.set(TIER_COOKIE, await signTier(tier), { ...base, httpOnly: true });
+  res.cookies.set(TIER_VIEW_COOKIE, tier, { ...base, httpOnly: false }); // cosmetic (TabNav)
   return res;
 }

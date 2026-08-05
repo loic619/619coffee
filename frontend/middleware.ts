@@ -19,6 +19,7 @@
 // same middleware redirect un-logged-in visitors to /admin/login. Left
 // off for now per the "open + log" decision (see chat 2026-06-17).
 import { NextResponse, type NextRequest } from "next/server";
+import { pathAllowed, tierHome, verifyTier, TIER_COOKIE } from "@/lib/gate";
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -88,23 +89,19 @@ async function logAccess(payload: unknown): Promise<void> {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Never log/gate the admin surface itself — would flood the log with the
-  // owner's own visits and could lock the owner out of their own dashboard.
-  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
-    return NextResponse.next();
-  }
-
   // The gate's own surface must always be reachable, cookie or not.
   const isGateRoute = pathname === "/welcome" || pathname.startsWith("/api/identify");
+  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
 
-  // Who is this? `cid` is set by /api/identify (first name + surname). Next
-  // decodes the cookie value on read, so this is the plain name.
+  // Who is this? `cid` (name) + `tid` (HMAC-signed tier) are set by
+  // /api/identify. An invalid/absent/forged tid reads as no tier.
   const name = (request.cookies.get("cid")?.value ?? "").trim();
+  const tier = GATE_ENABLED ? await verifyTier(request.cookies.get(TIER_COOKIE)?.value) : "admin";
 
-  // ── Name gate ────────────────────────────────────────────────────────────
+  // ── Login gate ───────────────────────────────────────────────────────────
   // Redirect any un-identified real page navigation to /welcome. Data/asset
   // sub-requests are left alone (the page they belong to is already gated).
-  if (GATE_ENABLED && !name && !isGateRoute && isPageLoad(request, pathname)) {
+  if (GATE_ENABLED && (!name || !tier) && !isGateRoute && isPageLoad(request, pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/welcome";
     url.search = "";
@@ -112,8 +109,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Don't log the gate page itself — pre-identify noise.
-  if (isGateRoute) return NextResponse.next();
+  // ── Tier ACL ─────────────────────────────────────────────────────────────
+  // basic → supply/demand/futures/freight only; user → everything except
+  // tracking (/admin), research, data-map; admin → everything. A logged-in
+  // visitor hitting a page outside their tier is sent to their home tab
+  // (never /welcome — that would loop).
+  if (GATE_ENABLED && tier && !isGateRoute && isPageLoad(request, pathname) && !pathAllowed(tier, pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = tierHome(tier);
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
+  // Never log the admin surface (the owner's own dashboard visits) or the
+  // gate page (pre-identify noise). The admin token in the URL stays the
+  // second factor for /admin — the tier check above just adds a first one.
+  if (isAdminRoute || isGateRoute) return NextResponse.next();
 
   const ua = request.headers.get("user-agent") ?? "";
   if (isBot(ua)) return NextResponse.next();
@@ -130,6 +141,7 @@ export async function middleware(request: NextRequest) {
     ts,
     ip,
     name,
+    tier: tier ?? "",
     country: geo.country ?? null,
     region: geo.region ?? null,
     city: geo.city ?? null,
@@ -154,6 +166,7 @@ export async function middleware(request: NextRequest) {
     "last_ua", entry.ua,
   ];
   if (name) hsetArgs.push("name", name);
+  if (tier) hsetArgs.push("tier", tier);
 
   const pipeline = [
     ["LPUSH", "access:log", JSON.stringify(entry)],
