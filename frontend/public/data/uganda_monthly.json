@@ -1,10 +1,10 @@
 {
   "source": "UCDA Monthly Coffee Report",
   "source_url": "https://ugandacoffee.go.ug/resource-center/reports/monthly-reports",
-  "updated": "2026-06-12",
+  "updated": "2026-08-05",
   "unit": "60-kg bags",
   "parser_summary": {
-    "v1_recent": 158
+    "v1_recent": 162
   },
   "series": [
     {
@@ -21894,6 +21894,712 @@
       "parse_warnings": [
         "destinations cross-check residual (\u22641% of trade): \u03a3robusta=464,916 vs published 463,361 (\u0394-1,555); \u03a3arabica=124,437 vs published 128,326 (\u0394+3,889)",
         "grade-table sum 524,650 differs >5% from published export total 591,687"
+      ]
+    },
+    {
+      "month": "2026-05",
+      "robusta_bags": 517825,
+      "arabica_bags": 99666,
+      "total_bags": 617491,
+      "value_usd": null,
+      "by_grade": [
+        {
+          "grade": "Kiboko",
+          "bags": 14000
+        },
+        {
+          "grade": "FAQ",
+          "bags": 11250
+        },
+        {
+          "grade": "Drugar",
+          "bags": 58244
+        },
+        {
+          "grade": "Organic Robusta",
+          "bags": 2280
+        },
+        {
+          "grade": "Washed Robusta",
+          "bags": 1660
+        },
+        {
+          "grade": "Screen 18",
+          "bags": 73266
+        },
+        {
+          "grade": "Screen 17",
+          "bags": 25691
+        },
+        {
+          "grade": "Screen 15",
+          "bags": 243610
+        },
+        {
+          "grade": "Screen 14",
+          "bags": 7690
+        },
+        {
+          "grade": "Screen 12",
+          "bags": 98468
+        },
+        {
+          "grade": "BHP",
+          "bags": 1199
+        },
+        {
+          "grade": "Sustainable",
+          "bags": 3560
+        },
+        {
+          "grade": "Mt Elgon",
+          "bags": 1472
+        },
+        {
+          "grade": "Wugar",
+          "bags": 8565
+        },
+        {
+          "grade": "Arabica Parchment",
+          "bags": 15000
+        }
+      ],
+      "by_destination": [
+        {
+          "bags": 160656,
+          "robusta_bags": 154474,
+          "arabica_bags": 6182,
+          "country": "Italy"
+        },
+        {
+          "bags": 58889,
+          "robusta_bags": 51190,
+          "arabica_bags": 7699,
+          "country": "India"
+        },
+        {
+          "bags": 57018,
+          "robusta_bags": 57018,
+          "arabica_bags": 0,
+          "country": "Sudan"
+        },
+        {
+          "bags": 56357,
+          "robusta_bags": 47699,
+          "arabica_bags": 8658,
+          "country": "Germany"
+        },
+        {
+          "bags": 43697,
+          "robusta_bags": 43377,
+          "arabica_bags": 320,
+          "country": "Morocco"
+        },
+        {
+          "bags": 31938,
+          "robusta_bags": 6970,
+          "arabica_bags": 24968,
+          "country": "United States"
+        },
+        {
+          "bags": 24457,
+          "robusta_bags": 12320,
+          "arabica_bags": 12137,
+          "country": "Russia"
+        },
+        {
+          "bags": 19914,
+          "robusta_bags": 19247,
+          "arabica_bags": 667,
+          "country": "Algeria"
+        },
+        {
+          "bags": 17253,
+          "robusta_bags": 13503,
+          "arabica_bags": 3750,
+          "country": "China"
+        },
+        {
+          "bags": 16616,
+          "robusta_bags": 10635,
+          "arabica_bags": 5981,
+          "country": "Belgium"
+        },
+        {
+          "bags": 16400,
+          "robusta_bags": 16400,
+          "arabica_bags": 0,
+          "country": "Greece"
+        },
+        {
+          "bags": 15591,
+          "robusta_bags": 13774,
+          "arabica_bags": 1817,
+          "country": "Spain"
+        },
+        {
+          "bags": 14984,
+          "robusta_bags": 12372,
+          "arabica_bags": 2612,
+          "country": "Portugal"
+        },
+        {
+          "bags": 10434,
+          "robusta_bags": 10434,
+          "arabica_bags": 0,
+          "country": "Turkey"
+        },
+        {
+          "bags": 7476,
+          "robusta_bags": 5376,
+          "arabica_bags": 2100,
+          "country": "United Kingdom"
+        },
+        {
+          "bags": 6345,
+          "robusta_bags": 6045,
+          "arabica_bags": 300,
+          "country": "Tunisia"
+        },
+        {
+          "bags": 5599,
+          "robusta_bags": 1694,
+          "arabica_bags": 3905,
+          "country": "Netherlands"
+        },
+        {
+          "bags": 4361,
+          "robusta_bags": 1658,
+          "arabica_bags": 2703,
+          "country": "Latvia"
+        },
+        {
+          "bags": 4170,
+          "robusta_bags": 4170,
+          "arabica_bags": 0,
+          "country": "Egypt"
+        },
+        {
+          "bags": 3663,
+          "robusta_bags": 3663,
+          "arabica_bags": 0,
+          "country": "Mexico"
+        },
+        {
+          "bags": 3617,
+          "robusta_bags": 3297,
+          "arabica_bags": 320,
+          "country": "South Africa"
+        },
+        {
+          "bags": 3317,
+          "robusta_bags": 3317,
+          "arabica_bags": 0,
+          "country": "Israel"
+        },
+        {
+          "bags": 3240,
+          "robusta_bags": 3240,
+          "arabica_bags": 0,
+          "country": "South Korea"
+        },
+        {
+          "bags": 3011,
+          "robusta_bags": 1627,
+          "arabica_bags": 1384,
+          "country": "Poland"
+        },
+        {
+          "bags": 2995,
+          "robusta_bags": 2012,
+          "arabica_bags": 983,
+          "country": "Australia"
+        },
+        {
+          "bags": 2640,
+          "robusta_bags": 1990,
+          "arabica_bags": 650,
+          "country": "United Arab Emirates"
+        },
+        {
+          "bags": 2520,
+          "robusta_bags": 1800,
+          "arabica_bags": 720,
+          "country": "France"
+        },
+        {
+          "bags": 2120,
+          "robusta_bags": 2120,
+          "arabica_bags": 0,
+          "country": "Sweden"
+        },
+        {
+          "bags": 1921,
+          "robusta_bags": 1917,
+          "arabica_bags": 4,
+          "country": "Switzerland"
+        },
+        {
+          "bags": 1820,
+          "robusta_bags": 300,
+          "arabica_bags": 1520,
+          "country": "Japan"
+        },
+        {
+          "bags": 1700,
+          "robusta_bags": 1700,
+          "arabica_bags": 0,
+          "country": "Romania"
+        },
+        {
+          "bags": 1614,
+          "robusta_bags": 1614,
+          "arabica_bags": 0,
+          "country": "Jordan"
+        },
+        {
+          "bags": 1500,
+          "robusta_bags": 1500,
+          "arabica_bags": 0,
+          "country": "Vietnam"
+        },
+        {
+          "bags": 1310,
+          "robusta_bags": 350,
+          "arabica_bags": 960,
+          "country": "Saudi Arabia"
+        },
+        {
+          "bags": 1208,
+          "robusta_bags": 1208,
+          "arabica_bags": 0,
+          "country": "Slovenia"
+        },
+        {
+          "bags": 960,
+          "robusta_bags": 320,
+          "arabica_bags": 640,
+          "country": "Denmark"
+        },
+        {
+          "bags": 934,
+          "robusta_bags": 934,
+          "arabica_bags": 0,
+          "country": "Kenya"
+        },
+        {
+          "bags": 653,
+          "robusta_bags": 320,
+          "arabica_bags": 333,
+          "country": "Canada"
+        },
+        {
+          "bags": 640,
+          "robusta_bags": 320,
+          "arabica_bags": 320,
+          "country": "Estonia"
+        },
+        {
+          "bags": 640,
+          "robusta_bags": 640,
+          "arabica_bags": 0,
+          "country": "Lebanon"
+        },
+        {
+          "bags": 570,
+          "robusta_bags": 250,
+          "arabica_bags": 320,
+          "country": "Singapore"
+        },
+        {
+          "bags": 454,
+          "robusta_bags": 454,
+          "arabica_bags": 0,
+          "country": "Indonesia"
+        },
+        {
+          "bags": 416,
+          "robusta_bags": 416,
+          "arabica_bags": 0,
+          "country": "New Zealand"
+        },
+        {
+          "bags": 350,
+          "robusta_bags": 350,
+          "arabica_bags": 0,
+          "country": "Iran"
+        },
+        {
+          "bags": 320,
+          "robusta_bags": 320,
+          "arabica_bags": 0,
+          "country": "Albania"
+        },
+        {
+          "bags": 320,
+          "robusta_bags": 320,
+          "arabica_bags": 0,
+          "country": "Malaysia"
+        },
+        {
+          "bags": 300,
+          "robusta_bags": 300,
+          "arabica_bags": 0,
+          "country": "Ukraine"
+        },
+        {
+          "bags": 230,
+          "robusta_bags": 230,
+          "arabica_bags": 0,
+          "country": "Taiwan"
+        }
+      ],
+      "parser_version": "v1_recent",
+      "source_pdf": "https://ugandacoffee.go.ug/sites/default/files/2026-06/08%20May%202026%20Report%20pptx%281%29%281%29.pptx_ii.pdf",
+      "parse_warnings": [
+        "destinations cross-check residual (\u22641% of trade): \u03a3robusta=525,185 vs published 517,825 (\u0394-7,360); \u03a3arabica=91,953 vs published 99,666 (\u0394+7,713)",
+        "grade-table sum 565,955 differs >5% from published export total 617,491"
+      ]
+    },
+    {
+      "month": "2026-06",
+      "robusta_bags": 668216,
+      "arabica_bags": 76324,
+      "total_bags": 744540,
+      "value_usd": null,
+      "by_grade": [
+        {
+          "grade": "Kiboko",
+          "bags": 14000
+        },
+        {
+          "grade": "FAQ",
+          "bags": 11500
+        },
+        {
+          "grade": "Drugar",
+          "bags": 32248
+        },
+        {
+          "grade": "Organic Robusta",
+          "bags": 1972
+        },
+        {
+          "grade": "Washed Robusta",
+          "bags": 1720
+        },
+        {
+          "grade": "Screen 18",
+          "bags": 101727
+        },
+        {
+          "grade": "Screen 17",
+          "bags": 46611
+        },
+        {
+          "grade": "Screen 15",
+          "bags": 358020
+        },
+        {
+          "grade": "Screen 14",
+          "bags": 15603
+        },
+        {
+          "grade": "Screen 12",
+          "bags": 83796
+        },
+        {
+          "grade": "BHP",
+          "bags": 1199
+        },
+        {
+          "grade": "Sustainable",
+          "bags": 3222
+        },
+        {
+          "grade": "Mt Elgon",
+          "bags": 1089
+        },
+        {
+          "grade": "Wugar",
+          "bags": 16225
+        },
+        {
+          "grade": "Arabica Parchment",
+          "bags": 14500
+        }
+      ],
+      "by_destination": [
+        {
+          "bags": 232890,
+          "robusta_bags": 224659,
+          "arabica_bags": 8231,
+          "country": "Italy"
+        },
+        {
+          "bags": 96266,
+          "robusta_bags": 95900,
+          "arabica_bags": 366,
+          "country": "Sudan"
+        },
+        {
+          "bags": 58498,
+          "robusta_bags": 55749,
+          "arabica_bags": 2749,
+          "country": "Germany"
+        },
+        {
+          "bags": 48621,
+          "robusta_bags": 48322,
+          "arabica_bags": 299,
+          "country": "India"
+        },
+        {
+          "bags": 37266,
+          "robusta_bags": 37266,
+          "arabica_bags": 0,
+          "country": "Morocco"
+        },
+        {
+          "bags": 26725,
+          "robusta_bags": 19002,
+          "arabica_bags": 7723,
+          "country": "China"
+        },
+        {
+          "bags": 25634,
+          "robusta_bags": 19095,
+          "arabica_bags": 6539,
+          "country": "Belgium"
+        },
+        {
+          "bags": 21941,
+          "robusta_bags": 16800,
+          "arabica_bags": 5141,
+          "country": "Netherlands"
+        },
+        {
+          "bags": 18362,
+          "robusta_bags": 15081,
+          "arabica_bags": 3281,
+          "country": "Russia"
+        },
+        {
+          "bags": 16904,
+          "robusta_bags": 7243,
+          "arabica_bags": 9661,
+          "country": "United States"
+        },
+        {
+          "bags": 16274,
+          "robusta_bags": 15620,
+          "arabica_bags": 654,
+          "country": "Greece"
+        },
+        {
+          "bags": 16212,
+          "robusta_bags": 15882,
+          "arabica_bags": 330,
+          "country": "Spain"
+        },
+        {
+          "bags": 15573,
+          "robusta_bags": 14933,
+          "arabica_bags": 640,
+          "country": "Turkey"
+        },
+        {
+          "bags": 14121,
+          "robusta_bags": 10462,
+          "arabica_bags": 3659,
+          "country": "Latvia"
+        },
+        {
+          "bags": 12288,
+          "robusta_bags": 11954,
+          "arabica_bags": 334,
+          "country": "Algeria"
+        },
+        {
+          "bags": 8687,
+          "robusta_bags": 4393,
+          "arabica_bags": 4294,
+          "country": "Poland"
+        },
+        {
+          "bags": 6547,
+          "robusta_bags": 6227,
+          "arabica_bags": 320,
+          "country": "Portugal"
+        },
+        {
+          "bags": 6490,
+          "robusta_bags": 2718,
+          "arabica_bags": 3772,
+          "country": "Australia"
+        },
+        {
+          "bags": 5880,
+          "robusta_bags": 5880,
+          "arabica_bags": 0,
+          "country": "Egypt"
+        },
+        {
+          "bags": 5664,
+          "robusta_bags": 5414,
+          "arabica_bags": 250,
+          "country": "United Arab Emirates"
+        },
+        {
+          "bags": 5617,
+          "robusta_bags": 3671,
+          "arabica_bags": 1946,
+          "country": "Switzerland"
+        },
+        {
+          "bags": 5239,
+          "robusta_bags": 4519,
+          "arabica_bags": 720,
+          "country": "Israel"
+        },
+        {
+          "bags": 4374,
+          "robusta_bags": 885,
+          "arabica_bags": 3489,
+          "country": "Japan"
+        },
+        {
+          "bags": 4071,
+          "robusta_bags": 3560,
+          "arabica_bags": 511,
+          "country": "France"
+        },
+        {
+          "bags": 3650,
+          "robusta_bags": 3330,
+          "arabica_bags": 320,
+          "country": "Slovenia"
+        },
+        {
+          "bags": 3604,
+          "robusta_bags": 2814,
+          "arabica_bags": 790,
+          "country": "Saudi Arabia"
+        },
+        {
+          "bags": 3448,
+          "robusta_bags": 360,
+          "arabica_bags": 3088,
+          "country": "Sweden"
+        },
+        {
+          "bags": 2906,
+          "robusta_bags": 2586,
+          "arabica_bags": 320,
+          "country": "Finland"
+        },
+        {
+          "bags": 2357,
+          "robusta_bags": 1603,
+          "arabica_bags": 754,
+          "country": "United Kingdom"
+        },
+        {
+          "bags": 2266,
+          "robusta_bags": 1306,
+          "arabica_bags": 960,
+          "country": "South Africa"
+        },
+        {
+          "bags": 1610,
+          "robusta_bags": 170,
+          "arabica_bags": 1440,
+          "country": "Kenya"
+        },
+        {
+          "bags": 1575,
+          "robusta_bags": 1575,
+          "arabica_bags": 0,
+          "country": "Lebanon"
+        },
+        {
+          "bags": 1500,
+          "robusta_bags": 1500,
+          "arabica_bags": 0,
+          "country": "Vietnam"
+        },
+        {
+          "bags": 1336,
+          "robusta_bags": 1336,
+          "arabica_bags": 0,
+          "country": "Canada"
+        },
+        {
+          "bags": 1319,
+          "robusta_bags": 1319,
+          "arabica_bags": 0,
+          "country": "Malaysia"
+        },
+        {
+          "bags": 1316,
+          "robusta_bags": 1316,
+          "arabica_bags": 0,
+          "country": "Tunisia"
+        },
+        {
+          "bags": 1119,
+          "robusta_bags": 1119,
+          "arabica_bags": 0,
+          "country": "Libya"
+        },
+        {
+          "bags": 1000,
+          "robusta_bags": 1000,
+          "arabica_bags": 0,
+          "country": "Romania"
+        },
+        {
+          "bags": 990,
+          "robusta_bags": 990,
+          "arabica_bags": 0,
+          "country": "Albania"
+        },
+        {
+          "bags": 960,
+          "robusta_bags": 960,
+          "arabica_bags": 0,
+          "country": "Estonia"
+        },
+        {
+          "bags": 810,
+          "robusta_bags": 320,
+          "arabica_bags": 490,
+          "country": "South Korea"
+        },
+        {
+          "bags": 666,
+          "robusta_bags": 666,
+          "arabica_bags": 0,
+          "country": "Mexico"
+        },
+        {
+          "bags": 487,
+          "robusta_bags": 487,
+          "arabica_bags": 0,
+          "country": "New Zealand"
+        },
+        {
+          "bags": 350,
+          "robusta_bags": 350,
+          "arabica_bags": 0,
+          "country": "Malta"
+        }
+      ],
+      "parser_version": "v1_recent",
+      "source_pdf": "https://ugandacoffee.go.ug/sites/default/files/2026-07/Monthly%20Report%20for%20June%202026%20.pdf",
+      "parse_warnings": [
+        "destinations cross-check residual (\u22641% of trade): \u03a3robusta=670,342 vs published 668,216 (\u0394-2,126); \u03a3arabica=73,071 vs published 76,324 (\u0394+3,253)",
+        "grade-table sum 703,432 differs >5% from published export total 744,540"
       ]
     }
   ]
