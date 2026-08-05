@@ -189,6 +189,7 @@ export default function UgandaTab() {
           cropYearMonths="Oct–Sep"
           realizedExports={realizedUgExports}
           multiSource={toMultiSource(balanceSheet)}
+          editOrigin="uganda"
         />
       )}
       {subTab === "weather" && <WeatherCharts dataUrl="/data/uganda_weather.json" title="Weather · Uganda" />}

@@ -151,6 +151,7 @@ export default function VietnamTab() {
           origin="vietnam"
           label="Vietnam"
           cropYearMonths="Oct–Sep"
+          editOrigin="vietnam"
           realizedExports={realizedVnExports}
           multiSource={vnBalanceSheet ? {
             sources: [

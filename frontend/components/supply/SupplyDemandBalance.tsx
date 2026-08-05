@@ -8,6 +8,7 @@ import {
   ComposedChart, Bar, Cell, Line, LabelList, XAxis, YAxis, Tooltip,
   ResponsiveContainer, Legend, CartesianGrid, ReferenceLine, ErrorBar,
 } from "recharts";
+import CropEstimateEditor from "./CropEstimateEditor";
 
 interface AnnualRow {
   year: string;
@@ -210,13 +211,18 @@ function cropYearLong(usdaYear: string, cropYearMonths?: string): string {
  */
 export default function SupplyDemandBalance({
   origin, label, years = 12, projection,
-  cropYearMonths, multiSource, realizedExports,
+  cropYearMonths, multiSource, realizedExports, editOrigin,
 }: {
   origin: string; label: string; years?: number;
   projection?: { crop_year: string; annual_target: number; monthly_curve?: { value: number }[]; safeguard_triggered?: boolean } | null;
   cropYearMonths?: string;
   multiSource?: MultiSourceOverlay | null;
   realizedExports?: RealizedExportsOverlay | null;
+  /** Key into the admin crop-estimate editor's origin map (e.g. "brazil").
+   *  When set, a ✎ button appears next to the unit toggle opening the
+   *  password-gated estimate editor. Omit for origins with no balance-sheet
+   *  seed (Honduras). */
+  editOrigin?: string;
 }) {
   const [rows, setRows] = useState<AnnualRow[] | null>(null);
   const [error, setError] = useState(false);
@@ -626,6 +632,7 @@ export default function SupplyDemandBalance({
                 </button>
               ))}
             </div>
+            {editOrigin && <CropEstimateEditor origin={editOrigin} />}
             <div className="text-[8px] text-slate-600">
               USDA FAS PSD
               {multiSource && multiSource.sources.length > 0 && (
