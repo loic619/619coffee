@@ -1,6 +1,6 @@
 {
   "arabica": {
-    "pub_date": "2026-08-03",
+    "pub_date": "2026-08-04",
     "contracts": [
       {
         "contract": "Coffee (Sep '26)",
@@ -8,7 +8,7 @@
         "last": 324.1,
         "chg": 4.6,
         "oi": 51366,
-        "volume": 13085,
+        "volume": 13121,
         "symbol": "KCU26"
       },
       {
@@ -77,7 +77,7 @@
     ]
   },
   "robusta": {
-    "pub_date": "2026-08-03",
+    "pub_date": "2026-08-04",
     "contracts": [
       {
         "contract": "Robusta Coffee 10-T (Sep '26)",
@@ -148,7 +148,7 @@
         "last": 3720,
         "chg": 63,
         "oi": 781,
-        "volume": null,
+        "volume": 0,
         "symbol": "RMX27"
       },
       {
@@ -157,17 +157,8 @@
         "last": 3711,
         "chg": 63,
         "oi": 420,
-        "volume": null,
+        "volume": 0,
         "symbol": "RMF28"
-      },
-      {
-        "contract": "Robusta Coffee 10-T (Mar '28)",
-        "expiry": "2028-03-27",
-        "last": 3682,
-        "chg": 63,
-        "oi": null,
-        "volume": null,
-        "symbol": "RMH28"
       }
     ]
   }
