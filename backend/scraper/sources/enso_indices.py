@@ -85,7 +85,7 @@ SOI_URL_CANDIDATES = [
 ]
 
 _BROWSER_HEADERS = {
-    "User-Agent": "coffee-intel-map/enso-indices (https://github.com/loicscanu-ctrl/coffee-intel-map)",
+    "User-Agent": "619coffee/enso-indices (https://github.com/loic619/619coffee)",
     "Accept": "text/plain, */*",
 }
 

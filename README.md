@@ -1,4 +1,4 @@
-# Coffee-intel-map
+# 619coffee
 Get a visual of coffee intel
 
 ## Deploying the live-quotes poller

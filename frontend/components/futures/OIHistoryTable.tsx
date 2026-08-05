@@ -5,8 +5,26 @@ import { API_URL } from "@/lib/api";
 // refreshes every deploy. Importing it (rather than a hand-maintained constant)
 // means the pre-fetch initial paint is always current as of the last deploy.
 import OI_SNAPSHOT_RAW from "@/public/data/oi_history.json";
-const GITHUB_OI_URL =
-  "https://raw.githubusercontent.com/loicscanu-ctrl/Coffee-intel-map/main/data/oi_history.json";
+// Rename-proof: new owner/repo first, old as fallback (raw.githubusercontent
+// serves renamed repos via redirect, but only until the old username is
+// re-registered — so prefer the canonical name).
+const GITHUB_OI_URLS = [
+  "https://raw.githubusercontent.com/loic619/619coffee/main/data/oi_history.json",
+  "https://raw.githubusercontent.com/loicscanu-ctrl/Coffee-intel-map/main/data/oi_history.json",
+];
+
+/** Fetch the first URL that answers OK (per-candidate failures fall through). */
+async function fetchFirstOk(urls: string[]): Promise<Response> {
+  let lastErr: unknown = new Error("no candidates");
+  for (const u of urls) {
+    try {
+      const r = await fetch(u);
+      if (r.ok) return r;
+      lastErr = new Error(`${u} → ${r.status}`);
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr;
+}
 
 interface OIEntry { symbol: string; oi: number; chg: number; }
 interface DayData  { date: string; contracts: OIEntry[]; }
@@ -660,7 +678,7 @@ export default function OIHistoryTable({ market }: { market: "robusta" | "arabic
         .then((j: Record<string, DayData[]>) => j[market] ?? []),
       fetch(`${API_URL}/api/futures/oi-history?market=${market}&days=14`)
         .then(r => r.json()),
-      fetch(GITHUB_OI_URL)
+      fetchFirstOk(GITHUB_OI_URLS)
         .then(r => r.json())
         .then((j: Record<string, DayData[]>) => j[market] ?? []),
     ]).then(results => {
