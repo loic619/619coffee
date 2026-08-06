@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-06T08:08:00.802862Z",
+  "generated_at": "2026-08-06T19:29:36.757812Z",
   "count": 67,
   "workflows": [
     {
@@ -320,11 +320,11 @@
         "workflow_dispatch"
       ],
       "crons": [
-        "0,15,30,45 8-19 * * 1-5"
+        "3,18,33,48 8-19 * * 1-5"
       ],
       "workflow_run_deps": [],
       "concurrency_group": "acaphe-poll",
-      "timeout_minutes": 4
+      "timeout_minutes": 8
     },
     {
       "file": "probe-acaphe.yml",
