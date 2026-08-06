@@ -22,7 +22,7 @@ on:
       days_back:
         description: "Backfill window in business days (e.g. 3 for daily catch-up, 180 for full history)"
         required: false
-        default: "3"
+        default: "7"
         type: string
   schedule:
     # 02:47 UTC Mon-Fri (was 03:00 — moved off the :00 mark to dodge the GH
@@ -62,7 +62,7 @@ jobs:
       (github.event.workflow_run.event == 'workflow_dispatch' || github.event.workflow_run.event == 'schedule')
     runs-on: ubuntu-latest
     # Big enough for a one-off 180-day backfill at 5s/req on /marketdata/ (~90
-    # min worst case). Daily cron runs in ~5-10 min on a 3-day window.
+    # min worst case). Daily cron runs in ~10-20 min on a 7-day window.
     timeout-minutes: 120
     permissions:
       contents: write
@@ -115,7 +115,12 @@ jobs:
           # no-op (snapshots still publish).
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          # Scheduled cron passes no inputs → default to a 3-day catch-up
+          # Scheduled cron passes no inputs → default to a 7-day catch-up.
+          # Widened from 3 (2026-08): the daily iss/recv comparison showed the
+          # 3-day window sampled only ~10-50% of each month's activity — days
+          # falling between runs (weekend gaps, missed crons) were lost for
+          # good since ICE only serves recent daily files. 7 days overlaps
+          # every gap a failed run or long weekend can create.
           # (merge preserves the history). Manual dispatch can override with
           # days_back=180 for the one-off historical backfill.
           run_scraper() {
@@ -125,7 +130,7 @@ jobs:
               # --skip-monthly: daily feeds only; the monthly ageing /
               # age-allowance reports are pulled by workflow 1.14.
               python -m scraper.sources.ice_certified_stocks.orchestrate \
-                --days "${{ inputs.days_back || 3 }}" --skip-monthly
+                --days "${{ inputs.days_back || 7 }}" --skip-monthly
             fi
           }
           for attempt in 1 2 3; do
