@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-05T06:43:07+00:00",
-  "as_of": "2026-08-04",
+  "generated_at": "2026-08-06T05:20:23+00:00",
+  "as_of": "2026-08-05",
   "snapshots": [
     {
       "date": "2025-05-28",
@@ -5777,16 +5777,42 @@
         "ROT": 0,
         "TRI": 0
       }
+    },
+    {
+      "date": "2026-08-05",
+      "cut_off_date": "2026-08-04",
+      "total_lots_certified": 4206,
+      "total_bags_60kg_equivalent": 701000,
+      "non_tend_lots": 2,
+      "suspended_lots": 0,
+      "lots_graded_today": 0,
+      "lots_sold_today": 0,
+      "lots_bought_today": 0,
+      "tenders_today": 0,
+      "by_port_lots": {
+        "ANT": 2753,
+        "LON": 1432,
+        "FEL": 19,
+        "BAR": 2,
+        "AMS": 0,
+        "BRE": 0,
+        "HAM": 0,
+        "LEH": 0,
+        "LIV": 0,
+        "NOR": 0,
+        "ROT": 0,
+        "TRI": 0
+      }
     }
   ],
   "latest_detail": {
     "stock_report": {
-      "cut_off_date": "2026-08-03",
+      "cut_off_date": "2026-08-04",
       "ports": [
         {
           "port_id": "ANT",
           "port_name": "Antwerp",
-          "with_val_cert": 2754,
+          "with_val_cert": 2753,
           "non_tend": 2,
           "suspended": 0
         },
@@ -5869,12 +5895,12 @@
         }
       ],
       "grand_total": {
-        "with_val_cert": 4207,
+        "with_val_cert": 4206,
         "non_tend": 2,
         "suspended": 0
       }
     },
-    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260804_104230.csv"
+    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260805_103708.csv"
   },
   "recent_activity": {
     "gradings": [
@@ -16514,6 +16540,13 @@
         "queue_lots": 0,
         "forecast_lots": 60,
         "total_pending_lots": 60
+      },
+      {
+        "date": "2026-08-05",
+        "report_date": "2026-08-05",
+        "queue_lots": 0,
+        "forecast_lots": 40,
+        "total_pending_lots": 40
       }
     ],
     "infested_warrants": []
