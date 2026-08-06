@@ -19,14 +19,18 @@ on:
     # Every 15 min during trading hours Mon–Fri UTC:
     #   RC London   08:00–18:30 UTC
     #   KC New York 08:30–19:00 UTC
-    # Explicit minute list (0,15,30,45) instead of `*/15`: GH Actions has
-    # silently throttled the `*/N` form on this workflow before — observed
-    # 2026-06-03 → 06-08 where only 5/48 ticks fired on Fri and zero fired
-    # on Mon. Explicit lists land in a different scheduler bucket and have
-    # been more reliable in practice. Editing the file also resets the
-    # workflow's scheduling priority, which is the standard GH workaround
-    # for a throttled cron.
-    - cron: '0,15,30,45 8-19 * * 1-5'
+    # Explicit minute list instead of `*/15`: GH Actions has silently
+    # throttled this workflow's cron twice —
+    #   2026-06-03 → 06-08: `*/15` fired 5/48 ticks (Fri), 0 (Mon)
+    #   2026-08-04 → 08-06: `0,15,30,45` degraded to ~1 tick per 1.75-2.5h,
+    #                       plus a tick killed by runner starvation
+    # Editing the file resets the workflow's scheduling priority (the
+    # standard GH workaround), and off-peak minutes (:03/:18/:33/:48) are
+    # less contended than the :00/:15/:30/:45 marks everyone schedules on.
+    # The 1.8 freshness checker also self-heals now: on staleness it
+    # dispatches this workflow directly, so a throttled cron degrades to
+    # at-most-hourly polls instead of a dead feed.
+    - cron: '3,18,33,48 8-19 * * 1-5'
   workflow_dispatch:
 
 # If a previous run is still in progress when the next cron tick fires,
@@ -41,8 +45,12 @@ concurrency:
 
 jobs:
   poll:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 4
+    runs-on: ubuntu-latest
+    # 8 (was 4): the job-level timeout clock starts when the job is ASSIGNED,
+    # and on 2026-08-06 a runner-starved tick burned 3+ min in queue/setup and
+    # was killed before polling. cancel-in-progress still guarantees the
+    # freshest tick wins, so the longer ceiling costs nothing on good days.
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
 
@@ -73,7 +81,7 @@ jobs:
 
       # Cache the chromium binary (~120 MB) across the ~50 runs/week. On a hit,
       # `playwright install` skips the download; --with-deps still ensures OS
-      # libs (fast on the ubuntu-22.04 image where most are preinstalled).
+      # libs (fast on the hosted image where most are preinstalled).
       - name: Cache Playwright browser
         if: steps.gate.outputs.skip == 'false'
         uses: actions/cache@v4

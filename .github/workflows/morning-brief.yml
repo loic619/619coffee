@@ -48,7 +48,7 @@ jobs:
   # fires exit in ~5 s instead of ~15-20 s (the previous shape paid for
   # actions/checkout@v4 inside the main job before the guard could short-circuit).
   guard:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 2
     # Three filters, all evaluated before a runner is allocated:
     #   1. non-workflow_run events (cron, manual) always pass;
@@ -110,7 +110,7 @@ jobs:
   brief:
     needs: guard
     if: needs.guard.outputs.skip != 'true'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4

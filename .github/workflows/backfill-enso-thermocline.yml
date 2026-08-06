@@ -35,7 +35,7 @@ on:
 
 jobs:
   backfill-enso-thermocline:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 30        # year-by-year chunking over a slow upstream
     permissions:
       contents: write

@@ -42,7 +42,7 @@ on:
 
 jobs:
   fetch-enso-subsurface:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: write

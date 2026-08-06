@@ -20,8 +20,13 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 5
+    # actions:write lets the stale path dispatch a rescue run of the 0.1
+    # poller — GH has throttled that workflow's cron twice (Jun + Aug 2026),
+    # and self-healing turns a dead schedule into at-most-hourly polls.
+    permissions:
+      actions: write
     steps:
       - name: Fetch live_quotes and check age
         env:
@@ -29,6 +34,7 @@ jobs:
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
           TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:         ${{ secrets.TELEGRAM_CHAT_ID }}
+          GITHUB_TOKEN:             ${{ github.token }}
           # The poller writes every 15 minutes during the trading window.
           # 2h = 8 consecutive missed polls — well beyond transient delays
           # (GH Actions cron drift is typically <10 min) but short enough
@@ -93,6 +99,19 @@ jobs:
           rc=${PIPESTATUS[0]}
           if [ "$rc" -ne 0 ]; then
             reason=$(grep -m1 '^STALE_REASON=' /tmp/check.log | cut -d= -f2-)
-            notify "${reason:-freshness check failed (exit $rc)}"
+            # Self-heal before alerting: dispatch a rescue run of the 0.1
+            # poller. Covers the twice-observed GH cron-throttling failure
+            # mode (and an evicted Upstash key) without human intervention;
+            # the alert still goes out so a genuinely broken poller (login
+            # change, site down) gets human eyes on the next hourly check.
+            kick=""
+            if curl -sf -X POST \
+                 -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                 -H "Accept: application/vnd.github+json" \
+                 "https://api.github.com/repos/${{ github.repository }}/actions/workflows/poll-acaphe-quotes.yml/dispatches" \
+                 -d '{"ref":"main"}' >/dev/null; then
+              kick=" (rescue poll dispatched)"
+            fi
+            notify "${reason:-freshness check failed (exit $rc)}${kick}"
           fi
           echo "Live quotes are fresh."
