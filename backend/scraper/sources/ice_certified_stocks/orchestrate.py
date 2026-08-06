@@ -694,9 +694,6 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
         anchor -= timedelta(days=1)
     days = _biz_days_back(anchor, days_back)
     days_sorted_asc = sorted(days)
-    # Defined unconditionally so the monthly blocks have it even when the daily
-    # arabica loop is skipped (only_monthly mode).
-    today = days_sorted_asc[-1] if days_sorted_asc else date.today()
     print(f"=== ICE certified-stocks pull · window = {days_back} biz days "
           f"({days_sorted_asc[0]} → {days_sorted_asc[-1]}; anchored on prior biz day) "
           f"[skip_monthly={skip_monthly} only_monthly={only_monthly}] ===\n")
@@ -731,7 +728,10 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     arabica_ageing_url: str | None = None
     if not skip_monthly:
         for back in (0, 1, 2):
-            anchor = today.replace(day=1) - timedelta(days=1)        # last day of prev month
+            # Cursor from the REAL calendar date, not the business-day anchor:
+            # when the 1st-3rd fall on Sat-Mon (Aug 2026), the anchor stays in
+            # the PREVIOUS month and the newest month-end was never attempted.
+            anchor = date.today().replace(day=1) - timedelta(days=1)   # last day of prev month
             for _ in range(back):
                 anchor = anchor.replace(day=1) - timedelta(days=1)   # one more month back
             candidates = F.month_end_publish_candidates(anchor.year, anchor.month)
@@ -802,7 +802,8 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     if not skip_monthly:
         print("[robusta] monthly: iss/recv + age allowance (last 3 month-ends)...")
         # Walk back from current month's end through last 3 month-ends.
-        cursor = today.replace(day=1) - timedelta(days=1)   # calendar last day of prev month
+        # Real calendar date, not the business-day anchor (see arabica note).
+        cursor = date.today().replace(day=1) - timedelta(days=1)   # calendar last day of prev month
         for _ in range(3):
             _, _, parsed = _pull_month_end(pull_iss_recv_monthly, cursor)
             if parsed:
