@@ -115,8 +115,8 @@ jobs:
           git diff --cached --quiet \
             && echo "No changes." \
             || (git commit -m "data: ICE monthly reports (ageing + age-allowance) [skip ci]" \
-                && git pull --rebase --autostash --strategy-option=theirs origin main \
-                && git push)
+                && git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" \
+                && git push origin "HEAD:${GITHUB_REF_NAME}")
 
       - name: Notify on failure
         if: failure()
