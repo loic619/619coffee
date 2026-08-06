@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-04T23:50:40.775956Z",
+  "generated_at": "2026-08-06T08:08:00.802862Z",
   "count": 67,
   "workflows": [
     {
@@ -666,7 +666,7 @@
         "workflow_dispatch"
       ],
       "crons": [
-        "0 14 1-3 * *"
+        "0 14 1-3,5,8,11 * *"
       ],
       "workflow_run_deps": [],
       "concurrency_group": "data-commit",
