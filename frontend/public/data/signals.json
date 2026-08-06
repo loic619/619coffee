@@ -181,15 +181,15 @@
       "text": "KC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
     },
     {
-      "id": "CS6",
-      "name": "Inversion Easing",
+      "id": "CS5",
+      "name": "Deepening Inversion",
       "category": "CS",
       "categoryLabel": "Curve Structure",
       "market": "NY",
-      "severity": "warn",
-      "score": -1,
-      "magnitude": "small",
-      "text": "KC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
+      "severity": "alert",
+      "score": 2,
+      "magnitude": "medium",
+      "text": "KC backwardation deepening while roasters are under-covered (<25th pct) — cost of forward coverage increasing week-on-week, amplifying squeeze risk. Cross-check against roll window."
     },
     {
       "id": "CS1",
@@ -229,6 +229,17 @@
         }
       ],
       "text": "Spreading OI increasing without directional price move — funds positioning across the curve. Often precedes a decisive directional move; the calendar-spread direction hints which way."
+    },
+    {
+      "id": "SP3",
+      "name": "Spreading vs Inversion",
+      "category": "SP",
+      "categoryLabel": "Spreading",
+      "market": "NY",
+      "severity": "warn",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "Spreading OI increasing while backwardation deepens — funds likely harvesting backwardation premium. Not a directional signal but confirms curve structure is attracting capital."
     },
     {
       "id": "AGRO_colombia_Caldas_blossom_drop",
@@ -2647,15 +2658,15 @@
           "text": "KC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
-          "id": "CS6",
-          "name": "Inversion Easing",
+          "id": "CS5",
+          "name": "Deepening Inversion",
           "category": "CS",
           "categoryLabel": "Curve Structure",
           "market": "NY",
-          "severity": "warn",
-          "score": -1,
-          "magnitude": "small",
-          "text": "KC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
+          "severity": "alert",
+          "score": 2,
+          "magnitude": "medium",
+          "text": "KC backwardation deepening while roasters are under-covered (<25th pct) — cost of forward coverage increasing week-on-week, amplifying squeeze risk. Cross-check against roll window."
         },
         {
           "id": "CS1",
@@ -2695,6 +2706,17 @@
             }
           ],
           "text": "Spreading OI increasing without directional price move — funds positioning across the curve. Often precedes a decisive directional move; the calendar-spread direction hints which way."
+        },
+        {
+          "id": "SP3",
+          "name": "Spreading vs Inversion",
+          "category": "SP",
+          "categoryLabel": "Spreading",
+          "market": "NY",
+          "severity": "warn",
+          "score": 0,
+          "magnitude": "medium",
+          "text": "Spreading OI increasing while backwardation deepens — funds likely harvesting backwardation premium. Not a directional signal but confirms curve structure is attracting capital."
         }
       ],
       "scoreNY": 1,
@@ -2703,5 +2725,5 @@
       "priceLDN": 3877
     }
   ],
-  "generatedAt": "2026-08-06T04:57:05.051Z"
+  "generatedAt": "2026-08-06T05:41:00.921Z"
 }

@@ -1,5 +1,257 @@
 [
   {
+    "id": 9393,
+    "title": "ICE-EU RC Daily OI Snapshot \u2013 2026-08-04",
+    "body": "ICE-EU RC Open Interest changed by -842 over the last session, with -397 on nearby two contracts and -445 on forward contracts. Technical view: PRICE UP, SHORT LIQUIDATION.",
+    "source": "ICE",
+    "category": "futures",
+    "lat": 51.51,
+    "lng": -0.09,
+    "tags": [
+      "daily-oi",
+      "robusta",
+      "futures",
+      "auto-commentary"
+    ],
+    "meta": "{\"market\": \"robusta\", \"date\": \"2026-08-04\", \"_commentary\": {\"text\": \"ICE-EU RC Open Interest changed by -842 over the last session, with -397 on nearby two contracts and -445 on forward contracts. Technical view: PRICE UP, SHORT LIQUIDATION.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-06T05:26:55.398175",
+    "commentary": {
+      "text": "ICE-EU RC Open Interest changed by -842 over the last session, with -397 on nearby two contracts and -445 on forward contracts. Technical view: PRICE UP, SHORT LIQUIDATION.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 62.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "OI snapshot: no decisive technical view"
+  },
+  {
+    "id": 9392,
+    "title": "IFUS KC Daily OI Snapshot \u2013 2026-08-04",
+    "body": "IFUS KC Open Interest changed by +1,112 over the last session, with +203 on nearby two contracts and +909 on forward contracts. Technical view: PRICE UP, LONG BUILDING.",
+    "source": "ICE",
+    "category": "futures",
+    "lat": 40.74,
+    "lng": -74.05,
+    "tags": [
+      "daily-oi",
+      "arabica",
+      "futures",
+      "auto-commentary"
+    ],
+    "meta": "{\"market\": \"arabica\", \"date\": \"2026-08-04\", \"_commentary\": {\"text\": \"IFUS KC Open Interest changed by +1,112 over the last session, with +203 on nearby two contracts and +909 on forward contracts. Technical view: PRICE UP, LONG BUILDING.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-06T05:26:53.186600",
+    "commentary": {
+      "text": "IFUS KC Open Interest changed by +1,112 over the last session, with +203 on nearby two contracts and +909 on forward contracts. Technical view: PRICE UP, LONG BUILDING.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 62.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "OI snapshot: no decisive technical view"
+  },
+  {
+    "id": 9391,
+    "title": "ICE RC Robusta Certified Stocks \u2013 2026-08-05",
+    "body": "RC Robusta certified stocks shifted by -1 lots today, bringing global visible exchange inventory to 4,206 lots.",
+    "source": "ICE",
+    "category": "supply",
+    "lat": null,
+    "lng": null,
+    "tags": [
+      "ice",
+      "certified-stocks",
+      "rc",
+      "auto-commentary"
+    ],
+    "meta": "{\"source_url\": \"https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260805_103708.csv\", \"_commentary\": {\"text\": \"RC Robusta certified stocks shifted by -1 lots today, bringing global visible exchange inventory to 4,206 lots.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-06T05:20:25.855440",
+    "commentary": {
+      "text": "RC Robusta certified stocks shifted by -1 lots today, bringing global visible exchange inventory to 4,206 lots.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    }
+  },
+  {
+    "id": 9390,
+    "title": "ICE KC Arabica Certified Stocks \u2013 2026-08-05",
+    "body": "KC Arabica certified stocks shifted by -1,926 bags today, bringing global visible exchange inventory to 251,417 bags.",
+    "source": "ICE",
+    "category": "supply",
+    "lat": null,
+    "lng": null,
+    "tags": [
+      "ice",
+      "certified-stocks",
+      "kc",
+      "auto-commentary"
+    ],
+    "meta": "{\"source_url\": \"https://www.ice.com/publicdocs/futures_us_reports/coffee/coffee_cert_stock_20260805.xls\", \"_commentary\": {\"text\": \"KC Arabica certified stocks shifted by -1,926 bags today, bringing global visible exchange inventory to 251,417 bags.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-06T05:20:23.708215",
+    "commentary": {
+      "text": "KC Arabica certified stocks shifted by -1,926 bags today, bringing global visible exchange inventory to 251,417 bags.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    }
+  },
+  {
+    "id": 9389,
+    "title": "Ethiopia Agronomic Status \u2013 2026-08-06",
+    "body": "Agronomic Status Update: Ethiopia (Harrar) is currently flagged as at drought risk. Forecasted rainfall of 29mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 30.9.",
+    "source": "Open-Meteo + NOAA STAR",
+    "category": "supply",
+    "lat": 9.15,
+    "lng": 40.49,
+    "tags": [
+      "weather",
+      "ethiopia",
+      "agronomic",
+      "auto-commentary"
+    ],
+    "meta": "{\"origin\": \"ethiopia\", \"evaluation\": {\"at_risk_count\": 1, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Ethiopia (Harrar) is currently flagged as at drought risk. Forecasted rainfall of 29mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 30.9.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-06T04:57:04.162143",
+    "commentary": {
+      "text": "Agronomic Status Update: Ethiopia (Harrar) is currently flagged as at drought risk. Forecasted rainfall of 29mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 30.9.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Bullish",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "Ethiopia: 1 growing region flagged at agronomic risk"
+  },
+  {
+    "id": 9388,
+    "title": "Uganda Agronomic Status \u2013 2026-08-06",
+    "body": "Agronomic Status Update: Uganda (Mbale) is currently flagged as at drought risk. Forecasted rainfall of 120mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 24.6.",
+    "source": "Open-Meteo + NOAA STAR",
+    "category": "supply",
+    "lat": 1.37,
+    "lng": 32.29,
+    "tags": [
+      "weather",
+      "uganda",
+      "agronomic",
+      "auto-commentary"
+    ],
+    "meta": "{\"origin\": \"uganda\", \"evaluation\": {\"at_risk_count\": 1, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Uganda (Mbale) is currently flagged as at drought risk. Forecasted rainfall of 120mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 24.6.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-06T04:57:03.486635",
+    "commentary": {
+      "text": "Agronomic Status Update: Uganda (Mbale) is currently flagged as at drought risk. Forecasted rainfall of 120mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 24.6.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Bullish",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "Uganda: 1 growing region flagged at agronomic risk"
+  },
+  {
+    "id": 9387,
+    "title": "Indonesia Agronomic Status \u2013 2026-08-06",
+    "body": "Agronomic Status Update: Indonesia (Lampung, Gayo, Java, Toraja, Flores) is currently flagged as normal.",
+    "source": "Open-Meteo + NOAA STAR",
+    "category": "supply",
+    "lat": -2.55,
+    "lng": 118.01,
+    "tags": [
+      "weather",
+      "indonesia",
+      "agronomic",
+      "auto-commentary"
+    ],
+    "meta": "{\"origin\": \"indonesia\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Indonesia (Lampung, Gayo, Java, Toraja, Flores) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-06T04:57:02.808067",
+    "commentary": {
+      "text": "Agronomic Status Update: Indonesia (Lampung, Gayo, Java, Toraja, Flores) is currently flagged as normal.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "Indonesia: no regions flagged at risk"
+  },
+  {
+    "id": 9386,
+    "title": "Honduras Agronomic Status \u2013 2026-08-06",
+    "body": "Agronomic Status Update: Honduras (El Para\u00edso, Cop\u00e1n, Santa B\u00e1rbara, Montecillos, Agalta) is currently flagged as normal.",
+    "source": "Open-Meteo + NOAA STAR",
+    "category": "supply",
+    "lat": 14.07,
+    "lng": -87.2,
+    "tags": [
+      "weather",
+      "honduras",
+      "agronomic",
+      "auto-commentary"
+    ],
+    "meta": "{\"origin\": \"honduras\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Honduras (El Para\u00edso, Cop\u00e1n, Santa B\u00e1rbara, Montecillos, Agalta) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-06T04:57:02.132292",
+    "commentary": {
+      "text": "Agronomic Status Update: Honduras (El Para\u00edso, Cop\u00e1n, Santa B\u00e1rbara, Montecillos, Agalta) is currently flagged as normal.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "Honduras: no regions flagged at risk"
+  },
+  {
+    "id": 9385,
+    "title": "Colombia Agronomic Status \u2013 2026-08-06",
+    "body": "Agronomic Status Update: Colombia (Huila, Antioquia, Cauca, Caldas, Nari\u00f1o) is currently flagged as normal.",
+    "source": "Open-Meteo + NOAA STAR",
+    "category": "supply",
+    "lat": 4.71,
+    "lng": -74.07,
+    "tags": [
+      "weather",
+      "colombia",
+      "agronomic",
+      "auto-commentary"
+    ],
+    "meta": "{\"origin\": \"colombia\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Colombia (Huila, Antioquia, Cauca, Caldas, Nari\u00f1o) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-06T04:57:01.455438",
+    "commentary": {
+      "text": "Agronomic Status Update: Colombia (Huila, Antioquia, Cauca, Caldas, Nari\u00f1o) is currently flagged as normal.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "Colombia: no regions flagged at risk"
+  },
+  {
+    "id": 9384,
+    "title": "Brazil Agronomic Status \u2013 2026-08-06",
+    "body": "Agronomic Status Update: Brazil (Sul de Minas, Cerrado, Esp\u00edrito Santo, Paran\u00e1) is currently flagged as normal.",
+    "source": "Open-Meteo + NOAA STAR",
+    "category": "supply",
+    "lat": -15.78,
+    "lng": -47.93,
+    "tags": [
+      "weather",
+      "brazil",
+      "agronomic",
+      "auto-commentary"
+    ],
+    "meta": "{\"origin\": \"brazil\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 4, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Brazil (Sul de Minas, Cerrado, Esp\u00edrito Santo, Paran\u00e1) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-06T04:56:58.044121",
+    "commentary": {
+      "text": "Agronomic Status Update: Brazil (Sul de Minas, Cerrado, Esp\u00edrito Santo, Paran\u00e1) is currently flagged as normal.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "Brazil: no regions flagged at risk"
+  },
+  {
     "id": 9383,
     "title": "Fertilizer Prices \u2013 2026-08",
     "body": null,
@@ -3749,228 +4001,5 @@
     "sentiment_confidence": 88.0,
     "sentiment_method": "deterministic",
     "sentiment_reason": "Ethiopia: 3 growing regions flagged at agronomic risk"
-  },
-  {
-    "id": 8997,
-    "title": "Uganda Agronomic Status \u2013 2026-07-29",
-    "body": "Agronomic Status Update: Uganda (Mbale, Mt Elgon) is currently flagged as at drought risk. Forecasted rainfall of 58mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 21.1.",
-    "source": "Open-Meteo + NOAA STAR",
-    "category": "supply",
-    "lat": 1.37,
-    "lng": 32.29,
-    "tags": [
-      "weather",
-      "uganda",
-      "agronomic",
-      "auto-commentary"
-    ],
-    "meta": "{\"origin\": \"uganda\", \"evaluation\": {\"at_risk_count\": 2, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Uganda (Mbale, Mt Elgon) is currently flagged as at drought risk. Forecasted rainfall of 58mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 21.1.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-07-29T05:00:30.802427",
-    "commentary": {
-      "text": "Agronomic Status Update: Uganda (Mbale, Mt Elgon) is currently flagged as at drought risk. Forecasted rainfall of 58mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 21.1.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Bullish",
-    "sentiment_confidence": 88.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "Uganda: 2 growing regions flagged at agronomic risk"
-  },
-  {
-    "id": 8996,
-    "title": "Indonesia Agronomic Status \u2013 2026-07-29",
-    "body": "Agronomic Status Update: Indonesia (Lampung, Gayo, Java, Toraja, Flores) is currently flagged as normal.",
-    "source": "Open-Meteo + NOAA STAR",
-    "category": "supply",
-    "lat": -2.55,
-    "lng": 118.01,
-    "tags": [
-      "weather",
-      "indonesia",
-      "agronomic",
-      "auto-commentary"
-    ],
-    "meta": "{\"origin\": \"indonesia\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Indonesia (Lampung, Gayo, Java, Toraja, Flores) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-07-29T05:00:30.254301",
-    "commentary": {
-      "text": "Agronomic Status Update: Indonesia (Lampung, Gayo, Java, Toraja, Flores) is currently flagged as normal.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Neutral",
-    "sentiment_confidence": 75.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "Indonesia: no regions flagged at risk"
-  },
-  {
-    "id": 8995,
-    "title": "Honduras Agronomic Status \u2013 2026-07-29",
-    "body": "Agronomic Status Update: Honduras (El Para\u00edso, Cop\u00e1n, Santa B\u00e1rbara, Montecillos, Agalta) is currently flagged as normal.",
-    "source": "Open-Meteo + NOAA STAR",
-    "category": "supply",
-    "lat": 14.07,
-    "lng": -87.2,
-    "tags": [
-      "weather",
-      "honduras",
-      "agronomic",
-      "auto-commentary"
-    ],
-    "meta": "{\"origin\": \"honduras\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Honduras (El Para\u00edso, Cop\u00e1n, Santa B\u00e1rbara, Montecillos, Agalta) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-07-29T05:00:29.705613",
-    "commentary": {
-      "text": "Agronomic Status Update: Honduras (El Para\u00edso, Cop\u00e1n, Santa B\u00e1rbara, Montecillos, Agalta) is currently flagged as normal.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Neutral",
-    "sentiment_confidence": 75.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "Honduras: no regions flagged at risk"
-  },
-  {
-    "id": 8994,
-    "title": "Colombia Agronomic Status \u2013 2026-07-29",
-    "body": "Agronomic Status Update: Colombia (Huila, Antioquia, Cauca, Caldas, Nari\u00f1o) is currently flagged as normal.",
-    "source": "Open-Meteo + NOAA STAR",
-    "category": "supply",
-    "lat": 4.71,
-    "lng": -74.07,
-    "tags": [
-      "weather",
-      "colombia",
-      "agronomic",
-      "auto-commentary"
-    ],
-    "meta": "{\"origin\": \"colombia\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Colombia (Huila, Antioquia, Cauca, Caldas, Nari\u00f1o) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-07-29T05:00:29.156284",
-    "commentary": {
-      "text": "Agronomic Status Update: Colombia (Huila, Antioquia, Cauca, Caldas, Nari\u00f1o) is currently flagged as normal.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Neutral",
-    "sentiment_confidence": 75.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "Colombia: no regions flagged at risk"
-  },
-  {
-    "id": 8993,
-    "title": "Brazil Agronomic Status \u2013 2026-07-29",
-    "body": "Agronomic Status Update: Brazil (Sul de Minas, Cerrado, Esp\u00edrito Santo, Paran\u00e1) is currently flagged as normal.",
-    "source": "Open-Meteo + NOAA STAR",
-    "category": "supply",
-    "lat": -15.78,
-    "lng": -47.93,
-    "tags": [
-      "weather",
-      "brazil",
-      "agronomic",
-      "auto-commentary"
-    ],
-    "meta": "{\"origin\": \"brazil\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 4, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Brazil (Sul de Minas, Cerrado, Esp\u00edrito Santo, Paran\u00e1) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-07-29T05:00:26.417200",
-    "commentary": {
-      "text": "Agronomic Status Update: Brazil (Sul de Minas, Cerrado, Esp\u00edrito Santo, Paran\u00e1) is currently flagged as normal.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Neutral",
-    "sentiment_confidence": 75.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "Brazil: no regions flagged at risk"
-  },
-  {
-    "id": 8992,
-    "title": "ICE RC Robusta Certified Stocks \u2013 2026-07-28",
-    "body": "RC Robusta certified stocks shifted by -89 lots today, bringing global visible exchange inventory to 4,139 lots.",
-    "source": "ICE",
-    "category": "supply",
-    "lat": null,
-    "lng": null,
-    "tags": [
-      "ice",
-      "certified-stocks",
-      "rc",
-      "auto-commentary"
-    ],
-    "meta": "{\"source_url\": \"https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260728_103231.csv\", \"_commentary\": {\"text\": \"RC Robusta certified stocks shifted by -89 lots today, bringing global visible exchange inventory to 4,139 lots.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-07-29T04:46:50.636135",
-    "commentary": {
-      "text": "RC Robusta certified stocks shifted by -89 lots today, bringing global visible exchange inventory to 4,139 lots.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    }
-  },
-  {
-    "id": 8991,
-    "title": "ICE KC Arabica Certified Stocks \u2013 2026-07-28",
-    "body": "KC Arabica certified stocks shifted by -3,051 bags today, bringing global visible exchange inventory to 289,759 bags.",
-    "source": "ICE",
-    "category": "supply",
-    "lat": null,
-    "lng": null,
-    "tags": [
-      "ice",
-      "certified-stocks",
-      "kc",
-      "auto-commentary"
-    ],
-    "meta": "{\"source_url\": \"https://www.ice.com/publicdocs/futures_us_reports/coffee/coffee_cert_stock_20260728.xls\", \"_commentary\": {\"text\": \"KC Arabica certified stocks shifted by -3,051 bags today, bringing global visible exchange inventory to 289,759 bags.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-07-29T04:46:47.372855",
-    "commentary": {
-      "text": "KC Arabica certified stocks shifted by -3,051 bags today, bringing global visible exchange inventory to 289,759 bags.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    }
-  },
-  {
-    "id": 8984,
-    "title": "Ocean Freight Rates (Searates) \u2013 2026-07-29",
-    "body": "Ocean freight market: FCL \u202220'ST",
-    "source": "Searates",
-    "category": "general",
-    "lat": 0.0,
-    "lng": 0.0,
-    "tags": [
-      "logistics",
-      "freight"
-    ],
-    "meta": null,
-    "pub_date": "2026-07-29T04:24:52.000899"
-  },
-  {
-    "id": 8977,
-    "title": "Brazil Coffee Exports (Cecafe) \u2013 2026-07-29",
-    "body": "Brazil coffee export data: Issuance | 2,558,033 | -1.8",
-    "source": "Cecafe",
-    "category": "supply",
-    "lat": -14.235,
-    "lng": -51.925,
-    "tags": [
-      "exports",
-      "brazil"
-    ],
-    "meta": null,
-    "pub_date": "2026-07-29T04:24:35.757076",
-    "sentiment": "Neutral",
-    "sentiment_confidence": 62.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "Brazil exports -1.8% YoY (within noise band)"
-  },
-  {
-    "id": 8974,
-    "title": "USD/UGX FX Rate \u2013 2026-07-29",
-    "body": "USD/UGX FX Rate price: 3726",
-    "source": "ExchangeRate-API",
-    "category": "general",
-    "lat": 1.3733,
-    "lng": 32.2903,
-    "tags": [
-      "fx",
-      "uganda"
-    ],
-    "meta": null,
-    "pub_date": "2026-07-29T04:24:26.003597"
   }
 ]

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-05T05:38:44.153024+00:00",
+  "generated_at": "2026-08-06T05:40:55.589785+00:00",
   "meta": {
     "x_axis": "crop-year rainfall total (mm), production-weighted across growing regions",
     "y_axis": "yield as % of normal \u2014 theory: potential vs max; scatter: production vs log-linear trend (=100)",
@@ -221,9 +221,9 @@
       "theory_fit_corr_biennial_adj": 0.51,
       "current_year_live": {
         "year": 2026,
-        "rain_mm_to_date": 1167.0,
-        "months_observed": 10,
-        "projected_end": 1229.0,
+        "rain_mm_to_date": 1168.0,
+        "months_observed": 11,
+        "projected_end": 1216.0,
         "projected_potential_pct": 91.0,
         "in_optimal_band": true
       }
@@ -432,11 +432,11 @@
       "theory_fit_corr_biennial_adj": null,
       "current_year_live": {
         "year": 2026,
-        "rain_mm_to_date": 983.0,
-        "months_observed": 9,
-        "projected_end": 1610.0,
-        "projected_potential_pct": 90.0,
-        "in_optimal_band": true
+        "rain_mm_to_date": 1021.0,
+        "months_observed": 10,
+        "projected_end": 1449.0,
+        "projected_potential_pct": 75.0,
+        "in_optimal_band": false
       }
     },
     "robusta_indonesia": {
@@ -638,10 +638,10 @@
       "theory_fit_corr_biennial_adj": null,
       "current_year_live": {
         "year": 2027,
-        "rain_mm_to_date": 41.0,
-        "months_observed": 1,
-        "projected_end": 2687.0,
-        "projected_potential_pct": 96.0,
+        "rain_mm_to_date": 66.0,
+        "months_observed": 2,
+        "projected_end": 2624.0,
+        "projected_potential_pct": 97.0,
         "in_optimal_band": true
       }
     }
