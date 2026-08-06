@@ -34,7 +34,7 @@ concurrency:
 
 jobs:
   vn-customs:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     # Required for the backfill's seed commit — the repo's default
     # GITHUB_TOKEN is read-only (run 2 harvested 6.4k lines then hit

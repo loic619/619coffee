@@ -20,7 +20,7 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     # actions:write lets the stale path dispatch a rescue run of the 0.1
     # poller — GH has throttled that workflow's cron twice (Jun + Aug 2026),

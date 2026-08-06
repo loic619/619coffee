@@ -34,7 +34,7 @@ on:
 
 jobs:
   backfill-missing-fields:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: write
