@@ -27,7 +27,11 @@ on:
     # walks 31→30→29 for weekend month-ends within that single run); if the file
     # isn't published yet the 2nd retries, then the 3rd. After the 3rd we give
     # up — the per-feed freshness monitor then raises the red alert to handle.
-    - cron: '0 14 1-3 * *'
+    # 1st-3rd catches the age-allowance/ageing publish; 5/8/11 are retries for
+    # late publishes (the monthly iss/recv file has appeared mid-month, and the
+    # Aug-2026 miss showed the early window alone is fragile). The guard below
+    # makes already-captured runs a no-op, so the extra crons are cheap.
+    - cron: '0 14 1-3,5,8,11 * *'
 
 concurrency:
   group: data-commit
@@ -67,11 +71,16 @@ jobs:
               a_me = ((a.get("ageing_report") or {}).get("month_end") or "")[:7]
               aa = (r.get("monthly") or {}).get("age_allowance") or []
               r_me = ((aa[-1].get("month_end") if aa else "") or "")[:7]
+              ir = (r.get("monthly") or {}).get("iss_recv_monthly") or []
+              r_ir = ((ir[-1].get("month") if ir else "") or "")[:7]
           except Exception as e:
-              a_me = r_me = ""
+              a_me = r_me = r_ir = ""
               print(f"guard read error (will fetch): {e}")
-          done = (a_me == prev) and (r_me == prev)
-          print(f"target month={prev} · arabica ageing={a_me!r} · robusta age-allowance={r_me!r} · already_captured={done}")
+          # ALL monthly feeds must carry the target month before we skip —
+          # age-allowance landing early must not stop retries for the late
+          # iss/recv file (stuck at 2026-05 through July for exactly this).
+          done = (a_me == prev) and (r_me == prev) and (r_ir == prev)
+          print(f"target month={prev} · arabica ageing={a_me!r} · robusta age-allowance={r_me!r} · iss/recv={r_ir!r} · already_captured={done}")
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write(f"done={'true' if done else 'false'}\n")
           PY
@@ -106,8 +115,8 @@ jobs:
           git diff --cached --quiet \
             && echo "No changes." \
             || (git commit -m "data: ICE monthly reports (ageing + age-allowance) [skip ci]" \
-                && git pull --rebase --autostash --strategy-option=theirs origin main \
-                && git push)
+                && git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" \
+                && git push origin "HEAD:${GITHUB_REF_NAME}")
 
       - name: Notify on failure
         if: failure()
