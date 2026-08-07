@@ -14,6 +14,15 @@ name: "0.9 – VN Customs by-country (5X/5N) probe / backfill"
 # backend/seed/vn_customs_by_country.json.
 
 on:
+  schedule:
+    # 12th + 20th monthly: the English preliminary ('ta-sb') 5X publishes
+    # ~10th–14th for the prior month, a few days AFTER the Vietnamese 2x
+    # bulletin the vn_coffee_export job reads — the first cron catches the
+    # normal window, the second catches late publications. The backfill is
+    # resumable (merges over the seed, skips months already on file), so a
+    # 4-month lookback also self-heals holes like 2026-05, which was missed
+    # forever while this workflow was dispatch-only.
+    - cron: '0 3 12,20 * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -58,8 +67,11 @@ jobs:
         timeout-minutes: 35
         run: |
           cd backend
-          MODE="${{ inputs.mode || 'probe' }}"
-          MONTHS="${{ inputs.months || '24' }}"
+          # Dispatch fills the input defaults ('probe'/'24'); the fallbacks
+          # only apply on SCHEDULE, where inputs are empty — scheduled runs
+          # harvest (backfill) with a tight lookback rather than probing.
+          MODE="${{ inputs.mode || 'backfill' }}"
+          MONTHS="${{ inputs.months || '4' }}"
           echo "::group::vn customs ($MODE)"
           set +e
           PYTHONPATH=. python -u -m scraper.backfill_vn_customs_country --mode "$MODE" --months "$MONTHS"
@@ -76,7 +88,10 @@ jobs:
         # always(): a step-timeout mid-harvest must still commit the months
         # already written (the backfill is resumable — it merges and skips
         # months already in the seed).
-        if: ${{ always() && inputs.mode == 'backfill' }}
+        # Schedule runs have empty inputs but always harvest in backfill mode
+        # (see the MODE fallback above) — without the event_name clause a
+        # scheduled harvest would sweep successfully and then never commit.
+        if: ${{ always() && (inputs.mode == 'backfill' || github.event_name == 'schedule') }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -88,3 +103,15 @@ jobs:
           else
             echo "No seed changes to commit."
           fi
+
+      - name: Notify on failure or cancellation
+        # Now that this runs on a schedule, a broken harvest must not be a
+        # silent gap in the by-destination series (cf. the Uganda stall).
+        if: failure() || cancelled()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=🚨 ${{ github.workflow }} ${{ job.status }} — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
