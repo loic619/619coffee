@@ -166,6 +166,7 @@ export default function BrazilTab() {
           cropYearMonths="Apr–Mar"
           realizedExports={realizedBrExports}
           multiSource={toMultiSource(balanceSheet)}
+          editOrigin="brazil"
         />
       )}
 

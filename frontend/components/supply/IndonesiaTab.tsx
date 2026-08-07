@@ -162,6 +162,7 @@ export default function IndonesiaTab() {
           cropYearMonths="Apr–Mar"
           realizedExports={realizedIdnExports}
           multiSource={toMultiSource(balanceSheet)}
+          editOrigin="indonesia"
         />
       )}
       {subTab === "weather" && <WeatherCharts dataUrl="/data/indonesia_weather.json" title="Weather · Indonesia" />}

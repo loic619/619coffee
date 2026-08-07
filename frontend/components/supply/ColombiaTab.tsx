@@ -159,6 +159,7 @@ export default function ColombiaTab() {
           cropYearMonths="Oct–Sep"
           realizedExports={realizedCoExports}
           multiSource={toMultiSource(balanceSheet)}
+          editOrigin="colombia"
         />
       )}
       {subTab === "weather" && <WeatherCharts dataUrl="/data/colombia_weather.json" title="Weather · Colombia" />}
