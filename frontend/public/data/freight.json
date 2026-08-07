@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-02",
+  "updated": "2026-08-07",
   "routes": [
     {
       "id": "vn-eu",
@@ -59,20 +59,13 @@
       "id": "br-us",
       "from": "Santos",
       "to": "New York",
-      "rate": 4055,
+      "rate": 4115,
       "prev": 4051,
       "unit": "USD/FEU",
       "proxy": true
     }
   ],
   "history": [
-    {
-      "date": "2026-05-14",
-      "vn-eu": 2851,
-      "br-eu": 1654,
-      "et-eu": 1996,
-      "vn-us": 2828
-    },
     {
       "date": "2026-05-15",
       "vn-eu": 2800,
@@ -341,6 +334,13 @@
     },
     {
       "date": "2026-08-02",
+      "vn-eu": 5531,
+      "br-eu": 3208,
+      "et-eu": 3872,
+      "vn-us": 6129
+    },
+    {
+      "date": "2026-08-07",
       "vn-eu": 5531,
       "br-eu": 3208,
       "et-eu": 3872,
