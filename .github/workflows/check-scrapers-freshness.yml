@@ -105,6 +105,15 @@ jobs:
               # other monthly feeds above.
               "us_imports":       45 * 24,   # USITC DataWeb (monthly, ~16th)
               "eu_imports":       45 * 24,   # Eurostat Comext (monthly, ~17th)
+              # uganda_exports reads uganda_monthly.json's `updated`, stamped by
+              # the UCDA monthly-reports scraper (3.3.6, 16th of each month) —
+              # NOT the daily export pipeline like the other *_exports keys, so
+              # the 48h default cried wolf 2 days after the rewire (#604). A
+              # mid-cycle manual dispatch can phase-shift the stamp (run on the
+              # 5th → next scheduled write the 16th of the following month ≈
+              # 42d), so one-cycle-plus-buffer like the other monthly feeds.
+              # Matches frontend/lib/freshness.ts thresholdDays on this key.
+              "uganda_exports":   45 * 24,   # UCDA monthly reports (16th)
               # AJCA is UPLOAD-dated (health.py takes the newest /uploads/YYYY/MM/
               # path from ajca.json = when AJCA last published anything, floored
               # to the 1st). Healthy worst case ≈ 30d month-floor + ~31d between
