@@ -1,5 +1,57 @@
 [
   {
+    "id": 9420,
+    "title": "ICE-EU RC Daily OI Snapshot \u2013 2026-08-05",
+    "body": "ICE-EU RC Open Interest changed by -809 over the last session, with -433 on nearby two contracts and -376 on forward contracts. Technical view: PRICE UP, SHORT LIQUIDATION.",
+    "source": "ICE",
+    "category": "futures",
+    "lat": 51.51,
+    "lng": -0.09,
+    "tags": [
+      "daily-oi",
+      "robusta",
+      "futures",
+      "auto-commentary"
+    ],
+    "meta": "{\"market\": \"robusta\", \"date\": \"2026-08-05\", \"_commentary\": {\"text\": \"ICE-EU RC Open Interest changed by -809 over the last session, with -433 on nearby two contracts and -376 on forward contracts. Technical view: PRICE UP, SHORT LIQUIDATION.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-07T04:14:23.160647",
+    "commentary": {
+      "text": "ICE-EU RC Open Interest changed by -809 over the last session, with -433 on nearby two contracts and -376 on forward contracts. Technical view: PRICE UP, SHORT LIQUIDATION.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 62.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "OI snapshot: no decisive technical view"
+  },
+  {
+    "id": 9419,
+    "title": "IFUS KC Daily OI Snapshot \u2013 2026-08-05",
+    "body": "IFUS KC Open Interest changed by +3,881 over the last session, with +1,515 on nearby two contracts and +2,366 on forward contracts. Technical view: PRICE UP, LONG BUILDING.",
+    "source": "ICE",
+    "category": "futures",
+    "lat": 40.74,
+    "lng": -74.05,
+    "tags": [
+      "daily-oi",
+      "arabica",
+      "futures",
+      "auto-commentary"
+    ],
+    "meta": "{\"market\": \"arabica\", \"date\": \"2026-08-05\", \"_commentary\": {\"text\": \"IFUS KC Open Interest changed by +3,881 over the last session, with +1,515 on nearby two contracts and +2,366 on forward contracts. Technical view: PRICE UP, LONG BUILDING.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-07T04:14:20.427409",
+    "commentary": {
+      "text": "IFUS KC Open Interest changed by +3,881 over the last session, with +1,515 on nearby two contracts and +2,366 on forward contracts. Technical view: PRICE UP, LONG BUILDING.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 62.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "OI snapshot: no decisive technical view"
+  },
+  {
     "id": 9418,
     "title": "Fertilizer Prices \u2013 2026-08",
     "body": null,
@@ -3933,57 +3985,5 @@
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/425591-chuvas-causam-antecipacao-de-florada-nos-cafezais-no-brasil-com-possivel-impacto-para-2027.html",
     "pub_date": "2026-07-29T21:41:00"
-  },
-  {
-    "id": 9026,
-    "title": "ICE-EU RC Daily OI Snapshot \u2013 2026-07-28",
-    "body": "ICE-EU RC Open Interest changed by +1,460 over the last session, with +280 on nearby two contracts and +1,180 on forward contracts. Technical view: PRICE UP, LONG BUILDING.",
-    "source": "ICE",
-    "category": "futures",
-    "lat": 51.51,
-    "lng": -0.09,
-    "tags": [
-      "daily-oi",
-      "robusta",
-      "futures",
-      "auto-commentary"
-    ],
-    "meta": "{\"market\": \"robusta\", \"date\": \"2026-07-28\", \"_commentary\": {\"text\": \"ICE-EU RC Open Interest changed by +1,460 over the last session, with +280 on nearby two contracts and +1,180 on forward contracts. Technical view: PRICE UP, LONG BUILDING.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-07-29T21:29:03.605012",
-    "commentary": {
-      "text": "ICE-EU RC Open Interest changed by +1,460 over the last session, with +280 on nearby two contracts and +1,180 on forward contracts. Technical view: PRICE UP, LONG BUILDING.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Neutral",
-    "sentiment_confidence": 62.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "OI snapshot: no decisive technical view"
-  },
-  {
-    "id": 9025,
-    "title": "IFUS KC Daily OI Snapshot \u2013 2026-07-28",
-    "body": "IFUS KC Open Interest changed by +55 over the last session, with -555 on nearby two contracts and +610 on forward contracts. Technical view: PRICE UP, LONG BUILDING.",
-    "source": "ICE",
-    "category": "futures",
-    "lat": 40.74,
-    "lng": -74.05,
-    "tags": [
-      "daily-oi",
-      "arabica",
-      "futures",
-      "auto-commentary"
-    ],
-    "meta": "{\"market\": \"arabica\", \"date\": \"2026-07-28\", \"_commentary\": {\"text\": \"IFUS KC Open Interest changed by +55 over the last session, with -555 on nearby two contracts and +610 on forward contracts. Technical view: PRICE UP, LONG BUILDING.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-07-29T21:29:00.366533",
-    "commentary": {
-      "text": "IFUS KC Open Interest changed by +55 over the last session, with -555 on nearby two contracts and +610 on forward contracts. Technical view: PRICE UP, LONG BUILDING.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Neutral",
-    "sentiment_confidence": 62.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "OI snapshot: no decisive technical view"
   }
 ]
