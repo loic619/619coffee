@@ -22,9 +22,16 @@ interface SeasonCol {
   isNew?: boolean;
 }
 
+// Colors auto-assigned to admin-added sources, first unused wins. Distinct
+// from the palette the seeds already use (blue/green/amber family).
+const NEW_SOURCE_COLORS = [
+  "#a78bfa", "#f472b6", "#22d3ee", "#facc15", "#fb923c", "#e879f9", "#94a3b8", "#4ade80",
+];
+
 // Mirror of build_balance_sheets.ORIGINS on the read side. Vietnam's nested
-// seed carries no `sources` array (its tab hardcodes the legend) — mirrored
-// here the same way.
+// seed historically carries no `sources` array (its tab hardcodes the
+// legend) — mirrored here as a fallback; the file's array wins when the
+// first new-source edit materializes it.
 const ORIGIN_FILES: Record<string, { file: string; subkey?: string; sources?: SourceDef[] }> = {
   brazil:    { file: "br_balance_sheet.json" },
   colombia:  { file: "co_balance_sheet.json" },
@@ -57,6 +64,11 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
   const [pwError, setPwError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
   const [sources, setSources] = useState<SourceDef[]>([]);
+  // Admin-added source rows, kept separate so they're removable and only
+  // the ones that end up carrying values get declared to the backend.
+  const [newSources, setNewSources] = useState<SourceDef[]>([]);
+  const [srcInput, setSrcInput] = useState("");
+  const [srcError, setSrcError] = useState<string | null>(null);
   const [cols, setCols] = useState<SeasonCol[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -81,7 +93,7 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
       .then((doc) => {
         if (cancelled) return;
         const seed = cfg.subkey ? doc?.[cfg.subkey] : doc;
-        const srcs: SourceDef[] = cfg.sources ?? seed?.sources ?? [];
+        const srcs: SourceDef[] = seed?.sources ?? cfg.sources ?? [];
         const seasons: { season: string; forecast?: boolean; production?: Record<string, number> }[] =
           seed?.seasons ?? [];
         if (!srcs.length || !seasons.length) { setLoadError(true); return; }
@@ -105,6 +117,7 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
     if (saving) return;
     setOpen(false); setCols(null); setSaved(false); setSaveError(null);
     setPwInput(""); setPwError(null); setLoadError(false);
+    setNewSources([]); setSrcInput(""); setSrcError(null);
   };
 
   const unlock = async () => {
@@ -156,11 +169,19 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
     }
     const now = new Date();
     const updated = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    // Only declare new sources that actually carry a value somewhere — an
+    // added-then-abandoned row silently disappears instead of littering
+    // the legend (the backend enforces the same rule).
+    const usedKeys = new Set(seasons.flatMap(s => Object.keys(s.production)));
+    const declaredNew = newSources.filter(s => usedKeys.has(s.key));
     try {
       const res = await fetch("/api/admin/crop-estimates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "save", password: pw, origin, updated, seasons }),
+        body: JSON.stringify({
+          action: "save", password: pw, origin, updated, seasons,
+          ...(declaredNew.length ? { sources: declaredNew } : {}),
+        }),
       });
       if (res.ok) {
         setSaved(true);
@@ -180,6 +201,8 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
     }
   };
 
+  const allSources = [...sources, ...newSources];
+
   const addSeason = () => {
     if (!cols) return;
     const label = nextSeasonLabel(cols[cols.length - 1]?.season);
@@ -187,9 +210,33 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
     setCols([...cols, {
       season: label,
       forecast: true,
-      values: Object.fromEntries(sources.map(s => [s.key, ""])),
+      values: Object.fromEntries(allSources.map(s => [s.key, ""])),
       isNew: true,
     }]);
+  };
+
+  const addSource = () => {
+    const label = srcInput.trim();
+    if (!label) return;
+    if (label.length > 24) { setSrcError("Name too long (max 24 chars)."); return; }
+    const key = label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 20);
+    if (!key) { setSrcError("Name needs at least one letter or digit."); return; }
+    if (allSources.some(s => s.key === key)) { setSrcError(`"${label}" already exists.`); return; }
+    const used = new Set(allSources.map(s => s.color));
+    const color = NEW_SOURCE_COLORS.find(c => !used.has(c)) ?? NEW_SOURCE_COLORS[0];
+    setNewSources([...newSources, { key, label, color }]);
+    setSrcInput(""); setSrcError(null);
+  };
+
+  const removeSource = (key: string) => {
+    setNewSources(newSources.filter(s => s.key !== key));
+    // Drop any values already typed into the removed row.
+    setCols(cols?.map(c => {
+      if (!(key in c.values)) return c;
+      const rest = { ...c.values };
+      delete rest[key];
+      return { ...c, values: rest };
+    }) ?? null);
   };
 
   return (
@@ -290,10 +337,19 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {sources.map(src => (
+                      {allSources.map(src => (
                         <tr key={src.key} className="border-t border-slate-700/50">
                           <td className="py-1 pr-2 font-bold whitespace-nowrap" style={{ color: src.color }}>
                             {src.label}
+                            {newSources.some(s => s.key === src.key) && (
+                              <button
+                                onClick={() => removeSource(src.key)}
+                                title="Remove this source"
+                                className="ml-1 text-slate-600 hover:text-red-400 font-normal"
+                              >
+                                ×
+                              </button>
+                            )}
                           </td>
                           {cols.map((c, i) => (
                             <td key={c.season} className="px-1 py-1">
@@ -313,6 +369,25 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
                     </tbody>
                   </table>
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={srcInput}
+                    onChange={e => { setSrcInput(e.target.value); setSrcError(null); }}
+                    onKeyDown={e => { if (e.key === "Enter") addSource(); }}
+                    placeholder="New source (e.g. StoneX)"
+                    className="flex-1 min-w-0 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[9px] text-slate-200 focus:outline-none focus:border-slate-500 placeholder:text-slate-600"
+                  />
+                  <button
+                    onClick={addSource}
+                    disabled={!srcInput.trim()}
+                    className="text-[9px] px-2 py-1 rounded border border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-500 disabled:opacity-40 transition-colors whitespace-nowrap"
+                  >
+                    + Add source
+                  </button>
+                </div>
+                {srcError && <div className="text-[9px] text-red-400">{srcError}</div>}
 
                 <div className="flex items-center justify-between gap-2">
                   <button
@@ -335,10 +410,11 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
                 {saveError && <div className="text-[9px] text-red-400">{saveError}</div>}
                 {pwError && <div className="text-[9px] text-red-400">{pwError}</div>}
                 <div className="text-[8px] text-slate-600 leading-relaxed">
-                  Empty cells mean the source hasn&apos;t published for that season. Saving
-                  commits the edit to the repo (visible in git history) and redeploys.
-                  The USDA column is machine-synced twice a year and may overwrite manual
-                  USDA edits.
+                  Empty cells mean the source hasn&apos;t published for that season. A new
+                  source row is only saved if at least one of its cells has a value.
+                  Saving commits the edit to the repo (visible in git history) and
+                  redeploys. The USDA column is machine-synced twice a year and may
+                  overwrite manual USDA edits.
                 </div>
               </div>
             )}

@@ -18,8 +18,18 @@ Payload shape (validated strictly — the workflow input is remote data):
         {"season": "2025/26", "forecast": true,
          "production": {"usda": 63.0, "conab": 56.5}},
         ...
+      ],
+      "sources": [                          # optional: NEW sources to declare
+        {"key": "stonex", "label": "StoneX", "color": "#a78bfa"}
       ]
     }
+
+New sources are appended to the seed's `sources` legend — but only when at
+least one season actually carries a value for them, so an accidental add
+never litters the legend. Vietnam's nested seed historically had no
+`sources` array (the tab hardcoded USDA/MARD/ICO); the first new-source
+edit materializes it with the canonical three plus the addition, and the
+tab prefers the file's array when present.
 
 Usage:
     cd backend
@@ -41,13 +51,23 @@ from pathlib import Path
 from scraper.build_balance_sheets import ORIGINS, ROOT, _season_start_year, _split_target
 from scraper.validate_export import safe_write_json
 
-# vn_farmer_economics::balance_sheet carries no `sources` array (the Vietnam
-# tab hardcodes its legend), so its source allowlist lives here.
-FALLBACK_SOURCE_KEYS = {"vietnam": {"usda", "mard", "ico"}}
+# vn_farmer_economics::balance_sheet carried no `sources` array (the Vietnam
+# tab hardcoded its legend) until the first new-source edit materializes it
+# from this canonical list. Keep colors in sync with VietnamTab's fallback.
+FALLBACK_SOURCES = {
+    "vietnam": [
+        {"key": "usda", "label": "USDA", "color": "#3b82f6"},
+        {"key": "mard", "label": "MARD", "color": "#10b981"},
+        {"key": "ico",  "label": "ICO",  "color": "#f59e0b"},
+    ],
+}
 
 SEASON_RE = re.compile(r"^\d{4}/\d{2}$")
 UPDATED_RE = re.compile(r"^\d{4}-\d{2}$")
+SOURCE_KEY_RE = re.compile(r"^[a-z0-9_]{1,20}$")
+COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 MAX_SEASONS = 40
+MAX_SOURCES = 10
 MAX_MBAGS = 200.0  # sanity ceiling, million 60-kg bags (world crop ≈ 175)
 
 
@@ -94,8 +114,33 @@ def main() -> int:
     seed = doc.get(subkey) if subkey else doc
     if not isinstance(seed, dict) or not isinstance(seed.get("seasons"), list):
         return _fail(f"{path.name}: seasons block missing")
-    declared = {s.get("key") for s in seed.get("sources", []) if isinstance(s, dict)}
-    declared = declared or FALLBACK_SOURCE_KEYS.get(origin, set())
+    existing_sources = [s for s in seed.get("sources", []) if isinstance(s, dict)]
+    if not existing_sources:
+        existing_sources = FALLBACK_SOURCES.get(origin, [])
+    declared = {s.get("key") for s in existing_sources}
+
+    # Optional new-source declarations. Validated here; appended to the
+    # legend further down only if some season actually references them.
+    new_sources: list[dict] = []
+    raw_sources = payload.get("sources") or []
+    if not isinstance(raw_sources, list) or len(raw_sources) > MAX_SOURCES:
+        return _fail(f"sources must be a list of at most {MAX_SOURCES} entries")
+    for src in raw_sources:
+        if not isinstance(src, dict):
+            return _fail("each source must be an object")
+        key, label, color = src.get("key"), src.get("label"), src.get("color")
+        if not isinstance(key, str) or not SOURCE_KEY_RE.match(key):
+            return _fail(f"bad source key {key!r} (want ^[a-z0-9_]{{1,20}}$)")
+        if key in declared or any(s["key"] == key for s in new_sources):
+            continue  # already known — nothing to declare
+        if not isinstance(label, str) or not (1 <= len(label.strip()) <= 24):
+            return _fail(f"source {key}: label must be 1–24 chars")
+        if not isinstance(color, str) or not COLOR_RE.match(color):
+            return _fail(f"source {key}: color must be #rrggbb")
+        new_sources.append({"key": key, "label": label.strip(), "color": color})
+    if len(existing_sources) + len(new_sources) > MAX_SOURCES:
+        return _fail(f"legend would exceed {MAX_SOURCES} sources")
+    declared |= {s["key"] for s in new_sources}
 
     seen: set[str] = set()
     clean: list[dict] = []
@@ -152,10 +197,22 @@ def main() -> int:
     for lbl in removed:
         lines.append(f"  − {lbl}: season removed")
 
+    # Only declare new sources that some season actually carries — an
+    # accidental add with no values never litters the legend.
+    referenced = {k for s in merged for k in s["production"]}
+    adopted = [s for s in new_sources if s["key"] in referenced]
+    for s in adopted:
+        lines.append(f"  + source {s['key']} ({s['label']}, {s['color']})")
+
     if not lines:
         print("[crop-edit] no-op: payload matches the file — nothing to write")
         _emit_outputs(path, origin, changed=False)
         return 0
+
+    if adopted:
+        # Materializes the array for Vietnam's legacy seed (no `sources` key);
+        # the tab prefers the file's array when present.
+        seed["sources"] = existing_sources + adopted
 
     seed["seasons"] = merged
     # Vietnam's nested seed carries no `updated` of its own — stamp the root.

@@ -32,6 +32,7 @@ const ORIGINS = new Set(["brazil", "colombia", "indonesia", "uganda", "vietnam"]
 const SEASON_RE = /^\d{4}\/\d{2}$/;
 const UPDATED_RE = /^\d{4}-\d{2}$/;
 const SOURCE_KEY_RE = /^[a-z0-9_]{1,20}$/;
+const COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 const MAX_MBAGS = 200;
 
 export const dynamic = "force-dynamic";
@@ -123,7 +124,31 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_seasons", detail: seasons }, { status: 400 });
   }
 
-  const payload = JSON.stringify({ origin, updated, seasons });
+  // Optional new-source declarations ("add row" in the editor). The applier
+  // script appends them to the file's legend only when a season actually
+  // carries a value for them.
+  const sources: { key: string; label: string; color: string }[] = [];
+  if (body.sources !== undefined) {
+    if (!Array.isArray(body.sources) || body.sources.length > 10) {
+      return NextResponse.json({ error: "invalid_sources" }, { status: 400 });
+    }
+    for (const raw of body.sources as { key?: unknown; label?: unknown; color?: unknown }[]) {
+      const { key, label, color } = raw ?? {};
+      if (typeof key !== "string" || !SOURCE_KEY_RE.test(key) ||
+          typeof label !== "string" || label.trim().length < 1 || label.trim().length > 24 ||
+          typeof color !== "string" || !COLOR_RE.test(color)) {
+        return NextResponse.json(
+          { error: "invalid_sources", detail: `bad source ${JSON.stringify(key)}` },
+          { status: 400 },
+        );
+      }
+      sources.push({ key, label: label.trim(), color });
+    }
+  }
+
+  const payload = JSON.stringify(
+    sources.length ? { origin, updated, seasons, sources } : { origin, updated, seasons },
+  );
   if (payload.length > 60_000) {
     return NextResponse.json({ error: "payload_too_large" }, { status: 400 });
   }
