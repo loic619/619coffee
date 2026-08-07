@@ -1,7 +1,18 @@
 {
-  "generated_at": "2026-08-06T19:29:36.757812Z",
-  "count": 67,
+  "generated_at": "2026-08-07T08:52:01.580641Z",
+  "count": 68,
   "workflows": [
+    {
+      "file": "apply-crop-estimate-edit.yml",
+      "name": "3.4.2 \u2013 On-demand \u00b7 Apply crop-estimate edit (admin UI)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": "crop-estimate-edit",
+      "timeout_minutes": 10
+    },
     {
       "file": "audit-cftc-markets.yml",
       "name": "9.9 \u2013 Audit CFTC markets",
@@ -941,6 +952,11 @@
         "version": "3.3.6"
       },
       {
+        "file": "apply-crop-estimate-edit.yml",
+        "name": "3.4.2 \u2013 On-demand \u00b7 Apply crop-estimate edit (admin UI)",
+        "version": "3.4.2"
+      },
+      {
         "file": "audit-cftc-markets.yml",
         "name": "9.9 \u2013 Audit CFTC markets",
         "version": "9.9"
@@ -960,7 +976,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 4,
+    "uncovered_workflows_count": 5,
     "stale_curation_count": 2
   }
 }
