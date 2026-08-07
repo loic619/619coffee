@@ -25,6 +25,10 @@ interface VnBalanceSheet {
   unit: string;
   note: string;
   seasons: VnSeasonRow[];
+  /** Materialized by the admin crop-estimate editor's first new-source
+   *  edit; absent on the legacy seed (legend falls back to the hardcoded
+   *  USDA/MARD/ICO below). */
+  sources?: { key: string; label: string; color: string }[];
 }
 
 interface VietnamSupply {
@@ -154,7 +158,7 @@ export default function VietnamTab() {
           editOrigin="vietnam"
           realizedExports={realizedVnExports}
           multiSource={vnBalanceSheet ? {
-            sources: [
+            sources: vnBalanceSheet.sources ?? [
               { key: "usda", label: "USDA", color: "#3b82f6" },
               { key: "mard", label: "MARD", color: "#10b981" },
               { key: "ico",  label: "ICO",  color: "#f59e0b" },
