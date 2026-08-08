@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-07T11:27:11.670261Z",
-  "count": 68,
+  "generated_at": "2026-08-08T14:16:09.449693Z",
+  "count": 69,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -485,12 +485,9 @@
       "file": "scraper-cecafe.yml",
       "name": "3.2 \u2013 Cecafe Export Scraper",
       "triggers": [
-        "schedule",
         "workflow_dispatch"
       ],
-      "crons": [
-        "0 8 15 * *"
-      ],
+      "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": "data-commit",
       "timeout_minutes": 15
@@ -715,12 +712,9 @@
       "file": "scraper-monthly-br-fertilizer.yml",
       "name": "3.3.2 \u2013 Monthly Scraper \u00b7 Brazil Fertilizer (Comex)",
       "triggers": [
-        "schedule",
         "workflow_dispatch"
       ],
-      "crons": [
-        "0 3 12 * *"
-      ],
+      "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 30
@@ -729,12 +723,9 @@
       "file": "scraper-monthly-colombia.yml",
       "name": "0.10 \u2013 Colombia coffee exports (monthly \u00b7 DANE + FNC)",
       "triggers": [
-        "schedule",
         "workflow_dispatch"
       ],
-      "crons": [
-        "30 6 1-22 * *"
-      ],
+      "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": "scraper-monthly-colombia",
       "timeout_minutes": 25
@@ -743,12 +734,9 @@
       "file": "scraper-monthly-conab.yml",
       "name": "3.3.1 \u2013 Monthly Scraper \u00b7 CONAB (Brazil supply)",
       "triggers": [
-        "schedule",
         "workflow_dispatch"
       ],
-      "crons": [
-        "0 2 12 * *"
-      ],
+      "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 30
@@ -757,12 +745,9 @@
       "file": "scraper-monthly-uganda.yml",
       "name": "3.3.5 \u2013 Monthly Scraper \u00b7 Uganda UCDA Reports",
       "triggers": [
-        "schedule",
         "workflow_dispatch"
       ],
-      "crons": [
-        "0 2 14 * *"
-      ],
+      "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": "uganda-ucda",
       "timeout_minutes": 20
@@ -771,12 +756,9 @@
       "file": "scraper-monthly-vn-exports.yml",
       "name": "3.3.4 \u2013 Monthly Scraper \u00b7 Vietnam Coffee Exports",
       "triggers": [
-        "schedule",
         "workflow_dispatch"
       ],
-      "crons": [
-        "30 4 12 * *"
-      ],
+      "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": "data-commit",
       "timeout_minutes": 30
@@ -785,12 +767,9 @@
       "file": "scraper-monthly-vn-fertilizer.yml",
       "name": "3.3.3 \u2013 Monthly Scraper \u00b7 Vietnam Fertilizer",
       "triggers": [
-        "schedule",
         "workflow_dispatch"
       ],
-      "crons": [
-        "0 4 12 * *"
-      ],
+      "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": "data-commit",
       "timeout_minutes": 30
@@ -893,6 +872,20 @@
       "workflow_run_deps": [],
       "concurrency_group": "data-commit",
       "timeout_minutes": 15
+    },
+    {
+      "file": "source-sentinel.yml",
+      "name": "1.17 \u2013 Source Sentinel (monthly supply releases)",
+      "triggers": [
+        "schedule",
+        "workflow_dispatch"
+      ],
+      "crons": [
+        "37 6 * * *"
+      ],
+      "workflow_run_deps": [],
+      "concurrency_group": "source-sentinel",
+      "timeout_minutes": 10
     },
     {
       "file": "ucda-monthly-reports.yml",
