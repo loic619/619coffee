@@ -1,8 +1,9 @@
 name: "3.3.2 – Monthly Scraper · Brazil Fertilizer (Comex)"
 
 on:
-  schedule:
-    - cron: '0 3 12 * *'   # 12th of each month, 03:00 UTC
+  # Cron removed 2026-08: triggered by '1.17 - Source Sentinel' on publication-day
+  # detection (probes the source site daily in its release window). Manual dispatch
+  # remains; the sentinel also verifies ingestion and alarms if a release is missed.
   workflow_dispatch:
 
 jobs:

@@ -48,6 +48,15 @@ import requests
 ROOT = Path(__file__).resolve().parents[2]
 STATE_PATH = ROOT / "data" / "source_sentinels.json"
 
+# Post-dispatch ingestion check: the expected data month must appear in the
+# scraper's committed output (or its health.json timestamp must advance)
+# within this many days of the dispatch, else alert.
+VERIFY_DEADLINE_DAYS = 3
+# A source still undetected this long past its window opening gets a
+# "probe may be broken" alert (once per month) — the safety net that
+# replaced the removed crons.
+OVERDUE_ALERT_DAYS = 21
+
 HEADERS = {"User-Agent": "Mozilla/5.0 (619coffee source-sentinel; +https://github.com/loic619/619coffee)"}
 TIMEOUT = 25
 
@@ -180,11 +189,13 @@ SOURCES: list[dict] = [
         "key": "cecafe", "label": "Cecafé monthly export report",
         "window_start": 8, "kind": "head_month", "urls": _cecafe_urls,
         "workflows": ["scraper-cecafe.yml"],
+        "verify": {"kind": "month_in_file", "file": "frontend/public/data/cecafe.json", "lag": 1},
     },
     {
         "key": "dane", "label": "DANE Colombia exports XLS",
         "window_start": 1, "kind": "head_month", "urls": _dane_urls,
         "workflows": ["scraper-monthly-colombia.yml"],
+        "verify": {"kind": "month_in_file", "file": "frontend/public/data/colombia_supply.json", "lag": 2},
     },
     {
         "key": "fnc", "label": "FNC Colombia monthly bulletin",
@@ -195,6 +206,7 @@ SOURCES: list[dict] = [
         ],
         "href_re": r'href="([^"]+\.pdf)"',
         "workflows": ["scraper-monthly-colombia.yml"],
+        "verify": {"kind": "month_in_file", "file": "frontend/public/data/colombia_supply.json", "lag": 1},
     },
     {
         "key": "ucda", "label": "UCDA Uganda monthly report",
@@ -202,6 +214,7 @@ SOURCES: list[dict] = [
         "pages": ["https://ugandacoffee.go.ug/resource-center/reports/monthly-reports"],
         "href_re": r'href="([^"]*(?:file-download|sites/default/files)[^"]*)"',
         "workflows": ["scraper-monthly-uganda.yml"],
+        "verify": {"kind": "month_in_file", "file": "frontend/public/data/uganda_monthly.json", "lag": 2},
     },
     {
         "key": "conab", "label": "CONAB safra de café",
@@ -209,6 +222,7 @@ SOURCES: list[dict] = [
         "pages": ["https://www.gov.br/conab/pt-br/atuacao/informacoes-agropecuarias/safras/safra-de-cafe"],
         "href_re": r'href="([^"]+\.(?:pdf|xls[x]?))"',
         "workflows": ["scraper-monthly-conab.yml"],
+        "verify": {"kind": "health_ts", "keys": ["conab_costs", "conab_safra"]},
     },
     {
         "key": "comex", "label": "MDIC Comex bulk import CSV",
@@ -216,14 +230,87 @@ SOURCES: list[dict] = [
         # The current year's file gains a month in place — Last-Modified moves.
         "url": lambda pub: f"https://balanca.economia.gov.br/balanca/bd/comexstat-bd/ncm/IMP_{pub.year}.csv",
         "workflows": ["scraper-monthly-br-fertilizer.yml"],
+        "verify": {"kind": "health_ts", "keys": ["fertilizer_comex"]},
     },
     {
         "key": "vn_customs", "label": "Vietnam Customs monthly bulletins",
         "window_start": 8, "kind": "head_month", "urls": _vn_urls,
         # 2x (exports) and 1n (imports/fertilizer) land in the same monthly drop.
         "workflows": ["scraper-monthly-vn-exports.yml", "scraper-monthly-vn-fertilizer.yml"],
+        # Exports cache is the sharp signal; the fertilizer file shares the drop.
+        "verify": {"kind": "month_in_file", "file": "backend/scraper/cache/vn_coffee_export.json", "lag": 1},
     },
 ]
+
+
+# ── Post-dispatch ingestion verification ─────────────────────────────────────
+
+def _months_in_json(path: Path) -> set[str]:
+    """All strict YYYY-MM strings appearing as dict keys or 'month' values."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return set()
+    out: set[str] = set()
+
+    def walk(o, depth=0):
+        if depth > 6:
+            return
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if isinstance(k, str) and re.fullmatch(r"\d{4}-\d{2}", k):
+                    out.add(k)
+                if k == "month" and isinstance(v, str) and re.fullmatch(r"\d{4}-\d{2}", v):
+                    out.add(v)
+                walk(v, depth + 1)
+        elif isinstance(o, list):
+            for it in o[:800]:
+                walk(it, depth + 1)
+
+    walk(data)
+    return out
+
+
+def _parse_any_ts(ts: str) -> dt.datetime | None:
+    try:
+        d = dt.datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        return d if d.tzinfo else d.replace(tzinfo=dt.timezone.utc)
+    except (ValueError, AttributeError):
+        return None
+
+
+def check_ingested(verify: dict) -> bool:
+    """Did the dispatched scraper actually land the update in the repo?"""
+    if verify["kind"] == "month_in_file":
+        return verify["expected"] in _months_in_json(ROOT / verify["file"])
+    # health_ts: every listed health.json scraper timestamp must postdate the dispatch.
+    try:
+        scr = json.loads((ROOT / "frontend/public/data/health.json").read_text(encoding="utf-8"))["scrapers"]
+    except (OSError, json.JSONDecodeError, KeyError):
+        return False
+    dispatched = _parse_any_ts(verify["dispatched_at"])
+    if dispatched is None:
+        return False
+    for key in verify["keys"]:
+        ts = _parse_any_ts(scr.get(key) or "")
+        if ts is None or ts <= dispatched:
+            return False
+    return True
+
+
+def build_verify(src: dict, pub_period: str, now_iso: str) -> dict | None:
+    spec = src.get("verify")
+    if not spec:
+        return None
+    v = {"kind": spec["kind"], "dispatched_at": now_iso, "status": "pending"}
+    if spec["kind"] == "month_in_file":
+        y, m = int(pub_period[:4]), int(pub_period[5:7])
+        ey, em = _shift_month(y, m, -spec["lag"])
+        v["file"] = spec["file"]
+        v["expected"] = f"{ey:04d}-{em:02d}"
+    else:
+        v["keys"] = spec["keys"]
+    return v
 
 
 # ── Dispatch + notify ────────────────────────────────────────────────────────
@@ -263,14 +350,36 @@ def run(today: dt.date, dry: bool) -> int:
         state = json.loads(STATE_PATH.read_text(encoding="utf-8"))
 
     expected = _period(today)
-    now_iso = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+    now = dt.datetime.now(dt.timezone.utc)
+    now_iso = now.isoformat(timespec="seconds")
     fired: list[str] = []
+    verified: list[str] = []
+    alerts: list[str] = []
 
     for src in SOURCES:
         key = src["key"]
         st = state.get(key)
         baseline = st is None
         confirmed = None if baseline else st.get("confirmed")
+
+        # ── Phase 0: ingestion verification for a previous dispatch ──────────
+        # Runs regardless of the probe decision (the source is usually idle by
+        # the time we verify). Pending → ok when the update is visible in the
+        # committed data; pending past the deadline → alert once.
+        if st and (v := st.get("verify")) and v.get("status") == "pending":
+            if check_ingested(v):
+                v["status"] = "ok"
+                verified.append(src["label"])
+                print(f"[{key}] ingestion VERIFIED ({v.get('expected') or ','.join(v.get('keys', []))})")
+            else:
+                disp = _parse_any_ts(v["dispatched_at"])
+                if disp and (now - disp).days >= VERIFY_DEADLINE_DAYS:
+                    v["status"] = "alerted"
+                    alerts.append(f"{src['label']}: dispatched {v['dispatched_at'][:10]} but the update "
+                                  f"never appeared in the data — check the scraper run")
+                    print(f"[{key}] ingestion NOT verified after {VERIFY_DEADLINE_DAYS}d — alerting")
+                else:
+                    print(f"[{key}] ingestion pending (dispatched {v['dispatched_at'][:10]})")
 
         if not baseline and not should_probe(today.day, confirmed, expected, src["window_start"]):
             print(f"[{key}] idle (confirmed {confirmed}, window opens day {src['window_start']})")
@@ -285,7 +394,9 @@ def run(today: dt.date, dry: bool) -> int:
             found, signal = probe_link_hash(src["pages"], src["href_re"], prev_signal)
 
         entry = {"confirmed": confirmed, "signal": signal if signal is not None else prev_signal,
-                 "last_probe": now_iso, "last_found": (st or {}).get("last_found")}
+                 "last_probe": now_iso, "last_found": (st or {}).get("last_found"),
+                 "verify": (st or {}).get("verify"),
+                 "overdue_alerted": (st or {}).get("overdue_alerted")}
 
         if baseline:
             # First run: record the world as-is, never dispatch. head_month
@@ -298,9 +409,19 @@ def run(today: dt.date, dry: bool) -> int:
             print(f"[{key}] NEW RELEASE detected ({src['label']}) → dispatching {src['workflows']}")
             all_ok = all(dispatch_workflow(wf, dry) for wf in src["workflows"])
             fired.append(src["label"] + ("" if all_ok else " (dispatch FAILED)"))
+            entry["verify"] = build_verify(src, expected, now_iso)
         else:
             late = today.day < src["window_start"] or confirmed not in (expected, _prev_period(expected))
             print(f"[{key}] probed — nothing new{' (late release, probing daily)' if late else ''}")
+            # ── Overdue alarm: undetected long past the window opening. With
+            # the crons gone, this is what catches a silently-broken probe
+            # (e.g. the source changed its URL pattern). Once per month.
+            days_over = _days_past_window(today, confirmed, src["window_start"])
+            if days_over >= OVERDUE_ALERT_DAYS and entry.get("overdue_alerted") != expected:
+                entry["overdue_alerted"] = expected
+                alerts.append(f"{src['label']}: still undetected {days_over}d past its window — "
+                              f"the probe pattern may be broken; run the scraper manually")
+                print(f"[{key}] OVERDUE {days_over}d past window — alerting")
 
         state[key] = entry
 
@@ -308,10 +429,33 @@ def run(today: dt.date, dry: bool) -> int:
         STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
+    lines = []
     if fired:
-        telegram("📡 source sentinel: new release detected →\n" + "\n".join(f"• {f}" for f in fired), dry)
-    print(f"[sentinel] done — {len(fired)} release(s) detected.")
+        lines.append("📡 new release detected →\n" + "\n".join(f"• {f}" for f in fired))
+    if verified:
+        lines.append("✅ ingestion confirmed →\n" + "\n".join(f"• {v}" for v in verified))
+    if alerts:
+        lines.append("⚠️ needs a look →\n" + "\n".join(f"• {a}" for a in alerts))
+    if lines:
+        telegram("source sentinel:\n" + "\n".join(lines), dry)
+    print(f"[sentinel] done — {len(fired)} detected, {len(verified)} verified, {len(alerts)} alert(s).")
     return 0
+
+
+def _days_past_window(today: dt.date, confirmed: str | None, window_start: int) -> int:
+    """Days since the window opened for the oldest month still pending.
+    Pending month = the month after the last confirmed one (clamped to the
+    current month); 0 when nothing is pending yet."""
+    expected = _period(today)
+    if confirmed is None or confirmed >= expected:
+        return 0
+    y, m = int(confirmed[:4]), int(confirmed[5:7])
+    py, pm = _shift_month(y, m, 1)
+    pend = f"{py:04d}-{pm:02d}"
+    if pend > expected:
+        return 0
+    open_date = dt.date(int(pend[:4]), int(pend[5:7]), min(window_start, 28))
+    return max(0, (today - open_date).days)
 
 
 def main() -> int:

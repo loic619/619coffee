@@ -1,10 +1,9 @@
 name: "3.2 – Cecafe Export Scraper"
 
 on:
-  schedule:
-    # Run on the 15th of each month at 08:00 UTC
-    # Cecafe typically publishes the previous month's report in the first 2 weeks
-    - cron: '0 8 15 * *'
+  # Cron removed 2026-08: triggered by '1.17 - Source Sentinel' on publication-day
+  # detection (probes the source site daily in its release window). Manual dispatch
+  # remains; the sentinel also verifies ingestion and alarms if a release is missed.
   workflow_dispatch:
 
 concurrency:

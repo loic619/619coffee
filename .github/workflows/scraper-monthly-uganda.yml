@@ -1,8 +1,9 @@
 name: "3.3.5 – Monthly Scraper · Uganda UCDA Reports"
 
 on:
-  schedule:
-    - cron: '0 2 14 * *'   # 14th of each month, 02:00 UTC (UCDA publishes mid-month)
+  # Cron removed 2026-08: triggered by '1.17 - Source Sentinel' on publication-day
+  # detection (probes the source site daily in its release window). Manual dispatch
+  # remains; the sentinel also verifies ingestion and alarms if a release is missed.
   workflow_dispatch:
 
 # Own concurrency group, NOT the shared 'data-commit' one: GitHub allows only

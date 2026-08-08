@@ -23,12 +23,9 @@ name: "0.10 – Colombia coffee exports (monthly · DANE + FNC)"
 # blocked and (b) request a specific historical month or count.
 
 on:
-  schedule:
-    # 06:30 UTC on days 1–22 — a poll-until-published window covering the
-    # M+1 (FNC, ~first half) and M+2 (DANE, ~mid-month) bulletins. Was a
-    # full daily cron, but days 23–31 were guaranteed no-data polls
-    # (~9 wasted runs/month) — 2026-08 Actions-efficiency pass.
-    - cron: '30 6 1-22 * *'
+  # Cron removed 2026-08: triggered by '1.17 - Source Sentinel' on publication-day
+  # detection (probes the source site daily in its release window). Manual dispatch
+  # remains; the sentinel also verifies ingestion and alarms if a release is missed.
   workflow_dispatch:
     inputs:
       run_fnc:

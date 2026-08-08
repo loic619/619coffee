@@ -69,3 +69,52 @@ def test_january_data_lags_wrap_year():
     assert "dezembro_2025" in ss._cecafe_urls(pub)[0]          # M+1 wraps
     assert "nov2025" in ss._dane_urls(pub)[0]                  # M+2 wraps
     assert "2025-t12" in ss._vn_urls(pub)[0]                   # M+1 wraps
+
+
+# ── Ingestion verification + overdue alarm ────────────────────────────────────
+
+def test_build_verify_month_in_file_applies_lag():
+    src = {"verify": {"kind": "month_in_file", "file": "frontend/public/data/cecafe.json", "lag": 1}}
+    v = ss.build_verify(src, "2026-08", "2026-08-10T06:37:00+00:00")
+    assert v["expected"] == "2026-07" and v["status"] == "pending"
+    v2 = ss.build_verify({"verify": {"kind": "month_in_file", "file": "x", "lag": 2}}, "2026-01", "t")
+    assert v2["expected"] == "2025-11"  # wraps the year
+
+
+def test_build_verify_health_ts_and_absent():
+    v = ss.build_verify({"verify": {"kind": "health_ts", "keys": ["conab_costs"]}}, "2026-08", "t")
+    assert v["keys"] == ["conab_costs"]
+    assert ss.build_verify({}, "2026-08", "t") is None
+
+
+def test_check_ingested_month_in_file(tmp_path, monkeypatch):
+    f = tmp_path / "out.json"
+    f.write_text('{"series": [{"month": "2026-06"}, {"month": "2026-07"}]}')
+    monkeypatch.setattr(ss, "ROOT", tmp_path)
+    ok = ss.check_ingested({"kind": "month_in_file", "file": "out.json", "expected": "2026-07",
+                            "dispatched_at": "2026-08-10T06:00:00+00:00"})
+    missing = ss.check_ingested({"kind": "month_in_file", "file": "out.json", "expected": "2026-08",
+                                 "dispatched_at": "2026-08-10T06:00:00+00:00"})
+    assert ok is True and missing is False
+
+
+def test_check_ingested_health_ts(tmp_path, monkeypatch):
+    h = tmp_path / "frontend" / "public" / "data"
+    h.mkdir(parents=True)
+    (h / "health.json").write_text(
+        '{"scrapers": {"conab_costs": "2026-08-12T05:00:00", "conab_safra": "2026-08-01T05:00:00"}}')
+    monkeypatch.setattr(ss, "ROOT", tmp_path)
+    base = {"kind": "health_ts", "dispatched_at": "2026-08-10T06:00:00+00:00"}
+    assert ss.check_ingested({**base, "keys": ["conab_costs"]}) is True     # advanced past dispatch
+    assert ss.check_ingested({**base, "keys": ["conab_safra"]}) is False    # still pre-dispatch
+    assert ss.check_ingested({**base, "keys": ["conab_costs", "conab_safra"]}) is False  # ALL must advance
+
+
+def test_days_past_window_overdue_paths():
+    import datetime as dt
+    # July confirmed, window opens day 8 → Aug 30 is 22d past the Aug-8 opening.
+    assert ss._days_past_window(dt.date(2026, 8, 30), "2026-07", 8) == 22
+    # Nothing pending (this month already confirmed) → 0.
+    assert ss._days_past_window(dt.date(2026, 8, 30), "2026-08", 8) == 0
+    # Two months behind: pending month is the one after confirmed → even longer overdue.
+    assert ss._days_past_window(dt.date(2026, 9, 10), "2026-07", 8) == (dt.date(2026, 9, 10) - dt.date(2026, 8, 8)).days
