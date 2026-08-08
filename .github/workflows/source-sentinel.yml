@@ -1,0 +1,80 @@
+name: "1.17 – Source Sentinel (monthly supply releases)"
+
+# One cheap daily sweep (~30 s) that detects the PUBLICATION DAY of each
+# monthly supply source and dispatches its heavy scraper the same day —
+# replacing date-guessing crons. Per-source release windows + a keep-probing-
+# daily-when-late rule live in backend/scripts/source_sentinel.py, alongside
+# the probe catalogue (Cecafé, DANE, FNC, UCDA, CONAB, Comex, VN Customs).
+#
+# TRIAL (2026-08 → 2026-09): the existing monthly crons stay untouched as
+# the safety net; the scrapers are idempotent so a sentinel+cron double-run
+# is harmless. After a clean month the crons can be widened/retired.
+#
+# 06:37 UTC: after the nightly data pipeline settles, before the 07:00
+# freshness check; off-:00 to dodge the GH cron-skip on round marks.
+
+on:
+  schedule:
+    - cron: '37 6 * * *'
+  workflow_dispatch:
+
+# Own concurrency group — sharing a global data-commit group got the Uganda
+# monthly run silently CANCELLED once (GitHub keeps only one queued run per
+# group). The state-file commit below rebases with -theirs, so global
+# serialization isn't needed.
+concurrency:
+  group: source-sentinel
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: write     # commit data/source_sentinels.json
+      actions: write      # workflow_dispatch the per-source scrapers
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Probe sources & dispatch on new releases
+        env:
+          GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python backend/scripts/source_sentinel.py
+
+      - name: Commit sentinel state if changed
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/source_sentinels.json
+          if git diff --cached --quiet; then
+            echo "No state change."
+            exit 0
+          fi
+          git commit -m "data: source-sentinel state $(date -u +%Y-%m-%d) [skip ci]"
+          ok=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase --autostash --strategy-option=theirs origin main && git push; then ok=1; break; fi
+            echo "push attempt $attempt failed (concurrent push?); retrying in $((5*attempt))s…"; sleep $((5 * attempt))
+          done
+          [ "$ok" = 1 ] || { echo "push failed after 5 attempts"; exit 1; }
+
+      - name: Notify on failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=🚨 1.17 – Source Sentinel failed — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
