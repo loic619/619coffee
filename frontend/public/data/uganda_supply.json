@@ -1,6 +1,6 @@
 {
   "country": "uganda",
-  "scraped_at": "2026-08-07T11:27:37.519677+00:00",
+  "scraped_at": "2026-08-08T04:02:44.605501+00:00",
   "exports": {
     "source": "UCDA Monthly Reports",
     "last_updated": "2026-06",
@@ -796,17 +796,17 @@
     }
   },
   "ucda_price": {
-    "usd_cwt": 187.83,
-    "as_of": "2026-08-07",
+    "usd_cwt": 183.62,
+    "as_of": "2026-08-08",
     "grade": "Screen 15",
     "grades": {
-      "Screen 15": 187.83,
-      "Wugar": 319.9,
-      "Drugar": 300.9
+      "Screen 15": 183.62,
+      "Wugar": 314.65,
+      "Drugar": 295.65
     }
   },
   "weather": {
-    "scraped_at": "2026-08-07T04:09:51.161014Z",
+    "scraped_at": "2026-08-08T03:13:24.198873Z",
     "regions": [
       {
         "name": "Kasese",
@@ -819,7 +819,7 @@
       {
         "name": "Mbale",
         "drought": "LOW",
-        "csi_30d": 0.886,
+        "csi_30d": 0.934,
         "csi_60d": 1.0,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
@@ -831,9 +831,9 @@
         "csi_60d": 0.0,
         "csi_30d_level": "OK",
         "csi_60d_level": "OK",
-        "rain_mtd_mm": 103.4,
-        "rain_hist_min": 40.1,
-        "rain_hist_max": 204.0
+        "rain_mtd_mm": 104.4,
+        "rain_hist_min": 54.9,
+        "rain_hist_max": 232.4
       },
       {
         "name": "Rwenzori",
@@ -864,7 +864,6 @@
           "M",
           "M",
           "M",
-          "M",
           "H",
           "H",
           "M",
@@ -918,18 +917,18 @@
           "M",
           "M",
           "M",
-          "H",
-          "H",
-          "H",
           "M",
-          "M"
+          "M",
+          "M",
+          "H",
+          "H",
+          "H"
         ]
       },
       {
         "region": "Mbale",
         "days": [
           "-",
-          "-",
           "L",
           "L",
           "L",
@@ -989,18 +988,18 @@
           "-",
           "L",
           "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
           "L",
-          "L",
-          "L",
-          "L",
-          "L",
-          "M"
+          "L"
         ]
       },
       {
         "region": "Mt Elgon",
         "days": [
-          "-",
           "L",
           "L",
           "L",
@@ -1043,6 +1042,7 @@
           "-",
           "L",
           "L",
+          "-",
           "-",
           "-",
           "-",
@@ -1086,7 +1086,6 @@
           "M",
           "M",
           "M",
-          "M",
           "L",
           "L",
           "L",
@@ -1126,6 +1125,7 @@
           "L",
           "-",
           "L",
+          "-",
           "-",
           "-",
           "-",
@@ -1147,7 +1147,7 @@
           "L",
           "L",
           "L",
-          "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1332,7 +1332,7 @@
       }
     ],
     "historical_stat": "Neutral ENSO: near-average Uganda coffee output expected",
-    "last_updated": "2026-08-07"
+    "last_updated": "2026-08-08"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Feb",
