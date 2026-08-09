@@ -91,47 +91,31 @@ def _fetch_bls() -> dict[str, dict] | None:
     came back with data, or None if the request failed outright.
     """
     end_year = datetime.utcnow().year
+    # 15-year window for the chart. Keyless BLS silently truncates over-long
+    # requests to their FIRST 10 calendar years — which froze these series at
+    # 2020-12 while runs logged OK. The shared helper chunks the window into
+    # API-honoured requests (2/day keyless — well inside the 25/day budget).
     start_year = end_year - 15
-    url = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
-    payload = {
-        "seriesid":  [m["id"] for m in _BLS_SERIES.values()],
-        "startyear": str(start_year),
-        "endyear":   str(end_year),
-    }
-    try:
-        r = requests.post(url, headers=_HEADERS, json=payload, timeout=30)
-        r.raise_for_status()
-        body = r.json()
-    except Exception as e:
-        logger.warning(f"[retail_cpi] BLS fetch failed: {e}")
+    import os as _os
+    from scraper.utils.bls import fetch_series, newest_period
+    fetched = fetch_series([m["id"] for m in _BLS_SERIES.values()],
+                           start_year, end_year,
+                           api_key=_os.environ.get("BLS_API_KEY", "").strip(),
+                           headers=_HEADERS, tag="retail_cpi")
+    if fetched is None:
+        logger.warning("[retail_cpi] all BLS chunks failed")
         return None
-
-    if body.get("status") != "REQUEST_SUCCEEDED":
-        logger.warning(f"[retail_cpi] BLS status {body.get('status')}: {body.get('message')}")
-        return None
+    logger.info(f"[retail_cpi] BLS newest period: {newest_period(fetched)}")
 
     id_to_key = {m["id"]: k for k, m in _BLS_SERIES.items()}
     out: dict[str, dict] = {}
-    for s in body.get("Results", {}).get("series", []):
-        key = id_to_key.get(s.get("seriesID"))
-        if not key:
+    for sid, rows in fetched.items():
+        key = id_to_key.get(sid)
+        if not key or not rows:
             continue
-        rows: list[dict] = []
-        for d in s.get("data", []):
-            period = d.get("period", "")
-            if period not in _PERIOD_TO_MONTH:
-                continue
-            try:
-                idx = float(d["value"])
-            except (KeyError, TypeError, ValueError):
-                continue
-            rows.append({"period": f"{d['year']}-{_PERIOD_TO_MONTH[period]}", "index": idx})
-        if not rows:
-            continue
-        rows.sort(key=lambda r: r["period"])
         out[key] = {
             "name":       _BLS_SERIES[key]["name"],
-            "source_url": f"https://data.bls.gov/timeseries/{s['seriesID']}",
+            "source_url": f"https://data.bls.gov/timeseries/{sid}",
             "monthly":    _yoy_series(rows),
         }
     return out or None

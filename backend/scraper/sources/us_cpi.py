@@ -133,9 +133,11 @@ def _fetch_bls() -> dict[str, dict] | None:
     """
     api_key = os.environ.get("BLS_API_KEY", "").strip()
     end_year = datetime.utcnow().year
-    # No key: BLS caps the window at 10 years/query. A registered key lifts it
-    # to 20 — request the larger window only when we have one.
-    start_year = end_year - (19 if api_key else 10)
+    # Target window ~10y (20y with key). The BLS keyless API silently serves
+    # only the first 10 CALENDAR years of an over-long request — this froze
+    # the series at 2025-12 for months while every run logged OK. The shared
+    # helper chunks requests into windows the API actually honours.
+    start_year = end_year - (19 if api_key else 9)
 
     # Flat fetch list: (request_key, series_id, display_name, parent_or_None).
     wanted: list[tuple[str, str, str, str | None]] = [
@@ -145,44 +147,17 @@ def _fetch_bls() -> dict[str, dict] | None:
         for key, sid, name in comps:
             wanted.append((key, sid, name, parent))
 
-    payload: dict = {
-        "seriesid":  [w[1] for w in wanted],
-        "startyear": str(start_year),
-        "endyear":   str(end_year),
-    }
-    if api_key:
-        payload["registrationkey"] = api_key
-
-    url = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
-    try:
-        r = requests.post(url, headers=_HEADERS, json=payload, timeout=30)
-        r.raise_for_status()
-        body = r.json()
-    except Exception as e:
-        logger.warning(f"[us_cpi] BLS fetch failed: {e}")
+    from scraper.utils.bls import fetch_series, newest_period
+    fetched = fetch_series([w[1] for w in wanted], start_year, end_year,
+                           api_key=api_key, headers=_HEADERS, tag="us_cpi")
+    if fetched is None:
+        logger.warning("[us_cpi] all BLS chunks failed")
         return None
+    newest = newest_period(fetched)
+    logger.info(f"[us_cpi] BLS newest period: {newest}")
 
-    if body.get("status") != "REQUEST_SUCCEEDED":
-        logger.warning(f"[us_cpi] BLS status {body.get('status')}: {body.get('message')}")
-        return None
-
-    # Parse every returned series into {series_id: monthly_with_yoy}.
-    parsed: dict[str, list] = {}
-    for s in body.get("Results", {}).get("series", []):
-        sid = s.get("seriesID")
-        rows: list[dict] = []
-        for d in s.get("data", []):
-            period = d.get("period", "")
-            if period not in _PERIOD_TO_MONTH:  # skip annual averages (M13) etc.
-                continue
-            try:
-                idx = float(d["value"])
-            except (KeyError, TypeError, ValueError):
-                continue
-            rows.append({"period": f"{d['year']}-{_PERIOD_TO_MONTH[period]}", "index": idx})
-        if rows:
-            rows.sort(key=lambda r: r["period"])
-            parsed[sid] = _yoy_series(rows)
+    # YoY per series.
+    parsed: dict[str, list] = {sid: _yoy_series(rows) for sid, rows in fetched.items()}
 
     # Assemble the nested structure (top-level first, so a parent node exists
     # before its components are attached).
