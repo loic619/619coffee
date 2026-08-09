@@ -37,10 +37,22 @@ jobs:
           cache: 'pip'
           cache-dependency-path: backend/scraper/requirements.txt
 
-      # No Playwright: both CPI sources are plain HTTP/JSON APIs.
+      # Playwright is the BLS fallback path: BLS's Cloudflare intermittently
+      # blocks datacenter IPs on the keyless tier (persistent 503s from GH
+      # runners observed 2026-08-09), and a real browser passes where plain
+      # requests cannot. Primary path remains plain HTTP.
       - name: Install Python dependencies
         working-directory: backend
-        run: pip install -r scraper/requirements.txt pandas requests python-dotenv openpyxl
+        run: pip install -r scraper/requirements.txt pandas requests python-dotenv openpyxl playwright
+
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}
+
+      - name: Install Playwright browser
+        run: sudo rm -f /etc/apt/sources.list.d/*microsoft* /etc/apt/sources.list.d/*azure* || true; playwright install chromium --with-deps || playwright install chromium
 
       - name: Run CPI scrapers (3 attempts)
         working-directory: backend

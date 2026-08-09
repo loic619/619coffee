@@ -46,7 +46,50 @@ def _post_chunk(payload: dict, headers: dict | None, timeout: int, tag: str,
                            f"{body.get('status')}: {body.get('message')}")
             return None
         return body
-    return None
+    # Plain requests exhausted. BLS's Cloudflare intermittently blocks
+    # datacenter IPs on the keyless tier (observed: persistent 503s from GH
+    # runners on 2026-08-09 while browsers passed) — retry through a real
+    # browser, same proven pattern as the Barchart/Sucafina fetchers.
+    return _browser_post_chunk(payload, tag, span)
+
+
+def _browser_post_chunk(payload: dict, tag: str, span: str) -> dict | None:
+    """Same-origin in-page POST via headless Chromium. Landing on an
+    api.bls.gov URL first makes the fetch same-origin (no CORS), and the
+    browser's TLS/JA3 fingerprint passes the bot filter that 503s requests."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        logger.warning(f"[{tag}] BLS chunk {span}: playwright unavailable — no browser fallback")
+        return None
+    try:
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(headless=True)
+            pg = browser.new_page()
+            try:
+                pg.goto(f"{_URL}CUUR0000SA0", wait_until="domcontentloaded", timeout=45000)
+                body = pg.evaluate(
+                    """async (payload) => {
+                        const r = await fetch('%s', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(payload),
+                        });
+                        return await r.json();
+                    }""" % _URL,
+                    payload,
+                )
+            finally:
+                browser.close()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"[{tag}] BLS chunk {span} browser fallback failed: {exc}")
+        return None
+    if not isinstance(body, dict) or body.get("status") != "REQUEST_SUCCEEDED":
+        status = body.get("status") if isinstance(body, dict) else type(body).__name__
+        logger.warning(f"[{tag}] BLS chunk {span} browser fallback status {status}")
+        return None
+    logger.info(f"[{tag}] BLS chunk {span}: served via browser fallback")
+    return body
 
 
 def year_chunks(start_year: int, end_year: int, max_span: int) -> list[tuple[int, int]]:
