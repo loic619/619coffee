@@ -406,6 +406,28 @@ async def run(page, db) -> None:  # noqa: ARG001
             print("[retail_cpi] all 3 sources failed — retaining cache")
             return
 
+        # Per-series cache retention: BLS / Eurostat / BCB fail independently,
+        # and a source failing must NOT delete its series from the shipped
+        # file. (A BLS 503 on 2026-08-09 wiped us/us_coffee from the JSON —
+        # restored and guarded since.) The scraper cache is not tracked in
+        # git, so on a fresh CI checkout fall back to the SHIPPED file, which
+        # always carries the last committed series.
+        prior: dict = {}
+        _shipped = Path(__file__).resolve().parents[3] / "frontend" / "public" / "data" / "retail_cpi.json"
+        for _src in (_CACHE_PATH, _shipped):
+            try:
+                prior = json.loads(_src.read_text(encoding="utf-8")).get("series") or {}
+                if prior:
+                    break
+            except Exception:
+                continue
+        retained = [k for k in prior if k not in payload["series"]]
+        for k in retained:
+            payload["series"][k] = prior[k]
+        if retained:
+            print(f"[retail_cpi] retained cached series (source failed this run): "
+                  f"{', '.join(sorted(retained))}")
+
         _CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
         _CACHE_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 

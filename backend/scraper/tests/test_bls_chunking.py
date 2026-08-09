@@ -68,4 +68,27 @@ def test_fetch_series_total_failure_returns_none(monkeypatch):
     def fake_post(url, headers=None, json=None, timeout=None):
         raise OSError("network down")
     monkeypatch.setattr(bls.requests, "post", fake_post)
+    monkeypatch.setattr(bls.time, "sleep", lambda s: None)   # skip retry backoff
     assert bls.fetch_series(["X"], 2020, 2026, tag="test") is None
+
+
+def test_post_chunk_retries_transient_503(monkeypatch):
+    """The 2026-08-09 failure mode: BLS 503s a couple of times, then serves."""
+    calls = {"n": 0}
+
+    def fake_post(url, headers=None, json=None, timeout=None):
+        calls["n"] += 1
+        class R:
+            def raise_for_status(self):
+                if calls["n"] < 3:
+                    raise OSError("503 Server Error")
+            def json(self):
+                return {"status": "REQUEST_SUCCEEDED", "Results": {"series": [{
+                    "seriesID": "X", "data": [{"year": "2026", "period": "M06", "value": "2"}]}]}}
+        return R()
+
+    monkeypatch.setattr(bls.requests, "post", fake_post)
+    monkeypatch.setattr(bls.time, "sleep", lambda s: None)
+    out = bls.fetch_series(["X"], 2020, 2026, tag="test")
+    assert calls["n"] == 3                                   # two 503s + success
+    assert out == {"X": [{"period": "2026-06", "index": 2.0}]}

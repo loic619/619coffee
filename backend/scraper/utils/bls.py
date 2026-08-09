@@ -12,6 +12,7 @@ chunked into windows the API actually honours (10 calendar years keyless,
 from __future__ import annotations
 
 import logging
+import time
 
 import requests
 
@@ -20,6 +21,32 @@ logger = logging.getLogger(__name__)
 _URL = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
 
 _PERIOD_TO_MONTH = {f"M{i:02d}": f"{i:02d}" for i in range(1, 13)}
+
+# BLS intermittently 503s (observed from GH runners 2026-08-09). Short in-call
+# retries ride out blips; a persistent outage falls through to the callers'
+# cache-retention paths.
+_RETRIES = 3
+_RETRY_SLEEP_S = (5, 20)
+
+
+def _post_chunk(payload: dict, headers: dict | None, timeout: int, tag: str,
+                span: str) -> dict | None:
+    for attempt in range(_RETRIES):
+        try:
+            r = requests.post(_URL, headers=headers or {}, json=payload, timeout=timeout)
+            r.raise_for_status()
+            body = r.json()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"[{tag}] BLS chunk {span} attempt {attempt + 1}: {exc}")
+            if attempt < _RETRIES - 1:
+                time.sleep(_RETRY_SLEEP_S[min(attempt, len(_RETRY_SLEEP_S) - 1)])
+            continue
+        if body.get("status") != "REQUEST_SUCCEEDED":
+            logger.warning(f"[{tag}] BLS chunk {span} status "
+                           f"{body.get('status')}: {body.get('message')}")
+            return None
+        return body
+    return None
 
 
 def year_chunks(start_year: int, end_year: int, max_span: int) -> list[tuple[int, int]]:
@@ -54,16 +81,8 @@ def fetch_series(series_ids: list[str], start_year: int, end_year: int,
         }
         if api_key:
             payload["registrationkey"] = api_key
-        try:
-            r = requests.post(_URL, headers=headers or {}, json=payload, timeout=timeout)
-            r.raise_for_status()
-            body = r.json()
-        except Exception as exc:  # noqa: BLE001
-            logger.warning(f"[{tag}] BLS chunk {s}-{e} failed: {exc}")
-            continue
-        if body.get("status") != "REQUEST_SUCCEEDED":
-            logger.warning(f"[{tag}] BLS chunk {s}-{e} status "
-                           f"{body.get('status')}: {body.get('message')}")
+        body = _post_chunk(payload, headers, timeout, tag, f"{s}-{e}")
+        if body is None:
             continue
         any_ok = True
         for series in body.get("Results", {}).get("series", []):
