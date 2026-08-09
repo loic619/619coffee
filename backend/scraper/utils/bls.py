@@ -56,19 +56,29 @@ def _post_chunk(payload: dict, headers: dict | None, timeout: int, tag: str,
 def _browser_post_chunk(payload: dict, tag: str, span: str) -> dict | None:
     """Same-origin in-page POST via headless Chromium. Landing on an
     api.bls.gov URL first makes the fetch same-origin (no CORS), and the
-    browser's TLS/JA3 fingerprint passes the bot filter that 503s requests."""
+    browser's TLS/JA3 fingerprint passes the bot filter that 503s requests.
+
+    The CPI scrapers run inside asyncio.run(), where Playwright's sync API
+    refuses to start ("Sync API inside the asyncio loop") — so the async API
+    runs on its own thread with a fresh event loop, which works from any
+    calling context."""
     try:
-        from playwright.sync_api import sync_playwright
+        from playwright.async_api import async_playwright
     except ImportError:
         logger.warning(f"[{tag}] BLS chunk {span}: playwright unavailable — no browser fallback")
         return None
-    try:
-        with sync_playwright() as pw:
-            browser = pw.chromium.launch(headless=True)
-            pg = browser.new_page()
+
+    import asyncio
+    import threading
+
+    async def _go():
+        async with async_playwright() as pw:
+            browser = await pw.chromium.launch(headless=True)
+            pg = await browser.new_page()
             try:
-                pg.goto(f"{_URL}CUUR0000SA0", wait_until="domcontentloaded", timeout=45000)
-                body = pg.evaluate(
+                await pg.goto(f"{_URL}CUUR0000SA0",
+                              wait_until="domcontentloaded", timeout=45000)
+                return await pg.evaluate(
                     """async (payload) => {
                         const r = await fetch('%s', {
                             method: 'POST',
@@ -80,10 +90,24 @@ def _browser_post_chunk(payload: dict, tag: str, span: str) -> dict | None:
                     payload,
                 )
             finally:
-                browser.close()
-    except Exception as exc:  # noqa: BLE001
-        logger.warning(f"[{tag}] BLS chunk {span} browser fallback failed: {exc}")
+                await browser.close()
+
+    result: dict = {}
+
+    def _runner():
+        try:
+            result["body"] = asyncio.run(_go())
+        except Exception as exc:  # noqa: BLE001
+            result["err"] = exc
+
+    t = threading.Thread(target=_runner, daemon=True)
+    t.start()
+    t.join(timeout=120)
+    if t.is_alive() or "err" in result or "body" not in result:
+        err = result.get("err", "timed out" if t.is_alive() else "no result")
+        logger.warning(f"[{tag}] BLS chunk {span} browser fallback failed: {err}")
         return None
+    body = result["body"]
     if not isinstance(body, dict) or body.get("status") != "REQUEST_SUCCEEDED":
         status = body.get("status") if isinstance(body, dict) else type(body).__name__
         logger.warning(f"[{tag}] BLS chunk {span} browser fallback status {status}")
