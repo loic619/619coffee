@@ -73,9 +73,9 @@ def _exporters(db):
     exported here (avoids clobbering 1.3's fresher copy with a stale one).
     """
     from scraper.exporters.cot_cropyear_xray import export_cot_cropyear_xray
-    from scraper.exporters.yield_rainfall import export_yield_rainfall
     from scraper.exporters.cot_sept_study import export_cot_sept_study
     from scraper.exporters.tender_parity import export_tender_parity
+    from scraper.exporters.yield_rainfall import export_yield_rainfall
     from scraper.sources.brazil_arabica_fisico import export_brazil_arabica_fisico
     from scraper.sources.brazil_b3_arabica import export_brazil_b3_arabica
     from scraper.sources.origin_prices_history import export_origin_prices_history

@@ -274,7 +274,7 @@ def _months_in_json(path: Path) -> set[str]:
 def _parse_any_ts(ts: str) -> dt.datetime | None:
     try:
         d = dt.datetime.fromisoformat(ts.replace("Z", "+00:00"))
-        return d if d.tzinfo else d.replace(tzinfo=dt.timezone.utc)
+        return d if d.tzinfo else d.replace(tzinfo=dt.UTC)
     except (ValueError, AttributeError):
         return None
 
@@ -350,7 +350,7 @@ def run(today: dt.date, dry: bool) -> int:
         state = json.loads(STATE_PATH.read_text(encoding="utf-8"))
 
     expected = _period(today)
-    now = dt.datetime.now(dt.timezone.utc)
+    now = dt.datetime.now(dt.UTC)
     now_iso = now.isoformat(timespec="seconds")
     fired: list[str] = []
     verified: list[str] = []

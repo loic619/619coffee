@@ -26,7 +26,7 @@ DERIVED exporter — reads committed seeds + published weather JSONs, no network
 """
 import json
 import math
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from scraper.exporters.base import OUT_DIR, ROOT
 from scraper.validate_export import safe_write_json, validate_yield_rainfall
@@ -210,7 +210,7 @@ def _live_monthly(weather: dict, weights: dict[str, float]) -> dict[str, float]:
                     k = f"{yr}-{i + 1:02d}"
                     out[k] = out.get(k, 0.0) + v * share
         cur = p.get("monthly_actual_cur") or []
-        cur_year = datetime.now(timezone.utc).year
+        cur_year = datetime.now(UTC).year
         for i, v in enumerate(cur):
             if v is not None:
                 k = f"{cur_year:04d}-{i + 1:02d}"
@@ -220,7 +220,7 @@ def _live_monthly(weather: dict, weights: dict[str, float]) -> dict[str, float]:
 
 def export_yield_rainfall() -> None:
     spi_seed = (_load(SEED_DIR / "spi_30yr_baselines.json") or {}).get("origins") or {}
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
 
     models_out = {}
     for cfg in MODELS:
@@ -305,7 +305,7 @@ def export_yield_rainfall() -> None:
         }
 
     payload = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "meta": {
             "x_axis": "crop-year rainfall total (mm), production-weighted across growing regions",
             "y_axis": "yield as % of normal — theory: potential vs max; scatter: production vs log-linear trend (=100)",
