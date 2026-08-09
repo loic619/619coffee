@@ -69,7 +69,22 @@ def test_fetch_series_total_failure_returns_none(monkeypatch):
         raise OSError("network down")
     monkeypatch.setattr(bls.requests, "post", fake_post)
     monkeypatch.setattr(bls.time, "sleep", lambda s: None)   # skip retry backoff
+    monkeypatch.setattr(bls, "_browser_post_chunk", lambda *a: None)  # hermetic
     assert bls.fetch_series(["X"], 2020, 2026, tag="test") is None
+
+
+def test_browser_fallback_engages_after_requests_exhausted(monkeypatch):
+    """The 2026-08-09 endgame: requests 503s forever (Cloudflare IP block),
+    the browser path serves — data must flow through it."""
+    def fake_post(url, headers=None, json=None, timeout=None):
+        raise OSError("503 blocked")
+    monkeypatch.setattr(bls.requests, "post", fake_post)
+    monkeypatch.setattr(bls.time, "sleep", lambda s: None)
+    monkeypatch.setattr(bls, "_browser_post_chunk", lambda payload, tag, span: {
+        "status": "REQUEST_SUCCEEDED", "Results": {"series": [{
+            "seriesID": "X", "data": [{"year": "2026", "period": "M06", "value": "3"}]}]}})
+    out = bls.fetch_series(["X"], 2020, 2026, tag="test")
+    assert out == {"X": [{"period": "2026-06", "index": 3.0}]}
 
 
 def test_post_chunk_retries_transient_503(monkeypatch):
