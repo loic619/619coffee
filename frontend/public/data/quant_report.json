@@ -228,56 +228,76 @@
       }
     ]
   },
-  "scraped_at": "2026-08-10T22:07:08.306517+00:00",
+  "scraped_at": "2026-08-10T22:07:40.695745Z",
   "sentiment": {
     "available": true,
-    "scraped_at": "2026-08-07T22:07:19.176443Z",
+    "scraped_at": "2026-08-10T22:07:39.633543Z",
     "overall_sentiment": "Neutral",
-    "overall_confidence": 89.3,
-    "net_index": 3.4,
-    "bull_count": 6,
-    "bear_count": 5,
-    "neutral_count": 14,
-    "total": 25,
+    "overall_confidence": 88.4,
+    "net_index": 21.6,
+    "bull_count": 8,
+    "bear_count": 3,
+    "neutral_count": 8,
+    "total": 19,
     "items": [
+      {
+        "headline": "Caf\u00e9 fecha est\u00e1vel em NY nesta 2\u00aa feira (10) e neg\u00f3cios no Brasil permanecem restritos",
+        "source": "Not\u00edcias Agr\u00edcolas",
+        "sentiment": "Neutral",
+        "confidence": 85.0,
+        "tags": [
+          "cafe",
+          "noticias_agricolas"
+        ]
+      },
+      {
+        "headline": "Caf\u00e9 ar\u00e1bica: colheita evolui para 74% na regi\u00e3o da Expocacer",
+        "source": "Not\u00edcias Agr\u00edcolas",
+        "sentiment": "Bearish",
+        "confidence": 90.0,
+        "tags": [
+          "cafe",
+          "noticias_agricolas"
+        ]
+      },
       {
         "headline": "Caf\u00e9 dispara em NY e fecha nas m\u00e1ximas em uma semana com temor sobre oferta e qualidade no BR",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
-        "confidence": 90.0,
+        "confidence": 95.0,
         "tags": [
-          "noticias_agricolas",
-          "cafe"
+          "cafe",
+          "noticias_agricolas"
         ]
       },
       {
         "headline": "Concurso NossoCaf\u00e9 Yara celebra 10\u00aa edi\u00e7\u00e3o e abre espa\u00e7o pela primeira vez para caf\u00e9s Canephora",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
-        "confidence": 95.0,
+        "confidence": 80.0,
         "tags": [
-          "noticias_agricolas",
-          "cafe"
+          "cafe",
+          "noticias_agricolas"
         ]
       },
       {
         "headline": "Cooxup\u00e9 conquista na justi\u00e7a devolu\u00e7\u00e3o de mais de R$ 622 milh\u00f5es aos cooperados em decis\u00e3o hist\u00f3rica sobre o Funrural",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
-        "confidence": 95.0,
+        "confidence": 85.0,
         "tags": [
-          "noticias_agricolas",
-          "cafe"
+          "cafe",
+          "noticias_agricolas"
         ]
       },
       {
         "headline": "Caf\u00e9 cai mais de 500 pontos em Nova York e pre\u00e7os tamb\u00e9m recuam no mercado brasileiro",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bearish",
-        "confidence": 90.0,
+        "confidence": 95.0,
         "tags": [
-          "noticias_agricolas",
-          "cafe"
+          "cafe",
+          "noticias_agricolas"
         ]
       },
       {
@@ -286,25 +306,25 @@
         "sentiment": "Bearish",
         "confidence": 90.0,
         "tags": [
-          "noticias_agricolas",
-          "cafe"
+          "cafe",
+          "noticias_agricolas"
         ]
       },
       {
         "headline": "Pre\u00e7os do caf\u00e9 sobem no Vietn\u00e3, safra na Indon\u00e9sia chega ao fim",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
-        "confidence": 80.0,
+        "confidence": 90.0,
         "tags": [
-          "noticias_agricolas",
-          "cafe"
+          "cafe",
+          "noticias_agricolas"
         ]
       },
       {
         "headline": "Spokane Coffee Shops Open Doors To Those Impacted By Wildfires",
         "source": "Sprudge",
         "sentiment": "Neutral",
-        "confidence": 95.0,
+        "confidence": 99.0,
         "tags": [
           "sprudge"
         ]
@@ -313,27 +333,27 @@
         "headline": "Caf\u00e9 fecha 4\u00aa feira em alta em NY e Londres; robusta tem m\u00e1ximas em uma semana",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
-        "confidence": 90.0,
+        "confidence": 95.0,
         "tags": [
-          "noticias_agricolas",
-          "cafe"
+          "cafe",
+          "noticias_agricolas"
         ]
       },
       {
         "headline": "Setor cafeeiro enaltece trabalhos para atender a exig\u00eancias dos mercados internacionais",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
-        "confidence": 90.0,
+        "confidence": 85.0,
         "tags": [
-          "noticias_agricolas",
-          "cafe"
+          "cafe",
+          "noticias_agricolas"
         ]
       },
       {
         "headline": "Build-Outs Of Coffee: Onyx At The Preserve In Bentonville, AR",
         "source": "Sprudge",
         "sentiment": "Neutral",
-        "confidence": 95.0,
+        "confidence": 99.0,
         "tags": [
           "sprudge"
         ]
@@ -341,8 +361,8 @@
       {
         "headline": "Coffee Borer Beetles Are Making Homes For The Ants That Hunt Them",
         "source": "Sprudge",
-        "sentiment": "Neutral",
-        "confidence": 70.0,
+        "sentiment": "Bullish",
+        "confidence": 60.0,
         "tags": [
           "sprudge"
         ]
@@ -353,15 +373,15 @@
         "sentiment": "Bullish",
         "confidence": 90.0,
         "tags": [
-          "noticias_agricolas",
-          "cafe"
+          "cafe",
+          "noticias_agricolas"
         ]
       },
       {
         "headline": "Ivan Solis Of Recuerdos Cafe: The Sprudge Twenty Interview",
         "source": "Sprudge",
         "sentiment": "Neutral",
-        "confidence": 95.0,
+        "confidence": 99.0,
         "tags": [
           "sprudge"
         ]
@@ -370,27 +390,27 @@
         "headline": "Setor de caf\u00e9s especiais pode obter US$ 5,6 milh\u00f5es com a\u00e7\u00f5es no Chile",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
-        "confidence": 90.0,
+        "confidence": 75.0,
         "tags": [
-          "noticias_agricolas",
-          "cafe"
+          "cafe",
+          "noticias_agricolas"
         ]
       },
       {
         "headline": "Caf\u00e9 fecha com boas altas em NY nesta 3\u00aa feira, mas neg\u00f3cios permanecem travados no Brasil",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
-        "confidence": 80.0,
+        "confidence": 90.0,
         "tags": [
-          "noticias_agricolas",
-          "cafe"
+          "cafe",
+          "noticias_agricolas"
         ]
       },
       {
         "headline": "The American Heart Association Says Five Cups Of Coffee A Day Is Fine",
         "source": "Sprudge",
-        "sentiment": "Neutral",
-        "confidence": 80.0,
+        "sentiment": "Bullish",
+        "confidence": 70.0,
         "tags": [
           "sprudge"
         ]
@@ -399,92 +419,17 @@
         "headline": "Caf\u00e9 sobe mais de 1% em Nova York com recupera\u00e7\u00e3o t\u00e9cnica e volta das preocupa\u00e7\u00f5es com a oferta",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
-        "confidence": 90.0,
-        "tags": [
-          "noticias_agricolas",
-          "cafe"
-        ]
-      },
-      {
-        "headline": "Caf\u00e9 cai forte em Nova York com avan\u00e7o da colheita no Brasil e d\u00f3lar forte; robusta sobe em Londres",
-        "source": "Not\u00edcias Agr\u00edcolas",
-        "sentiment": "Bearish",
-        "confidence": 75.0,
-        "tags": [
-          "noticias_agricolas",
-          "cafe"
-        ]
-      },
-      {
-        "headline": "Exporta\u00e7\u00e3o de caf\u00e9 do Vietn\u00e3 aumenta 21% de janeiro a julho",
-        "source": "Not\u00edcias Agr\u00edcolas",
-        "sentiment": "Bearish",
-        "confidence": 90.0,
-        "tags": [
-          "noticias_agricolas",
-          "cafe"
-        ]
-      },
-      {
-        "headline": "Build-Outs Of Coffee: Demitasse In Santa Monica, CA",
-        "source": "Sprudge",
-        "sentiment": "Neutral",
         "confidence": 95.0,
         "tags": [
-          "sprudge"
-        ]
-      },
-      {
-        "headline": "Colheita de caf\u00e9 ar\u00e1bica encerra julho em 66% na \u00e1rea da Expocacer",
-        "source": "Not\u00edcias Agr\u00edcolas",
-        "sentiment": "Bearish",
-        "confidence": 90.0,
-        "tags": [
-          "noticias_agricolas",
-          "cafe"
-        ]
-      },
-      {
-        "headline": "Korean Researchers Turn Wet Coffee Grounds Into Biochar in 90 Seconds",
-        "source": "Daily Coffee News",
-        "sentiment": "Neutral",
-        "confidence": 95.0,
-        "tags": [
-          "daily_coffee_news"
-        ]
-      },
-      {
-        "headline": "Climate Pressures Bring New Attention to Excelsa Coffee",
-        "source": "Daily Coffee News",
-        "sentiment": "Neutral",
-        "confidence": 80.0,
-        "tags": [
-          "daily_coffee_news"
-        ]
-      },
-      {
-        "headline": "This Much Coffee Per Day Linked to Reduced Depression and Anxiety",
-        "source": "Daily Coffee News",
-        "sentiment": "Neutral",
-        "confidence": 80.0,
-        "tags": [
-          "daily_coffee_news"
-        ]
-      },
-      {
-        "headline": "Protect Your Laptop From Coffee With Upcycled Coffee",
-        "source": "Sprudge",
-        "sentiment": "Neutral",
-        "confidence": 95.0,
-        "tags": [
-          "sprudge"
+          "cafe",
+          "noticias_agricolas"
         ]
       }
     ]
   },
   "robusta_factors": {
     "available": true,
-    "scraped_at": "2026-08-07T22:07:19.880028Z",
+    "scraped_at": "2026-08-10T22:07:40.182284Z",
     "as_of": "2026-08-04",
     "model": {
       "r_squared": 0.012,
@@ -543,7 +488,7 @@
   },
   "sentiment_calibration": {
     "available": true,
-    "scraped_at": "2026-08-07T22:07:20.185622Z",
+    "scraped_at": "2026-08-10T22:07:40.534279Z",
     "horizon_days": 5,
     "neutral_band": 8.0,
     "markets": {
