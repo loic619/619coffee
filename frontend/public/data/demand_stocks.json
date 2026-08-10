@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-10T10:05:54.524541Z",
+  "generated_at": "2026-08-10T10:41:58.381621Z",
   "eu": {
     "source": "USDA FAS PSD",
-    "last_updated": "2026-06-16",
+    "last_updated": "2026-06-01",
     "annual": [
       {
         "year": "2002",
@@ -180,7 +180,7 @@
         "exports_mt": 0,
         "imports_mt": 2796900,
         "begin_stocks_mt": 826020,
-        "consumption_mt": 2513820,
+        "consumption_mt": 2513400,
         "stocks_mt": 840000,
         "production_mt": 0
       },
@@ -205,30 +205,39 @@
       {
         "year": "2024",
         "exports_mt": 0,
-        "imports_mt": 2772000,
+        "imports_mt": 2773800,
         "begin_stocks_mt": 517560,
-        "consumption_mt": 2472660,
+        "consumption_mt": 2474160,
         "stocks_mt": 490200,
         "production_mt": 0
       },
       {
         "year": "2025",
         "exports_mt": 0,
-        "imports_mt": 2820000,
+        "imports_mt": 2790000,
         "begin_stocks_mt": 490200,
-        "consumption_mt": 2512200,
-        "stocks_mt": 468000,
+        "consumption_mt": 2494200,
+        "stocks_mt": 450000,
+        "production_mt": 0
+      },
+      {
+        "year": "2026",
+        "exports_mt": 0,
+        "imports_mt": 3000000,
+        "begin_stocks_mt": 450000,
+        "consumption_mt": 2550000,
+        "stocks_mt": 558000,
         "production_mt": 0
       }
     ],
-    "latest_year": "2025",
-    "latest_imports_mt": 2820000,
-    "latest_consumption_mt": 2512200,
-    "latest_stocks_mt": 468000
+    "latest_year": "2026",
+    "latest_imports_mt": 3000000,
+    "latest_consumption_mt": 2550000,
+    "latest_stocks_mt": 558000
   },
   "japan": {
     "source": "USDA FAS PSD",
-    "last_updated": "2026-06-16",
+    "last_updated": "2026-06-01",
     "annual": [
       {
         "year": "2002",
@@ -440,21 +449,30 @@
       {
         "year": "2025",
         "exports_mt": 0,
-        "imports_mt": 360000,
+        "imports_mt": 348000,
         "begin_stocks_mt": 136080,
-        "consumption_mt": 403080,
-        "stocks_mt": 126000,
+        "consumption_mt": 399180,
+        "stocks_mt": 132000,
+        "production_mt": 0
+      },
+      {
+        "year": "2026",
+        "exports_mt": 0,
+        "imports_mt": 372000,
+        "begin_stocks_mt": 132000,
+        "consumption_mt": 414000,
+        "stocks_mt": 138000,
         "production_mt": 0
       }
     ],
-    "latest_year": "2025",
-    "latest_imports_mt": 360000,
-    "latest_consumption_mt": 403080,
-    "latest_stocks_mt": 126000
+    "latest_year": "2026",
+    "latest_imports_mt": 372000,
+    "latest_consumption_mt": 414000,
+    "latest_stocks_mt": 138000
   },
   "usa": {
     "source": "USDA FAS PSD",
-    "last_updated": "2026-06-16",
+    "last_updated": "2026-06-01",
     "annual": [
       {
         "year": "1960",
@@ -1035,25 +1053,34 @@
       {
         "year": "2024",
         "exports_mt": 0,
-        "imports_mt": 1404000,
+        "imports_mt": 1401600,
         "begin_stocks_mt": 342000,
-        "consumption_mt": 1573200,
+        "consumption_mt": 1568700,
         "stocks_mt": 342000,
         "production_mt": 3000
       },
       {
         "year": "2025",
         "exports_mt": 0,
-        "imports_mt": 1428000,
+        "imports_mt": 1386000,
         "begin_stocks_mt": 342000,
-        "consumption_mt": 1593000,
+        "consumption_mt": 1533000,
+        "stocks_mt": 342000,
+        "production_mt": 3000
+      },
+      {
+        "year": "2026",
+        "exports_mt": 0,
+        "imports_mt": 1470000,
+        "begin_stocks_mt": 342000,
+        "consumption_mt": 1617000,
         "stocks_mt": 342000,
         "production_mt": 3000
       }
     ],
-    "latest_year": "2025",
-    "latest_imports_mt": 1428000,
-    "latest_consumption_mt": 1593000,
+    "latest_year": "2026",
+    "latest_imports_mt": 1470000,
+    "latest_consumption_mt": 1617000,
     "latest_stocks_mt": 342000
   },
   "ajca": {
@@ -1737,17 +1764,26 @@
           "imports_mt": 0,
           "begin_stocks_mt": 125100,
           "consumption_mt": 1318200,
-          "stocks_mt": 26400,
-          "production_mt": 3900000
+          "stocks_mt": 57300,
+          "production_mt": 3930000
         },
         {
           "year": "2025",
-          "exports_mt": 2220000,
+          "exports_mt": 2040000,
           "imports_mt": 0,
-          "begin_stocks_mt": 26400,
+          "begin_stocks_mt": 57300,
           "consumption_mt": 1336800,
-          "stocks_mt": 29100,
+          "stocks_mt": 233700,
           "production_mt": 3780000
+        },
+        {
+          "year": "2026",
+          "exports_mt": 2700000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 233700,
+          "consumption_mt": 1343400,
+          "stocks_mt": 265500,
+          "production_mt": 4314000
         },
         {
           "year": "2027",
@@ -1765,10 +1801,10 @@
     },
     "vietnam": {
       "latest_year": "2026",
-      "latest_production_mt": 1902000,
-      "latest_exports_mt": 1710000,
-      "latest_consumption_mt": 294000,
-      "latest_stocks_mt": 54000,
+      "latest_production_mt": 1950000,
+      "latest_exports_mt": 1524000,
+      "latest_consumption_mt": 300000,
+      "latest_stocks_mt": 29340,
       "annual": [
         {
           "year": "1960",
@@ -2357,34 +2393,31 @@
         },
         {
           "year": "2025",
-          "exports_mt": 1476000,
+          "exports_mt": 1506000,
           "imports_mt": 51000,
           "begin_stocks_mt": 65340,
           "consumption_mt": 294000,
-          "stocks_mt": 23340,
-          "production_mt": 1848000
+          "stocks_mt": 41340,
+          "production_mt": 1902000
         },
         {
           "year": "2026",
-          "production_mt": 1902000,
-          "exports_mt": 1710000,
-          "bean_exports_mt": 1506000,
-          "soluble_exports_mt": 162000,
-          "roast_exports_mt": 42000,
-          "consumption_mt": 294000,
-          "stocks_mt": 54000,
-          "begin_stocks_mt": 23340,
-          "imports_mt": 51000
+          "exports_mt": 1524000,
+          "imports_mt": 48000,
+          "begin_stocks_mt": 41340,
+          "consumption_mt": 300000,
+          "stocks_mt": 29340,
+          "production_mt": 1950000
         }
       ],
-      "forecast_source": "https://www.fas.usda.gov/data/gain/2026/05/vietnam-coffee-annual"
+      "forecast_source": null
     },
     "colombia": {
-      "latest_year": "2025",
-      "latest_production_mt": 828000,
-      "latest_exports_mt": 690000,
-      "latest_consumption_mt": 136200,
-      "latest_stocks_mt": 57780,
+      "latest_year": "2026",
+      "latest_production_mt": 804000,
+      "latest_exports_mt": 732000,
+      "latest_consumption_mt": 132000,
+      "latest_stocks_mt": 40200,
       "annual": [
         {
           "year": "1960",
@@ -2967,28 +3000,37 @@
           "exports_mt": 732000,
           "imports_mt": 47100,
           "begin_stocks_mt": 40080,
-          "consumption_mt": 129000,
-          "stocks_mt": 55080,
+          "consumption_mt": 128940,
+          "stocks_mt": 55320,
           "production_mt": 888000
         },
         {
           "year": "2025",
-          "exports_mt": 690000,
-          "imports_mt": 54000,
-          "begin_stocks_mt": 55080,
-          "consumption_mt": 136200,
-          "stocks_mt": 57780,
-          "production_mt": 828000
+          "exports_mt": 702000,
+          "imports_mt": 132000,
+          "begin_stocks_mt": 55320,
+          "consumption_mt": 132000,
+          "stocks_mt": 51960,
+          "production_mt": 750000
+        },
+        {
+          "year": "2026",
+          "exports_mt": 732000,
+          "imports_mt": 108000,
+          "begin_stocks_mt": 51960,
+          "consumption_mt": 132000,
+          "stocks_mt": 40200,
+          "production_mt": 804000
         }
       ],
       "forecast_source": null
     },
     "indonesia": {
-      "latest_year": "2025",
-      "latest_production_mt": 747000,
-      "latest_exports_mt": 468000,
-      "latest_consumption_mt": 288600,
-      "latest_stocks_mt": 39420,
+      "latest_year": "2026",
+      "latest_production_mt": 682800,
+      "latest_exports_mt": 420000,
+      "latest_consumption_mt": 289800,
+      "latest_stocks_mt": 40260,
       "annual": [
         {
           "year": "1960",
@@ -3577,22 +3619,31 @@
         },
         {
           "year": "2025",
-          "exports_mt": 468000,
-          "imports_mt": 21000,
+          "exports_mt": 470640,
+          "imports_mt": 22320,
           "begin_stocks_mt": 37320,
           "consumption_mt": 288600,
-          "stocks_mt": 39420,
-          "production_mt": 747000
+          "stocks_mt": 45060,
+          "production_mt": 742200
+        },
+        {
+          "year": "2026",
+          "exports_mt": 420000,
+          "imports_mt": 24000,
+          "begin_stocks_mt": 45060,
+          "consumption_mt": 289800,
+          "stocks_mt": 40260,
+          "production_mt": 682800
         }
       ],
       "forecast_source": null
     },
     "honduras": {
-      "latest_year": "2025",
-      "latest_production_mt": 348000,
+      "latest_year": "2026",
+      "latest_production_mt": 361800,
       "latest_exports_mt": 330000,
-      "latest_consumption_mt": 20100,
-      "latest_stocks_mt": 5160,
+      "latest_consumption_mt": 24900,
+      "latest_stocks_mt": 42420,
       "annual": [
         {
           "year": "1960",
@@ -4172,31 +4223,40 @@
         },
         {
           "year": "2024",
-          "exports_mt": 285900,
-          "imports_mt": 960,
+          "exports_mt": 297480,
+          "imports_mt": 5760,
           "begin_stocks_mt": 8580,
           "consumption_mt": 20100,
-          "stocks_mt": 4860,
-          "production_mt": 300000
+          "stocks_mt": 10680,
+          "production_mt": 312000
         },
         {
           "year": "2025",
+          "exports_mt": 301680,
+          "imports_mt": 6000,
+          "begin_stocks_mt": 10680,
+          "consumption_mt": 22800,
+          "stocks_mt": 26100,
+          "production_mt": 331800
+        },
+        {
+          "year": "2026",
           "exports_mt": 330000,
-          "imports_mt": 1020,
-          "begin_stocks_mt": 4860,
-          "consumption_mt": 20100,
-          "stocks_mt": 5160,
-          "production_mt": 348000
+          "imports_mt": 7200,
+          "begin_stocks_mt": 26100,
+          "consumption_mt": 24900,
+          "stocks_mt": 42420,
+          "production_mt": 361800
         }
       ],
       "forecast_source": null
     },
     "ethiopia": {
-      "latest_year": "2025",
-      "latest_production_mt": 693600,
-      "latest_exports_mt": 465900,
-      "latest_consumption_mt": 222000,
-      "latest_stocks_mt": 8400,
+      "latest_year": "2026",
+      "latest_production_mt": 726000,
+      "latest_exports_mt": 426000,
+      "latest_consumption_mt": 300000,
+      "latest_stocks_mt": 8700,
       "annual": [
         {
           "year": "1960",
@@ -4776,31 +4836,40 @@
         },
         {
           "year": "2024",
-          "exports_mt": 444900,
+          "exports_mt": 444600,
           "imports_mt": 0,
           "begin_stocks_mt": 3000,
-          "consumption_mt": 217500,
+          "consumption_mt": 240000,
           "stocks_mt": 4800,
-          "production_mt": 666000
+          "production_mt": 687600
         },
         {
           "year": "2025",
-          "exports_mt": 465900,
+          "exports_mt": 416400,
           "imports_mt": 0,
           "begin_stocks_mt": 4800,
-          "consumption_mt": 222000,
-          "stocks_mt": 8400,
+          "consumption_mt": 270000,
+          "stocks_mt": 10500,
           "production_mt": 693600
+        },
+        {
+          "year": "2026",
+          "exports_mt": 426000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 10500,
+          "consumption_mt": 300000,
+          "stocks_mt": 8700,
+          "production_mt": 726000
         }
       ],
       "forecast_source": null
     },
     "uganda": {
       "latest_year": "2026",
-      "latest_production_mt": 412800,
-      "latest_exports_mt": 391800,
-      "latest_consumption_mt": 19800,
-      "latest_stocks_mt": 19140,
+      "latest_production_mt": 429600,
+      "latest_exports_mt": 409800,
+      "latest_consumption_mt": 20100,
+      "latest_stocks_mt": 19740,
       "annual": [
         {
           "year": "1960",
@@ -5389,34 +5458,31 @@
         },
         {
           "year": "2025",
-          "exports_mt": 390900,
+          "exports_mt": 402000,
           "imports_mt": 0,
           "begin_stocks_mt": 16140,
           "consumption_mt": 19800,
-          "stocks_mt": 17940,
-          "production_mt": 412500
+          "stocks_mt": 20040,
+          "production_mt": 425700
         },
         {
           "year": "2026",
-          "production_mt": 412800,
-          "exports_mt": 391800,
-          "bean_exports_mt": 391800,
-          "soluble_exports_mt": 0,
-          "roast_exports_mt": 0,
-          "consumption_mt": 19800,
-          "stocks_mt": 19140,
-          "begin_stocks_mt": 17940,
-          "imports_mt": 0
+          "exports_mt": 409800,
+          "imports_mt": 0,
+          "begin_stocks_mt": 20040,
+          "consumption_mt": 20100,
+          "stocks_mt": 19740,
+          "production_mt": 429600
         }
       ],
-      "forecast_source": "https://www.fas.usda.gov/data/uganda-coffee-annual-7"
+      "forecast_source": null
     },
     "india": {
-      "latest_year": "2025",
-      "latest_production_mt": 363000,
-      "latest_exports_mt": 213600,
-      "latest_consumption_mt": 81600,
-      "latest_stocks_mt": 14040,
+      "latest_year": "2026",
+      "latest_production_mt": 368400,
+      "latest_exports_mt": 220800,
+      "latest_consumption_mt": 94800,
+      "latest_stocks_mt": 12960,
       "annual": [
         {
           "year": "1960",
@@ -5996,30 +6062,39 @@
         },
         {
           "year": "2024",
-          "exports_mt": 222480,
-          "imports_mt": 74700,
+          "exports_mt": 216780,
+          "imports_mt": 75480,
           "begin_stocks_mt": 14520,
-          "consumption_mt": 78000,
-          "stocks_mt": 11820,
-          "production_mt": 372000
+          "consumption_mt": 69000,
+          "stocks_mt": 19380,
+          "production_mt": 363540
         },
         {
           "year": "2025",
-          "exports_mt": 213600,
+          "exports_mt": 216000,
           "imports_mt": 76200,
-          "begin_stocks_mt": 11820,
-          "consumption_mt": 81600,
-          "stocks_mt": 14040,
-          "production_mt": 363000
+          "begin_stocks_mt": 19380,
+          "consumption_mt": 94500,
+          "stocks_mt": 29100,
+          "production_mt": 385800
+        },
+        {
+          "year": "2026",
+          "exports_mt": 220800,
+          "imports_mt": 79200,
+          "begin_stocks_mt": 29100,
+          "consumption_mt": 94800,
+          "stocks_mt": 12960,
+          "production_mt": 368400
         }
       ],
       "forecast_source": null
     },
     "peru": {
-      "latest_year": "2025",
-      "latest_production_mt": 252000,
-      "latest_exports_mt": 246000,
-      "latest_consumption_mt": 18000,
+      "latest_year": "2026",
+      "latest_production_mt": 286800,
+      "latest_exports_mt": 255000,
+      "latest_consumption_mt": 18300,
       "latest_stocks_mt": 1560,
       "annual": [
         {
@@ -6600,31 +6675,40 @@
         },
         {
           "year": "2024",
-          "exports_mt": 206400,
+          "exports_mt": 217200,
           "imports_mt": 0,
           "begin_stocks_mt": 1680,
           "consumption_mt": 17520,
-          "stocks_mt": 1560,
-          "production_mt": 222000
+          "stocks_mt": 1380,
+          "production_mt": 247200
         },
         {
           "year": "2025",
-          "exports_mt": 246000,
+          "exports_mt": 254280,
           "imports_mt": 0,
-          "begin_stocks_mt": 1560,
+          "begin_stocks_mt": 1380,
           "consumption_mt": 18000,
+          "stocks_mt": 1260,
+          "production_mt": 285840
+        },
+        {
+          "year": "2026",
+          "exports_mt": 255000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1260,
+          "consumption_mt": 18300,
           "stocks_mt": 1560,
-          "production_mt": 252000
+          "production_mt": 286800
         }
       ],
       "forecast_source": null
     },
     "mexico": {
-      "latest_year": "2025",
-      "latest_production_mt": 234180,
-      "latest_exports_mt": 108000,
-      "latest_consumption_mt": 186000,
-      "latest_stocks_mt": 6660,
+      "latest_year": "2026",
+      "latest_production_mt": 248100,
+      "latest_exports_mt": 105000,
+      "latest_consumption_mt": 194400,
+      "latest_stocks_mt": 300,
       "annual": [
         {
           "year": "1960",
@@ -7204,21 +7288,3330 @@
         },
         {
           "year": "2024",
-          "exports_mt": 112200,
-          "imports_mt": 139860,
+          "exports_mt": 110100,
+          "imports_mt": 122400,
           "begin_stocks_mt": 1020,
           "consumption_mt": 186000,
-          "stocks_mt": 9480,
-          "production_mt": 232200
+          "stocks_mt": 1200,
+          "production_mt": 235680
         },
         {
           "year": "2025",
           "exports_mt": 108000,
-          "imports_mt": 120000,
-          "begin_stocks_mt": 9480,
-          "consumption_mt": 186000,
+          "imports_mt": 121800,
+          "begin_stocks_mt": 1200,
+          "consumption_mt": 189600,
+          "stocks_mt": 1200,
+          "production_mt": 244800
+        },
+        {
+          "year": "2026",
+          "exports_mt": 105000,
+          "imports_mt": 126000,
+          "begin_stocks_mt": 1200,
+          "consumption_mt": 194400,
+          "stocks_mt": 300,
+          "production_mt": 248100
+        }
+      ],
+      "forecast_source": null
+    },
+    "guatemala": {
+      "latest_year": "2026",
+      "latest_production_mt": 195600,
+      "latest_exports_mt": 172800,
+      "latest_consumption_mt": 54000,
+      "latest_stocks_mt": 960,
+      "annual": [
+        {
+          "year": "1960",
+          "exports_mt": 75480,
+          "imports_mt": 0,
+          "begin_stocks_mt": 780,
+          "consumption_mt": 10800,
+          "stocks_mt": 3420,
+          "production_mt": 90000
+        },
+        {
+          "year": "1961",
+          "exports_mt": 91320,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3420,
+          "consumption_mt": 11220,
+          "stocks_mt": 1620,
+          "production_mt": 102000
+        },
+        {
+          "year": "1962",
+          "exports_mt": 103200,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1620,
+          "consumption_mt": 11640,
+          "stocks_mt": 1500,
+          "production_mt": 115740
+        },
+        {
+          "year": "1963",
+          "exports_mt": 88920,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1500,
+          "consumption_mt": 12000,
+          "stocks_mt": 1920,
+          "production_mt": 102720
+        },
+        {
+          "year": "1964",
+          "exports_mt": 77400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1920,
+          "consumption_mt": 12600,
+          "stocks_mt": 11040,
+          "production_mt": 99600
+        },
+        {
+          "year": "1965",
+          "exports_mt": 120000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 11040,
+          "consumption_mt": 12900,
+          "stocks_mt": 2640,
+          "production_mt": 125700
+        },
+        {
+          "year": "1966",
+          "exports_mt": 73380,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2640,
+          "consumption_mt": 13200,
+          "stocks_mt": 17880,
+          "production_mt": 103560
+        },
+        {
+          "year": "1967",
+          "exports_mt": 101940,
+          "imports_mt": 0,
+          "begin_stocks_mt": 17880,
+          "consumption_mt": 13620,
+          "stocks_mt": 8340,
+          "production_mt": 107520
+        },
+        {
+          "year": "1968",
+          "exports_mt": 90120,
+          "imports_mt": 0,
+          "begin_stocks_mt": 8340,
+          "consumption_mt": 14100,
+          "stocks_mt": 4740,
+          "production_mt": 102960
+        },
+        {
+          "year": "1969",
+          "exports_mt": 99120,
+          "imports_mt": 0,
+          "begin_stocks_mt": 4740,
+          "consumption_mt": 13800,
+          "stocks_mt": 5520,
+          "production_mt": 116460
+        },
+        {
+          "year": "1970",
+          "exports_mt": 92220,
+          "imports_mt": 0,
+          "begin_stocks_mt": 5520,
+          "consumption_mt": 14760,
+          "stocks_mt": 14880,
+          "production_mt": 117900
+        },
+        {
+          "year": "1971",
+          "exports_mt": 106500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 14880,
+          "consumption_mt": 15000,
+          "stocks_mt": 17820,
+          "production_mt": 125940
+        },
+        {
+          "year": "1972",
+          "exports_mt": 120960,
+          "imports_mt": 0,
+          "begin_stocks_mt": 17820,
+          "consumption_mt": 15780,
+          "stocks_mt": 7200,
+          "production_mt": 127980
+        },
+        {
+          "year": "1973",
+          "exports_mt": 112920,
+          "imports_mt": 0,
+          "begin_stocks_mt": 7200,
+          "consumption_mt": 16440,
+          "stocks_mt": 17700,
+          "production_mt": 141120
+        },
+        {
+          "year": "1974",
+          "exports_mt": 130680,
+          "imports_mt": 0,
+          "begin_stocks_mt": 17700,
+          "consumption_mt": 16980,
+          "stocks_mt": 11760,
+          "production_mt": 143160
+        },
+        {
+          "year": "1975",
+          "exports_mt": 112560,
+          "imports_mt": 0,
+          "begin_stocks_mt": 11760,
+          "consumption_mt": 17400,
+          "stocks_mt": 3360,
+          "production_mt": 122580
+        },
+        {
+          "year": "1976",
+          "exports_mt": 111600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3360,
+          "consumption_mt": 17880,
+          "stocks_mt": 3780,
+          "production_mt": 132780
+        },
+        {
+          "year": "1977",
+          "exports_mt": 129420,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3780,
+          "consumption_mt": 18300,
+          "stocks_mt": 8460,
+          "production_mt": 152460
+        },
+        {
+          "year": "1978",
+          "exports_mt": 153480,
+          "imports_mt": 0,
+          "begin_stocks_mt": 8460,
+          "consumption_mt": 18600,
+          "stocks_mt": 5520,
+          "production_mt": 169620
+        },
+        {
+          "year": "1979",
+          "exports_mt": 128400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 5520,
+          "consumption_mt": 18660,
+          "stocks_mt": 16740,
+          "production_mt": 158820
+        },
+        {
+          "year": "1980",
+          "exports_mt": 111540,
+          "imports_mt": 0,
+          "begin_stocks_mt": 16740,
+          "consumption_mt": 19260,
+          "stocks_mt": 47280,
+          "production_mt": 162120
+        },
+        {
+          "year": "1981",
+          "exports_mt": 144360,
+          "imports_mt": 0,
+          "begin_stocks_mt": 47280,
+          "consumption_mt": 19500,
+          "stocks_mt": 42000,
+          "production_mt": 159180
+        },
+        {
+          "year": "1982",
+          "exports_mt": 120360,
+          "imports_mt": 0,
+          "begin_stocks_mt": 42000,
+          "consumption_mt": 20100,
+          "stocks_mt": 53280,
+          "production_mt": 151800
+        },
+        {
+          "year": "1983",
+          "exports_mt": 118620,
+          "imports_mt": 0,
+          "begin_stocks_mt": 53280,
+          "consumption_mt": 20400,
+          "stocks_mt": 54600,
+          "production_mt": 140400
+        },
+        {
+          "year": "1984",
+          "exports_mt": 186600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 54600,
+          "consumption_mt": 19800,
+          "stocks_mt": 10200,
+          "production_mt": 162180
+        },
+        {
+          "year": "1985",
+          "exports_mt": 138000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 10200,
+          "consumption_mt": 18000,
+          "stocks_mt": 13140,
+          "production_mt": 159000
+        },
+        {
+          "year": "1986",
+          "exports_mt": 163020,
+          "imports_mt": 0,
+          "begin_stocks_mt": 13140,
+          "consumption_mt": 18000,
+          "stocks_mt": 2700,
+          "production_mt": 170580
+        },
+        {
+          "year": "1987",
+          "exports_mt": 133320,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2700,
+          "consumption_mt": 18000,
+          "stocks_mt": 32580,
+          "production_mt": 181200
+        },
+        {
+          "year": "1988",
+          "exports_mt": 172140,
+          "imports_mt": 0,
+          "begin_stocks_mt": 32580,
+          "consumption_mt": 18300,
+          "stocks_mt": 23400,
+          "production_mt": 181320
+        },
+        {
+          "year": "1989",
+          "exports_mt": 209340,
+          "imports_mt": 0,
+          "begin_stocks_mt": 23400,
+          "consumption_mt": 18600,
+          "stocks_mt": 3720,
+          "production_mt": 208320
+        },
+        {
+          "year": "1990",
+          "exports_mt": 165840,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3720,
+          "consumption_mt": 18600,
+          "stocks_mt": 16140,
+          "production_mt": 196920
+        },
+        {
+          "year": "1991",
+          "exports_mt": 194520,
+          "imports_mt": 0,
+          "begin_stocks_mt": 16140,
+          "consumption_mt": 18600,
+          "stocks_mt": 15900,
+          "production_mt": 212940
+        },
+        {
+          "year": "1992",
+          "exports_mt": 234780,
+          "imports_mt": 22800,
+          "begin_stocks_mt": 15900,
+          "consumption_mt": 18600,
+          "stocks_mt": 300,
+          "production_mt": 215040
+        },
+        {
+          "year": "1993",
+          "exports_mt": 183000,
+          "imports_mt": 16800,
+          "begin_stocks_mt": 300,
+          "consumption_mt": 18060,
+          "stocks_mt": 660,
+          "production_mt": 184680
+        },
+        {
+          "year": "1994",
+          "exports_mt": 210000,
+          "imports_mt": 18000,
+          "begin_stocks_mt": 660,
+          "consumption_mt": 16800,
+          "stocks_mt": 1800,
+          "production_mt": 210000
+        },
+        {
+          "year": "1995",
+          "exports_mt": 223200,
+          "imports_mt": 12240,
+          "begin_stocks_mt": 1800,
+          "consumption_mt": 18000,
+          "stocks_mt": 2400,
+          "production_mt": 229620
+        },
+        {
+          "year": "1996",
+          "exports_mt": 241800,
+          "imports_mt": 10500,
+          "begin_stocks_mt": 2400,
+          "consumption_mt": 17100,
+          "stocks_mt": 2400,
+          "production_mt": 248460
+        },
+        {
+          "year": "1997",
+          "exports_mt": 236400,
+          "imports_mt": 11460,
+          "begin_stocks_mt": 2400,
+          "consumption_mt": 21000,
+          "stocks_mt": 8460,
+          "production_mt": 252000
+        },
+        {
+          "year": "1998",
+          "exports_mt": 248460,
+          "imports_mt": 8700,
+          "begin_stocks_mt": 8460,
+          "consumption_mt": 24000,
+          "stocks_mt": 2700,
+          "production_mt": 258000
+        },
+        {
+          "year": "1999",
+          "exports_mt": 254040,
+          "imports_mt": 16500,
+          "begin_stocks_mt": 2700,
+          "consumption_mt": 24000,
+          "stocks_mt": 3000,
+          "production_mt": 261840
+        },
+        {
+          "year": "2000",
+          "exports_mt": 264840,
+          "imports_mt": 18000,
+          "begin_stocks_mt": 3000,
+          "consumption_mt": 25500,
+          "stocks_mt": 4500,
+          "production_mt": 273840
+        },
+        {
+          "year": "2001",
+          "exports_mt": 199800,
+          "imports_mt": 9000,
+          "begin_stocks_mt": 4500,
+          "consumption_mt": 25200,
+          "stocks_mt": 300,
+          "production_mt": 211800
+        },
+        {
+          "year": "2002",
+          "exports_mt": 210000,
+          "imports_mt": 9000,
+          "begin_stocks_mt": 300,
+          "consumption_mt": 30600,
+          "stocks_mt": 2220,
+          "production_mt": 228120
+        },
+        {
+          "year": "2003",
+          "exports_mt": 198840,
+          "imports_mt": 3000,
+          "begin_stocks_mt": 2220,
+          "consumption_mt": 31440,
+          "stocks_mt": 1200,
+          "production_mt": 220260
+        },
+        {
+          "year": "2004",
+          "exports_mt": 207060,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1200,
+          "consumption_mt": 27600,
+          "stocks_mt": 2160,
+          "production_mt": 229020
+        },
+        {
+          "year": "2005",
+          "exports_mt": 199500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2160,
+          "consumption_mt": 21000,
+          "stocks_mt": 10560,
+          "production_mt": 222900
+        },
+        {
+          "year": "2006",
+          "exports_mt": 238800,
+          "imports_mt": 3000,
+          "begin_stocks_mt": 10560,
+          "consumption_mt": 18000,
+          "stocks_mt": 5760,
+          "production_mt": 243000
+        },
+        {
+          "year": "2007",
+          "exports_mt": 233400,
+          "imports_mt": 3000,
+          "begin_stocks_mt": 5760,
+          "consumption_mt": 18900,
+          "stocks_mt": 10140,
+          "production_mt": 246600
+        },
+        {
+          "year": "2008",
+          "exports_mt": 226980,
+          "imports_mt": 3600,
+          "begin_stocks_mt": 10140,
+          "consumption_mt": 20100,
+          "stocks_mt": 13320,
+          "production_mt": 238800
+        },
+        {
+          "year": "2009",
+          "exports_mt": 231600,
+          "imports_mt": 3600,
+          "begin_stocks_mt": 13320,
+          "consumption_mt": 20400,
+          "stocks_mt": 13620,
+          "production_mt": 240600
+        },
+        {
+          "year": "2010",
+          "exports_mt": 219000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 13620,
+          "consumption_mt": 25500,
+          "stocks_mt": 14220,
+          "production_mt": 237600
+        },
+        {
+          "year": "2011",
+          "exports_mt": 228000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 14220,
+          "consumption_mt": 36000,
+          "stocks_mt": 23220,
+          "production_mt": 264600
+        },
+        {
+          "year": "2012",
+          "exports_mt": 225000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 23220,
+          "consumption_mt": 36000,
+          "stocks_mt": 12720,
+          "production_mt": 240600
+        },
+        {
+          "year": "2013",
+          "exports_mt": 189000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12720,
+          "consumption_mt": 33120,
+          "stocks_mt": 12900,
+          "production_mt": 210900
+        },
+        {
+          "year": "2014",
+          "exports_mt": 183000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12900,
+          "consumption_mt": 30000,
+          "stocks_mt": 900,
+          "production_mt": 191100
+        },
+        {
+          "year": "2015",
+          "exports_mt": 182400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 900,
+          "consumption_mt": 25800,
+          "stocks_mt": 1560,
+          "production_mt": 197700
+        },
+        {
+          "year": "2016",
+          "exports_mt": 199500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1560,
+          "consumption_mt": 27300,
+          "stocks_mt": 2160,
+          "production_mt": 214200
+        },
+        {
+          "year": "2017",
+          "exports_mt": 207600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2160,
+          "consumption_mt": 29100,
+          "stocks_mt": 6360,
+          "production_mt": 226800
+        },
+        {
+          "year": "2018",
+          "exports_mt": 216000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 6360,
+          "consumption_mt": 29700,
+          "stocks_mt": 1560,
+          "production_mt": 226200
+        },
+        {
+          "year": "2019",
+          "exports_mt": 192660,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1560,
+          "consumption_mt": 38100,
+          "stocks_mt": 7200,
+          "production_mt": 218700
+        },
+        {
+          "year": "2020",
+          "exports_mt": 220500,
+          "imports_mt": 240,
+          "begin_stocks_mt": 7200,
+          "consumption_mt": 36540,
           "stocks_mt": 6660,
-          "production_mt": 234180
+          "production_mt": 235800
+        },
+        {
+          "year": "2021",
+          "exports_mt": 200100,
+          "imports_mt": 0,
+          "begin_stocks_mt": 6660,
+          "consumption_mt": 37500,
+          "stocks_mt": 1260,
+          "production_mt": 212400
+        },
+        {
+          "year": "2022",
+          "exports_mt": 180000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1260,
+          "consumption_mt": 36000,
+          "stocks_mt": 1320,
+          "production_mt": 196200
+        },
+        {
+          "year": "2023",
+          "exports_mt": 189060,
+          "imports_mt": 120,
+          "begin_stocks_mt": 1320,
+          "consumption_mt": 43080,
+          "stocks_mt": 900,
+          "production_mt": 208140
+        },
+        {
+          "year": "2024",
+          "exports_mt": 171600,
+          "imports_mt": 180,
+          "begin_stocks_mt": 900,
+          "consumption_mt": 51660,
+          "stocks_mt": 360,
+          "production_mt": 196200
+        },
+        {
+          "year": "2025",
+          "exports_mt": 168000,
+          "imports_mt": 240,
+          "begin_stocks_mt": 360,
+          "consumption_mt": 52500,
+          "stocks_mt": 660,
+          "production_mt": 189300
+        },
+        {
+          "year": "2026",
+          "exports_mt": 172800,
+          "imports_mt": 300,
+          "begin_stocks_mt": 660,
+          "consumption_mt": 54000,
+          "stocks_mt": 960,
+          "production_mt": 195600
+        }
+      ],
+      "forecast_source": null
+    },
+    "nicaragua": {
+      "latest_year": "2026",
+      "latest_production_mt": 146400,
+      "latest_exports_mt": 135000,
+      "latest_consumption_mt": 9600,
+      "latest_stocks_mt": 5100,
+      "annual": [
+        {
+          "year": "1960",
+          "exports_mt": 22380,
+          "imports_mt": 0,
+          "begin_stocks_mt": 480,
+          "consumption_mt": 3120,
+          "stocks_mt": 600,
+          "production_mt": 26220
+        },
+        {
+          "year": "1961",
+          "exports_mt": 20280,
+          "imports_mt": 0,
+          "begin_stocks_mt": 600,
+          "consumption_mt": 3240,
+          "stocks_mt": 600,
+          "production_mt": 25920
+        },
+        {
+          "year": "1962",
+          "exports_mt": 26100,
+          "imports_mt": 0,
+          "begin_stocks_mt": 600,
+          "consumption_mt": 3360,
+          "stocks_mt": 600,
+          "production_mt": 32100
+        },
+        {
+          "year": "1963",
+          "exports_mt": 22500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 600,
+          "consumption_mt": 3480,
+          "stocks_mt": 2880,
+          "production_mt": 31980
+        },
+        {
+          "year": "1964",
+          "exports_mt": 25920,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2880,
+          "consumption_mt": 3600,
+          "stocks_mt": 8580,
+          "production_mt": 36600
+        },
+        {
+          "year": "1965",
+          "exports_mt": 26580,
+          "imports_mt": 0,
+          "begin_stocks_mt": 8580,
+          "consumption_mt": 3720,
+          "stocks_mt": 7860,
+          "production_mt": 30780
+        },
+        {
+          "year": "1966",
+          "exports_mt": 23280,
+          "imports_mt": 0,
+          "begin_stocks_mt": 7860,
+          "consumption_mt": 3840,
+          "stocks_mt": 5520,
+          "production_mt": 25260
+        },
+        {
+          "year": "1967",
+          "exports_mt": 27060,
+          "imports_mt": 0,
+          "begin_stocks_mt": 5520,
+          "consumption_mt": 3960,
+          "stocks_mt": 7620,
+          "production_mt": 33360
+        },
+        {
+          "year": "1968",
+          "exports_mt": 26940,
+          "imports_mt": 0,
+          "begin_stocks_mt": 7620,
+          "consumption_mt": 4080,
+          "stocks_mt": 5940,
+          "production_mt": 30240
+        },
+        {
+          "year": "1969",
+          "exports_mt": 29700,
+          "imports_mt": 0,
+          "begin_stocks_mt": 5940,
+          "consumption_mt": 4200,
+          "stocks_mt": 5160,
+          "production_mt": 33780
+        },
+        {
+          "year": "1970",
+          "exports_mt": 27600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 5160,
+          "consumption_mt": 4380,
+          "stocks_mt": 10920,
+          "production_mt": 38460
+        },
+        {
+          "year": "1971",
+          "exports_mt": 31200,
+          "imports_mt": 0,
+          "begin_stocks_mt": 10920,
+          "consumption_mt": 4500,
+          "stocks_mt": 18540,
+          "production_mt": 43500
+        },
+        {
+          "year": "1972",
+          "exports_mt": 45060,
+          "imports_mt": 0,
+          "begin_stocks_mt": 18540,
+          "consumption_mt": 4560,
+          "stocks_mt": 720,
+          "production_mt": 32220
+        },
+        {
+          "year": "1973",
+          "exports_mt": 31440,
+          "imports_mt": 0,
+          "begin_stocks_mt": 720,
+          "consumption_mt": 4680,
+          "stocks_mt": 5520,
+          "production_mt": 40980
+        },
+        {
+          "year": "1974",
+          "exports_mt": 40680,
+          "imports_mt": 0,
+          "begin_stocks_mt": 5520,
+          "consumption_mt": 4800,
+          "stocks_mt": 2880,
+          "production_mt": 43800
+        },
+        {
+          "year": "1975",
+          "exports_mt": 45120,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2880,
+          "consumption_mt": 4560,
+          "stocks_mt": 540,
+          "production_mt": 47400
+        },
+        {
+          "year": "1976",
+          "exports_mt": 42900,
+          "imports_mt": 0,
+          "begin_stocks_mt": 540,
+          "consumption_mt": 4680,
+          "stocks_mt": 4080,
+          "production_mt": 51120
+        },
+        {
+          "year": "1977",
+          "exports_mt": 53160,
+          "imports_mt": 0,
+          "begin_stocks_mt": 4080,
+          "consumption_mt": 4800,
+          "stocks_mt": 3300,
+          "production_mt": 58020
+        },
+        {
+          "year": "1978",
+          "exports_mt": 56580,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3300,
+          "consumption_mt": 4980,
+          "stocks_mt": 1140,
+          "production_mt": 60240
+        },
+        {
+          "year": "1979",
+          "exports_mt": 47640,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1140,
+          "consumption_mt": 4980,
+          "stocks_mt": 7200,
+          "production_mt": 61140
+        },
+        {
+          "year": "1980",
+          "exports_mt": 48960,
+          "imports_mt": 0,
+          "begin_stocks_mt": 7200,
+          "consumption_mt": 5040,
+          "stocks_mt": 9900,
+          "production_mt": 58260
+        },
+        {
+          "year": "1981",
+          "exports_mt": 46140,
+          "imports_mt": 0,
+          "begin_stocks_mt": 9900,
+          "consumption_mt": 5700,
+          "stocks_mt": 15060,
+          "production_mt": 60240
+        },
+        {
+          "year": "1982",
+          "exports_mt": 61680,
+          "imports_mt": 0,
+          "begin_stocks_mt": 15060,
+          "consumption_mt": 6060,
+          "stocks_mt": 15600,
+          "production_mt": 71160
+        },
+        {
+          "year": "1983",
+          "exports_mt": 45300,
+          "imports_mt": 0,
+          "begin_stocks_mt": 15600,
+          "consumption_mt": 5760,
+          "stocks_mt": 11280,
+          "production_mt": 48540
+        },
+        {
+          "year": "1984",
+          "exports_mt": 38340,
+          "imports_mt": 0,
+          "begin_stocks_mt": 11280,
+          "consumption_mt": 5640,
+          "stocks_mt": 16680,
+          "production_mt": 50580
+        },
+        {
+          "year": "1985",
+          "exports_mt": 35460,
+          "imports_mt": 0,
+          "begin_stocks_mt": 16680,
+          "consumption_mt": 5280,
+          "stocks_mt": 9600,
+          "production_mt": 34860
+        },
+        {
+          "year": "1986",
+          "exports_mt": 37140,
+          "imports_mt": 0,
+          "begin_stocks_mt": 9600,
+          "consumption_mt": 5100,
+          "stocks_mt": 8280,
+          "production_mt": 42720
+        },
+        {
+          "year": "1987",
+          "exports_mt": 32160,
+          "imports_mt": 0,
+          "begin_stocks_mt": 8280,
+          "consumption_mt": 5100,
+          "stocks_mt": 7320,
+          "production_mt": 38100
+        },
+        {
+          "year": "1988",
+          "exports_mt": 34740,
+          "imports_mt": 0,
+          "begin_stocks_mt": 7320,
+          "consumption_mt": 5100,
+          "stocks_mt": 8820,
+          "production_mt": 42840
+        },
+        {
+          "year": "1989",
+          "exports_mt": 36480,
+          "imports_mt": 0,
+          "begin_stocks_mt": 8820,
+          "consumption_mt": 5460,
+          "stocks_mt": 10980,
+          "production_mt": 44580
+        },
+        {
+          "year": "1990",
+          "exports_mt": 22860,
+          "imports_mt": 0,
+          "begin_stocks_mt": 10980,
+          "consumption_mt": 5460,
+          "stocks_mt": 9780,
+          "production_mt": 27600
+        },
+        {
+          "year": "1991",
+          "exports_mt": 35280,
+          "imports_mt": 0,
+          "begin_stocks_mt": 9780,
+          "consumption_mt": 5760,
+          "stocks_mt": 15360,
+          "production_mt": 46920
+        },
+        {
+          "year": "1992",
+          "exports_mt": 29760,
+          "imports_mt": 0,
+          "begin_stocks_mt": 15360,
+          "consumption_mt": 4800,
+          "stocks_mt": 12300,
+          "production_mt": 32700
+        },
+        {
+          "year": "1993",
+          "exports_mt": 34080,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12300,
+          "consumption_mt": 6000,
+          "stocks_mt": 12540,
+          "production_mt": 41700
+        },
+        {
+          "year": "1994",
+          "exports_mt": 33420,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12540,
+          "consumption_mt": 6600,
+          "stocks_mt": 13200,
+          "production_mt": 41100
+        },
+        {
+          "year": "1995",
+          "exports_mt": 52620,
+          "imports_mt": 0,
+          "begin_stocks_mt": 13200,
+          "consumption_mt": 6000,
+          "stocks_mt": 12600,
+          "production_mt": 59160
+        },
+        {
+          "year": "1996",
+          "exports_mt": 40680,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12600,
+          "consumption_mt": 7800,
+          "stocks_mt": 12720,
+          "production_mt": 49860
+        },
+        {
+          "year": "1997",
+          "exports_mt": 54360,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12720,
+          "consumption_mt": 9540,
+          "stocks_mt": 12360,
+          "production_mt": 64980
+        },
+        {
+          "year": "1998",
+          "exports_mt": 54180,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12360,
+          "consumption_mt": 9300,
+          "stocks_mt": 12300,
+          "production_mt": 64740
+        },
+        {
+          "year": "1999",
+          "exports_mt": 75000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12300,
+          "consumption_mt": 9300,
+          "stocks_mt": 17040,
+          "production_mt": 90840
+        },
+        {
+          "year": "2000",
+          "exports_mt": 84900,
+          "imports_mt": 0,
+          "begin_stocks_mt": 17040,
+          "consumption_mt": 11460,
+          "stocks_mt": 15480,
+          "production_mt": 96600
+        },
+        {
+          "year": "2001",
+          "exports_mt": 53220,
+          "imports_mt": 3000,
+          "begin_stocks_mt": 15480,
+          "consumption_mt": 12360,
+          "stocks_mt": 6000,
+          "production_mt": 53700
+        },
+        {
+          "year": "2002",
+          "exports_mt": 67680,
+          "imports_mt": 3000,
+          "begin_stocks_mt": 6000,
+          "consumption_mt": 10200,
+          "stocks_mt": 2520,
+          "production_mt": 72000
+        },
+        {
+          "year": "2003",
+          "exports_mt": 82920,
+          "imports_mt": 3000,
+          "begin_stocks_mt": 2520,
+          "consumption_mt": 13380,
+          "stocks_mt": 1440,
+          "production_mt": 92820
+        },
+        {
+          "year": "2004",
+          "exports_mt": 59100,
+          "imports_mt": 3600,
+          "begin_stocks_mt": 1440,
+          "consumption_mt": 11400,
+          "stocks_mt": 240,
+          "production_mt": 67800
+        },
+        {
+          "year": "2005",
+          "exports_mt": 82140,
+          "imports_mt": 3600,
+          "begin_stocks_mt": 240,
+          "consumption_mt": 11700,
+          "stocks_mt": 6780,
+          "production_mt": 103080
+        },
+        {
+          "year": "2006",
+          "exports_mt": 69600,
+          "imports_mt": 2400,
+          "begin_stocks_mt": 6780,
+          "consumption_mt": 8400,
+          "stocks_mt": 1080,
+          "production_mt": 78000
+        },
+        {
+          "year": "2007",
+          "exports_mt": 94800,
+          "imports_mt": 900,
+          "begin_stocks_mt": 1080,
+          "consumption_mt": 7500,
+          "stocks_mt": 1980,
+          "production_mt": 111000
+        },
+        {
+          "year": "2008",
+          "exports_mt": 85500,
+          "imports_mt": 2700,
+          "begin_stocks_mt": 1980,
+          "consumption_mt": 8700,
+          "stocks_mt": 480,
+          "production_mt": 99000
+        },
+        {
+          "year": "2009",
+          "exports_mt": 99000,
+          "imports_mt": 2100,
+          "begin_stocks_mt": 480,
+          "consumption_mt": 7800,
+          "stocks_mt": 2220,
+          "production_mt": 115500
+        },
+        {
+          "year": "2010",
+          "exports_mt": 91500,
+          "imports_mt": 1800,
+          "begin_stocks_mt": 2220,
+          "consumption_mt": 7800,
+          "stocks_mt": 1320,
+          "production_mt": 104400
+        },
+        {
+          "year": "2011",
+          "exports_mt": 100500,
+          "imports_mt": 1500,
+          "begin_stocks_mt": 1320,
+          "consumption_mt": 6600,
+          "stocks_mt": 15120,
+          "production_mt": 126000
+        },
+        {
+          "year": "2012",
+          "exports_mt": 117000,
+          "imports_mt": 1200,
+          "begin_stocks_mt": 15120,
+          "consumption_mt": 6300,
+          "stocks_mt": 1020,
+          "production_mt": 115500
+        },
+        {
+          "year": "2013",
+          "exports_mt": 107100,
+          "imports_mt": 600,
+          "begin_stocks_mt": 1020,
+          "consumption_mt": 6000,
+          "stocks_mt": 1320,
+          "production_mt": 120000
+        },
+        {
+          "year": "2014",
+          "exports_mt": 108000,
+          "imports_mt": 600,
+          "begin_stocks_mt": 1320,
+          "consumption_mt": 9000,
+          "stocks_mt": 6120,
+          "production_mt": 127500
+        },
+        {
+          "year": "2015",
+          "exports_mt": 117600,
+          "imports_mt": 600,
+          "begin_stocks_mt": 6120,
+          "consumption_mt": 9600,
+          "stocks_mt": 2220,
+          "production_mt": 127500
+        },
+        {
+          "year": "2016",
+          "exports_mt": 140400,
+          "imports_mt": 600,
+          "begin_stocks_mt": 2220,
+          "consumption_mt": 10800,
+          "stocks_mt": 4320,
+          "production_mt": 157500
+        },
+        {
+          "year": "2017",
+          "exports_mt": 144600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 4320,
+          "consumption_mt": 10200,
+          "stocks_mt": 8520,
+          "production_mt": 163800
+        },
+        {
+          "year": "2018",
+          "exports_mt": 160500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 8520,
+          "consumption_mt": 10800,
+          "stocks_mt": 8820,
+          "production_mt": 177000
+        },
+        {
+          "year": "2019",
+          "exports_mt": 156600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 8820,
+          "consumption_mt": 9000,
+          "stocks_mt": 2220,
+          "production_mt": 165300
+        },
+        {
+          "year": "2020",
+          "exports_mt": 145200,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2220,
+          "consumption_mt": 10500,
+          "stocks_mt": 2220,
+          "production_mt": 159000
+        },
+        {
+          "year": "2021",
+          "exports_mt": 158400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2220,
+          "consumption_mt": 9900,
+          "stocks_mt": 1500,
+          "production_mt": 170280
+        },
+        {
+          "year": "2022",
+          "exports_mt": 144000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1500,
+          "consumption_mt": 9300,
+          "stocks_mt": 1500,
+          "production_mt": 155400
+        },
+        {
+          "year": "2023",
+          "exports_mt": 124320,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1500,
+          "consumption_mt": 9600,
+          "stocks_mt": 8400,
+          "production_mt": 140820
+        },
+        {
+          "year": "2024",
+          "exports_mt": 153900,
+          "imports_mt": 0,
+          "begin_stocks_mt": 8400,
+          "consumption_mt": 9600,
+          "stocks_mt": 4500,
+          "production_mt": 159600
+        },
+        {
+          "year": "2025",
+          "exports_mt": 145200,
+          "imports_mt": 0,
+          "begin_stocks_mt": 4500,
+          "consumption_mt": 9600,
+          "stocks_mt": 3300,
+          "production_mt": 153600
+        },
+        {
+          "year": "2026",
+          "exports_mt": 135000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3300,
+          "consumption_mt": 9600,
+          "stocks_mt": 5100,
+          "production_mt": 146400
+        }
+      ],
+      "forecast_source": null
+    },
+    "china": {
+      "latest_year": "2026",
+      "latest_production_mt": 114000,
+      "latest_exports_mt": 24000,
+      "latest_consumption_mt": 405000,
+      "latest_stocks_mt": 24000,
+      "annual": [
+        {
+          "year": "2002",
+          "exports_mt": 16140,
+          "imports_mt": 11100,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 7860,
+          "stocks_mt": 0,
+          "production_mt": 19440
+        },
+        {
+          "year": "2003",
+          "exports_mt": 15360,
+          "imports_mt": 14400,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 10020,
+          "stocks_mt": 0,
+          "production_mt": 23160
+        },
+        {
+          "year": "2004",
+          "exports_mt": 10500,
+          "imports_mt": 14100,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 14220,
+          "stocks_mt": 0,
+          "production_mt": 21660
+        },
+        {
+          "year": "2005",
+          "exports_mt": 16020,
+          "imports_mt": 16500,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 11880,
+          "stocks_mt": 0,
+          "production_mt": 21900
+        },
+        {
+          "year": "2006",
+          "exports_mt": 16260,
+          "imports_mt": 18000,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 15420,
+          "stocks_mt": 0,
+          "production_mt": 25680
+        },
+        {
+          "year": "2007",
+          "exports_mt": 24000,
+          "imports_mt": 18000,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 9420,
+          "stocks_mt": 0,
+          "production_mt": 25980
+        },
+        {
+          "year": "2008",
+          "exports_mt": 29460,
+          "imports_mt": 19320,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 20100,
+          "stocks_mt": 0,
+          "production_mt": 33300
+        },
+        {
+          "year": "2009",
+          "exports_mt": 33900,
+          "imports_mt": 25560,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 68100,
+          "stocks_mt": 0,
+          "production_mt": 70380
+        },
+        {
+          "year": "2010",
+          "exports_mt": 32220,
+          "imports_mt": 40860,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 66540,
+          "stocks_mt": 0,
+          "production_mt": 49620
+        },
+        {
+          "year": "2011",
+          "exports_mt": 53820,
+          "imports_mt": 37380,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 66360,
+          "stocks_mt": 0,
+          "production_mt": 65400
+        },
+        {
+          "year": "2012",
+          "exports_mt": 74160,
+          "imports_mt": 55800,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 101640,
+          "stocks_mt": 0,
+          "production_mt": 92100
+        },
+        {
+          "year": "2013",
+          "exports_mt": 60900,
+          "imports_mt": 54600,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 137940,
+          "stocks_mt": 6000,
+          "production_mt": 116820
+        },
+        {
+          "year": "2014",
+          "exports_mt": 60600,
+          "imports_mt": 53400,
+          "begin_stocks_mt": 6000,
+          "consumption_mt": 142860,
+          "stocks_mt": 13500,
+          "production_mt": 127500
+        },
+        {
+          "year": "2015",
+          "exports_mt": 82800,
+          "imports_mt": 51600,
+          "begin_stocks_mt": 13500,
+          "consumption_mt": 149220,
+          "stocks_mt": 12180,
+          "production_mt": 115500
+        },
+        {
+          "year": "2016",
+          "exports_mt": 62220,
+          "imports_mt": 48420,
+          "begin_stocks_mt": 12180,
+          "consumption_mt": 140700,
+          "stocks_mt": 19380,
+          "production_mt": 114000
+        },
+        {
+          "year": "2017",
+          "exports_mt": 83400,
+          "imports_mt": 48900,
+          "begin_stocks_mt": 19380,
+          "consumption_mt": 162900,
+          "stocks_mt": 6180,
+          "production_mt": 115500
+        },
+        {
+          "year": "2018",
+          "exports_mt": 73500,
+          "imports_mt": 51000,
+          "begin_stocks_mt": 6180,
+          "consumption_mt": 174900,
+          "stocks_mt": 1980,
+          "production_mt": 115500
+        },
+        {
+          "year": "2019",
+          "exports_mt": 53400,
+          "imports_mt": 54000,
+          "begin_stocks_mt": 1980,
+          "consumption_mt": 222300,
+          "stocks_mt": 2880,
+          "production_mt": 120000
+        },
+        {
+          "year": "2020",
+          "exports_mt": 22200,
+          "imports_mt": 100500,
+          "begin_stocks_mt": 2880,
+          "consumption_mt": 268800,
+          "stocks_mt": 29280,
+          "production_mt": 114000
+        },
+        {
+          "year": "2021",
+          "exports_mt": 45000,
+          "imports_mt": 99600,
+          "begin_stocks_mt": 29280,
+          "consumption_mt": 295200,
+          "stocks_mt": 21480,
+          "production_mt": 108000
+        },
+        {
+          "year": "2022",
+          "exports_mt": 20100,
+          "imports_mt": 117900,
+          "begin_stocks_mt": 21480,
+          "consumption_mt": 316800,
+          "stocks_mt": 18180,
+          "production_mt": 108000
+        },
+        {
+          "year": "2023",
+          "exports_mt": 38400,
+          "imports_mt": 204300,
+          "begin_stocks_mt": 18180,
+          "consumption_mt": 345900,
+          "stocks_mt": 33480,
+          "production_mt": 108000
+        },
+        {
+          "year": "2024",
+          "exports_mt": 38400,
+          "imports_mt": 199200,
+          "begin_stocks_mt": 33480,
+          "consumption_mt": 353580,
+          "stocks_mt": 24000,
+          "production_mt": 114000
+        },
+        {
+          "year": "2025",
+          "exports_mt": 25800,
+          "imports_mt": 222000,
+          "begin_stocks_mt": 24000,
+          "consumption_mt": 385200,
+          "stocks_mt": 24000,
+          "production_mt": 114000
+        },
+        {
+          "year": "2026",
+          "exports_mt": 24000,
+          "imports_mt": 240000,
+          "begin_stocks_mt": 24000,
+          "consumption_mt": 405000,
+          "stocks_mt": 24000,
+          "production_mt": 114000
+        }
+      ],
+      "forecast_source": null
+    },
+    "ivory_coast": {
+      "latest_year": "2026",
+      "latest_production_mt": 78000,
+      "latest_exports_mt": 60000,
+      "latest_consumption_mt": 3000,
+      "latest_stocks_mt": 0,
+      "annual": [
+        {
+          "year": "1960",
+          "exports_mt": 157920,
+          "imports_mt": 0,
+          "begin_stocks_mt": 50820,
+          "consumption_mt": 120,
+          "stocks_mt": 80940,
+          "production_mt": 188040
+        },
+        {
+          "year": "1961",
+          "exports_mt": 159420,
+          "imports_mt": 0,
+          "begin_stocks_mt": 80940,
+          "consumption_mt": 9000,
+          "stocks_mt": 9060,
+          "production_mt": 96480
+        },
+        {
+          "year": "1962",
+          "exports_mt": 156540,
+          "imports_mt": 0,
+          "begin_stocks_mt": 9060,
+          "consumption_mt": 360,
+          "stocks_mt": 39840,
+          "production_mt": 188400
+        },
+        {
+          "year": "1963",
+          "exports_mt": 213300,
+          "imports_mt": 0,
+          "begin_stocks_mt": 39840,
+          "consumption_mt": 360,
+          "stocks_mt": 81840,
+          "production_mt": 256500
+        },
+        {
+          "year": "1964",
+          "exports_mt": 160200,
+          "imports_mt": 0,
+          "begin_stocks_mt": 81840,
+          "consumption_mt": 540,
+          "stocks_mt": 120540,
+          "production_mt": 200520
+        },
+        {
+          "year": "1965",
+          "exports_mt": 174660,
+          "imports_mt": 0,
+          "begin_stocks_mt": 120540,
+          "consumption_mt": 53040,
+          "stocks_mt": 151620,
+          "production_mt": 260580
+        },
+        {
+          "year": "1966",
+          "exports_mt": 164580,
+          "imports_mt": 0,
+          "begin_stocks_mt": 151620,
+          "consumption_mt": 93000,
+          "stocks_mt": 12420,
+          "production_mt": 120600
+        },
+        {
+          "year": "1967",
+          "exports_mt": 196800,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12420,
+          "consumption_mt": 720,
+          "stocks_mt": 95520,
+          "production_mt": 282720
+        },
+        {
+          "year": "1968",
+          "exports_mt": 172500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 95520,
+          "consumption_mt": 76200,
+          "stocks_mt": 42900,
+          "production_mt": 199680
+        },
+        {
+          "year": "1969",
+          "exports_mt": 184080,
+          "imports_mt": 0,
+          "begin_stocks_mt": 42900,
+          "consumption_mt": 24060,
+          "stocks_mt": 95820,
+          "production_mt": 264840
+        },
+        {
+          "year": "1970",
+          "exports_mt": 197820,
+          "imports_mt": 0,
+          "begin_stocks_mt": 95820,
+          "consumption_mt": 32280,
+          "stocks_mt": 101220,
+          "production_mt": 239760
+        },
+        {
+          "year": "1971",
+          "exports_mt": 224160,
+          "imports_mt": 0,
+          "begin_stocks_mt": 101220,
+          "consumption_mt": 1440,
+          "stocks_mt": 144540,
+          "production_mt": 272640
+        },
+        {
+          "year": "1972",
+          "exports_mt": 212220,
+          "imports_mt": 0,
+          "begin_stocks_mt": 144540,
+          "consumption_mt": 2460,
+          "stocks_mt": 165960,
+          "production_mt": 240420
+        },
+        {
+          "year": "1973",
+          "exports_mt": 262500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 165960,
+          "consumption_mt": 70800,
+          "stocks_mt": 89280,
+          "production_mt": 262080
+        },
+        {
+          "year": "1974",
+          "exports_mt": 207780,
+          "imports_mt": 0,
+          "begin_stocks_mt": 89280,
+          "consumption_mt": 50880,
+          "stocks_mt": 94020,
+          "production_mt": 269160
+        },
+        {
+          "year": "1975",
+          "exports_mt": 326820,
+          "imports_mt": 0,
+          "begin_stocks_mt": 94020,
+          "consumption_mt": 9540,
+          "stocks_mt": 68100,
+          "production_mt": 315960
+        },
+        {
+          "year": "1976",
+          "exports_mt": 271200,
+          "imports_mt": 0,
+          "begin_stocks_mt": 68100,
+          "consumption_mt": 5100,
+          "stocks_mt": 78600,
+          "production_mt": 292020
+        },
+        {
+          "year": "1977",
+          "exports_mt": 223140,
+          "imports_mt": 0,
+          "begin_stocks_mt": 78600,
+          "consumption_mt": 2160,
+          "stocks_mt": 34680,
+          "production_mt": 187380
+        },
+        {
+          "year": "1978",
+          "exports_mt": 273300,
+          "imports_mt": 0,
+          "begin_stocks_mt": 34680,
+          "consumption_mt": 1080,
+          "stocks_mt": 38520,
+          "production_mt": 284520
+        },
+        {
+          "year": "1979",
+          "exports_mt": 185160,
+          "imports_mt": 0,
+          "begin_stocks_mt": 38520,
+          "consumption_mt": 1140,
+          "stocks_mt": 79200,
+          "production_mt": 238380
+        },
+        {
+          "year": "1980",
+          "exports_mt": 211440,
+          "imports_mt": 0,
+          "begin_stocks_mt": 79200,
+          "consumption_mt": 1200,
+          "stocks_mt": 221760,
+          "production_mt": 365400
+        },
+        {
+          "year": "1981",
+          "exports_mt": 282420,
+          "imports_mt": 0,
+          "begin_stocks_mt": 221760,
+          "consumption_mt": 1260,
+          "stocks_mt": 174480,
+          "production_mt": 249600
+        },
+        {
+          "year": "1982",
+          "exports_mt": 236400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 174480,
+          "consumption_mt": 1380,
+          "stocks_mt": 191520,
+          "production_mt": 270600
+        },
+        {
+          "year": "1983",
+          "exports_mt": 242760,
+          "imports_mt": 0,
+          "begin_stocks_mt": 191520,
+          "consumption_mt": 1500,
+          "stocks_mt": 19440,
+          "production_mt": 85200
+        },
+        {
+          "year": "1984",
+          "exports_mt": 216180,
+          "imports_mt": 0,
+          "begin_stocks_mt": 19440,
+          "consumption_mt": 1620,
+          "stocks_mt": 63000,
+          "production_mt": 276540
+        },
+        {
+          "year": "1985",
+          "exports_mt": 243240,
+          "imports_mt": 0,
+          "begin_stocks_mt": 63000,
+          "consumption_mt": 1740,
+          "stocks_mt": 69180,
+          "production_mt": 265200
+        },
+        {
+          "year": "1986",
+          "exports_mt": 144240,
+          "imports_mt": 0,
+          "begin_stocks_mt": 69180,
+          "consumption_mt": 1800,
+          "stocks_mt": 172620,
+          "production_mt": 264300
+        },
+        {
+          "year": "1987",
+          "exports_mt": 202860,
+          "imports_mt": 0,
+          "begin_stocks_mt": 172620,
+          "consumption_mt": 1920,
+          "stocks_mt": 142260,
+          "production_mt": 186180
+        },
+        {
+          "year": "1988",
+          "exports_mt": 162600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 142260,
+          "consumption_mt": 1920,
+          "stocks_mt": 170940,
+          "production_mt": 239340
+        },
+        {
+          "year": "1989",
+          "exports_mt": 180240,
+          "imports_mt": 0,
+          "begin_stocks_mt": 170940,
+          "consumption_mt": 2040,
+          "stocks_mt": 251940,
+          "production_mt": 284040
+        },
+        {
+          "year": "1990",
+          "exports_mt": 232440,
+          "imports_mt": 0,
+          "begin_stocks_mt": 251940,
+          "consumption_mt": 2160,
+          "stocks_mt": 197400,
+          "production_mt": 198000
+        },
+        {
+          "year": "1991",
+          "exports_mt": 146700,
+          "imports_mt": 0,
+          "begin_stocks_mt": 197400,
+          "consumption_mt": 2280,
+          "stocks_mt": 266820,
+          "production_mt": 238020
+        },
+        {
+          "year": "1992",
+          "exports_mt": 257820,
+          "imports_mt": 0,
+          "begin_stocks_mt": 266820,
+          "consumption_mt": 2340,
+          "stocks_mt": 142080,
+          "production_mt": 150000
+        },
+        {
+          "year": "1993",
+          "exports_mt": 254760,
+          "imports_mt": 0,
+          "begin_stocks_mt": 142080,
+          "consumption_mt": 2340,
+          "stocks_mt": 30780,
+          "production_mt": 162000
+        },
+        {
+          "year": "1994",
+          "exports_mt": 145500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 30780,
+          "consumption_mt": 2760,
+          "stocks_mt": 100680,
+          "production_mt": 223980
+        },
+        {
+          "year": "1995",
+          "exports_mt": 157620,
+          "imports_mt": 0,
+          "begin_stocks_mt": 100680,
+          "consumption_mt": 2880,
+          "stocks_mt": 89940,
+          "production_mt": 174000
+        },
+        {
+          "year": "1996",
+          "exports_mt": 213180,
+          "imports_mt": 0,
+          "begin_stocks_mt": 89940,
+          "consumption_mt": 3060,
+          "stocks_mt": 174900,
+          "production_mt": 319980
+        },
+        {
+          "year": "1997",
+          "exports_mt": 279060,
+          "imports_mt": 0,
+          "begin_stocks_mt": 174900,
+          "consumption_mt": 3300,
+          "stocks_mt": 113100,
+          "production_mt": 244800
+        },
+        {
+          "year": "1998",
+          "exports_mt": 127620,
+          "imports_mt": 0,
+          "begin_stocks_mt": 113100,
+          "consumption_mt": 3480,
+          "stocks_mt": 90240,
+          "production_mt": 133020
+        },
+        {
+          "year": "1999",
+          "exports_mt": 321240,
+          "imports_mt": 0,
+          "begin_stocks_mt": 90240,
+          "consumption_mt": 3600,
+          "stocks_mt": 80820,
+          "production_mt": 342000
+        },
+        {
+          "year": "2000",
+          "exports_mt": 219600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 80820,
+          "consumption_mt": 3720,
+          "stocks_mt": 140400,
+          "production_mt": 306000
+        },
+        {
+          "year": "2001",
+          "exports_mt": 156900,
+          "imports_mt": 0,
+          "begin_stocks_mt": 140400,
+          "consumption_mt": 3840,
+          "stocks_mt": 167160,
+          "production_mt": 214080
+        },
+        {
+          "year": "2002",
+          "exports_mt": 170700,
+          "imports_mt": 0,
+          "begin_stocks_mt": 167160,
+          "consumption_mt": 37980,
+          "stocks_mt": 42000,
+          "production_mt": 109500
+        },
+        {
+          "year": "2003",
+          "exports_mt": 142560,
+          "imports_mt": 0,
+          "begin_stocks_mt": 42000,
+          "consumption_mt": 30000,
+          "stocks_mt": 16020,
+          "production_mt": 161340
+        },
+        {
+          "year": "2004",
+          "exports_mt": 71400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 16020,
+          "consumption_mt": 18000,
+          "stocks_mt": 22680,
+          "production_mt": 108060
+        },
+        {
+          "year": "2005",
+          "exports_mt": 102000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 22680,
+          "consumption_mt": 18000,
+          "stocks_mt": 7800,
+          "production_mt": 123720
+        },
+        {
+          "year": "2006",
+          "exports_mt": 102600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 7800,
+          "consumption_mt": 18000,
+          "stocks_mt": 10920,
+          "production_mt": 146820
+        },
+        {
+          "year": "2007",
+          "exports_mt": 93000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 10920,
+          "consumption_mt": 18000,
+          "stocks_mt": 5400,
+          "production_mt": 125880
+        },
+        {
+          "year": "2008",
+          "exports_mt": 70800,
+          "imports_mt": 0,
+          "begin_stocks_mt": 5400,
+          "consumption_mt": 18000,
+          "stocks_mt": 5280,
+          "production_mt": 111180
+        },
+        {
+          "year": "2009",
+          "exports_mt": 105300,
+          "imports_mt": 0,
+          "begin_stocks_mt": 5280,
+          "consumption_mt": 18000,
+          "stocks_mt": 5580,
+          "production_mt": 141000
+        },
+        {
+          "year": "2010",
+          "exports_mt": 43500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 5580,
+          "consumption_mt": 18000,
+          "stocks_mt": 24480,
+          "production_mt": 96000
+        },
+        {
+          "year": "2011",
+          "exports_mt": 77400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 24480,
+          "consumption_mt": 18000,
+          "stocks_mt": 5280,
+          "production_mt": 96000
+        },
+        {
+          "year": "2012",
+          "exports_mt": 80400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 5280,
+          "consumption_mt": 6480,
+          "stocks_mt": 3000,
+          "production_mt": 105000
+        },
+        {
+          "year": "2013",
+          "exports_mt": 75000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3000,
+          "consumption_mt": 6000,
+          "stocks_mt": 3300,
+          "production_mt": 100500
+        },
+        {
+          "year": "2014",
+          "exports_mt": 63000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3300,
+          "consumption_mt": 4500,
+          "stocks_mt": 1800,
+          "production_mt": 84000
+        },
+        {
+          "year": "2015",
+          "exports_mt": 78000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1800,
+          "consumption_mt": 4500,
+          "stocks_mt": 900,
+          "production_mt": 96000
+        },
+        {
+          "year": "2016",
+          "exports_mt": 46800,
+          "imports_mt": 0,
+          "begin_stocks_mt": 900,
+          "consumption_mt": 6000,
+          "stocks_mt": 900,
+          "production_mt": 65400
+        },
+        {
+          "year": "2017",
+          "exports_mt": 57000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 900,
+          "consumption_mt": 4800,
+          "stocks_mt": 900,
+          "production_mt": 75000
+        },
+        {
+          "year": "2018",
+          "exports_mt": 103500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 900,
+          "consumption_mt": 2100,
+          "stocks_mt": 900,
+          "production_mt": 120000
+        },
+        {
+          "year": "2019",
+          "exports_mt": 85500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 900,
+          "consumption_mt": 4500,
+          "stocks_mt": 0,
+          "production_mt": 106500
+        },
+        {
+          "year": "2020",
+          "exports_mt": 34800,
+          "imports_mt": 0,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 2700,
+          "stocks_mt": 0,
+          "production_mt": 54600
+        },
+        {
+          "year": "2021",
+          "exports_mt": 44100,
+          "imports_mt": 0,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 3000,
+          "stocks_mt": 0,
+          "production_mt": 66600
+        },
+        {
+          "year": "2022",
+          "exports_mt": 42000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 3000,
+          "stocks_mt": 0,
+          "production_mt": 61200
+        },
+        {
+          "year": "2023",
+          "exports_mt": 59400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 3000,
+          "stocks_mt": 0,
+          "production_mt": 79500
+        },
+        {
+          "year": "2024",
+          "exports_mt": 19500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 3300,
+          "stocks_mt": 0,
+          "production_mt": 39000
+        },
+        {
+          "year": "2025",
+          "exports_mt": 60000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 3000,
+          "stocks_mt": 0,
+          "production_mt": 78000
+        },
+        {
+          "year": "2026",
+          "exports_mt": 60000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 3000,
+          "stocks_mt": 0,
+          "production_mt": 78000
+        }
+      ],
+      "forecast_source": null
+    },
+    "costa_rica": {
+      "latest_year": "2026",
+      "latest_production_mt": 72000,
+      "latest_exports_mt": 63000,
+      "latest_consumption_mt": 19200,
+      "latest_stocks_mt": 4080,
+      "annual": [
+        {
+          "year": "1960",
+          "exports_mt": 49500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 5820,
+          "consumption_mt": 6360,
+          "stocks_mt": 7020,
+          "production_mt": 57060
+        },
+        {
+          "year": "1961",
+          "exports_mt": 58440,
+          "imports_mt": 0,
+          "begin_stocks_mt": 7020,
+          "consumption_mt": 6600,
+          "stocks_mt": 6360,
+          "production_mt": 64380
+        },
+        {
+          "year": "1962",
+          "exports_mt": 54060,
+          "imports_mt": 0,
+          "begin_stocks_mt": 6360,
+          "consumption_mt": 6780,
+          "stocks_mt": 2640,
+          "production_mt": 57120
+        },
+        {
+          "year": "1963",
+          "exports_mt": 55260,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2640,
+          "consumption_mt": 7020,
+          "stocks_mt": 2940,
+          "production_mt": 62580
+        },
+        {
+          "year": "1964",
+          "exports_mt": 42120,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2940,
+          "consumption_mt": 7200,
+          "stocks_mt": 4320,
+          "production_mt": 50700
+        },
+        {
+          "year": "1965",
+          "exports_mt": 54240,
+          "imports_mt": 0,
+          "begin_stocks_mt": 4320,
+          "consumption_mt": 7440,
+          "stocks_mt": 2700,
+          "production_mt": 60060
+        },
+        {
+          "year": "1966",
+          "exports_mt": 60120,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2700,
+          "consumption_mt": 7680,
+          "stocks_mt": 4740,
+          "production_mt": 69840
+        },
+        {
+          "year": "1967",
+          "exports_mt": 73800,
+          "imports_mt": 0,
+          "begin_stocks_mt": 4740,
+          "consumption_mt": 7920,
+          "stocks_mt": 1800,
+          "production_mt": 78780
+        },
+        {
+          "year": "1968",
+          "exports_mt": 66720,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1800,
+          "consumption_mt": 8160,
+          "stocks_mt": 600,
+          "production_mt": 73680
+        },
+        {
+          "year": "1969",
+          "exports_mt": 64020,
+          "imports_mt": 0,
+          "begin_stocks_mt": 600,
+          "consumption_mt": 8400,
+          "stocks_mt": 12360,
+          "production_mt": 84180
+        },
+        {
+          "year": "1970",
+          "exports_mt": 61200,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12360,
+          "consumption_mt": 8640,
+          "stocks_mt": 20220,
+          "production_mt": 77700
+        },
+        {
+          "year": "1971",
+          "exports_mt": 72960,
+          "imports_mt": 0,
+          "begin_stocks_mt": 20220,
+          "consumption_mt": 8940,
+          "stocks_mt": 31380,
+          "production_mt": 93060
+        },
+        {
+          "year": "1972",
+          "exports_mt": 87360,
+          "imports_mt": 0,
+          "begin_stocks_mt": 31380,
+          "consumption_mt": 9180,
+          "stocks_mt": 10800,
+          "production_mt": 75960
+        },
+        {
+          "year": "1973",
+          "exports_mt": 80220,
+          "imports_mt": 0,
+          "begin_stocks_mt": 10800,
+          "consumption_mt": 9480,
+          "stocks_mt": 13440,
+          "production_mt": 92340
+        },
+        {
+          "year": "1974",
+          "exports_mt": 83760,
+          "imports_mt": 0,
+          "begin_stocks_mt": 13440,
+          "consumption_mt": 9180,
+          "stocks_mt": 5340,
+          "production_mt": 85800
+        },
+        {
+          "year": "1975",
+          "exports_mt": 59520,
+          "imports_mt": 0,
+          "begin_stocks_mt": 5340,
+          "consumption_mt": 10320,
+          "stocks_mt": 10560,
+          "production_mt": 76560
+        },
+        {
+          "year": "1976",
+          "exports_mt": 67740,
+          "imports_mt": 0,
+          "begin_stocks_mt": 10560,
+          "consumption_mt": 11040,
+          "stocks_mt": 6480,
+          "production_mt": 79860
+        },
+        {
+          "year": "1977",
+          "exports_mt": 76020,
+          "imports_mt": 240,
+          "begin_stocks_mt": 6480,
+          "consumption_mt": 11100,
+          "stocks_mt": 6300,
+          "production_mt": 86940
+        },
+        {
+          "year": "1978",
+          "exports_mt": 91560,
+          "imports_mt": 180,
+          "begin_stocks_mt": 6300,
+          "consumption_mt": 12960,
+          "stocks_mt": 6540,
+          "production_mt": 104940
+        },
+        {
+          "year": "1979",
+          "exports_mt": 79200,
+          "imports_mt": 120,
+          "begin_stocks_mt": 6540,
+          "consumption_mt": 12660,
+          "stocks_mt": 5820,
+          "production_mt": 91320
+        },
+        {
+          "year": "1980",
+          "exports_mt": 93780,
+          "imports_mt": 60,
+          "begin_stocks_mt": 5820,
+          "consumption_mt": 12480,
+          "stocks_mt": 27900,
+          "production_mt": 128400
+        },
+        {
+          "year": "1981",
+          "exports_mt": 92580,
+          "imports_mt": 0,
+          "begin_stocks_mt": 27900,
+          "consumption_mt": 14580,
+          "stocks_mt": 25140,
+          "production_mt": 106920
+        },
+        {
+          "year": "1982",
+          "exports_mt": 90420,
+          "imports_mt": 0,
+          "begin_stocks_mt": 25140,
+          "consumption_mt": 13380,
+          "stocks_mt": 57600,
+          "production_mt": 138000
+        },
+        {
+          "year": "1983",
+          "exports_mt": 105720,
+          "imports_mt": 0,
+          "begin_stocks_mt": 57600,
+          "consumption_mt": 13980,
+          "stocks_mt": 60900,
+          "production_mt": 124200
+        },
+        {
+          "year": "1984",
+          "exports_mt": 123060,
+          "imports_mt": 0,
+          "begin_stocks_mt": 60900,
+          "consumption_mt": 14100,
+          "stocks_mt": 72780,
+          "production_mt": 150960
+        },
+        {
+          "year": "1985",
+          "exports_mt": 86760,
+          "imports_mt": 0,
+          "begin_stocks_mt": 72780,
+          "consumption_mt": 14280,
+          "stocks_mt": 60180,
+          "production_mt": 90840
+        },
+        {
+          "year": "1986",
+          "exports_mt": 145920,
+          "imports_mt": 0,
+          "begin_stocks_mt": 60180,
+          "consumption_mt": 14520,
+          "stocks_mt": 51300,
+          "production_mt": 153960
+        },
+        {
+          "year": "1987",
+          "exports_mt": 120480,
+          "imports_mt": 0,
+          "begin_stocks_mt": 51300,
+          "consumption_mt": 14100,
+          "stocks_mt": 57180,
+          "production_mt": 142500
+        },
+        {
+          "year": "1988",
+          "exports_mt": 137880,
+          "imports_mt": 0,
+          "begin_stocks_mt": 57180,
+          "consumption_mt": 15000,
+          "stocks_mt": 69780,
+          "production_mt": 165480
+        },
+        {
+          "year": "1989",
+          "exports_mt": 142620,
+          "imports_mt": 0,
+          "begin_stocks_mt": 69780,
+          "consumption_mt": 15300,
+          "stocks_mt": 59040,
+          "production_mt": 147180
+        },
+        {
+          "year": "1990",
+          "exports_mt": 139500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 59040,
+          "consumption_mt": 15600,
+          "stocks_mt": 57840,
+          "production_mt": 153900
+        },
+        {
+          "year": "1991",
+          "exports_mt": 136500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 57840,
+          "consumption_mt": 15600,
+          "stocks_mt": 57540,
+          "production_mt": 151800
+        },
+        {
+          "year": "1992",
+          "exports_mt": 159720,
+          "imports_mt": 0,
+          "begin_stocks_mt": 57540,
+          "consumption_mt": 15300,
+          "stocks_mt": 39720,
+          "production_mt": 157200
+        },
+        {
+          "year": "1993",
+          "exports_mt": 124260,
+          "imports_mt": 0,
+          "begin_stocks_mt": 39720,
+          "consumption_mt": 15000,
+          "stocks_mt": 48960,
+          "production_mt": 148500
+        },
+        {
+          "year": "1994",
+          "exports_mt": 109680,
+          "imports_mt": 0,
+          "begin_stocks_mt": 48960,
+          "consumption_mt": 14400,
+          "stocks_mt": 74400,
+          "production_mt": 149520
+        },
+        {
+          "year": "1995",
+          "exports_mt": 147060,
+          "imports_mt": 0,
+          "begin_stocks_mt": 74400,
+          "consumption_mt": 14100,
+          "stocks_mt": 68940,
+          "production_mt": 155700
+        },
+        {
+          "year": "1996",
+          "exports_mt": 124020,
+          "imports_mt": 0,
+          "begin_stocks_mt": 68940,
+          "consumption_mt": 14760,
+          "stocks_mt": 72720,
+          "production_mt": 142560
+        },
+        {
+          "year": "1997",
+          "exports_mt": 129000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 72720,
+          "consumption_mt": 18300,
+          "stocks_mt": 72720,
+          "production_mt": 147300
+        },
+        {
+          "year": "1998",
+          "exports_mt": 126900,
+          "imports_mt": 0,
+          "begin_stocks_mt": 72720,
+          "consumption_mt": 18300,
+          "stocks_mt": 75060,
+          "production_mt": 147540
+        },
+        {
+          "year": "1999",
+          "exports_mt": 130440,
+          "imports_mt": 0,
+          "begin_stocks_mt": 75060,
+          "consumption_mt": 20460,
+          "stocks_mt": 85440,
+          "production_mt": 161280
+        },
+        {
+          "year": "2000",
+          "exports_mt": 154860,
+          "imports_mt": 0,
+          "begin_stocks_mt": 85440,
+          "consumption_mt": 20700,
+          "stocks_mt": 60000,
+          "production_mt": 150120
+        },
+        {
+          "year": "2001",
+          "exports_mt": 149280,
+          "imports_mt": 0,
+          "begin_stocks_mt": 60000,
+          "consumption_mt": 21000,
+          "stocks_mt": 30000,
+          "production_mt": 140280
+        },
+        {
+          "year": "2002",
+          "exports_mt": 132120,
+          "imports_mt": 120,
+          "begin_stocks_mt": 30000,
+          "consumption_mt": 18540,
+          "stocks_mt": 12000,
+          "production_mt": 132420
+        },
+        {
+          "year": "2003",
+          "exports_mt": 109740,
+          "imports_mt": 120,
+          "begin_stocks_mt": 12000,
+          "consumption_mt": 16680,
+          "stocks_mt": 12000,
+          "production_mt": 126360
+        },
+        {
+          "year": "2004",
+          "exports_mt": 92520,
+          "imports_mt": 120,
+          "begin_stocks_mt": 12000,
+          "consumption_mt": 22080,
+          "stocks_mt": 12000,
+          "production_mt": 114420
+        },
+        {
+          "year": "2005",
+          "exports_mt": 83280,
+          "imports_mt": 60,
+          "begin_stocks_mt": 12000,
+          "consumption_mt": 22080,
+          "stocks_mt": 12000,
+          "production_mt": 105060
+        },
+        {
+          "year": "2006",
+          "exports_mt": 94920,
+          "imports_mt": 180,
+          "begin_stocks_mt": 12000,
+          "consumption_mt": 19260,
+          "stocks_mt": 4620,
+          "production_mt": 106920
+        },
+        {
+          "year": "2007",
+          "exports_mt": 98400,
+          "imports_mt": 240,
+          "begin_stocks_mt": 4620,
+          "consumption_mt": 13320,
+          "stocks_mt": 4560,
+          "production_mt": 112020
+        },
+        {
+          "year": "2008",
+          "exports_mt": 83100,
+          "imports_mt": 900,
+          "begin_stocks_mt": 4560,
+          "consumption_mt": 15900,
+          "stocks_mt": 1560,
+          "production_mt": 94800
+        },
+        {
+          "year": "2009",
+          "exports_mt": 72000,
+          "imports_mt": 7800,
+          "begin_stocks_mt": 1560,
+          "consumption_mt": 18360,
+          "stocks_mt": 7500,
+          "production_mt": 88500
+        },
+        {
+          "year": "2010",
+          "exports_mt": 75300,
+          "imports_mt": 10500,
+          "begin_stocks_mt": 7500,
+          "consumption_mt": 25980,
+          "stocks_mt": 12000,
+          "production_mt": 94500
+        },
+        {
+          "year": "2011",
+          "exports_mt": 87300,
+          "imports_mt": 3660,
+          "begin_stocks_mt": 12000,
+          "consumption_mt": 21540,
+          "stocks_mt": 14400,
+          "production_mt": 106500
+        },
+        {
+          "year": "2012",
+          "exports_mt": 84000,
+          "imports_mt": 1200,
+          "begin_stocks_mt": 14400,
+          "consumption_mt": 22140,
+          "stocks_mt": 11400,
+          "production_mt": 100500
+        },
+        {
+          "year": "2013",
+          "exports_mt": 73500,
+          "imports_mt": 10200,
+          "begin_stocks_mt": 11400,
+          "consumption_mt": 27300,
+          "stocks_mt": 7800,
+          "production_mt": 87000
+        },
+        {
+          "year": "2014",
+          "exports_mt": 70200,
+          "imports_mt": 6900,
+          "begin_stocks_mt": 7800,
+          "consumption_mt": 23820,
+          "stocks_mt": 6840,
+          "production_mt": 84000
+        },
+        {
+          "year": "2015",
+          "exports_mt": 72600,
+          "imports_mt": 8400,
+          "begin_stocks_mt": 6840,
+          "consumption_mt": 23100,
+          "stocks_mt": 18960,
+          "production_mt": 97500
+        },
+        {
+          "year": "2016",
+          "exports_mt": 66600,
+          "imports_mt": 5100,
+          "begin_stocks_mt": 18960,
+          "consumption_mt": 23400,
+          "stocks_mt": 13560,
+          "production_mt": 78000
+        },
+        {
+          "year": "2017",
+          "exports_mt": 72300,
+          "imports_mt": 3600,
+          "begin_stocks_mt": 13560,
+          "consumption_mt": 22620,
+          "stocks_mt": 15360,
+          "production_mt": 91500
+        },
+        {
+          "year": "2018",
+          "exports_mt": 64500,
+          "imports_mt": 13200,
+          "begin_stocks_mt": 15360,
+          "consumption_mt": 25800,
+          "stocks_mt": 13560,
+          "production_mt": 75000
+        },
+        {
+          "year": "2019",
+          "exports_mt": 67800,
+          "imports_mt": 12000,
+          "begin_stocks_mt": 13560,
+          "consumption_mt": 27780,
+          "stocks_mt": 17940,
+          "production_mt": 87960
+        },
+        {
+          "year": "2020",
+          "exports_mt": 69300,
+          "imports_mt": 8700,
+          "begin_stocks_mt": 17940,
+          "consumption_mt": 29100,
+          "stocks_mt": 16860,
+          "production_mt": 88320
+        },
+        {
+          "year": "2021",
+          "exports_mt": 66000,
+          "imports_mt": 11400,
+          "begin_stocks_mt": 16860,
+          "consumption_mt": 21000,
+          "stocks_mt": 14460,
+          "production_mt": 72900
+        },
+        {
+          "year": "2022",
+          "exports_mt": 60000,
+          "imports_mt": 13200,
+          "begin_stocks_mt": 14460,
+          "consumption_mt": 22800,
+          "stocks_mt": 10860,
+          "production_mt": 66000
+        },
+        {
+          "year": "2023",
+          "exports_mt": 60900,
+          "imports_mt": 8400,
+          "begin_stocks_mt": 10860,
+          "consumption_mt": 17820,
+          "stocks_mt": 10020,
+          "production_mt": 69480
+        },
+        {
+          "year": "2024",
+          "exports_mt": 65520,
+          "imports_mt": 5880,
+          "begin_stocks_mt": 10020,
+          "consumption_mt": 18900,
+          "stocks_mt": 11580,
+          "production_mt": 78900
+        },
+        {
+          "year": "2025",
+          "exports_mt": 60600,
+          "imports_mt": 5700,
+          "begin_stocks_mt": 11580,
+          "consumption_mt": 19200,
+          "stocks_mt": 7980,
+          "production_mt": 69600
+        },
+        {
+          "year": "2026",
+          "exports_mt": 63000,
+          "imports_mt": 5700,
+          "begin_stocks_mt": 7980,
+          "consumption_mt": 19200,
+          "stocks_mt": 4080,
+          "production_mt": 72000
+        }
+      ],
+      "forecast_source": null
+    },
+    "tanzania": {
+      "latest_year": "2026",
+      "latest_production_mt": 96000,
+      "latest_exports_mt": 84000,
+      "latest_consumption_mt": 5400,
+      "latest_stocks_mt": 9420,
+      "annual": [
+        {
+          "year": "1960",
+          "exports_mt": 30420,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12060,
+          "consumption_mt": 60,
+          "stocks_mt": 9300,
+          "production_mt": 27720
+        },
+        {
+          "year": "1961",
+          "exports_mt": 19020,
+          "imports_mt": 0,
+          "begin_stocks_mt": 9300,
+          "consumption_mt": 60,
+          "stocks_mt": 8220,
+          "production_mt": 18000
+        },
+        {
+          "year": "1962",
+          "exports_mt": 28020,
+          "imports_mt": 0,
+          "begin_stocks_mt": 8220,
+          "consumption_mt": 60,
+          "stocks_mt": 7020,
+          "production_mt": 26880
+        },
+        {
+          "year": "1963",
+          "exports_mt": 29280,
+          "imports_mt": 0,
+          "begin_stocks_mt": 7020,
+          "consumption_mt": 120,
+          "stocks_mt": 8160,
+          "production_mt": 30540
+        },
+        {
+          "year": "1964",
+          "exports_mt": 31320,
+          "imports_mt": 0,
+          "begin_stocks_mt": 8160,
+          "consumption_mt": 240,
+          "stocks_mt": 8280,
+          "production_mt": 31680
+        },
+        {
+          "year": "1965",
+          "exports_mt": 35280,
+          "imports_mt": 0,
+          "begin_stocks_mt": 8280,
+          "consumption_mt": 300,
+          "stocks_mt": 18300,
+          "production_mt": 45600
+        },
+        {
+          "year": "1966",
+          "exports_mt": 51600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 18300,
+          "consumption_mt": 420,
+          "stocks_mt": 16920,
+          "production_mt": 50640
+        },
+        {
+          "year": "1967",
+          "exports_mt": 48000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 16920,
+          "consumption_mt": 480,
+          "stocks_mt": 6060,
+          "production_mt": 37620
+        },
+        {
+          "year": "1968",
+          "exports_mt": 51360,
+          "imports_mt": 0,
+          "begin_stocks_mt": 6060,
+          "consumption_mt": 720,
+          "stocks_mt": 11040,
+          "production_mt": 57060
+        },
+        {
+          "year": "1969",
+          "exports_mt": 42060,
+          "imports_mt": 0,
+          "begin_stocks_mt": 11040,
+          "consumption_mt": 840,
+          "stocks_mt": 4020,
+          "production_mt": 35940
+        },
+        {
+          "year": "1970",
+          "exports_mt": 40800,
+          "imports_mt": 0,
+          "begin_stocks_mt": 4020,
+          "consumption_mt": 1020,
+          "stocks_mt": 16620,
+          "production_mt": 54540
+        },
+        {
+          "year": "1971",
+          "exports_mt": 40140,
+          "imports_mt": 0,
+          "begin_stocks_mt": 16620,
+          "consumption_mt": 1080,
+          "stocks_mt": 29700,
+          "production_mt": 54480
+        },
+        {
+          "year": "1972",
+          "exports_mt": 66060,
+          "imports_mt": 0,
+          "begin_stocks_mt": 29700,
+          "consumption_mt": 1260,
+          "stocks_mt": 29580,
+          "production_mt": 67380
+        },
+        {
+          "year": "1973",
+          "exports_mt": 49320,
+          "imports_mt": 0,
+          "begin_stocks_mt": 29580,
+          "consumption_mt": 1440,
+          "stocks_mt": 8400,
+          "production_mt": 29760
+        },
+        {
+          "year": "1974",
+          "exports_mt": 47160,
+          "imports_mt": 0,
+          "begin_stocks_mt": 8400,
+          "consumption_mt": 1560,
+          "stocks_mt": 15600,
+          "production_mt": 56100
+        },
+        {
+          "year": "1975",
+          "exports_mt": 61920,
+          "imports_mt": 0,
+          "begin_stocks_mt": 15600,
+          "consumption_mt": 1500,
+          "stocks_mt": 9420,
+          "production_mt": 57540
+        },
+        {
+          "year": "1976",
+          "exports_mt": 44400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 9420,
+          "consumption_mt": 1500,
+          "stocks_mt": 11520,
+          "production_mt": 48300
+        },
+        {
+          "year": "1977",
+          "exports_mt": 46020,
+          "imports_mt": 0,
+          "begin_stocks_mt": 11520,
+          "consumption_mt": 1260,
+          "stocks_mt": 13980,
+          "production_mt": 50100
+        },
+        {
+          "year": "1978",
+          "exports_mt": 57240,
+          "imports_mt": 0,
+          "begin_stocks_mt": 13980,
+          "consumption_mt": 1200,
+          "stocks_mt": 6540,
+          "production_mt": 51360
+        },
+        {
+          "year": "1979",
+          "exports_mt": 41220,
+          "imports_mt": 0,
+          "begin_stocks_mt": 6540,
+          "consumption_mt": 1020,
+          "stocks_mt": 9660,
+          "production_mt": 45660
+        },
+        {
+          "year": "1980",
+          "exports_mt": 46500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 9660,
+          "consumption_mt": 1140,
+          "stocks_mt": 25320,
+          "production_mt": 63600
+        },
+        {
+          "year": "1981",
+          "exports_mt": 55860,
+          "imports_mt": 0,
+          "begin_stocks_mt": 25320,
+          "consumption_mt": 1200,
+          "stocks_mt": 25560,
+          "production_mt": 57540
+        },
+        {
+          "year": "1982",
+          "exports_mt": 58920,
+          "imports_mt": 0,
+          "begin_stocks_mt": 25560,
+          "consumption_mt": 1200,
+          "stocks_mt": 27240,
+          "production_mt": 61980
+        },
+        {
+          "year": "1983",
+          "exports_mt": 54360,
+          "imports_mt": 0,
+          "begin_stocks_mt": 27240,
+          "consumption_mt": 1200,
+          "stocks_mt": 22080,
+          "production_mt": 50580
+        },
+        {
+          "year": "1984",
+          "exports_mt": 47220,
+          "imports_mt": 0,
+          "begin_stocks_mt": 22080,
+          "consumption_mt": 1320,
+          "stocks_mt": 21120,
+          "production_mt": 47760
+        },
+        {
+          "year": "1985",
+          "exports_mt": 47520,
+          "imports_mt": 0,
+          "begin_stocks_mt": 21120,
+          "consumption_mt": 780,
+          "stocks_mt": 24720,
+          "production_mt": 52020
+        },
+        {
+          "year": "1986",
+          "exports_mt": 49080,
+          "imports_mt": 0,
+          "begin_stocks_mt": 24720,
+          "consumption_mt": 900,
+          "stocks_mt": 16680,
+          "production_mt": 42060
+        },
+        {
+          "year": "1987",
+          "exports_mt": 37500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 16680,
+          "consumption_mt": 300,
+          "stocks_mt": 27480,
+          "production_mt": 49080
+        },
+        {
+          "year": "1988",
+          "exports_mt": 50220,
+          "imports_mt": 0,
+          "begin_stocks_mt": 27480,
+          "consumption_mt": 360,
+          "stocks_mt": 34380,
+          "production_mt": 57720
+        },
+        {
+          "year": "1989",
+          "exports_mt": 56760,
+          "imports_mt": 0,
+          "begin_stocks_mt": 34380,
+          "consumption_mt": 360,
+          "stocks_mt": 30180,
+          "production_mt": 53280
+        },
+        {
+          "year": "1990",
+          "exports_mt": 50580,
+          "imports_mt": 0,
+          "begin_stocks_mt": 30180,
+          "consumption_mt": 360,
+          "stocks_mt": 24480,
+          "production_mt": 45780
+        },
+        {
+          "year": "1991",
+          "exports_mt": 48060,
+          "imports_mt": 0,
+          "begin_stocks_mt": 24480,
+          "consumption_mt": 360,
+          "stocks_mt": 23100,
+          "production_mt": 47400
+        },
+        {
+          "year": "1992",
+          "exports_mt": 56520,
+          "imports_mt": 0,
+          "begin_stocks_mt": 23100,
+          "consumption_mt": 1140,
+          "stocks_mt": 24360,
+          "production_mt": 59520
+        },
+        {
+          "year": "1993",
+          "exports_mt": 52260,
+          "imports_mt": 0,
+          "begin_stocks_mt": 24360,
+          "consumption_mt": 1080,
+          "stocks_mt": 14700,
+          "production_mt": 44160
+        },
+        {
+          "year": "1994",
+          "exports_mt": 36540,
+          "imports_mt": 0,
+          "begin_stocks_mt": 14700,
+          "consumption_mt": 1080,
+          "stocks_mt": 17580,
+          "production_mt": 40800
+        },
+        {
+          "year": "1995",
+          "exports_mt": 55680,
+          "imports_mt": 0,
+          "begin_stocks_mt": 17580,
+          "consumption_mt": 840,
+          "stocks_mt": 14460,
+          "production_mt": 53820
+        },
+        {
+          "year": "1996",
+          "exports_mt": 45600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 14460,
+          "consumption_mt": 1020,
+          "stocks_mt": 13260,
+          "production_mt": 45900
+        },
+        {
+          "year": "1997",
+          "exports_mt": 35760,
+          "imports_mt": 0,
+          "begin_stocks_mt": 13260,
+          "consumption_mt": 1020,
+          "stocks_mt": 13320,
+          "production_mt": 37440
+        },
+        {
+          "year": "1998",
+          "exports_mt": 42900,
+          "imports_mt": 0,
+          "begin_stocks_mt": 13320,
+          "consumption_mt": 1020,
+          "stocks_mt": 13140,
+          "production_mt": 44340
+        },
+        {
+          "year": "1999",
+          "exports_mt": 44940,
+          "imports_mt": 0,
+          "begin_stocks_mt": 13140,
+          "consumption_mt": 840,
+          "stocks_mt": 17280,
+          "production_mt": 50520
+        },
+        {
+          "year": "2000",
+          "exports_mt": 48360,
+          "imports_mt": 0,
+          "begin_stocks_mt": 17280,
+          "consumption_mt": 900,
+          "stocks_mt": 15960,
+          "production_mt": 48540
+        },
+        {
+          "year": "2001",
+          "exports_mt": 38820,
+          "imports_mt": 0,
+          "begin_stocks_mt": 15960,
+          "consumption_mt": 900,
+          "stocks_mt": 13080,
+          "production_mt": 37440
+        },
+        {
+          "year": "2002",
+          "exports_mt": 48600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 13080,
+          "consumption_mt": 900,
+          "stocks_mt": 12420,
+          "production_mt": 49440
+        },
+        {
+          "year": "2003",
+          "exports_mt": 36000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12420,
+          "consumption_mt": 6000,
+          "stocks_mt": 6540,
+          "production_mt": 36720
+        },
+        {
+          "year": "2004",
+          "exports_mt": 39600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 6540,
+          "consumption_mt": 1140,
+          "stocks_mt": 29400,
+          "production_mt": 64200
+        },
+        {
+          "year": "2005",
+          "exports_mt": 44400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 29400,
+          "consumption_mt": 1500,
+          "stocks_mt": 19500,
+          "production_mt": 36600
+        },
+        {
+          "year": "2006",
+          "exports_mt": 48000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 19500,
+          "consumption_mt": 900,
+          "stocks_mt": 24900,
+          "production_mt": 54900
+        },
+        {
+          "year": "2007",
+          "exports_mt": 45600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 24900,
+          "consumption_mt": 1500,
+          "stocks_mt": 21600,
+          "production_mt": 44400
+        },
+        {
+          "year": "2008",
+          "exports_mt": 72000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 21600,
+          "consumption_mt": 1500,
+          "stocks_mt": 16800,
+          "production_mt": 69000
+        },
+        {
+          "year": "2009",
+          "exports_mt": 48000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 16800,
+          "consumption_mt": 2100,
+          "stocks_mt": 2400,
+          "production_mt": 36000
+        },
+        {
+          "year": "2010",
+          "exports_mt": 60000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2400,
+          "consumption_mt": 2100,
+          "stocks_mt": 3000,
+          "production_mt": 63000
+        },
+        {
+          "year": "2011",
+          "exports_mt": 31200,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3000,
+          "consumption_mt": 2700,
+          "stocks_mt": 2700,
+          "production_mt": 33900
+        },
+        {
+          "year": "2012",
+          "exports_mt": 54900,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2700,
+          "consumption_mt": 3000,
+          "stocks_mt": 15300,
+          "production_mt": 70800
+        },
+        {
+          "year": "2013",
+          "exports_mt": 48000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 15300,
+          "consumption_mt": 3000,
+          "stocks_mt": 12120,
+          "production_mt": 48000
+        },
+        {
+          "year": "2014",
+          "exports_mt": 58200,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12120,
+          "consumption_mt": 3000,
+          "stocks_mt": 19320,
+          "production_mt": 69000
+        },
+        {
+          "year": "2015",
+          "exports_mt": 66000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 19320,
+          "consumption_mt": 3120,
+          "stocks_mt": 15000,
+          "production_mt": 66000
+        },
+        {
+          "year": "2016",
+          "exports_mt": 60000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 15000,
+          "consumption_mt": 3000,
+          "stocks_mt": 13200,
+          "production_mt": 63000
+        },
+        {
+          "year": "2017",
+          "exports_mt": 60000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 13200,
+          "consumption_mt": 3000,
+          "stocks_mt": 17400,
+          "production_mt": 69000
+        },
+        {
+          "year": "2018",
+          "exports_mt": 72000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 17400,
+          "consumption_mt": 3000,
+          "stocks_mt": 12600,
+          "production_mt": 72000
+        },
+        {
+          "year": "2019",
+          "exports_mt": 72000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12600,
+          "consumption_mt": 3000,
+          "stocks_mt": 7800,
+          "production_mt": 72000
+        },
+        {
+          "year": "2020",
+          "exports_mt": 63000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 7800,
+          "consumption_mt": 4500,
+          "stocks_mt": 7740,
+          "production_mt": 67500
+        },
+        {
+          "year": "2021",
+          "exports_mt": 74400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 7740,
+          "consumption_mt": 2400,
+          "stocks_mt": 3060,
+          "production_mt": 72000
+        },
+        {
+          "year": "2022",
+          "exports_mt": 69000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3060,
+          "consumption_mt": 4500,
+          "stocks_mt": 1320,
+          "production_mt": 72000
+        },
+        {
+          "year": "2023",
+          "exports_mt": 75600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1320,
+          "consumption_mt": 4620,
+          "stocks_mt": 1860,
+          "production_mt": 81000
+        },
+        {
+          "year": "2024",
+          "exports_mt": 75000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1860,
+          "consumption_mt": 4620,
+          "stocks_mt": 3000,
+          "production_mt": 81000
+        },
+        {
+          "year": "2025",
+          "exports_mt": 81600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3000,
+          "consumption_mt": 5100,
+          "stocks_mt": 3060,
+          "production_mt": 87000
+        },
+        {
+          "year": "2026",
+          "exports_mt": 84000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3060,
+          "consumption_mt": 5400,
+          "stocks_mt": 9420,
+          "production_mt": 96000
         }
       ],
       "forecast_source": null
@@ -7228,10 +10621,10 @@
     {
       "short": "brazil",
       "name": "Brazil",
-      "latest_year": "2025",
-      "consumption_mt": 1336800,
+      "latest_year": "2026",
+      "consumption_mt": 1343400,
       "population": 212812405,
-      "per_capita_kg": 6.28,
+      "per_capita_kg": 6.31,
       "annual": [
         {
           "year": "1960",
@@ -7815,27 +11208,271 @@
           "imports_mt": 0,
           "begin_stocks_mt": 125100,
           "consumption_mt": 1318200,
-          "stocks_mt": 26400,
-          "production_mt": 3900000
+          "stocks_mt": 57300,
+          "production_mt": 3930000
         },
         {
           "year": "2025",
-          "exports_mt": 2220000,
+          "exports_mt": 2040000,
           "imports_mt": 0,
-          "begin_stocks_mt": 26400,
+          "begin_stocks_mt": 57300,
           "consumption_mt": 1336800,
-          "stocks_mt": 29100,
+          "stocks_mt": 233700,
           "production_mt": 3780000
+        },
+        {
+          "year": "2026",
+          "exports_mt": 2700000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 233700,
+          "consumption_mt": 1343400,
+          "stocks_mt": 265500,
+          "production_mt": 4314000
+        }
+      ]
+    },
+    {
+      "short": "china",
+      "name": "China",
+      "latest_year": "2026",
+      "consumption_mt": 405000,
+      "population": 1406585000,
+      "per_capita_kg": 0.29,
+      "annual": [
+        {
+          "year": "2002",
+          "exports_mt": 16140,
+          "imports_mt": 11100,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 7860,
+          "stocks_mt": 0,
+          "production_mt": 19440
+        },
+        {
+          "year": "2003",
+          "exports_mt": 15360,
+          "imports_mt": 14400,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 10020,
+          "stocks_mt": 0,
+          "production_mt": 23160
+        },
+        {
+          "year": "2004",
+          "exports_mt": 10500,
+          "imports_mt": 14100,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 14220,
+          "stocks_mt": 0,
+          "production_mt": 21660
+        },
+        {
+          "year": "2005",
+          "exports_mt": 16020,
+          "imports_mt": 16500,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 11880,
+          "stocks_mt": 0,
+          "production_mt": 21900
+        },
+        {
+          "year": "2006",
+          "exports_mt": 16260,
+          "imports_mt": 18000,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 15420,
+          "stocks_mt": 0,
+          "production_mt": 25680
+        },
+        {
+          "year": "2007",
+          "exports_mt": 24000,
+          "imports_mt": 18000,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 9420,
+          "stocks_mt": 0,
+          "production_mt": 25980
+        },
+        {
+          "year": "2008",
+          "exports_mt": 29460,
+          "imports_mt": 19320,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 20100,
+          "stocks_mt": 0,
+          "production_mt": 33300
+        },
+        {
+          "year": "2009",
+          "exports_mt": 33900,
+          "imports_mt": 25560,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 68100,
+          "stocks_mt": 0,
+          "production_mt": 70380
+        },
+        {
+          "year": "2010",
+          "exports_mt": 32220,
+          "imports_mt": 40860,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 66540,
+          "stocks_mt": 0,
+          "production_mt": 49620
+        },
+        {
+          "year": "2011",
+          "exports_mt": 53820,
+          "imports_mt": 37380,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 66360,
+          "stocks_mt": 0,
+          "production_mt": 65400
+        },
+        {
+          "year": "2012",
+          "exports_mt": 74160,
+          "imports_mt": 55800,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 101640,
+          "stocks_mt": 0,
+          "production_mt": 92100
+        },
+        {
+          "year": "2013",
+          "exports_mt": 60900,
+          "imports_mt": 54600,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 137940,
+          "stocks_mt": 6000,
+          "production_mt": 116820
+        },
+        {
+          "year": "2014",
+          "exports_mt": 60600,
+          "imports_mt": 53400,
+          "begin_stocks_mt": 6000,
+          "consumption_mt": 142860,
+          "stocks_mt": 13500,
+          "production_mt": 127500
+        },
+        {
+          "year": "2015",
+          "exports_mt": 82800,
+          "imports_mt": 51600,
+          "begin_stocks_mt": 13500,
+          "consumption_mt": 149220,
+          "stocks_mt": 12180,
+          "production_mt": 115500
+        },
+        {
+          "year": "2016",
+          "exports_mt": 62220,
+          "imports_mt": 48420,
+          "begin_stocks_mt": 12180,
+          "consumption_mt": 140700,
+          "stocks_mt": 19380,
+          "production_mt": 114000
+        },
+        {
+          "year": "2017",
+          "exports_mt": 83400,
+          "imports_mt": 48900,
+          "begin_stocks_mt": 19380,
+          "consumption_mt": 162900,
+          "stocks_mt": 6180,
+          "production_mt": 115500
+        },
+        {
+          "year": "2018",
+          "exports_mt": 73500,
+          "imports_mt": 51000,
+          "begin_stocks_mt": 6180,
+          "consumption_mt": 174900,
+          "stocks_mt": 1980,
+          "production_mt": 115500
+        },
+        {
+          "year": "2019",
+          "exports_mt": 53400,
+          "imports_mt": 54000,
+          "begin_stocks_mt": 1980,
+          "consumption_mt": 222300,
+          "stocks_mt": 2880,
+          "production_mt": 120000
+        },
+        {
+          "year": "2020",
+          "exports_mt": 22200,
+          "imports_mt": 100500,
+          "begin_stocks_mt": 2880,
+          "consumption_mt": 268800,
+          "stocks_mt": 29280,
+          "production_mt": 114000
+        },
+        {
+          "year": "2021",
+          "exports_mt": 45000,
+          "imports_mt": 99600,
+          "begin_stocks_mt": 29280,
+          "consumption_mt": 295200,
+          "stocks_mt": 21480,
+          "production_mt": 108000
+        },
+        {
+          "year": "2022",
+          "exports_mt": 20100,
+          "imports_mt": 117900,
+          "begin_stocks_mt": 21480,
+          "consumption_mt": 316800,
+          "stocks_mt": 18180,
+          "production_mt": 108000
+        },
+        {
+          "year": "2023",
+          "exports_mt": 38400,
+          "imports_mt": 204300,
+          "begin_stocks_mt": 18180,
+          "consumption_mt": 345900,
+          "stocks_mt": 33480,
+          "production_mt": 108000
+        },
+        {
+          "year": "2024",
+          "exports_mt": 38400,
+          "imports_mt": 199200,
+          "begin_stocks_mt": 33480,
+          "consumption_mt": 353580,
+          "stocks_mt": 24000,
+          "production_mt": 114000
+        },
+        {
+          "year": "2025",
+          "exports_mt": 25800,
+          "imports_mt": 222000,
+          "begin_stocks_mt": 24000,
+          "consumption_mt": 385200,
+          "stocks_mt": 24000,
+          "production_mt": 114000
+        },
+        {
+          "year": "2026",
+          "exports_mt": 24000,
+          "imports_mt": 240000,
+          "begin_stocks_mt": 24000,
+          "consumption_mt": 405000,
+          "stocks_mt": 24000,
+          "production_mt": 114000
         }
       ]
     },
     {
       "short": "philippines",
       "name": "Philippines",
-      "latest_year": "2025",
-      "consumption_mt": 405000,
-      "population": null,
-      "per_capita_kg": null,
+      "latest_year": "2026",
+      "consumption_mt": 403500,
+      "population": 116786962,
+      "per_capita_kg": 3.46,
       "annual": [
         {
           "year": "1960",
@@ -8425,247 +12062,30 @@
         {
           "year": "2025",
           "exports_mt": 0,
-          "imports_mt": 48000,
+          "imports_mt": 34500,
           "begin_stocks_mt": 18000,
-          "consumption_mt": 405000,
+          "consumption_mt": 391500,
           "stocks_mt": 18000,
           "production_mt": 27000
-        }
-      ]
-    },
-    {
-      "short": "china",
-      "name": "China",
-      "latest_year": "2025",
-      "consumption_mt": 351000,
-      "population": null,
-      "per_capita_kg": null,
-      "annual": [
-        {
-          "year": "2002",
-          "exports_mt": 16140,
-          "imports_mt": 11100,
-          "begin_stocks_mt": 0,
-          "consumption_mt": 7860,
-          "stocks_mt": 0,
-          "production_mt": 19440
         },
         {
-          "year": "2003",
-          "exports_mt": 15360,
-          "imports_mt": 14400,
-          "begin_stocks_mt": 0,
-          "consumption_mt": 10020,
-          "stocks_mt": 0,
-          "production_mt": 23160
-        },
-        {
-          "year": "2004",
-          "exports_mt": 10500,
-          "imports_mt": 14100,
-          "begin_stocks_mt": 0,
-          "consumption_mt": 14220,
-          "stocks_mt": 0,
-          "production_mt": 21660
-        },
-        {
-          "year": "2005",
-          "exports_mt": 16020,
-          "imports_mt": 16500,
-          "begin_stocks_mt": 0,
-          "consumption_mt": 11880,
-          "stocks_mt": 0,
-          "production_mt": 21900
-        },
-        {
-          "year": "2006",
-          "exports_mt": 16260,
-          "imports_mt": 18000,
-          "begin_stocks_mt": 0,
-          "consumption_mt": 15420,
-          "stocks_mt": 0,
-          "production_mt": 25680
-        },
-        {
-          "year": "2007",
-          "exports_mt": 24000,
-          "imports_mt": 18000,
-          "begin_stocks_mt": 0,
-          "consumption_mt": 9420,
-          "stocks_mt": 0,
-          "production_mt": 25980
-        },
-        {
-          "year": "2008",
-          "exports_mt": 29460,
-          "imports_mt": 19320,
-          "begin_stocks_mt": 0,
-          "consumption_mt": 20100,
-          "stocks_mt": 0,
-          "production_mt": 33300
-        },
-        {
-          "year": "2009",
-          "exports_mt": 33900,
-          "imports_mt": 25560,
-          "begin_stocks_mt": 0,
-          "consumption_mt": 68100,
-          "stocks_mt": 0,
-          "production_mt": 70380
-        },
-        {
-          "year": "2010",
-          "exports_mt": 32220,
-          "imports_mt": 40860,
-          "begin_stocks_mt": 0,
-          "consumption_mt": 66540,
-          "stocks_mt": 0,
-          "production_mt": 49620
-        },
-        {
-          "year": "2011",
-          "exports_mt": 53820,
-          "imports_mt": 37380,
-          "begin_stocks_mt": 0,
-          "consumption_mt": 66360,
-          "stocks_mt": 0,
-          "production_mt": 65400
-        },
-        {
-          "year": "2012",
-          "exports_mt": 74160,
-          "imports_mt": 55800,
-          "begin_stocks_mt": 0,
-          "consumption_mt": 101640,
-          "stocks_mt": 0,
-          "production_mt": 92100
-        },
-        {
-          "year": "2013",
-          "exports_mt": 60900,
-          "imports_mt": 54600,
-          "begin_stocks_mt": 0,
-          "consumption_mt": 137940,
-          "stocks_mt": 6000,
-          "production_mt": 116820
-        },
-        {
-          "year": "2014",
-          "exports_mt": 60600,
-          "imports_mt": 53400,
-          "begin_stocks_mt": 6000,
-          "consumption_mt": 142860,
-          "stocks_mt": 13500,
-          "production_mt": 127500
-        },
-        {
-          "year": "2015",
-          "exports_mt": 82800,
-          "imports_mt": 51600,
-          "begin_stocks_mt": 13500,
-          "consumption_mt": 149220,
-          "stocks_mt": 12180,
-          "production_mt": 115500
-        },
-        {
-          "year": "2016",
-          "exports_mt": 62220,
-          "imports_mt": 48420,
-          "begin_stocks_mt": 12180,
-          "consumption_mt": 140700,
-          "stocks_mt": 19380,
-          "production_mt": 114000
-        },
-        {
-          "year": "2017",
-          "exports_mt": 83400,
-          "imports_mt": 48900,
-          "begin_stocks_mt": 19380,
-          "consumption_mt": 162900,
-          "stocks_mt": 6180,
-          "production_mt": 115500
-        },
-        {
-          "year": "2018",
-          "exports_mt": 73500,
-          "imports_mt": 51000,
-          "begin_stocks_mt": 6180,
-          "consumption_mt": 174900,
-          "stocks_mt": 1980,
-          "production_mt": 115500
-        },
-        {
-          "year": "2019",
-          "exports_mt": 53400,
-          "imports_mt": 54000,
-          "begin_stocks_mt": 1980,
-          "consumption_mt": 222300,
-          "stocks_mt": 2880,
-          "production_mt": 120000
-        },
-        {
-          "year": "2020",
-          "exports_mt": 22200,
-          "imports_mt": 100500,
-          "begin_stocks_mt": 2880,
-          "consumption_mt": 268800,
-          "stocks_mt": 29280,
-          "production_mt": 114000
-        },
-        {
-          "year": "2021",
-          "exports_mt": 45000,
-          "imports_mt": 99600,
-          "begin_stocks_mt": 29280,
-          "consumption_mt": 295200,
-          "stocks_mt": 21480,
-          "production_mt": 108000
-        },
-        {
-          "year": "2022",
-          "exports_mt": 20100,
-          "imports_mt": 117900,
-          "begin_stocks_mt": 21480,
-          "consumption_mt": 316800,
-          "stocks_mt": 18180,
-          "production_mt": 108000
-        },
-        {
-          "year": "2023",
-          "exports_mt": 38400,
-          "imports_mt": 204300,
-          "begin_stocks_mt": 18180,
-          "consumption_mt": 345900,
-          "stocks_mt": 33480,
-          "production_mt": 108000
-        },
-        {
-          "year": "2024",
-          "exports_mt": 26100,
-          "imports_mt": 199200,
-          "begin_stocks_mt": 33480,
-          "consumption_mt": 367380,
-          "stocks_mt": 24000,
-          "production_mt": 114000
-        },
-        {
-          "year": "2025",
-          "exports_mt": 45000,
-          "imports_mt": 198000,
-          "begin_stocks_mt": 24000,
-          "consumption_mt": 351000,
-          "stocks_mt": 24000,
-          "production_mt": 114000
+          "year": "2026",
+          "exports_mt": 0,
+          "imports_mt": 45000,
+          "begin_stocks_mt": 18000,
+          "consumption_mt": 403500,
+          "stocks_mt": 18000,
+          "production_mt": 28500
         }
       ]
     },
     {
       "short": "vietnam",
       "name": "Vietnam",
-      "latest_year": "2025",
-      "consumption_mt": 294000,
-      "population": null,
-      "per_capita_kg": null,
+      "latest_year": "2026",
+      "consumption_mt": 300000,
+      "population": 101598527,
+      "per_capita_kg": 2.95,
       "annual": [
         {
           "year": "1960",
@@ -9254,22 +12674,644 @@
         },
         {
           "year": "2025",
-          "exports_mt": 1476000,
+          "exports_mt": 1506000,
           "imports_mt": 51000,
           "begin_stocks_mt": 65340,
           "consumption_mt": 294000,
-          "stocks_mt": 23340,
-          "production_mt": 1848000
+          "stocks_mt": 41340,
+          "production_mt": 1902000
+        },
+        {
+          "year": "2026",
+          "exports_mt": 1524000,
+          "imports_mt": 48000,
+          "begin_stocks_mt": 41340,
+          "consumption_mt": 300000,
+          "stocks_mt": 29340,
+          "production_mt": 1950000
+        }
+      ]
+    },
+    {
+      "short": "ethiopia",
+      "name": "Ethiopia",
+      "latest_year": "2026",
+      "consumption_mt": 300000,
+      "population": 135472051,
+      "per_capita_kg": 2.21,
+      "annual": [
+        {
+          "year": "1960",
+          "exports_mt": 55260,
+          "imports_mt": 0,
+          "begin_stocks_mt": 11760,
+          "consumption_mt": 45000,
+          "stocks_mt": 12720,
+          "production_mt": 101220
+        },
+        {
+          "year": "1961",
+          "exports_mt": 62100,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12720,
+          "consumption_mt": 47520,
+          "stocks_mt": 23520,
+          "production_mt": 120420
+        },
+        {
+          "year": "1962",
+          "exports_mt": 68520,
+          "imports_mt": 0,
+          "begin_stocks_mt": 23520,
+          "consumption_mt": 50700,
+          "stocks_mt": 28680,
+          "production_mt": 124380
+        },
+        {
+          "year": "1963",
+          "exports_mt": 75660,
+          "imports_mt": 0,
+          "begin_stocks_mt": 28680,
+          "consumption_mt": 52620,
+          "stocks_mt": 32700,
+          "production_mt": 132300
+        },
+        {
+          "year": "1964",
+          "exports_mt": 74640,
+          "imports_mt": 0,
+          "begin_stocks_mt": 32700,
+          "consumption_mt": 55920,
+          "stocks_mt": 47100,
+          "production_mt": 144960
+        },
+        {
+          "year": "1965",
+          "exports_mt": 64560,
+          "imports_mt": 0,
+          "begin_stocks_mt": 47100,
+          "consumption_mt": 58020,
+          "stocks_mt": 58560,
+          "production_mt": 134040
+        },
+        {
+          "year": "1966",
+          "exports_mt": 75720,
+          "imports_mt": 0,
+          "begin_stocks_mt": 58560,
+          "consumption_mt": 60300,
+          "stocks_mt": 68100,
+          "production_mt": 145560
+        },
+        {
+          "year": "1967",
+          "exports_mt": 77880,
+          "imports_mt": 0,
+          "begin_stocks_mt": 68100,
+          "consumption_mt": 62700,
+          "stocks_mt": 56700,
+          "production_mt": 129180
+        },
+        {
+          "year": "1968",
+          "exports_mt": 79260,
+          "imports_mt": 0,
+          "begin_stocks_mt": 56700,
+          "consumption_mt": 64800,
+          "stocks_mt": 31920,
+          "production_mt": 119280
+        },
+        {
+          "year": "1969",
+          "exports_mt": 80460,
+          "imports_mt": 0,
+          "begin_stocks_mt": 31920,
+          "consumption_mt": 67200,
+          "stocks_mt": 63720,
+          "production_mt": 179460
+        },
+        {
+          "year": "1970",
+          "exports_mt": 79920,
+          "imports_mt": 0,
+          "begin_stocks_mt": 63720,
+          "consumption_mt": 70200,
+          "stocks_mt": 68940,
+          "production_mt": 155340
+        },
+        {
+          "year": "1971",
+          "exports_mt": 85560,
+          "imports_mt": 0,
+          "begin_stocks_mt": 68940,
+          "consumption_mt": 73500,
+          "stocks_mt": 47280,
+          "production_mt": 137400
+        },
+        {
+          "year": "1972",
+          "exports_mt": 83520,
+          "imports_mt": 0,
+          "begin_stocks_mt": 47280,
+          "consumption_mt": 76200,
+          "stocks_mt": 42360,
+          "production_mt": 154800
+        },
+        {
+          "year": "1973",
+          "exports_mt": 57840,
+          "imports_mt": 0,
+          "begin_stocks_mt": 42360,
+          "consumption_mt": 80760,
+          "stocks_mt": 34980,
+          "production_mt": 131220
+        },
+        {
+          "year": "1974",
+          "exports_mt": 58020,
+          "imports_mt": 0,
+          "begin_stocks_mt": 34980,
+          "consumption_mt": 86220,
+          "stocks_mt": 40020,
+          "production_mt": 149280
+        },
+        {
+          "year": "1975",
+          "exports_mt": 71760,
+          "imports_mt": 0,
+          "begin_stocks_mt": 40020,
+          "consumption_mt": 96000,
+          "stocks_mt": 28920,
+          "production_mt": 156660
+        },
+        {
+          "year": "1976",
+          "exports_mt": 42960,
+          "imports_mt": 0,
+          "begin_stocks_mt": 28920,
+          "consumption_mt": 103980,
+          "stocks_mt": 48900,
+          "production_mt": 166920
+        },
+        {
+          "year": "1977",
+          "exports_mt": 91020,
+          "imports_mt": 0,
+          "begin_stocks_mt": 48900,
+          "consumption_mt": 107340,
+          "stocks_mt": 39120,
+          "production_mt": 188580
+        },
+        {
+          "year": "1978",
+          "exports_mt": 88800,
+          "imports_mt": 0,
+          "begin_stocks_mt": 39120,
+          "consumption_mt": 102600,
+          "stocks_mt": 36240,
+          "production_mt": 188520
+        },
+        {
+          "year": "1979",
+          "exports_mt": 78600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 36240,
+          "consumption_mt": 97980,
+          "stocks_mt": 50940,
+          "production_mt": 191280
+        },
+        {
+          "year": "1980",
+          "exports_mt": 85500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 50940,
+          "consumption_mt": 96000,
+          "stocks_mt": 65280,
+          "production_mt": 195840
+        },
+        {
+          "year": "1981",
+          "exports_mt": 79620,
+          "imports_mt": 0,
+          "begin_stocks_mt": 65280,
+          "consumption_mt": 96960,
+          "stocks_mt": 81420,
+          "production_mt": 192720
+        },
+        {
+          "year": "1982",
+          "exports_mt": 90780,
+          "imports_mt": 0,
+          "begin_stocks_mt": 81420,
+          "consumption_mt": 98520,
+          "stocks_mt": 93120,
+          "production_mt": 201000
+        },
+        {
+          "year": "1983",
+          "exports_mt": 97920,
+          "imports_mt": 0,
+          "begin_stocks_mt": 93120,
+          "consumption_mt": 94320,
+          "stocks_mt": 98880,
+          "production_mt": 198000
+        },
+        {
+          "year": "1984",
+          "exports_mt": 69000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 98880,
+          "consumption_mt": 90000,
+          "stocks_mt": 95100,
+          "production_mt": 155220
+        },
+        {
+          "year": "1985",
+          "exports_mt": 73020,
+          "imports_mt": 0,
+          "begin_stocks_mt": 95100,
+          "consumption_mt": 92400,
+          "stocks_mt": 99660,
+          "production_mt": 169980
+        },
+        {
+          "year": "1986",
+          "exports_mt": 73380,
+          "imports_mt": 0,
+          "begin_stocks_mt": 99660,
+          "consumption_mt": 99960,
+          "stocks_mt": 88320,
+          "production_mt": 162000
+        },
+        {
+          "year": "1987",
+          "exports_mt": 83100,
+          "imports_mt": 0,
+          "begin_stocks_mt": 88320,
+          "consumption_mt": 88620,
+          "stocks_mt": 108600,
+          "production_mt": 192000
+        },
+        {
+          "year": "1988",
+          "exports_mt": 120000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 108600,
+          "consumption_mt": 99000,
+          "stocks_mt": 93600,
+          "production_mt": 204000
+        },
+        {
+          "year": "1989",
+          "exports_mt": 96000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 93600,
+          "consumption_mt": 96000,
+          "stocks_mt": 105600,
+          "production_mt": 204000
+        },
+        {
+          "year": "1990",
+          "exports_mt": 84000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 105600,
+          "consumption_mt": 114000,
+          "stocks_mt": 117600,
+          "production_mt": 210000
+        },
+        {
+          "year": "1991",
+          "exports_mt": 126000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 117600,
+          "consumption_mt": 96000,
+          "stocks_mt": 75600,
+          "production_mt": 180000
+        },
+        {
+          "year": "1992",
+          "exports_mt": 132000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 75600,
+          "consumption_mt": 90000,
+          "stocks_mt": 63600,
+          "production_mt": 210000
+        },
+        {
+          "year": "1993",
+          "exports_mt": 132000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 63600,
+          "consumption_mt": 90000,
+          "stocks_mt": 63600,
+          "production_mt": 222000
+        },
+        {
+          "year": "1994",
+          "exports_mt": 126000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 63600,
+          "consumption_mt": 90000,
+          "stocks_mt": 75600,
+          "production_mt": 228000
+        },
+        {
+          "year": "1995",
+          "exports_mt": 150000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 75600,
+          "consumption_mt": 90000,
+          "stocks_mt": 63600,
+          "production_mt": 228000
+        },
+        {
+          "year": "1996",
+          "exports_mt": 162000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 63600,
+          "consumption_mt": 90000,
+          "stocks_mt": 39600,
+          "production_mt": 228000
+        },
+        {
+          "year": "1997",
+          "exports_mt": 124980,
+          "imports_mt": 0,
+          "begin_stocks_mt": 39600,
+          "consumption_mt": 94980,
+          "stocks_mt": 49620,
+          "production_mt": 229980
+        },
+        {
+          "year": "1998",
+          "exports_mt": 105000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 49620,
+          "consumption_mt": 97980,
+          "stocks_mt": 78660,
+          "production_mt": 232020
+        },
+        {
+          "year": "1999",
+          "exports_mt": 120300,
+          "imports_mt": 0,
+          "begin_stocks_mt": 78660,
+          "consumption_mt": 97980,
+          "stocks_mt": 70680,
+          "production_mt": 210300
+        },
+        {
+          "year": "2000",
+          "exports_mt": 85080,
+          "imports_mt": 0,
+          "begin_stocks_mt": 70680,
+          "consumption_mt": 100020,
+          "stocks_mt": 51660,
+          "production_mt": 166080
+        },
+        {
+          "year": "2001",
+          "exports_mt": 116340,
+          "imports_mt": 0,
+          "begin_stocks_mt": 51660,
+          "consumption_mt": 109980,
+          "stocks_mt": 50700,
+          "production_mt": 225360
+        },
+        {
+          "year": "2002",
+          "exports_mt": 136620,
+          "imports_mt": 0,
+          "begin_stocks_mt": 50700,
+          "consumption_mt": 109980,
+          "stocks_mt": 25680,
+          "production_mt": 221580
+        },
+        {
+          "year": "2003",
+          "exports_mt": 132000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 25680,
+          "consumption_mt": 108000,
+          "stocks_mt": 18180,
+          "production_mt": 232500
+        },
+        {
+          "year": "2004",
+          "exports_mt": 135000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 18180,
+          "consumption_mt": 109500,
+          "stocks_mt": 17760,
+          "production_mt": 244080
+        },
+        {
+          "year": "2005",
+          "exports_mt": 165000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 17760,
+          "consumption_mt": 109560,
+          "stocks_mt": 13200,
+          "production_mt": 270000
+        },
+        {
+          "year": "2006",
+          "exports_mt": 180000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 13200,
+          "consumption_mt": 120000,
+          "stocks_mt": 13200,
+          "production_mt": 300000
+        },
+        {
+          "year": "2007",
+          "exports_mt": 168000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 13200,
+          "consumption_mt": 138000,
+          "stocks_mt": 7200,
+          "production_mt": 300000
+        },
+        {
+          "year": "2008",
+          "exports_mt": 180000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 7200,
+          "consumption_mt": 150000,
+          "stocks_mt": 7200,
+          "production_mt": 330000
+        },
+        {
+          "year": "2009",
+          "exports_mt": 195000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 7200,
+          "consumption_mt": 168000,
+          "stocks_mt": 4200,
+          "production_mt": 360000
+        },
+        {
+          "year": "2010",
+          "exports_mt": 194100,
+          "imports_mt": 0,
+          "begin_stocks_mt": 4200,
+          "consumption_mt": 171600,
+          "stocks_mt": 6000,
+          "production_mt": 367500
+        },
+        {
+          "year": "2011",
+          "exports_mt": 188400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 6000,
+          "consumption_mt": 183000,
+          "stocks_mt": 13800,
+          "production_mt": 379200
+        },
+        {
+          "year": "2012",
+          "exports_mt": 210000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 13800,
+          "consumption_mt": 187800,
+          "stocks_mt": 6000,
+          "production_mt": 390000
+        },
+        {
+          "year": "2013",
+          "exports_mt": 197100,
+          "imports_mt": 0,
+          "begin_stocks_mt": 6000,
+          "consumption_mt": 187200,
+          "stocks_mt": 2400,
+          "production_mt": 380700
+        },
+        {
+          "year": "2014",
+          "exports_mt": 210000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 2400,
+          "consumption_mt": 179100,
+          "stocks_mt": 1800,
+          "production_mt": 388500
+        },
+        {
+          "year": "2015",
+          "exports_mt": 204300,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1800,
+          "consumption_mt": 186600,
+          "stocks_mt": 1500,
+          "production_mt": 390600
+        },
+        {
+          "year": "2016",
+          "exports_mt": 231180,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1500,
+          "consumption_mt": 186000,
+          "stocks_mt": 900,
+          "production_mt": 416580
+        },
+        {
+          "year": "2017",
+          "exports_mt": 233580,
+          "imports_mt": 0,
+          "begin_stocks_mt": 900,
+          "consumption_mt": 189000,
+          "stocks_mt": 1620,
+          "production_mt": 423300
+        },
+        {
+          "year": "2018",
+          "exports_mt": 250440,
+          "imports_mt": 0,
+          "begin_stocks_mt": 1620,
+          "consumption_mt": 191580,
+          "stocks_mt": 600,
+          "production_mt": 441000
+        },
+        {
+          "year": "2019",
+          "exports_mt": 248100,
+          "imports_mt": 0,
+          "begin_stocks_mt": 600,
+          "consumption_mt": 188400,
+          "stocks_mt": 12600,
+          "production_mt": 448500
+        },
+        {
+          "year": "2020",
+          "exports_mt": 280500,
+          "imports_mt": 0,
+          "begin_stocks_mt": 12600,
+          "consumption_mt": 180000,
+          "stocks_mt": 8100,
+          "production_mt": 456000
+        },
+        {
+          "year": "2021",
+          "exports_mt": 289860,
+          "imports_mt": 0,
+          "begin_stocks_mt": 8100,
+          "consumption_mt": 201840,
+          "stocks_mt": 5400,
+          "production_mt": 489000
+        },
+        {
+          "year": "2022",
+          "exports_mt": 234600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 5400,
+          "consumption_mt": 205800,
+          "stocks_mt": 3000,
+          "production_mt": 438000
+        },
+        {
+          "year": "2023",
+          "exports_mt": 336300,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3000,
+          "consumption_mt": 210000,
+          "stocks_mt": 3000,
+          "production_mt": 547800
+        },
+        {
+          "year": "2024",
+          "exports_mt": 444600,
+          "imports_mt": 0,
+          "begin_stocks_mt": 3000,
+          "consumption_mt": 240000,
+          "stocks_mt": 4800,
+          "production_mt": 687600
+        },
+        {
+          "year": "2025",
+          "exports_mt": 416400,
+          "imports_mt": 0,
+          "begin_stocks_mt": 4800,
+          "consumption_mt": 270000,
+          "stocks_mt": 10500,
+          "production_mt": 693600
+        },
+        {
+          "year": "2026",
+          "exports_mt": 426000,
+          "imports_mt": 0,
+          "begin_stocks_mt": 10500,
+          "consumption_mt": 300000,
+          "stocks_mt": 8700,
+          "production_mt": 726000
         }
       ]
     },
     {
       "short": "indonesia",
       "name": "Indonesia",
-      "latest_year": "2025",
-      "consumption_mt": 288600,
-      "population": null,
-      "per_capita_kg": null,
+      "latest_year": "2026",
+      "consumption_mt": 289800,
+      "population": 285721236,
+      "per_capita_kg": 1.01,
       "annual": [
         {
           "year": "1960",
@@ -9858,22 +13900,31 @@
         },
         {
           "year": "2025",
-          "exports_mt": 468000,
-          "imports_mt": 21000,
+          "exports_mt": 470640,
+          "imports_mt": 22320,
           "begin_stocks_mt": 37320,
           "consumption_mt": 288600,
-          "stocks_mt": 39420,
-          "production_mt": 747000
+          "stocks_mt": 45060,
+          "production_mt": 742200
+        },
+        {
+          "year": "2026",
+          "exports_mt": 420000,
+          "imports_mt": 24000,
+          "begin_stocks_mt": 45060,
+          "consumption_mt": 289800,
+          "stocks_mt": 40260,
+          "production_mt": 682800
         }
       ]
     },
     {
       "short": "russia",
       "name": "Russia",
-      "latest_year": "2025",
-      "consumption_mt": 274500,
-      "population": null,
-      "per_capita_kg": null,
+      "latest_year": "2026",
+      "consumption_mt": 288000,
+      "population": 143513328,
+      "per_capita_kg": 2.01,
       "annual": [
         {
           "year": "2002",
@@ -10090,617 +14141,22 @@
           "consumption_mt": 274500,
           "stocks_mt": 0,
           "production_mt": 0
-        }
-      ]
-    },
-    {
-      "short": "ethiopia",
-      "name": "Ethiopia",
-      "latest_year": "2025",
-      "consumption_mt": 222000,
-      "population": 135472051,
-      "per_capita_kg": 1.64,
-      "annual": [
-        {
-          "year": "1960",
-          "exports_mt": 55260,
-          "imports_mt": 0,
-          "begin_stocks_mt": 11760,
-          "consumption_mt": 45000,
-          "stocks_mt": 12720,
-          "production_mt": 101220
-        },
-        {
-          "year": "1961",
-          "exports_mt": 62100,
-          "imports_mt": 0,
-          "begin_stocks_mt": 12720,
-          "consumption_mt": 47520,
-          "stocks_mt": 23520,
-          "production_mt": 120420
-        },
-        {
-          "year": "1962",
-          "exports_mt": 68520,
-          "imports_mt": 0,
-          "begin_stocks_mt": 23520,
-          "consumption_mt": 50700,
-          "stocks_mt": 28680,
-          "production_mt": 124380
-        },
-        {
-          "year": "1963",
-          "exports_mt": 75660,
-          "imports_mt": 0,
-          "begin_stocks_mt": 28680,
-          "consumption_mt": 52620,
-          "stocks_mt": 32700,
-          "production_mt": 132300
-        },
-        {
-          "year": "1964",
-          "exports_mt": 74640,
-          "imports_mt": 0,
-          "begin_stocks_mt": 32700,
-          "consumption_mt": 55920,
-          "stocks_mt": 47100,
-          "production_mt": 144960
-        },
-        {
-          "year": "1965",
-          "exports_mt": 64560,
-          "imports_mt": 0,
-          "begin_stocks_mt": 47100,
-          "consumption_mt": 58020,
-          "stocks_mt": 58560,
-          "production_mt": 134040
-        },
-        {
-          "year": "1966",
-          "exports_mt": 75720,
-          "imports_mt": 0,
-          "begin_stocks_mt": 58560,
-          "consumption_mt": 60300,
-          "stocks_mt": 68100,
-          "production_mt": 145560
-        },
-        {
-          "year": "1967",
-          "exports_mt": 77880,
-          "imports_mt": 0,
-          "begin_stocks_mt": 68100,
-          "consumption_mt": 62700,
-          "stocks_mt": 56700,
-          "production_mt": 129180
-        },
-        {
-          "year": "1968",
-          "exports_mt": 79260,
-          "imports_mt": 0,
-          "begin_stocks_mt": 56700,
-          "consumption_mt": 64800,
-          "stocks_mt": 31920,
-          "production_mt": 119280
-        },
-        {
-          "year": "1969",
-          "exports_mt": 80460,
-          "imports_mt": 0,
-          "begin_stocks_mt": 31920,
-          "consumption_mt": 67200,
-          "stocks_mt": 63720,
-          "production_mt": 179460
-        },
-        {
-          "year": "1970",
-          "exports_mt": 79920,
-          "imports_mt": 0,
-          "begin_stocks_mt": 63720,
-          "consumption_mt": 70200,
-          "stocks_mt": 68940,
-          "production_mt": 155340
-        },
-        {
-          "year": "1971",
-          "exports_mt": 85560,
-          "imports_mt": 0,
-          "begin_stocks_mt": 68940,
-          "consumption_mt": 73500,
-          "stocks_mt": 47280,
-          "production_mt": 137400
-        },
-        {
-          "year": "1972",
-          "exports_mt": 83520,
-          "imports_mt": 0,
-          "begin_stocks_mt": 47280,
-          "consumption_mt": 76200,
-          "stocks_mt": 42360,
-          "production_mt": 154800
-        },
-        {
-          "year": "1973",
-          "exports_mt": 57840,
-          "imports_mt": 0,
-          "begin_stocks_mt": 42360,
-          "consumption_mt": 80760,
-          "stocks_mt": 34980,
-          "production_mt": 131220
-        },
-        {
-          "year": "1974",
-          "exports_mt": 58020,
-          "imports_mt": 0,
-          "begin_stocks_mt": 34980,
-          "consumption_mt": 86220,
-          "stocks_mt": 40020,
-          "production_mt": 149280
-        },
-        {
-          "year": "1975",
-          "exports_mt": 71760,
-          "imports_mt": 0,
-          "begin_stocks_mt": 40020,
-          "consumption_mt": 96000,
-          "stocks_mt": 28920,
-          "production_mt": 156660
-        },
-        {
-          "year": "1976",
-          "exports_mt": 42960,
-          "imports_mt": 0,
-          "begin_stocks_mt": 28920,
-          "consumption_mt": 103980,
-          "stocks_mt": 48900,
-          "production_mt": 166920
-        },
-        {
-          "year": "1977",
-          "exports_mt": 91020,
-          "imports_mt": 0,
-          "begin_stocks_mt": 48900,
-          "consumption_mt": 107340,
-          "stocks_mt": 39120,
-          "production_mt": 188580
-        },
-        {
-          "year": "1978",
-          "exports_mt": 88800,
-          "imports_mt": 0,
-          "begin_stocks_mt": 39120,
-          "consumption_mt": 102600,
-          "stocks_mt": 36240,
-          "production_mt": 188520
-        },
-        {
-          "year": "1979",
-          "exports_mt": 78600,
-          "imports_mt": 0,
-          "begin_stocks_mt": 36240,
-          "consumption_mt": 97980,
-          "stocks_mt": 50940,
-          "production_mt": 191280
-        },
-        {
-          "year": "1980",
-          "exports_mt": 85500,
-          "imports_mt": 0,
-          "begin_stocks_mt": 50940,
-          "consumption_mt": 96000,
-          "stocks_mt": 65280,
-          "production_mt": 195840
-        },
-        {
-          "year": "1981",
-          "exports_mt": 79620,
-          "imports_mt": 0,
-          "begin_stocks_mt": 65280,
-          "consumption_mt": 96960,
-          "stocks_mt": 81420,
-          "production_mt": 192720
-        },
-        {
-          "year": "1982",
-          "exports_mt": 90780,
-          "imports_mt": 0,
-          "begin_stocks_mt": 81420,
-          "consumption_mt": 98520,
-          "stocks_mt": 93120,
-          "production_mt": 201000
-        },
-        {
-          "year": "1983",
-          "exports_mt": 97920,
-          "imports_mt": 0,
-          "begin_stocks_mt": 93120,
-          "consumption_mt": 94320,
-          "stocks_mt": 98880,
-          "production_mt": 198000
-        },
-        {
-          "year": "1984",
-          "exports_mt": 69000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 98880,
-          "consumption_mt": 90000,
-          "stocks_mt": 95100,
-          "production_mt": 155220
-        },
-        {
-          "year": "1985",
-          "exports_mt": 73020,
-          "imports_mt": 0,
-          "begin_stocks_mt": 95100,
-          "consumption_mt": 92400,
-          "stocks_mt": 99660,
-          "production_mt": 169980
-        },
-        {
-          "year": "1986",
-          "exports_mt": 73380,
-          "imports_mt": 0,
-          "begin_stocks_mt": 99660,
-          "consumption_mt": 99960,
-          "stocks_mt": 88320,
-          "production_mt": 162000
-        },
-        {
-          "year": "1987",
-          "exports_mt": 83100,
-          "imports_mt": 0,
-          "begin_stocks_mt": 88320,
-          "consumption_mt": 88620,
-          "stocks_mt": 108600,
-          "production_mt": 192000
-        },
-        {
-          "year": "1988",
-          "exports_mt": 120000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 108600,
-          "consumption_mt": 99000,
-          "stocks_mt": 93600,
-          "production_mt": 204000
-        },
-        {
-          "year": "1989",
-          "exports_mt": 96000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 93600,
-          "consumption_mt": 96000,
-          "stocks_mt": 105600,
-          "production_mt": 204000
-        },
-        {
-          "year": "1990",
-          "exports_mt": 84000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 105600,
-          "consumption_mt": 114000,
-          "stocks_mt": 117600,
-          "production_mt": 210000
-        },
-        {
-          "year": "1991",
-          "exports_mt": 126000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 117600,
-          "consumption_mt": 96000,
-          "stocks_mt": 75600,
-          "production_mt": 180000
-        },
-        {
-          "year": "1992",
-          "exports_mt": 132000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 75600,
-          "consumption_mt": 90000,
-          "stocks_mt": 63600,
-          "production_mt": 210000
-        },
-        {
-          "year": "1993",
-          "exports_mt": 132000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 63600,
-          "consumption_mt": 90000,
-          "stocks_mt": 63600,
-          "production_mt": 222000
-        },
-        {
-          "year": "1994",
-          "exports_mt": 126000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 63600,
-          "consumption_mt": 90000,
-          "stocks_mt": 75600,
-          "production_mt": 228000
-        },
-        {
-          "year": "1995",
-          "exports_mt": 150000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 75600,
-          "consumption_mt": 90000,
-          "stocks_mt": 63600,
-          "production_mt": 228000
-        },
-        {
-          "year": "1996",
-          "exports_mt": 162000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 63600,
-          "consumption_mt": 90000,
-          "stocks_mt": 39600,
-          "production_mt": 228000
-        },
-        {
-          "year": "1997",
-          "exports_mt": 124980,
-          "imports_mt": 0,
-          "begin_stocks_mt": 39600,
-          "consumption_mt": 94980,
-          "stocks_mt": 49620,
-          "production_mt": 229980
-        },
-        {
-          "year": "1998",
-          "exports_mt": 105000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 49620,
-          "consumption_mt": 97980,
-          "stocks_mt": 78660,
-          "production_mt": 232020
-        },
-        {
-          "year": "1999",
-          "exports_mt": 120300,
-          "imports_mt": 0,
-          "begin_stocks_mt": 78660,
-          "consumption_mt": 97980,
-          "stocks_mt": 70680,
-          "production_mt": 210300
-        },
-        {
-          "year": "2000",
-          "exports_mt": 85080,
-          "imports_mt": 0,
-          "begin_stocks_mt": 70680,
-          "consumption_mt": 100020,
-          "stocks_mt": 51660,
-          "production_mt": 166080
-        },
-        {
-          "year": "2001",
-          "exports_mt": 116340,
-          "imports_mt": 0,
-          "begin_stocks_mt": 51660,
-          "consumption_mt": 109980,
-          "stocks_mt": 50700,
-          "production_mt": 225360
-        },
-        {
-          "year": "2002",
-          "exports_mt": 136620,
-          "imports_mt": 0,
-          "begin_stocks_mt": 50700,
-          "consumption_mt": 109980,
-          "stocks_mt": 25680,
-          "production_mt": 221580
-        },
-        {
-          "year": "2003",
-          "exports_mt": 132000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 25680,
-          "consumption_mt": 108000,
-          "stocks_mt": 18180,
-          "production_mt": 232500
-        },
-        {
-          "year": "2004",
-          "exports_mt": 135000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 18180,
-          "consumption_mt": 109500,
-          "stocks_mt": 17760,
-          "production_mt": 244080
-        },
-        {
-          "year": "2005",
-          "exports_mt": 165000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 17760,
-          "consumption_mt": 109560,
-          "stocks_mt": 13200,
-          "production_mt": 270000
-        },
-        {
-          "year": "2006",
-          "exports_mt": 180000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 13200,
-          "consumption_mt": 120000,
-          "stocks_mt": 13200,
-          "production_mt": 300000
-        },
-        {
-          "year": "2007",
-          "exports_mt": 168000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 13200,
-          "consumption_mt": 138000,
-          "stocks_mt": 7200,
-          "production_mt": 300000
-        },
-        {
-          "year": "2008",
-          "exports_mt": 180000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 7200,
-          "consumption_mt": 150000,
-          "stocks_mt": 7200,
-          "production_mt": 330000
-        },
-        {
-          "year": "2009",
-          "exports_mt": 195000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 7200,
-          "consumption_mt": 168000,
-          "stocks_mt": 4200,
-          "production_mt": 360000
-        },
-        {
-          "year": "2010",
-          "exports_mt": 194100,
-          "imports_mt": 0,
-          "begin_stocks_mt": 4200,
-          "consumption_mt": 171600,
-          "stocks_mt": 6000,
-          "production_mt": 367500
-        },
-        {
-          "year": "2011",
-          "exports_mt": 188400,
-          "imports_mt": 0,
-          "begin_stocks_mt": 6000,
-          "consumption_mt": 183000,
-          "stocks_mt": 13800,
-          "production_mt": 379200
-        },
-        {
-          "year": "2012",
-          "exports_mt": 210000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 13800,
-          "consumption_mt": 187800,
-          "stocks_mt": 6000,
-          "production_mt": 390000
-        },
-        {
-          "year": "2013",
-          "exports_mt": 197100,
-          "imports_mt": 0,
-          "begin_stocks_mt": 6000,
-          "consumption_mt": 187200,
-          "stocks_mt": 2400,
-          "production_mt": 380700
-        },
-        {
-          "year": "2014",
-          "exports_mt": 210000,
-          "imports_mt": 0,
-          "begin_stocks_mt": 2400,
-          "consumption_mt": 179100,
-          "stocks_mt": 1800,
-          "production_mt": 388500
-        },
-        {
-          "year": "2015",
-          "exports_mt": 204300,
-          "imports_mt": 0,
-          "begin_stocks_mt": 1800,
-          "consumption_mt": 186600,
-          "stocks_mt": 1500,
-          "production_mt": 390600
-        },
-        {
-          "year": "2016",
-          "exports_mt": 231180,
-          "imports_mt": 0,
-          "begin_stocks_mt": 1500,
-          "consumption_mt": 186000,
-          "stocks_mt": 900,
-          "production_mt": 416580
-        },
-        {
-          "year": "2017",
-          "exports_mt": 233580,
-          "imports_mt": 0,
-          "begin_stocks_mt": 900,
-          "consumption_mt": 189000,
-          "stocks_mt": 1620,
-          "production_mt": 423300
-        },
-        {
-          "year": "2018",
-          "exports_mt": 250440,
-          "imports_mt": 0,
-          "begin_stocks_mt": 1620,
-          "consumption_mt": 191580,
-          "stocks_mt": 600,
-          "production_mt": 441000
-        },
-        {
-          "year": "2019",
-          "exports_mt": 248100,
-          "imports_mt": 0,
-          "begin_stocks_mt": 600,
-          "consumption_mt": 188400,
-          "stocks_mt": 12600,
-          "production_mt": 448500
-        },
-        {
-          "year": "2020",
-          "exports_mt": 280500,
-          "imports_mt": 0,
-          "begin_stocks_mt": 12600,
-          "consumption_mt": 180000,
-          "stocks_mt": 8100,
-          "production_mt": 456000
-        },
-        {
-          "year": "2021",
-          "exports_mt": 289860,
-          "imports_mt": 0,
-          "begin_stocks_mt": 8100,
-          "consumption_mt": 201840,
-          "stocks_mt": 5400,
-          "production_mt": 489000
-        },
-        {
-          "year": "2022",
-          "exports_mt": 234600,
-          "imports_mt": 0,
-          "begin_stocks_mt": 5400,
-          "consumption_mt": 205800,
-          "stocks_mt": 3000,
-          "production_mt": 438000
-        },
-        {
-          "year": "2023",
-          "exports_mt": 336300,
-          "imports_mt": 0,
-          "begin_stocks_mt": 3000,
-          "consumption_mt": 210000,
-          "stocks_mt": 3000,
-          "production_mt": 547800
-        },
-        {
-          "year": "2024",
-          "exports_mt": 444900,
-          "imports_mt": 0,
-          "begin_stocks_mt": 3000,
-          "consumption_mt": 217500,
-          "stocks_mt": 4800,
-          "production_mt": 666000
         },
         {
-          "year": "2025",
-          "exports_mt": 465900,
-          "imports_mt": 0,
-          "begin_stocks_mt": 4800,
-          "consumption_mt": 222000,
-          "stocks_mt": 8400,
-          "production_mt": 693600
+          "year": "2026",
+          "exports_mt": 0,
+          "imports_mt": 240000,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 288000,
+          "stocks_mt": 0,
+          "production_mt": 0
         }
       ]
     },
     {
       "short": "korea",
       "name": "South Korea",
-      "latest_year": "2025",
+      "latest_year": "2026",
       "consumption_mt": 204000,
       "population": 51684564,
       "per_capita_kg": 3.95,
@@ -10915,6 +14371,15 @@
         {
           "year": "2025",
           "exports_mt": 0,
+          "imports_mt": 168000,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 192000,
+          "stocks_mt": 0,
+          "production_mt": 0
+        },
+        {
+          "year": "2026",
+          "exports_mt": 0,
           "imports_mt": 180000,
           "begin_stocks_mt": 0,
           "consumption_mt": 204000,
@@ -10926,10 +14391,10 @@
     {
       "short": "mexico",
       "name": "Mexico",
-      "latest_year": "2025",
-      "consumption_mt": 186000,
-      "population": null,
-      "per_capita_kg": null,
+      "latest_year": "2026",
+      "consumption_mt": 194400,
+      "population": 131946900,
+      "per_capita_kg": 1.47,
       "annual": [
         {
           "year": "1960",
@@ -11509,31 +14974,40 @@
         },
         {
           "year": "2024",
-          "exports_mt": 112200,
-          "imports_mt": 139860,
+          "exports_mt": 110100,
+          "imports_mt": 122400,
           "begin_stocks_mt": 1020,
           "consumption_mt": 186000,
-          "stocks_mt": 9480,
-          "production_mt": 232200
+          "stocks_mt": 1200,
+          "production_mt": 235680
         },
         {
           "year": "2025",
           "exports_mt": 108000,
-          "imports_mt": 120000,
-          "begin_stocks_mt": 9480,
-          "consumption_mt": 186000,
-          "stocks_mt": 6660,
-          "production_mt": 234180
+          "imports_mt": 121800,
+          "begin_stocks_mt": 1200,
+          "consumption_mt": 189600,
+          "stocks_mt": 1200,
+          "production_mt": 244800
+        },
+        {
+          "year": "2026",
+          "exports_mt": 105000,
+          "imports_mt": 126000,
+          "begin_stocks_mt": 1200,
+          "consumption_mt": 194400,
+          "stocks_mt": 300,
+          "production_mt": 248100
         }
       ]
     },
     {
       "short": "turkey",
       "name": "Turkey",
-      "latest_year": "2025",
-      "consumption_mt": 105000,
-      "population": null,
-      "per_capita_kg": null,
+      "latest_year": "2026",
+      "consumption_mt": 115500,
+      "population": 85878556,
+      "per_capita_kg": 1.34,
       "annual": [
         {
           "year": "2002",
@@ -11750,14 +15224,23 @@
           "consumption_mt": 105000,
           "stocks_mt": 0,
           "production_mt": 0
+        },
+        {
+          "year": "2026",
+          "exports_mt": 0,
+          "imports_mt": 105000,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 115500,
+          "stocks_mt": 0,
+          "production_mt": 0
         }
       ]
     },
     {
       "short": "india",
       "name": "India",
-      "latest_year": "2025",
-      "consumption_mt": 81600,
+      "latest_year": "2026",
+      "consumption_mt": 94800,
       "population": 1463865525,
       "per_capita_kg": 0.06,
       "annual": [
@@ -12339,31 +15822,40 @@
         },
         {
           "year": "2024",
-          "exports_mt": 222480,
-          "imports_mt": 74700,
+          "exports_mt": 216780,
+          "imports_mt": 75480,
           "begin_stocks_mt": 14520,
-          "consumption_mt": 78000,
-          "stocks_mt": 11820,
-          "production_mt": 372000
+          "consumption_mt": 69000,
+          "stocks_mt": 19380,
+          "production_mt": 363540
         },
         {
           "year": "2025",
-          "exports_mt": 213600,
+          "exports_mt": 216000,
           "imports_mt": 76200,
-          "begin_stocks_mt": 11820,
-          "consumption_mt": 81600,
-          "stocks_mt": 14040,
-          "production_mt": 363000
+          "begin_stocks_mt": 19380,
+          "consumption_mt": 94500,
+          "stocks_mt": 29100,
+          "production_mt": 385800
+        },
+        {
+          "year": "2026",
+          "exports_mt": 220800,
+          "imports_mt": 79200,
+          "begin_stocks_mt": 29100,
+          "consumption_mt": 94800,
+          "stocks_mt": 12960,
+          "production_mt": 368400
         }
       ]
     },
     {
       "short": "egypt",
       "name": "Egypt",
-      "latest_year": "2025",
-      "consumption_mt": 60000,
-      "population": null,
-      "per_capita_kg": null,
+      "latest_year": "2026",
+      "consumption_mt": 76500,
+      "population": 118365995,
+      "per_capita_kg": 0.65,
       "annual": [
         {
           "year": "2002",
@@ -12575,9 +16067,18 @@
         {
           "year": "2025",
           "exports_mt": 0,
-          "imports_mt": 60000,
+          "imports_mt": 70500,
           "begin_stocks_mt": 0,
-          "consumption_mt": 60000,
+          "consumption_mt": 70500,
+          "stocks_mt": 0,
+          "production_mt": 0
+        },
+        {
+          "year": "2026",
+          "exports_mt": 0,
+          "imports_mt": 76500,
+          "begin_stocks_mt": 0,
+          "consumption_mt": 76500,
           "stocks_mt": 0,
           "production_mt": 0
         }
@@ -12588,6 +16089,12 @@
     "source": "World Bank API (SP.POP.TOTL)",
     "last_updated": "2026-08-10",
     "countries": {
+      "eu": {
+        "name": "European Union",
+        "iso3": "EUU",
+        "latest_year": "2025",
+        "latest_population": 451127411
+      },
       "japan": {
         "name": "Japan",
         "iso3": "JPN",
@@ -12600,6 +16107,12 @@
         "latest_year": "2025",
         "latest_population": 341784857
       },
+      "china": {
+        "name": "China",
+        "iso3": "CHN",
+        "latest_year": "2025",
+        "latest_population": 1406585000
+      },
       "india": {
         "name": "India",
         "iso3": "IND",
@@ -12611,6 +16124,48 @@
         "iso3": "BRA",
         "latest_year": "2025",
         "latest_population": 212812405
+      },
+      "indonesia": {
+        "name": "Indonesia",
+        "iso3": "IDN",
+        "latest_year": "2025",
+        "latest_population": 285721236
+      },
+      "vietnam": {
+        "name": "Vietnam",
+        "iso3": "VNM",
+        "latest_year": "2025",
+        "latest_population": 101598527
+      },
+      "russia": {
+        "name": "Russia",
+        "iso3": "RUS",
+        "latest_year": "2025",
+        "latest_population": 143513328
+      },
+      "mexico": {
+        "name": "Mexico",
+        "iso3": "MEX",
+        "latest_year": "2025",
+        "latest_population": 131946900
+      },
+      "turkey": {
+        "name": "Turkey",
+        "iso3": "TUR",
+        "latest_year": "2025",
+        "latest_population": 85878556
+      },
+      "philippines": {
+        "name": "Philippines",
+        "iso3": "PHL",
+        "latest_year": "2025",
+        "latest_population": 116786962
+      },
+      "egypt": {
+        "name": "Egypt",
+        "iso3": "EGY",
+        "latest_year": "2025",
+        "latest_population": 118365995
       },
       "korea": {
         "name": "South Korea",
@@ -47876,9 +51431,9 @@
     }
   },
   "world_consumption": {
-    "tracked_consumption_mt": 8510880,
-    "tracked_countries": 19,
-    "tracked_latest_year": "2025",
+    "tracked_consumption_mt": 8882400,
+    "tracked_countries": 24,
+    "tracked_latest_year": "2026",
     "ico_reference": {
       "marketing_year": "2023/24",
       "world_consumption_mt": 10620000,
@@ -47886,6 +51441,6 @@
       "source_url": "https://www.ico.org/coffee-market-report.asp",
       "note": "Manually updated when ICO publishes annual statistics."
     },
-    "tracked_vs_ico_pct": 80.1
+    "tracked_vs_ico_pct": 83.6
   }
 }
