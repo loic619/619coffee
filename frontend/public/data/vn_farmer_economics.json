@@ -366,8 +366,8 @@
         "season": "2021/22",
         "forecast": false,
         "production": {
-          "marex": 31.0,
-          "usda": 31.6
+          "usda": 31.6,
+          "marex": 31.0
         },
         "production_split": {
           "marex": {
@@ -458,10 +458,11 @@
         "season": "2026/27",
         "forecast": true,
         "production": {
+          "usda": 32.5,
           "marex": 31.2,
-          "ecom": 36.0,
-          "usda": 32.5
+          "ecom": 36.0
         },
+        "production_final": 29.5,
         "production_split": {
           "marex": {
             "arabica": 1.2,
