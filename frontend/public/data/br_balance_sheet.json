@@ -1,7 +1,7 @@
 {
   "unit": "million 60-kg bags",
   "note": "Production estimates from independent sources. USDA = USDA FAS PSD (Coffee: World Markets and Trade, Dec 2025); CONAB = Companhia Nacional de Abastecimento, 4\u00ba Levantamento Caf\u00e9, Dec 2025; ICO = International Coffee Organization Coffee Market Report. USDA persistently reports higher than CONAB (CONAB is a field survey, USDA includes adjustments). Static seed \u2014 refresh after each crop year's Dec USDA / CONAB release.",
-  "updated": "2025-12",
+  "updated": "2026-08",
   "sources": [
     {
       "key": "usda",
@@ -17,6 +17,11 @@
       "key": "ico",
       "label": "ICO",
       "color": "#f59e0b"
+    },
+    {
+      "key": "marex",
+      "label": "Marex",
+      "color": "#a78bfa"
     }
   ],
   "seasons": [
@@ -25,7 +30,14 @@
       "forecast": false,
       "production": {
         "usda": 62.6,
-        "conab": 50.9
+        "conab": 50.9,
+        "marex": 59.5
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 35.5,
+          "robusta": 24.0
+        }
       }
     },
     {
@@ -33,7 +45,14 @@
       "forecast": false,
       "production": {
         "usda": 66.3,
-        "conab": 55.1
+        "conab": 55.1,
+        "marex": 68.2
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 44.8,
+          "robusta": 23.4
+        }
       }
     },
     {
@@ -42,7 +61,14 @@
       "production": {
         "usda": 65.0,
         "conab": 54.2,
-        "ico": 54.5
+        "ico": 54.5,
+        "marex": 65.5
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 43.5,
+          "robusta": 22.0
+        }
       }
     },
     {
@@ -50,7 +76,27 @@
       "forecast": true,
       "production": {
         "usda": 63.0,
-        "conab": 56.5
+        "conab": 56.5,
+        "marex": 64.3
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 38.5,
+          "robusta": 25.8
+        }
+      }
+    },
+    {
+      "season": "2026/27",
+      "forecast": true,
+      "production": {
+        "marex": 76.1
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 50.3,
+          "robusta": 25.8
+        }
       }
     }
   ]
