@@ -142,7 +142,7 @@ PHENOLOGY_ZONES: dict[str, dict] = {
 ROLLOVER_GRACE_DAYS = 92
 
 
-def _days_into_cycle(today: "dt.date", flip_month: int) -> int:
+def _days_into_cycle(today: dt.date, flip_month: int) -> int:
     """Days since the most recent cycle flip (the 1st of flip_month)."""
     flip_year = today.year if today.month >= flip_month else today.year - 1
     return (today - dt.date(flip_year, flip_month, 1)).days
