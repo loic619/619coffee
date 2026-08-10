@@ -14,6 +14,7 @@ import CropyearXray from "./CropyearXray";
 import DroughtRiskMethodology from "./methodology/DroughtRiskMethodology";
 import YieldRainfall from "./YieldRainfall";
 import CpiMethodology from "./methodology/CpiMethodology";
+import DifferentialModelNote from "./methodology/DifferentialModelNote";
 import SignalsMethodology from "./methodology/SignalsMethodology";
 import OpenDirectionRecord from "./methodology/OpenDirectionRecord";
 import NewsSentimentMethodology from "./methodology/NewsSentimentMethodology";
@@ -1676,6 +1677,7 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
       )}
       {cat === "exchange" && (
         <div className="space-y-4">
+          <DifferentialModelNote />
           <CertifiedStocksMethodology />
           <CollapsibleCard bare tone="sky" updated="2026-07-15" kicker="Exchange · tender parity" title="Tender-parity tool"
             subtitle="Cost-stack vs the exchange, origin gradings, and the parity→inflow study">
