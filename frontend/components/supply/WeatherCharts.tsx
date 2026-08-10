@@ -631,16 +631,17 @@ const _droughtTone = (z: number | null | undefined): string => {
   return              "bg-emerald-900/40 text-emerald-200 border border-emerald-700/60";
 };
 
+// The index name lives in the column HEADER and the tooltip only — putting
+// it inside every cell made rows too wide for a phone viewport.
 function DroughtChip({ label, z }: { label: string; z?: number }) {
   return (
     <span
       title={z != null
         ? `${label} = ${z.toFixed(2)} (vs 30-yr climatology). <-1 → drought, >1 → wet.`
         : `${label} not available yet — waiting on baseline seed or complete month.`}
-      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${_droughtTone(z)}`}
+      className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono ${_droughtTone(z)}`}
     >
-      <span className="opacity-70 uppercase tracking-wider">{label}</span>
-      <span>{z != null ? z.toFixed(2) : "—"}</span>
+      {z != null ? z.toFixed(2) : "—"}
     </span>
   );
 }
@@ -661,10 +662,9 @@ function VhiChip({ v, week }: { v?: number; week?: string }) {
       title={v != null
         ? `VHI = ${v.toFixed(1)} (${week ?? "n/a"}). <40 stressed canopy, 40–60 fair, >60 healthy. Source: NOAA STAR.`
         : "VHI not available — waiting on NOAA STAR provinceID mapping or weekly fetch."}
-      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${_vhiTone(v)}`}
+      className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono ${_vhiTone(v)}`}
     >
-      <span className="opacity-70 uppercase tracking-wider">VHI</span>
-      <span>{v != null ? v.toFixed(0) : "—"}</span>
+      {v != null ? v.toFixed(0) : "—"}
     </span>
   );
 }
@@ -708,22 +708,22 @@ function DroughtIndexPanel({ provinces }: { provinces: Province[] }) {
         <thead>
           <tr className="text-slate-500">
             <th className="text-left py-1 pr-2">Region</th>
-            <th className="text-right py-1 px-1">SPI-1</th>
-            <th className="text-right py-1 px-1">SPI-3</th>
-            <th className="text-right py-1 px-1">SPEI-1</th>
-            <th className="text-right py-1 px-1">SPEI-3</th>
-            <th className="text-right py-1 px-1">VHI</th>
+            <th className="text-right py-1 px-0.5">SPI-1</th>
+            <th className="text-right py-1 px-0.5">SPI-3</th>
+            <th className="text-right py-1 px-0.5">SPEI-1</th>
+            <th className="text-right py-1 px-0.5">SPEI-3</th>
+            <th className="text-right py-1 px-0.5">VHI</th>
           </tr>
         </thead>
         <tbody>
           {visible.map((p) => (
             <tr key={p.name} className="border-t border-slate-800">
               <td className="text-slate-300 py-1 pr-2">{p.name}</td>
-              <td className="text-right py-1 px-1"><DroughtChip label="SPI-1"  z={p.spi_1}  /></td>
-              <td className="text-right py-1 px-1"><DroughtChip label="SPI-3"  z={p.spi_3}  /></td>
-              <td className="text-right py-1 px-1"><DroughtChip label="SPEI-1" z={p.spei_1} /></td>
-              <td className="text-right py-1 px-1"><DroughtChip label="SPEI-3" z={p.spei_3} /></td>
-              <td className="text-right py-1 px-1"><VhiChip v={p.vhi} week={p.vhi_iso_week} /></td>
+              <td className="text-right py-1 px-0.5"><DroughtChip label="SPI-1"  z={p.spi_1}  /></td>
+              <td className="text-right py-1 px-0.5"><DroughtChip label="SPI-3"  z={p.spi_3}  /></td>
+              <td className="text-right py-1 px-0.5"><DroughtChip label="SPEI-1" z={p.spei_1} /></td>
+              <td className="text-right py-1 px-0.5"><DroughtChip label="SPEI-3" z={p.spei_3} /></td>
+              <td className="text-right py-1 px-0.5"><VhiChip v={p.vhi} week={p.vhi_iso_week} /></td>
             </tr>
           ))}
         </tbody>
