@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-10T09:50:22.605759Z",
+  "generated_at": "2026-08-10T10:05:54.524541Z",
   "eu": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-16",
@@ -1059,13 +1059,13 @@
   "ajca": {
     "source": "AJCA",
     "source_url": "https://www.ajca.or.jp/data/",
-    "last_updated": "2026-05-01",
+    "last_updated": "2026-06-01",
     "latest_year": "2025",
     "latest_imports_mt": 359382,
     "latest_consumption_mt": 397272,
-    "monthly_imports_pdf": "https://coffee.ajca.or.jp/wordpress/wp-content/uploads/2026/07/j-import202605.pdf",
-    "monthly_exports_pdf": "https://coffee.ajca.or.jp/wordpress/wp-content/uploads/2026/07/j-export202605.pdf",
-    "supply_demand_pdf": "https://coffee.ajca.or.jp/wordpress/wp-content/uploads/2026/07/data-jukyu202605.pdf",
+    "monthly_imports_pdf": "https://coffee.ajca.or.jp/wordpress/wp-content/uploads/2026/08/j-import202606.pdf",
+    "monthly_exports_pdf": "https://coffee.ajca.or.jp/wordpress/wp-content/uploads/2026/08/j-export202606.pdf",
+    "supply_demand_pdf": "https://coffee.ajca.or.jp/wordpress/wp-content/uploads/2026/08/data-jukyu202606.pdf",
     "yearly_imports_pdf": "https://coffee.ajca.or.jp/wordpress/wp-content/uploads/2026/03/data-yunyu-suii2025.pdf",
     "latest_origin_breakdown": [
       {
@@ -1145,15 +1145,15 @@
         "imports_mt": 602
       }
     ],
-    "latest_origin_pdf": "https://coffee.ajca.or.jp/wordpress/wp-content/uploads/2026/07/j-import202605.pdf"
+    "latest_origin_pdf": "https://coffee.ajca.or.jp/wordpress/wp-content/uploads/2026/08/j-import202606.pdf"
   },
   "producers": {
     "brazil": {
-      "latest_year": "2025",
-      "latest_production_mt": 3780000,
-      "latest_exports_mt": 2220000,
-      "latest_consumption_mt": 1336800,
-      "latest_stocks_mt": 29100,
+      "latest_year": "2027",
+      "latest_production_mt": 4314000,
+      "latest_exports_mt": 2944200,
+      "latest_consumption_mt": 1350000,
+      "latest_stocks_mt": 178800,
       "annual": [
         {
           "year": "1960",
@@ -1748,16 +1748,27 @@
           "consumption_mt": 1336800,
           "stocks_mt": 29100,
           "production_mt": 3780000
+        },
+        {
+          "year": "2027",
+          "production_mt": 4314000,
+          "exports_mt": 2944200,
+          "bean_exports_mt": 2700000,
+          "soluble_exports_mt": 240000,
+          "roast_exports_mt": 4200,
+          "consumption_mt": 1350000,
+          "stocks_mt": 178800,
+          "begin_stocks_mt": 29100
         }
       ],
-      "forecast_source": null
+      "forecast_source": "https://www.fas.usda.gov/data/gain/2026/06/brazil-coffee-annual"
     },
     "vietnam": {
-      "latest_year": "2025",
-      "latest_production_mt": 1848000,
-      "latest_exports_mt": 1476000,
+      "latest_year": "2026",
+      "latest_production_mt": 1902000,
+      "latest_exports_mt": 1710000,
       "latest_consumption_mt": 294000,
-      "latest_stocks_mt": 23340,
+      "latest_stocks_mt": 54000,
       "annual": [
         {
           "year": "1960",
@@ -2352,9 +2363,21 @@
           "consumption_mt": 294000,
           "stocks_mt": 23340,
           "production_mt": 1848000
+        },
+        {
+          "year": "2026",
+          "production_mt": 1902000,
+          "exports_mt": 1710000,
+          "bean_exports_mt": 1506000,
+          "soluble_exports_mt": 162000,
+          "roast_exports_mt": 42000,
+          "consumption_mt": 294000,
+          "stocks_mt": 54000,
+          "begin_stocks_mt": 23340,
+          "imports_mt": 51000
         }
       ],
-      "forecast_source": null
+      "forecast_source": "https://www.fas.usda.gov/data/gain/2026/05/vietnam-coffee-annual"
     },
     "colombia": {
       "latest_year": "2025",
@@ -4773,11 +4796,11 @@
       "forecast_source": null
     },
     "uganda": {
-      "latest_year": "2025",
-      "latest_production_mt": 412500,
-      "latest_exports_mt": 390900,
+      "latest_year": "2026",
+      "latest_production_mt": 412800,
+      "latest_exports_mt": 391800,
       "latest_consumption_mt": 19800,
-      "latest_stocks_mt": 17940,
+      "latest_stocks_mt": 19140,
       "annual": [
         {
           "year": "1960",
@@ -5372,9 +5395,21 @@
           "consumption_mt": 19800,
           "stocks_mt": 17940,
           "production_mt": 412500
+        },
+        {
+          "year": "2026",
+          "production_mt": 412800,
+          "exports_mt": 391800,
+          "bean_exports_mt": 391800,
+          "soluble_exports_mt": 0,
+          "roast_exports_mt": 0,
+          "consumption_mt": 19800,
+          "stocks_mt": 19140,
+          "begin_stocks_mt": 17940,
+          "imports_mt": 0
         }
       ],
-      "forecast_source": null
+      "forecast_source": "https://www.fas.usda.gov/data/uganda-coffee-annual-7"
     },
     "india": {
       "latest_year": "2025",
@@ -7195,8 +7230,8 @@
       "name": "Brazil",
       "latest_year": "2025",
       "consumption_mt": 1336800,
-      "population": null,
-      "per_capita_kg": null,
+      "population": 212812405,
+      "per_capita_kg": 6.28,
       "annual": [
         {
           "year": "1960",
@@ -10063,8 +10098,8 @@
       "name": "Ethiopia",
       "latest_year": "2025",
       "consumption_mt": 222000,
-      "population": null,
-      "per_capita_kg": null,
+      "population": 135472051,
+      "per_capita_kg": 1.64,
       "annual": [
         {
           "year": "1960",
@@ -10667,8 +10702,8 @@
       "name": "South Korea",
       "latest_year": "2025",
       "consumption_mt": 204000,
-      "population": null,
-      "per_capita_kg": null,
+      "population": 51684564,
+      "per_capita_kg": 3.95,
       "annual": [
         {
           "year": "2002",
@@ -11723,8 +11758,8 @@
       "name": "India",
       "latest_year": "2025",
       "consumption_mt": 81600,
-      "population": null,
-      "per_capita_kg": null,
+      "population": 1463865525,
+      "per_capita_kg": 0.06,
       "annual": [
         {
           "year": "1960",
@@ -12549,7 +12584,48 @@
       ]
     }
   ],
-  "populations": null,
+  "populations": {
+    "source": "World Bank API (SP.POP.TOTL)",
+    "last_updated": "2026-08-10",
+    "countries": {
+      "japan": {
+        "name": "Japan",
+        "iso3": "JPN",
+        "latest_year": "2025",
+        "latest_population": 123366734
+      },
+      "usa": {
+        "name": "United States",
+        "iso3": "USA",
+        "latest_year": "2025",
+        "latest_population": 341784857
+      },
+      "india": {
+        "name": "India",
+        "iso3": "IND",
+        "latest_year": "2025",
+        "latest_population": 1463865525
+      },
+      "brazil": {
+        "name": "Brazil",
+        "iso3": "BRA",
+        "latest_year": "2025",
+        "latest_population": 212812405
+      },
+      "korea": {
+        "name": "South Korea",
+        "iso3": "KOR",
+        "latest_year": "2025",
+        "latest_population": 51684564
+      },
+      "ethiopia": {
+        "name": "Ethiopia",
+        "iso3": "ETH",
+        "latest_year": "2025",
+        "latest_population": 135472051
+      }
+    }
+  },
   "age_cohort_18plus": {
     "source": "UN WPP 2024 bulk CSV (5yr age groups, medium variant)",
     "last_updated": "2026-07-15",
