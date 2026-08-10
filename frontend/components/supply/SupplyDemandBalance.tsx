@@ -70,6 +70,11 @@ export interface RealizedExportsOverlay {
     isPartial:    boolean;
     /** "YYYY-MM" of the most recent monthly observation in this crop year. */
     latestMonth?: string;
+    /** Feed-derived estimate of the still-unshipped months (avg of each
+     *  missing calendar month's last ≤3 prior-year values). Fallback for
+     *  the remaining segment when the analyst budget is already exceeded
+     *  by realised YTD — without it "remaining" clamps to 0 mid-crop. */
+    seasonalRemainingKbags?: number;
   }>;
   /** Display name surfaced on the table footnote, e.g. "Vietnam Customs". */
   sourceLabel: string;
@@ -272,6 +277,9 @@ export default function SupplyDemandBalance({
     exports: number;         // kbags — realised portion when realizedExports overrides
     exportsRemaining: number;// kbags — projected leftover when crop is in-progress
     exportsSource:    "usda" | "realized" | "realized+forecast";
+    /** How exportsRemaining was derived — "seasonal" flags the fallback
+     *  used when the analyst budget is already met by realised YTD. */
+    remainingSource?: "budget" | "seasonal";
     consumption: number;
     ending: number;
     stockBuild: number;
@@ -311,6 +319,23 @@ export default function SupplyDemandBalance({
     };
   };
 
+  /** Remaining-forecast kbags for an in-progress crop. The analyst budget
+   *  (multi-source exports / projection / USDA) wins while it still exceeds
+   *  realised YTD; once realised shipments have met or beaten a (stale)
+   *  budget, fall back to the feed's own seasonality estimate of the
+   *  missing months — a crop with unshipped months must never show 0
+   *  remaining (Vietnam 2025/26: realised 25,610 vs ICO budget 25,500 with
+   *  Aug+Sep still to ship). Every branch that splits realised/remaining
+   *  routes through here so the chart, table and equation strip agree. */
+  const remainingFor = (
+    realised: { kbags: number; seasonalRemainingKbags?: number },
+    budgetTotalKbags: number,
+  ): { kbags: number; source: "budget" | "seasonal" } => {
+    const fromBudget = budgetTotalKbags - realised.kbags;
+    if (fromBudget > 0) return { kbags: fromBudget, source: "budget" };
+    return { kbags: realised.seasonalRemainingKbags ?? 0, source: "seasonal" };
+  };
+
   const recent: Row[] = rows.slice(-years).map(r => {
     const opening = kbags(r.begin_stocks_mt);
     const ending  = kbags(r.stocks_mt);
@@ -326,6 +351,7 @@ export default function SupplyDemandBalance({
     const realized = cropKey ? realizedExports?.byCropYear[cropKey] : undefined;
     let exportsKbags     = usdaExports;
     let remainingKbags   = 0;
+    let remainingSource: Row["remainingSource"];
     let exportsSource: Row["exportsSource"] = "usda";
     if (realized) {
       if (!realized.isPartial) {
@@ -333,12 +359,14 @@ export default function SupplyDemandBalance({
         exportsSource = "realized";
       } else {
         // Partial: prefer the multi-source forecast for the total, otherwise
-        // the USDA PSD figure. Remaining = max(0, total − realised).
+        // the USDA PSD figure; seasonal fallback once the budget is met.
         const forecastTotalKbags = ms?.exports != null
           ? Math.round(ms.exports / MBAGS_PER_KBAGS)
           : usdaExports;
+        const rem = remainingFor(realized, forecastTotalKbags);
         exportsKbags    = realized.kbags;
-        remainingKbags  = Math.max(0, forecastTotalKbags - realized.kbags);
+        remainingKbags  = rem.kbags;
+        remainingSource = rem.source;
         exportsSource   = "realized+forecast";
       }
     }
@@ -349,6 +377,7 @@ export default function SupplyDemandBalance({
       opening, production: kbags(r.production_mt),
       exports:           exportsKbags,
       exportsRemaining:  remainingKbags,
+      remainingSource,
       exportsSource,
       consumption: kbags(r.consumption_mt), ending,
       stockBuild: Math.max(delta, 0), stockDraw: Math.min(delta, 0),
@@ -394,17 +423,16 @@ export default function SupplyDemandBalance({
     const projCropKey = cropKeyOf(projStartYear) ?? projection.crop_year;
     const realisedYTD = realisedForCrop(projCropKey);
     const realizedKbags  = realisedYTD?.kbags ?? 0;
-    const remainingKbags = realisedYTD
-      ? Math.max(0, projectedKbags - realizedKbags)
-      : projectedKbags;
+    const projRem = realisedYTD ? remainingFor(realisedYTD, projectedKbags) : null;
     recent.push({
       year:        projStartYear,
       yearLabel:   `${cropYearShort(projStartYear, cropYearMonths)}*`,
       yearTooltip: `Forecast · ${cropYearLong(projStartYear, cropYearMonths)}`,
       opening:     lastRealized?.ending ?? carryEnding,
       production:  0,
-      exports:           realisedYTD ? realizedKbags  : 0,
-      exportsRemaining:  realisedYTD ? remainingKbags : projectedKbags,
+      exports:           realisedYTD ? realizedKbags : 0,
+      exportsRemaining:  projRem ? projRem.kbags : projectedKbags,
+      remainingSource:   projRem?.source,
       exportsSource:     realisedYTD ? "realized+forecast" : "usda",
       // Carry the last realised USDA consumption forward — projection
       // engines don't ship per-year consumption, but the equation strip
@@ -437,17 +465,16 @@ export default function SupplyDemandBalance({
         : (lastUsdaRow?.exports ?? 0);
       const realisedYTD = realisedForCrop(s.cropYear);
       const realizedKbags  = realisedYTD?.kbags ?? 0;
-      const remainingKbags = realisedYTD
-        ? Math.max(0, totalKbags - realizedKbags)
-        : totalKbags;
+      const msRem = realisedYTD ? remainingFor(realisedYTD, totalKbags) : null;
       recent.push({
         year:        usdaStart,
         yearLabel:   `${cropYearShort(usdaStart, cropYearMonths)}*`,
         yearTooltip: `Forecast · ${cropYearLong(usdaStart, cropYearMonths)}`,
         opening:     carryEnding,
         production:  fields.prodAvg ?? 0,
-        exports:           realisedYTD ? realizedKbags  : 0,
-        exportsRemaining:  realisedYTD ? remainingKbags : totalKbags,
+        exports:           realisedYTD ? realizedKbags : 0,
+        exportsRemaining:  msRem ? msRem.kbags : totalKbags,
+        remainingSource:   msRem?.source,
         exportsSource:     realisedYTD ? "realized+forecast" : "usda",
         // Consumption flows from USDA PSD (same source as the per-country
         // consumption chart on the Demand tab) — carry the latest realised
@@ -499,9 +526,7 @@ export default function SupplyDemandBalance({
       // crop's "remaining" estimate (the only data we have on annual
       // export size without a dedicated forecast engine).
       const lastExports = lastUsdaRow?.exports ?? 0;
-      const remaining   = realised.isPartial
-        ? Math.max(0, lastExports - realised.kbags)
-        : 0;
+      const ftRem = realised.isPartial ? remainingFor(realised, lastExports) : null;
       // Pull production from the matching multiSource season if there
       // is one — solves the "Brazil 25/26 shows production = 0" gap
       // where the fall-through used to set production to 0 and ignore
@@ -522,7 +547,8 @@ export default function SupplyDemandBalance({
         // for this crop; otherwise stays 0 (USDA has no row for it yet).
         production:  msFields.prodAvg ?? 0,
         exports:           realised.kbags,
-        exportsRemaining:  remaining,
+        exportsRemaining:  ftRem?.kbags ?? 0,
+        remainingSource:   ftRem?.source,
         exportsSource:     realised.isPartial ? "realized+forecast" : "realized",
         consumption: carryConsumption,
         ending:      0,
@@ -840,9 +866,15 @@ export default function SupplyDemandBalance({
                 // Tooltip names the realised source explicitly.
                 const exportsCell = (() => {
                   if (r.exportsRemaining > 0 && r.exports > 0) {
+                    // Seasonal remainders are flagged so the reader knows the
+                    // analyst budget was already met and the estimate comes
+                    // from the feed's own monthly seasonality instead.
+                    const remainNote = r.remainingSource === "seasonal"
+                      ? " (seasonal est. — budget already met)"
+                      : "";
                     const tip = realizedExports
-                      ? `${fmt(r.exports)} realised (${realizedExports.sourceLabel}${r.exportsSource === "realized+forecast" ? `, through ${realisedForCrop(cropKeyOf(r.year) ?? r.year)?.latestMonth ?? "—"}` : ""}) + ${fmt(r.exportsRemaining)} forecast remaining`
-                      : `${fmt(r.exports)} realised + ${fmt(r.exportsRemaining)} forecast remaining`;
+                      ? `${fmt(r.exports)} realised (${realizedExports.sourceLabel}${r.exportsSource === "realized+forecast" ? `, through ${realisedForCrop(cropKeyOf(r.year) ?? r.year)?.latestMonth ?? "—"}` : ""}) + ${fmt(r.exportsRemaining)} forecast remaining${remainNote}`
+                      : `${fmt(r.exports)} realised + ${fmt(r.exportsRemaining)} forecast remaining${remainNote}`;
                     return (
                       <span title={tip} className="cursor-help">
                         <span>{fmt(r.exports)}</span>

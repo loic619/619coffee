@@ -75,6 +75,48 @@ export function buildRealizedExportsOverlay(
       latestMonth: bucket.months.reduce((a, b) => (a > b ? a : b)),
     };
   }
+
+  // Seasonality-derived estimate of the current crop's still-unshipped
+  // months, from the feed's own history: each missing calendar month is
+  // valued at the average of its last ≤3 prior-year observations.
+  // SupplyDemandBalance uses this when the analyst budget (multi-source
+  // exports / projection / USDA) is already exceeded by realised YTD —
+  // without it the "forecast remaining" segment snapped to 0 with months
+  // still left in the crop (Vietnam 2025/26, Aug 2026: realised 25,610
+  // kbags vs a stale 25,500 ICO budget → remaining showed 0 despite
+  // Aug+Sep shipping ~2,200 kbags in a normal year).
+  const cur = out[currentCropYear];
+  if (cur?.isPartial) {
+    const curMonths = new Set(byCrop[currentCropYear].months);
+    const startYear = parseInt(currentCropYear.split("/")[0] ?? "", 10);
+    const missingCalMonths: number[] = [];
+    for (let i = 0; i < 12; i++) {
+      const m = ((input.cropYearStartMonth - 1 + i) % 12) + 1;
+      const y = m >= input.cropYearStartMonth ? startYear : startYear + 1;
+      const ym = `${y}-${String(m).padStart(2, "0")}`;
+      if (!curMonths.has(ym)) missingCalMonths.push(m);
+    }
+    if (missingCalMonths.length) {
+      const history: Record<number, MonthlyKbagsEntry[]> = {};
+      for (const e of input.monthly) {
+        if (!e.month || !Number.isFinite(e.kbags) || curMonths.has(e.month)) continue;
+        const m = parseInt(e.month.split("-")[1] ?? "", 10);
+        (history[m] ??= []).push(e);
+      }
+      let total = 0;
+      let covered = 0;
+      for (const m of missingCalMonths) {
+        const samples = (history[m] ?? [])
+          .sort((a, b) => (a.month < b.month ? 1 : -1))
+          .slice(0, 3);
+        if (!samples.length) continue;
+        total += samples.reduce((s, e) => s + e.kbags, 0) / samples.length;
+        covered++;
+      }
+      if (covered > 0) cur.seasonalRemainingKbags = Math.round(total);
+    }
+  }
+
   return Object.keys(out).length > 0
     ? { byCropYear: out, sourceLabel: input.sourceLabel }
     : null;
