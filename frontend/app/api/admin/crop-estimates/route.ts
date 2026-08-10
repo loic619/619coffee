@@ -54,6 +54,7 @@ interface SeasonIn {
   forecast?: unknown;
   production?: unknown;
   production_split?: unknown;
+  production_final?: unknown;
 }
 
 type SplitLegs = { arabica?: number; robusta?: number };
@@ -62,6 +63,7 @@ interface SeasonOut {
   forecast: boolean;
   production: Record<string, number>;
   production_split?: Record<string, SplitLegs>;
+  production_final?: number | null;
 }
 
 /** Optional per-source arabica/robusta split ("by source" editor view).
@@ -133,6 +135,19 @@ function validateSeasons(seasons: unknown): SeasonOut[] | string {
     }
     const split = validateSplit(raw?.production_split, label, production);
     if (typeof split === "string") return split;
+    // Analyst "Final" override: number in range, or null to clear. Field
+    // presence is meaningful downstream (authoritative vs preserve).
+    let finalOut: { production_final: number | null } | undefined;
+    if (raw !== null && typeof raw === "object" && "production_final" in raw) {
+      const fv = raw.production_final;
+      if (fv === null) {
+        finalOut = { production_final: null };
+      } else if (typeof fv === "number" && Number.isFinite(fv) && fv > 0 && fv <= MAX_MBAGS) {
+        finalOut = { production_final: fv };
+      } else {
+        return `${label}: production_final must be in (0, ${MAX_MBAGS}] million bags or null`;
+      }
+    }
     out.push({
       season: label,
       forecast: raw?.forecast === true,
@@ -140,6 +155,7 @@ function validateSeasons(seasons: unknown): SeasonOut[] | string {
       // Field presence is meaningful downstream (authoritative vs preserve),
       // so an explicitly-sent empty split {} is forwarded as-is.
       ...(split !== null ? { production_split: split } : {}),
+      ...(finalOut ?? {}),
     });
   }
   return out;

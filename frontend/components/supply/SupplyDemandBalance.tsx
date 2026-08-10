@@ -45,6 +45,10 @@ export interface MultiSourceSeason {
   forecast: boolean;
   /** sourceKey → million 60-kg bags. */
   production: Record<string, number>;
+  /** Analyst override for the DISPLAYED production figure (million
+   *  bags). Default (absent) = average of the source values. Set via
+   *  the admin editor's "Final" row. */
+  final?: number;
   /** Million 60-kg bags. */
   exports?:     number;
   /** Million 60-kg bags. */
@@ -130,10 +134,12 @@ function Eq({ label, value, sign, color, sub }: {
 }
 
 function ProductionSpread({
-  cropYear, isForecast, sources,
+  cropYear, isForecast, sources, finalMBags,
 }: {
   cropYear: string; isForecast: boolean;
   sources: { key: string; label: string; color: string; mBags: number }[];
+  /** Analyst "Final" override — highlighted in the footer when set. */
+  finalMBags?: number;
 }) {
   if (sources.length === 0) return null;
   const values = sources.map(s => s.mBags);
@@ -167,7 +173,14 @@ function ProductionSpread({
       })}
       <div className="flex justify-between text-[7px] text-slate-600 border-t border-slate-800 pt-1.5 mt-1">
         <span>Spread: {(max - min).toFixed(1)} M bags</span>
-        <span>Avg: <span className="text-slate-400 font-bold">{avg.toFixed(1)}</span></span>
+        <span>
+          Avg: <span className="text-slate-400 font-bold">{avg.toFixed(1)}</span>
+          {finalMBags != null && (
+            <span className="ml-2" title="Analyst final — the displayed production figure">
+              Final: <span className="text-emerald-400 font-bold">{finalMBags.toFixed(1)}</span>
+            </span>
+          )}
+        </span>
       </div>
     </div>
   );
@@ -287,6 +300,8 @@ export default function SupplyDemandBalance({
     isForecast: boolean;
     // multi-source production overlay, in kbags
     prodAvg?: number;
+    /** True when prodAvg is the analyst "Final" override, not the avg. */
+    prodIsFinal?: boolean;
     prodMin?: number;
     prodMax?: number;
     prodSources?: { key: string; label: string; value_kbags: number; color: string }[];
@@ -309,10 +324,17 @@ export default function SupplyDemandBalance({
     if (values.length === 0) return {};
     const kbagsArr = values.map(v => Math.round((v.mBags as number) / MBAGS_PER_KBAGS));
     const avg = kbagsArr.reduce((s, v) => s + v, 0) / kbagsArr.length;
+    // Analyst "Final" override wins as the displayed figure; the min/max
+    // whisker range widens to include it so the error bar never inverts.
+    const finalKbags = season.final != null
+      ? Math.round(season.final / MBAGS_PER_KBAGS)
+      : null;
+    const displayed = finalKbags ?? Math.round(avg);
     return {
-      prodAvg: Math.round(avg),
-      prodMin: Math.min(...kbagsArr),
-      prodMax: Math.max(...kbagsArr),
+      prodAvg: displayed,
+      prodIsFinal: finalKbags != null,
+      prodMin: Math.min(...kbagsArr, displayed),
+      prodMax: Math.max(...kbagsArr, displayed),
       prodSources: values.map((v, i) => ({
         key: v.key, label: v.label, color: v.color, value_kbags: kbagsArr[i],
       })),
@@ -605,9 +627,15 @@ export default function SupplyDemandBalance({
         .map(s => ({ ...s, mBags: focusSeason.production[s.key] }))
         .filter(s => Number.isFinite(s.mBags))
     : [];
-  const focusProdAvg = focusSourceValues.length
-    ? focusSourceValues.reduce((a, s) => a + (s.mBags as number), 0) / focusSourceValues.length
-    : 0;
+  // The analyst "Final" override (editor's Final row) replaces the plain
+  // average as the displayed figure everywhere: equation strip, spread
+  // block footer, chart line and table cell all derive from it.
+  const focusIsFinal = focusSeason?.final != null;
+  const focusProdAvg = focusIsFinal
+    ? (focusSeason!.final as number)
+    : focusSourceValues.length
+      ? focusSourceValues.reduce((a, s) => a + (s.mBags as number), 0) / focusSourceValues.length
+      : 0;
   // Equation strip values stay in million-bag space because that's the
   // natural scale for an annual balance — even when the unit toggle is on
   // tons we'd be looking at fractions of a million MT, so the {value}M
@@ -683,10 +711,12 @@ export default function SupplyDemandBalance({
         {focusSeason && focusSourceValues.length > 0 && (
           <div className="flex items-stretch gap-1">
             <Eq
-              label="Production avg"
+              label={focusIsFinal ? "Production (final)" : "Production avg"}
               value={_eqValue(focusProdAvg)}
               color="#22c55e"
-              sub={`${multiSource!.sources.map(s => s.label).join(" / ")} · ${focusSeason.cropYear}${focusSeason.forecast ? " (f)" : ""}`}
+              sub={focusIsFinal
+                ? `Analyst final · ${focusSeason.cropYear}${focusSeason.forecast ? " (f)" : ""}`
+                : `${multiSource!.sources.map(s => s.label).join(" / ")} · ${focusSeason.cropYear}${focusSeason.forecast ? " (f)" : ""}`}
             />
             <Eq
               label="Exports"
@@ -815,6 +845,7 @@ export default function SupplyDemandBalance({
           <ProductionSpread
             cropYear={focusSeason.cropYear}
             isForecast={focusSeason.forecast}
+            finalMBags={focusSeason.final}
             sources={focusSourceValues.map(s => ({
               key: s.key, label: s.label, color: s.color, mBags: s.mBags as number,
             }))}
@@ -849,11 +880,14 @@ export default function SupplyDemandBalance({
                   if (r.prodAvg == null) {
                     return <span>{dash(r.production)}</span>;
                   }
-                  const tip = (r.prodSources ?? []).map(s =>
-                    `${s.label}: ${fmt(s.value_kbags)} ${_unitShort(unit)}`).join("\n");
+                  const tip = [
+                    ...(r.prodIsFinal ? [`Analyst final: ${fmt(r.prodAvg)} ${_unitShort(unit)}`] : []),
+                    ...(r.prodSources ?? []).map(s =>
+                      `${s.label}: ${fmt(s.value_kbags)} ${_unitShort(unit)}`),
+                  ].join("\n");
                   return (
                     <span title={tip} className="cursor-help">
-                      <span>{fmt(r.prodAvg)}</span>
+                      <span className={r.prodIsFinal ? "text-emerald-300" : undefined}>{fmt(r.prodAvg)}</span>
                       <span className="text-slate-500 text-[8px] ml-1">
                         ({fmt(r.prodMin ?? 0)}–{fmt(r.prodMax ?? 0)})
                       </span>

@@ -28,6 +28,9 @@ interface SeasonCol {
   /** sourceKey → input text; kept as strings while editing so partial
    *  entries like "6." don't fight the keyboard. Empty = source absent. */
   values: Record<string, string>;
+  /** Analyst "Final" override — the number the S&D card displays.
+   *  Empty = default to the average of the source values. */
+  finalValue: string;
   /** Added in this modal session — removable until saved. */
   isNew?: boolean;
 }
@@ -37,6 +40,7 @@ interface SeedSeason {
   forecast?: boolean;
   production?: Record<string, number>;
   production_split?: Record<string, { arabica?: number; robusta?: number }>;
+  production_final?: number;
 }
 
 /** One origin's freshly-loaded seed, as the source view needs it. */
@@ -193,6 +197,7 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
             src.key,
             s.production?.[src.key] != null ? String(s.production[src.key]) : "",
           ])),
+          finalValue: s.production_final != null ? String(s.production_final) : "",
         })));
       })
       .catch(() => { if (!cancelled) setLoadError(true); });
@@ -293,7 +298,18 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
         setSaving(false);
         return;
       }
-      seasons.push({ season: c.season, forecast: c.forecast, production });
+      // Final override: number when filled, explicit null when empty so a
+      // cleared cell removes the stored override (display reverts to avg).
+      const fv = parseCell(c.finalValue);
+      if (Number.isNaN(fv)) {
+        setSaveError(`${c.season} · Final: "${c.finalValue}" is not a positive number.`);
+        setSaving(false);
+        return;
+      }
+      seasons.push({
+        season: c.season, forecast: c.forecast, production,
+        production_final: fv,
+      });
     }
     // Only declare new sources that actually carry a value somewhere — an
     // added-then-abandoned row silently disappears instead of littering
@@ -330,6 +346,7 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
       season: label,
       forecast: true,
       values: Object.fromEntries(allSources.map(s => [s.key, ""])),
+      finalValue: "",
       isNew: true,
     }]);
   };
@@ -836,6 +853,37 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
                           ))}
                         </tr>
                       ))}
+                      {/* Analyst "Final" — the number the S&D card displays.
+                          Placeholder shows the live average of the column's
+                          source values (the default when left empty). */}
+                      <tr className="border-t-2 border-slate-600/70">
+                        <td className="py-1 pr-2 font-bold whitespace-nowrap text-emerald-300"
+                          title="The displayed production figure. Empty = average of the sources.">
+                          Final
+                        </td>
+                        {cols.map((c, i) => {
+                          const nums = Object.values(c.values)
+                            .map(v => Number(v.trim()))
+                            .filter(v => Number.isFinite(v) && v > 0);
+                          const avg = nums.length
+                            ? (nums.reduce((s, v) => s + v, 0) / nums.length).toFixed(1)
+                            : "—";
+                          return (
+                            <td key={c.season} className="px-1 py-1">
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                value={c.finalValue}
+                                onChange={e => setCols(cols.map((x, j) =>
+                                  j === i ? { ...x, finalValue: e.target.value } : x))}
+                                placeholder={avg}
+                                title={`Displayed figure — empty defaults to the avg (${avg})`}
+                                className={`${inputCls} placeholder:text-slate-600 border-emerald-900/60`}
+                              />
+                            </td>
+                          );
+                        })}
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -882,8 +930,10 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
                 <div className="text-[8px] text-slate-600 leading-relaxed">
                   Empty cells mean the source hasn&apos;t published for that season. A new
                   source row is only saved if at least one of its cells has a value.
-                  Saving commits the edit to the repo (visible in git history) and
-                  redeploys. The USDA column is machine-synced twice a year and may
+                  The <span className="text-emerald-400">Final</span> row is the number the
+                  S&amp;D card displays — leave it empty to default to the average of the
+                  sources. Saving commits the edit to the repo (visible in git history)
+                  and redeploys. The USDA column is machine-synced twice a year and may
                   overwrite manual USDA edits.
                 </div>
               </div>

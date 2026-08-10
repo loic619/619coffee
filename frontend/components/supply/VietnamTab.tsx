@@ -18,6 +18,8 @@ interface VnSeasonRow {
   season:   string;
   forecast: boolean;
   production: { usda: number; mard: number; ico: number };
+  /** Analyst override for the displayed production figure (M bags). */
+  production_final?: number;
   exports_ico: number;
   consumption: number;
 }
@@ -170,6 +172,7 @@ export default function VietnamTab() {
               cropYear:    s.season,
               forecast:    s.forecast,
               production:  s.production,
+              final:       s.production_final,
               exports:     s.exports_ico,
             })),
           } : null}

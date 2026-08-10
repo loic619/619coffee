@@ -18,6 +18,9 @@ export interface BalanceSheetSeason {
   /** sourceKey → million 60-kg bags. Missing keys mean that source
    *  didn't publish a number for that crop. */
   production: Record<string, number>;
+  /** Analyst override for the DISPLAYED production figure (million
+   *  bags), set via the editor's "Final" row. Absent = show the avg. */
+  production_final?: number;
   /** Optional — million 60-kg bags. Currently unused (the S&D card
    *  prefers customs-realised exports), kept on the type so the
    *  JSON can carry the field without loose-type warnings. */
@@ -46,6 +49,7 @@ export function toMultiSource(file: BalanceSheetFile | null): MultiSourceOverlay
       cropYear:   s.season,
       forecast:   s.forecast,
       production: s.production,
+      final:      s.production_final,
       // Exports / consumption deliberately not forwarded — the card
       // pulls them from customs-realised + USDA PSD respectively, so
       // duplicating them via the balance sheet would just risk drift.
