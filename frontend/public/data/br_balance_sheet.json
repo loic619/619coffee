@@ -22,6 +22,11 @@
       "key": "marex",
       "label": "Marex",
       "color": "#a78bfa"
+    },
+    {
+      "key": "ecom",
+      "label": "ECOM",
+      "color": "#f472b6"
     }
   ],
   "seasons": [
@@ -62,7 +67,8 @@
         "usda": 65.0,
         "conab": 54.2,
         "ico": 54.5,
-        "marex": 65.5
+        "marex": 65.5,
+        "ecom": 67.1
       },
       "production_split": {
         "marex": {
@@ -77,12 +83,17 @@
       "production": {
         "usda": 63.0,
         "conab": 56.5,
-        "marex": 64.3
+        "marex": 64.3,
+        "ecom": 63.0
       },
       "production_split": {
         "marex": {
           "arabica": 38.5,
           "robusta": 25.8
+        },
+        "ecom": {
+          "arabica": 36.5,
+          "robusta": 26.5
         }
       }
     },
@@ -90,12 +101,17 @@
       "season": "2026/27",
       "forecast": true,
       "production": {
-        "marex": 76.1
+        "marex": 76.1,
+        "ecom": 75.8
       },
       "production_split": {
         "marex": {
           "arabica": 50.3,
           "robusta": 25.8
+        },
+        "ecom": {
+          "arabica": 48.0,
+          "robusta": 27.8
         }
       }
     }
