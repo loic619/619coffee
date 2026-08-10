@@ -96,15 +96,24 @@ type SDUnit = "kbags" | "tons";
 // metric tons on display only (× 60). Keeping a single source of truth in
 // kbags avoids drift between the chart, tooltip, table and segment labels.
 const _toMt = (kbagsValue: number) => kbagsValue * MT_PER_KBAG;
-const _unitLong  = (u: SDUnit) => u === "tons" ? "metric tons" : "thousand 60-kg bags";
-const _unitShort = (u: SDUnit) => u === "tons" ? "MT" : "k bags";
-// Segment labels need to stay short — switch to a {value}{magnitude} formatter
-// that adapts per unit so both modes read cleanly on small bars.
+// Bags mode DISPLAYS in millions ("12.3M" instead of "12,300") — the
+// natural scale for annual balances; internal data stays in kbags.
+const _unitLong  = (u: SDUnit) => u === "tons" ? "metric tons" : "million 60-kg bags";
+// Suffix that follows an already-formatted _fmtVal value ("12.3M bags",
+// "738,000 MT") — the M magnitude lives in the value itself.
+const _unitShort = (u: SDUnit) => u === "tons" ? "MT" : "bags";
+/** One display formatter for every surface (table cells, tooltips,
+ *  segment labels): "12.3M" in bags mode, "738,000" in MT mode. */
+const _fmtVal = (u: SDUnit, kbagsValue: number) =>
+  u === "tons"
+    ? Math.round(_toMt(kbagsValue)).toLocaleString()
+    : `${(kbagsValue / 1000).toFixed(1)}M`;
+// Segment labels need to stay short; values too small to matter at the
+// millions scale (< 0.05M bags / < 1 kbag·60MT) render empty.
 const _segLabel = (u: SDUnit) => (v: unknown) => {
   const n = Number(v);
-  if (!n || Math.abs(n) < 1) return "";
-  const native = u === "tons" ? _toMt(n) : n;
-  return Math.round(native).toLocaleString();
+  if (!n || Math.abs(n) < (u === "tons" ? 1 : 50)) return "";
+  return _fmtVal(u, n);
 };
 
 // ── Equation strip + production-spread helpers ──────────────────────────────
@@ -358,6 +367,16 @@ export default function SupplyDemandBalance({
     return { kbags: realised.seasonalRemainingKbags ?? 0, source: "seasonal" };
   };
 
+  // First calendar month of the crop year, from the display string
+  // ("Oct–Sep" → 10, "Apr–Mar" → 4); calendar years (no mapping) → 1.
+  const MONTH_NUM: Record<string, number> = {
+    Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6,
+    Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12,
+  };
+  const cropStartMonth = cropYearMonths
+    ? MONTH_NUM[cropYearMonths.slice(0, 3)] ?? 1
+    : 1;
+
   const recent: Row[] = rows.slice(-years).map(r => {
     const opening = kbags(r.begin_stocks_mt);
     const ending  = kbags(r.stocks_mt);
@@ -371,6 +390,13 @@ export default function SupplyDemandBalance({
     // in `exports` and the forecast remainder in `exportsRemaining`.
     const cropKey = cropKeyOf(year);
     const realized = cropKey ? realizedExports?.byCropYear[cropKey] : undefined;
+    // USDA PSD carries the FORWARD marketing year too (e.g. MY 2026/27
+    // published mid-2026), so not-yet-started crops flow through this
+    // backbone path. They must never render as realized: zero shipped,
+    // the whole export budget in "remaining", row striped as forecast.
+    const startYearInt = parseInt(year, 10);
+    const notStarted = Number.isFinite(startYearInt) &&
+      new Date(startYearInt, cropStartMonth - 1, 1) > new Date();
     let exportsKbags     = usdaExports;
     let remainingKbags   = 0;
     let remainingSource: Row["remainingSource"];
@@ -391,11 +417,21 @@ export default function SupplyDemandBalance({
         remainingSource = rem.source;
         exportsSource   = "realized+forecast";
       }
+    } else if (notStarted) {
+      // Nothing can have shipped yet — the multi-source export budget
+      // (else USDA's projection) is entirely "remaining".
+      exportsKbags    = 0;
+      remainingKbags  = ms?.exports != null
+        ? Math.round(ms.exports / MBAGS_PER_KBAGS)
+        : usdaExports;
+      remainingSource = "budget";
     }
     return {
       year,
-      yearLabel:   cropYearShort(year, cropYearMonths),
-      yearTooltip: cropYearLong(year, cropYearMonths),
+      yearLabel:   `${cropYearShort(year, cropYearMonths)}${notStarted ? "*" : ""}`,
+      yearTooltip: notStarted
+        ? `Forecast · ${cropYearLong(year, cropYearMonths)}`
+        : cropYearLong(year, cropYearMonths),
       opening, production: kbags(r.production_mt),
       exports:           exportsKbags,
       exportsRemaining:  remainingKbags,
@@ -403,7 +439,7 @@ export default function SupplyDemandBalance({
       exportsSource,
       consumption: kbags(r.consumption_mt), ending,
       stockBuild: Math.max(delta, 0), stockDraw: Math.min(delta, 0),
-      isForecast: false,
+      isForecast: notStarted,
       ...buildMultiSourceFields(ms),
     };
   });
@@ -681,8 +717,8 @@ export default function SupplyDemandBalance({
                   className={`text-[9px] px-1.5 py-0.5 transition-colors ${
                     unit === u ? "bg-slate-700 text-slate-100" : "text-slate-500 hover:text-slate-300"
                   }`}
-                  title={u === "tons" ? "Display in metric tons" : "Display in thousand 60-kg bags"}>
-                  {u === "tons" ? "MT" : "k bags"}
+                  title={u === "tons" ? "Display in metric tons" : "Display in million 60-kg bags"}>
+                  {u === "tons" ? "MT" : "M bags"}
                 </button>
               ))}
             </div>
@@ -724,7 +760,9 @@ export default function SupplyDemandBalance({
               sign="−"
               color="#ef4444"
               sub={focusExportsRemain > 0
-                ? `${focusExportsRealized.toFixed(1)} realised + ${focusExportsRemain.toFixed(1)} est.`
+                ? (focusExportsRealized > 0
+                    ? `${focusExportsRealized.toFixed(1)} realised + ${focusExportsRemain.toFixed(1)} est.`
+                    : "Annual budget (est.) — crop not started")
                 : (realizedExports ? `${realizedExports.sourceLabel} (realised)` : `Annual exports · ${_eqUnit}`)}
             />
             <Eq
@@ -785,8 +823,7 @@ export default function SupplyDemandBalance({
                     // surfaced here directly.
                     return [null, null];
                   }
-                  const native = unit === "tons" ? _toMt(Number(v)) : Number(v);
-                  return [`${Math.round(native).toLocaleString()} ${_unitShort(unit)}`, String(n)];
+                  return [`${_fmtVal(unit, Number(v))} ${unit === "tons" ? "MT" : "bags"}`, String(n)];
                 }} />
               <Legend wrapperStyle={{ fontSize: 9 }} />
               <Bar dataKey="opening"     name="Opening"     stackId="a" fill="#64748b">
@@ -869,10 +906,7 @@ export default function SupplyDemandBalance({
                 const isLatestRealized = !r.isForecast && i === recent.findLastIndex(x => !x.isForecast);
                 const rowCls = r.isForecast ? "text-slate-500 italic"
                                             : isLatestRealized ? "text-amber-300" : "text-slate-300";
-                const fmt = (kbagsValue: number) => {
-                  const native = unit === "tons" ? _toMt(kbagsValue) : kbagsValue;
-                  return Math.round(native).toLocaleString();
-                };
+                const fmt = (kbagsValue: number) => _fmtVal(unit, kbagsValue);
                 const dash = (n: number) => r.isForecast && n === 0 ? "—" : fmt(n);
                 // Multi-source production cell: avg with min–max range underneath,
                 // and a tooltip enumerating each source's value.
@@ -899,6 +933,17 @@ export default function SupplyDemandBalance({
                 // been customs-confirmed vs. what's still a forecast.
                 // Tooltip names the realised source explicitly.
                 const exportsCell = (() => {
+                  // Crop not started: nothing shipped, the whole budget is
+                  // still ahead — show the estimate alone, never a realised
+                  // figure.
+                  if (r.exportsRemaining > 0 && r.exports === 0) {
+                    return (
+                      <span title="Crop not started — full export budget remaining" className="cursor-help">
+                        <span className="text-slate-500">—</span>
+                        <span className="text-slate-500 text-[8px] ml-1">+{fmt(r.exportsRemaining)} est.</span>
+                      </span>
+                    );
+                  }
                   if (r.exportsRemaining > 0 && r.exports > 0) {
                     // Seasonal remainders are flagged so the reader knows the
                     // analyst budget was already met and the estimate comes
