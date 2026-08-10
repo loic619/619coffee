@@ -72,7 +72,11 @@ async def run_monthly() -> None:
             # is still 12× the source's cadence, with zero daily overhead.
             ("population",    lambda p: _population.run(p, db)),
         ]
-        if month in (6, 12):
+        # FORCE_PSD=1 bypasses the semi-annual gate — needed when the
+        # producer roster in psd_coffee._PRODUCERS grows mid-cycle and the
+        # DB blob must be re-parsed before the next Jun/Dec window (first
+        # use: the Aug 2026 six-origin extension for the global S&D).
+        if month in (6, 12) or os.environ.get("FORCE_PSD") == "1":
             sources.insert(0, ("psd_coffee", lambda p: _psd_coffee.run(p, db)))
         else:
             print(f"[monthly] psd_coffee skipped (month={month}; runs in Jun & Dec only)")

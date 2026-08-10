@@ -9,6 +9,12 @@ on:
   schedule:
     - cron: '0 3 12 * *'   # 12th of each month, 03:00 UTC (after the USDA PSD release)
   workflow_dispatch:
+    inputs:
+      force_psd:
+        description: "Run the USDA PSD scrape outside its Jun/Dec window (re-parses the producer roster)"
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: data-commit          # serialize all main-pushers
@@ -47,6 +53,8 @@ jobs:
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # 'true' → '1' so monthly_scraper's FORCE_PSD gate opens.
+          FORCE_PSD: ${{ inputs.force_psd == true && '1' || '' }}
         run: |
           for attempt in 1 2 3; do
             python -m scraper.monthly_scraper && break
