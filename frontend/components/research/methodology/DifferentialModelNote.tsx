@@ -1,5 +1,6 @@
 "use client";
 import { Paper, H2, H, P, UL, LI, Code, Fml, Highlight, RefTable } from "./prose";
+import { FactorMapFigure, CorridorFigure } from "./DifferentialModelFigures";
 
 export default function DifferentialModelNote() {
   return (
@@ -45,6 +46,7 @@ F      nearby futures reference          (RC for robusta, KC for arabica)`}</Fml
         physical S&amp;D, exchange economics) which resolve into the differential. Reading it as an economist
         rather than as a diagram, the three intermediate nodes play <em>different mathematical roles</em>:
       </P>
+      <FactorMapFigure />
       <UL>
         <LI><strong>Exchange economics defines the walls.</strong> If <Code>D</Code> falls below the tenderable
           parity boundary, tendering into the exchange becomes the best bid (grade it, deliver it); if it rises
@@ -65,6 +67,7 @@ RP_o   upper wall: replacement parity     (destination substitution)
 σ(·)   logistic position-in-corridor
 z_o    flow-pressure index  = β′ X_o(t)   (S&D block + positioning block + macro)
 ε_o    transitory basis shock — the futures-leg overshoot, mean-reverting`}</Fml>
+      <CorridorFigure />
       <Highlight>
         Everything on the map lives somewhere in this equation: exchange-economics boxes build <Code>TP</Code> and
         <Code> RP</Code> (and a squeeze overlay that temporarily bends the walls), supply and demand boxes build
