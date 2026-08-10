@@ -1,7 +1,7 @@
 {
   "unit": "million 60-kg bags",
   "note": "Production estimates from independent sources. USDA = USDA FAS PSD (Coffee: World Markets and Trade, Dec 2025) + USDA Uganda Coffee Annual (UG2025-0001, May 2025); UCDA = Uganda Coffee Development Authority monthly reports (production inferred from exports + domestic use where UCDA does not publish a standalone production headline); ICO = International Coffee Organization Coffee Market Report. Static seed \u2014 refresh after each crop year's UCDA / USDA release.",
-  "updated": "2025-12",
+  "updated": "2026-08",
   "sources": [
     {
       "key": "usda",
@@ -17,16 +17,41 @@
       "key": "ico",
       "label": "ICO",
       "color": "#f59e0b"
+    },
+    {
+      "key": "marex",
+      "label": "Marex",
+      "color": "#a78bfa"
     }
   ],
   "seasons": [
+    {
+      "season": "2021/22",
+      "forecast": false,
+      "production": {
+        "marex": 5.7
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 0.9,
+          "robusta": 4.8
+        }
+      }
+    },
     {
       "season": "2022/23",
       "forecast": false,
       "production": {
         "usda": 6.6,
         "ucda": 6.1,
-        "ico": 6.2
+        "ico": 6.2,
+        "marex": 6.4
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 1.0,
+          "robusta": 5.4
+        }
       }
     },
     {
@@ -35,7 +60,14 @@
       "production": {
         "usda": 6.4,
         "ucda": 6.7,
-        "ico": 6.8
+        "ico": 6.8,
+        "marex": 6.4
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 0.8,
+          "robusta": 5.6
+        }
       }
     },
     {
@@ -43,14 +75,41 @@
       "forecast": false,
       "production": {
         "usda": 6.7,
-        "ico": 7.1
+        "ico": 7.1,
+        "marex": 6.8
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 0.9,
+          "robusta": 5.9
+        }
       }
     },
     {
       "season": "2025/26",
       "forecast": true,
       "production": {
-        "usda": 6.9
+        "usda": 6.9,
+        "marex": 6.6
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 0.9,
+          "robusta": 5.7
+        }
+      }
+    },
+    {
+      "season": "2026/27",
+      "forecast": true,
+      "production": {
+        "marex": 7.4
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 1.0,
+          "robusta": 6.4
+        }
       }
     }
   ]

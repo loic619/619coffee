@@ -1,7 +1,7 @@
 {
   "unit": "million 60-kg bags",
-  "note": "Colombia production estimates from independent sources. USDA = USDA FAS PSD (Coffee: World Markets and Trade, Dec 2025); FNC = Federación Nacional de Cafeteros monthly bulletins (calendar-year basis); ICO = International Coffee Organization Coffee Market Report. USDA marketing year Oct-Sep; FNC reports calendar year. USDA column is auto-refreshed semi-annually from demand_stocks.json (build_balance_sheets workflow). FNC + ICO columns are curated by hand twice a year — add values after the operator runs the FNC scraper + reviews ICO's monthly report.",
-  "updated": "2026-06",
+  "note": "Colombia production estimates from independent sources. USDA = USDA FAS PSD (Coffee: World Markets and Trade, Dec 2025); FNC = Federaci\u00f3n Nacional de Cafeteros monthly bulletins (calendar-year basis); ICO = International Coffee Organization Coffee Market Report. USDA marketing year Oct-Sep; FNC reports calendar year. USDA column is auto-refreshed semi-annually from demand_stocks.json (build_balance_sheets workflow). FNC + ICO columns are curated by hand twice a year \u2014 add values after the operator runs the FNC scraper + reviews ICO's monthly report.",
+  "updated": "2026-08",
   "sources": [
     {
       "key": "usda",
@@ -17,35 +17,88 @@
       "key": "ico",
       "label": "ICO",
       "color": "#f59e0b"
+    },
+    {
+      "key": "marex",
+      "label": "Marex",
+      "color": "#a78bfa"
     }
   ],
   "seasons": [
     {
+      "season": "2021/22",
+      "forecast": false,
+      "production": {
+        "marex": 11.7
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 11.7
+        }
+      }
+    },
+    {
       "season": "2022/23",
       "forecast": false,
       "production": {
-        "usda": 10.7
+        "usda": 10.7,
+        "marex": 10.6
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 10.6
+        }
       }
     },
     {
       "season": "2023/24",
       "forecast": false,
       "production": {
-        "usda": 12.8
+        "usda": 12.8,
+        "marex": 12.8
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 12.8
+        }
       }
     },
     {
       "season": "2024/25",
       "forecast": false,
       "production": {
-        "usda": 14.8
+        "usda": 14.8,
+        "marex": 13.9
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 13.9
+        }
       }
     },
     {
       "season": "2025/26",
       "forecast": true,
       "production": {
-        "usda": 13.8
+        "usda": 13.8,
+        "marex": 13.1
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 13.1
+        }
+      }
+    },
+    {
+      "season": "2026/27",
+      "forecast": true,
+      "production": {
+        "marex": 13.5
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 13.5
+        }
       }
     }
   ]
