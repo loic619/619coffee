@@ -2,7 +2,7 @@
   "cecafe": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-09T07:36:31+00:00",
+    "last_probe": "2026-08-10T08:15:13+00:00",
     "overdue_alerted": null,
     "signal": null,
     "verify": null
@@ -10,7 +10,7 @@
   "comex": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-09T07:36:31+00:00",
+    "last_probe": "2026-08-10T08:15:13+00:00",
     "overdue_alerted": null,
     "signal": null,
     "verify": null
@@ -18,34 +18,46 @@
   "conab": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-09T07:36:31+00:00",
+    "last_probe": "2026-08-10T08:15:13+00:00",
     "overdue_alerted": null,
     "signal": null,
     "verify": null
   },
   "dane": {
-    "confirmed": "2026-07",
-    "last_found": null,
-    "last_probe": "2026-08-09T07:36:31+00:00",
+    "confirmed": "2026-08",
+    "last_found": "2026-08-10T08:15:13+00:00",
+    "last_probe": "2026-08-10T08:15:13+00:00",
     "overdue_alerted": null,
-    "signal": null,
-    "verify": null
+    "signal": "https://www.dane.gov.co/files/operaciones/EXPORTACIONES/anex-EXPORTACIONES-jun2026.xls",
+    "verify": {
+      "dispatched_at": "2026-08-10T08:15:13+00:00",
+      "expected": "2026-06",
+      "file": "frontend/public/data/colombia_supply.json",
+      "kind": "month_in_file",
+      "status": "pending"
+    }
   },
   "fnc": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-09T07:36:31+00:00",
+    "last_probe": "2026-08-10T08:15:13+00:00",
     "overdue_alerted": null,
     "signal": "dd2fc0d9a849e90ab7d73f37f5fc6f89cf4f40a659b736c500856467d0ac59be",
     "verify": null
   },
   "ucda": {
-    "confirmed": "2026-07",
-    "last_found": null,
-    "last_probe": "2026-08-09T07:36:31+00:00",
+    "confirmed": "2026-08",
+    "last_found": "2026-08-10T08:15:13+00:00",
+    "last_probe": "2026-08-10T08:15:13+00:00",
     "overdue_alerted": null,
-    "signal": "d8dec992ac651515151fd8e4abc422527de2887609111f5e65bff2ca8275773b",
-    "verify": null
+    "signal": "b6de1a1d13aca1adc81ab723e82c93f5b7a3b85bb2cd0ff1ba7356462d655a01",
+    "verify": {
+      "dispatched_at": "2026-08-10T08:15:13+00:00",
+      "expected": "2026-06",
+      "file": "frontend/public/data/uganda_monthly.json",
+      "kind": "month_in_file",
+      "status": "pending"
+    }
   },
   "vn_customs": {
     "confirmed": "2026-08",
