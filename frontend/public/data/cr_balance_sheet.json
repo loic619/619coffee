@@ -1,0 +1,18 @@
+{
+ "unit": "million 60-kg bags",
+ "note": "Costa Rica production estimates for the global S&D aggregation. USDA = USDA FAS PSD via demand_stocks.json (auto-synced by build_balance_sheets); ICO and any additional sources are hand-curated through the admin crop-estimate editor.",
+ "updated": "2026-08",
+ "sources": [
+  {
+   "key": "usda",
+   "label": "USDA",
+   "color": "#3b82f6"
+  },
+  {
+   "key": "ico",
+   "label": "ICO",
+   "color": "#f59e0b"
+  }
+ ],
+ "seasons": []
+}

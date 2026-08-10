@@ -78,15 +78,17 @@ def _browser_post_chunk(payload: dict, tag: str, span: str) -> dict | None:
             try:
                 await pg.goto(f"{_URL}CUUR0000SA0",
                               wait_until="domcontentloaded", timeout=45000)
+                # Token-replace keeps the JS braces literal (an f-string or
+                # %-format here trips on them / UP031).
                 return await pg.evaluate(
                     """async (payload) => {
-                        const r = await fetch('%s', {
+                        const r = await fetch('__BLS_URL__', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify(payload),
                         });
                         return await r.json();
-                    }""" % _URL,
+                    }""".replace("__BLS_URL__", _URL),
                     payload,
                 )
             finally:

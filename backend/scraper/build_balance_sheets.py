@@ -52,6 +52,23 @@ ORIGINS = {
     "indonesia": "id_balance_sheet.json",
     "uganda":    "ug_balance_sheet.json",
     "vietnam":   "vn_farmer_economics.json::balance_sheet",
+    # Added Aug 2026 for the global S&D aggregation: every origin the
+    # operator wants to hand-curate through the admin editor's "by source"
+    # view. The first five (honduras…mexico) have USDA backbones in
+    # demand_stocks.json, so their usda column auto-syncs here; the rest
+    # have no PSD producer entry yet — refresh_origin skips them with a
+    # warning and their numbers are editor-curated only.
+    "honduras":    "hn_balance_sheet.json",
+    "ethiopia":    "et_balance_sheet.json",
+    "india":       "in_balance_sheet.json",
+    "peru":        "pe_balance_sheet.json",
+    "mexico":      "mx_balance_sheet.json",
+    "guatemala":   "gt_balance_sheet.json",
+    "nicaragua":   "ni_balance_sheet.json",
+    "china":       "cn_balance_sheet.json",
+    "ivory_coast": "ci_balance_sheet.json",
+    "costa_rica":  "cr_balance_sheet.json",
+    "tanzania":    "tz_balance_sheet.json",
 }
 
 # Non-USDA sources are curated by hand from these reports. Surfaced in the
@@ -208,9 +225,12 @@ def main() -> int:
         print("[balance-sheets] USDA column already in sync — no changes.")
 
     print("\n[balance-sheets] MANUAL refresh reminder (non-USDA sources):")
+    # Origins without a dedicated agency feed fall back to the ICO monthly
+    # report, which covers every producing country.
+    ico_ref = [("ICO", "https://www.ico.org/coffee-market-report — Coffee Market Report (monthly)")]
     for origin in ORIGINS:
         print(f"  {origin}:")
-        for label, ref in MANUAL_SOURCE_REFS[origin]:
+        for label, ref in MANUAL_SOURCE_REFS.get(origin, ico_ref):
             print(f"    · {label}: {ref}")
     print("=" * 64)
 

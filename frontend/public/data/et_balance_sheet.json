@@ -1,0 +1,47 @@
+{
+ "unit": "million 60-kg bags",
+ "note": "Ethiopia production estimates for the global S&D aggregation. USDA = USDA FAS PSD via demand_stocks.json (auto-synced by build_balance_sheets); ICO and any additional sources are hand-curated through the admin crop-estimate editor.",
+ "updated": "2026-08",
+ "sources": [
+  {
+   "key": "usda",
+   "label": "USDA",
+   "color": "#3b82f6"
+  },
+  {
+   "key": "ico",
+   "label": "ICO",
+   "color": "#f59e0b"
+  }
+ ],
+ "seasons": [
+  {
+   "season": "2022/23",
+   "forecast": false,
+   "production": {
+    "usda": 7.3
+   }
+  },
+  {
+   "season": "2023/24",
+   "forecast": false,
+   "production": {
+    "usda": 9.1
+   }
+  },
+  {
+   "season": "2024/25",
+   "forecast": false,
+   "production": {
+    "usda": 11.1
+   }
+  },
+  {
+   "season": "2025/26",
+   "forecast": true,
+   "production": {
+    "usda": 11.6
+   }
+  }
+ ]
+}

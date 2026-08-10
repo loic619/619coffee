@@ -97,6 +97,7 @@ def _fetch_bls() -> dict[str, dict] | None:
     # API-honoured requests (2/day keyless — well inside the 25/day budget).
     start_year = end_year - 15
     import os as _os
+
     from scraper.utils.bls import fetch_series, newest_period
     fetched = fetch_series([m["id"] for m in _BLS_SERIES.values()],
                            start_year, end_year,

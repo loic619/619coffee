@@ -44,8 +44,6 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-import requests
-
 logger = logging.getLogger(__name__)
 
 _CACHE_PATH = Path(__file__).resolve().parents[1] / "cache" / "us_cpi.json"

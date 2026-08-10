@@ -6,6 +6,7 @@ import HondurasFarmerEconomics from "@/components/supply/honduras/HondurasFarmer
 import WeatherCharts from "@/components/supply/WeatherCharts";
 import SupplyDemandBalance from "@/components/supply/SupplyDemandBalance";
 import AnnualExportsPanel from "@/components/supply/AnnualExportsPanel";
+import { toMultiSource, type BalanceSheetFile } from "@/lib/sdMultiSource";
 
 interface HondurasSupply {
   country: string;
@@ -68,12 +69,19 @@ export default function HondurasTab() {
   const [subTab, setSubTab] = useState<"exports" | "supply-demand" | "farmer-economics" | "weather">("exports");
   const [data, setData] = useState<HondurasSupply | null>(null);
   const [error, setError] = useState(false);
+  const [balanceSheet, setBalanceSheet] = useState<BalanceSheetFile | null>(null);
 
   useEffect(() => {
     fetch("/data/honduras_supply.json")
       .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
       .then((d) => { setData(d); if (!d.exports) setSubTab("farmer-economics"); })
       .catch(() => setError(true));
+    // Multi-source production estimates for the S&D card (equation strip +
+    // spread block). Seed added Aug 2026 with the wider origin set.
+    fetch("/data/hn_balance_sheet.json")
+      .then(r => (r.ok ? r.json() : null))
+      .then((d: BalanceSheetFile | null) => d && setBalanceSheet(d))
+      .catch(() => { /* absent → card stays USDA-only */ });
   }, []);
 
   return (
@@ -112,7 +120,15 @@ export default function HondurasTab() {
         </div>
       )}
 
-      {subTab === "supply-demand" && <SupplyDemandBalance origin="honduras" label="Honduras" />}
+      {subTab === "supply-demand" && (
+        <SupplyDemandBalance
+          origin="honduras"
+          label="Honduras"
+          cropYearMonths="Oct–Sep"
+          multiSource={toMultiSource(balanceSheet)}
+          editOrigin="honduras"
+        />
+      )}
       {subTab === "weather" && <WeatherCharts dataUrl="/data/honduras_weather.json" title="Weather · Honduras" />}
 
       {data && subTab === "exports" && (
