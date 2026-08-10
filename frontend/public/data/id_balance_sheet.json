@@ -1,7 +1,7 @@
 {
   "unit": "million 60-kg bags",
   "note": "Production estimates from independent sources. USDA = USDA FAS Coffee Semi-Annual (ID2025-0039, Dec 2025); GAEKI = Indonesian Coffee Exporters Association (AEKI/GAEKI press releases); ICO = International Coffee Organization Coffee Market Report. GAEKI does not publish a wide-syndication production series; entries shown are association-cited figures or local-industry consensus. Static seed \u2014 refresh after each USDA semi-annual.",
-  "updated": "2025-12",
+  "updated": "2026-08",
   "sources": [
     {
       "key": "usda",
@@ -17,15 +17,40 @@
       "key": "ico",
       "label": "ICO",
       "color": "#f59e0b"
+    },
+    {
+      "key": "marex",
+      "label": "Marex",
+      "color": "#a78bfa"
     }
   ],
   "seasons": [
+    {
+      "season": "2021/22",
+      "forecast": false,
+      "production": {
+        "marex": 11.7
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 1.6,
+          "robusta": 10.1
+        }
+      }
+    },
     {
       "season": "2022/23",
       "forecast": false,
       "production": {
         "usda": 10.7,
-        "ico": 11.0
+        "ico": 11.0,
+        "marex": 11.5
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 1.5,
+          "robusta": 10.0
+        }
       }
     },
     {
@@ -33,7 +58,14 @@
       "forecast": false,
       "production": {
         "usda": 8.2,
-        "ico": 9.7
+        "ico": 9.7,
+        "marex": 9.4
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 1.4,
+          "robusta": 8.0
+        }
       }
     },
     {
@@ -42,7 +74,14 @@
       "production": {
         "usda": 10.7,
         "gaeki": 11.0,
-        "ico": 11.3
+        "ico": 11.3,
+        "marex": 11.7
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 1.4,
+          "robusta": 10.3
+        }
       }
     },
     {
@@ -50,7 +89,27 @@
       "forecast": true,
       "production": {
         "usda": 12.4,
-        "gaeki": 11.3
+        "gaeki": 11.3,
+        "marex": 11.8
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 1.4,
+          "robusta": 10.4
+        }
+      }
+    },
+    {
+      "season": "2026/27",
+      "forecast": true,
+      "production": {
+        "marex": 10.8
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 1.3,
+          "robusta": 9.5
+        }
       }
     }
   ]

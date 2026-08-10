@@ -156,6 +156,25 @@ def refresh_origin(origin: str, filename: str, demand: dict) -> list[str]:
         return [f"⚠ {origin}: no USDA rows in demand_stocks — skipped"]
 
     changes: list[str] = []
+
+    # Bootstrap: a seed created empty (the Aug 2026 aggregation origins ship
+    # with seasons: [] until PSD coverage lands) gets its last four crop
+    # years materialized from USDA, newest as forecast. Seeds that already
+    # carry seasons keep the warn-only behavior below — the operator adds
+    # rows by hand so the other sources come along.
+    if not seed["seasons"]:
+        recent = sorted(usda)[-4:]
+        for y in recent:
+            seed["seasons"].append({
+                "season": f"{y}/{str(y + 1)[-2:]}",
+                "forecast": y == recent[-1],
+                "production": {"usda": usda[y]},
+            })
+        changes.append(
+            f"  {origin}: bootstrapped {len(recent)} seasons from USDA "
+            f"({recent[0]}/{str(recent[0] + 1)[-2:]} → {recent[-1]}/{str(recent[-1] + 1)[-2:]})"
+        )
+
     latest_seed_year = 0
     for season in seed["seasons"]:
         sy = _season_start_year(season.get("season", ""))

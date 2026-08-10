@@ -1,18 +1,102 @@
 {
- "unit": "million 60-kg bags",
- "note": "Tanzania production estimates for the global S&D aggregation. USDA = USDA FAS PSD via demand_stocks.json (auto-synced by build_balance_sheets); ICO and any additional sources are hand-curated through the admin crop-estimate editor.",
- "updated": "2026-08",
- "sources": [
-  {
-   "key": "usda",
-   "label": "USDA",
-   "color": "#3b82f6"
-  },
-  {
-   "key": "ico",
-   "label": "ICO",
-   "color": "#f59e0b"
-  }
- ],
- "seasons": []
+  "unit": "million 60-kg bags",
+  "note": "Tanzania production estimates for the global S&D aggregation. USDA = USDA FAS PSD via demand_stocks.json (auto-synced by build_balance_sheets); ICO and any additional sources are hand-curated through the admin crop-estimate editor.",
+  "updated": "2026-08",
+  "sources": [
+    {
+      "key": "usda",
+      "label": "USDA",
+      "color": "#3b82f6"
+    },
+    {
+      "key": "ico",
+      "label": "ICO",
+      "color": "#f59e0b"
+    },
+    {
+      "key": "marex",
+      "label": "Marex",
+      "color": "#a78bfa"
+    }
+  ],
+  "seasons": [
+    {
+      "season": "2021/22",
+      "forecast": false,
+      "production": {
+        "marex": 1.1
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 0.6,
+          "robusta": 0.5
+        }
+      }
+    },
+    {
+      "season": "2022/23",
+      "forecast": false,
+      "production": {
+        "marex": 1.2
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 0.7,
+          "robusta": 0.5
+        }
+      }
+    },
+    {
+      "season": "2023/24",
+      "forecast": false,
+      "production": {
+        "marex": 1.4
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 0.8,
+          "robusta": 0.6
+        }
+      }
+    },
+    {
+      "season": "2024/25",
+      "forecast": false,
+      "production": {
+        "marex": 1.4
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 0.8,
+          "robusta": 0.6
+        }
+      }
+    },
+    {
+      "season": "2025/26",
+      "forecast": true,
+      "production": {
+        "marex": 1.4
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 0.8,
+          "robusta": 0.6
+        }
+      }
+    },
+    {
+      "season": "2026/27",
+      "forecast": true,
+      "production": {
+        "marex": 1.4
+      },
+      "production_split": {
+        "marex": {
+          "arabica": 0.8,
+          "robusta": 0.6
+        }
+      }
+    }
+  ]
 }
