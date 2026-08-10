@@ -405,7 +405,8 @@
           "usda": 29.0,
           "mard": 30.0,
           "ico": 30.8,
-          "marex": 27.9
+          "marex": 27.9,
+          "ecom": 31.3
         },
         "production_split": {
           "marex": {
@@ -423,12 +424,17 @@
           "usda": 30.8,
           "mard": 28.5,
           "ico": 28.0,
-          "marex": 32.1
+          "marex": 32.1,
+          "ecom": 36.1
         },
         "production_split": {
           "marex": {
             "arabica": 1.3,
             "robusta": 30.8
+          },
+          "ecom": {
+            "arabica": 1.5,
+            "robusta": 34.6
           }
         },
         "exports_ico": 25.5,
@@ -438,12 +444,17 @@
         "season": "2026/27",
         "forecast": true,
         "production": {
-          "marex": 31.2
+          "marex": 31.2,
+          "ecom": 36.0
         },
         "production_split": {
           "marex": {
             "arabica": 1.2,
             "robusta": 30.0
+          },
+          "ecom": {
+            "arabica": 2.0,
+            "robusta": 34.0
           }
         }
       }
@@ -468,6 +479,11 @@
         "key": "marex",
         "label": "Marex",
         "color": "#a78bfa"
+      },
+      {
+        "key": "ecom",
+        "label": "ECOM",
+        "color": "#f472b6"
       }
     ]
   }
