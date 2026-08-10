@@ -208,11 +208,27 @@ def main() -> int:
                         f"{label}.{k}: split {legs['arabica']}+{legs['robusta']} ≠ total {production[k]}")
                 split_clean[k] = legs
 
+        # Optional analyst "Final" override for the displayed production
+        # figure. Field present (number or null) = authoritative; null
+        # clears the override so the display falls back to the avg.
+        final_provided = "production_final" in s
+        final_val = None
+        if final_provided:
+            fv = s.get("production_final")
+            if fv is not None:
+                if isinstance(fv, bool) or not isinstance(fv, (int, float)) or not (0 < float(fv) <= MAX_MBAGS):
+                    return _fail(f"{label}: production_final {fv!r} outside (0, {MAX_MBAGS}] M bags")
+                final_val = round(float(fv), 2)
+
         entry = {"season": label, "forecast": bool(s.get("forecast")), "production": production}
         if split_clean:
             entry["production_split"] = split_clean
         if split_provided:
             entry["_split_provided"] = True  # merge marker, stripped below
+        if final_val is not None:
+            entry["production_final"] = final_val
+        if final_provided:
+            entry["_final_provided"] = True
         clean.append(entry)
     clean.sort(key=lambda s: _season_start_year(s["season"]) or 0)
 
@@ -221,10 +237,13 @@ def main() -> int:
     merged = []
     for s in clean:
         split_provided = s.pop("_split_provided", False)
+        final_provided = s.pop("_final_provided", False)
         prior = old_by_label.get(s["season"], {})
         managed = {"season", "forecast", "production"}
         if split_provided:
             managed.add("production_split")
+        if final_provided:
+            managed.add("production_final")
         extras = {k: v for k, v in prior.items() if k not in managed}
         row = {**s, **extras}
         # A preserved (payload-untouched) split whose total changed is stale
@@ -261,6 +280,9 @@ def main() -> int:
                 desc = (f"A {new.get('arabica', '—')} / R {new.get('robusta', '—')}"
                         if new else "removed")
                 lines.append(f"  ~ {s['season']}.{k} split: {desc}")
+        if prior.get("production_final") != s.get("production_final"):
+            lines.append(
+                f"  ~ {s['season']}: final {prior.get('production_final')} → {s.get('production_final')}")
     for lbl in removed:
         lines.append(f"  − {lbl}: season removed")
 
