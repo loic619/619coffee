@@ -73,35 +73,46 @@ z_o    flow-pressure index  = β′ X_o(t)   (S&D block + positioning block + ma
       </Highlight>
 
       <H2>3 · Pillar I — Supply (the blue cluster)</H2>
-      <H>3.1 The yield chain: from acreage decision to crop</H>
+      <H>3.1 The crop identity: four factors, one production number</H>
       <P>
-        The map&rsquo;s deepest causal chain prices the <em>decision</em> before the <em>biology</em>: expected
-        profitability — the farmer&rsquo;s pre-harvest market price matched against <strong>cost of
-        production</strong> and the <strong>benchmark of other crops</strong> (pepper, durian, cocoa compete for
-        Vietnamese land) — drives <strong>acreage allocation</strong>; the standing base interacts with
-        <strong> tree age</strong> and <strong>tree density</strong>; and <strong>tree yield</strong> then follows
-        the agronomic inputs — <strong>weather, fertilizer, irrigation</strong>:
+        The map resolves the crop into <strong>four co-equal factors</strong> — acreage allocation, tree density,
+        tree yield, and the conversion ratio — whose product is the production number:
       </P>
-      <Fml>{`Crop_o(y) = Acreage_o(y) × Density_o(y) × Yield_o(y)
+      <Fml>{`Crop_o(y) = Acreage_o(y) × Density_o(y) × Yield_o(y) × Conversion_o(y)
 
-Acreage(y) = f( E[profit] )         E[profit] ← pre-harvest price, cost of production,
-                                                 competing-crop margins   [slow, years]
-Yield(y)   = g( weather, fertilizer, irrigation | tree age )              [seasonal]`}</Fml>
+Acreage(y)    ← E[profit] vs competing crops                 [slow, years]
+Density(y)    ← tree age (dashed: slow/structural), replanting choices
+Yield(y)      ← weather · fertilizer · irrigation | tree age  [seasonal]
+Conversion(y) ← harvest timing → ripe-cherry ratio            [seasonal]`}</Fml>
       <P>
-        Nearly all of this is already instrumented: the rain→yield curves, the drought/SPI-SPEI stack, the
-        fertilizer cost-push paper, farmer-economics break-evens, and the supply balance sheets. The genuinely
-        missing inputs are <strong>tree age structure</strong> and <strong>competing-crop margins</strong> —
-        both slow variables, both flagged in the roadmap.
+        Upstream of the decision factors sits the map&rsquo;s economic test: <strong>cost of production</strong> and
+        the <strong>benchmark of other crops</strong> (pepper, durian, cocoa compete for Vietnamese land) form
+        <strong> expected profitability</strong>, which is then <em>matched — or not — against the pre-harvest
+        market price</em>. That match/no-match verdict works twice: it drives <strong>acreage allocation</strong>
+        on the slow clock (plant, maintain, or switch crops), and it colours the coming season&rsquo;s intensity of
+        care (fertilizer application, harvest effort) on the fast clock. The deeper sub-drivers the map implies are
+        made explicit here: <strong>fertilizer ← fertilizer prices</strong> (the cost-push paper), and
+        <strong> irrigation ← water availability</strong> (weather, reservoirs) <strong>and irrigation
+        infrastructure availability</strong> — Vietnam&rsquo;s dry-season pumping is bounded by both.
+        <strong> Tree age</strong> interacts with acreage <em>and</em> density as the dashed slow/structural state:
+        an ageing orchard yields less at constant acreage and forces the replant-vs-switch decision that loops back
+        into acreage.
       </P>
-      <H>3.2 Harvest timing and the grade dimension</H>
       <P>
-        <strong>Early dry weather → early/late harvest → ripe-cherry ratio → conversion ratio</strong>: timing
-        shifts the <em>quality mix</em>, not just the quantity. A rushed harvest lowers the ripe-cherry share,
-        worsens outturn, and shifts supply <em>between grades</em>. Because the differential is quoted for a
-        specific grade (FAQ, S15, T7…), a conversion-ratio shock changes the supply of <em>that grade</em> even
-        when the headline crop is unchanged — a second-moment supply effect most models ignore. Instrumented today
-        only indirectly (harvest-progress notes, weather timing); a ripe-cherry / screen-size distribution feed is
-        future work.
+        Instrumentation: rain→yield curves, the drought/SPI-SPEI stack, fertilizer costs, farmer-economics
+        break-evens and supply balance sheets are live; <strong>tree-age structure</strong> and
+        <strong> competing-crop margins</strong> are the genuinely missing (slow) inputs, flagged in the roadmap.
+      </P>
+      <H>3.2 The conversion channel: timing, ripeness, outturn — and grade</H>
+      <P>
+        <strong>Early dry weather or late rains → early/late harvest → ripe-cherry ratio → conversion
+        ratio</strong>: the fourth factor of the crop identity. Harvest timing shifts the ripe-cherry share; the
+        ripeness mix sets how many kilograms of green coffee a kilogram of cherry actually becomes — so a timing
+        shock changes the <em>production number itself</em>, even off an unchanged tree crop. It then cuts a second
+        time on the grade axis: because the differential is quoted for a specific grade (FAQ, S15, T7…), a
+        depressed conversion ratio also shifts supply <em>between grades</em> — less of the quoted grade, more
+        triage. Instrumented today only indirectly (harvest-progress notes, weather timing); a ripe-cherry /
+        screen-size distribution feed is future work.
       </P>
       <H>3.3 Farmer&rsquo;s stock — the retention function</H>
       <Fml>{`Sales_o(t) = h( price vs reference,  financing cost,  storage capacity )
