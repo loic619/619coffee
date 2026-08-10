@@ -75,15 +75,19 @@ z_o    flow-pressure index  = β′ X_o(t)   (S&D block + positioning block + ma
       <H2>3 · Pillar I — Supply (the blue cluster)</H2>
       <H>3.1 The crop identity: four factors, one production number</H>
       <P>
-        The map resolves the crop into <strong>four co-equal factors</strong> — acreage allocation, tree density,
-        tree yield, and the conversion ratio — whose product is the production number:
+        The map resolves the green-bean crop into <strong>four factors with closed units</strong> — hectares, trees
+        per hectare, cherry per tree, and the cherry→green conversion ratio; the first three multiply and the
+        fourth divides:
       </P>
-      <Fml>{`Crop_o(y) = Acreage_o(y) × Density_o(y) × Yield_o(y) × Conversion_o(y)
+      <Fml>{`Crop_green(y) =  Acreage × Density × Yield_cherry
+                 ─────────────────────────────────
+                          Conversion
 
-Acreage(y)    ← E[profit] vs competing crops                 [slow, years]
-Density(y)    ← tree age (dashed: slow/structural), replanting choices
-Yield(y)      ← weather · fertilizer · irrigation | tree age  [seasonal]
-Conversion(y) ← harvest timing → ripe-cherry ratio            [seasonal]`}</Fml>
+Acreage       hectares planted            ← E[profit] vs competing crops  [slow, years]
+Density       trees per hectare           ← tree age (dashed), replanting choices
+Yield_cherry  kg of cherry per tree       ← weather · fertilizer · irrigation | tree age
+Conversion    kg of cherry per 1 kg of green bean  ← harvest timing → ripe-cherry ratio
+              (≈5–6:1 fresh cherry → green; HIGHER ratio = worse outturn = less green)`}</Fml>
       <P>
         Upstream of the decision factors sits the map&rsquo;s economic test: <strong>cost of production</strong> and
         the <strong>benchmark of other crops</strong> (pepper, durian, cocoa compete for Vietnamese land) form
@@ -107,10 +111,10 @@ Conversion(y) ← harvest timing → ripe-cherry ratio            [seasonal]`}</
       <P>
         <strong>Early dry weather or late rains → early/late harvest → ripe-cherry ratio → conversion
         ratio</strong>: the fourth factor of the crop identity. Harvest timing shifts the ripe-cherry share; the
-        ripeness mix sets how many kilograms of green coffee a kilogram of cherry actually becomes — so a timing
-        shock changes the <em>production number itself</em>, even off an unchanged tree crop. It then cuts a second
+        ripeness mix sets how many kilograms of cherry are needed for one kilogram of green — so a timing shock
+        raises the divisor and cuts the <em>production number itself</em>, even off an unchanged cherry crop. It then cuts a second
         time on the grade axis: because the differential is quoted for a specific grade (FAQ, S15, T7…), a
-        depressed conversion ratio also shifts supply <em>between grades</em> — less of the quoted grade, more
+        worsened (higher) conversion ratio also shifts supply <em>between grades</em> — less of the quoted grade, more
         triage. Instrumented today only indirectly (harvest-progress notes, weather timing); a ripe-cherry /
         screen-size distribution feed is future work.
       </P>
