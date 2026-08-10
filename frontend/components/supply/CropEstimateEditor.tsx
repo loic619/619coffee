@@ -69,11 +69,32 @@ const ORIGIN_FILES: Record<string, { file: string; subkey?: string; sources?: So
       { key: "ico",  label: "ICO",  color: "#f59e0b" },
     ],
   },
+  // Aug 2026: the wider origin set for the global S&D aggregation. All are
+  // reachable from the "by source" view; the first five also carry USDA
+  // backbones auto-synced by build_balance_sheets.
+  honduras:    { file: "hn_balance_sheet.json" },
+  ethiopia:    { file: "et_balance_sheet.json" },
+  india:       { file: "in_balance_sheet.json" },
+  peru:        { file: "pe_balance_sheet.json" },
+  mexico:      { file: "mx_balance_sheet.json" },
+  guatemala:   { file: "gt_balance_sheet.json" },
+  nicaragua:   { file: "ni_balance_sheet.json" },
+  china:       { file: "cn_balance_sheet.json" },
+  ivory_coast: { file: "ci_balance_sheet.json" },
+  costa_rica:  { file: "cr_balance_sheet.json" },
+  tanzania:    { file: "tz_balance_sheet.json" },
 };
-const ORIGIN_ORDER = ["brazil", "colombia", "indonesia", "uganda", "vietnam"] as const;
+const ORIGIN_ORDER = [
+  "brazil", "colombia", "indonesia", "uganda", "vietnam",
+  "honduras", "ethiopia", "india", "peru", "mexico",
+  "guatemala", "nicaragua", "china", "ivory_coast", "costa_rica", "tanzania",
+] as const;
 const ORIGIN_LABELS: Record<string, string> = {
   brazil: "Brazil", colombia: "Colombia", indonesia: "Indonesia",
-  uganda: "Uganda", vietnam: "Vietnam",
+  uganda: "Uganda", vietnam: "Vietnam", honduras: "Honduras",
+  ethiopia: "Ethiopia", india: "India", peru: "Peru", mexico: "Mexico",
+  guatemala: "Guatemala", nicaragua: "Nicaragua", china: "China",
+  ivory_coast: "Ivory Coast", costa_rica: "Costa Rica", tanzania: "Tanzania",
 };
 
 const PW_KEY = "cropEditPw";

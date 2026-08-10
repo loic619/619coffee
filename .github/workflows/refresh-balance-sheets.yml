@@ -55,10 +55,10 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add frontend/public/data/br_balance_sheet.json \
-                  frontend/public/data/co_balance_sheet.json \
-                  frontend/public/data/id_balance_sheet.json \
-                  frontend/public/data/ug_balance_sheet.json \
+          # Glob covers all 15 per-origin seeds (br/co/id/ug + the 11 added
+          # Aug 2026 for the global aggregation); Vietnam's lives nested in
+          # vn_farmer_economics.json.
+          git add frontend/public/data/*_balance_sheet.json \
                   frontend/public/data/vn_farmer_economics.json
           if git diff --cached --quiet; then
             echo "No balance-sheet change."

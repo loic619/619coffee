@@ -28,7 +28,11 @@ const REPO_CANDIDATES = [
 ];
 const WORKFLOW = "apply-crop-estimate-edit.yml";
 
-const ORIGINS = new Set(["brazil", "colombia", "indonesia", "uganda", "vietnam"]);
+const ORIGINS = new Set([
+  "brazil", "colombia", "indonesia", "uganda", "vietnam",
+  "honduras", "ethiopia", "india", "peru", "mexico",
+  "guatemala", "nicaragua", "china", "ivory_coast", "costa_rica", "tanzania",
+]);
 const SEASON_RE = /^\d{4}\/\d{2}$/;
 const UPDATED_RE = /^\d{4}-\d{2}$/;
 const SOURCE_KEY_RE = /^[a-z0-9_]{1,20}$/;
