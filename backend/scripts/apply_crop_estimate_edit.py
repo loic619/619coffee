@@ -16,13 +16,24 @@ Payload shape (validated strictly — the workflow input is remote data):
       "updated": "2026-08",                 # stamp to write
       "seasons": [
         {"season": "2025/26", "forecast": true,
-         "production": {"usda": 63.0, "conab": 56.5}},
+         "production": {"usda": 63.0, "conab": 56.5},
+         "production_split": {                       # optional per-source A/R split
+           "usda": {"arabica": 40.0, "robusta": 23.0}
+         }},
         ...
       ],
       "sources": [                          # optional: NEW sources to declare
         {"key": "stonex", "label": "StoneX", "color": "#a78bfa"}
       ]
     }
+
+`production` stays the per-source TOTAL in million bags — everything the
+S&D card renders keeps reading it. `production_split` is advisory
+arabica/robusta detail entered via the editor's "by source" view: a split
+must accompany a total for the same key, and when both legs are present
+they must sum to it (±0.05). A season WITHOUT the field keeps its prior
+split — except entries whose total changed, which are dropped as stale;
+a season WITH the field (even {}) replaces its split wholesale.
 
 New sources are appended to the seed's `sources` legend — but only when at
 least one season actually carries a value for them, so an accidental add
@@ -165,20 +176,68 @@ def main() -> int:
         for k, v in prod.items():
             if isinstance(v, bool) or not isinstance(v, (int, float)) or not (0 < float(v) <= MAX_MBAGS):
                 return _fail(f"{label}.{k}: value {v!r} outside (0, {MAX_MBAGS}] M bags")
-        clean.append({
-            "season": label,
-            "forecast": bool(s.get("forecast")),
-            "production": {k: round(float(v), 2) for k, v in prod.items()},
-        })
+        production = {k: round(float(v), 2) for k, v in prod.items()}
+
+        # Optional A/R split. Presence of the field (even {}) makes the
+        # payload authoritative for this season's splits.
+        split_provided = "production_split" in s
+        split_clean: dict[str, dict[str, float]] = {}
+        if split_provided:
+            raw_split = s.get("production_split")
+            if not isinstance(raw_split, dict) or len(raw_split) > MAX_SOURCES:
+                return _fail(f"{label}: production_split must be an object")
+            for k, sp in raw_split.items():
+                if k not in declared:
+                    return _fail(f"{label}: split for unknown source {k!r}")
+                if k not in production:
+                    return _fail(f"{label}.{k}: split without a total")
+                if not isinstance(sp, dict):
+                    return _fail(f"{label}.{k}: split must be an object")
+                legs: dict[str, float] = {}
+                for leg in ("arabica", "robusta"):
+                    v = sp.get(leg)
+                    if v is None:
+                        continue
+                    if isinstance(v, bool) or not isinstance(v, (int, float)) or not (0 < float(v) <= MAX_MBAGS):
+                        return _fail(f"{label}.{k}.{leg}: value {v!r} outside (0, {MAX_MBAGS}] M bags")
+                    legs[leg] = round(float(v), 2)
+                if not legs:
+                    return _fail(f"{label}.{k}: split needs arabica and/or robusta")
+                if len(legs) == 2 and abs(legs["arabica"] + legs["robusta"] - production[k]) > 0.051:
+                    return _fail(
+                        f"{label}.{k}: split {legs['arabica']}+{legs['robusta']} ≠ total {production[k]}")
+                split_clean[k] = legs
+
+        entry = {"season": label, "forecast": bool(s.get("forecast")), "production": production}
+        if split_clean:
+            entry["production_split"] = split_clean
+        if split_provided:
+            entry["_split_provided"] = True  # merge marker, stripped below
+        clean.append(entry)
     clean.sort(key=lambda s: _season_start_year(s["season"]) or 0)
 
     # Merge-preserve: a season keeps any sibling fields the UI doesn't manage.
     old_by_label = {s.get("season"): s for s in seed["seasons"] if isinstance(s, dict)}
     merged = []
     for s in clean:
+        split_provided = s.pop("_split_provided", False)
         prior = old_by_label.get(s["season"], {})
-        extras = {k: v for k, v in prior.items() if k not in ("season", "forecast", "production")}
-        merged.append({**s, **extras})
+        managed = {"season", "forecast", "production"}
+        if split_provided:
+            managed.add("production_split")
+        extras = {k: v for k, v in prior.items() if k not in managed}
+        row = {**s, **extras}
+        # A preserved (payload-untouched) split whose total changed is stale
+        # — drop just those entries so split and total can't disagree.
+        if not split_provided and isinstance(row.get("production_split"), dict):
+            pp = prior.get("production", {}) if isinstance(prior.get("production"), dict) else {}
+            kept = {k: v for k, v in row["production_split"].items()
+                    if k in row["production"] and row["production"].get(k) == pp.get(k)}
+            if kept:
+                row["production_split"] = kept
+            else:
+                row.pop("production_split", None)
+        merged.append(row)
     removed = [lbl for lbl in old_by_label if lbl not in seen]
 
     lines: list[str] = []
@@ -194,6 +253,14 @@ def main() -> int:
                 lines.append(f"  ~ {s['season']}.{k}: {pp.get(k)} → {s['production'].get(k)}")
         if bool(prior.get("forecast")) != s["forecast"]:
             lines.append(f"  ~ {s['season']}: forecast {bool(prior.get('forecast'))} → {s['forecast']}")
+        ps = prior.get("production_split") if isinstance(prior.get("production_split"), dict) else {}
+        ns = s.get("production_split", {})
+        for k in sorted(set(ps or {}) | set(ns)):
+            if (ps or {}).get(k) != ns.get(k):
+                new = ns.get(k)
+                desc = (f"A {new.get('arabica', '—')} / R {new.get('robusta', '—')}"
+                        if new else "removed")
+                lines.append(f"  ~ {s['season']}.{k} split: {desc}")
     for lbl in removed:
         lines.append(f"  − {lbl}: season removed")
 
