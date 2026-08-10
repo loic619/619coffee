@@ -117,6 +117,28 @@ def export_colombia(db) -> None:
         except Exception as e:
             print(f"  [colombia] PSD exports fallback error: {e}")
 
+    # ── 1b. Preserve the DANE/FNC monthly series (file-resident only) ────────
+    # The monthly rows exist ONLY in the shipped JSON: workflow 0.10 merges
+    # DANE XLS + FNC bulletin rows straight into colombia_supply.json and the
+    # DB never sees them. This rebuild used to clobber them to [] every night,
+    # blanking the Exports tab until the next 0.10 run — and, because the
+    # source sentinel verifies ingestion against this same file, re-triggering
+    # the full scrape day after day (observed Aug 2026).
+    try:
+        prior_doc = json.loads((OUT_DIR / "colombia_supply.json").read_text(encoding="utf-8"))
+        prior_monthly = ((prior_doc.get("exports") or {}).get("monthly")) or []
+    except Exception:
+        prior_monthly = []
+    if prior_monthly and not (exports_out or {}).get("monthly"):
+        if exports_out is None:
+            exports_out = {"unit": "thousand 60-kg bags", "annual": []}
+        exports_out["monthly"] = prior_monthly
+        exports_out["source"] = "DANE + FNC (monthly) · USDA PSD (annual)"
+        exports_out["last_updated"] = max(
+            str(exports_out.get("last_updated") or ""),
+            str(prior_monthly[-1].get("month") or ""),
+        )
+
     # ── 2. FNC precio interno ─────────────────────────────────────────────────
     fnc_out = None
     try:
