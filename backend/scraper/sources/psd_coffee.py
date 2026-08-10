@@ -92,6 +92,17 @@ _PRODUCERS = {
     "india":     ("india",),
     "peru":      ("peru",),
     "mexico":    ("mexico",),
+    # Aug 2026: extended so every balance-sheet origin has a USDA backbone
+    # in demand_stocks (feeds build_balance_sheets + the global S&D
+    # aggregation). Keys must match build_balance_sheets.ORIGINS. Aliases
+    # are generous because PSD's Country_Name spelling varies by vintage —
+    # a miss logs "no rows for producer X" loudly.
+    "guatemala":   ("guatemala",),
+    "nicaragua":   ("nicaragua",),
+    "china":       ("china", "china, peoples republic of"),
+    "ivory_coast": ("cote d'ivoire", "côte d'ivoire", "ivory coast"),
+    "costa_rica":  ("costa rica",),
+    "tanzania":    ("tanzania", "tanzania, united republic of"),
 }
 
 # PSD reports green coffee in thousands of 60-kg bags.
