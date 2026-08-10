@@ -49,16 +49,60 @@ interface SeasonIn {
   season?: unknown;
   forecast?: unknown;
   production?: unknown;
+  production_split?: unknown;
+}
+
+type SplitLegs = { arabica?: number; robusta?: number };
+interface SeasonOut {
+  season: string;
+  forecast: boolean;
+  production: Record<string, number>;
+  production_split?: Record<string, SplitLegs>;
+}
+
+/** Optional per-source arabica/robusta split ("by source" editor view).
+ *  A split must accompany a total for the same key; when both legs are
+ *  present they must sum to it (±0.05). Returns legs, null when the field
+ *  is absent, or an error string. */
+function validateSplit(
+  raw: unknown, label: string, production: Record<string, number>,
+): Record<string, SplitLegs> | null | string {
+  if (raw === undefined) return null;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return `${label}: production_split must be an object`;
+  }
+  const out: Record<string, SplitLegs> = {};
+  for (const [k, sp] of Object.entries(raw as Record<string, unknown>)) {
+    if (!SOURCE_KEY_RE.test(k)) return `${label}: bad split key ${JSON.stringify(k)}`;
+    if (!(k in production)) return `${label}.${k}: split without a total`;
+    if (!sp || typeof sp !== "object" || Array.isArray(sp)) return `${label}.${k}: split must be an object`;
+    const legs: SplitLegs = {};
+    for (const leg of ["arabica", "robusta"] as const) {
+      const v = (sp as Record<string, unknown>)[leg];
+      if (v === undefined || v === null) continue;
+      if (typeof v !== "number" || !Number.isFinite(v) || v <= 0 || v > MAX_MBAGS) {
+        return `${label}.${k}.${leg}: value must be in (0, ${MAX_MBAGS}] million bags`;
+      }
+      legs[leg] = v;
+    }
+    if (legs.arabica === undefined && legs.robusta === undefined) {
+      return `${label}.${k}: split needs arabica and/or robusta`;
+    }
+    if (legs.arabica !== undefined && legs.robusta !== undefined &&
+        Math.abs(legs.arabica + legs.robusta - production[k]) > 0.051) {
+      return `${label}.${k}: split does not sum to the total`;
+    }
+    out[k] = legs;
+  }
+  return out;
 }
 
 /** Returns a normalized seasons array, or a string describing the problem. */
-function validateSeasons(seasons: unknown):
-  | { season: string; forecast: boolean; production: Record<string, number> }[]
-  | string {
+function validateSeasons(seasons: unknown): SeasonOut[] | string {
   if (!Array.isArray(seasons) || seasons.length < 1 || seasons.length > 40) {
     return "seasons must be a list of 1–40 entries";
   }
-  const out: { season: string; forecast: boolean; production: Record<string, number> }[] = [];
+  const out: SeasonOut[] = [];
   const seen = new Set<string>();
   for (const raw of seasons as SeasonIn[]) {
     const label = raw?.season;
@@ -83,7 +127,16 @@ function validateSeasons(seasons: unknown):
       }
       production[k] = v;
     }
-    out.push({ season: label, forecast: raw?.forecast === true, production });
+    const split = validateSplit(raw?.production_split, label, production);
+    if (typeof split === "string") return split;
+    out.push({
+      season: label,
+      forecast: raw?.forecast === true,
+      production,
+      // Field presence is meaningful downstream (authoritative vs preserve),
+      // so an explicitly-sent empty split {} is forwarded as-is.
+      ...(split !== null ? { production_split: split } : {}),
+    });
   }
   return out;
 }

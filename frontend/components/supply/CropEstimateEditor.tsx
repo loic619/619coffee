@@ -3,11 +3,21 @@
 // the *_balance_sheet.json seeds behind the S&D card's equation strip,
 // production-spread block and table. A small ✎ button in the card header
 // opens a password-gated modal (the password is checked server-side by
-// /api/admin/crop-estimates and remembered for the browser session) where
-// the per-source numbers of any season can be edited, forecast flags
-// flipped, and the next crop year added. Saving dispatches a GitHub
-// workflow that validates + commits the JSON, so the edit lands in git
-// history and is live for everyone after the auto-redeploy (~2 min).
+// /api/admin/crop-estimates and remembered for the browser session).
+//
+// Two views:
+//   · By origin — one origin's grid: sources × seasons, forecast flags,
+//     add-next-season, add-source rows.
+//   · By source — one SOURCE across ALL origins × seasons, with an
+//     Arabica / Robusta split per cell (or just a Total when the source
+//     doesn't split). Built for the "one source document in hand"
+//     workflow: pick USDA/StoneX/…, key in every origin, save once.
+//     Totals land in `production` (what every chart reads); splits land
+//     in the advisory `production_split` field. Saving fans out one
+//     validated commit per changed origin.
+//
+// Saving dispatches a GitHub workflow that validates + commits the JSON,
+// so edits live in git history and go live after the auto-redeploy (~2 min).
 import { useEffect, useState } from "react";
 
 interface SourceDef { key: string; label: string; color: string }
@@ -21,6 +31,19 @@ interface SeasonCol {
   /** Added in this modal session — removable until saved. */
   isNew?: boolean;
 }
+
+interface SeedSeason {
+  season: string;
+  forecast?: boolean;
+  production?: Record<string, number>;
+  production_split?: Record<string, { arabica?: number; robusta?: number }>;
+}
+
+/** One origin's freshly-loaded seed, as the source view needs it. */
+interface OriginDoc { seasons: SeedSeason[]; sources: SourceDef[] }
+
+/** Source-view cell: arabica / robusta / total input strings. */
+interface SplitCell { a: string; r: string; t: string }
 
 // Colors auto-assigned to admin-added sources, first unused wins. Distinct
 // from the palette the seeds already use (blue/green/amber family).
@@ -47,6 +70,11 @@ const ORIGIN_FILES: Record<string, { file: string; subkey?: string; sources?: So
     ],
   },
 };
+const ORIGIN_ORDER = ["brazil", "colombia", "indonesia", "uganda", "vietnam"] as const;
+const ORIGIN_LABELS: Record<string, string> = {
+  brazil: "Brazil", colombia: "Colombia", indonesia: "Indonesia",
+  uganda: "Uganda", vietnam: "Vietnam",
+};
 
 const PW_KEY = "cropEditPw";
 
@@ -56,13 +84,38 @@ function nextSeasonLabel(last: string | undefined): string {
   return `${from}/${String(from + 1).slice(-2)}`;
 }
 
+const seasonSort = (a: string, b: string) =>
+  (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0);
+
+/** "" → null; positive finite number → value; anything else → NaN. */
+function parseCell(raw: string): number | null {
+  const t = raw.trim();
+  if (!t) return null;
+  const v = Number(t);
+  return Number.isFinite(v) && v > 0 ? v : NaN;
+}
+
+const round2 = (v: number) => Math.round(v * 100) / 100;
+
+function deriveKey(label: string): string {
+  return label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 20);
+}
+
+const currentStamp = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+};
+
 export default function CropEstimateEditor({ origin }: { origin: string }) {
   const cfg = ORIGIN_FILES[origin];
   const [open, setOpen] = useState(false);
+  const [view, setView] = useState<"origin" | "source">("origin");
   const [pw, setPw] = useState<string | null>(null);
   const [pwInput, setPwInput] = useState("");
   const [pwError, setPwError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+
+  // ── By-origin view state ──────────────────────────────────────────────
   const [sources, setSources] = useState<SourceDef[]>([]);
   // Admin-added source rows, kept separate so they're removable and only
   // the ones that end up carrying values get declared to the backend.
@@ -74,6 +127,21 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // ── By-source view state ──────────────────────────────────────────────
+  const [docs, setDocs] = useState<Record<string, OriginDoc> | null>(null);
+  const [docsError, setDocsError] = useState(false);
+  const [selSrc, setSelSrc] = useState<string>("usda");
+  const [xNewSources, setXNewSources] = useState<SourceDef[]>([]);
+  const [xSrcInput, setXSrcInput] = useState("");
+  const [xSrcError, setXSrcError] = useState<string | null>(null);
+  /** cellsBySource[sourceKey][origin][season] — edits cached per source so
+   *  switching sources doesn't lose work before saving. */
+  const [cellsBySource, setCellsBySource] = useState<Record<string, Record<string, Record<string, SplitCell>>>>({});
+  const [xSeasons, setXSeasons] = useState<string[]>([]);
+  const [xStatus, setXStatus] = useState<Record<string, string> | null>(null);
+  const [xSaving, setXSaving] = useState(false);
+  const [xDone, setXDone] = useState(false);
 
   // Session-remembered password (verified server-side before it's stored).
   useEffect(() => {
@@ -94,8 +162,7 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
         if (cancelled) return;
         const seed = cfg.subkey ? doc?.[cfg.subkey] : doc;
         const srcs: SourceDef[] = seed?.sources ?? cfg.sources ?? [];
-        const seasons: { season: string; forecast?: boolean; production?: Record<string, number> }[] =
-          seed?.seasons ?? [];
+        const seasons: SeedSeason[] = seed?.seasons ?? [];
         if (!srcs.length || !seasons.length) { setLoadError(true); return; }
         setSources(srcs);
         setCols(seasons.map(s => ({
@@ -111,13 +178,45 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
     return () => { cancelled = true; };
   }, [open, pw, cols, cfg]);
 
+  // Source view needs every origin's seed. Loaded once per modal open,
+  // fresh from the wire.
+  useEffect(() => {
+    if (!open || !pw || view !== "source" || docs) return;
+    let cancelled = false;
+    Promise.all(ORIGIN_ORDER.map(async (o) => {
+      const c = ORIGIN_FILES[o];
+      const r = await fetch(`/data/${c.file}?t=${Date.now()}`);
+      if (!r.ok) throw new Error(`${c.file}: ${r.status}`);
+      const doc = await r.json();
+      const seed = c.subkey ? doc?.[c.subkey] : doc;
+      return [o, {
+        seasons: (seed?.seasons ?? []) as SeedSeason[],
+        sources: (seed?.sources ?? c.sources ?? []) as SourceDef[],
+      }] as const;
+    }))
+      .then((pairs) => {
+        if (cancelled) return;
+        const d = Object.fromEntries(pairs);
+        setDocs(d);
+        setXSeasons(
+          Array.from(new Set(Object.values(d).flatMap(v => v.seasons.map(s => s.season)))).sort(seasonSort),
+        );
+      })
+      .catch(() => { if (!cancelled) setDocsError(true); });
+    return () => { cancelled = true; };
+  }, [open, pw, view, docs]);
+
   if (!cfg) return null;
 
   const close = () => {
-    if (saving) return;
-    setOpen(false); setCols(null); setSaved(false); setSaveError(null);
+    if (saving || xSaving) return;
+    setOpen(false); setView("origin");
+    setCols(null); setSaved(false); setSaveError(null);
     setPwInput(""); setPwError(null); setLoadError(false);
     setNewSources([]); setSrcInput(""); setSrcError(null);
+    setDocs(null); setDocsError(false); setCellsBySource({});
+    setXNewSources([]); setXSrcInput(""); setXSrcError(null);
+    setXStatus(null); setXDone(false);
   };
 
   const unlock = async () => {
@@ -142,18 +241,26 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
     }
   };
 
+  const postSave = (body: Record<string, unknown>) =>
+    fetch("/api/admin/crop-estimates", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "save", password: pw, ...body }),
+    });
+
+  // ── By-origin save ────────────────────────────────────────────────────
+  const allSources = [...sources, ...newSources];
+
   const save = async () => {
     if (!cols || !pw || saving) return;
     setSaving(true); setSaveError(null);
-    // Build the payload: drop empty cells, require ≥1 value per season.
     const seasons = [];
     for (const c of cols) {
       const production: Record<string, number> = {};
       for (const [k, raw] of Object.entries(c.values)) {
-        const t = raw.trim();
-        if (!t) continue;
-        const v = Number(t);
-        if (!Number.isFinite(v) || v <= 0) {
+        const v = parseCell(raw);
+        if (v === null) continue;
+        if (Number.isNaN(v)) {
           setSaveError(`${c.season} · ${k}: "${raw}" is not a positive number.`);
           setSaving(false);
           return;
@@ -167,26 +274,19 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
       }
       seasons.push({ season: c.season, forecast: c.forecast, production });
     }
-    const now = new Date();
-    const updated = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     // Only declare new sources that actually carry a value somewhere — an
     // added-then-abandoned row silently disappears instead of littering
     // the legend (the backend enforces the same rule).
     const usedKeys = new Set(seasons.flatMap(s => Object.keys(s.production)));
     const declaredNew = newSources.filter(s => usedKeys.has(s.key));
     try {
-      const res = await fetch("/api/admin/crop-estimates", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "save", password: pw, origin, updated, seasons,
-          ...(declaredNew.length ? { sources: declaredNew } : {}),
-        }),
+      const res = await postSave({
+        origin, updated: currentStamp(), seasons,
+        ...(declaredNew.length ? { sources: declaredNew } : {}),
       });
       if (res.ok) {
         setSaved(true);
       } else if (res.status === 401) {
-        // Session password went stale (rotated) — back to the prompt.
         setPw(null);
         try { sessionStorage.removeItem(PW_KEY); } catch { /* fine */ }
         setPwError("Password no longer valid — enter it again.");
@@ -200,8 +300,6 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
       setSaving(false);
     }
   };
-
-  const allSources = [...sources, ...newSources];
 
   const addSeason = () => {
     if (!cols) return;
@@ -219,7 +317,7 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
     const label = srcInput.trim();
     if (!label) return;
     if (label.length > 24) { setSrcError("Name too long (max 24 chars)."); return; }
-    const key = label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 20);
+    const key = deriveKey(label);
     if (!key) { setSrcError("Name needs at least one letter or digit."); return; }
     if (allSources.some(s => s.key === key)) { setSrcError(`"${label}" already exists.`); return; }
     const used = new Set(allSources.map(s => s.color));
@@ -230,7 +328,6 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
 
   const removeSource = (key: string) => {
     setNewSources(newSources.filter(s => s.key !== key));
-    // Drop any values already typed into the removed row.
     setCols(cols?.map(c => {
       if (!(key in c.values)) return c;
       const rest = { ...c.values };
@@ -238,6 +335,173 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
       return { ...c, values: rest };
     }) ?? null);
   };
+
+  // ── By-source helpers ─────────────────────────────────────────────────
+  const unionSources: SourceDef[] = (() => {
+    const seen = new Map<string, SourceDef>();
+    for (const o of ORIGIN_ORDER) {
+      for (const s of docs?.[o]?.sources ?? []) {
+        if (!seen.has(s.key)) seen.set(s.key, s);
+      }
+    }
+    for (const s of xNewSources) if (!seen.has(s.key)) seen.set(s.key, s);
+    return Array.from(seen.values());
+  })();
+  const selSrcDef = unionSources.find(s => s.key === selSrc);
+
+  /** Grid for the selected source: stored edits win, else seed values. */
+  const cellFor = (o: string, season: string): SplitCell => {
+    const stored = cellsBySource[selSrc]?.[o]?.[season];
+    if (stored) return stored;
+    const s = docs?.[o]?.seasons.find(x => x.season === season);
+    const t = s?.production?.[selSrc];
+    const sp = s?.production_split?.[selSrc];
+    return {
+      a: sp?.arabica != null ? String(sp.arabica) : "",
+      r: sp?.robusta != null ? String(sp.robusta) : "",
+      t: t != null ? String(t) : "",
+    };
+  };
+
+  const setCell = (o: string, season: string, patch: Partial<SplitCell>) => {
+    setCellsBySource(prev => ({
+      ...prev,
+      [selSrc]: {
+        ...prev[selSrc],
+        [o]: { ...prev[selSrc]?.[o], [season]: { ...cellFor(o, season), ...patch } },
+      },
+    }));
+  };
+
+  const addXSeason = () => {
+    const label = nextSeasonLabel(xSeasons[xSeasons.length - 1]);
+    if (!xSeasons.includes(label)) setXSeasons([...xSeasons, label]);
+  };
+
+  const addXSource = () => {
+    const label = xSrcInput.trim();
+    if (!label) return;
+    if (label.length > 24) { setXSrcError("Name too long (max 24 chars)."); return; }
+    const key = deriveKey(label);
+    if (!key) { setXSrcError("Name needs at least one letter or digit."); return; }
+    if (unionSources.some(s => s.key === key)) {
+      setSelSrc(key); setXSrcInput(""); setXSrcError(null);
+      return;
+    }
+    const used = new Set(unionSources.map(s => s.color));
+    const color = NEW_SOURCE_COLORS.find(c => !used.has(c)) ?? NEW_SOURCE_COLORS[0];
+    setXNewSources([...xNewSources, { key, label, color }]);
+    setSelSrc(key); setXSrcInput(""); setXSrcError(null);
+  };
+
+  /** Effective total for a cell: A+R when either leg is set, else T. */
+  const cellTotal = (c: SplitCell): number | null => {
+    const a = parseCell(c.a), r = parseCell(c.r);
+    if (Number.isNaN(a) || Number.isNaN(r)) return NaN;
+    if (a !== null || r !== null) return round2((a ?? 0) + (r ?? 0));
+    const t = parseCell(c.t);
+    return t;
+  };
+
+  const saveSource = async () => {
+    if (!docs || !pw || xSaving || !selSrcDef) return;
+    setXSaving(true); setXStatus(null);
+
+    // Build one payload per origin whose values for this source changed.
+    const payloads: { origin: string; body: Record<string, unknown> }[] = [];
+    for (const o of ORIGIN_ORDER) {
+      const d = docs[o];
+      const bySeason = new Map(d.seasons.map(s => [s.season, s]));
+      const labels = Array.from(new Set(d.seasons.map(s => s.season).concat(xSeasons))).sort(seasonSort);
+      let changed = false;
+      const seasonsOut = [];
+      for (const label of labels) {
+        const prior = bySeason.get(label);
+        const cell = cellFor(o, label);
+        const total = cellTotal(cell);
+        if (total !== null && Number.isNaN(total)) {
+          setXStatus({ [o]: `✗ ${label}: not a positive number` });
+          setXSaving(false);
+          return;
+        }
+        const a = parseCell(cell.a), r = parseCell(cell.r);
+        const production = { ...(prior?.production ?? {}) };
+        const splitAll = { ...(prior?.production_split ?? {}) };
+        if (total !== null) production[selSrc] = total;
+        else delete production[selSrc];
+        if (a !== null || r !== null) {
+          splitAll[selSrc] = {
+            ...(a !== null ? { arabica: a } : {}),
+            ...(r !== null ? { robusta: r } : {}),
+          };
+        } else {
+          delete splitAll[selSrc];
+        }
+        const priorTotal = prior?.production?.[selSrc];
+        const priorSplit = prior?.production_split?.[selSrc];
+        if (priorTotal !== total && !(priorTotal === undefined && total === null)) changed = true;
+        if (JSON.stringify(priorSplit ?? null) !==
+            JSON.stringify(splitAll[selSrc] ?? null)) changed = true;
+        if (!Object.keys(production).length) continue; // season existed only for this source
+        seasonsOut.push({
+          season: label,
+          forecast: prior ? !!prior.forecast : true,
+          production,
+          // Always sent in source view — authoritative, so clears stick.
+          production_split: splitAll,
+        });
+      }
+      if (!changed || !seasonsOut.length) continue;
+      const isDeclared = d.sources.some(s => s.key === selSrc);
+      payloads.push({
+        origin: o,
+        body: {
+          origin: o, updated: currentStamp(), seasons: seasonsOut,
+          ...(!isDeclared ? { sources: [selSrcDef] } : {}),
+        },
+      });
+    }
+
+    if (!payloads.length) {
+      setXStatus({ _: "Nothing changed." });
+      setXSaving(false);
+      return;
+    }
+
+    const status: Record<string, string> = Object.fromEntries(
+      payloads.map(p => [p.origin, "saving…"]));
+    setXStatus({ ...status });
+    let allOk = true;
+    for (const p of payloads) {
+      try {
+        const res = await postSave(p.body);
+        if (res.ok) {
+          status[p.origin] = "✓ committed";
+        } else if (res.status === 401) {
+          setPw(null);
+          try { sessionStorage.removeItem(PW_KEY); } catch { /* fine */ }
+          status[p.origin] = "✗ password no longer valid";
+          allOk = false;
+          break;
+        } else {
+          const detail = await res.json().catch(() => null);
+          status[p.origin] = `✗ ${res.status}${detail?.detail ? `: ${detail.detail}` : ""}`;
+          allOk = false;
+        }
+      } catch {
+        status[p.origin] = "✗ network error";
+        allOk = false;
+      }
+      setXStatus({ ...status });
+    }
+    setXSaving(false);
+    if (allOk) setXDone(true);
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────
+  const inputCls =
+    "w-14 bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-right text-slate-200 " +
+    "focus:outline-none focus:border-slate-500 placeholder:text-slate-700";
 
   return (
     <>
@@ -252,14 +516,31 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={close}>
           <div
-            className="bg-slate-800 border border-slate-600 rounded-lg p-4 w-full max-w-xl max-h-[85vh] overflow-y-auto space-y-3"
+            className={`bg-slate-800 border border-slate-600 rounded-lg p-4 w-full ${view === "source" ? "max-w-4xl" : "max-w-xl"} max-h-[85vh] overflow-y-auto space-y-3`}
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-baseline justify-between gap-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="text-[10px] text-slate-300 uppercase tracking-wide font-bold">
-                Edit crop estimates · {origin}
+                Edit crop estimates{view === "origin" ? ` · ${ORIGIN_LABELS[origin] ?? origin}` : ""}
               </div>
-              <div className="text-[8px] text-slate-500">million 60-kg bags</div>
+              <div className="flex items-center gap-2">
+                {pw && (
+                  <div className="inline-flex rounded border border-slate-700 overflow-hidden">
+                    {(["origin", "source"] as const).map(v => (
+                      <button key={v} onClick={() => setView(v)}
+                        className={`text-[9px] px-2 py-0.5 transition-colors ${
+                          view === v ? "bg-slate-700 text-slate-100" : "text-slate-500 hover:text-slate-300"
+                        }`}
+                        title={v === "source"
+                          ? "One source across every origin and year (with A/R split)"
+                          : "This origin's sources and seasons"}>
+                        {v === "origin" ? "By origin" : "By source"}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="text-[8px] text-slate-500">million 60-kg bags</div>
+              </div>
             </div>
 
             {!pw ? (
@@ -285,6 +566,174 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
                 </div>
                 {pwError && <div className="text-[9px] text-red-400">{pwError}</div>}
               </div>
+            ) : view === "source" ? (
+              /* ── By source: every origin × season for one source ─────── */
+              xDone ? (
+                <div className="space-y-3">
+                  <div className="text-[10px] text-emerald-400 font-semibold">✓ Saved.</div>
+                  <div className="text-[9px] text-slate-400 leading-relaxed space-y-0.5">
+                    {Object.entries(xStatus ?? {}).map(([o, st]) => (
+                      <div key={o}>{ORIGIN_LABELS[o] ?? o}: {st}</div>
+                    ))}
+                  </div>
+                  <div className="text-[9px] text-slate-400 leading-relaxed">
+                    One commit per origin is being pushed and redeployed — live for
+                    everyone in ~2 minutes.
+                  </div>
+                  <div className="flex justify-end">
+                    <button onClick={close} className="text-[10px] px-3 py-1 rounded bg-slate-700 text-slate-200 hover:bg-slate-600 transition-colors">
+                      Close
+                    </button>
+                  </div>
+                </div>
+              ) : docsError ? (
+                <div className="text-[9px] text-red-400">Could not load the estimate files.</div>
+              ) : !docs ? (
+                <div className="text-[9px] text-slate-500 animate-pulse py-4 text-center">Loading all origins…</div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <select
+                      value={selSrc}
+                      onChange={e => setSelSrc(e.target.value)}
+                      className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[10px] text-slate-200 focus:outline-none focus:border-slate-500"
+                    >
+                      {unionSources.map(s => (
+                        <option key={s.key} value={s.key}>{s.label}</option>
+                      ))}
+                    </select>
+                    {selSrcDef && (
+                      <span className="text-[9px] font-bold" style={{ color: selSrcDef.color }}>
+                        ● {selSrcDef.label}
+                      </span>
+                    )}
+                    <div className="flex items-center gap-1 ml-auto">
+                      <input
+                        type="text"
+                        value={xSrcInput}
+                        onChange={e => { setXSrcInput(e.target.value); setXSrcError(null); }}
+                        onKeyDown={e => { if (e.key === "Enter") addXSource(); }}
+                        placeholder="New source (e.g. StoneX)"
+                        className="w-36 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[9px] text-slate-200 focus:outline-none focus:border-slate-500 placeholder:text-slate-600"
+                      />
+                      <button
+                        onClick={addXSource}
+                        disabled={!xSrcInput.trim()}
+                        className="text-[9px] px-2 py-1 rounded border border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-500 disabled:opacity-40 transition-colors whitespace-nowrap"
+                      >
+                        + Add source
+                      </button>
+                    </div>
+                  </div>
+                  {xSrcError && <div className="text-[9px] text-red-400">{xSrcError}</div>}
+
+                  <div className="overflow-x-auto">
+                    <table className="text-[9px] font-mono w-full">
+                      <thead>
+                        <tr className="text-slate-500">
+                          <th className="text-left py-1 pr-2 font-medium sticky left-0 bg-slate-800">Origin</th>
+                          <th className="text-left py-1 pr-2 font-medium"></th>
+                          {xSeasons.map(season => (
+                            <th key={season} className="px-1 py-1 font-medium text-center whitespace-nowrap text-slate-300">
+                              {season}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ORIGIN_ORDER.flatMap(o => {
+                          const rows = [
+                            { leg: "a" as const, name: "Arabica", cls: "text-amber-400" },
+                            { leg: "r" as const, name: "Robusta", cls: "text-emerald-400" },
+                            { leg: "t" as const, name: "Total",   cls: "text-slate-300" },
+                          ];
+                          return rows.map((row, ri) => (
+                            <tr key={`${o}-${row.leg}`}
+                              className={ri === 0 ? "border-t-2 border-slate-600/70" : "border-t border-slate-700/30"}>
+                              <td className="py-0.5 pr-2 font-bold text-slate-200 whitespace-nowrap sticky left-0 bg-slate-800">
+                                {ri === 0 ? (ORIGIN_LABELS[o] ?? o) : ""}
+                              </td>
+                              <td className={`py-0.5 pr-2 ${row.cls}`}>{row.name}</td>
+                              {xSeasons.map(season => {
+                                const cell = cellFor(o, season);
+                                if (row.leg === "t") {
+                                  const hasSplit = cell.a.trim() !== "" || cell.r.trim() !== "";
+                                  const total = cellTotal(cell);
+                                  return (
+                                    <td key={season} className="px-1 py-0.5 text-center">
+                                      {hasSplit ? (
+                                        <span className="inline-block w-14 text-right pr-1 text-slate-400"
+                                          title="Computed from Arabica + Robusta">
+                                          {total !== null && !Number.isNaN(total) ? total : "–"}
+                                        </span>
+                                      ) : (
+                                        <input
+                                          type="text" inputMode="decimal"
+                                          value={cell.t}
+                                          onChange={e => setCell(o, season, { t: e.target.value })}
+                                          placeholder="—"
+                                          className={inputCls}
+                                        />
+                                      )}
+                                    </td>
+                                  );
+                                }
+                                return (
+                                  <td key={season} className="px-1 py-0.5 text-center">
+                                    <input
+                                      type="text" inputMode="decimal"
+                                      value={cell[row.leg]}
+                                      onChange={e => setCell(o, season, { [row.leg]: e.target.value })}
+                                      placeholder="—"
+                                      className={inputCls}
+                                    />
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ));
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      onClick={addXSeason}
+                      className="text-[9px] px-2 py-1 rounded border border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-500 transition-colors"
+                    >
+                      + Add {nextSeasonLabel(xSeasons[xSeasons.length - 1])}
+                    </button>
+                    <div className="flex items-center gap-2">
+                      <button onClick={close} disabled={xSaving}
+                        className="text-[10px] px-3 py-1 rounded text-slate-400 hover:text-slate-200 disabled:opacity-50 transition-colors">
+                        Cancel
+                      </button>
+                      <button onClick={saveSource} disabled={xSaving}
+                        className="text-[10px] px-3 py-1 rounded bg-emerald-700 text-emerald-50 hover:bg-emerald-600 disabled:opacity-50 transition-colors">
+                        {xSaving ? "Saving…" : "Save all origins"}
+                      </button>
+                    </div>
+                  </div>
+                  {xStatus && !xDone && (
+                    <div className="text-[9px] space-y-0.5">
+                      {Object.entries(xStatus).map(([o, st]) => (
+                        <div key={o} className={st.startsWith("✗") ? "text-red-400" : "text-slate-400"}>
+                          {o === "_" ? st : `${ORIGIN_LABELS[o] ?? o}: ${st}`}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {pwError && <div className="text-[9px] text-red-400">{pwError}</div>}
+                  <div className="text-[8px] text-slate-600 leading-relaxed">
+                    Enter Arabica + Robusta (Total computes itself) or just a Total when the
+                    source doesn&apos;t split. Empty cells mean no estimate. Typing a value in a
+                    season an origin doesn&apos;t have yet creates it (as a forecast). Edits are
+                    kept per source while the modal is open — switch sources freely, then
+                    Save commits one change per origin.
+                  </div>
+                </div>
+              )
             ) : saved ? (
               <div className="space-y-3">
                 <div className="text-[10px] text-emerald-400 font-semibold">✓ Saved.</div>
@@ -360,7 +809,7 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
                                 onChange={e => setCols(cols.map((x, j) =>
                                   j === i ? { ...x, values: { ...x.values, [src.key]: e.target.value } } : x))}
                                 placeholder="—"
-                                className="w-14 bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-right text-slate-200 focus:outline-none focus:border-slate-500 placeholder:text-slate-700"
+                                className={inputCls}
                               />
                             </td>
                           ))}
