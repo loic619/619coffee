@@ -1,0 +1,43 @@
+{
+  "unit": "BRL/saca_60kg",
+  "source": "B3 — Contrato Futuro de Café Conilon (CNL), DerivativeQuotation API",
+  "note": "front_price = nearest live contract's daily settlement (ajuste); history accumulates daily — B3 exposes no history endpoint.",
+  "history": [
+    {
+      "date": "2026-08-11",
+      "front_month": "Sep '26",
+      "front_price": 1076.54,
+      "contracts": [
+        {
+          "month": "Sep '26",
+          "symb": "CNLU26",
+          "price": 1076.54,
+          "oi": 20,
+          "expiry": "2026-09-22"
+        },
+        {
+          "month": "Nov '26",
+          "symb": "CNLX26",
+          "price": 1072.5,
+          "oi": null,
+          "expiry": "2026-11-19"
+        },
+        {
+          "month": "Mar '27",
+          "symb": "CNLH27",
+          "price": 1072.5,
+          "oi": null,
+          "expiry": "2027-03-22"
+        },
+        {
+          "month": "May '27",
+          "symb": "CNLK27",
+          "price": 1072.5,
+          "oi": null,
+          "expiry": "2027-05-20"
+        }
+      ]
+    }
+  ],
+  "updated": "2026-08-11T11:01:23.321163+00:00"
+}
