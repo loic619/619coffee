@@ -744,7 +744,13 @@ def export_vn_export_by_destination() -> None:
     whose overlap months agree with the 5X within ~0-12%. XLSX labels are
     harmonized to the 5X naming so YoY windows read across the boundary."""
     try:
-        seed_path = ROOT / "seed" / "vn_customs_by_country.json"
+        # ROOT is the REPO root (exporters/base.py), so the harvester's seed
+        # lives under backend/. The old ROOT/"seed" path pointed at a
+        # nonexistent repo-root/seed dir — this exporter had been printing
+        # FAILED (non-fatally) on every run while the committed JSON quietly
+        # froze at its last good state (caught 2026-08-11 by the sentinel's
+        # ingestion check when July's 5X harvest wouldn't land).
+        seed_path = ROOT / "backend" / "seed" / "vn_customs_by_country.json"
         seed = json.loads(seed_path.read_text(encoding="utf-8"))
         month_keys = sorted(seed.get("months", {}))
         countries: dict[str, dict[str, float]] = {}
