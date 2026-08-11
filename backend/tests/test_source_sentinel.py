@@ -118,3 +118,12 @@ def test_days_past_window_overdue_paths():
     assert ss._days_past_window(dt.date(2026, 8, 30), "2026-08", 8) == 0
     # Two months behind: pending month is the one after confirmed → even longer overdue.
     assert ss._days_past_window(dt.date(2026, 9, 10), "2026-07", 8) == (dt.date(2026, 9, 10) - dt.date(2026, 8, 8)).days
+
+
+def test_vn5x_urls_mirror_2x_with_5x_stem():
+    import datetime as dt
+    pub = dt.date(2026, 8, 6)
+    v = ss._vn5x_urls(pub)
+    assert len(v) == 6
+    assert v[0] == "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/8/1/2026-t7-5x(ta-sb).pdf"
+    assert "2025-t12-5x" in ss._vn5x_urls(dt.date(2026, 1, 10))[0]  # year wrap

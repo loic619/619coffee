@@ -184,6 +184,16 @@ def _vn_urls(pub: dt.date) -> list[str]:
     ]
 
 
+def _vn5x_urls(pub: dt.date) -> list[str]:
+    """Same drop pattern as the 2x, different stem: the 5x '(ta-sb)' by-country
+    matrix behind the export-by-destination series."""
+    dy, dm = _shift_month(pub.year, pub.month, -1)  # M+1 publication
+    return [
+        f"https://files.customs.gov.vn/CustomsCMS/TONG_CUC/{pub.year}/{pub.month}/{d}/{dy}-t{dm}-5x(ta-sb).pdf"
+        for d in range(1, min(pub.day, 28) + 1)
+    ]
+
+
 SOURCES: list[dict] = [
     {
         "key": "cecafe", "label": "Cecafé monthly export report",
@@ -239,6 +249,12 @@ SOURCES: list[dict] = [
         "workflows": ["scraper-monthly-vn-exports.yml", "scraper-monthly-vn-fertilizer.yml"],
         # Exports cache is the sharp signal; the fertilizer file shares the drop.
         "verify": {"kind": "month_in_file", "file": "backend/scraper/cache/vn_coffee_export.json", "lag": 1},
+    },
+    {
+        "key": "vn_customs_dest", "label": "Vietnam Customs by-destination (5X)",
+        "window_start": 8, "kind": "head_month", "urls": _vn5x_urls,
+        "workflows": ["vn-customs-by-country.yml"],
+        "verify": {"kind": "month_in_file", "file": "frontend/public/data/vn_export_by_destination.json", "lag": 1},
     },
 ]
 
@@ -369,7 +385,8 @@ def run(today: dt.date, dry: bool) -> int:
         if st and (v := st.get("verify")) and v.get("status") == "pending":
             if check_ingested(v):
                 v["status"] = "ok"
-                verified.append(src["label"])
+                what = v.get("expected") or ", ".join(v.get("keys", []))
+                verified.append(f"{src['label']} — {what} now in the data")
                 print(f"[{key}] ingestion VERIFIED ({v.get('expected') or ','.join(v.get('keys', []))})")
             else:
                 disp = _parse_any_ts(v["dispatched_at"])
@@ -408,7 +425,8 @@ def run(today: dt.date, dry: bool) -> int:
             entry["last_found"] = now_iso
             print(f"[{key}] NEW RELEASE detected ({src['label']}) → dispatching {src['workflows']}")
             all_ok = all(dispatch_workflow(wf, dry) for wf in src["workflows"])
-            fired.append(src["label"] + ("" if all_ok else " (dispatch FAILED)"))
+            fired.append(f"{src['label']} — {expected} publication"
+                         + ("" if all_ok else " (dispatch FAILED)"))
             entry["verify"] = build_verify(src, expected, now_iso)
         else:
             late = today.day < src["window_start"] or confirmed not in (expected, _prev_period(expected))
@@ -431,9 +449,10 @@ def run(today: dt.date, dry: bool) -> int:
 
     lines = []
     if fired:
-        lines.append("📡 new release detected →\n" + "\n".join(f"• {f}" for f in fired))
+        lines.append("📡 NEW RELEASE — scraper dispatched:\n" + "\n".join(f"• {f}" for f in fired))
     if verified:
-        lines.append("✅ ingestion confirmed →\n" + "\n".join(f"• {v}" for v in verified))
+        lines.append("✅ ingestion check passed (follow-up on an earlier dispatch — no new fetch):\n"
+                     + "\n".join(f"• {v}" for v in verified))
     if alerts:
         lines.append("⚠️ needs a look →\n" + "\n".join(f"• {a}" for a in alerts))
     if lines:

@@ -14,15 +14,9 @@ name: "0.9 – VN Customs by-country (5X/5N) probe / backfill"
 # backend/seed/vn_customs_by_country.json.
 
 on:
-  schedule:
-    # 12th + 20th monthly: the English preliminary ('ta-sb') 5X publishes
-    # ~10th–14th for the prior month, a few days AFTER the Vietnamese 2x
-    # bulletin the vn_coffee_export job reads — the first cron catches the
-    # normal window, the second catches late publications. The backfill is
-    # resumable (merges over the seed, skips months already on file), so a
-    # 4-month lookback also self-heals holes like 2026-05, which was missed
-    # forever while this workflow was dispatch-only.
-    - cron: '0 3 12,20 * *'
+  # Cron removed 2026-08: triggered by '1.17 - Source Sentinel' when the monthly
+  # 5x(ta-sb) bulletin appears (probes files.customs.gov.vn daily in the release
+  # window). Manual dispatch remains; the sentinel verifies ingestion afterwards.
   workflow_dispatch:
     inputs:
       mode:
