@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer,
+  ResponsiveContainer, LabelList,
 } from "recharts";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { COUNTRY_HUB, HUB_COLORS, HUB_ORDER } from "../IndonesiaExports/constants";
@@ -260,6 +260,9 @@ export default function DestinationChart() {
           <Bar dataKey="prev"    name="prev"    fill={SLATE} opacity={0.55} />
           <Bar dataKey="current" name="current" radius={[0, 3, 3, 0]}>
             {rows.map((r, i) => <Cell key={i} fill={barFill(r)} />)}
+            <LabelList dataKey="current" position="right"
+              formatter={(v: unknown) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? `${n}kt` : ""; }}
+              style={{ fill: "#94a3b8", fontSize: 8.5 }} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

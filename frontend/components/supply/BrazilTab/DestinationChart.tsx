@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer,
+  ResponsiveContainer, LabelList,
 } from "recharts";
 import {
   DEST_WINDOWS, EMPTY_CY, GREEN, HUB_COLORS, HUB_ORDER, SLATE,
@@ -20,6 +20,12 @@ const SPLIT_SERIES = [
   ...TYPE_SERIES.map(t => ({ key: `t_${t.key}`, label: t.label, color: t.color })),
   { key: "t_unsplit", label: "Unsplit", color: "#64748b" },
 ];
+
+// End-of-bar volume label (values are already in thousand tons).
+const ktLabel = (v: unknown) => {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? `${n}kt` : "";
+};
 
 export default function DestinationChart({
   byCountry, byCountryPrev,
@@ -336,11 +342,20 @@ export default function DestinationChart({
           {showSplit ? (
             SPLIT_SERIES.map((s, i) => (
               <Bar key={s.key} dataKey={s.key} name={s.key} stackId="cur" fill={s.color}
-                radius={i === SPLIT_SERIES.length - 1 ? [0, 3, 3, 0] : undefined} />
+                radius={i === SPLIT_SERIES.length - 1 ? [0, 3, 3, 0] : undefined}>
+                {/* Stack total at the end of the bar — anchored on the last
+                    segment so it sits past the full stack. */}
+                {i === SPLIT_SERIES.length - 1 && (
+                  <LabelList dataKey="current" position="right" formatter={ktLabel}
+                    style={{ fill: "#94a3b8", fontSize: 8.5 }} />
+                )}
+              </Bar>
             ))
           ) : (
             <Bar dataKey="current" name="current" radius={[0, 3, 3, 0]}>
               {rows.map((r, i) => <Cell key={i} fill={barFill(r)} />)}
+              <LabelList dataKey="current" position="right" formatter={ktLabel}
+                style={{ fill: "#94a3b8", fontSize: 8.5 }} />
             </Bar>
           )}
         </BarChart>

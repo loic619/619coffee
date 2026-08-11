@@ -8,7 +8,7 @@
 import { useMemo, useState } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, Legend,
-  ResponsiveContainer,
+  ResponsiveContainer, LabelList,
 } from "recharts";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { COUNTRY_HUB, HUB_COLORS, HUB_ORDER } from "../IndonesiaExports/constants";
@@ -22,6 +22,12 @@ const GREEN = "#22c55e";
 const SLATE = "#64748b";
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// End-of-bar volume label (values are already in thousand tons).
+const ktLabel = (v: unknown) => {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? `${n}kt` : "";
+};
 
 const SPLIT_SERIES = [
   { key: "t_robusta", label: "Robusta", color: "#f59e0b" },
@@ -287,11 +293,19 @@ export default function UgandaDestinationChart({ monthly }: { monthly: UgandaMon
           {showSplit ? (
             SPLIT_SERIES.map((s, i) => (
               <Bar key={s.key} dataKey={s.key} name={s.key} stackId="cur" fill={s.color}
-                radius={i === SPLIT_SERIES.length - 1 ? [0, 3, 3, 0] : undefined} />
+                radius={i === SPLIT_SERIES.length - 1 ? [0, 3, 3, 0] : undefined}>
+                {/* Stack total at the end of the bar. */}
+                {i === SPLIT_SERIES.length - 1 && (
+                  <LabelList dataKey="current" position="right" formatter={ktLabel}
+                    style={{ fill: "#94a3b8", fontSize: 8.5 }} />
+                )}
+              </Bar>
             ))
           ) : (
             <Bar dataKey="current" name="current" radius={[0, 3, 3, 0]}>
               {rows.map((r, i) => <Cell key={i} fill={barFill(r)} />)}
+              <LabelList dataKey="current" position="right" formatter={ktLabel}
+                style={{ fill: "#94a3b8", fontSize: 8.5 }} />
             </Bar>
           )}
         </BarChart>
