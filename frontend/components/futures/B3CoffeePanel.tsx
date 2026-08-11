@@ -29,6 +29,12 @@ interface B3Doc {
   history?: B3Entry[];
 }
 
+// brazil_conilon_vitoria.json — physical conilon at the CNL delivery point
+// (noticiasagricolas, backfilled to 2022): overlays deep history behind the
+// young futures series.
+interface PhysEntry { date: string; benchmark: number | null }
+interface PhysDoc   { source?: string; history?: PhysEntry[] }
+
 type Window = "1M" | "3M" | "6M" | "1Y" | "2Y";
 const WINDOW_DAYS: Record<Window, number> = { "1M": 30, "3M": 90, "6M": 180, "1Y": 365, "2Y": 730 };
 
@@ -38,20 +44,35 @@ function unitSymbol(unit?: string): string {
   return unit?.startsWith("BRL") ? "R$" : "US$";
 }
 
-function MarketCard({ title, doc, color, window: win }: {
+function MarketCard({ title, doc, color, window: win, phys, physName }: {
   title: string; doc: B3Doc | null; color: string; window: Window;
+  phys?: PhysDoc | null; physName?: string;
 }) {
   const hist = useMemo(() => doc?.history ?? [], [doc]);
   const sym = unitSymbol(doc?.unit);
 
+  // Union of futures + physical dates in-window; each row carries whichever
+  // series has a value that day so the deep physical history draws even where
+  // the young futures series has no points yet.
   const series = useMemo(() => {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - WINDOW_DAYS[win]);
     const cutoffIso = cutoff.toISOString().slice(0, 10);
-    return hist
-      .filter(e => e.date >= cutoffIso && e.front_price != null)
-      .map(e => ({ date: e.date, label: fmtDateLabel(e.date), price: e.front_price as number }));
-  }, [hist, win]);
+    const rows = new Map<string, { date: string; label: string; price?: number; phys?: number }>();
+    for (const e of hist) {
+      if (e.date >= cutoffIso && e.front_price != null) {
+        rows.set(e.date, { date: e.date, label: fmtDateLabel(e.date), price: e.front_price });
+      }
+    }
+    for (const p of phys?.history ?? []) {
+      if (p.date >= cutoffIso && p.benchmark != null) {
+        const row = rows.get(p.date) ?? { date: p.date, label: fmtDateLabel(p.date) };
+        row.phys = p.benchmark;
+        rows.set(p.date, row);
+      }
+    }
+    return Array.from(rows.values()).sort((a, b) => a.date.localeCompare(b.date));
+  }, [hist, phys, win]);
 
   const last = hist.length ? hist[hist.length - 1] : null;
   const prev = hist.length > 1 ? hist[hist.length - 2] : null;
@@ -59,7 +80,7 @@ function MarketCard({ title, doc, color, window: win }: {
     ? last.front_price - prev.front_price : null;
   const chgPct = chg != null && prev?.front_price ? (chg / prev.front_price) * 100 : null;
 
-  if (!last) {
+  if (!last && series.length === 0) {
     return (
       <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
         <div className="text-slate-200 text-[11px] font-bold mb-1">{title}</div>
@@ -70,29 +91,31 @@ function MarketCard({ title, doc, color, window: win }: {
     );
   }
 
-  const showOi = last.contracts.some(c => c.oi != null);
+  const showOi = (last?.contracts ?? []).some(c => c.oi != null);
 
   return (
     <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="text-slate-200 text-[11px] font-bold">{title}</div>
-          <div className="text-[9px] text-slate-500">{doc?.source} · {last.date}</div>
+          <div className="text-[9px] text-slate-500">{doc?.source}{last ? ` · ${last.date}` : ""}</div>
         </div>
-        <div className="text-right">
-          <div className="text-base font-bold font-mono text-slate-100">
-            {sym} {last.front_price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            <span className="text-[9px] text-slate-500 font-normal"> /saca</span>
+        {last && (
+          <div className="text-right">
+            <div className="text-base font-bold font-mono text-slate-100">
+              {sym} {last.front_price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <span className="text-[9px] text-slate-500 font-normal"> /saca</span>
+            </div>
+            <div className="text-[10px] font-mono">
+              <span className="text-slate-400">{last.front_month}</span>
+              {chg != null && (
+                <span className={chg >= 0 ? "text-emerald-400" : "text-red-400"}>
+                  {"  "}{chg >= 0 ? "+" : ""}{chg.toFixed(2)}{chgPct != null ? ` (${chgPct >= 0 ? "+" : ""}${chgPct.toFixed(1)}%)` : ""}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="text-[10px] font-mono">
-            <span className="text-slate-400">{last.front_month}</span>
-            {chg != null && (
-              <span className={chg >= 0 ? "text-emerald-400" : "text-red-400"}>
-                {"  "}{chg >= 0 ? "+" : ""}{chg.toFixed(2)}{chgPct != null ? ` (${chgPct >= 0 ? "+" : ""}${chgPct.toFixed(1)}%)` : ""}
-              </span>
-            )}
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="h-40">
@@ -104,32 +127,41 @@ function MarketCard({ title, doc, color, window: win }: {
               tickFormatter={(v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 0 })} />
             <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
               formatter={(v) => typeof v === "number" ? `${sym} ${v.toLocaleString(undefined, { minimumFractionDigits: 2 })}/saca` : "—"} />
+            {phys && (
+              <Line type="monotone" dataKey="phys" name={physName ?? "Physical"} stroke="#94a3b8"
+                strokeWidth={1.2} strokeDasharray="4 3" dot={false} connectNulls />
+            )}
             <Line type="monotone" dataKey="price" name={`${title} front`} stroke={color}
               strokeWidth={1.5} dot={false} connectNulls />
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <div className="text-[9px] text-slate-500">{series.length} sessions in window</div>
+      <div className="text-[9px] text-slate-500">
+        {series.length} sessions in window
+        {phys ? ` · dashed: ${physName ?? "physical"}` : ""}
+      </div>
 
       {/* Latest curve */}
-      <table className="w-full text-[10px] font-mono">
-        <thead>
-          <tr className="text-slate-500 text-left">
-            <th className="font-normal">Contract</th>
-            <th className="font-normal text-right">{sym}/saca</th>
-            <th className="font-normal text-right">{showOi ? "OI" : "Δ"}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {last.contracts.map((c, i) => (
-            <tr key={c.symb ?? `${c.month}-${i}`} className="text-slate-300">
-              <td>{c.month}</td>
-              <td className="text-right">{c.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-              <td className="text-right text-slate-400">{showOi ? (c.oi ?? "—") : (c.var || "—")}</td>
+      {last && (
+        <table className="w-full text-[10px] font-mono">
+          <thead>
+            <tr className="text-slate-500 text-left">
+              <th className="font-normal">Contract</th>
+              <th className="font-normal text-right">{sym}/saca</th>
+              <th className="font-normal text-right">{showOi ? "OI" : "Δ"}</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {last.contracts.map((c, i) => (
+              <tr key={c.symb ?? `${c.month}-${i}`} className="text-slate-300">
+                <td>{c.month}</td>
+                <td className="text-right">{c.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="text-right text-slate-400">{showOi ? (c.oi ?? "—") : (c.var || "—")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
@@ -137,6 +169,7 @@ function MarketCard({ title, doc, color, window: win }: {
 export default function B3CoffeePanel() {
   const [arabica, setArabica] = useState<B3Doc | null>(null);
   const [conilon, setConilon] = useState<B3Doc | null>(null);
+  const [vitoria, setVitoria] = useState<PhysDoc | null>(null);
   const [window,  setWindow]  = useState<Window>("6M");
 
   useEffect(() => {
@@ -146,6 +179,10 @@ export default function B3CoffeePanel() {
     fetch("/data/brazil_b3_conilon.json")
       .then(r => r.ok ? r.json() : null).then(d => { if (d) setConilon(d); })
       .catch(() => { /* card shows empty state */ });
+    // Physical conilon at the CNL delivery point — deep history overlay.
+    fetch("/data/brazil_conilon_vitoria.json")
+      .then(r => r.ok ? r.json() : null).then(d => { if (d) setVitoria(d); })
+      .catch(() => { /* futures-only */ });
   }, []);
 
   return (
@@ -170,7 +207,8 @@ export default function B3CoffeePanel() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <MarketCard title="B3 Arábica 4/5 (Pregão Regular)" doc={arabica} color="#f59e0b" window={window} />
-        <MarketCard title="B3 Conilon 7/8 (CNL)"            doc={conilon} color="#34d399" window={window} />
+        <MarketCard title="B3 Conilon 7/8 (CNL)"            doc={conilon} color="#34d399" window={window}
+          phys={vitoria} physName="Vitória disponível T7/8" />
       </div>
     </div>
   );
