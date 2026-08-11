@@ -689,7 +689,14 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     # day's file generally isn't posted yet when the daily cron runs. Targeting
     # yesterday gets the latest actually-published data for every feed and
     # avoids a wasted (and, for the robusta stock sweep, ~10-min) same-day fetch.
-    anchor = date.today() - timedelta(days=1)
+    # Time-aware anchor. ICE publishes a business day's full report set by
+    # ~17:00 UTC (gradings ~17:02 London are the last). An early-UTC-morning
+    # run must target the PRIOR business day; but when the run fires late in
+    # the day (GH cron has been observed firing up to ~19h late — a Monday
+    # 21:42 run once re-fetched Friday while Monday's files sat published),
+    # TODAY's files are already out, so target today instead of lagging a day.
+    _now = datetime.now(UTC)
+    anchor = _now.date() if _now.hour >= 18 else _now.date() - timedelta(days=1)
     while anchor.weekday() >= 5:        # back over Sat/Sun to the last weekday
         anchor -= timedelta(days=1)
     days = _biz_days_back(anchor, days_back)

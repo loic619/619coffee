@@ -42,7 +42,12 @@ on:
     # NOTE: GH cron on this repo fires 4-5h LATE systematically (verified
     # 2026-06-10 against run history). This cron is the FALLBACK; the primary
     # trigger is the workflow_run chain off 1.1 below.
-    - cron: '47 2 * * 1-5'
+    # 00:35 UTC Tue-Sat: by 00:35 the prior business day's full report set has
+    # been published for hours (last file ~17:02 London), and Saturday's run
+    # captures Friday. Even when GH cron fires hours late (observed up to
+    # ~19h), the orchestrator's time-aware anchor now targets whichever day's
+    # files are actually published, so lateness can no longer serve stale data.
+    - cron: '35 0 * * 2-6'
   workflow_run:
     # Chain off the daily scraper so cert stocks land minutes after the
     # scrape (and before the chained morning deploy + brief), instead of
