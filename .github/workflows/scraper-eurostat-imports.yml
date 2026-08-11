@@ -64,6 +64,17 @@ jobs:
             git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
 
+
+      - name: Topic notification (best-effort)
+        # Sends the headline numbers to Telegram right after fresh data
+        # committed; the composer's freshness gate makes no-data runs silent.
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+        working-directory: backend
+        run: PYTHONPATH=. python -m scraper.topic_notify eu_imports || true
+
       - name: Notify on failure
         if: failure()
         env:

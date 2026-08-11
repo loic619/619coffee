@@ -392,7 +392,13 @@ def run(today: dt.date, dry: bool) -> int:
             if check_ingested(v):
                 v["status"] = "ok"
                 what = v.get("expected") or ", ".join(v.get("keys", []))
-                verified.append(f"{src['label']} — {what} now in the data")
+                line = f"{src['label']} — {what} now in the data"
+                # Attach the headline numbers so the export figures ride the
+                # confirmation the moment they land (best-effort).
+                digest = _origin_digest(key, v.get("expected"))
+                if digest:
+                    line += "\n" + digest
+                verified.append(line)
                 print(f"[{key}] ingestion VERIFIED ({v.get('expected') or ','.join(v.get('keys', []))})")
             else:
                 disp = _parse_any_ts(v["dispatched_at"])
@@ -454,6 +460,27 @@ def run(today: dt.date, dry: bool) -> int:
         STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
+    # ── Weekly topic texts (COT / freight) — their JSONs materialize via the
+    # export pipeline, so they ride this daily run, deduped once per new
+    # report/update through the state file.
+    topics_state = state.setdefault("_topics", {})
+    for topic, key_fn, compose in _topic_specs():
+        try:
+            data_key = key_fn()
+            if not data_key or topics_state.get(topic) == data_key:
+                continue
+            text = compose(now)
+            if text:
+                telegram(text, dry)
+                topics_state[topic] = data_key
+                print(f"[topic:{topic}] sent for {data_key}")
+            elif not _fresh_enough(topic, data_key, now):
+                # data key changed long ago (pre-rollout backlog) — mark seen
+                # without sending so we don't replay history.
+                topics_state[topic] = data_key
+        except Exception as e:  # noqa: BLE001 — topics must never break the sweep
+            print(f"[topic:{topic}] skipped ({e})")
+
     lines = []
     if fired:
         lines.append("📡 NEW RELEASE — scraper dispatched:\n" + "\n".join(f"• {f}" for f in fired))
@@ -466,6 +493,38 @@ def run(today: dt.date, dry: bool) -> int:
         telegram("source sentinel:\n" + "\n".join(lines), dry)
     print(f"[sentinel] done — {len(fired)} detected, {len(verified)} verified, {len(alerts)} alert(s).")
     return 0
+
+
+def _topic_specs():
+    sys.path.insert(0, str(ROOT / "backend"))
+    from scraper import topic_notify as tn
+    return [
+        ("cot",     tn.latest_cot_key,     tn.compose_cot),
+        ("freight", tn.latest_freight_key, tn.compose_freight),
+    ]
+
+
+def _fresh_enough(topic: str, data_key: str, now: dt.datetime) -> bool:
+    """True while the composer's own freshness gate could still fire for this
+    key (cot: 4 d, freight: 1.5 d) — used to age out pre-rollout backlog."""
+    try:
+        d = dt.datetime.fromisoformat(data_key[:10]).replace(tzinfo=dt.timezone.utc)
+    except ValueError:
+        return False
+    return (now - d).total_seconds() <= (4 if topic == "cot" else 1.5) * 86400
+
+
+def _origin_digest(sentinel_key: str, month: str | None) -> str | None:
+    """Headline numbers for a verified month via scraper.topic_notify —
+    lazily imported; any failure degrades to the plain confirmation line."""
+    if not month:
+        return None
+    try:
+        sys.path.insert(0, str(ROOT / "backend"))
+        from scraper.topic_notify import compose_origin_digest
+        return compose_origin_digest(sentinel_key, month)
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def _days_past_window(today: dt.date, confirmed: str | None, window_start: int) -> int:
