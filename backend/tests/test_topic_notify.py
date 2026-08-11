@@ -23,7 +23,7 @@ def test_cot_gate_and_content(tmp_path, monkeypatch):
     ]
     (tmp_path / "cot.json").write_text(json.dumps(rows))
     txt = tn.compose_cot(_at("2026-08-06T06:00"))
-    assert "2026-08-04" in txt and "MM net +35" in txt and "+5 w/w" in txt
+    assert "2026-08-04" in txt and "MM adding to longs" in txt
     # a week later the same report is old news → silent
     assert tn.compose_cot(_at("2026-08-12T06:00")) is None
 
@@ -56,8 +56,45 @@ def test_origin_digest_missing_month_is_none(tmp_path, monkeypatch):
     monkeypatch.setattr(tn, "DATA", tmp_path)
     (tmp_path / "cecafe.json").write_text(json.dumps({"series": [{"date": "2026-06", "total": 5}]}))
     assert tn.compose_origin_digest("cecafe", "2026-07") is None
-    assert "total 5" in tn.compose_origin_digest("cecafe", "2026-06")
+    assert "Total 5 bags" in tn.compose_origin_digest("cecafe", "2026-06")
     assert tn.compose_origin_digest("unknown_source", "2026-06") is None
+
+
+def test_cy_months_and_ctd():
+    # Brazil crop year starts July: June is month 12 of the cycle.
+    assert tn._cy_months("2026-06", 7)[0] == "2025-07"
+    assert len(tn._cy_months("2026-06", 7)) == 12
+    # Vietnam Oct start: July is month 10.
+    assert tn._cy_months("2026-07", 10)[0] == "2025-10"
+    assert len(tn._cy_months("2026-07", 10)) == 10
+    vals = {"2025-07": 10, "2025-08": 10, "2024-07": 8, "2024-08": 8}
+    ctd, prev = tn._ctd(vals, "2025-08", 7)
+    assert ctd == 20 and prev == 16
+
+
+def test_cot_full_overview_from_fixture(tmp_path, monkeypatch):
+    monkeypatch.setattr(tn, "DATA", tmp_path)
+    monkeypatch.setattr(tn, "ROOT", tmp_path)  # archive absent → OI split omitted
+    rows = [
+        {"date": "2026-07-28",
+         "ny": {"mm_long": 42400, "mm_short": 8900, "oi_total": 164400,
+                 "pmpu_long": 32600, "pmpu_short": 62700,
+                 "price_ny": 317.3, "structure_ny": -15.55}},
+        {"date": "2026-08-04",
+         "ny": {"mm_long": 41151, "mm_short": 9710, "oi_total": 168814,
+                 "pmpu_long": 36374, "pmpu_short": 64347,
+                 "price_ny": 308.8, "structure_ny": -18.4}},
+    ]
+    (tmp_path / "cot.json").write_text(json.dumps(rows))
+    txt = tn.compose_cot(dt.datetime(2026, 8, 6, 6, tzinfo=dt.timezone.utc))
+    assert "Total OI change of +4.4 k lots" in txt
+    assert "Price -2.7% (-8 cents/lb)" in txt
+    assert "moving toward backwardation, inverted at 6.0% (vs 4.9% LW)" in txt
+    assert "Roasters are covering for +3.8 k lots (+64.2 k tons)" in txt
+    assert "reaching 618.7 k tons" in txt
+    assert "Producers are selling for +1.6 k lots" in txt
+    assert "MM liquidating longs (-1.2 k lots" in txt
+    assert "Net long of 31.4 k lots" in txt
 
 
 def test_dedup_keys_read_latest(tmp_path, monkeypatch):

@@ -79,10 +79,108 @@ def _fmt(n: float | None, dec: int = 0) -> str:
 
 # ── Weekly topics ────────────────────────────────────────────────────────────
 
+LETTER_MONTH = {"F":1,"G":2,"H":3,"J":4,"K":5,"M":6,"N":7,"Q":8,"U":9,"V":10,"X":11,"Z":12}
+LOT_MT = {"ny": 17.009, "ldn": 10.0}
+
+
+def _contract_order(sym: str) -> tuple[int, int]:
+    m = LETTER_MONTH.get(sym[-3], 99)
+    return (2000 + int(sym[-2:]), m)
+
+
+def _kl(lots: float) -> str:
+    return f"{lots/1000:+.1f} k lots"
+
+
+def _kt(mt: float, signed: bool = False) -> str:
+    return f"{mt/1000:+.1f} k tons" if signed else f"{mt/1000:.1f} k tons"
+
+
+def _cot_market_text(label: str, mk: str, cur: dict, prev: dict,
+                     archive_mkt: dict | None, cur_date: str, prev_date: str) -> str | None:
+    """One market's Overview narrative — a port of the app's COT Positioning
+    Overview (frontend CotDashboard/Overview + lib/pdf/dataHelpers formulas)."""
+    c, p = cur.get(mk), prev.get(mk)
+    if not c or not p:
+        return None
+    lot_mt = LOT_MT[mk]
+    lines = [label]
+
+    # ── OI change + nearby/forward split (per-contract archive) ──────────────
+    oi_chg = (c.get("oi_total") or 0) - (p.get("oi_total") or 0)
+    lines.append(f"• Total OI change of {_kl(oi_chg)} since last COT")
+    if archive_mkt and cur_date in archive_mkt and prev_date in archive_mkt:
+        cur_day, prev_day = archive_mkt[cur_date], archive_mkt[prev_date]
+        syms = sorted(cur_day, key=_contract_order)
+        nearby = [x for x in syms if x in prev_day][:2]
+        if len(nearby) == 2:
+            near_chg = sum((cur_day[x].get("oi") or 0) - (prev_day[x].get("oi") or 0) for x in nearby)
+            letters = " and ".join(x[-3] for x in nearby)
+            lines.append(f"   ◦ {_kl(near_chg)} in nearby contracts ({letters})")
+            lines.append(f"   ◦ {_kl(oi_chg - near_chg)} in forward contracts")
+
+    # ── Price + structure — the same fields the app's Overview renders
+    # (COT-week joined price + the DB structure value; inversion =
+    # −structure/price, this week vs LW). ────────────────────────────────────
+    price, prev_price = c.get(f"price_{mk}"), p.get(f"price_{mk}")
+    struct, prev_struct = c.get(f"structure_{mk}"), p.get(f"structure_{mk}")
+    if price and prev_price:
+        chg = price - prev_price
+        pct = chg / prev_price * 100
+        unit = f"({chg:+.0f} cents/lb)" if mk == "ny" else f"(${chg:+.0f} per ton)"
+        line = f"• Price {pct:+.1f}% {unit}"
+        if struct is not None:
+            inv_now = -struct / price * 100
+            state = "inverted" if struct <= 0 else "in carry"
+            if prev_struct is not None:
+                inv_lw = -prev_struct / prev_price * 100
+                toward = "backwardation" if inv_now > inv_lw else "carry"
+                line += (f"; structure moving toward {toward}, {state} at "
+                         f"{abs(inv_now):.1f}% (vs {abs(inv_lw):.1f}% LW)")
+            else:
+                line += f"; structure {state} at {abs(inv_now):.1f}%"
+        lines.append(line + ".")
+
+    # ── Industry (PMPU): roasters long / producers short, in tons ────────────
+    def cov_pct(series: list[float], val: float) -> float:
+        lo, hi = min(series), max(series)
+        return 0.0 if hi <= lo else max(0.0, min(100.0, (val - lo) / (hi - lo) * 100))
+
+    hist = _COT_HIST.get(mk) or []
+    roast, prod = (c.get("pmpu_long") or 0) * lot_mt, (c.get("pmpu_short") or 0) * lot_mt
+    d_rl = (c.get("pmpu_long") or 0) - (p.get("pmpu_long") or 0)
+    d_ps = (c.get("pmpu_short") or 0) - (p.get("pmpu_short") or 0)
+    roast_verb = "Roasters are covering for" if d_rl > 0 else "Roasters holding & fixing for"
+    prod_verb = "Producers are selling for" if d_ps > 0 else "Producers holding & exporters are fixing for"
+    roast_cov = cov_pct([r * lot_mt for r in hist["pmpu_long"]], roast) if hist else 0.0
+    prod_cov = cov_pct([r * lot_mt for r in hist["pmpu_short"]], prod) if hist else 0.0
+    lines.append(f"• {roast_verb} {_kl(d_rl)} ({_kt(d_rl*lot_mt, signed=True)}), "
+                 f"reaching {_kt(roast)} ({roast_cov:.1f}% maxed).")
+    lines.append(f"• {prod_verb} {_kl(d_ps)} ({_kt(d_ps*lot_mt, signed=True)}), "
+                 f"reaching {_kt(prod)} ({prod_cov:.1f}% maxed).")
+
+    # ── Managed money ────────────────────────────────────────────────────────
+    d_ml = (c.get("mm_long") or 0) - (p.get("mm_long") or 0)
+    d_ms = (c.get("mm_short") or 0) - (p.get("mm_short") or 0)
+    long_verb = "liquidating" if d_ml < 0 else "adding to" if d_ml > 0 else "holding"
+    short_verb = "increasing" if d_ms > 0 else "covering" if d_ms < 0 else "holding"
+    ml_pct = d_ml / p["mm_long"] * 100 if p.get("mm_long") else 0.0
+    ms_pct = d_ms / p["mm_short"] * 100 if p.get("mm_short") else 0.0
+    net = (c.get("mm_long") or 0) - (c.get("mm_short") or 0)
+    net_word = "Net long" if net >= 0 else "Net short"
+    lines.append(f"• MM {long_verb} longs ({_kl(d_ml)} / {ml_pct:+.1f}% of their position) "
+                 f"and {short_verb} shorts ({_kl(d_ms)} / {ms_pct:+.1f}% of their position). "
+                 f"{net_word} of {abs(net)/1000:.1f} k lots.")
+    return "\n".join(lines)
+
+
+_COT_HIST: dict = {}
+
+
 def compose_cot(now: dt.datetime) -> str | None:
-    """NY + LDN managed-money positioning for the freshly-ingested week.
-    Gate: newest report date within 4 days (the Friday-evening ingest of a
-    Tuesday-dated report); Mon–Thu runs see an older report and stay silent."""
+    """Full COT Positioning Overview narrative for NY + LDN — the app's
+    Overview panel, ported. Gate: newest report date within 4 days (Friday-
+    evening ingest of a Tuesday-dated report)."""
     rows = _load(DATA / "cot.json")
     if not isinstance(rows, list) or len(rows) < 2:
         return None
@@ -90,20 +188,27 @@ def compose_cot(now: dt.datetime) -> str | None:
     if not _fresh(cur.get("date"), 4, now):
         return None
 
-    def mkt(label: str, c: dict | None, p: dict | None) -> str | None:
-        if not c:
-            return None
-        net = (c.get("mm_long") or 0) - (c.get("mm_short") or 0)
-        pnet = ((p.get("mm_long") or 0) - (p.get("mm_short") or 0)) if p else None
-        delta = f" ({'+' if net - pnet >= 0 else ''}{net - pnet:,} w/w)" if pnet is not None else ""
-        return (f"{label}: MM net {net:+,} lots{delta} · "
-                f"OI {_fmt(c.get('oi_total'))}")
+    # Coverage normalisation history (app uses ~10y; use everything we have).
+    global _COT_HIST
+    _COT_HIST = {
+        mk: {
+            "pmpu_long": [(r.get(mk) or {}).get("pmpu_long") or 0 for r in rows[-520:]],
+            "pmpu_short": [(r.get(mk) or {}).get("pmpu_short") or 0 for r in rows[-520:]],
+        }
+        for mk in ("ny", "ldn")
+    }
 
-    parts = [x for x in (mkt("NY arabica", cur.get("ny"), prev.get("ny")),
-                         mkt("LDN robusta", cur.get("ldn"), prev.get("ldn"))) if x]
+    archive = _load(ROOT / "data" / "contract_prices_archive.json") or {}
+    parts = [
+        _cot_market_text("Arabica · NY Overview", "ny", cur, prev,
+                         archive.get("arabica"), cur["date"], prev["date"]),
+        _cot_market_text("Robusta · LDN Overview", "ldn", cur, prev,
+                         archive.get("robusta"), cur["date"], prev["date"]),
+    ]
+    parts = [x for x in parts if x]
     if not parts:
         return None
-    return f"📊 COT — report dated {cur['date']}:\n" + "\n".join(f"• {p}" for p in parts)
+    return f"📊 COT — report dated {cur['date']}:\n\n" + "\n\n".join(parts)
 
 
 def compose_freight(now: dt.datetime) -> str | None:
@@ -170,9 +275,72 @@ def compose_enso(now: dt.datetime) -> str | None:
 
 # ── Origin export digests (invoked by the sentinel on verified ingestion) ────
 
+# Crop-year start month per origin (Brazil Jul; Colombia/Uganda/Vietnam Oct).
+CY_START = {"cecafe": 7, "ucda": 10, "dane": 10, "fnc": 10, "vn_customs": 10}
+# PSD producer key in demand_stocks.json + display-unit conversion from MT.
+PSD_KEY = {"cecafe": "brazil", "ucda": "uganda", "dane": "colombia", "fnc": "colombia",
+           "vn_customs": "vietnam"}
+BAGS_PER_MT = 1 / 0.06  # 60-kg bags
+
+
+def _cy_months(month: str, start_month: int) -> list[str]:
+    """All crop-year months from the crop-year start through `month`."""
+    y, m = int(month[:4]), int(month[5:7])
+    cy = y if m >= start_month else y - 1
+    out, yy, mm = [], cy, start_month
+    while (yy, mm) <= (y, m):
+        out.append(f"{yy:04d}-{mm:02d}")
+        mm += 1
+        if mm > 12:
+            mm, yy = 1, yy + 1
+    return out
+
+def _ctd(values: dict[str, float], month: str, start_month: int) -> tuple[float | None, float | None]:
+    """(crop-to-date sum, same-window sum one crop year earlier)."""
+    months = _cy_months(month, start_month)
+    prev_months = [_year_back(m2) for m2 in months]
+    def _sum(ms):
+        got = [values[m2] for m2 in ms if values.get(m2) is not None]
+        return sum(got) if got else None
+    return _sum(months), _sum(prev_months)
+
+
+def _pct(cur: float | None, prev: float | None) -> str:
+    if cur is None or not prev:
+        return "n/a"
+    return f"{(cur - prev) / abs(prev) * 100:+.1f}%"
+
+
+def _sd_lines(key: str, month: str, exports_ctd_mt: float | None,
+              unit_label: str, mt_to_unit: float) -> list[str]:
+    """Internal-consumption crop-to-date + remaining-to-export estimates from
+    the USDA PSD producer block (pro-rated annual consumption; production −
+    consumption − exports so far). Marked ≈ — PSD figures are estimates."""
+    psd = ((_load(DATA / "demand_stocks.json") or {}).get("producers") or {}).get(PSD_KEY[key])
+    if not psd:
+        return []
+    y, m = int(month[:4]), int(month[5:7])
+    start = CY_START[key]
+    cy = y if m >= start else y - 1
+    row = next((r for r in psd.get("annual") or [] if r.get("year") == str(cy)), None)
+    if not row:
+        return []
+    prod_mt, cons_mt = row.get("production_mt"), row.get("consumption_mt")
+    if not prod_mt or not cons_mt:
+        return []
+    elapsed = len(_cy_months(month, start))
+    cons_ctd_mt = cons_mt * elapsed / 12
+    lines = [f"Internal consumption crop-to-date: ≈{cons_ctd_mt*mt_to_unit/1e6:.1f}M {unit_label}"]
+    if exports_ctd_mt is not None:
+        remaining_mt = max(0.0, prod_mt - cons_ctd_mt - exports_ctd_mt)
+        lines.append(f"Remaining of the crop to be exported: ≈{remaining_mt*mt_to_unit/1e6:.1f}M {unit_label}")
+    return lines
+
+
 def compose_origin_digest(sentinel_key: str, month: str) -> str | None:
-    """Headline export numbers for the month the sentinel just verified.
-    Returns None when the month is missing or the source has no digest."""
+    """Origin export digest for the month the sentinel just verified:
+    total (+y/y and crop-to-date pace), per-type split, then PSD-based
+    internal consumption and remaining-exportable estimates."""
     try:
         if sentinel_key == "cecafe":
             d = _load(DATA / "cecafe.json") or {}
@@ -180,26 +348,52 @@ def compose_origin_digest(sentinel_key: str, month: str) -> str | None:
             r, p = rows.get(month), rows.get(_year_back(month))
             if not r:
                 return None
-            return (f"🇧🇷 Brazil (Cecafé) {month}: total {_fmt(r.get('total'))} bags"
-                    f"{_yoy(r.get('total'), (p or {}).get('total'))} — "
-                    f"arabica {_fmt(r.get('arabica'))}, conillon {_fmt(r.get('conillon'))}")
+            totals = {k: (v or {}).get("total") for k, v in rows.items()}
+            ctd, ctd_prev = _ctd(totals, month, CY_START["cecafe"])
+            head = [
+                f"🇧🇷 Brazil (Cecafé) {month}:",
+                f"Total {_fmt(r.get('total'))} bags ({_pct(r.get('total'), (p or {}).get('total'))} y/y"
+                f" / {_pct(ctd, ctd_prev)} ctd)",
+                f"Arabica {_fmt(r.get('arabica'))}",
+                f"Conillon {_fmt(r.get('conillon'))}",
+            ]
+            sd = _sd_lines("cecafe", month, (ctd or 0) * 0.06 if ctd else None, "bags", BAGS_PER_MT)
+            return "\n".join(head + ([""] + sd if sd else []))
+
         if sentinel_key == "ucda":
             d = _load(DATA / "uganda_monthly.json") or {}
             rows = {r.get("month"): r for r in d.get("series") or []}
             r, p = rows.get(month), rows.get(_year_back(month))
             if not r:
                 return None
-            return (f"🇺🇬 Uganda (UCDA) {month}: {_fmt(r.get('total_bags'))} bags"
-                    f"{_yoy(r.get('total_bags'), (p or {}).get('total_bags'))} — "
-                    f"robusta {_fmt(r.get('robusta_bags'))}, arabica {_fmt(r.get('arabica_bags'))}")
+            totals = {k: (v or {}).get("total_bags") for k, v in rows.items()}
+            ctd, ctd_prev = _ctd(totals, month, CY_START["ucda"])
+            head = [
+                f"🇺🇬 Uganda (UCDA) {month}:",
+                f"Total {_fmt(r.get('total_bags'))} bags ({_pct(r.get('total_bags'), (p or {}).get('total_bags'))} y/y"
+                f" / {_pct(ctd, ctd_prev)} ctd)",
+                f"Robusta {_fmt(r.get('robusta_bags'))}",
+                f"Arabica {_fmt(r.get('arabica_bags'))}",
+            ]
+            sd = _sd_lines("ucda", month, (ctd or 0) * 0.06 if ctd else None, "bags", BAGS_PER_MT)
+            return "\n".join(head + ([""] + sd if sd else []))
+
         if sentinel_key in ("dane", "fnc"):
             d = _load(DATA / "colombia_supply.json") or {}
             rows = {r.get("month"): r for r in (d.get("exports") or {}).get("monthly") or []}
             r, p = rows.get(month), rows.get(_year_back(month))
             if not r:
                 return None
-            return (f"🇨🇴 Colombia {month}: {_fmt(r.get('total_k_bags'))}k bags "
-                    f"({_fmt(r.get('total_t'))} t){_yoy(r.get('total_t'), (p or {}).get('total_t'))}")
+            totals = {k: (v or {}).get("total_t") for k, v in rows.items()}
+            ctd, ctd_prev = _ctd(totals, month, CY_START["dane"])
+            head = [
+                f"🇨🇴 Colombia {month}:",
+                f"Total {_fmt(r.get('total_k_bags'))}k bags / {_fmt(r.get('total_t'))} t "
+                f"({_pct(r.get('total_t'), (p or {}).get('total_t'))} y/y / {_pct(ctd, ctd_prev)} ctd)",
+            ]
+            sd = _sd_lines("dane", month, ctd, "bags", BAGS_PER_MT)
+            return "\n".join(head + ([""] + sd if sd else []))
+
         if sentinel_key == "vn_customs":
             d = _load(CACHE / "vn_coffee_export.json") or {}
             rows = {r.get("month"): r for r in d.get("monthly") or []}
@@ -207,9 +401,17 @@ def compose_origin_digest(sentinel_key: str, month: str) -> str | None:
             if not r:
                 return None
             p = rows.get(_year_back(month))
-            return (f"🇻🇳 Vietnam {month}: {_fmt(r.get('tonnes'))} t exported"
-                    f"{_yoy(r.get('tonnes'), (p or {}).get('tonnes'))} — "
-                    f"YTD {_fmt(r.get('ytd_cum_qty_tonnes'))} t")
+            totals = {k: (v or {}).get("tonnes") for k, v in rows.items()}
+            ctd, ctd_prev = _ctd(totals, month, CY_START["vn_customs"])
+            head = [
+                f"🇻🇳 Vietnam {month}:",
+                f"Total {_fmt(r.get('tonnes'))} t ({_pct(r.get('tonnes'), (p or {}).get('tonnes'))} y/y"
+                f" / {_pct(ctd, ctd_prev)} ctd)",
+                f"Calendar YTD {_fmt(r.get('ytd_cum_qty_tonnes'))} t",
+            ]
+            sd = _sd_lines("vn_customs", month, ctd, "t", 1.0)
+            return "\n".join(head + ([""] + sd if sd else []))
+
         if sentinel_key == "vn_customs_dest":
             d = _load(DATA / "vn_export_by_destination.json") or {}
             month_vals = sorted(
