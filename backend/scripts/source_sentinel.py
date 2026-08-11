@@ -254,6 +254,9 @@ SOURCES: list[dict] = [
         "key": "vn_customs_dest", "label": "Vietnam Customs by-destination (5X)",
         "window_start": 8, "kind": "head_month", "urls": _vn5x_urls,
         "workflows": ["vn-customs-by-country.yml"],
+        # This workflow's bare-dispatch default is 'probe' (diagnostic, no
+        # commit); the data-landing path is backfill with a short lookback.
+        "workflow_inputs": {"vn-customs-by-country.yml": {"mode": "backfill", "months": "2"}},
         "verify": {"kind": "month_in_file", "file": "frontend/public/data/vn_export_by_destination.json", "lag": 1},
     },
 ]
@@ -331,16 +334,19 @@ def build_verify(src: dict, pub_period: str, now_iso: str) -> dict | None:
 
 # ── Dispatch + notify ────────────────────────────────────────────────────────
 
-def dispatch_workflow(wf: str, dry: bool) -> bool:
+def dispatch_workflow(wf: str, dry: bool, inputs: dict | None = None) -> bool:
     repo = os.environ.get("GITHUB_REPOSITORY", "")
     token = os.environ.get("GITHUB_TOKEN", "")
     if dry or not repo or not token:
-        print(f"  [dry] would dispatch {wf}")
+        print(f"  [dry] would dispatch {wf} inputs={inputs}")
         return True
+    body: dict = {"ref": "main"}
+    if inputs:
+        body["inputs"] = inputs
     r = requests.post(
         f"https://api.github.com/repos/{repo}/actions/workflows/{wf}/dispatches",
         headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
-        json={"ref": "main"}, timeout=TIMEOUT,
+        json=body, timeout=TIMEOUT,
     )
     ok = r.status_code == 204
     print(f"  dispatch {wf}: {'ok' if ok else f'FAILED {r.status_code} {r.text[:120]}'}")
@@ -424,7 +430,8 @@ def run(today: dt.date, dry: bool) -> int:
             entry["confirmed"] = expected
             entry["last_found"] = now_iso
             print(f"[{key}] NEW RELEASE detected ({src['label']}) → dispatching {src['workflows']}")
-            all_ok = all(dispatch_workflow(wf, dry) for wf in src["workflows"])
+            all_ok = all(dispatch_workflow(wf, dry, src.get("workflow_inputs", {}).get(wf))
+                         for wf in src["workflows"])
             fired.append(f"{src['label']} — {expected} publication"
                          + ("" if all_ok else " (dispatch FAILED)"))
             entry["verify"] = build_verify(src, expected, now_iso)
