@@ -1,0 +1,177 @@
+"use client";
+import { useEffect, useMemo, useState } from "react";
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from "recharts";
+
+import { fmtDateLabel } from "@/lib/formatters";
+
+// Both files share this shape: brazil_b3_arabica.json (noticiasagricolas
+// republisher, US$/saca, deep backfilled history) and brazil_b3_conilon.json
+// (B3 DerivativeQuotation API, R$/saca, accumulates daily from first export).
+interface B3Contract {
+  month:   string;
+  price:   number;
+  var?:    string;         // arabica file: day-over-day variation string
+  symb?:   string;         // conilon file: B3 symbol (CNLF27, …)
+  oi?:     number | null;  // conilon file: open contracts
+  expiry?: string;         // conilon file: maturity date
+}
+interface B3Entry {
+  date:        string;
+  front_month: string | null;
+  front_price: number | null;
+  contracts:   B3Contract[];
+}
+interface B3Doc {
+  unit?:    string;
+  source?:  string;
+  history?: B3Entry[];
+}
+
+type Window = "1M" | "3M" | "6M" | "1Y" | "2Y";
+const WINDOW_DAYS: Record<Window, number> = { "1M": 30, "3M": 90, "6M": 180, "1Y": 365, "2Y": 730 };
+
+const TT_STYLE = { background: "#1e293b", border: "1px solid #334155", borderRadius: 6, fontSize: 10 };
+
+function unitSymbol(unit?: string): string {
+  return unit?.startsWith("BRL") ? "R$" : "US$";
+}
+
+function MarketCard({ title, doc, color, window: win }: {
+  title: string; doc: B3Doc | null; color: string; window: Window;
+}) {
+  const hist = useMemo(() => doc?.history ?? [], [doc]);
+  const sym = unitSymbol(doc?.unit);
+
+  const series = useMemo(() => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - WINDOW_DAYS[win]);
+    const cutoffIso = cutoff.toISOString().slice(0, 10);
+    return hist
+      .filter(e => e.date >= cutoffIso && e.front_price != null)
+      .map(e => ({ date: e.date, label: fmtDateLabel(e.date), price: e.front_price as number }));
+  }, [hist, win]);
+
+  const last = hist.length ? hist[hist.length - 1] : null;
+  const prev = hist.length > 1 ? hist[hist.length - 2] : null;
+  const chg = last?.front_price != null && prev?.front_price != null
+    ? last.front_price - prev.front_price : null;
+  const chgPct = chg != null && prev?.front_price ? (chg / prev.front_price) * 100 : null;
+
+  if (!last) {
+    return (
+      <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
+        <div className="text-slate-200 text-[11px] font-bold mb-1">{title}</div>
+        <div className="text-[10px] text-slate-500 italic">
+          No data yet — the series starts accumulating with the next daily export.
+        </div>
+      </div>
+    );
+  }
+
+  const showOi = last.contracts.some(c => c.oi != null);
+
+  return (
+    <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 space-y-2">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <div className="text-slate-200 text-[11px] font-bold">{title}</div>
+          <div className="text-[9px] text-slate-500">{doc?.source} · {last.date}</div>
+        </div>
+        <div className="text-right">
+          <div className="text-base font-bold font-mono text-slate-100">
+            {sym} {last.front_price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <span className="text-[9px] text-slate-500 font-normal"> /saca</span>
+          </div>
+          <div className="text-[10px] font-mono">
+            <span className="text-slate-400">{last.front_month}</span>
+            {chg != null && (
+              <span className={chg >= 0 ? "text-emerald-400" : "text-red-400"}>
+                {"  "}{chg >= 0 ? "+" : ""}{chg.toFixed(2)}{chgPct != null ? ` (${chgPct >= 0 ? "+" : ""}${chgPct.toFixed(1)}%)` : ""}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="h-40">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={series} margin={{ top: 4, right: 6, left: -14, bottom: 0 }}>
+            <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+            <XAxis dataKey="label" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={24} />
+            <YAxis stroke="#64748b" tick={{ fontSize: 8 }} domain={["auto", "auto"]} width={44}
+              tickFormatter={(v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 0 })} />
+            <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+              formatter={(v) => typeof v === "number" ? `${sym} ${v.toLocaleString(undefined, { minimumFractionDigits: 2 })}/saca` : "—"} />
+            <Line type="monotone" dataKey="price" name={`${title} front`} stroke={color}
+              strokeWidth={1.5} dot={false} connectNulls />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="text-[9px] text-slate-500">{series.length} sessions in window</div>
+
+      {/* Latest curve */}
+      <table className="w-full text-[10px] font-mono">
+        <thead>
+          <tr className="text-slate-500 text-left">
+            <th className="font-normal">Contract</th>
+            <th className="font-normal text-right">{sym}/saca</th>
+            <th className="font-normal text-right">{showOi ? "OI" : "Δ"}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {last.contracts.map((c, i) => (
+            <tr key={c.symb ?? `${c.month}-${i}`} className="text-slate-300">
+              <td>{c.month}</td>
+              <td className="text-right">{c.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td className="text-right text-slate-400">{showOi ? (c.oi ?? "—") : (c.var || "—")}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default function B3CoffeePanel() {
+  const [arabica, setArabica] = useState<B3Doc | null>(null);
+  const [conilon, setConilon] = useState<B3Doc | null>(null);
+  const [window,  setWindow]  = useState<Window>("6M");
+
+  useEffect(() => {
+    fetch("/data/brazil_b3_arabica.json")
+      .then(r => r.ok ? r.json() : null).then(d => { if (d) setArabica(d); })
+      .catch(() => { /* card shows empty state */ });
+    fetch("/data/brazil_b3_conilon.json")
+      .then(r => r.ok ? r.json() : null).then(d => { if (d) setConilon(d); })
+      .catch(() => { /* card shows empty state */ });
+  }, []);
+
+  return (
+    <div className="p-4 space-y-3">
+      <div className="flex items-start justify-between flex-wrap gap-2">
+        <div>
+          <h2 className="text-lg font-bold text-white">B3 (Brazil) Coffee Futures</h2>
+          <p className="text-xs text-slate-400 max-w-3xl">
+            Front-contract settlement on Brazil&apos;s own exchange: Arábica 4/5 (ICF, US$/saca) and
+            Conilon tipo 7/8 (CNL, R$/saca — physical delivery Vitória-ES). The domestic curve vs
+            NY/London shows how much of the move is Brazil-specific vs global.
+          </p>
+        </div>
+        <div className="flex bg-slate-800 border border-slate-700 rounded-md overflow-hidden text-[10px]">
+          {(["1M","3M","6M","1Y","2Y"] as Window[]).map(w => (
+            <button key={w} onClick={() => setWindow(w)}
+              className={`px-2.5 py-1.5 transition ${window === w ? "bg-sky-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
+              {w}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <MarketCard title="B3 Arábica 4/5 (Pregão Regular)" doc={arabica} color="#f59e0b" window={window} />
+        <MarketCard title="B3 Conilon 7/8 (CNL)"            doc={conilon} color="#34d399" window={window} />
+      </div>
+    </div>
+  );
+}
