@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-11T10:55:28.872806Z",
-  "count": 69,
+  "generated_at": "2026-08-11T11:09:14.927032Z",
+  "count": 70,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -369,6 +369,17 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 10
+    },
+    {
+      "file": "probe-cnl-hist.yml",
+      "name": "Z \u2013 Probe: CNL history sources (test)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 8
     },
     {
       "file": "probe-fisico.yml",
