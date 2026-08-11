@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-11T08:06:50.252588Z",
-  "count": 69,
+  "generated_at": "2026-08-11T10:53:09.183269Z",
+  "count": 70,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -358,6 +358,17 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 10
+    },
+    {
+      "file": "probe-b3-cnl.yml",
+      "name": "Z \u2013 Probe: B3 CNL conilon (test)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 8
     },
     {
       "file": "probe-cepea.yml",
