@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-11T03:51:10.020623Z",
+  "generated_at": "2026-08-11T08:06:50.252588Z",
   "count": 69,
   "workflows": [
     {
@@ -905,12 +905,9 @@
       "file": "vn-customs-by-country.yml",
       "name": "0.9 \u2013 VN Customs by-country (5X/5N) probe / backfill",
       "triggers": [
-        "schedule",
         "workflow_dispatch"
       ],
-      "crons": [
-        "0 3 12,20 * *"
-      ],
+      "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": "vn-customs-by-country",
       "timeout_minutes": 45
