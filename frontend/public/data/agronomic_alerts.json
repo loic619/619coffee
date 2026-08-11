@@ -1,21 +1,19 @@
 {
-  "generated_at": "2026-08-10T03:36:53+00:00",
+  "generated_at": "2026-08-11T03:30:33+00:00",
   "ruleset_version": "iphm-v3",
   "origins": {
-    "brazil": {
-      "Paraná": [
+    "colombia": {
+      "Caldas": [
         {
-          "threat_id": "brazil_frost_risk",
-          "name": "Watch Frost Threat",
+          "threat_id": "blossom_drop",
+          "family": "blossom_drop",
+          "name": "Flowering Disruption / Blossom Drop",
           "severity": "watch",
           "timeframe": "forecast",
-          "market_impact": "Marginal frost risk on 2026-08-21: 1.8 °C canopy. Monitor overnight lows.",
+          "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
           "triggers": {
-            "type": "none",
-            "surface_c": 1.8,
-            "air_min_c": 5.3,
-            "hours_below_0": 0,
-            "date": "2026-08-21"
+            "spei_3": -2.33,
+            "forecast_7d_rain": 101.8
           }
         }
       ]
@@ -27,105 +25,110 @@
       "watch": 1
     },
     "by_threat": {
-      "brazil_frost_risk": 1
+      "blossom_drop": 1
     }
   },
   "state": {
+    "colombia|Caldas|blossom_drop": {
+      "first_seen": "2026-08-11",
+      "last_seen": "2026-08-11",
+      "active": true
+    },
     "honduras|El Paraíso|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "indonesia|Java|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "uganda|Masaka|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "uganda|Masaka|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "uganda|Kasese|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "uganda|Kasese|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "uganda|Mbale|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "uganda|Mbale|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "uganda|Mbale|severe_defoliation": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "uganda|Mt Elgon|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "uganda|Mt Elgon|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "uganda|Mt Elgon|severe_defoliation": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "ethiopia|Sidama/Yirgacheffe|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "ethiopia|Sidama/Yirgacheffe|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "ethiopia|Sidama/Yirgacheffe|severe_defoliation": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "ethiopia|Jimma|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "ethiopia|Jimma|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "ethiopia|Limu|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "ethiopia|Kaffa|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "ethiopia|Kaffa|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "ethiopia|Kaffa|severe_defoliation": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "ethiopia|Harrar|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "ethiopia|Harrar|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     },
     "vn|Lam Dong|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-10"
+      "last_seen": "2026-08-11"
     }
   }
 }
