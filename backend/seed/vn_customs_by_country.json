@@ -1,6 +1,6 @@
 {
  "_note": "Vietnam Customs coffee by country/territory, harvested from the English preliminary bulletins (5X exports / 5N imports, '(ta-sb)') on files.customs.gov.vn by scraper.backfill_vn_customs_country. volume_ton/value_usd are the reporting month; ytd_* the year-to-date cumulative. 5N carries no coffee commodity line (VN coffee imports are folded into 'Other products'), so imports_by_country is empty by source, kept for future-proofing.",
- "harvested_months": 26,
+ "harvested_months": 27,
  "months": {
   "2024-02": {
    "exports_by_country": [
@@ -6400,6 +6400,272 @@
    "source_url_5x": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/7/9/2026-t6-5x(ta-sb).pdf",
    "imports_by_country": [],
    "source_url_5n": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/7/9/2026-t6-5n(ta-sb).pdf"
+  },
+  "2026-07": {
+   "exports_by_country": [
+    {
+     "country": "Egypt",
+     "volume_ton": 1132.0,
+     "value_usd": 4394135.0,
+     "ytd_volume_ton": 13457.0,
+     "ytd_value_usd": 53263888.0
+    },
+    {
+     "country": "India",
+     "volume_ton": 1394.0,
+     "value_usd": 5704589.0,
+     "ytd_volume_ton": 15796.0,
+     "ytd_value_usd": 63018013.0
+    },
+    {
+     "country": "Algeria",
+     "volume_ton": 12154.0,
+     "value_usd": 48738725.0,
+     "ytd_volume_ton": 72224.0,
+     "ytd_value_usd": 305911729.0
+    },
+    {
+     "country": "United Kingdom",
+     "volume_ton": 1907.0,
+     "value_usd": 9894902.0,
+     "ytd_volume_ton": 24016.0,
+     "ytd_value_usd": 132146653.0
+    },
+    {
+     "country": "Poland",
+     "volume_ton": 1516.0,
+     "value_usd": 10220272.0,
+     "ytd_volume_ton": 15600.0,
+     "ytd_value_usd": 95991514.0
+    },
+    {
+     "country": "Belgium",
+     "volume_ton": 7916.0,
+     "value_usd": 30296718.0,
+     "ytd_volume_ton": 52469.0,
+     "ytd_value_usd": 221742191.0
+    },
+    {
+     "country": "Portugal",
+     "volume_ton": 1047.0,
+     "value_usd": 4035480.0,
+     "ytd_volume_ton": 9040.0,
+     "ytd_value_usd": 36938637.0
+    },
+    {
+     "country": "Cambodia",
+     "volume_ton": 640.0,
+     "value_usd": 2385709.0,
+     "ytd_volume_ton": 6627.0,
+     "ytd_value_usd": 23691051.0
+    },
+    {
+     "country": "Canada",
+     "volume_ton": 413.0,
+     "value_usd": 1825010.0,
+     "ytd_volume_ton": 4807.0,
+     "ytd_value_usd": 21050411.0
+    },
+    {
+     "country": "Chile",
+     "volume_ton": 156.0,
+     "value_usd": 875567.0,
+     "ytd_volume_ton": 1032.0,
+     "ytd_value_usd": 5363129.0
+    },
+    {
+     "country": "Denmark",
+     "volume_ton": 216.0,
+     "value_usd": 795273.0,
+     "ytd_volume_ton": 1368.0,
+     "ytd_value_usd": 5421598.0
+    },
+    {
+     "country": "Germany",
+     "volume_ton": 17833.0,
+     "value_usd": 67568950.0,
+     "ytd_volume_ton": 177907.0,
+     "ytd_value_usd": 719131386.0
+    },
+    {
+     "country": "Netherlands",
+     "volume_ton": 4566.0,
+     "value_usd": 20855926.0,
+     "ytd_volume_ton": 39710.0,
+     "ytd_value_usd": 196677778.0
+    },
+    {
+     "country": "Korea (Republic)",
+     "volume_ton": 3436.0,
+     "value_usd": 15525616.0,
+     "ytd_volume_ton": 20355.0,
+     "ytd_value_usd": 95510121.0
+    },
+    {
+     "country": "United States of America",
+     "volume_ton": 13676.0,
+     "value_usd": 53173262.0,
+     "ytd_volume_ton": 84946.0,
+     "ytd_value_usd": 364419795.0
+    },
+    {
+     "country": "Greece",
+     "volume_ton": 654.0,
+     "value_usd": 2969123.0,
+     "ytd_volume_ton": 6860.0,
+     "ytd_value_usd": 28267534.0
+    },
+    {
+     "country": "Indonesia",
+     "volume_ton": 1683.0,
+     "value_usd": 11195157.0,
+     "ytd_volume_ton": 14582.0,
+     "ytd_value_usd": 99084494.0
+    },
+    {
+     "country": "Italy",
+     "volume_ton": 16150.0,
+     "value_usd": 62202908.0,
+     "ytd_volume_ton": 110789.0,
+     "ytd_value_usd": 444661045.0
+    },
+    {
+     "country": "Israel",
+     "volume_ton": 826.0,
+     "value_usd": 5124966.0,
+     "ytd_volume_ton": 5743.0,
+     "ytd_value_usd": 32045060.0
+    },
+    {
+     "country": "Laos",
+     "volume_ton": 25.0,
+     "value_usd": 157919.0,
+     "ytd_volume_ton": 148.0,
+     "ytd_value_usd": 975459.0
+    },
+    {
+     "country": "Malaysia",
+     "volume_ton": 2151.0,
+     "value_usd": 10270062.0,
+     "ytd_volume_ton": 21340.0,
+     "ytd_value_usd": 106683912.0
+    },
+    {
+     "country": "Mexico",
+     "volume_ton": 1279.0,
+     "value_usd": 4672006.0,
+     "ytd_volume_ton": 24292.0,
+     "ytd_value_usd": 89163743.0
+    },
+    {
+     "country": "Myanmar (Burma)",
+     "volume_ton": null,
+     "value_usd": null,
+     "ytd_volume_ton": 81.0,
+     "ytd_value_usd": 898791.0
+    },
+    {
+     "country": "South Africa",
+     "volume_ton": 140.0,
+     "value_usd": 497509.0,
+     "ytd_volume_ton": 4256.0,
+     "ytd_value_usd": 16894381.0
+    },
+    {
+     "country": "New Zealand",
+     "volume_ton": 156.0,
+     "value_usd": 824704.0,
+     "ytd_volume_ton": 1347.0,
+     "ytd_value_usd": 6809021.0
+    },
+    {
+     "country": "Russian Federation",
+     "volume_ton": 7874.0,
+     "value_usd": 33453601.0,
+     "ytd_volume_ton": 67233.0,
+     "ytd_value_usd": 306071284.0
+    },
+    {
+     "country": "Japan",
+     "volume_ton": 8378.0,
+     "value_usd": 42800978.0,
+     "ytd_volume_ton": 78218.0,
+     "ytd_value_usd": 388240980.0
+    },
+    {
+     "country": "Australia",
+     "volume_ton": 2122.0,
+     "value_usd": 10458682.0,
+     "ytd_volume_ton": 15114.0,
+     "ytd_value_usd": 75439081.0
+    },
+    {
+     "country": "Finland",
+     "volume_ton": null,
+     "value_usd": null,
+     "ytd_volume_ton": 144.0,
+     "ytd_value_usd": 598030.0
+    },
+    {
+     "country": "France",
+     "volume_ton": 1643.0,
+     "value_usd": 6312797.0,
+     "ytd_volume_ton": 17834.0,
+     "ytd_value_usd": 81636121.0
+    },
+    {
+     "country": "Philippines",
+     "volume_ton": 3858.0,
+     "value_usd": 22922099.0,
+     "ytd_volume_ton": 31883.0,
+     "ytd_value_usd": 176470026.0
+    },
+    {
+     "country": "Romania",
+     "volume_ton": 141.0,
+     "value_usd": 1007319.0,
+     "ytd_volume_ton": 608.0,
+     "ytd_value_usd": 3560244.0
+    },
+    {
+     "country": "Singapore",
+     "volume_ton": 159.0,
+     "value_usd": 1323213.0,
+     "ytd_volume_ton": 818.0,
+     "ytd_value_usd": 6308718.0
+    },
+    {
+     "country": "Spain",
+     "volume_ton": 10532.0,
+     "value_usd": 46408085.0,
+     "ytd_volume_ton": 85852.0,
+     "ytd_value_usd": 379915067.0
+    },
+    {
+     "country": "Thailand",
+     "volume_ton": 3314.0,
+     "value_usd": 23385643.0,
+     "ytd_volume_ton": 23874.0,
+     "ytd_value_usd": 178376143.0
+    },
+    {
+     "country": "China",
+     "volume_ton": 5181.0,
+     "value_usd": 25018738.0,
+     "ytd_volume_ton": 44004.0,
+     "ytd_value_usd": 251416775.0
+    },
+    {
+     "country": "Ukraine",
+     "volume_ton": null,
+     "value_usd": null,
+     "ytd_volume_ton": 19.0,
+     "ytd_value_usd": 186750.0
+    }
+   ],
+   "source_url_5x": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/8/10/2026-t7-5x(ta-sb).pdf",
+   "imports_by_country": [],
+   "source_url_5n": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/8/10/2026-t7-5n(ta-sb).pdf"
   }
  }
 }
