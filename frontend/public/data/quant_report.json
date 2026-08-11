@@ -228,36 +228,111 @@
       }
     ]
   },
-  "scraped_at": "2026-08-11T22:44:54.762378+00:00",
+  "scraped_at": "2026-08-11T22:45:31.295671Z",
   "sentiment": {
     "available": true,
-    "scraped_at": "2026-08-10T22:07:39.633543Z",
+    "scraped_at": "2026-08-11T22:45:30.330278Z",
     "overall_sentiment": "Neutral",
-    "overall_confidence": 88.4,
-    "net_index": 21.6,
-    "bull_count": 8,
-    "bear_count": 3,
-    "neutral_count": 8,
-    "total": 19,
+    "overall_confidence": 85.0,
+    "net_index": 7.8,
+    "bull_count": 6,
+    "bear_count": 4,
+    "neutral_count": 13,
+    "total": 23,
     "items": [
+      {
+        "headline": "Exporta\u00e7\u00e3o de caf\u00e9 do Brasil sobe 9,9% em julho, para 3 milh\u00f5es de sacas",
+        "source": "Not\u00edcias Agr\u00edcolas",
+        "sentiment": "Bearish",
+        "confidence": 85.0,
+        "tags": [
+          "noticias_agricolas",
+          "cafe"
+        ]
+      },
+      {
+        "headline": "Caf\u00e9 fecha com leve alta em NY ap\u00f3s preg\u00e3o de forte volatilidade com terremoto na Col\u00f4mbia, calor no Brasil e d\u00f3lar no radar",
+        "source": "Not\u00edcias Agr\u00edcolas",
+        "sentiment": "Bullish",
+        "confidence": 80.0,
+        "tags": [
+          "noticias_agricolas",
+          "cafe"
+        ]
+      },
+      {
+        "headline": "\u00c1reas de caf\u00e9 na Col\u00f4mbia s\u00e3o afetadas por terremoto e parte das opera\u00e7\u00f5es est\u00e3o temporariamente suspensas",
+        "source": "Not\u00edcias Agr\u00edcolas",
+        "sentiment": "Bullish",
+        "confidence": 95.0,
+        "tags": [
+          "noticias_agricolas",
+          "cafe"
+        ]
+      },
+      {
+        "headline": "Build-Outs Of Coffee: Milk Brew In Pasadena, CA",
+        "source": "Sprudge",
+        "sentiment": "Neutral",
+        "confidence": 90.0,
+        "tags": [
+          "sprudge"
+        ]
+      },
+      {
+        "headline": "The 2027 US Roasters Championship Schedule Has Been Announced",
+        "source": "Sprudge",
+        "sentiment": "Neutral",
+        "confidence": 90.0,
+        "tags": [
+          "sprudge"
+        ]
+      },
       {
         "headline": "Caf\u00e9 fecha est\u00e1vel em NY nesta 2\u00aa feira (10) e neg\u00f3cios no Brasil permanecem restritos",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
+        "confidence": 80.0,
+        "tags": [
+          "noticias_agricolas",
+          "cafe"
+        ]
+      },
+      {
+        "headline": "In Copenhagen, A New Crop Of Coffee Roasters Serves The City\u2019s Scene",
+        "source": "Sprudge",
+        "sentiment": "Neutral",
         "confidence": 85.0,
         "tags": [
-          "cafe",
-          "noticias_agricolas"
+          "sprudge"
+        ]
+      },
+      {
+        "headline": "Look At All These Coffee Events On The Sprudge Coffee Events Calendar",
+        "source": "Sprudge",
+        "sentiment": "Neutral",
+        "confidence": 90.0,
+        "tags": [
+          "sprudge"
         ]
       },
       {
         "headline": "Caf\u00e9 ar\u00e1bica: colheita evolui para 74% na regi\u00e3o da Expocacer",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bearish",
-        "confidence": 90.0,
+        "confidence": 80.0,
         "tags": [
-          "cafe",
-          "noticias_agricolas"
+          "noticias_agricolas",
+          "cafe"
+        ]
+      },
+      {
+        "headline": "Pretend It\u2019s Not 100 Degrees Outside With These Hot Hot Coffees From The Sprudge Roasters Village",
+        "source": "Sprudge",
+        "sentiment": "Neutral",
+        "confidence": 95.0,
+        "tags": [
+          "sprudge"
         ]
       },
       {
@@ -266,18 +341,27 @@
         "sentiment": "Bullish",
         "confidence": 95.0,
         "tags": [
-          "cafe",
-          "noticias_agricolas"
+          "noticias_agricolas",
+          "cafe"
         ]
       },
       {
         "headline": "Concurso NossoCaf\u00e9 Yara celebra 10\u00aa edi\u00e7\u00e3o e abre espa\u00e7o pela primeira vez para caf\u00e9s Canephora",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
+        "confidence": 85.0,
+        "tags": [
+          "noticias_agricolas",
+          "cafe"
+        ]
+      },
+      {
+        "headline": "New Technology Looks To Turn Gas-Powered Coffee Roasters To Solar",
+        "source": "Sprudge",
+        "sentiment": "Neutral",
         "confidence": 80.0,
         "tags": [
-          "cafe",
-          "noticias_agricolas"
+          "sprudge"
         ]
       },
       {
@@ -286,8 +370,8 @@
         "sentiment": "Neutral",
         "confidence": 85.0,
         "tags": [
-          "cafe",
-          "noticias_agricolas"
+          "noticias_agricolas",
+          "cafe"
         ]
       },
       {
@@ -296,8 +380,8 @@
         "sentiment": "Bearish",
         "confidence": 95.0,
         "tags": [
-          "cafe",
-          "noticias_agricolas"
+          "noticias_agricolas",
+          "cafe"
         ]
       },
       {
@@ -306,25 +390,25 @@
         "sentiment": "Bearish",
         "confidence": 90.0,
         "tags": [
-          "cafe",
-          "noticias_agricolas"
+          "noticias_agricolas",
+          "cafe"
         ]
       },
       {
         "headline": "Pre\u00e7os do caf\u00e9 sobem no Vietn\u00e3, safra na Indon\u00e9sia chega ao fim",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
-        "confidence": 90.0,
+        "confidence": 75.0,
         "tags": [
-          "cafe",
-          "noticias_agricolas"
+          "noticias_agricolas",
+          "cafe"
         ]
       },
       {
         "headline": "Spokane Coffee Shops Open Doors To Those Impacted By Wildfires",
         "source": "Sprudge",
         "sentiment": "Neutral",
-        "confidence": 99.0,
+        "confidence": 95.0,
         "tags": [
           "sprudge"
         ]
@@ -335,25 +419,25 @@
         "sentiment": "Bullish",
         "confidence": 95.0,
         "tags": [
-          "cafe",
-          "noticias_agricolas"
+          "noticias_agricolas",
+          "cafe"
         ]
       },
       {
         "headline": "Setor cafeeiro enaltece trabalhos para atender a exig\u00eancias dos mercados internacionais",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
-        "confidence": 85.0,
+        "confidence": 80.0,
         "tags": [
-          "cafe",
-          "noticias_agricolas"
+          "noticias_agricolas",
+          "cafe"
         ]
       },
       {
         "headline": "Build-Outs Of Coffee: Onyx At The Preserve In Bentonville, AR",
         "source": "Sprudge",
         "sentiment": "Neutral",
-        "confidence": 99.0,
+        "confidence": 90.0,
         "tags": [
           "sprudge"
         ]
@@ -361,7 +445,7 @@
       {
         "headline": "Coffee Borer Beetles Are Making Homes For The Ants That Hunt Them",
         "source": "Sprudge",
-        "sentiment": "Bullish",
+        "sentiment": "Neutral",
         "confidence": 60.0,
         "tags": [
           "sprudge"
@@ -373,63 +457,15 @@
         "sentiment": "Bullish",
         "confidence": 90.0,
         "tags": [
-          "cafe",
-          "noticias_agricolas"
-        ]
-      },
-      {
-        "headline": "Ivan Solis Of Recuerdos Cafe: The Sprudge Twenty Interview",
-        "source": "Sprudge",
-        "sentiment": "Neutral",
-        "confidence": 99.0,
-        "tags": [
-          "sprudge"
-        ]
-      },
-      {
-        "headline": "Setor de caf\u00e9s especiais pode obter US$ 5,6 milh\u00f5es com a\u00e7\u00f5es no Chile",
-        "source": "Not\u00edcias Agr\u00edcolas",
-        "sentiment": "Neutral",
-        "confidence": 75.0,
-        "tags": [
-          "cafe",
-          "noticias_agricolas"
-        ]
-      },
-      {
-        "headline": "Caf\u00e9 fecha com boas altas em NY nesta 3\u00aa feira, mas neg\u00f3cios permanecem travados no Brasil",
-        "source": "Not\u00edcias Agr\u00edcolas",
-        "sentiment": "Bullish",
-        "confidence": 90.0,
-        "tags": [
-          "cafe",
-          "noticias_agricolas"
-        ]
-      },
-      {
-        "headline": "The American Heart Association Says Five Cups Of Coffee A Day Is Fine",
-        "source": "Sprudge",
-        "sentiment": "Bullish",
-        "confidence": 70.0,
-        "tags": [
-          "sprudge"
-        ]
-      },
-      {
-        "headline": "Caf\u00e9 sobe mais de 1% em Nova York com recupera\u00e7\u00e3o t\u00e9cnica e volta das preocupa\u00e7\u00f5es com a oferta",
-        "source": "Not\u00edcias Agr\u00edcolas",
-        "sentiment": "Bullish",
-        "confidence": 95.0,
-        "tags": [
-          "cafe",
-          "noticias_agricolas"
+          "noticias_agricolas",
+          "cafe"
         ]
       }
     ]
   },
   "robusta_factors": {
     "available": true,
-    "scraped_at": "2026-08-10T22:07:40.182284Z",
+    "scraped_at": "2026-08-11T22:45:30.765063Z",
     "as_of": "2026-08-04",
     "model": {
       "r_squared": 0.012,
@@ -488,7 +524,7 @@
   },
   "sentiment_calibration": {
     "available": true,
-    "scraped_at": "2026-08-10T22:07:40.534279Z",
+    "scraped_at": "2026-08-11T22:45:31.125363Z",
     "horizon_days": 5,
     "neutral_band": 8.0,
     "markets": {
