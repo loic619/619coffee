@@ -4,6 +4,7 @@ import { useReactToPrint } from "react-to-print";
 import AcapheLiveQuotes from "@/components/futures/AcapheLiveQuotes";
 import OIFndChart from "@/components/futures/OIFndChart";
 import OriginPricesPanel from "@/components/macro/OriginPricesPanel";
+import B3CoffeePanel from "@/components/futures/B3CoffeePanel";
 import PageHeader from "@/components/PageHeader";
 import { fmtNum as fmt } from "@/lib/formatters";
 import { FOBBING_USD, MONTHLY_CARRY_USD } from "@/lib/originCosts";
@@ -1038,6 +1039,12 @@ function FuturesPageInner() {
               side of the price story sits next to the futures chain. */}
           <div className="border-t border-slate-800 pt-4 mt-4">
             <OriginPricesPanel />
+          </div>
+
+          {/* B3 (Brazil) coffee futures — domestic-exchange arabica (ICF) and
+              conilon (CNL) curves below the international picture. */}
+          <div className="border-t border-slate-800 pt-4 mt-4">
+            <B3CoffeePanel />
           </div>
         </>
       )}

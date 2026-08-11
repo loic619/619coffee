@@ -1,0 +1,19 @@
+name: "Z – Probe: B3 CNL conilon (test)"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install requests
+      - name: Probe CNL curve
+        working-directory: backend
+        run: python -m scraper.sources.brazil_b3_conilon --probe
