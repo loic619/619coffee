@@ -1,0 +1,58 @@
+name: "Z – Backfill: B3 conilon future (CNL)"
+
+# One-shot: walk B3's dated "Ajustes do Pregão" bulletin for CNL settlements
+# back to the contract's Sep-2024 launch, so brazil_b3_conilon.json carries a
+# real history instead of only the days the daily scraper has accumulated.
+# `probe` diagnoses the sources without writing anything.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "probe (diagnose sources) or backfill (fetch + commit)"
+        required: false
+        default: "backfill"
+      start:
+        description: "Backfill start date (YYYY-MM-DD)"
+        required: false
+        default: "2024-09-02"
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install beautifulsoup4
+      - name: Probe sources
+        if: ${{ inputs.mode == 'probe' }}
+        working-directory: backend
+        run: python -m scraper.backfill_b3_conilon probe
+      - name: Backfill CNL settlement history
+        if: ${{ inputs.mode != 'probe' }}
+        working-directory: backend
+        run: |
+          python -m scraper.backfill_b3_conilon probe || true
+          python -m scraper.backfill_b3_conilon backfill "${{ inputs.start }}"
+      - name: Commit generated data
+        if: ${{ inputs.mode != 'probe' }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data/brazil_b3_conilon.json
+          if git diff --cached --quiet; then
+            echo "No changes."
+          else
+            git commit -m "data: backfill B3 conilon (CNL) settlement history [skip ci]"
+            for i in 1 2 3 4 5; do
+              git pull --rebase --autostash origin "${{ github.ref_name }}" && git push && exit 0
+              sleep $((RANDOM % 5 + 3))
+            done
+            echo "::error::push failed"; exit 1
+          fi
