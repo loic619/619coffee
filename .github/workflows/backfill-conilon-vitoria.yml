@@ -28,11 +28,14 @@ jobs:
       - name: Backfill Vitória conilon history
         working-directory: backend
         run: python -m scraper.sources.brazil_conilon_vitoria backfill "${{ inputs.start }}"
+      - name: Seed brazil_conilon origin history from the archive
+        working-directory: backend
+        run: python -m scraper.sources.brazil_conilon_vitoria seed-origin
       - name: Commit generated data
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add frontend/public/data/brazil_conilon_vitoria.json
+          git add frontend/public/data/brazil_conilon_vitoria.json frontend/public/data/origin_prices_history.json
           if git diff --cached --quiet; then
             echo "No changes."
           else

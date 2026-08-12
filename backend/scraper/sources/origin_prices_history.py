@@ -10,12 +10,12 @@ day this module first runs; backfill for those origins is deferred to a
 follow-up (UCDA bulletins for UG; user-supplied file for VN).
 
 This module reads-then-writes so it MUST NOT run before the upstream
-files it depends on (vn_physical_prices.json, uganda_supply.json, Cooabriel
-NewsItem) are themselves up-to-date for the day.
+files it depends on (vn_physical_prices.json, uganda_supply.json,
+brazil_arabica_fisico.json, brazil_conilon_vitoria.json) are themselves
+up-to-date for the day.
 """
 
 import json
-import re
 import sys
 import urllib.error
 import urllib.request
@@ -29,7 +29,6 @@ OUT_PATH = ROOT / "frontend" / "public" / "data" / "origin_prices_history.json"
 
 # BCB SGS series codes — daily CEPEA/ESALQ mirror, R$/saca de 60kg.
 SGS_ARABICA = 4332  # Café Arábica — São Paulo SP indicator (Cooxupé / Garça basis)
-SGS_CONILON = 4333  # Café Conilon  — Vitória ES indicator
 BACKFILL_YEARS = 2
 
 # Some Brazilian government endpoints reject bare-Python user agents (egress
@@ -54,8 +53,8 @@ ORIGINS = {
         "commodity": "robusta",
     },
     "brazil_conilon": {
-        "name":      "Brazil Conilon Tipo 7 (CEPEA/ESALQ)",
-        "source":    "BCB SGS 4333 (CEPEA daily mirror)",
+        "name":      "Brazil Conilon Tipo 7 (Cooabriel)",
+        "source":    "noticiasagricolas — Vitória-ES disponível (Cooabriel T7)",
         "currency":  "BRL",
         "unit":      "per_saca_60kg",
         "color":     "#10b981",
@@ -221,23 +220,24 @@ def _today_vn_price() -> float | None:
         return None
 
 
-def _today_brazil_conilon_price(db) -> float | None:
-    """Read today's Conilon Tipo 7 price from the latest Cooabriel NewsItem."""
+def _brazil_conilon_dated() -> tuple[str | None, float | None]:
+    """(trading_date, price) for Conilon Tipo 7, from the Vitória-ES archive.
+
+    Previously this read the latest Cooabriel NewsItem and the caller stamped
+    it with the RUN date. Cooabriel publishes the prior session's quote, so
+    every point landed one trading day late: checked against the same quote as
+    republished by noticiasagricolas over a 62-day overlap, same-date agreement
+    was 17/62 (mean |err| R$10.08) but 60/62 at a one-day shift (R$0.24). Reading
+    the republished table instead carries the page's own Fechamento date, so the
+    point is filed under the session it belongs to.
+    """
+    from scraper.sources.brazil_conilon_vitoria import latest_cooabriel_t7
     try:
-        from models import NewsItem
-        item = (db.query(NewsItem)
-                  .filter(NewsItem.source == "Cooabriel")
-                  .order_by(NewsItem.pub_date.desc()).first())
-        if not item:
-            return None
-        m = re.search(r"R\$\s*([\d.]+,\d{2})", item.body or "")
-        if not m:
-            return None
-        return float(m.group(1).replace(".", "").replace(",", "."))
+        return latest_cooabriel_t7()
     except Exception as e:
-        print(f"[origin_prices_history] brazil_conilon_price unavailable from Cooabriel NewsItem: {e}",
+        print(f"[origin_prices_history] brazil_conilon unavailable from Vitória archive: {e}",
               file=sys.stderr, flush=True)
-        return None
+        return None, None
 
 
 def _today_brazil_arabica_price(db) -> float | None:
@@ -306,12 +306,14 @@ def _today_guatemala_grades(db) -> dict:
         return {}
 
 
-def _append_today(history: list[dict], today_iso: str, price: float | None) -> list[dict]:
+def _append_point(history: list[dict], date_iso: str, price: float | None) -> list[dict]:
+    """Append `price` under `date_iso` (usually today, but sources that carry
+    their own trading date pass that instead). No-op if the date is present."""
     if price is None:
         return history
-    if any(h["date"] == today_iso for h in history):
+    if any(h["date"] == date_iso for h in history):
         return history
-    history.append({"date": today_iso, "price": price})
+    history.append({"date": date_iso, "price": price})
     return sorted(history, key=lambda r: r["date"])
 
 
@@ -343,16 +345,19 @@ def export_origin_prices_history(db) -> None:
             del origins[key]
 
     # Vietnam — append today's snapshot.
-    origins["vietnam"]["history"] = _append_today(
+    origins["vietnam"]["history"] = _append_point(
         origins["vietnam"]["history"], today, _today_vn_price()
     )
 
-    # Brazil Conilon — append today's Cooabriel + backfill from SGS 4333 on first run.
-    origins["brazil_conilon"]["history"] = _append_today(
-        origins["brazil_conilon"]["history"], today, _today_brazil_conilon_price(db)
-    )
-    origins["brazil_conilon"]["history"] = _backfill_from_sgs(
-        origins["brazil_conilon"]["history"], SGS_CONILON, "brazil_conilon"
+    # Brazil Conilon — append the latest Cooabriel Tipo 7 under its own trading
+    # date (see _brazil_conilon_dated). The SGS 4333 backfill is deliberately
+    # NOT run here: it is as dead as its arabica sibling (this history stayed
+    # 90 days long under it), and now that the series is seeded from the
+    # Vitória archive a revived SGS would splice the CEPEA conilon *indicator*
+    # — a different quote — into a history labelled Cooabriel T7.
+    conilon_date, conilon_price = _brazil_conilon_dated()
+    origins["brazil_conilon"]["history"] = _append_point(
+        origins["brazil_conilon"]["history"], conilon_date or today, conilon_price
     )
 
     # Brazil Arabica — append today's CEPEA/ESALQ price (when the cepea
@@ -361,7 +366,7 @@ def export_origin_prices_history(db) -> None:
     # empty since at least the 18 May 2026 daily run — visible in
     # origin_prices_history.json where brazil_arabica.history was []),
     # so the daily CEPEA news item is now the primary source.
-    origins["brazil_arabica"]["history"] = _append_today(
+    origins["brazil_arabica"]["history"] = _append_point(
         origins["brazil_arabica"]["history"], today, _today_brazil_arabica_price(db)
     )
     origins["brazil_arabica"]["history"] = _backfill_from_sgs(
@@ -369,20 +374,20 @@ def export_origin_prices_history(db) -> None:
     )
 
     # Uganda — append today's UCDA Screen 15 (robusta) + Drugar / Wugar (arabica).
-    origins["uganda"]["history"] = _append_today(
+    origins["uganda"]["history"] = _append_point(
         origins["uganda"]["history"], today, _today_uganda_price()
     )
-    origins["uganda_drugar"]["history"] = _append_today(
+    origins["uganda_drugar"]["history"] = _append_point(
         origins["uganda_drugar"]["history"], today, _today_uganda_arabica_price(["Drugar"])
     )
-    origins["uganda_wugar"]["history"] = _append_today(
+    origins["uganda_wugar"]["history"] = _append_point(
         origins["uganda_wugar"]["history"], today, _today_uganda_arabica_price(["Wugar"])
     )
 
     # Guatemala — ANACAFE reference prices per grade (USD per 100-lb quintal).
     gua_grades = _today_guatemala_grades(db)
     for origin_key, grade_key in _GUATEMALA_GRADES.items():
-        origins[origin_key]["history"] = _append_today(
+        origins[origin_key]["history"] = _append_point(
             origins[origin_key]["history"], today, gua_grades.get(grade_key)
         )
 
