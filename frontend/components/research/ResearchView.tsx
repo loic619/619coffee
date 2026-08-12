@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LDN_PARAMS, NY_PARAMS } from "@/lib/cot/intraweekModel";
-import { FOBBING_USD } from "@/lib/originCosts";
+import { FOBBING_MODEL, fobbingUsdMt } from "@/lib/originCosts";
 import { cachedFetchStatic } from "@/lib/api";
 import CotBacktestReport from "@/components/futures/CotBacktestReport";
 import AgronomyArticles from "./AgronomyArticles";
@@ -630,7 +630,48 @@ function CostTable({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Latest USD/MT per physical ticker, parsed out of the same latest_prices.json
+// the market ticker reads. The FOBbing stacks below are fixed + ad-valorem, so
+// feeding them today's price is what makes the published figure move day to day
+// instead of standing at a frozen reference.
+function useOriginSpotUsd(): Record<string, number> {
+  const [spot, setSpot] = useState<Record<string, number>>({});
+  useEffect(() => {
+    let alive = true;
+    cachedFetchStatic<{ tickers?: { label: string; value: string }[] }>("/data/latest_prices.json")
+      .then(d => {
+        if (!alive) return;
+        const out: Record<string, number> = {};
+        for (const t of d?.tickers ?? []) {
+          const m = t.value?.match(/\$([0-9,]+)/);
+          if (m) out[t.label] = parseInt(m[1].replace(/,/g, ""), 10);
+        }
+        setSpot(out);
+      })
+      .catch(() => { /* falls back to each model's reference price */ });
+    return () => { alive = false; };
+  }, []);
+  return spot;
+}
+
+// "$62.50/t + 5.5% of cargo value — on today's $3,401/t" — the line that makes
+// clear the headline above it is a live number, not a stored constant.
+function FobFormula({ label, spot }: { label: string; spot?: number }) {
+  const m = FOBBING_MODEL[label];
+  if (!m) return null;
+  return (
+    <p className="text-[11px] text-slate-500 mb-2 -mt-1">
+      <span className="font-mono text-slate-400">${m.fixedUsdMt}/t + {m.advaloremPct}%</span> of cargo value
+      {spot
+        ? <> — priced on today&apos;s <span className="font-mono text-slate-400">${spot.toLocaleString()}/t</span></>
+        : <> — at the ${m.referenceUsdMt.toLocaleString()}/t reference</>}
+    </p>
+  );
+}
+
 function OriginLogistics() {
+  const spot = useOriginSpotUsd();
+  const fobNow = (label: string) => Math.round(fobbingUsdMt(label, spot[label]));
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
 
@@ -658,8 +699,9 @@ function OriginLogistics() {
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
         <div className="text-[10px] uppercase tracking-[0.25em] text-amber-500/80 mb-1">Vietnam · Dak Lak / Central Highlands</div>
         <h3 className="text-lg font-bold text-slate-100 mb-1 pb-2 border-b-2 border-double border-slate-600">
-          VN FAQ Robusta — FOBbing cost ~${FOBBING_USD["VN FAQ"]}/t
+          VN FAQ Robusta — FOBbing cost ~${fobNow("VN FAQ")}/t
         </h3>
+        <FobFormula label="VN FAQ" spot={spot["VN FAQ"]} />
         <P>
           Vietnam runs the tightest logistics chain of the three origins. The port of Cat Lai (Ho Chi Minh City) is
           efficient, and the domestic trucking corridor from Dak Lak is well-established. The single largest line is
@@ -681,12 +723,25 @@ function OriginLogistics() {
           <CostRow label="THC (terminal handling)" cost="5.87" note="Cat Lai terminal handling charge" />
           <CostRow label="Port infrastructure fee" cost="0.48" note="Vietnam port authority" />
           <CostRow label="Container seal" cost="0.38" note="Security seal" />
-          <CostRow label="Financing" cost="10.00" note="~0.37% on $2,700 price × 3-week float" />
-          <CostRow label="Exporter margin" cost="~35" note="~1% of FOB value on ~$3,500 reference price" />
+          <tr className="border-t border-slate-700/70 font-semibold">
+            <td className="pt-2 text-slate-300">Fixed subtotal</td>
+            <td className="pt-2 text-right font-mono text-slate-200">{FOBBING_MODEL["VN FAQ"].fixedUsdMt}</td>
+            <td className="pt-2 text-slate-500 text-[11px]">the lines above, incl. ~$9 unallocated</td>
+          </tr>
+          <CostRow label="Financing" cost="0.37%" note="Cargo value × ~3-week float" />
+          <CostRow label="Exporter margin" cost="0.92%" note="~1% of FOB; the competitive floor for origin traders" />
+          <tr className="border-t border-slate-700/70 font-semibold">
+            <td className="pt-2 text-slate-300">Ad-valorem subtotal</td>
+            <td className="pt-2 text-right font-mono text-slate-200">{FOBBING_MODEL["VN FAQ"].advaloremPct}%</td>
+            <td className="pt-2 text-slate-500 text-[11px]">scales with the cargo&rsquo;s value</td>
+          </tr>
           <tr className="border-t border-slate-600 font-semibold">
             <td className="pt-2 text-slate-200">Total</td>
-            <td className="pt-2 text-right font-mono text-amber-300">~{FOBBING_USD["VN FAQ"]}</td>
-            <td className="pt-2 text-slate-500 text-[11px]">~2.9% of $3,500 reference price</td>
+            <td className="pt-2 text-right font-mono text-amber-300">~{fobNow("VN FAQ")}</td>
+            <td className="pt-2 text-slate-500 text-[11px]">
+              at today&rsquo;s price · ${Math.round(fobbingUsdMt("VN FAQ", 2500))} at $2,500 ·
+              {" "}${Math.round(fobbingUsdMt("VN FAQ", 5000))} at $5,000
+            </td>
           </tr>
         </CostTable>
         <P>
@@ -700,34 +755,62 @@ function OriginLogistics() {
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
         <div className="text-[10px] uppercase tracking-[0.25em] text-amber-500/80 mb-1">Brazil · Espírito Santo / Rondônia</div>
         <h3 className="text-lg font-bold text-slate-100 mb-1 pb-2 border-b-2 border-double border-slate-600">
-          CON T7 Conilon — FOBbing cost ~${FOBBING_USD["CON T7"]}/t
+          CON T7 Conilon — FOBbing cost ~${fobNow("CON T7")}/t
         </h3>
+        <FobFormula label="CON T7" spot={spot["CON T7"]} />
         <P>
           Brazil&#39;s larger figure reflects a structural cost that Vietnam doesn&#39;t face: <strong>quality
           preparation</strong>. Raw Conilon from the farm often arrives at the dry mill at Screen 13–14 with a
           natural cup. To tender into the ICE RC contract at Class 1 or better — or to sell into European roaster
-          specifications — the coffee needs mechanical sorting, hulling, and polishing. That processing step is
-          semi-fixed and accounts for the largest single block of the FOBbing cost.
+          specifications — the coffee needs mechanical sorting, hulling, and polishing, <em>and it loses weight</em>:
+          screening defects and small beans out is an outturn loss, which is the larger half of what the upgrade
+          really costs.
+        </P>
+        <P>
+          That makes this stack the one origin where the two kinds of cost line have to be separated. Haulage,
+          inspection and terminal handling are a <strong>fixed</strong> number of dollars per tonne. Quality
+          preparation, financing and exporter margin are <strong>percentages of the cargo&rsquo;s value</strong> —
+          and the conilon-basis research measures the quality component directly: lifting tipo 7/8 (what the
+          <Code> CON T7</Code> quote represents) to a tipo 6 · screen-13+ export spec is worth
+          <strong> ~4.3% of the price</strong> — $135/t on average since 2022 and ~$176/t today, against the
+          $55–65 flat this stack used to book.
         </P>
         <CostTable>
-          <CostRow label="Quality preparation" cost="55–65" note="Mechanical sorting, hulling, polishing to Class 1+ spec" />
           <CostRow label="L1 — Farm to dry mill" cost="10–15" note="Smallholder aggregation; distance varies across ES/RO" />
-          <CostRow label="L2 — Mill to port (Santos/Vitória)" cost="20–25" note="Road haulage; Santos ~900 km from Rondônia" />
+          <CostRow label="L2 — Mill to port (Santos/Vitória)" cost="20–25" note="Road haulage; measured interior-vs-port basis ≈ $32/t" />
           <CostRow label="MAPA inspection & fumigation" cost="8–12" note="Brazilian agriculture ministry mandatory checks" />
           <CostRow label="THC + port docs + B/L" cost="17–18" note="Terminal handling, export documentation, bill of lading" />
-          <CostRow label="Financing" cost="15" note="~0.5% on $3,000 price × 3-week float" />
-          <CostRow label="Exporter margin" cost="~30" note="~1% of FOB price; the competitive floor for origin traders" />
+          <tr className="border-t border-slate-700/70 font-semibold">
+            <td className="pt-2 text-slate-300">Fixed subtotal</td>
+            <td className="pt-2 text-right font-mono text-slate-200">{FOBBING_MODEL["CON T7"].fixedUsdMt}</td>
+            <td className="pt-2 text-slate-500 text-[11px]">does not scale with the coffee price</td>
+          </tr>
+          <CostRow label="Quality preparation + outturn loss" cost="4.0%" note="Grade uplift to Class 1+ / screen 13+; measured ladder is 4.33%" />
+          <CostRow label="Financing" cost="0.5%" note="Cargo value × ~3-week float" />
+          <CostRow label="Exporter margin" cost="1.0%" note="The competitive floor for origin traders" />
+          <tr className="border-t border-slate-700/70 font-semibold">
+            <td className="pt-2 text-slate-300">Ad-valorem subtotal</td>
+            <td className="pt-2 text-right font-mono text-slate-200">{FOBBING_MODEL["CON T7"].advaloremPct}%</td>
+            <td className="pt-2 text-slate-500 text-[11px]">scales with the cargo&rsquo;s value</td>
+          </tr>
           <tr className="border-t border-slate-600 font-semibold">
             <td className="pt-2 text-slate-200">Total</td>
-            <td className="pt-2 text-right font-mono text-amber-300">~{FOBBING_USD["CON T7"]}</td>
-            <td className="pt-2 text-slate-500 text-[11px]">~6.5% of $3,000 reference price</td>
+            <td className="pt-2 text-right font-mono text-amber-300">
+              ~{Math.round(fobbingUsdMt("CON T7", 3400))}
+            </td>
+            <td className="pt-2 text-slate-500 text-[11px]">
+              at today&rsquo;s price · ${Math.round(fobbingUsdMt("CON T7", 2000))} at $2,000 ·
+              {" "}${Math.round(fobbingUsdMt("CON T7", 4500))} at $4,500
+            </td>
           </tr>
         </CostTable>
         <P>
-          <strong>Trader note:</strong> The quality-preparation cost is the decisive variable. When Brazilian Conilon
-          is already clean (cooperative members with processing equipment), the chain is efficient. When it comes in
-          as naturals from smallholders, processing costs climb. The $200 figure is the blended reference used in the
-          ticker differential.
+          <strong>Trader note:</strong> The quality component is the decisive variable, and it is the one that moves
+          with the market. When Brazilian Conilon is already clean (cooperative members with processing equipment),
+          the real cost sits below the 4% booked here; when it arrives as naturals from smallholders, the outturn
+          loss pushes it above. The previous version of this stack booked a flat $200 — which was worth 12.3% of the
+          coffee in 2022 and 3.5% at the 2025 highs. The split above holds the ratio steady instead, and every
+          consumer of the number (ticker N-diff, tender parity, origin cost bands) now re-rates with the price.
         </P>
       </div>
 
@@ -735,8 +818,9 @@ function OriginLogistics() {
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
         <div className="text-[10px] uppercase tracking-[0.25em] text-amber-500/80 mb-1">Uganda · Western / Central Region</div>
         <h3 className="text-lg font-bold text-slate-100 mb-1 pb-2 border-b-2 border-double border-slate-600">
-          UGA S15 Robusta — FOBbing cost ~${FOBBING_USD["UGA S15"]}/t
+          UGA S15 Robusta — FOBbing cost ~${fobNow("UGA S15")}/t
         </h3>
+        <FobFormula label="UGA S15" spot={spot["UGA S15"]} />
         <P>
           Uganda&#39;s logistics cost is dominated by one line: the <strong>Northern Corridor</strong>. As a
           landlocked country, all export coffee must travel 1,150 km by road to the port of Mombasa, Kenya. That
@@ -745,18 +829,31 @@ function OriginLogistics() {
           sun-drying shrinkage is a material physical cost that doesn&#39;t appear in freight quotes.
         </P>
         <CostTable>
-          <CostRow label="Shrinkage (drying weight loss)" cost="30–45" note="Moisture loss in sun-drying from 12.5% to ~10% export moisture" />
           <CostRow label="L1 — Farm to Kampala mill" cost="15–20" note="Collection from Western / Mt. Elgon growing areas" />
           <CostRow label="L2 — Northern Corridor (Kampala → Mombasa)" cost="75–80" note="1,150 km road transit; rate set by EA road-freight market" />
-          <CostRow label="UCDA export cess" cost="~30" note="1% of FOB value on ~$3,000/t reference price" />
           <CostRow label="Mombasa port (THC + handling + B/L)" cost="35" note="Kenya Ports Authority terminal + shipping docs" />
           <CostRow label="Inspection + fumigation" cost="10–12" note="UCDA quality grading + container fumigation" />
-          <CostRow label="Financing (longer transit)" cost="16–20" note="~0.5% on $3,000 × 4-week float (longer than VN/Brazil)" />
-          <CostRow label="Exporter margin" cost="~37" note="~1% of FOB value on ~$3,700 reference price (UGA S15)" />
+          <tr className="border-t border-slate-700/70 font-semibold">
+            <td className="pt-2 text-slate-300">Fixed subtotal</td>
+            <td className="pt-2 text-right font-mono text-slate-200">{FOBBING_MODEL["UGA S15"].fixedUsdMt}</td>
+            <td className="pt-2 text-slate-500 text-[11px]">does not scale with the coffee price</td>
+          </tr>
+          <CostRow label="Shrinkage (drying weight loss)" cost="1.01%" note="Sun-drying 12.5% → ~10% moisture; lost weight costs a share of value" />
+          <CostRow label="UCDA export cess" cost="0.81%" note="1% of FOB, levied on the export declaration" />
+          <CostRow label="Financing (longer transit)" cost="0.49%" note="Cargo value × ~4-week float (longer than VN/Brazil)" />
+          <CostRow label="Exporter margin" cost="1.00%" note="~1% of FOB value" />
+          <tr className="border-t border-slate-700/70 font-semibold">
+            <td className="pt-2 text-slate-300">Ad-valorem subtotal</td>
+            <td className="pt-2 text-right font-mono text-slate-200">{FOBBING_MODEL["UGA S15"].advaloremPct}%</td>
+            <td className="pt-2 text-slate-500 text-[11px]">scales with the cargo&rsquo;s value</td>
+          </tr>
           <tr className="border-t border-slate-600 font-semibold">
             <td className="pt-2 text-slate-200">Total</td>
-            <td className="pt-2 text-right font-mono text-amber-300">~{FOBBING_USD["UGA S15"]}</td>
-            <td className="pt-2 text-slate-500 text-[11px]">~7% of $3,700 reference price</td>
+            <td className="pt-2 text-right font-mono text-amber-300">~{fobNow("UGA S15")}</td>
+            <td className="pt-2 text-slate-500 text-[11px]">
+              at today&rsquo;s price · ${Math.round(fobbingUsdMt("UGA S15", 3000))} at $3,000 ·
+              {" "}${Math.round(fobbingUsdMt("UGA S15", 5000))} at $5,000
+            </td>
           </tr>
         </CostTable>
         <P>
@@ -772,8 +869,9 @@ function OriginLogistics() {
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
         <div className="text-[10px] uppercase tracking-[0.25em] text-amber-500/80 mb-1">Guatemala · Huehuetenango / Antigua / Atitlán</div>
         <h3 className="text-lg font-bold text-slate-100 mb-1 pb-2 border-b-2 border-double border-slate-600">
-          GT SHB Washed Arabica — FOBbing cost ~${FOBBING_USD["GT SHB"]}/t
+          GT SHB Washed Arabica — FOBbing cost ~${fobNow("GT SHB")}/t
         </h3>
+        <FobFormula label="GT SHB" spot={spot["GT SHB"]} />
         <P>
           Guatemala is the first <strong>Arabica</strong> origin in this table, so its cost stack is benched against
           ICE New York (KC), not London. Guatemalan SHB (Strictly Hard Bean, grown above ~1,350 m) is fully washed,
@@ -788,13 +886,26 @@ function OriginLogistics() {
           <CostRow label="L1 — Farm → wet mill (beneficio)" cost="20–25" note="Smallholder/cooperative aggregation in the highlands" />
           <CostRow label="L2 — Mill → port" cost="28–32" note="Highlands → Puerto Quetzal / Santo Tomás de Castilla" />
           <CostRow label="THC + port docs + B/L" cost="28–30" note="Terminal handling, export documentation, bill of lading" />
-          <CostRow label="ANACAFE cess + Decreto 19-69" cost="~25" note="Export contribution levies on green coffee" />
-          <CostRow label="Financing" cost="~18" note="~0.4% on a ~$5,900 reference price × 3-week float" />
-          <CostRow label="Exporter margin" cost="~60" note="~1% of FOB value on a ~$5,900 SHB reference price" />
+          <tr className="border-t border-slate-700/70 font-semibold">
+            <td className="pt-2 text-slate-300">Fixed subtotal</td>
+            <td className="pt-2 text-right font-mono text-slate-200">{FOBBING_MODEL["GT SHB"].fixedUsdMt}</td>
+            <td className="pt-2 text-slate-500 text-[11px]">the lines above, incl. ~$5 unallocated</td>
+          </tr>
+          <CostRow label="ANACAFE cess + Decreto 19-69" cost="0.42%" note="Export contribution levies on green coffee" />
+          <CostRow label="Financing" cost="0.31%" note="Cargo value × ~3-week float" />
+          <CostRow label="Exporter margin" cost="1.02%" note="~1% of FOB value" />
+          <tr className="border-t border-slate-700/70 font-semibold">
+            <td className="pt-2 text-slate-300">Ad-valorem subtotal</td>
+            <td className="pt-2 text-right font-mono text-slate-200">{FOBBING_MODEL["GT SHB"].advaloremPct}%</td>
+            <td className="pt-2 text-slate-500 text-[11px]">scales with the cargo&rsquo;s value</td>
+          </tr>
           <tr className="border-t border-slate-600 font-semibold">
             <td className="pt-2 text-slate-200">Total</td>
-            <td className="pt-2 text-right font-mono text-amber-300">~{FOBBING_USD["GT SHB"]}</td>
-            <td className="pt-2 text-slate-500 text-[11px]">~4.7% of $5,900 reference price</td>
+            <td className="pt-2 text-right font-mono text-amber-300">~{fobNow("GT SHB")}</td>
+            <td className="pt-2 text-slate-500 text-[11px]">
+              at today&rsquo;s price · ${Math.round(fobbingUsdMt("GT SHB", 4000))} at $4,000 ·
+              {" "}${Math.round(fobbingUsdMt("GT SHB", 8000))} at $8,000
+            </td>
           </tr>
         </CostTable>
         <P>
@@ -809,8 +920,9 @@ function OriginLogistics() {
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
         <div className="text-[10px] uppercase tracking-[0.25em] text-amber-500/80 mb-1">Honduras · Marcala / Copán / Montecillos</div>
         <h3 className="text-lg font-bold text-slate-100 mb-1 pb-2 border-b-2 border-double border-slate-600">
-          HN HG Washed Arabica — FOBbing cost ~${FOBBING_USD["HN HG"]}/t
+          HN HG Washed Arabica — FOBbing cost ~${fobNow("HN HG")}/t
         </h3>
+        <FobFormula label="HN HG" spot={spot["HN HG"]} />
         <P>
           Honduras is the largest Central American producer and, like Guatemala, an <strong>Arabica</strong> origin
           benched against NY (KC). HG (High Grown, ~1,000–1,200 m) washed coffee carries a slightly lower milling and
@@ -823,13 +935,26 @@ function OriginLogistics() {
           <CostRow label="L1 — Farm → wet mill" cost="18–22" note="Smallholder collection (Marcala / Copán / Montecillos)" />
           <CostRow label="L2 — Mill → Puerto Cortés" cost="28–32" note="Shorter haul than GT — port sits near the growing belt" />
           <CostRow label="THC + port docs + B/L" cost="26–28" note="Terminal handling, export documentation, bill of lading" />
-          <CostRow label="IHCAFE levies" cost="~25" note="IHCAFE export contribution + fixed cess" />
-          <CostRow label="Financing" cost="~18" note="~0.4% on a ~$5,800 reference price × 3-week float" />
-          <CostRow label="Exporter margin" cost="~55" note="~1% of FOB value on a ~$5,800 HG reference price" />
+          <tr className="border-t border-slate-700/70 font-semibold">
+            <td className="pt-2 text-slate-300">Fixed subtotal</td>
+            <td className="pt-2 text-right font-mono text-slate-200">{FOBBING_MODEL["HN HG"].fixedUsdMt}</td>
+            <td className="pt-2 text-slate-500 text-[11px]">does not scale with the coffee price</td>
+          </tr>
+          <CostRow label="IHCAFE levies" cost="0.43%" note="IHCAFE export contribution + cess" />
+          <CostRow label="Financing" cost="0.31%" note="Cargo value × ~3-week float" />
+          <CostRow label="Exporter margin" cost="0.95%" note="~1% of FOB value" />
+          <tr className="border-t border-slate-700/70 font-semibold">
+            <td className="pt-2 text-slate-300">Ad-valorem subtotal</td>
+            <td className="pt-2 text-right font-mono text-slate-200">{FOBBING_MODEL["HN HG"].advaloremPct}%</td>
+            <td className="pt-2 text-slate-500 text-[11px]">scales with the cargo&rsquo;s value</td>
+          </tr>
           <tr className="border-t border-slate-600 font-semibold">
             <td className="pt-2 text-slate-200">Total</td>
-            <td className="pt-2 text-right font-mono text-amber-300">~{FOBBING_USD["HN HG"]}</td>
-            <td className="pt-2 text-slate-500 text-[11px]">~4.3% of $5,800 reference price</td>
+            <td className="pt-2 text-right font-mono text-amber-300">~{fobNow("HN HG")}</td>
+            <td className="pt-2 text-slate-500 text-[11px]">
+              at today&rsquo;s price · ${Math.round(fobbingUsdMt("HN HG", 4000))} at $4,000 ·
+              {" "}${Math.round(fobbingUsdMt("HN HG", 8000))} at $8,000
+            </td>
           </tr>
         </CostTable>
         <P>
@@ -847,44 +972,73 @@ function OriginLogistics() {
           <thead>
             <tr className="border-b border-slate-700 text-left text-[10px] uppercase tracking-wider text-slate-500">
               <th className="pb-1.5 pr-4">Origin</th>
-              <th className="pb-1.5 pr-4 text-right">FOBbing cost</th>
-              <th className="pb-1.5 pr-4 text-right">As % of price</th>
+              <th className="pb-1.5 pr-4 text-right">Fixed</th>
+              <th className="pb-1.5 pr-4 text-right">+ ad valorem</th>
+              <th className="pb-1.5 pr-4 text-right">Today</th>
+              <th className="pb-1.5 pr-4 text-right">% of price</th>
               <th className="pb-1.5">Key swing factor</th>
             </tr>
           </thead>
           <tbody>
             <tr className="border-b border-slate-800">
               <td className="py-1.5 pr-4 text-slate-200 font-semibold">VN FAQ</td>
-              <td className="py-1.5 pr-4 text-right font-mono text-amber-300">$100/t</td>
-              <td className="py-1.5 pr-4 text-right text-slate-400">~2.9%</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-slate-300">${FOBBING_MODEL["VN FAQ"].fixedUsdMt}</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-slate-300">{FOBBING_MODEL["VN FAQ"].advaloremPct}%</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-amber-300">${fobNow("VN FAQ")}/t</td>
+              <td className="py-1.5 pr-4 text-right text-slate-400">
+                {spot["VN FAQ"] ? `${(fobNow("VN FAQ") / spot["VN FAQ"] * 100).toFixed(1)}%` : "—"}
+              </td>
               <td className="py-1.5 text-slate-400">Exporter margin compression vs. trucking (stable)</td>
             </tr>
             <tr className="border-b border-slate-800">
               <td className="py-1.5 pr-4 text-slate-200 font-semibold">CON T7</td>
-              <td className="py-1.5 pr-4 text-right font-mono text-amber-300">$200/t</td>
-              <td className="py-1.5 pr-4 text-right text-slate-400">~6.5%</td>
-              <td className="py-1.5 text-slate-400">Quality-prep cost (varies by lot cleanliness)</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-slate-300">${FOBBING_MODEL["CON T7"].fixedUsdMt}</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-slate-300">{FOBBING_MODEL["CON T7"].advaloremPct}%</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-amber-300">${fobNow("CON T7")}/t</td>
+              <td className="py-1.5 pr-4 text-right text-slate-400">
+                {spot["CON T7"] ? `${(fobNow("CON T7") / spot["CON T7"] * 100).toFixed(1)}%` : "—"}
+              </td>
+              <td className="py-1.5 text-slate-400">Quality prep + outturn loss (varies by lot cleanliness)</td>
             </tr>
             <tr className="border-b border-slate-800">
               <td className="py-1.5 pr-4 text-slate-200 font-semibold">UGA S15</td>
-              <td className="py-1.5 pr-4 text-right font-mono text-amber-300">$265/t</td>
-              <td className="py-1.5 pr-4 text-right text-slate-400">~7%</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-slate-300">${FOBBING_MODEL["UGA S15"].fixedUsdMt}</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-slate-300">{FOBBING_MODEL["UGA S15"].advaloremPct}%</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-amber-300">${fobNow("UGA S15")}/t</td>
+              <td className="py-1.5 pr-4 text-right text-slate-400">
+                {spot["UGA S15"] ? `${(fobNow("UGA S15") / spot["UGA S15"] * 100).toFixed(1)}%` : "—"}
+              </td>
               <td className="py-1.5 text-slate-400">Northern Corridor freight rate (most volatile)</td>
             </tr>
             <tr className="border-b border-slate-800">
               <td className="py-1.5 pr-4 text-slate-200 font-semibold">GT SHB <span className="text-[9px] text-amber-500/70">vs NY</span></td>
-              <td className="py-1.5 pr-4 text-right font-mono text-amber-300">${FOBBING_USD["GT SHB"]}/t</td>
-              <td className="py-1.5 pr-4 text-right text-slate-400">~4.7%</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-slate-300">${FOBBING_MODEL["GT SHB"].fixedUsdMt}</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-slate-300">{FOBBING_MODEL["GT SHB"].advaloremPct}%</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-amber-300">${fobNow("GT SHB")}/t</td>
+              <td className="py-1.5 pr-4 text-right text-slate-400">
+                {spot["GT SHB"] ? `${(fobNow("GT SHB") / spot["GT SHB"] * 100).toFixed(1)}%` : "—"}
+              </td>
               <td className="py-1.5 text-slate-400">Washed-Arabica milling/prep + exporter margin</td>
             </tr>
             <tr>
               <td className="py-1.5 pr-4 text-slate-200 font-semibold">HN HG <span className="text-[9px] text-amber-500/70">vs NY</span></td>
-              <td className="py-1.5 pr-4 text-right font-mono text-amber-300">${FOBBING_USD["HN HG"]}/t</td>
-              <td className="py-1.5 pr-4 text-right text-slate-400">~4.3%</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-slate-300">${FOBBING_MODEL["HN HG"].fixedUsdMt}</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-slate-300">{FOBBING_MODEL["HN HG"].advaloremPct}%</td>
+              <td className="py-1.5 pr-4 text-right font-mono text-amber-300">${fobNow("HN HG")}/t</td>
+              <td className="py-1.5 pr-4 text-right text-slate-400">
+                {spot["HN HG"] ? `${(fobNow("HN HG") / spot["HN HG"] * 100).toFixed(1)}%` : "—"}
+              </td>
               <td className="py-1.5 text-slate-400">Milling during wet harvest + IHCAFE levy</td>
             </tr>
           </tbody>
         </table>
+        <P>
+          Each stack is <strong>a fixed dollar block plus a percentage of the cargo&rsquo;s value</strong>, so the
+          &ldquo;Today&rdquo; column is recomputed from the latest physical print on every page load rather than
+          sitting at a stored constant. Haulage, inspection and terminal handling do not care what coffee is worth;
+          quality preparation, weight loss, cess, financing and exporter margin all do — and pinning those to one
+          historical reference price was making every stack drift as the market moved.
+        </P>
         <P>
           These figures are structural: they set the <em>floor</em> of what origin must offer relative to RC futures
           for an export trade to work. When the ticker N-diff is <strong>close to zero</strong>, origin is priced at
@@ -1665,8 +1819,8 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
       )}
       {cat === "logistics" && (
         <div className="space-y-4">
-          <CollapsibleCard bare tone="emerald" updated="2026-07-14" kicker="Logistics · origin" title="Origin logistics — the FOBbing cost model"
-            subtitle="Farm-to-vessel cost stack by origin (Vietnam, Brazil, Uganda)">
+          <CollapsibleCard bare tone="emerald" updated="2026-08-12" kicker="Logistics · origin" title="Origin logistics — the FOBbing cost model"
+            subtitle="Farm-to-vessel cost stack by origin — fixed block + ad-valorem share, repriced daily">
             <OriginLogistics />
           </CollapsibleCard>
           <CollapsibleCard bare tone="sky" updated="2026-07-14" kicker="Logistics · destination" title="Destination in-store cost"

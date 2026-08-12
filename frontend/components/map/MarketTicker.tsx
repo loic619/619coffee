@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { cachedFetchStatic } from "@/lib/api";
-import { FOBBING_USD } from "@/lib/originCosts";
+import { fobbingUsdMt } from "@/lib/originCosts";
 
 type TickerCategory = "futures" | "physical" | "fx";
 
@@ -214,7 +214,7 @@ export default function MarketTicker() {
     const usdMatch = value.match(/\$([0-9,]+)/);
     if (!usdMatch) return value;
     const usd = parseInt(usdMatch[1].replace(/,/g, ""), 10);
-    const atPort = usd + (FOBBING_USD[label] ?? 0);
+    const atPort = Math.round(usd + fobbingUsdMt(label, usd));
     const diffUsdMt = atPort - ref;
     // Arabica: express the NY differential in US¢/lb (KC's native unit).
     const diff = isArabica

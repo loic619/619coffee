@@ -39,13 +39,51 @@ PARITY_ADDERS_USD = 58.0
 CONTAINER_MT      = 21.6
 LB_PER_MT         = 2204.62
 
-# Robusta origins tendered against London RC. FOBbing mirrors lib/originCosts.ts;
-# freight_route indexes the FBX-derived routes in freight.json.
+# Robusta origins tendered against London RC. FOBbing mirrors lib/originCosts.ts
+# (FOBBING_MODEL) and MUST be kept in step with it; freight_route indexes the
+# FBX-derived routes in freight.json.
+#
+# fobbing = fobbing_fixed + fobbing_pct% × farmgate_usd, so the cost re-rates
+# with the cargo's value every day instead of standing at a frozen reference.
+# The ad-valorem half covers quality preparation/outturn, weight loss, cess,
+# financing and exporter margin; the fixed half is haulage, inspection and
+# terminal handling. Each origin's percentage is the sum of its own
+# value-scaling lines and its fixed block is set to reproduce the published
+# headline at that origin's reference price — a change of form, not level —
+# except Brazil conilon, whose quality component was re-based to 4.0% on the
+# measured tipo 7/8 → tipo 6 grade ladder (see exporters/conilon_basis.py).
+FOBBING_MODEL_VERSION = 3      # bump to re-derive stored rows under a new model
 ORIGINS = [
-    {"key": "vietnam",        "name": "Vietnam Robusta FAQ G2", "fx": "VND=X", "unit": "per_kg",        "fobbing": 100.0, "freight_route": "vn-eu"},
-    {"key": "brazil_conilon", "name": "Brazil Conilon T7",      "fx": "BRL=X", "unit": "per_saca_60kg", "fobbing": 200.0, "freight_route": "br-eu"},
-    {"key": "uganda",         "name": "Uganda Robusta S15",     "fx": None,    "unit": "cents_lb",      "fobbing": 265.0, "freight_route": "et-eu"},
+    {"key": "vietnam",        "name": "Vietnam Robusta FAQ G2", "fx": "VND=X", "unit": "per_kg",
+     "fobbing_fixed": 55.0,  "fobbing_pct": 1.29, "freight_route": "vn-eu"},
+    {"key": "brazil_conilon", "name": "Brazil Conilon T7",      "fx": "BRL=X", "unit": "per_saca_60kg",
+     "fobbing_fixed": 62.5,  "fobbing_pct": 5.5, "freight_route": "br-eu"},
+    {"key": "uganda",         "name": "Uganda Robusta S15",     "fx": None,    "unit": "cents_lb",
+     "fobbing_fixed": 142.5, "fobbing_pct": 3.31, "freight_route": "et-eu"},
 ]
+
+
+def _remodel(row: dict, cfg: dict) -> dict:
+    """Re-apply the current FOBbing model to an already-stored row.
+
+    Uses only what the row itself observed — farmgate_usd, freight, rc — so no
+    date is ever lost to an upstream series that has since rolled off. A row
+    missing any of those (shouldn't happen; every writer sets all three) is
+    returned untouched rather than corrupted.
+    """
+    farm, fr, rc = row.get("farmgate_usd"), row.get("freight"), row.get("rc")
+    if farm is None or fr is None or rc is None:
+        return row
+    fobbing = cfg["fobbing_fixed"] + cfg["fobbing_pct"] / 100.0 * farm
+    at_port = farm + fobbing
+    tendering = at_port + fr + PARITY_ADDERS_USD
+    return {**row,
+            "fobbing": round(fobbing, 1),
+            "at_port": round(at_port, 1),
+            "tendering": round(tendering, 1),
+            "differential": round(at_port - rc, 1),
+            "parity_gap": round(rc - tendering, 1),
+            "tenderable": rc >= tendering}
 
 
 def _load(name: str) -> dict:
@@ -140,7 +178,20 @@ def export_tender_parity() -> None:
         if cfg["fx"]:
             fx_dates, fx_by = _ffill_map([(r.get("date"), r.get("close")) for r in (fx_pairs.get(cfg["fx"]) or {}).get("history", [])])
 
-        prior = {r["date"]: r for r in ((existing.get(key) or {}).get("history") or [])}
+        # Append-only applies to OBSERVATIONS, not to model inputs: at_port and
+        # everything downstream of it depend on the FOBbing model, so a model
+        # change leaves stored rows stale. They are re-derived IN PLACE from
+        # each row's own observed inputs (farmgate_usd, freight, rc — all
+        # persisted), never rebuilt from the source series: re-deriving from
+        # source silently drops any date whose upstream inputs have since moved
+        # out of reach, which would delete real observations.
+        stored = existing.get(key) or {}
+        rows_in = stored.get("history") or []
+        if stored.get("fobbing_model") != FOBBING_MODEL_VERSION and rows_in:
+            rows_in = [_remodel(r, cfg) for r in rows_in]
+            print(f"    {key} → fobbing model v{FOBBING_MODEL_VERSION}: "
+                  f"re-derived {len(rows_in)} stored rows in place")
+        prior = {r["date"]: r for r in rows_in}
         for pt in farmgate:
             d, price = pt.get("date"), pt.get("price")
             if not d or price is None or d in prior:
@@ -151,11 +202,13 @@ def export_tender_parity() -> None:
             farm_usd = _to_usd_mt(price, fx, cfg["unit"])
             if rc is None or farm_usd is None or fr is None:
                 continue
-            at_port   = farm_usd + cfg["fobbing"]
+            fobbing   = cfg["fobbing_fixed"] + cfg["fobbing_pct"] / 100.0 * farm_usd
+            at_port   = farm_usd + fobbing
             tendering = at_port + fr + PARITY_ADDERS_USD
             prior[d] = {
                 "date": d,
                 "farmgate_usd": round(farm_usd, 1),
+                "fobbing": round(fobbing, 1),
                 "at_port": round(at_port, 1),
                 "freight": round(fr, 1),
                 "tendering": round(tendering, 1),
@@ -164,9 +217,15 @@ def export_tender_parity() -> None:
                 "parity_gap": round(rc - tendering, 1),
                 "tenderable": rc >= tendering,
             }
+        rows = sorted(prior.values(), key=lambda r: r["date"])
         out_origins[key] = {
-            "name": cfg["name"], "market": "RC", "fobbing_usd": cfg["fobbing"],
-            "history": sorted(prior.values(), key=lambda r: r["date"]),
+            "name": cfg["name"], "market": "RC",
+            # Headline figure = the model evaluated on the latest farmgate value,
+            # so consumers reading a single number get today's, not a stale one.
+            "fobbing_usd": round(rows[-1]["fobbing"], 1) if rows else cfg["fobbing_fixed"],
+            "fobbing_fixed": cfg["fobbing_fixed"], "fobbing_pct": cfg["fobbing_pct"],
+            "fobbing_model": FOBBING_MODEL_VERSION,
+            "history": rows,
         }
 
     payload = {

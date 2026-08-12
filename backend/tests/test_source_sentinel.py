@@ -218,7 +218,7 @@ def test_pdf_key_orders_reissues_then_years():
 def test_pdf_upload_fires_on_a_newer_reissue(tmp_path, monkeypatch):
     # Data built from the June upload; the post now links the August one.
     (tmp_path / "ecf.json").write_text(
-        '{"monthly": [{"period": "2026-04", "source_pdf": "%s"}]}' % _PDF_JUN)
+        f'{{"monthly": [{{"period": "2026-04", "source_pdf": "{_PDF_JUN}"}}]}}')
     monkeypatch.setattr(ss, "ROOT", tmp_path)
     post = "https://www.ecf-coffee.org/stocks-in-european-ports-may-june-2026"
     _stub_get(monkeypatch, {
@@ -231,7 +231,7 @@ def test_pdf_upload_fires_on_a_newer_reissue(tmp_path, monkeypatch):
 
 def test_pdf_upload_quiet_when_data_cites_the_same_pdf(tmp_path, monkeypatch):
     (tmp_path / "ecf.json").write_text(
-        '{"monthly": [{"period": "2026-04", "source_pdf": "%s"}]}' % _PDF_JUN)
+        f'{{"monthly": [{{"period": "2026-04", "source_pdf": "{_PDF_JUN}"}}]}}')
     monkeypatch.setattr(ss, "ROOT", tmp_path)
     post = "https://www.ecf-coffee.org/stocks-in-european-ports-march-april-2026"
     _stub_get(monkeypatch, {
@@ -242,7 +242,7 @@ def test_pdf_upload_quiet_when_data_cites_the_same_pdf(tmp_path, monkeypatch):
 
 
 def test_pdf_upload_never_false_positives_on_failure(tmp_path, monkeypatch):
-    (tmp_path / "ecf.json").write_text('{"monthly": [{"source_pdf": "%s"}]}' % _PDF_JUN)
+    (tmp_path / "ecf.json").write_text(f'{{"monthly": [{{"source_pdf": "{_PDF_JUN}"}}]}}')
     monkeypatch.setattr(ss, "ROOT", tmp_path)
     # Listing unreachable → no signal at all.
     _stub_get(monkeypatch, {"listing": ss.requests.RequestException("boom")})
@@ -253,7 +253,7 @@ def test_pdf_upload_never_false_positives_on_failure(tmp_path, monkeypatch):
 
 
 def test_string_in_file_verification(tmp_path, monkeypatch):
-    (tmp_path / "ecf.json").write_text('{"monthly": [{"source_pdf": "%s"}]}' % _PDF_JUN)
+    (tmp_path / "ecf.json").write_text(f'{{"monthly": [{{"source_pdf": "{_PDF_JUN}"}}]}}')
     monkeypatch.setattr(ss, "ROOT", tmp_path)
     base = {"kind": "string_in_file", "file": "ecf.json",
             "dispatched_at": "2026-08-12T06:00:00+00:00"}
