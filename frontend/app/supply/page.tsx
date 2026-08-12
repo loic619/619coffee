@@ -12,6 +12,7 @@ const HondurasTab    = dynamic(() => import("@/components/supply/HondurasTab"), 
 const IndonesiaTab   = dynamic(() => import("@/components/supply/IndonesiaTab"),   { ssr: false });
 const UgandaTab      = dynamic(() => import("@/components/supply/UgandaTab"),      { ssr: false });
 const EthiopiaTab    = dynamic(() => import("@/components/supply/EthiopiaTab"),    { ssr: false });
+const TotalExportsTab = dynamic(() => import("@/components/supply/TotalExportsTab"), { ssr: false });
 const SupplyEnsoTab  = dynamic(() => import("@/components/supply/SupplyEnsoTab"),  { ssr: false });
 
 const TABS = [
@@ -22,6 +23,7 @@ const TABS = [
   { id: "vietnam",      label: "Vietnam",      available: true  },
   { id: "indonesia",    label: "Indonesia",    available: true  },
   { id: "uganda",       label: "Uganda",       available: true  },
+  { id: "total",        label: "Total",        available: true  },
   { id: "fertilizers",  label: "Fertilizers",  available: true  },
   { id: "enso",         label: "ENSO",         available: true  },
 ] as const;
@@ -85,6 +87,7 @@ function SupplyPageInner() {
         {tab === "honduras"    && <HondurasTab />}
         {tab === "indonesia"   && <IndonesiaTab />}
         {tab === "uganda"      && <UgandaTab />}
+        {tab === "total"       && <TotalExportsTab />}
         {tab === "ethiopia"    && <EthiopiaTab />}
         {tab === "enso"        && <SupplyEnsoTab />}
       </div>
