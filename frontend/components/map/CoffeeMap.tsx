@@ -252,6 +252,8 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
   // One Leaflet LayerGroup per factory type, so the filter UI can
   // add/remove entire categories without re-instantiating markers.
   const factoryLayersByTypeRef = useRef<Record<string, LeafletLayerGroup>>({});
+  // Latest factory-visibility routine (assigned by its effect below).
+  const applyFactoryVisibilityRef = useRef<() => void>(() => {});
   // setInterval id for the world-clock tick loop; cleared on unmount.
   const worldClockIntervalRef = useRef<number | null>(null);
   const [activeBasemap, setActiveBasemap] = useUrlState<string>("basemap", "dark", (raw) =>
@@ -264,8 +266,12 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
   // estimated by the trade-flow matching engine (lib/tradeFlows).
   const boatsLayerRef = useRef<LeafletLayerGroup | null>(null);
   const boatsTimerRef = useRef<number | null>(null);
-  const [ships, setShips] = useUrlState<string>("ships", "on", (raw) =>
-    ["on", "off"].includes(raw) ? raw : "on");
+  const [ships, setShips] = useUrlState<string>("ships", "off", (raw) =>
+    ["on", "off"].includes(raw) ? raw : "off");
+  // Factory pins master toggle — hidden by default; the legend's per-type
+  // filter applies on top once switched on.
+  const [factoriesOn, setFactoriesOn] = useUrlState<string>("factories", "off", (raw) =>
+    ["on", "off"].includes(raw) ? raw : "off");
   const [flowDest, setFlowDest] = useUrlState<string>("flows", "off", (raw) =>
     ["off", "US", "EU"].includes(raw) ? raw : "off");
   // Export-flow overlay: arcs from a producing-origin centroid to its
@@ -574,9 +580,10 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
         if (!layerByType[t]) layerByType[t] = Leaflet.layerGroup();
         marker.addTo(layerByType[t]);
       });
-      // Add each type-group to the map; filter useEffect will toggle them.
-      for (const lg of Object.values(layerByType)) lg.addTo(map);
+      // Register the type-groups; the visibility effect mounts whichever the
+      // master toggle + per-type filter currently allow.
       factoryLayersByTypeRef.current = layerByType;
+      applyFactoryVisibilityRef.current();
 
       // ── World clocks ──────────────────────────────────────────────────────
       // Three live timezone clocks anchored on the ~5°N parallel (Cape Coast
@@ -642,18 +649,24 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Factory type filter (reacts to hiddenFactoryTypes prop) ──────────────
+  // ── Factory visibility (master toggle + per-type filter) ─────────────────
+  // The same routine also runs from the (once-only) map-init effect after the
+  // layer groups are built, via a ref so it sees the CURRENT toggle state
+  // rather than the values captured when the init closure was created.
   useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-    const layers = factoryLayersByTypeRef.current;
-    for (const [type, layer] of Object.entries(layers)) {
-      const shouldHide = hiddenFactoryTypes?.has(type) ?? false;
-      const isOnMap = map.hasLayer(layer);
-      if (shouldHide && isOnMap) map.removeLayer(layer);
-      else if (!shouldHide && !isOnMap) layer.addTo(map);
-    }
-  }, [hiddenFactoryTypes]);
+    applyFactoryVisibilityRef.current = () => {
+      const map = mapInstanceRef.current;
+      if (!map) return;
+      const layers = factoryLayersByTypeRef.current;
+      for (const [type, layer] of Object.entries(layers)) {
+        const shouldHide = factoriesOn !== "on" || (hiddenFactoryTypes?.has(type) ?? false);
+        const isOnMap = map.hasLayer(layer);
+        if (shouldHide && isOnMap) map.removeLayer(layer);
+        else if (!shouldHide && !isOnMap) layer.addTo(map);
+      }
+    };
+    applyFactoryVisibilityRef.current();
+  }, [hiddenFactoryTypes, factoriesOn]);
 
   // ── Basemap switcher (reacts to activeBasemap state) ──────────────────────
   useEffect(() => {
@@ -1010,6 +1023,20 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
           always-visible Map Style + toggle bars visually stay put at the
           bottom edge when the dropdown opens/closes. */}
       <div style={{ position: "absolute", bottom: 8, left: 8, zIndex: 1000 }}>
+        {/* Factory pins master toggle (hidden by default) */}
+        <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 4, background: "#1e293b", border: "1px solid #475569", borderRadius: 4, padding: "3px 6px", fontFamily: "monospace" }}>
+          <span style={{ fontSize: 9, color: "#64748b" }}>Factories 🏭</span>
+          {(["on", "off"] as const).map((v) => (
+            <button key={v} onClick={() => setFactoriesOn(v)}
+              style={{ fontSize: 9, padding: "2px 6px", borderRadius: 3, cursor: "pointer", fontFamily: "monospace",
+                border: "1px solid " + (factoriesOn === v ? "#a16207" : "transparent"),
+                background: factoriesOn === v ? "#0f172a" : "transparent",
+                color: factoriesOn === v ? "#eab308" : "#94a3b8" }}>
+              {v === "on" ? "On" : "Off"}
+            </button>
+          ))}
+        </div>
+
         {/* In-transit boats toggle */}
         <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 4, background: "#1e293b", border: "1px solid #475569", borderRadius: 4, padding: "3px 6px", fontFamily: "monospace" }}>
           <span style={{ fontSize: 9, color: "#64748b" }}>In transit 🚢</span>
