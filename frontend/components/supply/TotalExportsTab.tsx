@@ -13,7 +13,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, LabelList,
+  ResponsiveContainer, LabelList, LineChart, Line,
 } from "recharts";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { COUNTRY_EN } from "./BrazilTab/constants";
@@ -290,7 +290,13 @@ export default function TotalExportsTab() {
       let total = 0;
       let anyProjected = false;
       origins.forEach(o => {
-        const actual = activeByOrigin[o]?.[ym];
+        // "Did this origin report the month at all?" is asked of the TOTAL
+        // series, never the type series: an origin that ships none of the
+        // selected type (Colombia grows no robusta) has a structural zero,
+        // not a missing print, and must not drag the month into
+        // "projected" — that used to dot the entire Robusta pace line.
+        const reported = byOrigin[o].total[ym] != null;
+        const actual = reported ? (activeByOrigin[o]?.[ym] ?? 0) : undefined;
         const isProj = actual == null;
         const v = round1(isProj ? seasonalEstimate(o, ym) : actual);
         // Split each origin into an actual and a projected series so the
@@ -319,7 +325,7 @@ export default function TotalExportsTab() {
       });
       return row;
     })
-  , [axisMonths, origins, activeByOrigin, seasonalEstimate]);
+  , [axisMonths, origins, byOrigin, activeByOrigin, seasonalEstimate]);
 
   /** Which axis months carry any projection — surfaced in the sub-header
    *  so a reader never mistakes an estimate for a customs print. */
@@ -327,6 +333,36 @@ export default function TotalExportsTab() {
     () => monthlyRows.filter(r => r.projected).map(r => String(r.label)),
     [monthlyRows],
   );
+
+  // ── Cumulative pace over the same rolling window ────────────────────────
+  // Running total of the window, current vs the same 12 months one and two
+  // years back. The current line goes solid while every origin has
+  // reported and dotted from the first projected month on, so the reader
+  // can see exactly where fact ends and estimate begins. `solid` and
+  // `dashed` overlap on the junction month so the two segments join.
+  const paceRows = useMemo(() => {
+    const lastSolidIdx = monthlyRows.reduce(
+      (acc, r, i) => (r.projected ? acc : i), -1);
+    let cur = 0, p1 = 0, p2 = 0;
+    return monthlyRows.map((r, i) => {
+      cur += Number(r.total ?? 0);
+      p1  += Number(r.total_p1 ?? 0);
+      p2  += Number(r.total_p2 ?? 0);
+      const c = round1(cur);
+      return {
+        label: r.label,
+        solid:  lastSolidIdx < 0 || i <= lastSolidIdx ? c : null,
+        dashed: lastSolidIdx < 0 || i >= lastSolidIdx ? c : null,
+        cum:    c,
+        cum_p1: round1(p1),
+        cum_p2: round1(p2),
+        projected: !!r.projected,
+      };
+    });
+  }, [monthlyRows]);
+
+  /** End-of-window totals for the pace card's sub-header. */
+  const paceEnd = paceRows[paceRows.length - 1];
 
   // ── Coverage / KPI table: rolling 12M per origin + YoY ──────────────────
   const coverage = useMemo(() => {
@@ -679,6 +715,94 @@ export default function TotalExportsTab() {
               )}.
             </>
           )}
+        </div>
+      </div>
+
+      {/* ── Cumulative pace ───────────────────────────────────────────── */}
+      <div className={CARD}>
+        <div className="flex items-baseline justify-between gap-2 flex-wrap">
+          <div className="text-[10px] text-slate-400 uppercase tracking-wide">
+            Total crop-year pace
+            <span className="ml-2 text-slate-600 normal-case">
+              · cumulative over the same rolling 12M{typeNote}
+            </span>
+          </div>
+          {paceEnd && (
+            <div className="text-[9px] text-slate-500 font-mono">
+              <span className="text-emerald-400 font-bold">{paceEnd.cum.toLocaleString()} kt</span>
+              <span className="text-slate-600"> vs </span>
+              {paceEnd.cum_p1.toLocaleString()}
+              <span className="text-slate-600"> / </span>
+              {paceEnd.cum_p2.toLocaleString()}
+              {paceEnd.cum_p1 > 0 && (
+                <span className={`ml-1.5 font-bold ${
+                  paceEnd.cum >= paceEnd.cum_p1 ? "text-emerald-400" : "text-red-400"}`}>
+                  {paceEnd.cum >= paceEnd.cum_p1 ? "+" : ""}
+                  {Math.round((paceEnd.cum - paceEnd.cum_p1) / paceEnd.cum_p1 * 100)}%
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        <ResponsiveContainer width="100%" height={240}>
+          <LineChart data={paceRows} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+            <XAxis dataKey="label" tick={{ fill: "#94a3b8", fontSize: 9 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: "#94a3b8", fontSize: 9 }} axisLine={false} tickLine={false}
+              tickFormatter={(v) => `${Math.round(Number(v))}kt`} />
+            <Tooltip contentStyle={TT_STYLE}
+              labelFormatter={(l, items) => {
+                const p = items?.[0]?.payload as { projected?: boolean } | undefined;
+                return `${l}${p?.projected ? " · projected" : ""}`;
+              }}
+              formatter={((v, n) => {
+                const name = String(n);
+                // solid + dashed are the same series — show it once.
+                if (name === "dashed") return [null, null];
+                const label = name === "solid" ? "This window"
+                            : name === "cum_p1" ? "1 year ago"
+                            : "2 years ago";
+                const color = name === "solid" ? "#22c55e"
+                            : name === "cum_p1" ? "#94a3b8" : "#64748b";
+                return [
+                  <span key="v" style={{ color }}>{`${v} kt`}</span>,
+                  label as NameType,
+                ];
+              }) satisfies Formatter<ValueType, NameType>} />
+            <Line dataKey="cum_p2" name="cum_p2" type="monotone" stroke="#475569"
+              strokeWidth={1.5} dot={false} connectNulls />
+            <Line dataKey="cum_p1" name="cum_p1" type="monotone" stroke="#94a3b8"
+              strokeWidth={1.5} strokeOpacity={0.7} dot={false} connectNulls />
+            <Line dataKey="solid" name="solid" type="monotone" stroke="#22c55e"
+              strokeWidth={2.5} dot={false} connectNulls />
+            <Line dataKey="dashed" name="dashed" type="monotone" stroke="#22c55e"
+              strokeWidth={2.5} strokeDasharray="4 4" dot={false} connectNulls />
+          </LineChart>
+        </ResponsiveContainer>
+        <div className="flex items-center gap-x-3 gap-y-1 flex-wrap text-[9px] text-slate-400">
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block w-4 h-0.5" style={{ background: "#22c55e" }} />
+            this window (reported)
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block w-4 h-0" style={{ borderTop: "2px dashed #22c55e" }} />
+            projected
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block w-4 h-0.5" style={{ background: "#94a3b8", opacity: 0.7 }} />
+            1 year ago
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block w-4 h-0.5" style={{ background: "#475569" }} />
+            2 years ago
+          </span>
+        </div>
+        <div className="text-[8px] text-slate-600 leading-relaxed">
+          Running total across the same rolling window as the chart above, so the three
+          curves always compare identical calendar months. The green line is solid while
+          every origin has reported and switches to dotted from the first month carrying a
+          seasonality projection — the gap between the dotted end point and the grey lines
+          is the season&apos;s pace versus the last two years.
         </div>
       </div>
 
