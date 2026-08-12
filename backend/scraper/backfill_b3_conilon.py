@@ -138,26 +138,43 @@ def _save(doc: dict) -> None:
 
 
 def probe() -> None:
-    """Diagnose every candidate source against a few known trading days."""
-    print("== B3 Ajustes do Pregão")
-    for d in (date(2026, 8, 11), date(2026, 6, 10), date(2025, 3, 12), date(2024, 10, 15)):
+    """Enumerate what a dated CNL history could actually come from.
+
+    The first probe run established that the legacy Ajustes1.asp bulletin now
+    answers with a 549-byte stub (B3 retired it) and that the guessed
+    noticiasagricolas slugs 404. So rather than guessing more URLs, this lists
+    the quote pages the republisher actually publishes and tries the modern B3
+    file services.
+    """
+    print("== noticiasagricolas — every coffee quote page it links")
+    try:
+        html = _get("https://www.noticiasagricolas.com.br/cotacoes/cafe/", timeout=25)
+        links = sorted(set(re.findall(r'href="(/cotacoes/[^"#?]+)"', html)))
+        for href in links:
+            print(f"  {href}")
+        print(f"  ({len(links)} links)")
+    except Exception as e:  # noqa: BLE001
+        print(f"  index fetch failed: {type(e).__name__}: {e}")
+
+    print("== B3 modern endpoints")
+    day = date(2026, 6, 10)
+    br = day.strftime("%d/%m/%Y")
+    iso = day.isoformat()
+    candidates = [
+        f"{B3_AJUSTES}?txtData={br}",
+        f"https://www2.bmf.com.br/pages/portal/bmfbovespa/boletim1/Ajustes1.asp?Data={br}&Mercadoria=CNL",
+        f"https://arquivos.b3.com.br/bdi/table/AjustesDoPregao?date={iso}",
+        f"https://arquivos.b3.com.br/tabelas/table/AjustesDoPregao?date={iso}",
+        "https://cotacao.b3.com.br/mds/api/v1/DerivativeQuotation/CNL",
+        f"https://www.b3.com.br/pesquisapregao/download?filelist=PR{day.strftime('%d%m%Y')}.zip",
+    ]
+    for url in candidates:
         try:
-            rows = fetch_b3(d)
-            print(f"  {d}: {len(rows)} CNL rows" + (f" → {rows[:3]}" if rows else ""))
-            if not rows:
-                html = _get(f"{B3_AJUSTES}?txtData={d.strftime('%d/%m/%Y')}")
-                up = html.upper()
-                print(f"     page {len(html)}B; 'CONILON' present: {'CONILON' in up}; "
-                      f"'CAFE' present: {'CAFE' in up}")
+            body = _get(url, timeout=25)
+            up = body.upper()
+            print(f"  {len(body):>8}B  CONILON={'CONILON' in up}  CNL={'CNL' in up}  {url}")
         except Exception as e:  # noqa: BLE001
-            print(f"  {d}: ERROR {type(e).__name__}: {e}")
-    print("== noticiasagricolas candidates")
-    for url in NA_CANDIDATES:
-        try:
-            html = _get(url, timeout=20)
-            print(f"  {url} → {len(html)}B, 'CNL' present: {'CNL' in html.upper()}")
-        except Exception as e:  # noqa: BLE001
-            print(f"  {url} → {type(e).__name__}: {e}")
+            print(f"  {'ERR':>8}    {type(e).__name__}: {str(e)[:60]}  {url}")
 
 
 def backfill(start: str, end: str | None = None, delay: float = 0.25) -> None:
