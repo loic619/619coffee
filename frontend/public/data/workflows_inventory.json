@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-12T04:10:06.297739Z",
-  "count": 70,
+  "generated_at": "2026-08-12T06:22:57.253881Z",
+  "count": 71,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -23,6 +23,17 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 10
+    },
+    {
+      "file": "backfill-cepea-conilon.yml",
+      "name": "Z \u2013 Backfill: CEPEA conilon indicator",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 30
     },
     {
       "file": "backfill-conilon-vitoria.yml",
