@@ -10,13 +10,13 @@
       "expected": "2026-07",
       "file": "frontend/public/data/cecafe.json",
       "kind": "month_in_file",
-      "status": "pending"
+      "status": "ok"
     }
   },
   "comex": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-12T08:01:38+00:00",
+    "last_probe": "2026-08-12T10:21:59+00:00",
     "overdue_alerted": null,
     "signal": null,
     "verify": null
@@ -24,7 +24,7 @@
   "conab": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-12T08:01:38+00:00",
+    "last_probe": "2026-08-12T10:21:59+00:00",
     "overdue_alerted": null,
     "signal": null,
     "verify": null
@@ -46,15 +46,15 @@
   "ecf": {
     "confirmed": "2026-06",
     "last_found": null,
-    "last_probe": "2026-08-12T08:01:38+00:00",
+    "last_probe": "2026-08-12T10:21:59+00:00",
     "overdue_alerted": null,
-    "signal": null,
+    "signal": "2026-04",
     "verify": null
   },
   "fnc": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-12T08:01:38+00:00",
+    "last_probe": "2026-08-12T10:21:59+00:00",
     "overdue_alerted": null,
     "signal": "dd2fc0d9a849e90ab7d73f37f5fc6f89cf4f40a659b736c500856467d0ac59be",
     "verify": null
