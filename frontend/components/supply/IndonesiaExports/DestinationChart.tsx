@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import {
-  BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList,
 } from "recharts";
 import {
   AMBER, DEST_WINDOWS, EMPTY_CY, GREEN, HUB_COLORS, HUB_ORDER, ISLAND_COLORS, ISLAND_ORDER,
@@ -15,6 +15,12 @@ import type { CountryYear, DestWindow, SeriesKey, ViewMode } from "./types";
 // BPS gives species-level HS codes only, so the stack is arabica / robusta
 // plus an 'Other / unsplit' remainder (decaf, roasted, husks, and the
 // pre-Apr-2022 lumped code) that keeps the stack summing to the total.
+// End-of-bar volume label (values are already in thousand tons).
+const ktLabel = (v: unknown) => {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? `${n}kt` : "";
+};
+
 const SPLIT_SERIES = [
   { key: "t_arabica", label: "Arabica",          color: GREEN },
   { key: "t_robusta", label: "Robusta",          color: AMBER },
@@ -381,11 +387,19 @@ export default function DestinationChart({
           {showSplit ? (
             SPLIT_SERIES.map((sp, i) => (
               <Bar key={sp.key} dataKey={sp.key} name={sp.key} stackId="cur" fill={sp.color}
-                radius={i === SPLIT_SERIES.length - 1 ? [0, 3, 3, 0] : undefined} />
+                radius={i === SPLIT_SERIES.length - 1 ? [0, 3, 3, 0] : undefined}>
+                {/* Stack total at the end of the bar. */}
+                {i === SPLIT_SERIES.length - 1 && (
+                  <LabelList dataKey="current" position="right" formatter={ktLabel}
+                    style={{ fill: "#94a3b8", fontSize: 8.5 }} />
+                )}
+              </Bar>
             ))
           ) : (
             <Bar dataKey="current" name="current" radius={[0, 3, 3, 0]}>
               {rows.map((r, i) => <Cell key={i} fill={barFill(r)} />)}
+              <LabelList dataKey="current" position="right" formatter={ktLabel}
+                style={{ fill: "#94a3b8", fontSize: 8.5 }} />
             </Bar>
           )}
         </BarChart>
