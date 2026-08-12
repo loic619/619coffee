@@ -146,8 +146,12 @@ function MarketCard({ title, doc, color, window: win, overlays }: {
               <Line key={o.key} type="monotone" dataKey={o.key} name={o.name} stroke={o.color}
                 strokeWidth={1.2} strokeDasharray="4 3" dot={false} connectNulls />
             ))}
+            {/* Dots while the series is young: a 1–2 session line with
+                dot=false renders as almost nothing next to deep overlays. */}
             <Line type="monotone" dataKey="price" name={`${title} front`} stroke={color}
-              strokeWidth={1.5} dot={false} connectNulls />
+              strokeWidth={1.5} connectNulls
+              dot={series.filter(r => r.price != null).length <= 15
+                ? { r: 2.5, fill: color, strokeWidth: 0 } : false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -208,9 +212,16 @@ export default function B3CoffeePanel() {
       .catch(() => { /* futures-only */ });
   }, []);
 
-  // The three conilon references drawn together: CNL futures front (solid) +
-  // CEPEA indicator + Cooabriel CON7 (dashed overlays).
+  // Conilon references drawn with the CNL front (solid emerald): the CCCV
+  // T7/8 delivery-spec physical (grey — the deep history the young futures
+  // series cannot provide itself) + CEPEA indicator + Cooabriel CON7.
   const conilonOverlays = useMemo<Overlay[]>(() => [
+    {
+      key: "cccv", name: "Vitória disponível T7/8", color: "#64748b",
+      points: (vitoria?.history ?? [])
+        .filter(e => e.benchmark != null)
+        .map(e => ({ date: e.date, value: e.benchmark as number })),
+    },
     {
       key: "cepea", name: "CEPEA/ESALQ indicator", color: "#38bdf8",
       points: (cepea?.history ?? [])
