@@ -48,7 +48,7 @@ const FEED_TO_CHART: Record<string, string> = {
   fx_history: "fx_timeseries",
   origin_prices: "origin_farmgate_prices",
   news_sentiment: "news_sentiment",
-  open_direction: "open_direction_calendar",
+  open_direction: "open_direction_call",
   port_activity: "port_activity",
   spot_coffee: "spot_tiles",
   us_imports: "us_imports_origin",
@@ -66,11 +66,23 @@ const FEED_TO_CHART: Record<string, string> = {
 function RecentActivity({ feeds }: { feeds: FeedFreshness[] }) {
   const [facts, setFacts] = useState<Record<string, string | null>>({});
 
-  const fresh = feeds
-    .filter((f) => f.iso)
-    .sort((a, b) => (b.iso ?? "").localeCompare(a.iso ?? ""));
-  const within3d = fresh.filter((f) => f.days != null && f.days <= 3);
-  const shown = (within3d.length >= 3 ? within3d : fresh.slice(0, 5)).slice(0, 8);
+  // "Recent activity" = what actually CHANGED, ranked by newsworthiness:
+  //   1. a new data period landed (a real release — data_changed_at ≤ 3d)
+  //   2. otherwise the feed merely refreshed (pipeline ≤ 3d)
+  // Keying recency off the data PERIOD (the old behaviour) hid every periodic
+  // feed — Brazil's July exports landed today but are dated 2026-07, so a
+  // 3-day window on the period excluded a feed that had just published. And
+  // ranking purely by refresh time buried it under ~20 same-day re-scrapes.
+  const isRelease = (f: FeedFreshness) => f.dataChangedDays != null && f.dataChangedDays <= 3;
+  const releases = feeds
+    .filter(isRelease)
+    .sort((a, b) => (a.dataChangedDays ?? 99) - (b.dataChangedDays ?? 99));
+  const refreshed = feeds
+    .filter((f) => !isRelease(f) && f.pipelineIso)
+    .sort((a, b) => (a.pipelineDays ?? 99) - (b.pipelineDays ?? 99));
+  const within3d = refreshed.filter((f) => f.pipelineDays != null && f.pipelineDays <= 3);
+  const tail = within3d.length >= 3 ? within3d : refreshed.slice(0, 5);
+  const shown = [...releases, ...tail].slice(0, 10);
 
   const shownKey = shown.map((f) => f.key).join(",");
   useEffect(() => {
@@ -101,7 +113,19 @@ function RecentActivity({ feeds }: { feeds: FeedFreshness[] }) {
               <span className="text-[10px] font-mono uppercase tracking-wider text-slate-300" title={freshnessTooltip(f)}>
                 {f.meta.label}
               </span>
-              <span className="text-[10px] font-mono text-slate-500">{freshnessLabel(f, "long")}</span>
+              {isRelease(f) && (
+                <span className="text-[8px] font-bold uppercase tracking-wider px-1 py-px rounded bg-emerald-950/60 text-emerald-300 border border-emerald-800/60">
+                  new data
+                </span>
+              )}
+              <span className="text-[10px] font-mono text-slate-500">
+                {isRelease(f)
+                  ? freshnessLabel({ iso: f.dataChangedIso, days: f.dataChangedDays }, "long")
+                  : freshnessLabel({ iso: f.pipelineIso, days: f.pipelineDays }, "long")}
+              </span>
+              {f.lagging && (
+                <span className="text-[10px] font-mono text-slate-600">· data {freshnessLabel(f, "long")}</span>
+              )}
             </div>
             {facts[f.key] && (
               <Markdown className="mt-1 pl-3.5 text-[11px] leading-relaxed text-slate-300 space-y-0.5 [&_ul]:space-y-0.5">
