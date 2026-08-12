@@ -112,8 +112,13 @@ def test_ecf_digest_totals_and_split(tmp_path, monkeypatch):
     assert "2026-04: 258.2k t / 150.8k t / 409.0k t" in txt
     # Prior month lacks the type breakdown → dashes, total still shown.
     assert "2026-03: — / — / 396.2k t" in txt
-    # Missing month → silent.
+    # An explicitly named month that never landed → silent.
     assert tn.compose_origin_digest("ecf", "2026-06") is None
+    # ECF releases are keyed by source PDF, so the sentinel has no month to
+    # pass: fall back to the newest month held rather than going silent.
+    assert tn.compose_origin_digest("ecf", None) == txt
+    assert tn.compose_origin_digest(
+        "ecf", "https://www.ecf-coffee.org/wp-content/uploads/2026/08/x.pdf") == txt
 
 
 def test_dedup_keys_read_latest(tmp_path, monkeypatch):

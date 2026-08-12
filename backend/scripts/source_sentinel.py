@@ -576,11 +576,15 @@ def run(today: dt.date, dry: bool) -> int:
         if st and (v := st.get("verify")) and v.get("status") == "pending":
             if check_ingested(v):
                 v["status"] = "ok"
-                what = v.get("expected") or ", ".join(v.get("keys", []))
+                exp = v.get("expected") or ""
+                what = exp or ", ".join(v.get("keys", []))
+                if what.startswith("http"):   # a source PDF — show its upload path
+                    what = what.rsplit("/uploads/", 1)[-1]
                 line = f"{src['label']} — {what} now in the data"
                 # Attach the headline numbers so the export figures ride the
-                # confirmation the moment they land (best-effort).
-                digest = _origin_digest(key, v.get("expected"))
+                # confirmation the moment they land (best-effort). A non-month
+                # marker (e.g. a PDF URL) lets the digest pick the newest month.
+                digest = _origin_digest(key, exp if re.fullmatch(r"\d{4}-\d{2}", exp) else None)
                 if digest:
                     line += "\n" + digest
                 verified.append(line)
@@ -716,9 +720,9 @@ def _fresh_enough(topic: str, data_key: str, now: dt.datetime) -> bool:
 
 def _origin_digest(sentinel_key: str, month: str | None) -> str | None:
     """Headline numbers for a verified month via scraper.topic_notify —
-    lazily imported; any failure degrades to the plain confirmation line."""
-    if not month:
-        return None
+    lazily imported; any failure degrades to the plain confirmation line.
+    month=None is legitimate for sources verified by something other than a
+    month (ECF): the composer then reports the newest month it holds."""
     try:
         sys.path.insert(0, str(ROOT / "backend"))
         from scraper.topic_notify import compose_origin_digest

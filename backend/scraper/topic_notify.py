@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -337,7 +338,10 @@ def _sd_lines(key: str, month: str, exports_ctd_mt: float | None,
     return lines
 
 
-def compose_origin_digest(sentinel_key: str, month: str) -> str | None:
+_MONTH_RE = re.compile(r"\d{4}-\d{2}")
+
+
+def compose_origin_digest(sentinel_key: str, month: str | None) -> str | None:
     """Origin export digest for the month the sentinel just verified:
     total (+y/y and crop-to-date pace), per-type split, then PSD-based
     internal consumption and remaining-exportable estimates."""
@@ -429,6 +433,12 @@ def compose_origin_digest(sentinel_key: str, month: str) -> str | None:
             # prior months for the trend.
             d = _load(DATA / "ecf_history.json") or {}
             rows = {r.get("period"): r for r in d.get("monthly") or []}
+            # ECF releases are identified by their source PDF, not a month, so
+            # the sentinel has no month to hand us — report the newest one the
+            # data now holds. A caller that DOES name a month still gets the
+            # strict lookup (a missing one means the release didn't land).
+            if not month or not _MONTH_RE.fullmatch(month):
+                month = max(rows) if rows else ""
             r = rows.get(month)
             if not r or r.get("value_mt") is None:
                 return None
