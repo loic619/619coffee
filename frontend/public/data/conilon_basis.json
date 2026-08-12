@@ -1,6 +1,6 @@
 {
   "unit": "BRL/saca_60kg",
-  "updated": "2026-08-12T15:05:37.244572Z",
+  "updated": "2026-08-12T15:44:02.283067Z",
   "window": {
     "start": "2022-06-01",
     "end": "2026-08-11",
@@ -745,6 +745,137 @@
       "insufficient": true
     }
   ],
+  "fob_crosscheck": {
+    "available": true,
+    "booked": {
+      "total_usd_mt": 200.0,
+      "reference_price": 3000.0,
+      "lines": [
+        {
+          "line": "Quality preparation",
+          "lo": 55,
+          "hi": 65,
+          "scales": true,
+          "note": "sorting, hulling, polishing to Class 1+ spec"
+        },
+        {
+          "line": "L1 — farm to dry mill",
+          "lo": 10,
+          "hi": 15,
+          "scales": false,
+          "note": "smallholder aggregation"
+        },
+        {
+          "line": "L2 — mill to port",
+          "lo": 20,
+          "hi": 25,
+          "scales": false,
+          "note": "road haulage to Santos/Vitória"
+        },
+        {
+          "line": "MAPA inspection & fumigation",
+          "lo": 8,
+          "hi": 12,
+          "scales": false,
+          "note": "mandatory checks"
+        },
+        {
+          "line": "THC + port docs + B/L",
+          "lo": 17,
+          "hi": 18,
+          "scales": false,
+          "note": "terminal handling, export docs"
+        },
+        {
+          "line": "Financing",
+          "lo": 15,
+          "hi": 15,
+          "scales": true,
+          "note": "stated as ~0.5% × $3,000 × 3-week float"
+        },
+        {
+          "line": "Exporter margin",
+          "lo": 30,
+          "hi": 30,
+          "scales": true,
+          "note": "stated as ~1% of FOB price"
+        }
+      ],
+      "itemised_lo": 155,
+      "itemised_hi": 180,
+      "fixed_usd_mt": 62.5,
+      "advalorem_usd_mt": 105.0,
+      "advalorem_share_pct": 3.5
+    },
+    "base_usd_mt": {
+      "latest": 3410.0,
+      "latest_date": "2026-08-11",
+      "mean": 3184.0
+    },
+    "booked_as_pct_of_base": {
+      "latest": 5.87,
+      "min": 3.45,
+      "max": 12.28
+    },
+    "measured_usd_mt": {
+      "grade_uplift_mean": 135.0,
+      "grade_uplift_latest": 176.0,
+      "grade_uplift_p5": 71.0,
+      "grade_uplift_p95": 219.0,
+      "coop_grade_step": 32.0,
+      "interior_port_basis": -32.0
+    },
+    "by_year": {
+      "2022": {
+        "base": 2097.0,
+        "uplift": 92.0,
+        "uplift_pct": 4.39,
+        "booked_pct": 9.54
+      },
+      "2023": {
+        "base": 2141.0,
+        "uplift": 92.0,
+        "uplift_pct": 4.28,
+        "booked_pct": 9.34
+      },
+      "2024": {
+        "base": 3532.0,
+        "uplift": 134.0,
+        "uplift_pct": 3.79,
+        "booked_pct": 5.66
+      },
+      "2025": {
+        "base": 4356.0,
+        "uplift": 168.0,
+        "uplift_pct": 3.86,
+        "booked_pct": 4.59
+      },
+      "2026": {
+        "base": 3193.0,
+        "uplift": 180.0,
+        "uplift_pct": 5.63,
+        "booked_pct": 6.26
+      }
+    },
+    "price_aware_stack": [
+      {
+        "base": 2000,
+        "stack": 132.0
+      },
+      {
+        "base": 3000,
+        "stack": 168.0
+      },
+      {
+        "base": 3500,
+        "stack": 185.0
+      },
+      {
+        "base": 4500,
+        "stack": 220.0
+      }
+    ]
+  },
   "staleness": {
     "cccv": {
       "n": 1045,
