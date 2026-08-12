@@ -1414,6 +1414,48 @@ const originWeatherAll: Builder = async () => {
   };
 };
 
+// Open-direction CALL (non-registry) — the pre-open direction the model is
+// actually calling, for the News tab's Recent-activity row. The registry's
+// open_direction_calendar note keeps showing the track record, which is what
+// that chart is about.
+interface OdRow {
+  date: string; direction?: string; prob_up?: number; status?: string;
+  actual_dir?: string | null; actual_gap_pct?: number | null; hit?: boolean | null;
+}
+const openDirectionCall: Builder = async () => {
+  const rows = await load<OdRow[]>("/data/open_direction_history.json");
+  if (!Array.isArray(rows) || !rows.length) return null;
+  const last = rows[rows.length - 1];
+  const p = last.prob_up != null ? last.prob_up * 100 : null;
+  const abstain = (last.direction ?? "").toLowerCase() === "abstain";
+  const facts: Fact[] = [
+    {
+      label: `Call · ${last.date}`,
+      value: `**${last.direction ?? "—"}**${p != null ? ` — P(up) **${p.toFixed(0)}%**` : ""}`
+        + `${last.status === "pending" ? " *(awaiting the open)*" : ""}`,
+    },
+  ];
+  const graded = [...rows].reverse().find((r) => typeof r.hit === "boolean");
+  if (graded) {
+    facts.push({
+      label: `Last graded · ${graded.date}`,
+      value: `${graded.direction} → open **${pct(graded.actual_gap_pct ?? null)}** — ${graded.hit ? "**hit**" : "**miss**"}`,
+    });
+  }
+  const conv = p != null ? Math.abs(p - 50) : null;
+  return {
+    facts,
+    read: abstain
+      ? "Model abstained — signal too close to a coin-flip to call."
+      : conv != null && conv >= 15
+      ? "High-conviction pre-open call."
+      : conv != null
+      ? "Low conviction — near a coin-flip; weight accordingly."
+      : undefined,
+    flag: !abstain && conv != null && conv >= 15,
+  };
+};
+
 // ── id → builder map ──────────────────────────────────────────────────────────
 const INSIGHTS: Record<string, Builder> = {
   // Price
@@ -1502,6 +1544,7 @@ const INSIGHTS: Record<string, Builder> = {
   retail_cpi: retailCpi,
   // Non-registry (Recent-activity datapoints only)
   vn_domestic_price: vnDomesticPrice,
+  open_direction_call: openDirectionCall,
   freight_hcm_eu: freightHcmEu,
   origin_weather_all: originWeatherAll,
   // Macro — Signals

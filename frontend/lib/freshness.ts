@@ -105,6 +105,9 @@ export interface HealthFile {
   generated_at?: string | null;
   scrapers?: Record<string, string | null>;
   data_asof?: Record<string, string | null>;
+  /** When each feed's DATA PERIOD last changed — i.e. when a release actually
+   *  landed, as opposed to the scraper merely re-running. Absent on old files. */
+  data_changed_at?: Record<string, string | null>;
   exporters?: Record<string, string | null>;
 }
 
@@ -137,6 +140,14 @@ export interface FeedFreshness {
   lagging: boolean;
   /** Age of `iso` in whole days (month grain anchored to day 28). */
   days: number | null;
+  /** When a NEW data period last landed (release), and its age in days.
+   *  Null when the exporter hasn't recorded one yet. */
+  dataChangedIso: string | null;
+  dataChangedDays: number | null;
+  /** Age of the PIPELINE run in whole days — "when did this feed last
+   *  refresh", which is what "recent activity" means. Distinct from `days`
+   *  (the data period's age) for periodic feeds. */
+  pipelineDays: number | null;
   /** The threshold that applies (dataThresholdDays when lagging). */
   thresholdDays: number;
   status: FeedStatus;
@@ -160,9 +171,12 @@ export function feedFreshness(health: HealthFile, key: string, now: Date): FeedF
   const lagging = !!iso && !!pipelineIso && iso !== pipelineIso;
   const thresholdDays = lagging ? (meta.dataThresholdDays ?? meta.thresholdDays) : meta.thresholdDays;
   const days = ageDays(iso, now);
+  const pipelineDays = ageDays(pipelineIso, now);
+  const dataChangedIso = health.data_changed_at?.[key] ?? null;
+  const dataChangedDays = ageDays(dataChangedIso, now);
   const status: FeedStatus =
     days == null ? "missing" : days === 0 ? "today" : days <= thresholdDays ? "ok" : "stale";
-  return { key, meta, iso, pipelineIso, lagging, days, thresholdDays, status };
+  return { key, meta, iso, pipelineIso, lagging, days, pipelineDays, dataChangedIso, dataChangedDays, thresholdDays, status };
 }
 
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

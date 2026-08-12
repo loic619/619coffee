@@ -422,12 +422,39 @@ def export_health(db, *, exporters_published_at: dict[str, str] | None = None) -
             return None
     _set_asof("port_activity", _port_asof())
 
+    # ── When did each feed's DATA last change? ────────────────────────────────
+    # data_asof tells you the period; this tells you when a NEW period actually
+    # landed — the difference between "the scraper re-ran" (every day) and "a
+    # release dropped" (what the news desk should lead with). Computed by
+    # diffing this run's data_asof against the previous health.json; unchanged
+    # keys carry their previous stamp forward.
+    prev_asof: dict[str, str | None] = {}
+    prev_changed: dict[str, str | None] = {}
+    try:
+        _prev = json.loads((OUT_DIR / "health.json").read_text(encoding="utf-8"))
+        prev_asof = _prev.get("data_asof") or {}
+        prev_changed = _prev.get("data_changed_at") or {}
+    except Exception:
+        pass
+
+    _now_iso = datetime.utcnow().isoformat() + "Z"
+    data_changed_at: dict[str, str | None] = {}
+    for key, cur in data_asof.items():
+        was = prev_asof.get(key)
+        if cur and was and cur != was:
+            data_changed_at[key] = _now_iso        # a new period landed on this run
+        elif cur and key not in prev_asof:
+            data_changed_at[key] = prev_changed.get(key)  # first sighting — no claim
+        else:
+            data_changed_at[key] = prev_changed.get(key)  # unchanged — keep last release stamp
+
     healthy   = sum(1 for v in scrapers.values() if v)
     published = sum(1 for v in exporters_map.values() if v)
     result = {
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "scrapers":     scrapers,
         "data_asof":    data_asof,
+        "data_changed_at": data_changed_at,
         "exporters":    exporters_map,
     }
     # Phase 3 sunset signal — present only when latest_prices had to use the
