@@ -36,24 +36,36 @@ export default function EnsoAnalogChart({
     const curByOffset = new Map(current.map((p) => [p.offset, p.value]));
     const analogMaps = analogs.map((a) => new Map(a.series.map((p) => [p.offset, p.value])));
 
-    // Project the "current" line into the future by averaging the analog years
-    // at each positive offset — same technique meteorologists use for analog
-    // forecasting (the closest historical years vote on what comes next).
-    // Anchored at offset 0 with the latest observed value so the dotted line
-    // joins the solid one cleanly.
+    // Project the "current" line into the future from the analog years —
+    // the technique meteorologists use for analog forecasting, where the
+    // closest historical years vote on what comes next.
+    //
+    // The vote is on each analog's CHANGE from its own anchor month, not on
+    // its absolute ONI. Analogs are picked for the shape of their
+    // trajectory, and they routinely sit at a different level from the
+    // current year: today the analogs average 0.86 at offset 0 while ONI is
+    // 1.39, so averaging raw levels made the dotted line drop to 1.09 at
+    // +1 — a visible step down at "now", and backwards, since all three
+    // analogs are RISING there. Averaging deltas anchors the projection on
+    // the last observation by construction, so it always joins the solid
+    // line and then evolves with the analogs' shape.
     const lastObs = current.length ? current[current.length - 1] : null;
     const projByOffset = new Map<number, number>();
     if (lastObs) {
       projByOffset.set(lastObs.offset, lastObs.value);
       for (const o of sorted) {
         if (o <= lastObs.offset) continue;
-        const vals: number[] = [];
+        const deltas: number[] = [];
         for (const m of analogMaps) {
           const v = m.get(o);
-          if (typeof v === "number") vals.push(v);
+          const base = m.get(lastObs.offset);
+          // Both ends required: an analog with no value at the anchor
+          // month has no defined change to contribute.
+          if (typeof v === "number" && typeof base === "number") deltas.push(v - base);
         }
-        if (vals.length === 0) continue;
-        projByOffset.set(o, vals.reduce((s, v) => s + v, 0) / vals.length);
+        if (deltas.length === 0) continue;
+        const meanDelta = deltas.reduce((s, v) => s + v, 0) / deltas.length;
+        projByOffset.set(o, lastObs.value + meanDelta);
       }
     }
 
