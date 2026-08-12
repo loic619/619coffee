@@ -424,8 +424,9 @@ def compose_origin_digest(sentinel_key: str, month: str) -> str | None:
             return f"🇻🇳 Vietnam destinations {month}: top — {tops}"
 
         if sentinel_key == "ecf":
-            # Destination stocks, not origin exports — total + m/m + y/y and
-            # the arabica/robusta split when the PDF breakdown is present.
+            # Destination stocks, not origin exports — a per-month table
+            # (arabica / robusta / total), the verified month first plus two
+            # prior months for the trend.
             d = _load(DATA / "ecf_history.json") or {}
             rows = {r.get("period"): r for r in d.get("monthly") or []}
             r = rows.get(month)
@@ -433,17 +434,25 @@ def compose_origin_digest(sentinel_key: str, month: str) -> str | None:
                 return None
             mm = (rows.get(_month_back(month)) or {}).get("value_mt")
             yy = (rows.get(_year_back(month)) or {}).get("value_mt")
-            head = [
-                f"🇪🇺 European port stocks (ECF) {month}:",
-                f"Total {_fmt(r['value_mt'])} t / {_fmt(r.get('value_raw'))} bags "
-                f"({_pct(r['value_mt'], mm)} m/m / {_pct(r['value_mt'], yy)} y/y)",
+
+            def _kt_cell(v: float | None) -> str:
+                return "—" if v is None else f"{v/1000:.1f}k t"
+
+            lines = [
+                f"🇪🇺 European port stocks (ECF) {month} "
+                f"({_pct(r['value_mt'], mm)} m/m / {_pct(r['value_mt'], yy)} y/y):",
+                "Arabica / Robusta / Total",
             ]
-            w, u = r.get("arabica_washed_mt"), r.get("arabica_unwashed_mt")
-            if w is not None or u is not None:
-                head.append(f"Arabica {_fmt((w or 0) + (u or 0))} t")
-            if r.get("robusta_mt") is not None:
-                head.append(f"Robusta {_fmt(r['robusta_mt'])} t")
-            return "\n".join(head)
+            m2 = month
+            for _ in range(3):
+                row = rows.get(m2)
+                if row and row.get("value_mt") is not None:
+                    w, u = row.get("arabica_washed_mt"), row.get("arabica_unwashed_mt")
+                    arabica = (w or 0) + (u or 0) if (w is not None or u is not None) else None
+                    lines.append(f"{m2}: {_kt_cell(arabica)} / {_kt_cell(row.get('robusta_mt'))}"
+                                 f" / {_kt_cell(row['value_mt'])}")
+                m2 = _month_back(m2)
+            return "\n".join(lines)
     except Exception:  # noqa: BLE001 — a digest must never break the sentinel
         return None
     return None

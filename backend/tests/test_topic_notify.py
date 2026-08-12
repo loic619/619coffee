@@ -107,9 +107,11 @@ def test_ecf_digest_totals_and_split(tmp_path, monkeypatch):
          "robusta_mt": 150769},
     ]}))
     txt = tn.compose_origin_digest("ecf", "2026-04")
-    assert txt.startswith("🇪🇺 European port stocks (ECF) 2026-04:")
-    assert "Total 408,956 t / 6,815,933 bags (+3.2% m/m / -9.1% y/y)" in txt
-    assert "Arabica 258,186 t" in txt and "Robusta 150,769 t" in txt
+    assert txt.startswith("🇪🇺 European port stocks (ECF) 2026-04 (+3.2% m/m / -9.1% y/y):")
+    assert "Arabica / Robusta / Total" in txt
+    assert "2026-04: 258.2k t / 150.8k t / 409.0k t" in txt
+    # Prior month lacks the type breakdown → dashes, total still shown.
+    assert "2026-03: — / — / 396.2k t" in txt
     # Missing month → silent.
     assert tn.compose_origin_digest("ecf", "2026-06") is None
 
