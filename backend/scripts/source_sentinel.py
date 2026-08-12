@@ -155,15 +155,77 @@ def probe_link_hash(pages: list[str], href_re: str, prev_signal: str | None,
         try:
             r = requests.get(page, headers=headers or HEADERS, timeout=TIMEOUT)
             if r.status_code != 200:
+                print(f"    link_hash: GET {page} → HTTP {r.status_code}")
                 return False, prev_signal
             links.update(re.findall(href_re, r.text))
-        except requests.RequestException:
+        except requests.RequestException as e:
+            print(f"    link_hash: GET {page} failed ({type(e).__name__})")
             return False, prev_signal
     if not links:
+        # Silent-failure guard: a site redesign that breaks href_re otherwise
+        # looks identical to "nothing published" forever.
+        print(f"    link_hash: href_re matched NOTHING across {len(pages)} page(s)")
         return False, prev_signal
     sig = hashlib.sha256("\n".join(sorted(links)).encode()).hexdigest()
     changed = prev_signal is not None and sig != prev_signal
     return changed, sig
+
+
+_SLUG_MONTHS = {
+    "january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6,
+    "july": 7, "august": 8, "september": 9, "october": 10, "november": 11, "december": 12,
+}
+_SLUG_PERIOD_RE = re.compile(
+    rf"-({'|'.join(_SLUG_MONTHS)})(?:-({'|'.join(_SLUG_MONTHS)}))?-(\d{{4}})$")
+
+
+def _period_from_slug(slug: str) -> str | None:
+    """'stocks-in-european-ports-may-june-2026' → '2026-06'. A month RANGE
+    resolves to its SECOND month — the data-as-of month ECF reports against
+    (same rule the ecf_stocks scraper uses)."""
+    m = _SLUG_PERIOD_RE.search(slug.lower())
+    if not m:
+        return None
+    second = m.group(2) or m.group(1)
+    return f"{int(m.group(3)):04d}-{_SLUG_MONTHS[second]:02d}"
+
+
+def probe_link_period(pages: list[str], href_re: str, data_file: str,
+                      headers: dict | None = None) -> tuple[bool, str | None]:
+    """ABSOLUTE publication check: the newest period advertised on the listing
+    page vs the newest period already in our data.
+
+    Unlike link_hash (a CHANGE detector that must first record a baseline and
+    is therefore blind to anything published before its first probe), this
+    answers "is there a published report we haven't ingested?" from scratch on
+    every run. Partial page failures are tolerated — missing a page can only
+    cost a detection, never invent one."""
+    slugs: set[str] = set()
+    reached = 0
+    for page in pages:
+        try:
+            r = requests.get(page, headers=headers or HEADERS, timeout=TIMEOUT)
+        except requests.RequestException as e:
+            print(f"    link_period: GET {page} failed ({type(e).__name__})")
+            continue
+        if r.status_code != 200:
+            print(f"    link_period: GET {page} → HTTP {r.status_code}")
+            continue
+        reached += 1
+        slugs.update(re.findall(href_re, r.text))
+    if not reached:
+        print("    link_period: no listing page reachable")
+        return False, None
+    periods = sorted(p for p in (_period_from_slug(s) for s in slugs) if p)
+    if not periods:
+        print(f"    link_period: {len(slugs)} slug(s) matched on {reached} page(s), none dated")
+        return False, None
+    site = periods[-1]
+    have = _months_in_json(ROOT / data_file)
+    latest_have = max(have) if have else None
+    print(f"    link_period: site latest {site} ({len(periods)} posts), "
+          f"ingested latest {latest_have or 'none'}")
+    return (latest_have is None or site > latest_have), site
 
 
 # ── Source catalogue ─────────────────────────────────────────────────────────
@@ -269,13 +331,21 @@ SOURCES: list[dict] = [
     },
     {
         "key": "ecf", "label": "ECF European port stocks",
-        # Bi-monthly: posts land around the last day (±1) of odd months,
-        # covering the two-month pair ending the month before (even). The
-        # off-month is quiet until day 25; the publication month probes daily
-        # via the late-spillover rule (cadence-aware baseline/overdue).
-        "window_start": 25, "cadence": 2, "kind": "link_hash",
-        "pages": ["https://www.ecf-coffee.org/category/publications/stocks/"],
-        "href_re": r'href="(https?://(?:www\.)?ecf-coffee\.org/stocks-in-european-ports-[^/"]+)"',
+        # Bi-monthly, published on a slow and drifting schedule — so instead of
+        # a change detector this compares the newest PERIOD the site advertises
+        # (parsed from post slugs, e.g. …-may-june-2026 → 2026-06) against the
+        # newest period in ecf_history.json. Absolute, so it also catches a
+        # report that published before the sentinel ever looked.
+        "window_start": 25, "cadence": 2, "kind": "link_period", "absolute": True,
+        "pages": [
+            "https://www.ecf-coffee.org/category/publications/stocks/",
+            "https://www.ecf-coffee.org/category/whats-new/news/",
+        ],
+        # Trailing "/" (the WordPress permalink form), query strings and
+        # fragments all tolerated after the slug — an earlier stricter pattern
+        # matched nothing on the real page and failed silently.
+        "href_re": r'href="https?://(?:www\.)?ecf-coffee\.org/(stocks-in-european-ports-[^/"?#]+)[^"]*"',
+        "data_file": "frontend/public/data/ecf_history.json",
         # ECF's WAF 403s bot-looking UAs — probe with the scraper's Chrome UA.
         "headers": {
             "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -284,10 +354,9 @@ SOURCES: list[dict] = [
             "Accept-Language": "en-US,en;q=0.9",
         },
         "workflows": ["scraper-ecf-stocks.yml"],
-        # Data-as-of month = the even month before publication: lag 1 from an
-        # early-even-month release, snapped down when detection slips past it.
+        # The detected period IS the data month to verify — no lag guessing.
         "verify": {"kind": "month_in_file", "file": "frontend/public/data/ecf_history.json",
-                   "lag": 1, "snap_even": True},
+                   "from_signal": True},
     },
 ]
 
@@ -347,12 +416,19 @@ def check_ingested(verify: dict) -> bool:
     return True
 
 
-def build_verify(src: dict, pub_period: str, now_iso: str) -> dict | None:
+def build_verify(src: dict, pub_period: str, now_iso: str,
+                 signal: str | None = None) -> dict | None:
     spec = src.get("verify")
     if not spec:
         return None
     v = {"kind": spec["kind"], "dispatched_at": now_iso, "status": "pending"}
-    if spec["kind"] == "month_in_file":
+    if spec["kind"] == "month_in_file" and spec.get("from_signal"):
+        # link_period probes already resolved the exact data month.
+        if not signal:
+            return None
+        v["file"] = spec["file"]
+        v["expected"] = signal
+    elif spec["kind"] == "month_in_file":
         y, m = int(pub_period[:4]), int(pub_period[5:7])
         ey, em = _shift_month(y, m, -spec["lag"])
         if spec.get("snap_even") and em % 2:
@@ -453,6 +529,9 @@ def run(today: dt.date, dry: bool) -> int:
             found, signal = probe_head_month(src["urls"](today))
         elif src["kind"] == "lastmod":
             found, signal = probe_lastmod(src["url"](today), prev_signal)
+        elif src["kind"] == "link_period":
+            found, signal = probe_link_period(src["pages"], src["href_re"],
+                                              src["data_file"], src.get("headers"))
         else:
             found, signal = probe_link_hash(src["pages"], src["href_re"], prev_signal,
                                             src.get("headers"))
@@ -462,11 +541,13 @@ def run(today: dt.date, dry: bool) -> int:
                  "verify": (st or {}).get("verify"),
                  "overdue_alerted": (st or {}).get("overdue_alerted")}
 
-        if baseline:
+        if baseline and not (src.get("absolute") and found):
             # First run: record the world as-is, never dispatch. head_month
             # sources whose current target already exists count as confirmed.
             # Cadence-N sources start N months back so a release already due
-            # keeps the daily late-spillover probing until it lands.
+            # keeps the daily late-spillover probing until it lands. An
+            # `absolute` probe is exempt — it compares site vs data rather
+            # than vs a stored signal, so a hit on the first run is real.
             entry["confirmed"] = (expected if (src["kind"] == "head_month" and found)
                                   else _shift_period(expected, -src.get("cadence", 1)))
             print(f"[{key}] baseline — confirmed={entry['confirmed']}, signal={'set' if entry['signal'] else 'none'}")
@@ -476,9 +557,11 @@ def run(today: dt.date, dry: bool) -> int:
             print(f"[{key}] NEW RELEASE detected ({src['label']}) → dispatching {src['workflows']}")
             all_ok = all(dispatch_workflow(wf, dry, src.get("workflow_inputs", {}).get(wf))
                          for wf in src["workflows"])
-            fired.append(f"{src['label']} — {expected} publication"
+            fired.append(f"{src['label']} — "
+                         + (f"{signal} report" if src.get("absolute") and signal
+                            else f"{expected} publication")
                          + ("" if all_ok else " (dispatch FAILED)"))
-            entry["verify"] = build_verify(src, expected, now_iso)
+            entry["verify"] = build_verify(src, expected, now_iso, signal)
         else:
             late = today.day < src["window_start"] or confirmed not in (expected, _prev_period(expected))
             print(f"[{key}] probed — nothing new{' (late release, probing daily)' if late else ''}")

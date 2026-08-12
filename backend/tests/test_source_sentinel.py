@@ -136,6 +136,77 @@ def test_build_verify_snap_even_for_bimonthly():
     assert ss.build_verify(spec, "2026-01", "t")["expected"] == "2025-12"
 
 
+def test_period_from_slug_uses_second_month():
+    assert ss._period_from_slug("stocks-in-european-ports-may-june-2026") == "2026-06"
+    assert ss._period_from_slug("stocks-in-european-ports-november-december-2025") == "2025-12"
+    # Single-month slug: that month is the period.
+    assert ss._period_from_slug("stocks-in-european-ports-march-2024") == "2024-03"
+    assert ss._period_from_slug("some-other-post") is None
+
+
+class _FakeResp:
+    def __init__(self, text="", status=200):
+        self.text, self.status_code = text, status
+
+
+def _stub_get(monkeypatch, pages: dict):
+    """pages: {url → _FakeResp | Exception}."""
+    def fake(url, headers=None, timeout=None):
+        r = pages[url]
+        if isinstance(r, Exception):
+            raise r
+        return r
+    monkeypatch.setattr(ss.requests, "get", fake)
+
+
+def _listing(*slugs):
+    return "".join(f'<a href="https://www.ecf-coffee.org/{s}/">x</a>' for s in slugs)
+
+
+def test_link_period_fires_when_site_ahead_of_data(tmp_path, monkeypatch):
+    (tmp_path / "ecf.json").write_text(
+        '{"monthly": [{"period": "2026-02"}, {"period": "2026-04"}]}')
+    monkeypatch.setattr(ss, "ROOT", tmp_path)
+    _stub_get(monkeypatch, {"p1": _FakeResp(_listing(
+        "stocks-in-european-ports-march-april-2026",
+        "stocks-in-european-ports-may-june-2026"))})
+    href = r'href="https?://(?:www\.)?ecf-coffee\.org/(stocks-in-european-ports-[^/"?#]+)/?"'
+    found, signal = ss.probe_link_period(["p1"], href, "ecf.json")
+    assert found is True and signal == "2026-06"
+
+
+def test_link_period_quiet_when_data_is_current(tmp_path, monkeypatch):
+    (tmp_path / "ecf.json").write_text('{"monthly": [{"period": "2026-06"}]}')
+    monkeypatch.setattr(ss, "ROOT", tmp_path)
+    _stub_get(monkeypatch, {"p1": _FakeResp(_listing("stocks-in-european-ports-may-june-2026"))})
+    href = r'href="https?://(?:www\.)?ecf-coffee\.org/(stocks-in-european-ports-[^/"?#]+)/?"'
+    found, signal = ss.probe_link_period(["p1"], href, "ecf.json")
+    assert found is False and signal == "2026-06"
+
+
+def test_link_period_tolerates_a_dead_page_but_not_all(tmp_path, monkeypatch):
+    (tmp_path / "ecf.json").write_text('{"monthly": [{"period": "2026-04"}]}')
+    monkeypatch.setattr(ss, "ROOT", tmp_path)
+    href = r'href="https?://(?:www\.)?ecf-coffee\.org/(stocks-in-european-ports-[^/"?#]+)/?"'
+    # One page 404s, the other carries the new post → still detected.
+    _stub_get(monkeypatch, {
+        "dead": _FakeResp(status=404),
+        "live": _FakeResp(_listing("stocks-in-european-ports-may-june-2026")),
+    })
+    assert ss.probe_link_period(["dead", "live"], href, "ecf.json") == (True, "2026-06")
+    # Every page unreachable → no signal, and never a false positive.
+    _stub_get(monkeypatch, {"dead": ss.requests.RequestException("boom")})
+    assert ss.probe_link_period(["dead"], href, "ecf.json") == (False, None)
+
+
+def test_build_verify_from_signal_uses_detected_period():
+    src = {"verify": {"kind": "month_in_file", "file": "ecf.json", "from_signal": True}}
+    v = ss.build_verify(src, "2026-08", "t", "2026-06")
+    assert v["expected"] == "2026-06" and v["file"] == "ecf.json"
+    # No signal → nothing to verify against.
+    assert ss.build_verify(src, "2026-08", "t", None) is None
+
+
 def test_months_in_json_reads_period_values(tmp_path, monkeypatch):
     f = tmp_path / "ecf.json"
     f.write_text('{"monthly": [{"period": "2026-04", "value_mt": 408956}]}')
