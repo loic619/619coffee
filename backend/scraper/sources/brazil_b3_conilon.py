@@ -13,6 +13,18 @@ module ACCUMULATES a daily series: each run upserts today's entry —
 front contract + full curve — into brazil_b3_conilon.json. Field used is
 prvsDayAdjstmntPric (ajuste diário — official daily settlement).
 
+No dated public source for CNL settlements
+==========================================
+Probed 2026-08-12, looking for history to seed the conilon-basis research:
+  * the legacy BM&F "Ajustes do Pregão" bulletin
+    (www2.bmf.com.br/…/boletim1/Ajustes1.asp) is retired — every dated
+    request answers with a ~600-byte stub containing no contract table;
+  * arquivos.b3.com.br AjustesDoPregao tables return no CNL rows;
+  * noticiasagricolas publishes 11 coffee quote pages and none of them is
+    the B3 conilon future (it mirrors B3 arabica 4/5 only).
+So the series genuinely can only build forward from the day this scraper
+was switched on. Don't re-litigate it without a new source.
+
 Output frontend/public/data/brazil_b3_conilon.json:
     {unit, source, updated, history:[{date, front_month, front_price,
                                       contracts:[{month, symb, price, oi, expiry}]}]}
