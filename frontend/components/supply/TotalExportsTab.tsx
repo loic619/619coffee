@@ -13,7 +13,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, LabelList,
+  ResponsiveContainer, LabelList, ComposedChart, Line,
 } from "recharts";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { COUNTRY_EN } from "./BrazilTab/constants";
@@ -47,14 +47,25 @@ const ORIGIN_COLORS: Record<string, string> = {
 };
 const ORIGIN_ORDER = ["Brazil", "Vietnam", "Colombia", "Indonesia", "Uganda"];
 
+type CoffeeType = "total" | "arabica" | "robusta";
+
+/** Arabica/robusta mix for origins whose MONTHLY feed carries no type
+ *  split. Brazil (arabica/conillon), Indonesia (arabica/robusta green kg)
+ *  and Uganda (arabica/robusta bags) publish theirs per month and never
+ *  reach this table.
+ *    Colombia — grows washed arabica only, so 100/0 is a fact, not an
+ *      estimate (DANE's NANDINA lines are arabica by construction).
+ *    Vietnam — customs publishes no split; the ratio comes from the crop
+ *      mix in the balance sheets (≈1.2 M bags arabica vs ≈28.5 robusta,
+ *      2025/26), i.e. ~4% arabica. Flagged as estimated in the footnote. */
+const TYPE_MIX: Record<string, { arabica: number; robusta: number; estimated: boolean }> = {
+  Colombia: { arabica: 1,    robusta: 0,    estimated: false },
+  Vietnam:  { arabica: 0.04, robusta: 0.96, estimated: true  },
+};
+
 /** Canonical destination key: uppercase English. Brazil ships Portuguese
  *  names, Uganda/Vietnam title-case English, Indonesia uppercase — all
  *  three collapse onto the same key so the sum is a real sum. */
-function destKey(raw: string, fromPortuguese = false): string {
-  const en = fromPortuguese ? (COUNTRY_EN[raw] ?? raw) : raw;
-  const up = en.trim().toUpperCase();
-  return DEST_ALIAS[up] ?? up;
-}
 const DEST_ALIAS: Record<string, string> = {
   "USA": "UNITED STATES",
   "U.S.A.": "UNITED STATES",
@@ -68,11 +79,14 @@ const DEST_ALIAS: Record<string, string> = {
   "NETHERLAND": "NETHERLANDS",
   "HOLLAND": "NETHERLANDS",
 };
+function destKey(raw: string, fromPortuguese = false): string {
+  const en = fromPortuguese ? (COUNTRY_EN[raw] ?? raw) : raw;
+  const up = en.trim().toUpperCase();
+  return DEST_ALIAS[up] ?? up;
+}
 /** Title-case a canonical key for display ("UNITED STATES" → "United States"). */
 const prettyDest = (key: string) =>
-  key.split(" ").map(w => w.length > 3 || /^[A-Z]{2,3}$/.test(w) === false
-    ? w.charAt(0) + w.slice(1).toLowerCase()
-    : w).join(" ");
+  key.split(" ").map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
 
 function monthLabel(ym: string): string {
   return MONTH_LABELS[parseInt(ym.split("-")[1], 10) - 1] ?? ym;
@@ -85,7 +99,7 @@ function offsetYM(ym: string, months: number): string {
 
 // ── Source payload shapes (only the fields this tab reads) ─────────────────
 interface Cecafe {
-  series?: { date: string; total?: number }[];
+  series?: { date: string; total?: number; arabica?: number; conillon?: number }[];
   by_country?: { months?: string[]; countries?: Record<string, Record<string, number>> };
 }
 interface VnSupply { exports?: { monthly?: { month: string; total_k_bags: number }[] } | null }
@@ -93,22 +107,26 @@ interface CoSupply { exports?: { monthly?: { month: string; total_k_bags?: numbe
 interface IdnExports {
   series?: {
     month: string; total_coffee_kg?: number;
+    arabica_green_kg?: number; robusta_green_kg?: number;
     by_destination?: { country: string; kg: number }[];
   }[];
 }
 interface UgMonthly {
   series?: {
-    month: string; total_bags?: number;
+    month: string; total_bags?: number; arabica_bags?: number; robusta_bags?: number;
     by_destination?: { country: string; bags?: number }[];
   }[];
 }
 interface VnDest { months?: string[]; countries?: Record<string, Record<string, number>> }
 
-type MonthMap = Record<string, number>;                  // ym → kt
-type DestMap  = Record<string, Record<string, number>>;  // destKey → ym → kt
+/** ym → kt, per coffee type. */
+type TypeMap  = { total: Record<string, number>; arabica: Record<string, number>; robusta: Record<string, number> };
+type DestMap  = Record<string, Record<string, number>>;
 
-const WINDOWS = ["3M", "6M", "12M", "24M"] as const;
-type Win = (typeof WINDOWS)[number];
+const emptyTypeMap = (): TypeMap => ({ total: {}, arabica: {}, robusta: {} });
+
+const DEST_WINDOWS = ["3M", "6M", "12M", "24M"] as const;
+type DestWin = (typeof DEST_WINDOWS)[number];
 
 export default function TotalExportsTab() {
   const [cecafe, setCecafe]   = useState<Cecafe | null>(null);
@@ -119,9 +137,11 @@ export default function TotalExportsTab() {
   const [vnDest, setVnDest]   = useState<VnDest | null>(null);
   const [loaded, setLoaded]   = useState(false);
 
-  const [win, setWin]   = useState<Win>("12M");
-  const [mode, setMode] = useState<"country" | "hub">("country");
-  const [topN, setTopN] = useState(15);
+  const [type, setType]     = useState<CoffeeType>("total");
+  const [showPrior, setShowPrior] = useState(true);
+  const [destWin, setDestWin] = useState<DestWin>("12M");
+  const [mode, setMode]     = useState<"country" | "hub">("country");
+  const [topN, setTopN]     = useState(15);
 
   useEffect(() => {
     const get = <T,>(url: string, set: (v: T) => void) =>
@@ -136,15 +156,31 @@ export default function TotalExportsTab() {
     ]).finally(() => setLoaded(true));
   }, []);
 
-  // ── Per-origin monthly totals, all in kt ────────────────────────────────
-  const byOrigin: Record<string, MonthMap> = useMemo(() => {
-    const out: Record<string, MonthMap> = {};
-    const put = (origin: string, ym: string, kt: number) => {
-      if (!ym || !Number.isFinite(kt) || kt <= 0) return;
-      (out[origin] ??= {})[ym] = (out[origin][ym] ?? 0) + kt;
+  // ── Per-origin monthly series, all in kt, split by coffee type ──────────
+  const byOrigin: Record<string, TypeMap> = useMemo(() => {
+    const out: Record<string, TypeMap> = {};
+    /** Record a month for an origin. `split` may be omitted, in which case
+     *  the TYPE_MIX ratio (or nothing) applies. */
+    const put = (origin: string, ym: string, totalKt: number,
+                 split?: { arabica?: number; robusta?: number }) => {
+      if (!ym || !Number.isFinite(totalKt) || totalKt <= 0) return;
+      const tm = (out[origin] ??= emptyTypeMap());
+      tm.total[ym] = (tm.total[ym] ?? 0) + totalKt;
+      const mix = TYPE_MIX[origin];
+      const ara = split?.arabica ?? (mix ? totalKt * mix.arabica : undefined);
+      const rob = split?.robusta ?? (mix ? totalKt * mix.robusta : undefined);
+      if (ara != null && ara > 0) tm.arabica[ym] = (tm.arabica[ym] ?? 0) + ara;
+      if (rob != null && rob > 0) tm.robusta[ym] = (tm.robusta[ym] ?? 0) + rob;
     };
+
     for (const r of cecafe?.series ?? []) {
-      if (r.total != null) put("Brazil", r.date, bagsToKT(r.total));
+      if (r.total == null) continue;
+      // Cecafé splits green coffee into arabica + conillon (robusta); the
+      // soluble/roasted remainder stays in the total only.
+      put("Brazil", r.date, bagsToKT(r.total), {
+        arabica: r.arabica != null ? bagsToKT(r.arabica) : undefined,
+        robusta: r.conillon != null ? bagsToKT(r.conillon) : undefined,
+      });
     }
     for (const r of vnSup?.exports?.monthly ?? []) {
       put("Vietnam", r.month, kbagsToKT(r.total_k_bags));
@@ -155,84 +191,158 @@ export default function TotalExportsTab() {
       put("Colombia", r.month, kt);
     }
     for (const r of idn?.series ?? []) {
-      if (r.total_coffee_kg != null) put("Indonesia", r.month, kgToKT(r.total_coffee_kg));
+      if (r.total_coffee_kg == null) continue;
+      put("Indonesia", r.month, kgToKT(r.total_coffee_kg), {
+        arabica: r.arabica_green_kg != null ? kgToKT(r.arabica_green_kg) : undefined,
+        robusta: r.robusta_green_kg != null ? kgToKT(r.robusta_green_kg) : undefined,
+      });
     }
     for (const r of ug?.series ?? []) {
-      if (r.total_bags != null) put("Uganda", r.month, bagsToKT(r.total_bags));
+      if (r.total_bags == null) continue;
+      put("Uganda", r.month, bagsToKT(r.total_bags), {
+        arabica: r.arabica_bags != null ? bagsToKT(r.arabica_bags) : undefined,
+        robusta: r.robusta_bags != null ? bagsToKT(r.robusta_bags) : undefined,
+      });
     }
     return out;
   }, [cecafe, vnSup, coSup, idn, ug]);
 
   const origins = useMemo(
-    () => ORIGIN_ORDER.filter(o => Object.keys(byOrigin[o] ?? {}).length > 0),
+    () => ORIGIN_ORDER.filter(o => Object.keys(byOrigin[o]?.total ?? {}).length > 0),
     [byOrigin],
   );
 
-  // Months where at least one origin reports. The newest month is usually
-  // partial (origins publish on different lags) — flagged, never hidden.
+  /** Active series per origin for the selected coffee type. */
+  const activeByOrigin = useMemo(() => {
+    const out: Record<string, Record<string, number>> = {};
+    origins.forEach(o => { out[o] = byOrigin[o][type] ?? {}; });
+    return out;
+  }, [byOrigin, origins, type]);
+
   const allMonths = useMemo(() => {
     const s = new Set<string>();
-    origins.forEach(o => Object.keys(byOrigin[o]).forEach(m => s.add(m)));
+    origins.forEach(o => Object.keys(byOrigin[o].total).forEach(m => s.add(m)));
     return Array.from(s).sort();
   }, [byOrigin, origins]);
 
-  /** Latest month per origin — the coverage table's freshness column and
-   *  the "complete month" cutoff below both read it. */
   const latestByOrigin = useMemo(() => {
     const out: Record<string, string> = {};
     origins.forEach(o => {
-      const ms = Object.keys(byOrigin[o]).sort();
+      const ms = Object.keys(byOrigin[o].total).sort();
       out[o] = ms[ms.length - 1] ?? "";
     });
     return out;
   }, [byOrigin, origins]);
 
-  // The last month EVERY origin has reported — the newest apples-to-apples
-  // comparison point. Later months still render (flagged partial).
+  /** Newest month ANY origin has reported — anchors the rolling axis. */
+  const latestMonth = allMonths[allMonths.length - 1] ?? "";
+  /** Newest month EVERY origin has reported — the apples-to-apples point. */
   const lastCompleteMonth = useMemo(() => {
     const lasts = origins.map(o => latestByOrigin[o]).filter(Boolean).sort();
     return lasts[0] ?? "";
   }, [origins, latestByOrigin]);
 
-  const winMonths = useMemo(() => {
-    const n = { "3M": 3, "6M": 6, "12M": 12, "24M": 24 }[win];
-    return allMonths.slice(-n);
-  }, [allMonths, win]);
+  /** Estimate for a month an origin hasn't reported.
+   *    1. Average of that same calendar month over its last ≤3 available
+   *       years — the seasonality projection, same method the S&D card
+   *       uses for the in-progress crop, so the surfaces can't disagree.
+   *    2. If that calendar month is absent from the origin's history
+   *       entirely (Colombia's customs series carries no November in any
+   *       year), fall back to the mean of its last ≤12 reported months —
+   *       a flat run-rate. Without it the stack would dip to zero for
+   *       that origin and read as a shipment collapse rather than a hole
+   *       in the feed. */
+  const seasonalEstimate = useMemo(() => {
+    const cache: Record<string, { perMonth: Record<string, number>; runRate: number }> = {};
+    return (origin: string, ym: string): number => {
+      const key = `${origin}|${type}`;
+      const built = (cache[key] ??= (() => {
+        const series = activeByOrigin[origin] ?? {};
+        const newestFirst = Object.entries(series).sort((a, b) => (a[0] < b[0] ? 1 : -1));
+        const byCal: Record<string, number[]> = {};
+        newestFirst.forEach(([m, v]) => { (byCal[m.slice(5, 7)] ??= []).push(v); });
+        const perMonth: Record<string, number> = {};
+        for (const [cal, vals] of Object.entries(byCal)) {
+          const take = vals.slice(0, 3);
+          perMonth[cal] = take.reduce((s, v) => s + v, 0) / take.length;
+        }
+        const recent = newestFirst.slice(0, 12).map(([, v]) => v);
+        const runRate = recent.length ? recent.reduce((s, v) => s + v, 0) / recent.length : 0;
+        return { perMonth, runRate };
+      })());
+      return built.perMonth[ym.slice(5, 7)] ?? built.runRate;
+    };
+  }, [activeByOrigin, type]);
 
-  // ── Stacked monthly chart ───────────────────────────────────────────────
+  // ── Rolling 12-month axis: latest reported month sits 10th, leaving the
+  // last two slots for the forward seasonality projection. ───────────────
+  const axisMonths = useMemo(() => {
+    if (!latestMonth) return [];
+    return Array.from({ length: 12 }, (_, i) => offsetYM(latestMonth, 9 - i));
+  }, [latestMonth]);
+
   const monthlyRows = useMemo(() =>
-    winMonths.map(ym => {
-      const row: Record<string, string | number | boolean> = {
+    axisMonths.map(ym => {
+      const row: Record<string, string | number | boolean | null> = {
         ym,
         label: `${monthLabel(ym)} ${ym.slice(2, 4)}`,
-        partial: !!lastCompleteMonth && ym > lastCompleteMonth,
       };
       let total = 0;
+      let anyProjected = false;
       origins.forEach(o => {
-        const v = round1(byOrigin[o][ym] ?? 0);
-        row[o] = v;
+        const actual = activeByOrigin[o]?.[ym];
+        const isProj = actual == null;
+        const v = round1(isProj ? seasonalEstimate(o, ym) : actual);
+        // Split each origin into an actual and a projected series so the
+        // stack can render the projected part striped without a second
+        // chart or a custom shape per bar.
+        row[o] = isProj ? 0 : v;
+        row[`${o}__proj`] = isProj ? v : 0;
+        if (isProj && v > 0) anyProjected = true;
         total += v;
       });
       row.total = round1(total);
+      row.projected = anyProjected;
+      // Faded prior-year references — actuals only, no projection.
+      const priorTotal = (back: number) => {
+        const pm = offsetYM(ym, back);
+        let s = 0, seen = 0;
+        origins.forEach(o => {
+          const v = activeByOrigin[o]?.[pm];
+          if (v != null) { s += v; seen++; }
+        });
+        return seen > 0 ? round1(s) : null;
+      };
+      row.prior1 = priorTotal(12);
+      row.prior2 = priorTotal(24);
       return row;
     })
-  , [winMonths, origins, byOrigin, lastCompleteMonth]);
+  , [axisMonths, origins, activeByOrigin, seasonalEstimate]);
+
+  /** Which axis months carry any projection — surfaced in the sub-header
+   *  so a reader never mistakes an estimate for a customs print. */
+  const projectedLabels = useMemo(
+    () => monthlyRows.filter(r => r.projected).map(r => String(r.label)),
+    [monthlyRows],
+  );
 
   // ── Coverage / KPI table: rolling 12M per origin + YoY ──────────────────
   const coverage = useMemo(() => {
     const last12 = allMonths.slice(-12);
     const prev12 = last12.map(m => offsetYM(m, 12));
     const rows = origins.map(o => {
-      const cur  = last12.reduce((s, m) => s + (byOrigin[o][m] ?? 0), 0);
-      const prev = prev12.reduce((s, m) => s + (byOrigin[o][m] ?? 0), 0);
+      const s = activeByOrigin[o] ?? {};
+      const cur  = last12.reduce((acc, m) => acc + (s[m] ?? 0), 0);
+      const prev = prev12.reduce((acc, m) => acc + (s[m] ?? 0), 0);
       return {
         origin: o,
         kt: round1(cur),
         prevKt: round1(prev),
         pct: prev > 0 ? Math.round((cur - prev) / prev * 100) : null,
         latest: latestByOrigin[o],
+        estimatedMix: !!TYPE_MIX[o]?.estimated && type !== "total",
       };
-    });
+    }).filter(r => r.kt > 0 || r.prevKt > 0);
     const total     = rows.reduce((s, r) => s + r.kt, 0);
     const totalPrev = rows.reduce((s, r) => s + r.prevKt, 0);
     return {
@@ -241,9 +351,8 @@ export default function TotalExportsTab() {
       total: round1(total),
       totalPrev: round1(totalPrev),
       totalPct: totalPrev > 0 ? Math.round((total - totalPrev) / totalPrev * 100) : null,
-      window: last12,
     };
-  }, [allMonths, origins, byOrigin, latestByOrigin]);
+  }, [allMonths, origins, activeByOrigin, latestByOrigin, type]);
 
   // ── Aggregated destinations (origins that publish a breakdown) ──────────
   const { destByKey, destOrigins } = useMemo(() => {
@@ -253,7 +362,6 @@ export default function TotalExportsTab() {
       if (!key || !ym || !Number.isFinite(kt) || kt <= 0) return;
       (out[key] ??= {})[ym] = (out[key][ym] ?? 0) + kt;
     };
-    // Brazil — Cecafé by_country (Portuguese keys, bags).
     const brC = cecafe?.by_country?.countries;
     if (brC && Object.keys(brC).length) {
       contributors.push("Brazil");
@@ -262,7 +370,6 @@ export default function TotalExportsTab() {
         for (const [ym, bags] of Object.entries(mv)) put(key, ym, bagsToKT(bags));
       }
     }
-    // Vietnam — customs 5X by destination (tonnes).
     const vnC = vnDest?.countries;
     if (vnC && Object.keys(vnC).length) {
       contributors.push("Vietnam");
@@ -271,14 +378,12 @@ export default function TotalExportsTab() {
         for (const [ym, t] of Object.entries(mv)) put(key, ym, tToKT(t));
       }
     }
-    // Indonesia — BPS by_destination per month (kg).
     if ((idn?.series ?? []).some(r => (r.by_destination ?? []).length)) {
       contributors.push("Indonesia");
       for (const r of idn?.series ?? []) {
         for (const d of r.by_destination ?? []) put(destKey(d.country), r.month, kgToKT(d.kg));
       }
     }
-    // Uganda — UCDA monthly reports by destination (bags).
     if ((ug?.series ?? []).some(r => (r.by_destination ?? []).length)) {
       contributors.push("Uganda");
       for (const r of ug?.series ?? []) {
@@ -288,11 +393,11 @@ export default function TotalExportsTab() {
     return { destByKey: out, destOrigins: contributors };
   }, [cecafe, vnDest, idn, ug]);
 
-  // Destination window: the months every contributing origin covers would
-  // be too strict (Cecafé's by_country only spans the current crop year),
-  // so we use the same window as the chart above and label it plainly.
-  const destWindowMonths = winMonths;
-  const destPrevMonths   = useMemo(() => destWindowMonths.map(m => offsetYM(m, 12)), [destWindowMonths]);
+  const destWindowMonths = useMemo(() => {
+    const n = { "3M": 3, "6M": 6, "12M": 12, "24M": 24 }[destWin];
+    return allMonths.slice(-n);
+  }, [allMonths, destWin]);
+  const destPrevMonths = useMemo(() => destWindowMonths.map(m => offsetYM(m, 12)), [destWindowMonths]);
 
   const destRows = useMemo(() => {
     const totals: Record<string, { current: number; prev: number }> = {};
@@ -330,21 +435,23 @@ export default function TotalExportsTab() {
     return Object.entries(totals)
       .sort((a, b) => b[1].current - a[1].current)
       .slice(0, topN)
-      .map(([key, v]) => ({
-        label: prettyDest(key).length > 22 ? prettyDest(key).slice(0, 21) + "…" : prettyDest(key),
-        current: round1(v.current),
-        prev: round1(v.prev),
-        pct: v.prev > 0 ? Math.round((v.current - v.prev) / v.prev * 100) : null,
-        shareDelta: null as number | null,
-      }));
+      .map(([key, v]) => {
+        const name = prettyDest(key);
+        return {
+          label: name.length > 22 ? name.slice(0, 21) + "…" : name,
+          current: round1(v.current),
+          prev: round1(v.prev),
+          pct: v.prev > 0 ? Math.round((v.current - v.prev) / v.prev * 100) : null,
+          shareDelta: null as number | null,
+        };
+      });
   }, [destByKey, destWindowMonths, destPrevMonths, mode, topN]);
 
-  const periodLabel = winMonths.length
-    ? `${monthLabel(winMonths[0])} ${winMonths[0].slice(0, 4)}–${monthLabel(winMonths[winMonths.length - 1])} ${winMonths[winMonths.length - 1].slice(0, 4)}`
+  const fmtRange = (ms: string[]) => ms.length
+    ? `${monthLabel(ms[0])} ${ms[0].slice(0, 4)}–${monthLabel(ms[ms.length - 1])} ${ms[ms.length - 1].slice(0, 4)}`
     : "";
-  const prevPeriodLabel = destPrevMonths.length
-    ? `${monthLabel(destPrevMonths[0])} ${destPrevMonths[0].slice(0, 4)}–${monthLabel(destPrevMonths[destPrevMonths.length - 1])} ${destPrevMonths[destPrevMonths.length - 1].slice(0, 4)}`
-    : "";
+  const destPeriodLabel = fmtRange(destWindowMonths);
+  const destPrevLabel   = fmtRange(destPrevMonths);
 
   const barFill = (r: { label: string; pct: number | null }) =>
     mode === "hub"
@@ -363,6 +470,8 @@ export default function TotalExportsTab() {
   }
 
   const CARD = "bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3";
+  const typeNote = type === "total" ? "" : ` · ${type === "arabica" ? "Arabica" : "Robusta"} only`;
+  const anyEstimatedMix = coverage.rows.some(r => r.estimatedMix);
 
   return (
     <div className="space-y-4">
@@ -370,10 +479,20 @@ export default function TotalExportsTab() {
       <div className={CARD}>
         <div className="flex items-baseline justify-between gap-2 flex-wrap">
           <div className="text-[10px] text-slate-400 uppercase tracking-wide">
-            World exports — {origins.length} origins aggregated
+            World exports — {coverage.rows.length} origins aggregated{typeNote}
           </div>
-          <div className="text-[8px] text-slate-600">
-            thousand metric tons (kt) · rolling 12 months
+          <div className="flex items-center gap-2">
+            <div className="inline-flex rounded border border-slate-700 overflow-hidden">
+              {(["total", "arabica", "robusta"] as const).map(t => (
+                <button key={t} onClick={() => setType(t)}
+                  className={`text-[9px] px-2 py-0.5 capitalize transition-colors ${
+                    type === t ? "bg-slate-700 text-slate-100" : "text-slate-500 hover:text-slate-300"
+                  }`}>
+                  {t}
+                </button>
+              ))}
+            </div>
+            <div className="text-[8px] text-slate-600">kt · rolling 12M</div>
           </div>
         </div>
         <div className="flex items-stretch gap-2 flex-wrap">
@@ -390,9 +509,7 @@ export default function TotalExportsTab() {
             </div>
           </div>
           <div className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 flex-1 min-w-[130px]">
-            <div className="text-[8px] uppercase tracking-wide font-bold text-slate-400 mb-0.5">
-              YoY
-            </div>
+            <div className="text-[8px] uppercase tracking-wide font-bold text-slate-400 mb-0.5">YoY</div>
             <div className={`text-sm font-extrabold ${
               coverage.totalPct == null ? "text-slate-400"
                 : coverage.totalPct >= 0 ? "text-emerald-400" : "text-red-400"}`}>
@@ -409,72 +526,154 @@ export default function TotalExportsTab() {
             <div className="text-sm font-extrabold text-slate-200">
               {lastCompleteMonth ? `${monthLabel(lastCompleteMonth)} ${lastCompleteMonth.slice(0, 4)}` : "—"}
             </div>
-            <div className="text-[7px] text-slate-600 mt-0.5">
-              every origin reported
-            </div>
+            <div className="text-[7px] text-slate-600 mt-0.5">every origin reported</div>
           </div>
         </div>
       </div>
 
-      {/* ── Monthly stacked chart ─────────────────────────────────────── */}
+      {/* ── Rolling 12M chart: actuals + seasonality projection ───────── */}
       <div className={CARD}>
         <div className="flex items-baseline justify-between gap-2 flex-wrap">
           <div className="text-[10px] text-slate-400 uppercase tracking-wide">
             Monthly exports by origin
-            <span className="ml-2 text-slate-600 normal-case">· {periodLabel}</span>
+            <span className="ml-2 text-slate-600 normal-case">
+              · rolling 12M{typeNote}
+              {projectedLabels.length > 0 && (
+                <span className="ml-1">· projected: {projectedLabels.join(", ")}</span>
+              )}
+            </span>
           </div>
-          <div className="inline-flex rounded border border-slate-700 overflow-hidden">
-            {WINDOWS.map(w => (
-              <button key={w} onClick={() => setWin(w)}
-                className={`text-[9px] px-1.5 py-0.5 transition-colors ${
-                  win === w ? "bg-slate-700 text-slate-100" : "text-slate-500 hover:text-slate-300"
-                }`}>
-                {w}
-              </button>
-            ))}
-          </div>
+          <button onClick={() => setShowPrior(v => !v)}
+            className={`text-[9px] px-2 py-0.5 rounded border transition-colors ${
+              showPrior
+                ? "border-slate-600 bg-slate-700 text-slate-200"
+                : "border-slate-700 text-slate-500 hover:text-slate-300"
+            }`}
+            title="Overlay the same months one and two years ago">
+            Prior years
+          </button>
         </div>
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={monthlyRows} margin={{ top: 12, right: 8, left: -8, bottom: 0 }}>
+        <ResponsiveContainer width="100%" height={300}>
+          <ComposedChart data={monthlyRows} margin={{ top: 14, right: 8, left: -8, bottom: 0 }}>
+            {/* One striped pattern per origin so a projected month reads as
+                an estimate at a glance, in that origin's own colour. */}
+            <defs>
+              {origins.map(o => (
+                <pattern key={o} id={`tot-proj-${o}`} patternUnits="userSpaceOnUse"
+                  width="6" height="6" patternTransform="rotate(45)">
+                  <rect width="6" height="6" fill={ORIGIN_COLORS[o] ?? "#64748b"} fillOpacity="0.25" />
+                  <line x1="0" y1="0" x2="0" y2="6" stroke={ORIGIN_COLORS[o] ?? "#64748b"} strokeWidth="3" />
+                </pattern>
+              ))}
+            </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
             <XAxis dataKey="label" tick={{ fill: "#94a3b8", fontSize: 9 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fill: "#94a3b8", fontSize: 9 }} axisLine={false} tickLine={false}
               tickFormatter={(v) => `${Math.round(Number(v))}kt`} />
             <Tooltip contentStyle={TT_STYLE}
               labelFormatter={(l, items) => {
-                const p = items?.[0]?.payload as { ym?: string; partial?: boolean; total?: number } | undefined;
-                return `${l}${p?.partial ? " · partial (not all origins reported)" : ""} — total ${round1(p?.total ?? 0)} kt`;
+                const p = items?.[0]?.payload as { projected?: boolean; total?: number } | undefined;
+                return `${l}${p?.projected ? " · incl. seasonality projection" : ""} — total ${round1(p?.total ?? 0)} kt`;
               }}
-              formatter={((v, n) => [
-                <span key="v" style={{ color: ORIGIN_COLORS[String(n)] ?? "#94a3b8" }}>{`${v} kt`}</span>,
-                n as NameType,
-              ]) satisfies Formatter<ValueType, NameType>} />
-            <Legend wrapperStyle={{ fontSize: 9, paddingTop: 4 }} />
-            {origins.map((o, i) => (
-              <Bar key={o} dataKey={o} name={o} stackId="x" fill={ORIGIN_COLORS[o] ?? "#64748b"}
+              formatter={((v, n) => {
+                if (Number(v) === 0) return [null, null];
+                const name = String(n);
+                if (name === "prior1" || name === "prior2") {
+                  return [
+                    <span key="v" style={{ color: "#64748b" }}>{`${v} kt`}</span>,
+                    (name === "prior1" ? "1 year ago" : "2 years ago") as NameType,
+                  ];
+                }
+                const origin = name.replace("__proj", "");
+                const isProj = name.endsWith("__proj");
+                return [
+                  <span key="v" style={{ color: ORIGIN_COLORS[origin] ?? "#94a3b8" }}>{`${v} kt`}</span>,
+                  (isProj ? `${origin} (proj.)` : origin) as NameType,
+                ];
+              }) satisfies Formatter<ValueType, NameType>} />
+            {/* Actual + projected series per origin share a stackId, so the
+                two halves of an origin's contribution sit flush. */}
+            {origins.flatMap((o, i) => [
+              <Bar key={o} dataKey={o} name={o} stackId="x" fill={ORIGIN_COLORS[o] ?? "#64748b"} />,
+              <Bar key={`${o}__proj`} dataKey={`${o}__proj`} name={`${o}__proj`} stackId="x"
+                fill={`url(#tot-proj-${o})`}
                 radius={i === origins.length - 1 ? [2, 2, 0, 0] : undefined}>
-                {/* Stack total above the newest bars only — labelling every
-                    month would crowd a 24-month window. */}
-                {i === origins.length - 1 && monthlyRows.length <= 12 && (
+                {i === origins.length - 1 && (
                   <LabelList dataKey="total" position="top" formatter={ktLabel}
                     style={{ fill: "#94a3b8", fontSize: 8 }} />
                 )}
-              </Bar>
-            ))}
-          </BarChart>
+              </Bar>,
+            ])}
+            {showPrior && (
+              <Line dataKey="prior1" name="prior1" type="monotone" stroke="#64748b"
+                strokeWidth={1.5} dot={{ r: 1.5 }} connectNulls />
+            )}
+            {showPrior && (
+              <Line dataKey="prior2" name="prior2" type="monotone" stroke="#475569"
+                strokeWidth={1.5} strokeDasharray="4 3" dot={false} connectNulls />
+            )}
+          </ComposedChart>
         </ResponsiveContainer>
+
+        {/* Hand-rolled legend: recharts' own can't express "striped = the
+            same origins, projected" without duplicating every series. */}
+        <div className="flex items-center gap-x-3 gap-y-1 flex-wrap text-[9px] text-slate-400">
+          {origins.map(o => (
+            <span key={o} className="inline-flex items-center gap-1">
+              <span className="inline-block w-2.5 h-2.5 rounded-sm"
+                style={{ background: ORIGIN_COLORS[o] ?? "#64748b" }} />
+              {o}
+            </span>
+          ))}
+          {projectedLabels.length > 0 && (
+            <span className="inline-flex items-center gap-1">
+              <span className="inline-block w-2.5 h-2.5 rounded-sm border border-slate-500"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(45deg, #94a3b8 0 2px, transparent 2px 4px)",
+                }} />
+              projected
+            </span>
+          )}
+          {showPrior && (
+            <>
+              <span className="inline-flex items-center gap-1">
+                <span className="inline-block w-4 h-0.5" style={{ background: "#64748b" }} />
+                1 year ago
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <span className="inline-block w-4 h-0" style={{ borderTop: "1.5px dashed #475569" }} />
+                2 years ago
+              </span>
+            </>
+          )}
+        </div>
+
         <div className="text-[8px] text-slate-600 leading-relaxed">
-          Each origin normalised to kt from its native unit (Brazil &amp; Uganda 60-kg bags,
-          Vietnam k-bags, Colombia customs tons, Indonesia kg). The most recent month(s)
-          can be partial — origins publish on different lags, so a short final bar means
-          &quot;not all origins reported yet&quot;, not a collapse in shipments.
+          Axis is a rolling 12 months ending two months ahead of the newest customs print,
+          so the forward window is always visible. Solid bars are reported months; striped
+          bars are a <strong className="text-slate-500">seasonality projection</strong> —
+          the average of that same calendar month over the origin&apos;s last three years,
+          used both for months an origin hasn&apos;t published yet and for the two future
+          months (where a feed carries no history at all for that calendar month, the
+          origin&apos;s 12-month run-rate stands in). Faded lines are the same months one and
+          two years ago, actuals only. Each origin is normalised to kt from its native unit.
+          {type !== "total" && (
+            <>
+              {" "}Type split: Brazil (arabica/conillon), Indonesia and Uganda publish theirs
+              per month{anyEstimatedMix && (
+                <> ; Vietnam is apportioned at the balance-sheet crop mix (~96% robusta) and
+                Colombia is 100% arabica by crop</>
+              )}.
+            </>
+          )}
         </div>
       </div>
 
       {/* ── Per-origin coverage table ─────────────────────────────────── */}
       <div className={CARD}>
         <div className="text-[10px] text-slate-400 uppercase tracking-wide">
-          Origin contribution · rolling 12M
+          Origin contribution · rolling 12M{typeNote}
         </div>
         <table className="w-full text-[10px] font-mono">
           <thead>
@@ -493,6 +692,11 @@ export default function TotalExportsTab() {
                   <span className="inline-block w-2 h-2 rounded-sm mr-1.5 align-middle"
                     style={{ background: ORIGIN_COLORS[r.origin] ?? "#64748b" }} />
                   <span className="text-slate-300">{r.origin}</span>
+                  {r.estimatedMix && (
+                    <span className="text-slate-600 ml-1" title="Type split apportioned at the crop mix — the monthly feed carries no split">
+                      *
+                    </span>
+                  )}
                 </td>
                 <td className="text-right py-1 px-1 text-slate-300">{r.kt.toLocaleString()}</td>
                 <td className={`text-right py-1 px-1 ${
@@ -518,6 +722,12 @@ export default function TotalExportsTab() {
             </tr>
           </tbody>
         </table>
+        {anyEstimatedMix && (
+          <div className="text-[8px] text-slate-600 italic">
+            * Type split apportioned at the crop mix (the origin&apos;s monthly feed publishes
+            no arabica/robusta breakdown).
+          </div>
+        )}
       </div>
 
       {/* ── Aggregated destinations ───────────────────────────────────── */}
@@ -526,9 +736,19 @@ export default function TotalExportsTab() {
           <div className="flex items-baseline justify-between gap-2 flex-wrap">
             <div className="text-[10px] text-slate-400 uppercase tracking-wide">
               Export by destination — all origins
-              <span className="ml-2 text-slate-600 normal-case">· {periodLabel}</span>
+              <span className="ml-2 text-slate-600 normal-case">· {destPeriodLabel}</span>
             </div>
             <div className="flex items-center gap-2">
+              <div className="inline-flex rounded border border-slate-700 overflow-hidden">
+                {DEST_WINDOWS.map(w => (
+                  <button key={w} onClick={() => setDestWin(w)}
+                    className={`text-[9px] px-1.5 py-0.5 transition-colors ${
+                      destWin === w ? "bg-slate-700 text-slate-100" : "text-slate-500 hover:text-slate-300"
+                    }`}>
+                    {w}
+                  </button>
+                ))}
+              </div>
               <div className="inline-flex rounded border border-slate-700 overflow-hidden">
                 {(["country", "hub"] as const).map(m => (
                   <button key={m} onClick={() => setMode(m)}
@@ -564,13 +784,13 @@ export default function TotalExportsTab() {
                   const color = name === "current" ? barFill(row) : "#94a3b8";
                   return [
                     <span key="v" style={{ color }}>{`${v} kt`}</span>,
-                    (name === "current" ? periodLabel : prevPeriodLabel) as NameType,
+                    (name === "current" ? destPeriodLabel : destPrevLabel) as NameType,
                   ];
                 }) satisfies Formatter<ValueType, NameType>} />
               <Legend wrapperStyle={{ fontSize: 10, paddingTop: 6 }}
                 formatter={(v) => (
                   <span style={{ color: "#cbd5e1" }}>
-                    {v === "current" ? periodLabel : prevPeriodLabel}
+                    {v === "current" ? destPeriodLabel : destPrevLabel}
                   </span>
                 )} />
               <Bar dataKey="prev" name="prev" fill="#64748b" opacity={0.55} />
@@ -587,7 +807,8 @@ export default function TotalExportsTab() {
             normalised to one taxonomy before summing (Cecafé ships Portuguese labels, the
             others English). Coverage is narrower than the totals above — origins without a
             destination feed (and each feed&apos;s own history depth) are simply absent here,
-            so treat this as a shape-of-demand ranking rather than a world total.
+            so treat this as a shape-of-demand ranking rather than a world total. Actuals
+            only; no projection applied.
           </div>
         </div>
       )}
