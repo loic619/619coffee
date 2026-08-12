@@ -1,16 +1,22 @@
 {
   "cecafe": {
-    "confirmed": "2026-07",
-    "last_found": null,
-    "last_probe": "2026-08-11T07:48:04+00:00",
+    "confirmed": "2026-08",
+    "last_found": "2026-08-12T08:01:38+00:00",
+    "last_probe": "2026-08-12T08:01:38+00:00",
     "overdue_alerted": null,
-    "signal": null,
-    "verify": null
+    "signal": "https://www.cecafe.com.br/site/wp-content/uploads/graficos/relatorio_exp_julho_2026.zip",
+    "verify": {
+      "dispatched_at": "2026-08-12T08:01:38+00:00",
+      "expected": "2026-07",
+      "file": "frontend/public/data/cecafe.json",
+      "kind": "month_in_file",
+      "status": "pending"
+    }
   },
   "comex": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-11T07:48:04+00:00",
+    "last_probe": "2026-08-12T08:01:38+00:00",
     "overdue_alerted": null,
     "signal": null,
     "verify": null
@@ -18,7 +24,7 @@
   "conab": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-11T07:48:04+00:00",
+    "last_probe": "2026-08-12T08:01:38+00:00",
     "overdue_alerted": null,
     "signal": null,
     "verify": null
@@ -37,10 +43,18 @@
       "status": "ok"
     }
   },
+  "ecf": {
+    "confirmed": "2026-06",
+    "last_found": null,
+    "last_probe": "2026-08-12T08:01:38+00:00",
+    "overdue_alerted": null,
+    "signal": null,
+    "verify": null
+  },
   "fnc": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-11T07:48:04+00:00",
+    "last_probe": "2026-08-12T08:01:38+00:00",
     "overdue_alerted": null,
     "signal": "dd2fc0d9a849e90ab7d73f37f5fc6f89cf4f40a659b736c500856467d0ac59be",
     "verify": null
@@ -65,6 +79,14 @@
     "last_probe": "2026-08-09T07:36:31+00:00",
     "overdue_alerted": null,
     "signal": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/8/6/2026-t7-2x(vn-sb).pdf",
+    "verify": null
+  },
+  "vn_customs_dest": {
+    "confirmed": "2026-08",
+    "last_found": null,
+    "last_probe": "2026-08-12T08:01:38+00:00",
+    "overdue_alerted": null,
+    "signal": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/8/10/2026-t7-5x(ta-sb).pdf",
     "verify": null
   }
 }
