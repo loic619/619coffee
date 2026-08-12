@@ -46,7 +46,28 @@ from scraper.exporters.base import OUT_DIR
 VITORIA = OUT_DIR / "brazil_conilon_vitoria.json"
 CEPEA = OUT_DIR / "cepea_conilon_indicator.json"
 CNL = OUT_DIR / "brazil_b3_conilon.json"
+FX = OUT_DIR / "fx_history.json"
 OUT = OUT_DIR / "conilon_basis.json"
+
+SACA_PER_MT = 1000 / 60          # 16.667 sacas of 60 kg per tonne
+
+# What the app currently books to lift the CON T7 physical (the Cooabriel Tipo 7
+# bid, per origin_prices_history) to at-port parity against RC. Mirrored from
+# frontend/lib/originCosts.ts (FOBBING_USD["CON T7"]) and the Origin-Logistics
+# research card's cost table, so the basis card can hold the booked stack
+# against what the market actually prices. Keep in sync when those change.
+BOOKED_TOTAL_USD_MT = 200.0
+BOOKED_REFERENCE_PRICE = 3000.0   # the price level the stack was calibrated at
+BOOKED_STACK = [
+    {"line": "Quality preparation", "lo": 55, "hi": 65, "scales": True,
+     "note": "sorting, hulling, polishing to Class 1+ spec"},
+    {"line": "L1 — farm to dry mill", "lo": 10, "hi": 15, "scales": False, "note": "smallholder aggregation"},
+    {"line": "L2 — mill to port", "lo": 20, "hi": 25, "scales": False, "note": "road haulage to Santos/Vitória"},
+    {"line": "MAPA inspection & fumigation", "lo": 8, "hi": 12, "scales": False, "note": "mandatory checks"},
+    {"line": "THC + port docs + B/L", "lo": 17, "hi": 18, "scales": False, "note": "terminal handling, export docs"},
+    {"line": "Financing", "lo": 15, "hi": 15, "scales": True, "note": "stated as ~0.5% × $3,000 × 3-week float"},
+    {"line": "Exporter margin", "lo": 30, "hi": 30, "scales": True, "note": "stated as ~1% of FOB price"},
+]
 
 # Pairs studied, as (leg, base). Every pair is quoted against the CCCV Tipo 7/8
 # delivery-spec benchmark except the co-op's own internal grade step (T7-T8),
@@ -249,6 +270,86 @@ def _staleness(rows: list[dict]) -> dict:
     return out
 
 
+def _fx_brl() -> dict[str, float]:
+    """{date: BRL per USD} from the FX history the macro pages already publish."""
+    doc = _load(FX)
+    pair = (doc.get("pairs") or {}).get("BRL=X") or {}
+    return {r["date"]: r["close"] for r in (pair.get("history") or []) if r.get("close")}
+
+
+def _fob_crosscheck(rows: list[dict], fx: dict[str, float]) -> dict:
+    """Hold the booked CON T7 cost stack against what the market prices.
+
+    Two questions the R$ series can settle, once converted to the stack's own
+    unit (USD/MT):
+
+    1. LEVEL — the stack books a "quality preparation" line to lift tipo-7/8
+       coffee to a Class-1+ spec. The Espírito Santo market prices that same
+       upgrade every day: it is the CEPEA (tipo 6, peneira 13+) premium over the
+       CCCV tipo 7/8 reference. Note the two are not the same object — ours is a
+       processing cost, the market's is a price differential that also carries
+       the outturn loss of screening defects out — so the comparison bounds the
+       line rather than replacing it.
+    2. FORM — the booked number is flat USD/MT, but every measured grade
+       differential here is ad valorem. Splitting the stack's own lines into the
+       ones that scale with the price and the ones that don't (the stack already
+       defines financing and margin as percentages of a $3,000 reference) shows
+       what a price-aware version would charge at any level.
+    """
+    conv = [(r["date"], r) for r in rows if r.get("co7") and r["date"] in fx]
+    if len(conv) < 30:
+        return {"available": False}
+
+    def usd(brl_per_saca: float, date: str) -> float:
+        return brl_per_saca * SACA_PER_MT / fx[date]
+
+    base = [(d, usd(r["co7"], d)) for d, r in conv]
+    uplift = [(d, usd(r["cepea"] - r["cccv"], d)) for d, r in conv if r.get("cepea") and r.get("cccv")]
+    step = [usd(r["co7"] - r["co8"], d) for d, r in conv if r.get("co8")]
+    interior = [usd(r["co8"] - r["cccv"], d) for d, r in conv if r.get("co8") and r.get("cccv")]
+
+    by_year: dict[str, dict] = {}
+    for (d, b), (_, u) in zip(base, uplift):
+        y = by_year.setdefault(d[:4], {"base": [], "uplift": []})
+        y["base"].append(b)
+        y["uplift"].append(u)
+
+    fixed = sum((s["lo"] + s["hi"]) / 2 for s in BOOKED_STACK if not s["scales"])
+    adval = sum((s["lo"] + s["hi"]) / 2 for s in BOOKED_STACK if s["scales"])
+    adval_share = adval / BOOKED_REFERENCE_PRICE
+    last_base = base[-1][1]
+
+    return {
+        "available": True,
+        "booked": {"total_usd_mt": BOOKED_TOTAL_USD_MT, "reference_price": BOOKED_REFERENCE_PRICE,
+                   "lines": BOOKED_STACK,
+                   "itemised_lo": sum(s["lo"] for s in BOOKED_STACK),
+                   "itemised_hi": sum(s["hi"] for s in BOOKED_STACK),
+                   "fixed_usd_mt": _r(fixed), "advalorem_usd_mt": _r(adval),
+                   "advalorem_share_pct": _r(adval_share * 100, 2)},
+        "base_usd_mt": {"latest": _r(last_base, 0), "latest_date": base[-1][0],
+                        "mean": _r(st.mean([b for _, b in base]), 0)},
+        "booked_as_pct_of_base": {"latest": _r(BOOKED_TOTAL_USD_MT / last_base * 100),
+                                  "min": _r(min(BOOKED_TOTAL_USD_MT / b * 100 for _, b in base)),
+                                  "max": _r(max(BOOKED_TOTAL_USD_MT / b * 100 for _, b in base))},
+        "measured_usd_mt": {
+            "grade_uplift_mean": _r(st.mean([u for _, u in uplift]), 0),
+            "grade_uplift_latest": _r(uplift[-1][1], 0),
+            "grade_uplift_p5": _r(_pct([u for _, u in uplift], 5), 0),
+            "grade_uplift_p95": _r(_pct([u for _, u in uplift], 95), 0),
+            "coop_grade_step": _r(st.mean(step), 0) if step else None,
+            "interior_port_basis": _r(st.mean(interior), 0) if interior else None,
+        },
+        "by_year": {y: {"base": _r(st.mean(v["base"]), 0), "uplift": _r(st.mean(v["uplift"]), 0),
+                        "uplift_pct": _r(st.mean(v["uplift"]) / st.mean(v["base"]) * 100),
+                        "booked_pct": _r(BOOKED_TOTAL_USD_MT / st.mean(v["base"]) * 100)}
+                    for y, v in sorted(by_year.items())},
+        # What a fixed + ad-valorem restatement of the SAME booked lines charges.
+        "price_aware_stack": [{"base": lvl, "stack": _r(fixed + adval_share * lvl, 0)}
+                              for lvl in (2000, 3000, 3500, 4500)],
+    }
+
+
 def export_conilon_basis() -> None:
     rows = _frame()
     if not rows:
@@ -288,6 +389,7 @@ def export_conilon_basis() -> None:
         "latest": {**{k: v for k, v in last_phys.items()},
                    "cnl": last_cnl.get("cnl"), "cnl_date": last_cnl.get("date")},
         "pairs": pairs,
+        "fob_crosscheck": _fob_crosscheck(rows, _fx_brl()),
         "staleness": _staleness(rows),
         "series": series,
         "sources": [
