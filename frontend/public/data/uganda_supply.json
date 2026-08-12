@@ -1,6 +1,6 @@
 {
   "country": "uganda",
-  "scraped_at": "2026-08-11T11:01:19.037337+00:00",
+  "scraped_at": "2026-08-12T04:32:08.213275+00:00",
   "exports": {
     "source": "UCDA Monthly Reports",
     "last_updated": "2026-06",
@@ -796,17 +796,17 @@
     }
   },
   "ucda_price": {
-    "usd_cwt": 183.11,
-    "as_of": "2026-08-11",
+    "usd_cwt": 183.98,
+    "as_of": "2026-08-12",
     "grade": "Screen 15",
     "grades": {
-      "Screen 15": 183.11,
-      "Wugar": 328.55,
-      "Drugar": 309.55
+      "Screen 15": 183.98,
+      "Wugar": 325.3,
+      "Drugar": 306.3
     }
   },
   "weather": {
-    "scraped_at": "2026-08-11T03:19:21.836215Z",
+    "scraped_at": "2026-08-12T03:41:41.901118Z",
     "regions": [
       {
         "name": "Kasese",
@@ -831,9 +831,9 @@
         "csi_60d": 0.0,
         "csi_30d_level": "OK",
         "csi_60d_level": "OK",
-        "rain_mtd_mm": 119.7,
-        "rain_hist_min": 101.6,
-        "rain_hist_max": 294.4
+        "rain_mtd_mm": 139.5,
+        "rain_hist_min": 113.3,
+        "rain_hist_max": 328.4
       },
       {
         "name": "Rwenzori",
@@ -858,7 +858,6 @@
         "days": [
           "L",
           "L",
-          "L",
           "M",
           "M",
           "H",
@@ -922,7 +921,8 @@
           "H",
           "H",
           "H",
-          "H"
+          "H",
+          "M"
         ]
       },
       {
@@ -930,7 +930,6 @@
         "days": [
           "-",
           "-",
-          "-",
           "M",
           "L",
           "M",
@@ -989,12 +988,13 @@
           "L",
           "L",
           "L",
-          "-",
-          "L",
           "L",
           "M",
           "M",
-          "M"
+          "M",
+          "M",
+          "M",
+          "L"
         ]
       },
       {
@@ -1002,7 +1002,6 @@
         "days": [
           "-",
           "-",
-          "-",
           "L",
           "L",
           "L",
@@ -1039,6 +1038,7 @@
           "-",
           "L",
           "L",
+          "-",
           "-",
           "-",
           "-",
@@ -1074,7 +1074,6 @@
         "days": [
           "-",
           "-",
-          "-",
           "M",
           "M",
           "M",
@@ -1138,7 +1137,8 @@
           "M",
           "M",
           "M",
-          "M"
+          "M",
+          "L"
         ]
       },
       {
@@ -1146,7 +1146,7 @@
         "days": [
           "-",
           "-",
-          "-",
+          "M",
           "M",
           "M",
           "M",
@@ -1332,7 +1332,7 @@
       }
     ],
     "historical_stat": "Neutral ENSO: near-average Uganda coffee output expected",
-    "last_updated": "2026-08-11"
+    "last_updated": "2026-08-12"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Feb",
