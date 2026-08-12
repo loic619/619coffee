@@ -199,6 +199,76 @@ def test_link_period_tolerates_a_dead_page_but_not_all(tmp_path, monkeypatch):
     assert ss.probe_link_period(["dead"], href, "ecf.json") == (False, None)
 
 
+_PDF_JUN = ("https://www.ecf-coffee.org/wp-content/uploads/2026/06/"
+            "2026-Stocks-European-Ports.pdf")
+_PDF_AUG = ("https://www.ecf-coffee.org/wp-content/uploads/2026/08/"
+            "2026-Stocks-European-Ports.pdf")
+_ECF_POST_RE = r'href="(https?://(?:www\.)?ecf-coffee\.org/stocks-in-european-ports-[^/"?#]+)[^"]*"'
+
+
+def test_pdf_key_orders_reissues_then_years():
+    # Same data year, newer upload wins.
+    assert ss._pdf_key(_PDF_AUG) > ss._pdf_key(_PDF_JUN)
+    # A newer DATA year outranks an older year's later re-upload.
+    nxt = "https://www.ecf-coffee.org/wp-content/uploads/2027/01/2027-Stocks-European-Ports.pdf"
+    assert ss._pdf_key(nxt) > ss._pdf_key(_PDF_AUG)
+    assert ss._pdf_key("not-a-pdf") == (0, 0, 0)
+
+
+def test_pdf_upload_fires_on_a_newer_reissue(tmp_path, monkeypatch):
+    # Data built from the June upload; the post now links the August one.
+    (tmp_path / "ecf.json").write_text(
+        '{"monthly": [{"period": "2026-04", "source_pdf": "%s"}]}' % _PDF_JUN)
+    monkeypatch.setattr(ss, "ROOT", tmp_path)
+    post = "https://www.ecf-coffee.org/stocks-in-european-ports-may-june-2026"
+    _stub_get(monkeypatch, {
+        "listing": _FakeResp(f'<a href="{post}/">May-June</a>'),
+        post: _FakeResp(f'<a href="{_PDF_AUG}">PDF</a>'),
+    })
+    found, signal = ss.probe_pdf_upload(["listing"], _ECF_POST_RE, "ecf.json")
+    assert found is True and signal == _PDF_AUG
+
+
+def test_pdf_upload_quiet_when_data_cites_the_same_pdf(tmp_path, monkeypatch):
+    (tmp_path / "ecf.json").write_text(
+        '{"monthly": [{"period": "2026-04", "source_pdf": "%s"}]}' % _PDF_JUN)
+    monkeypatch.setattr(ss, "ROOT", tmp_path)
+    post = "https://www.ecf-coffee.org/stocks-in-european-ports-march-april-2026"
+    _stub_get(monkeypatch, {
+        "listing": _FakeResp(f'<a href="{post}/">Mar-Apr</a>'),
+        post: _FakeResp(f'<a href="{_PDF_JUN}">PDF</a>'),
+    })
+    assert ss.probe_pdf_upload(["listing"], _ECF_POST_RE, "ecf.json") == (False, _PDF_JUN)
+
+
+def test_pdf_upload_never_false_positives_on_failure(tmp_path, monkeypatch):
+    (tmp_path / "ecf.json").write_text('{"monthly": [{"source_pdf": "%s"}]}' % _PDF_JUN)
+    monkeypatch.setattr(ss, "ROOT", tmp_path)
+    # Listing unreachable → no signal at all.
+    _stub_get(monkeypatch, {"listing": ss.requests.RequestException("boom")})
+    assert ss.probe_pdf_upload(["listing"], _ECF_POST_RE, "ecf.json") == (False, None)
+    # Listing loads but carries no PDF anywhere → still no detection.
+    _stub_get(monkeypatch, {"listing": _FakeResp("<p>nothing here</p>")})
+    assert ss.probe_pdf_upload(["listing"], _ECF_POST_RE, "ecf.json") == (False, None)
+
+
+def test_string_in_file_verification(tmp_path, monkeypatch):
+    (tmp_path / "ecf.json").write_text('{"monthly": [{"source_pdf": "%s"}]}' % _PDF_JUN)
+    monkeypatch.setattr(ss, "ROOT", tmp_path)
+    base = {"kind": "string_in_file", "file": "ecf.json",
+            "dispatched_at": "2026-08-12T06:00:00+00:00"}
+    assert ss.check_ingested({**base, "expected": _PDF_JUN}) is True
+    assert ss.check_ingested({**base, "expected": _PDF_AUG}) is False
+    assert ss.check_ingested({**base, "file": "missing.json", "expected": _PDF_JUN}) is False
+
+
+def test_build_verify_from_signal_carries_any_kind():
+    src = {"verify": {"kind": "string_in_file", "file": "ecf.json", "from_signal": True}}
+    v = ss.build_verify(src, "2026-08", "t", _PDF_AUG)
+    assert v["kind"] == "string_in_file" and v["expected"] == _PDF_AUG
+    assert ss.build_verify(src, "2026-08", "t", None) is None
+
+
 def test_build_verify_from_signal_uses_detected_period():
     src = {"verify": {"kind": "month_in_file", "file": "ecf.json", "from_signal": True}}
     v = ss.build_verify(src, "2026-08", "t", "2026-06")

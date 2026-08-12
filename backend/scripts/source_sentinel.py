@@ -190,6 +190,73 @@ def _period_from_slug(slug: str) -> str | None:
     return f"{int(m.group(3)):04d}-{_SLUG_MONTHS[second]:02d}"
 
 
+_ECF_PDF_RE = re.compile(
+    r'https?://(?:www\.)?ecf-coffee\.org/wp-content/uploads/'
+    r'(\d{4})/(\d{2})/[^"\'<>\s]*?(\d{4})-Stocks-European-Ports[^"\'<>\s]*?\.pdf',
+    re.I,
+)
+
+
+def _pdf_key(url: str) -> tuple[int, int, int]:
+    """(data_year, upload_year, upload_month) — orders re-issues of the same
+    yearly PDF, which is how ECF ships each bi-monthly update."""
+    m = _ECF_PDF_RE.search(url or "")
+    return (int(m.group(3)), int(m.group(1)), int(m.group(2))) if m else (0, 0, 0)
+
+
+def probe_pdf_upload(pages: list[str], post_re: str, data_file: str,
+                     headers: dict | None = None, max_posts: int = 4) -> tuple[bool, str | None]:
+    """ABSOLUTE publication check for ECF: the newest stocks PDF the site
+    offers vs the newest our data was actually built from.
+
+    ECF releases by re-uploading the current year's PDF under a fresh
+    /uploads/YYYY/MM/ path, so the upload path — not the post text — is the
+    real publication signal. ecf_history.json records the source_pdf of every
+    row, giving a stateless "is the site ahead of us?" comparison that works
+    on the very first probe. Any fetch failure yields no signal rather than a
+    false positive."""
+    blobs: list[str] = []
+    posts: list[str] = []
+    for page in pages:
+        try:
+            r = requests.get(page, headers=headers or HEADERS, timeout=TIMEOUT)
+        except requests.RequestException as e:
+            print(f"    pdf_upload: GET {page} failed ({type(e).__name__})")
+            continue
+        if r.status_code != 200:
+            print(f"    pdf_upload: GET {page} → HTTP {r.status_code}")
+            continue
+        blobs.append(r.text)
+        for u in re.findall(post_re, r.text):
+            if u not in posts:
+                posts.append(u)
+    # The PDFs usually hang off the individual post pages, not the listing.
+    for post in posts[:max_posts]:
+        try:
+            r = requests.get(post, headers=headers or HEADERS, timeout=TIMEOUT)
+            if r.status_code == 200:
+                blobs.append(r.text)
+        except requests.RequestException:
+            continue
+    if not blobs:
+        print("    pdf_upload: no ECF page reachable")
+        return False, None
+
+    site = max((m.group(0) for b in blobs for m in _ECF_PDF_RE.finditer(b)),
+               key=_pdf_key, default=None)
+    if not site:
+        print(f"    pdf_upload: no stocks PDF link found across {len(blobs)} page(s)")
+        return False, None
+    try:
+        text = (ROOT / data_file).read_text(encoding="utf-8")
+    except OSError:
+        text = ""
+    have = max((m.group(0) for m in _ECF_PDF_RE.finditer(text)), key=_pdf_key, default=None)
+    print(f"    pdf_upload: site {site.rsplit('/uploads/', 1)[-1]}, "
+          f"ingested {have.rsplit('/uploads/', 1)[-1] if have else 'none'}")
+    return (have is None or _pdf_key(site) > _pdf_key(have)), site
+
+
 def probe_link_period(pages: list[str], href_re: str, data_file: str,
                       headers: dict | None = None) -> tuple[bool, str | None]:
     """ABSOLUTE publication check: the newest period advertised on the listing
@@ -331,20 +398,21 @@ SOURCES: list[dict] = [
     },
     {
         "key": "ecf", "label": "ECF European port stocks",
-        # Bi-monthly, published on a slow and drifting schedule — so instead of
-        # a change detector this compares the newest PERIOD the site advertises
-        # (parsed from post slugs, e.g. …-may-june-2026 → 2026-06) against the
-        # newest period in ecf_history.json. Absolute, so it also catches a
-        # report that published before the sentinel ever looked.
-        "window_start": 25, "cadence": 2, "kind": "link_period", "absolute": True,
+        # ECF ships each bi-monthly update by RE-UPLOADING the current year's
+        # PDF under a fresh /uploads/YYYY/MM/ path — the post list barely moves.
+        # So the probe compares the newest PDF upload the site offers against
+        # the source_pdf our data was built from. Absolute (site vs data, not
+        # vs a stored fingerprint), so it also catches a report published
+        # before the sentinel ever looked.
+        "window_start": 25, "cadence": 2, "kind": "pdf_upload", "absolute": True,
         "pages": [
             "https://www.ecf-coffee.org/category/publications/stocks/",
             "https://www.ecf-coffee.org/category/whats-new/news/",
         ],
         # Trailing "/" (the WordPress permalink form), query strings and
-        # fragments all tolerated after the slug — an earlier stricter pattern
+        # fragments all tolerated after the URL — an earlier stricter pattern
         # matched nothing on the real page and failed silently.
-        "href_re": r'href="https?://(?:www\.)?ecf-coffee\.org/(stocks-in-european-ports-[^/"?#]+)[^"]*"',
+        "post_re": r'href="(https?://(?:www\.)?ecf-coffee\.org/stocks-in-european-ports-[^/"?#]+)[^"]*"',
         "data_file": "frontend/public/data/ecf_history.json",
         # ECF's WAF 403s bot-looking UAs — probe with the scraper's Chrome UA.
         "headers": {
@@ -354,8 +422,8 @@ SOURCES: list[dict] = [
             "Accept-Language": "en-US,en;q=0.9",
         },
         "workflows": ["scraper-ecf-stocks.yml"],
-        # The detected period IS the data month to verify — no lag guessing.
-        "verify": {"kind": "month_in_file", "file": "frontend/public/data/ecf_history.json",
+        # Ingested = the data now cites the very PDF we detected.
+        "verify": {"kind": "string_in_file", "file": "frontend/public/data/ecf_history.json",
                    "from_signal": True},
     },
 ]
@@ -401,6 +469,12 @@ def check_ingested(verify: dict) -> bool:
     """Did the dispatched scraper actually land the update in the repo?"""
     if verify["kind"] == "month_in_file":
         return verify["expected"] in _months_in_json(ROOT / verify["file"])
+    if verify["kind"] == "string_in_file":
+        # e.g. the source PDF the detection pointed at is now cited in the data.
+        try:
+            return verify["expected"] in (ROOT / verify["file"]).read_text(encoding="utf-8")
+        except OSError:
+            return False
     # health_ts: every listed health.json scraper timestamp must postdate the dispatch.
     try:
         scr = json.loads((ROOT / "frontend/public/data/health.json").read_text(encoding="utf-8"))["scrapers"]
@@ -422,8 +496,9 @@ def build_verify(src: dict, pub_period: str, now_iso: str,
     if not spec:
         return None
     v = {"kind": spec["kind"], "dispatched_at": now_iso, "status": "pending"}
-    if spec["kind"] == "month_in_file" and spec.get("from_signal"):
-        # link_period probes already resolved the exact data month.
+    if spec.get("from_signal"):
+        # Absolute probes already resolved exactly what to look for (the data
+        # month, or the source PDF the release was detected at).
         if not signal:
             return None
         v["file"] = spec["file"]
@@ -529,6 +604,9 @@ def run(today: dt.date, dry: bool) -> int:
             found, signal = probe_head_month(src["urls"](today))
         elif src["kind"] == "lastmod":
             found, signal = probe_lastmod(src["url"](today), prev_signal)
+        elif src["kind"] == "pdf_upload":
+            found, signal = probe_pdf_upload(src["pages"], src["post_re"],
+                                             src["data_file"], src.get("headers"))
         elif src["kind"] == "link_period":
             found, signal = probe_link_period(src["pages"], src["href_re"],
                                               src["data_file"], src.get("headers"))

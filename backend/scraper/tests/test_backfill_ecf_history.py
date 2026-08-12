@@ -2,6 +2,7 @@
 Uses the REAL ECF table shapes confirmed from the yearly PDFs: end-of-month
 date headers ('31-Dec-17') with spacer columns that offset values from their
 header cell, port labels pre-2020 and coffee-type labels from 2020 on."""
+from scraper import backfill_ecf_history as bh
 from scraper.backfill_ecf_history import (
     YEARLY_PDFS,
     _cert_at,
@@ -111,3 +112,49 @@ def test_pdf_list_covers_2014_to_present():
     assert min(YEARLY_PDFS) == 2014
     assert 2025 in YEARLY_PDFS and 2026 in YEARLY_PDFS
     assert "_updated" in YEARLY_PDFS[2021]
+
+
+# ── Current-upload discovery ─────────────────────────────────────────────────
+# ECF ships each release by re-uploading the year's PDF under a fresh
+# /uploads/YYYY/MM/ path, so the pinned map must yield to a newer one.
+
+_UP = "https://www.ecf-coffee.org/wp-content/uploads"
+_PDF_JUN = f"{_UP}/2026/06/2026-Stocks-European-Ports.pdf"
+_PDF_AUG = f"{_UP}/2026/08/2026-Stocks-European-Ports.pdf"
+
+
+def test_upload_key_orders_reissues():
+    assert bh.upload_key(_PDF_AUG) > bh.upload_key(_PDF_JUN)
+    assert bh.upload_key("nonsense") == (0, 0)
+
+
+def _stub_pages(monkeypatch, pages: dict):
+    monkeypatch.setattr(bh, "_get_text", lambda url, timeout=30: pages.get(url))
+
+
+def test_discovery_follows_posts_to_the_newest_pdf(monkeypatch):
+    post = "https://www.ecf-coffee.org/stocks-in-european-ports-may-june-2026"
+    _stub_pages(monkeypatch, {
+        bh.INDEX_PAGES[0]: f'<a href="{post}/">May-June 2026</a>',
+        post: f'<a href="{_PDF_AUG}">Download</a>',
+    })
+    assert bh.discover_yearly_pdfs((bh.INDEX_PAGES[0],)) == {2026: _PDF_AUG}
+
+
+def test_resolve_prefers_newer_upload_but_keeps_pinned_history(monkeypatch):
+    monkeypatch.setattr(bh, "discover_yearly_pdfs", lambda *a, **k: {2026: _PDF_AUG})
+    urls = bh.resolve_yearly_pdfs()
+    assert urls[2026] == _PDF_AUG          # newer re-issue wins
+    assert urls[2014] == YEARLY_PDFS[2014]  # untouched years stay pinned
+
+
+def test_resolve_ignores_older_or_failed_discovery(monkeypatch):
+    # An OLDER upload must never downgrade the pinned URL.
+    stale = f"{_UP}/2026/03/2026-Stocks-European-Ports.pdf"
+    monkeypatch.setattr(bh, "discover_yearly_pdfs", lambda *a, **k: {2026: stale})
+    assert bh.resolve_yearly_pdfs()[2026] == YEARLY_PDFS[2026]
+    # Discovery blowing up (site down, markup change) falls back to the map.
+    def boom(*a, **k):
+        raise RuntimeError("site unreachable")
+    monkeypatch.setattr(bh, "discover_yearly_pdfs", boom)
+    assert bh.resolve_yearly_pdfs() == dict(sorted(YEARLY_PDFS.items()))

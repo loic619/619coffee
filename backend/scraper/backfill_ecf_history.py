@@ -82,8 +82,14 @@ EUROPEAN_CERT_PORTS = {
 }
 ROBUSTA_LOT_TONNES = 10  # LIFFE robusta lot = 10 t
 
-# One PDF per year. 2021 is the "_updated" re-issue; for 2026 use the latest
-# (June) upload, which supersedes the March one.
+# One PDF per year — the FALLBACK map. ECF re-uploads the current year's PDF
+# on every bi-monthly release, each time under a fresh /uploads/YYYY/MM/ path,
+# so a hardcoded current-year URL silently freezes the series at whatever the
+# pinned upload contained (it did: pinned at the June upload, the series stuck
+# at April while newer releases went unseen). discover_yearly_pdfs() looks the
+# current upload up at run time and only ever overrides an entry here with a
+# STRICTLY NEWER upload, so this map remains the floor when the site is
+# unreachable or the markup changes.
 YEARLY_PDFS: dict[int, str] = {
     2014: "https://www.ecf-coffee.org/wp-content/uploads/2020/09/2014-Stocks-European-Ports.pdf",
     2015: "https://www.ecf-coffee.org/wp-content/uploads/2020/09/2015-Stocks-European-Ports.pdf",
@@ -99,6 +105,101 @@ YEARLY_PDFS: dict[int, str] = {
     2025: "https://www.ecf-coffee.org/wp-content/uploads/2026/01/2025-Stocks-European-Ports.pdf",
     2026: "https://www.ecf-coffee.org/wp-content/uploads/2026/06/2026-Stocks-European-Ports.pdf",
 }
+
+# ── Current-upload discovery ─────────────────────────────────────────────────
+# A stocks PDF href carries both the DATA year (filename) and the UPLOAD date
+# (/wp-content/uploads/YYYY/MM/), which is what distinguishes a re-issue.
+STOCKS_PDF_RE = re.compile(
+    r'https?://(?:www\.)?ecf-coffee\.org/wp-content/uploads/'
+    r'(\d{4})/(\d{2})/[^"\'<>\s]*?(\d{4})-Stocks-European-Ports[^"\'<>\s]*?\.pdf',
+    re.I,
+)
+# Listing pages that carry (or link to posts carrying) the stocks PDFs.
+INDEX_PAGES = (
+    "https://www.ecf-coffee.org/category/publications/stocks/",
+    "https://www.ecf-coffee.org/category/whats-new/news/",
+)
+POST_HREF_RE = re.compile(
+    r'href="(https?://(?:www\.)?ecf-coffee\.org/stocks-in-european-ports-[^/"?#]+)[^"]*"',
+    re.I,
+)
+# How many recent stocks posts to open when hunting for the current PDF.
+MAX_POSTS_SCANNED = 4
+
+
+def upload_key(url: str) -> tuple[int, int]:
+    """(upload_year, upload_month) from the /uploads/YYYY/MM/ path — the
+    ordering that says which re-issue of a yearly PDF is the newest."""
+    m = STOCKS_PDF_RE.search(url or "")
+    return (int(m.group(1)), int(m.group(2))) if m else (0, 0)
+
+
+def _pdf_year(url: str) -> int | None:
+    m = STOCKS_PDF_RE.search(url or "")
+    return int(m.group(3)) if m else None
+
+
+def _get_text(url: str, timeout: int = 30) -> str | None:
+    try:
+        r = requests.get(url, headers=_HEADERS, timeout=timeout)
+    except Exception as e:  # noqa: BLE001
+        print(f"  [discover] GET {url} failed ({type(e).__name__}: {e})")
+        return None
+    if r.status_code != 200:
+        print(f"  [discover] GET {url} → HTTP {r.status_code}")
+        return None
+    return r.text
+
+
+def discover_yearly_pdfs(index_pages: tuple[str, ...] = INDEX_PAGES) -> dict[int, str]:
+    """{data_year → newest stocks-PDF URL} found on the listing pages and the
+    most recent stocks posts they link to. Best-effort: any failure just means
+    fewer discoveries, never a wrong URL."""
+    html_blobs: list[str] = []
+    post_urls: list[str] = []
+    for page in index_pages:
+        html = _get_text(page)
+        if not html:
+            continue
+        html_blobs.append(html)
+        for u in POST_HREF_RE.findall(html):
+            if u not in post_urls:
+                post_urls.append(u)
+    for post in post_urls[:MAX_POSTS_SCANNED]:
+        html = _get_text(post)
+        if html:
+            html_blobs.append(html)
+
+    newest: dict[int, str] = {}
+    for blob in html_blobs:
+        for m in STOCKS_PDF_RE.finditer(blob):
+            url, year = m.group(0), int(m.group(3))
+            if upload_key(url) > upload_key(newest.get(year, "")):
+                newest[year] = url
+    if newest:
+        print(f"  [discover] {len(newest)} yearly PDF(s) on site: "
+              + ", ".join(f"{y}→{u.rsplit('/uploads/', 1)[-1]}" for y, u in sorted(newest.items())))
+    else:
+        print("  [discover] no stocks PDFs found — falling back to the pinned map")
+    return newest
+
+
+def resolve_yearly_pdfs() -> dict[int, str]:
+    """The pinned map, with any year whose site copy is a NEWER upload replaced."""
+    urls = dict(YEARLY_PDFS)
+    try:
+        found = discover_yearly_pdfs()
+    except Exception as e:  # noqa: BLE001 — discovery must never break the run
+        print(f"  [discover] skipped ({type(e).__name__}: {e})")
+        return urls
+    for year, url in found.items():
+        if upload_key(url) > upload_key(urls.get(year, "")):
+            old = urls.get(year, "none")
+            urls[year] = url
+            print(f"  [discover] {year}: using newer upload {url}\n"
+                  f"             (was {old})")
+    return dict(sorted(urls.items()))
+
 
 _TYPE_LABELS = ("washed", "unwashed", "mild", "brazilian", "natural", "robusta", "other")
 
@@ -438,7 +539,7 @@ def main(debug: bool = False) -> None:
     debug_tables: dict = {}
     failures: list[int] = []
 
-    for year, url in YEARLY_PDFS.items():
+    for year, url in resolve_yearly_pdfs().items():
         try:
             r = requests.get(url, headers=_HEADERS, timeout=60)
             if r.status_code != 200 or len(r.content) < 5_000:
