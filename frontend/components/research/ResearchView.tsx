@@ -9,6 +9,7 @@ import AgronomyArticles from "./AgronomyArticles";
 import DemandArticles from "./DemandArticles";
 import EnsoExplainer from "./EnsoExplainer";
 import CertifiedStocksParity from "./CertifiedStocksParity";
+import ConilonBasis from "./ConilonBasis";
 import SeptemberXray from "./SeptemberXray";
 import CropyearXray from "./CropyearXray";
 import DroughtRiskMethodology from "./methodology/DroughtRiskMethodology";
@@ -1679,6 +1680,11 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
         <div className="space-y-4">
           <DifferentialModelNote />
           <CertifiedStocksMethodology />
+          <CollapsibleCard tone="teal" updated="2026-08-12" kicker="Basis · conilon references"
+            title="The conilon reference stack — Cooabriel, CEPEA, Vitória and the B3 future"
+            subtitle="Four prices for the same coffee: what separates them, how much is fixed cost vs percentage of the price, and how wide the gap runs">
+            <ConilonBasis />
+          </CollapsibleCard>
           <CollapsibleCard bare tone="sky" updated="2026-07-15" kicker="Exchange · tender parity" title="Tender-parity tool"
             subtitle="Cost-stack vs the exchange, origin gradings, and the parity→inflow study">
             <CertifiedStocksParity />
