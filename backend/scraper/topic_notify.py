@@ -45,9 +45,9 @@ def _parse_ts(ts: str | None) -> dt.datetime | None:
         return None
     try:
         if len(ts) == 10:
-            return dt.datetime.strptime(ts, "%Y-%m-%d").replace(tzinfo=dt.timezone.utc)
+            return dt.datetime.strptime(ts, "%Y-%m-%d").replace(tzinfo=dt.UTC)
         d = dt.datetime.fromisoformat(ts.replace("Z", "+00:00"))
-        return d if d.tzinfo else d.replace(tzinfo=dt.timezone.utc)
+        return d if d.tzinfo else d.replace(tzinfo=dt.UTC)
     except ValueError:
         return None
 
@@ -511,7 +511,7 @@ def main() -> int:
         print(f"usage: python -m scraper.topic_notify <{'|'.join(TOPICS)}>")
         return 2
     topic = sys.argv[1]
-    text = TOPICS[topic](dt.datetime.now(dt.timezone.utc))
+    text = TOPICS[topic](dt.datetime.now(dt.UTC))
     if text is None:
         print(f"[topic_notify] {topic}: data not fresh (or absent) — nothing to send")
         return 0

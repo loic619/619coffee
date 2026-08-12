@@ -10,7 +10,7 @@ from scraper import topic_notify as tn  # noqa: E402
 
 
 def _at(s):
-    return dt.datetime.fromisoformat(s).replace(tzinfo=dt.timezone.utc)
+    return dt.datetime.fromisoformat(s).replace(tzinfo=dt.UTC)
 
 
 def test_cot_gate_and_content(tmp_path, monkeypatch):
@@ -86,7 +86,7 @@ def test_cot_full_overview_from_fixture(tmp_path, monkeypatch):
                  "price_ny": 308.8, "structure_ny": -18.4}},
     ]
     (tmp_path / "cot.json").write_text(json.dumps(rows))
-    txt = tn.compose_cot(dt.datetime(2026, 8, 6, 6, tzinfo=dt.timezone.utc))
+    txt = tn.compose_cot(dt.datetime(2026, 8, 6, 6, tzinfo=dt.UTC))
     assert "Total OI change of +4.4 k lots" in txt
     assert "Price -2.7% (-8 cents/lb)" in txt
     assert "moving toward backwardation, inverted at 6.0% (vs 4.9% LW)" in txt

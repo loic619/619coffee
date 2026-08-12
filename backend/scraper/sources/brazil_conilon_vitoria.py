@@ -111,6 +111,52 @@ def _save(doc: dict) -> None:
     OUT.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def _cooabriel_t7(entry: dict) -> float | None:
+    """Cooabriel (Coop. Agrária dos Cafeicultores de São Gabriel) Tipo 7 quote.
+
+    This is the same number the Cooabriel scraper reads off the co-op's own
+    site — NA republishes it here, dated by the page's Fechamento (trading)
+    date rather than by scrape time.
+    """
+    for q in entry.get("quotes", []):
+        if "Gabriel" in q.get("section", "") and q.get("tipo", "").strip() == "Tipo 7":
+            return q.get("price")
+    return None
+
+
+def latest_cooabriel_t7() -> tuple[str | None, float | None]:
+    """(trading_date, price) of the most recent Cooabriel Tipo 7 quote."""
+    doc = _load()
+    for entry in reversed(doc.get("history") or []):
+        price = _cooabriel_t7(entry)
+        if price is not None:
+            return entry["date"], price
+    return None, None
+
+
+def seed_origin_history() -> None:
+    """Rebuild origin_prices_history.json → brazil_conilon.history from this
+    archive's Cooabriel Tipo 7 series (one-time; daily runs append forward).
+
+    Replaces the 90-day self-collected series, which was also stamped one
+    trading day late — every point here carries the page's Fechamento date.
+    """
+    oph = ROOT / "frontend" / "public" / "data" / "origin_prices_history.json"
+    points = []
+    for entry in _load().get("history") or []:
+        price = _cooabriel_t7(entry)
+        if price is not None:
+            points.append({"date": entry["date"], "price": price})
+    if not points:
+        print("[seed] no Cooabriel T7 points found")
+        return
+    d = json.loads(oph.read_text(encoding="utf-8"))
+    d["origins"].setdefault("brazil_conilon", {})["history"] = points
+    oph.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"[seed] brazil_conilon.history ← {len(points)} points "
+          f"({points[0]['date']}..{points[-1]['date']})")
+
+
 def export_brazil_conilon_vitoria() -> None:
     """Daily: fetch the latest Vitória disponível table and upsert its entry."""
     try:
@@ -157,8 +203,11 @@ def backfill(start: str, end: str | None = None, delay: float = 0.12) -> None:
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) > 1 and sys.argv[1] == "backfill":
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "daily"
+    if cmd == "backfill":
         backfill(sys.argv[2] if len(sys.argv) > 2 else "2022-06-01",
                  sys.argv[3] if len(sys.argv) > 3 else None)
+    elif cmd == "seed-origin":
+        seed_origin_history()
     else:
         export_brazil_conilon_vitoria()

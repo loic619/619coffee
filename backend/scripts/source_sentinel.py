@@ -547,7 +547,7 @@ def _fresh_enough(topic: str, data_key: str, now: dt.datetime) -> bool:
     """True while the composer's own freshness gate could still fire for this
     key (cot: 4 d, freight: 1.5 d) — used to age out pre-rollout backlog."""
     try:
-        d = dt.datetime.fromisoformat(data_key[:10]).replace(tzinfo=dt.timezone.utc)
+        d = dt.datetime.fromisoformat(data_key[:10]).replace(tzinfo=dt.UTC)
     except ValueError:
         return False
     return (now - d).total_seconds() <= (4 if topic == "cot" else 1.5) * 86400
