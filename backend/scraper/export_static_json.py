@@ -80,6 +80,7 @@ def _exporters(db):
     from scraper.sources.brazil_b3_arabica import export_brazil_b3_arabica
     from scraper.sources.brazil_b3_conilon import export_brazil_b3_conilon
     from scraper.sources.brazil_conilon_vitoria import export_brazil_conilon_vitoria
+    from scraper.sources.cepea_conilon_indicator import export_cepea_conilon_indicator
     from scraper.sources.origin_prices_history import export_origin_prices_history
 
     def _country_pins():
@@ -120,6 +121,7 @@ def _exporters(db):
         ("brazil_b3_arabica",     lambda: export_brazil_b3_arabica()),
         ("brazil_b3_conilon",     lambda: export_brazil_b3_conilon()),
         ("brazil_conilon_vitoria", lambda: export_brazil_conilon_vitoria()),
+        ("cepea_conilon_indicator", lambda: export_cepea_conilon_indicator()),
         ("origin_prices_history", lambda: export_origin_prices_history(db)),
         ("tender_parity",         lambda: export_tender_parity()),
         ("cot_sept_study",        lambda: export_cot_sept_study()),

@@ -30,10 +30,23 @@ interface B3Doc {
 }
 
 // brazil_conilon_vitoria.json — physical conilon at the CNL delivery point
-// (noticiasagricolas, backfilled to 2022): overlays deep history behind the
-// young futures series.
-interface PhysEntry { date: string; benchmark: number | null }
+// (noticiasagricolas, backfilled to 2022). Its quotes[] carries the São
+// Gabriel cooperative (Cooabriel) Tipo 7 price alongside the CCCV benchmark.
+interface PhysQuote { section: string; tipo: string; price: number }
+interface PhysEntry { date: string; benchmark: number | null; quotes?: PhysQuote[] }
 interface PhysDoc   { source?: string; history?: PhysEntry[] }
+
+// cepea_conilon_indicator.json — CEPEA/ESALQ conilon daily indicator.
+interface CepeaEntry { date: string; price: number }
+interface CepeaDoc   { source?: string; history?: CepeaEntry[] }
+
+// A physical/reference series drawn alongside the futures front line.
+interface Overlay {
+  key:    string;                            // series field name in the chart rows
+  name:   string;                            // legend / tooltip label
+  color:  string;
+  points: { date: string; value: number }[];
+}
 
 type Window = "1M" | "3M" | "6M" | "1Y" | "2Y";
 const WINDOW_DAYS: Record<Window, number> = { "1M": 30, "3M": 90, "6M": 180, "1Y": 365, "2Y": 730 };
@@ -44,35 +57,37 @@ function unitSymbol(unit?: string): string {
   return unit?.startsWith("BRL") ? "R$" : "US$";
 }
 
-function MarketCard({ title, doc, color, window: win, phys, physName }: {
+function MarketCard({ title, doc, color, window: win, overlays }: {
   title: string; doc: B3Doc | null; color: string; window: Window;
-  phys?: PhysDoc | null; physName?: string;
+  overlays?: Overlay[];
 }) {
   const hist = useMemo(() => doc?.history ?? [], [doc]);
   const sym = unitSymbol(doc?.unit);
+  const shown = useMemo(() => (overlays ?? []).filter(o => o.points.length > 0), [overlays]);
 
-  // Union of futures + physical dates in-window; each row carries whichever
+  // Union of futures + overlay dates in-window; each row carries whichever
   // series has a value that day so the deep physical history draws even where
   // the young futures series has no points yet.
   const series = useMemo(() => {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - WINDOW_DAYS[win]);
     const cutoffIso = cutoff.toISOString().slice(0, 10);
-    const rows = new Map<string, { date: string; label: string; price?: number; phys?: number }>();
+    const rows = new Map<string, { date: string; label: string; [k: string]: string | number | undefined }>();
+    const row = (date: string) => {
+      const r = rows.get(date) ?? { date, label: fmtDateLabel(date) };
+      rows.set(date, r);
+      return r;
+    };
     for (const e of hist) {
-      if (e.date >= cutoffIso && e.front_price != null) {
-        rows.set(e.date, { date: e.date, label: fmtDateLabel(e.date), price: e.front_price });
-      }
+      if (e.date >= cutoffIso && e.front_price != null) row(e.date).price = e.front_price;
     }
-    for (const p of phys?.history ?? []) {
-      if (p.date >= cutoffIso && p.benchmark != null) {
-        const row = rows.get(p.date) ?? { date: p.date, label: fmtDateLabel(p.date) };
-        row.phys = p.benchmark;
-        rows.set(p.date, row);
+    for (const o of shown) {
+      for (const p of o.points) {
+        if (p.date >= cutoffIso) row(p.date)[o.key] = p.value;
       }
     }
     return Array.from(rows.values()).sort((a, b) => a.date.localeCompare(b.date));
-  }, [hist, phys, win]);
+  }, [hist, shown, win]);
 
   const last = hist.length ? hist[hist.length - 1] : null;
   const prev = hist.length > 1 ? hist[hist.length - 2] : null;
@@ -127,18 +142,20 @@ function MarketCard({ title, doc, color, window: win, phys, physName }: {
               tickFormatter={(v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 0 })} />
             <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
               formatter={(v) => typeof v === "number" ? `${sym} ${v.toLocaleString(undefined, { minimumFractionDigits: 2 })}/saca` : "—"} />
-            {phys && (
-              <Line type="monotone" dataKey="phys" name={physName ?? "Physical"} stroke="#94a3b8"
+            {shown.map(o => (
+              <Line key={o.key} type="monotone" dataKey={o.key} name={o.name} stroke={o.color}
                 strokeWidth={1.2} strokeDasharray="4 3" dot={false} connectNulls />
-            )}
+            ))}
             <Line type="monotone" dataKey="price" name={`${title} front`} stroke={color}
               strokeWidth={1.5} dot={false} connectNulls />
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <div className="text-[9px] text-slate-500">
-        {series.length} sessions in window
-        {phys ? ` · dashed: ${physName ?? "physical"}` : ""}
+      <div className="text-[9px] text-slate-500 flex flex-wrap gap-x-3 gap-y-0.5">
+        <span>{series.length} sessions in window</span>
+        {shown.map(o => (
+          <span key={o.key} style={{ color: o.color }}>┅ {o.name}</span>
+        ))}
       </div>
 
       {/* Latest curve */}
@@ -170,6 +187,7 @@ export default function B3CoffeePanel() {
   const [arabica, setArabica] = useState<B3Doc | null>(null);
   const [conilon, setConilon] = useState<B3Doc | null>(null);
   const [vitoria, setVitoria] = useState<PhysDoc | null>(null);
+  const [cepea,   setCepea]   = useState<CepeaDoc | null>(null);
   const [window,  setWindow]  = useState<Window>("6M");
 
   useEffect(() => {
@@ -179,11 +197,35 @@ export default function B3CoffeePanel() {
     fetch("/data/brazil_b3_conilon.json")
       .then(r => r.ok ? r.json() : null).then(d => { if (d) setConilon(d); })
       .catch(() => { /* card shows empty state */ });
-    // Physical conilon at the CNL delivery point — deep history overlay.
+    // Physical conilon at the CNL delivery point — carries the Cooabriel
+    // (Coop. São Gabriel) Tipo 7 quote, deep history to 2022.
     fetch("/data/brazil_conilon_vitoria.json")
       .then(r => r.ok ? r.json() : null).then(d => { if (d) setVitoria(d); })
       .catch(() => { /* futures-only */ });
+    // CEPEA/ESALQ conilon daily indicator.
+    fetch("/data/cepea_conilon_indicator.json")
+      .then(r => r.ok ? r.json() : null).then(d => { if (d) setCepea(d); })
+      .catch(() => { /* futures-only */ });
   }, []);
+
+  // The three conilon references drawn together: CNL futures front (solid) +
+  // CEPEA indicator + Cooabriel CON7 (dashed overlays).
+  const conilonOverlays = useMemo<Overlay[]>(() => [
+    {
+      key: "cepea", name: "CEPEA/ESALQ indicator", color: "#38bdf8",
+      points: (cepea?.history ?? [])
+        .filter(e => e.price != null)
+        .map(e => ({ date: e.date, value: e.price })),
+    },
+    {
+      key: "con7", name: "Cooabriel CON7", color: "#fb7185",
+      points: (vitoria?.history ?? []).flatMap(e => {
+        const q = (e.quotes ?? []).find(x =>
+          x.tipo.trim() === "Tipo 7" && /S[ãa]o Gabriel/i.test(x.section));
+        return q ? [{ date: e.date, value: q.price }] : [];
+      }),
+    },
+  ], [cepea, vitoria]);
 
   return (
     <div className="p-4 space-y-3">
@@ -208,7 +250,7 @@ export default function B3CoffeePanel() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <MarketCard title="B3 Arábica 4/5 (Pregão Regular)" doc={arabica} color="#f59e0b" window={window} />
         <MarketCard title="B3 Conilon 7/8 (CNL)"            doc={conilon} color="#34d399" window={window}
-          phys={vitoria} physName="Vitória disponível T7/8" />
+          overlays={conilonOverlays} />
       </div>
     </div>
   );

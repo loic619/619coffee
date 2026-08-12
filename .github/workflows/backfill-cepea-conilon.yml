@@ -1,0 +1,45 @@
+name: "Z – Backfill: CEPEA conilon indicator"
+
+# One-shot: walk the noticiasagricolas date-URLs for the CEPEA/ESALQ conilon
+# indicator to build cepea_conilon_indicator.json (daily R$/saca history for
+# the B3 conilon chart overlay), and commit it to this branch.
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "Backfill start date (YYYY-MM-DD)"
+        required: false
+        default: "2022-06-01"
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install beautifulsoup4
+      - name: Backfill CEPEA conilon indicator history
+        working-directory: backend
+        run: python -m scraper.sources.cepea_conilon_indicator backfill "${{ inputs.start }}"
+      - name: Commit generated data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data/cepea_conilon_indicator.json
+          if git diff --cached --quiet; then
+            echo "No changes."
+          else
+            git commit -m "data: backfill CEPEA conilon indicator history [skip ci]"
+            for i in 1 2 3 4 5; do
+              git pull --rebase --autostash origin "${{ github.ref_name }}" && git push && exit 0
+              sleep $((RANDOM % 5 + 3))
+            done
+            echo "::error::push failed"; exit 1
+          fi
