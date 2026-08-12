@@ -97,6 +97,23 @@ def test_cot_full_overview_from_fixture(tmp_path, monkeypatch):
     assert "Net long of 31.4 k lots" in txt
 
 
+def test_ecf_digest_totals_and_split(tmp_path, monkeypatch):
+    monkeypatch.setattr(tn, "DATA", tmp_path)
+    (tmp_path / "ecf_history.json").write_text(json.dumps({"monthly": [
+        {"period": "2025-04", "value_mt": 450000},
+        {"period": "2026-03", "value_mt": 396190},
+        {"period": "2026-04", "value_mt": 408956, "value_raw": 6815933,
+         "arabica_washed_mt": 136093, "arabica_unwashed_mt": 122093,
+         "robusta_mt": 150769},
+    ]}))
+    txt = tn.compose_origin_digest("ecf", "2026-04")
+    assert txt.startswith("🇪🇺 European port stocks (ECF) 2026-04:")
+    assert "Total 408,956 t / 6,815,933 bags (+3.2% m/m / -9.1% y/y)" in txt
+    assert "Arabica 258,186 t" in txt and "Robusta 150,769 t" in txt
+    # Missing month → silent.
+    assert tn.compose_origin_digest("ecf", "2026-06") is None
+
+
 def test_dedup_keys_read_latest(tmp_path, monkeypatch):
     monkeypatch.setattr(tn, "DATA", tmp_path)
     (tmp_path / "cot.json").write_text(json.dumps([{"date": "2026-08-04"}]))

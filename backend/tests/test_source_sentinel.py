@@ -120,6 +120,42 @@ def test_days_past_window_overdue_paths():
     assert ss._days_past_window(dt.date(2026, 9, 10), "2026-07", 8) == (dt.date(2026, 9, 10) - dt.date(2026, 8, 8)).days
 
 
+def test_shift_period_wraps_years():
+    assert ss._shift_period("2026-08", -2) == "2026-06"
+    assert ss._shift_period("2026-01", -2) == "2025-11"
+    assert ss._shift_period("2025-12", 2) == "2026-02"
+
+
+def test_build_verify_snap_even_for_bimonthly():
+    spec = {"verify": {"kind": "month_in_file", "file": "x", "lag": 1, "snap_even": True}}
+    v_even = ss.build_verify(spec, "2026-07", "t")   # end-of-July release → June pair-end
+    v_odd = ss.build_verify(spec, "2026-08", "t")    # slipped to early August → July snaps to June
+    assert v_even["expected"] == "2026-06"
+    assert v_odd["expected"] == "2026-06"
+    # Year wrap: January detection → December (even) stays.
+    assert ss.build_verify(spec, "2026-01", "t")["expected"] == "2025-12"
+
+
+def test_months_in_json_reads_period_values(tmp_path, monkeypatch):
+    f = tmp_path / "ecf.json"
+    f.write_text('{"monthly": [{"period": "2026-04", "value_mt": 408956}]}')
+    monkeypatch.setattr(ss, "ROOT", tmp_path)
+    assert ss.check_ingested({"kind": "month_in_file", "file": "ecf.json", "expected": "2026-04",
+                              "dispatched_at": "2026-08-10T06:00:00+00:00"}) is True
+
+
+def test_days_past_window_bimonthly_cadence():
+    import datetime as dt
+    # Confirmed July (cadence 2) → next release pending for September; its
+    # window opens Sep 25, so Sep 10 is NOT overdue (monthly math would say
+    # pending=August and already count 16 days).
+    assert ss._days_past_window(dt.date(2026, 9, 10), "2026-07", 25, 2) == 0
+    # Oct 10 with nothing since July: pending Sep window opened Sep 25 → 15d.
+    assert ss._days_past_window(dt.date(2026, 10, 10), "2026-07", 25, 2) == 15
+    # Current month confirmed → nothing pending.
+    assert ss._days_past_window(dt.date(2026, 9, 30), "2026-09", 25, 2) == 0
+
+
 def test_vn5x_urls_mirror_2x_with_5x_stem():
     import datetime as dt
     pub = dt.date(2026, 8, 6)

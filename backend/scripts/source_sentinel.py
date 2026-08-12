@@ -3,7 +3,9 @@
 
 One cheap daily sweep replaces date-guessing: each monthly source has a
 RELEASE WINDOW (derived from where its cron used to sit, opened a few days
-earlier). The sentinel probes a source when
+earlier). Sources that publish every N months set "cadence": N (ECF is
+bi-monthly) — the overdue alarm and the baseline then expect one release per
+N months instead of one per month. The sentinel probes a source when
   • today is inside its window and this month's release hasn't been seen, OR
   • the release is LATE — probing continues every day past the window (even
     across the month boundary) until it lands.
@@ -80,6 +82,11 @@ def _prev_period(period: str) -> str:
     return f"{y - 1:04d}-12" if m == 1 else f"{y:04d}-{m - 1:02d}"
 
 
+def _shift_period(period: str, by: int) -> str:
+    y, m = _shift_month(int(period[:4]), int(period[5:7]), by)
+    return f"{y:04d}-{m:02d}"
+
+
 def _shift_month(year: int, month: int, by: int) -> tuple[int, int]:
     m = month + by
     y = year
@@ -138,14 +145,15 @@ def probe_lastmod(url: str, prev_signal: str | None) -> tuple[bool, str | None]:
     return changed, sig
 
 
-def probe_link_hash(pages: list[str], href_re: str, prev_signal: str | None) -> tuple[bool, str | None]:
+def probe_link_hash(pages: list[str], href_re: str, prev_signal: str | None,
+                    headers: dict | None = None) -> tuple[bool, str | None]:
     """Hash the sorted set of matching hrefs across listing pages. A GET
     failure on one page keeps the other pages' links (partial hash would
     false-positive, so any page failure aborts this probe run instead)."""
     links: set[str] = set()
     for page in pages:
         try:
-            r = requests.get(page, headers=HEADERS, timeout=TIMEOUT)
+            r = requests.get(page, headers=headers or HEADERS, timeout=TIMEOUT)
             if r.status_code != 200:
                 return False, prev_signal
             links.update(re.findall(href_re, r.text))
@@ -259,13 +267,35 @@ SOURCES: list[dict] = [
         "workflow_inputs": {"vn-customs-by-country.yml": {"mode": "backfill", "months": "2"}},
         "verify": {"kind": "month_in_file", "file": "frontend/public/data/vn_export_by_destination.json", "lag": 1},
     },
+    {
+        "key": "ecf", "label": "ECF European port stocks",
+        # Bi-monthly: posts land around the last day (±1) of odd months,
+        # covering the two-month pair ending the month before (even). The
+        # off-month is quiet until day 25; the publication month probes daily
+        # via the late-spillover rule (cadence-aware baseline/overdue).
+        "window_start": 25, "cadence": 2, "kind": "link_hash",
+        "pages": ["https://www.ecf-coffee.org/category/publications/stocks/"],
+        "href_re": r'href="(https?://(?:www\.)?ecf-coffee\.org/stocks-in-european-ports-[^/"]+)"',
+        # ECF's WAF 403s bot-looking UAs — probe with the scraper's Chrome UA.
+        "headers": {
+            "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                           "AppleWebKit/537.36 (KHTML, like Gecko) "
+                           "Chrome/124.0.0.0 Safari/537.36"),
+            "Accept-Language": "en-US,en;q=0.9",
+        },
+        "workflows": ["scraper-ecf-stocks.yml"],
+        # Data-as-of month = the even month before publication: lag 1 from an
+        # early-even-month release, snapped down when detection slips past it.
+        "verify": {"kind": "month_in_file", "file": "frontend/public/data/ecf_history.json",
+                   "lag": 1, "snap_even": True},
+    },
 ]
 
 
 # ── Post-dispatch ingestion verification ─────────────────────────────────────
 
 def _months_in_json(path: Path) -> set[str]:
-    """All strict YYYY-MM strings appearing as dict keys or 'month' values."""
+    """All strict YYYY-MM strings appearing as dict keys or 'month'/'period' values."""
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
@@ -279,7 +309,7 @@ def _months_in_json(path: Path) -> set[str]:
             for k, v in o.items():
                 if isinstance(k, str) and re.fullmatch(r"\d{4}-\d{2}", k):
                     out.add(k)
-                if k == "month" and isinstance(v, str) and re.fullmatch(r"\d{4}-\d{2}", v):
+                if k in ("month", "period") and isinstance(v, str) and re.fullmatch(r"\d{4}-\d{2}", v):
                     out.add(v)
                 walk(v, depth + 1)
         elif isinstance(o, list):
@@ -325,6 +355,10 @@ def build_verify(src: dict, pub_period: str, now_iso: str) -> dict | None:
     if spec["kind"] == "month_in_file":
         y, m = int(pub_period[:4]), int(pub_period[5:7])
         ey, em = _shift_month(y, m, -spec["lag"])
+        if spec.get("snap_even") and em % 2:
+            # Bi-monthly pairs end on even months; a release detected one
+            # month past its slot still carries the same pair's data.
+            ey, em = _shift_month(ey, em, -1)
         v["file"] = spec["file"]
         v["expected"] = f"{ey:04d}-{em:02d}"
     else:
@@ -420,7 +454,8 @@ def run(today: dt.date, dry: bool) -> int:
         elif src["kind"] == "lastmod":
             found, signal = probe_lastmod(src["url"](today), prev_signal)
         else:
-            found, signal = probe_link_hash(src["pages"], src["href_re"], prev_signal)
+            found, signal = probe_link_hash(src["pages"], src["href_re"], prev_signal,
+                                            src.get("headers"))
 
         entry = {"confirmed": confirmed, "signal": signal if signal is not None else prev_signal,
                  "last_probe": now_iso, "last_found": (st or {}).get("last_found"),
@@ -430,7 +465,10 @@ def run(today: dt.date, dry: bool) -> int:
         if baseline:
             # First run: record the world as-is, never dispatch. head_month
             # sources whose current target already exists count as confirmed.
-            entry["confirmed"] = expected if (src["kind"] == "head_month" and found) else _prev_period(expected)
+            # Cadence-N sources start N months back so a release already due
+            # keeps the daily late-spillover probing until it lands.
+            entry["confirmed"] = (expected if (src["kind"] == "head_month" and found)
+                                  else _shift_period(expected, -src.get("cadence", 1)))
             print(f"[{key}] baseline — confirmed={entry['confirmed']}, signal={'set' if entry['signal'] else 'none'}")
         elif found:
             entry["confirmed"] = expected
@@ -447,7 +485,8 @@ def run(today: dt.date, dry: bool) -> int:
             # ── Overdue alarm: undetected long past the window opening. With
             # the crons gone, this is what catches a silently-broken probe
             # (e.g. the source changed its URL pattern). Once per month.
-            days_over = _days_past_window(today, confirmed, src["window_start"])
+            days_over = _days_past_window(today, confirmed, src["window_start"],
+                                          src.get("cadence", 1))
             if days_over >= OVERDUE_ALERT_DAYS and entry.get("overdue_alerted") != expected:
                 entry["overdue_alerted"] = expected
                 alerts.append(f"{src['label']}: still undetected {days_over}d past its window — "
@@ -527,15 +566,16 @@ def _origin_digest(sentinel_key: str, month: str | None) -> str | None:
         return None
 
 
-def _days_past_window(today: dt.date, confirmed: str | None, window_start: int) -> int:
+def _days_past_window(today: dt.date, confirmed: str | None, window_start: int,
+                      cadence: int = 1) -> int:
     """Days since the window opened for the oldest month still pending.
-    Pending month = the month after the last confirmed one (clamped to the
-    current month); 0 when nothing is pending yet."""
+    Pending month = `cadence` months after the last confirmed one (clamped to
+    the current month); 0 when nothing is pending yet."""
     expected = _period(today)
     if confirmed is None or confirmed >= expected:
         return 0
     y, m = int(confirmed[:4]), int(confirmed[5:7])
-    py, pm = _shift_month(y, m, 1)
+    py, pm = _shift_month(y, m, cadence)
     pend = f"{py:04d}-{pm:02d}"
     if pend > expected:
         return 0

@@ -422,6 +422,28 @@ def compose_origin_digest(sentinel_key: str, month: str) -> str | None:
                 return None
             tops = ", ".join(f"{c} {_fmt(v)}t" for c, v in month_vals)
             return f"🇻🇳 Vietnam destinations {month}: top — {tops}"
+
+        if sentinel_key == "ecf":
+            # Destination stocks, not origin exports — total + m/m + y/y and
+            # the arabica/robusta split when the PDF breakdown is present.
+            d = _load(DATA / "ecf_history.json") or {}
+            rows = {r.get("period"): r for r in d.get("monthly") or []}
+            r = rows.get(month)
+            if not r or r.get("value_mt") is None:
+                return None
+            mm = (rows.get(_month_back(month)) or {}).get("value_mt")
+            yy = (rows.get(_year_back(month)) or {}).get("value_mt")
+            head = [
+                f"🇪🇺 European port stocks (ECF) {month}:",
+                f"Total {_fmt(r['value_mt'])} t / {_fmt(r.get('value_raw'))} bags "
+                f"({_pct(r['value_mt'], mm)} m/m / {_pct(r['value_mt'], yy)} y/y)",
+            ]
+            w, u = r.get("arabica_washed_mt"), r.get("arabica_unwashed_mt")
+            if w is not None or u is not None:
+                head.append(f"Arabica {_fmt((w or 0) + (u or 0))} t")
+            if r.get("robusta_mt") is not None:
+                head.append(f"Robusta {_fmt(r['robusta_mt'])} t")
+            return "\n".join(head)
     except Exception:  # noqa: BLE001 — a digest must never break the sentinel
         return None
     return None
@@ -429,6 +451,11 @@ def compose_origin_digest(sentinel_key: str, month: str) -> str | None:
 
 def _year_back(month: str) -> str:
     return f"{int(month[:4]) - 1}-{month[5:7]}"
+
+
+def _month_back(month: str) -> str:
+    y, m = int(month[:4]), int(month[5:7])
+    return f"{y - 1:04d}-12" if m == 1 else f"{y:04d}-{m - 1:02d}"
 
 
 # ── Dedup keys for sentinel-driven topics ────────────────────────────────────
