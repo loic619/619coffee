@@ -13,7 +13,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, LabelList, ComposedChart, Line,
+  ResponsiveContainer, LabelList,
 } from "recharts";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { COUNTRY_EN } from "./BrazilTab/constants";
@@ -303,18 +303,20 @@ export default function TotalExportsTab() {
       });
       row.total = round1(total);
       row.projected = anyProjected;
-      // Faded prior-year references — actuals only, no projection.
-      const priorTotal = (back: number) => {
+      // Faded prior-year stacks — same origin breakdown, actuals only (a
+      // past month that was never reported stays 0 rather than inventing
+      // a projection for history).
+      ([12, 24] as const).forEach((back, gi) => {
+        const suffix = gi === 0 ? "p1" : "p2";
         const pm = offsetYM(ym, back);
-        let s = 0, seen = 0;
+        let sum = 0;
         origins.forEach(o => {
-          const v = activeByOrigin[o]?.[pm];
-          if (v != null) { s += v; seen++; }
+          const v = round1(activeByOrigin[o]?.[pm] ?? 0);
+          row[`${o}__${suffix}`] = v;
+          sum += v;
         });
-        return seen > 0 ? round1(s) : null;
-      };
-      row.prior1 = priorTotal(12);
-      row.prior2 = priorTotal(24);
+        row[`total_${suffix}`] = round1(sum);
+      });
       return row;
     })
   , [axisMonths, origins, activeByOrigin, seasonalEstimate]);
@@ -554,7 +556,7 @@ export default function TotalExportsTab() {
           </button>
         </div>
         <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={monthlyRows} margin={{ top: 14, right: 8, left: -8, bottom: 0 }}>
+          <BarChart data={monthlyRows} margin={{ top: 14, right: 8, left: -8, bottom: 0 }}>
             {/* One striped pattern per origin so a projected month reads as
                 an estimate at a glance, in that origin's own colour. */}
             <defs>
@@ -572,30 +574,35 @@ export default function TotalExportsTab() {
               tickFormatter={(v) => `${Math.round(Number(v))}kt`} />
             <Tooltip contentStyle={TT_STYLE}
               labelFormatter={(l, items) => {
-                const p = items?.[0]?.payload as { projected?: boolean; total?: number } | undefined;
-                return `${l}${p?.projected ? " · incl. seasonality projection" : ""} — total ${round1(p?.total ?? 0)} kt`;
+                const p = items?.[0]?.payload as
+                  { projected?: boolean; total?: number; total_p1?: number; total_p2?: number } | undefined;
+                const head = `${l}${p?.projected ? " · incl. seasonality projection" : ""} — ${round1(p?.total ?? 0)} kt`;
+                if (!showPrior) return head;
+                return `${head}  (1yr ${round1(p?.total_p1 ?? 0)} · 2yr ${round1(p?.total_p2 ?? 0)})`;
               }}
               formatter={((v, n) => {
                 if (Number(v) === 0) return [null, null];
                 const name = String(n);
-                if (name === "prior1" || name === "prior2") {
-                  return [
-                    <span key="v" style={{ color: "#64748b" }}>{`${v} kt`}</span>,
-                    (name === "prior1" ? "1 year ago" : "2 years ago") as NameType,
-                  ];
-                }
-                const origin = name.replace("__proj", "");
-                const isProj = name.endsWith("__proj");
+                const origin = name.replace(/__(proj|p1|p2)$/, "");
+                const color = ORIGIN_COLORS[origin] ?? "#94a3b8";
+                const suffix = name.endsWith("__proj") ? " (proj.)"
+                             : name.endsWith("__p1")   ? " · 1yr ago"
+                             : name.endsWith("__p2")   ? " · 2yr ago"
+                             : "";
+                const dim = name.endsWith("__p1") ? 0.65 : name.endsWith("__p2") ? 0.4 : 1;
                 return [
-                  <span key="v" style={{ color: ORIGIN_COLORS[origin] ?? "#94a3b8" }}>{`${v} kt`}</span>,
-                  (isProj ? `${origin} (proj.)` : origin) as NameType,
+                  <span key="v" style={{ color, opacity: dim }}>{`${v} kt`}</span>,
+                  `${origin}${suffix}` as NameType,
                 ];
               }) satisfies Formatter<ValueType, NameType>} />
-            {/* Actual + projected series per origin share a stackId, so the
-                two halves of an origin's contribution sit flush. */}
+            {/* Three grouped stacks per month — current, 1yr ago, 2yr ago —
+                each broken down by origin, prior years faded (same pattern
+                as the per-country Monthly Export Volume chart). Bars are
+                declared stack-group by stack-group because recharts lays
+                the groups out in declaration order. */}
             {origins.flatMap((o, i) => [
-              <Bar key={o} dataKey={o} name={o} stackId="x" fill={ORIGIN_COLORS[o] ?? "#64748b"} />,
-              <Bar key={`${o}__proj`} dataKey={`${o}__proj`} name={`${o}__proj`} stackId="x"
+              <Bar key={o} dataKey={o} name={o} stackId="cur" fill={ORIGIN_COLORS[o] ?? "#64748b"} />,
+              <Bar key={`${o}__proj`} dataKey={`${o}__proj`} name={`${o}__proj`} stackId="cur"
                 fill={`url(#tot-proj-${o})`}
                 radius={i === origins.length - 1 ? [2, 2, 0, 0] : undefined}>
                 {i === origins.length - 1 && (
@@ -604,15 +611,17 @@ export default function TotalExportsTab() {
                 )}
               </Bar>,
             ])}
-            {showPrior && (
-              <Line dataKey="prior1" name="prior1" type="monotone" stroke="#64748b"
-                strokeWidth={1.5} dot={{ r: 1.5 }} connectNulls />
-            )}
-            {showPrior && (
-              <Line dataKey="prior2" name="prior2" type="monotone" stroke="#475569"
-                strokeWidth={1.5} strokeDasharray="4 3" dot={false} connectNulls />
-            )}
-          </ComposedChart>
+            {showPrior && origins.map((o, i) => (
+              <Bar key={`${o}__p1`} dataKey={`${o}__p1`} name={`${o}__p1`} stackId="p1"
+                fill={ORIGIN_COLORS[o] ?? "#64748b"} opacity={0.55}
+                radius={i === origins.length - 1 ? [2, 2, 0, 0] : undefined} />
+            ))}
+            {showPrior && origins.map((o, i) => (
+              <Bar key={`${o}__p2`} dataKey={`${o}__p2`} name={`${o}__p2`} stackId="p2"
+                fill={ORIGIN_COLORS[o] ?? "#64748b"} opacity={0.28}
+                radius={i === origins.length - 1 ? [2, 2, 0, 0] : undefined} />
+            ))}
+          </BarChart>
         </ResponsiveContainer>
 
         {/* Hand-rolled legend: recharts' own can't express "striped = the
@@ -638,11 +647,13 @@ export default function TotalExportsTab() {
           {showPrior && (
             <>
               <span className="inline-flex items-center gap-1">
-                <span className="inline-block w-4 h-0.5" style={{ background: "#64748b" }} />
+                <span className="inline-block w-2.5 h-2.5 rounded-sm"
+                  style={{ background: "#94a3b8", opacity: 0.55 }} />
                 1 year ago
               </span>
               <span className="inline-flex items-center gap-1">
-                <span className="inline-block w-4 h-0" style={{ borderTop: "1.5px dashed #475569" }} />
+                <span className="inline-block w-2.5 h-2.5 rounded-sm"
+                  style={{ background: "#94a3b8", opacity: 0.28 }} />
                 2 years ago
               </span>
             </>
@@ -656,8 +667,9 @@ export default function TotalExportsTab() {
           the average of that same calendar month over the origin&apos;s last three years,
           used both for months an origin hasn&apos;t published yet and for the two future
           months (where a feed carries no history at all for that calendar month, the
-          origin&apos;s 12-month run-rate stands in). Faded lines are the same months one and
-          two years ago, actuals only. Each origin is normalised to kt from its native unit.
+          origin&apos;s 12-month run-rate stands in). The two faded columns beside each month
+          are the same month one and two years ago, broken down by the same origins —
+          actuals only, never projected. Each origin is normalised to kt from its native unit.
           {type !== "total" && (
             <>
               {" "}Type split: Brazil (arabica/conillon), Indonesia and Uganda publish theirs
