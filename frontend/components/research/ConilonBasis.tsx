@@ -29,13 +29,13 @@ interface Pt {
   date: string; cccv?: number; co7?: number; co8?: number; cepea?: number; cnl?: number;
   g_cepea?: number; g_co7?: number; g_cnl?: number;
 }
-interface FobLine { line: string; lo: number; hi: number; scales: boolean; note: string }
+interface FobLine { line: string; lo?: number; hi?: number; pct?: number; scales: boolean; note: string }
 interface FobCross {
   available: boolean;
   booked: {
     total_usd_mt: number; reference_price: number; lines: FobLine[];
-    itemised_lo: number; itemised_hi: number;
     fixed_usd_mt: number; advalorem_usd_mt: number; advalorem_share_pct: number;
+    previous_flat_usd_mt: number; previous_quality_line: string; live_usd_mt: number;
   };
   base_usd_mt: { latest: number; latest_date: string; mean: number };
   booked_as_pct_of_base: { latest: number; min: number; max: number };
@@ -526,62 +526,57 @@ delivery   grading, allowances, and the T7/8 deliverable spec itself`}</Fml>
 
       {fob?.available && (
         <>
-          <H2>7 · Cross-check: what this says about our own FOBbing stack</H2>
+          <H2>7 · Cross-check: what this said about our own FOBbing stack — and what changed</H2>
           <P>
             The Origin-Logistics research lifts the <Code>CON T7</Code> physical — which is the Cooabriel Tipo 7 bid,
-            the interior co-op quote measured above — to at-port parity against RC with a flat
-            {" "}<strong>${fob.booked.total_usd_mt}/t</strong>. Inside that stack sits a
-            {" "}<strong>&ldquo;quality preparation&rdquo; line of $55–65/t</strong>, for sorting, hulling and polishing
-            the coffee up to a Class-1+ spec. The Espírito Santo market prices that same upgrade every session — it is
-            the CEPEA (tipo 6, peneira 13+) premium over the tipo 7/8 reference — so for the first time we can hold the
-            booked number against a measured one, in the stack&rsquo;s own unit.
+            the interior co-op quote measured above — to at-port parity against RC. Until this study it did so with a
+            flat <strong>${fob.booked.previous_flat_usd_mt}/t</strong>, whose largest single line was
+            {" "}<strong>{fob.booked.previous_quality_line} of &ldquo;quality preparation&rdquo;</strong> to a
+            Class-1+ spec. The Espírito Santo market prices that same upgrade every session — it is the CEPEA
+            (tipo 6, peneira 13+) premium over the tipo 7/8 reference — so for the first time the booked number could
+            be held against a measured one, in the stack&rsquo;s own unit.
           </P>
-          <RefTable head={["", "What we book", "What the market prices"]} rows={[
+          <RefTable head={["", "Booked before", "What the market prices"]} rows={[
             ["Grade uplift, tipo 7/8 → tipo 6 · pen. 13+",
-              "$55–65/t, flat",
+              `${fob.booked.previous_quality_line}`,
               `$${fob.measured_usd_mt.grade_uplift_mean}/t mean · $${fob.measured_usd_mt.grade_uplift_latest}/t today`],
             ["…as a share of the price", `${((60 / fob.booked.reference_price) * 100).toFixed(2)}% at the $${fob.booked.reference_price.toLocaleString()} calibration`,
               `${cepeaCccv?.mean_pct?.toFixed(2)}% — stable across a four-fold price range`],
             ["One grade step (T7 → T8)", "not separately booked", `$${fob.measured_usd_mt.coop_grade_step}/t (administered)`],
             ["L2 — mill to port haulage", "$20–25/t", `interior-vs-port basis $${Math.abs(fob.measured_usd_mt.interior_port_basis ?? 0)}/t`],
-            ["Exchange class adjustment vs RC", "$0 — conilon assumed par class", "not measurable from these series"],
           ]} />
           <UL>
-            <LI><strong>The quality line looks about half the size of the thing it represents.</strong> Moving conilon
+            <LI><strong>The quality line was about half the size of the thing it represents.</strong> Moving conilon
               from tipo 7/8 to tipo 6 · screen 13+ is worth
               {" "}<strong>${fob.measured_usd_mt.grade_uplift_mean}/t on average</strong> and
-              {" "}${fob.measured_usd_mt.grade_uplift_latest}/t at today&rsquo;s price, against $55–65 booked. Fair
-              caveat: ours is a <em>processing cost</em> and the market&rsquo;s is a <em>price differential</em>, which
-              also carries the <strong>outturn loss</strong> — screening defects and small beans out removes mass, and
-              that lost weight is the part the machine-time estimate misses.</LI>
-            <LI><strong>The functional form is wrong, and the stack already half-admits it.</strong> Two of its own
-              lines are defined as percentages (financing &ldquo;0.5% of $3,000&rdquo;, margin &ldquo;~1% of
-              FOB&rdquo;) but frozen at a ${fob.booked.reference_price.toLocaleString()} reference. Split the booked
-              lines into what scales and what doesn&rsquo;t and you get
-              {" "}<Code>${fob.booked.fixed_usd_mt} fixed + {fob.booked.advalorem_share_pct}% of the price</Code>,
-              which charges {fob.price_aware_stack.map(s => `$${s.stack} at $${s.base.toLocaleString()}`).join(", ")}
-              {" "}— while the flat model says ${fob.booked.total_usd_mt} at every level. Measured against the actual
-              CON T7 price, that flat number has ranged from <strong>{fob.booked_as_pct_of_base.max}%</strong> of the
-              coffee&rsquo;s value to <strong>{fob.booked_as_pct_of_base.min}%</strong>
-              {" "}({fob.booked_as_pct_of_base.latest}% today).</LI>
-            <LI><strong>The line items don&rsquo;t add up to the headline.</strong> The published table sums to
-              {" "}${fob.booked.itemised_lo}–{fob.booked.itemised_hi}/t, but the headline — and every consumer of
-              {" "}<Code>FOBBING_USD</Code> — uses ${fob.booked.total_usd_mt}. Whatever the extra
-              {" "}${fob.booked.total_usd_mt - fob.booked.itemised_hi}–{fob.booked.total_usd_mt - fob.booked.itemised_lo}/t
-              {" "}is meant to cover, it is not itemised.</LI>
-            <LI><strong>The grade gap must be booked exactly once, and today it is booked at half size in one place
-              and zero in the other.</strong> Either the export product really is upgraded — in which case the quality
-              line should be ad valorem at roughly {cepeaCccv?.mean_pct?.toFixed(1)}% — or it ships as tipo 7/8, in
-              which case the uplift does not belong in the cost stack at all and RC&rsquo;s class allowance should carry
-              a negative <Code>exchangePremiumUsdMt</Code> instead. Right now neither is true.</LI>
+              {" "}${fob.measured_usd_mt.grade_uplift_latest}/t at today&rsquo;s price, against
+              {" "}{fob.booked.previous_quality_line} booked. The two are not the same object — ours was a
+              <em> processing cost</em>, the market&rsquo;s is a <em>price differential</em> — and the difference
+              between them is mostly the <strong>outturn loss</strong>: screening defects and small beans out removes
+              mass, and that lost weight never appears in a machine-time estimate.</LI>
+            <LI><strong>The functional form was wrong, and the stack already half-admitted it.</strong> Two of its own
+              lines were defined as percentages (financing &ldquo;0.5% of $3,000&rdquo;, margin &ldquo;~1% of
+              FOB&rdquo;) but frozen at a ${fob.booked.reference_price.toLocaleString()} reference. Measured against
+              the actual CON T7 price, the flat ${fob.booked.previous_flat_usd_mt} ranged from
+              {" "}<strong>{fob.booked_as_pct_of_base.max}%</strong> of the coffee&rsquo;s value down to
+              {" "}<strong>{fob.booked_as_pct_of_base.min}%</strong> ({fob.booked_as_pct_of_base.latest}% today) —
+              a stack that quietly re-rated itself by a factor of three as the market moved.</LI>
           </UL>
           <Highlight>
-            Direction of the error, if the uplift is genuinely required: under-booking it makes the at-port parity too
-            low, so <strong>Brazilian conilon reads cheaper against RC than it really is</strong> — by roughly
-            {" "}${Math.round((fob.measured_usd_mt.grade_uplift_latest ?? 0) - 60)}/t at today&rsquo;s price level, and
-            by less in cheap markets. That is the same sign in every consumer of the number: the ticker&rsquo;s N-diff,
-            the tender-parity floor and the origin cost bands.
+            <strong>Adopted.</strong> The CON T7 stack is now
+            {" "}<Code>${fob.booked.fixed_usd_mt}/t fixed + {fob.booked.advalorem_share_pct}% of cargo value</Code> —
+            quality/outturn 4.0% (conservative against the measured {cepeaCccv?.mean_pct?.toFixed(2)}%, since part of
+            that gap is deal mix rather than grade), financing 0.5%, exporter margin 1.0%. That is
+            {" "}<strong>${fob.booked.live_usd_mt}/t at today&rsquo;s price</strong> against
+            {" "}${fob.booked.previous_flat_usd_mt} before, and it re-rates every day instead of standing still. Every
+            other origin was restated the same way — same form, unchanged level at its own reference price. The effect
+            here is to raise at-port parity, so Brazilian conilon no longer reads cheaper against RC than it is.
           </Highlight>
+          <P>
+            The stored parity history was re-derived in place under the new model rather than rebuilt from source, so
+            all 814 conilon observations survive with their original farmgate, freight and RC prints intact — only the
+            model-dependent columns (at-port, differential, parity gap) moved.
+          </P>
         </>
       )}
 

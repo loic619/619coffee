@@ -56,17 +56,21 @@ SACA_PER_MT = 1000 / 60          # 16.667 sacas of 60 kg per tonne
 # frontend/lib/originCosts.ts (FOBBING_USD["CON T7"]) and the Origin-Logistics
 # research card's cost table, so the basis card can hold the booked stack
 # against what the market actually prices. Keep in sync when those change.
-BOOKED_TOTAL_USD_MT = 200.0
-BOOKED_REFERENCE_PRICE = 3000.0   # the price level the stack was calibrated at
+BOOKED_FIXED_USD_MT = 62.5        # L1 12.5 + L2 22.5 + MAPA 10 + THC/docs 17.5
+BOOKED_ADVALOREM_PCT = 5.5        # quality/outturn 4.0 + financing 0.5 + margin 1.0
+BOOKED_REFERENCE_PRICE = 3000.0   # price level the headline figure is quoted at
+BOOKED_TOTAL_USD_MT = BOOKED_FIXED_USD_MT + BOOKED_ADVALOREM_PCT / 100 * BOOKED_REFERENCE_PRICE
+PREVIOUS_FLAT_USD_MT = 200.0      # what the stack booked before this study
+PREVIOUS_QUALITY_LINE = "$55-65 flat"
 BOOKED_STACK = [
-    {"line": "Quality preparation", "lo": 55, "hi": 65, "scales": True,
-     "note": "sorting, hulling, polishing to Class 1+ spec"},
     {"line": "L1 — farm to dry mill", "lo": 10, "hi": 15, "scales": False, "note": "smallholder aggregation"},
     {"line": "L2 — mill to port", "lo": 20, "hi": 25, "scales": False, "note": "road haulage to Santos/Vitória"},
     {"line": "MAPA inspection & fumigation", "lo": 8, "hi": 12, "scales": False, "note": "mandatory checks"},
     {"line": "THC + port docs + B/L", "lo": 17, "hi": 18, "scales": False, "note": "terminal handling, export docs"},
-    {"line": "Financing", "lo": 15, "hi": 15, "scales": True, "note": "stated as ~0.5% × $3,000 × 3-week float"},
-    {"line": "Exporter margin", "lo": 30, "hi": 30, "scales": True, "note": "stated as ~1% of FOB price"},
+    {"line": "Quality preparation + outturn loss", "pct": 4.0, "scales": True,
+     "note": "grade uplift to Class 1+ / screen 13+; measured ladder 4.33%"},
+    {"line": "Financing", "pct": 0.5, "scales": True, "note": "cargo value × ~3-week float"},
+    {"line": "Exporter margin", "pct": 1.0, "scales": True, "note": "competitive floor for origin traders"},
 ]
 
 # Pairs studied, as (leg, base). Every pair is quoted against the CCCV Tipo 7/8
@@ -314,24 +318,27 @@ def _fob_crosscheck(rows: list[dict], fx: dict[str, float]) -> dict:
         y["base"].append(b)
         y["uplift"].append(u)
 
-    fixed = sum((s["lo"] + s["hi"]) / 2 for s in BOOKED_STACK if not s["scales"])
-    adval = sum((s["lo"] + s["hi"]) / 2 for s in BOOKED_STACK if s["scales"])
-    adval_share = adval / BOOKED_REFERENCE_PRICE
+    fixed = BOOKED_FIXED_USD_MT
+    adval_share = BOOKED_ADVALOREM_PCT / 100
+    adval = adval_share * BOOKED_REFERENCE_PRICE
     last_base = base[-1][1]
 
     return {
         "available": True,
-        "booked": {"total_usd_mt": BOOKED_TOTAL_USD_MT, "reference_price": BOOKED_REFERENCE_PRICE,
+        "booked": {"total_usd_mt": _r(BOOKED_TOTAL_USD_MT), "reference_price": BOOKED_REFERENCE_PRICE,
                    "lines": BOOKED_STACK,
-                   "itemised_lo": sum(s["lo"] for s in BOOKED_STACK),
-                   "itemised_hi": sum(s["hi"] for s in BOOKED_STACK),
                    "fixed_usd_mt": _r(fixed), "advalorem_usd_mt": _r(adval),
-                   "advalorem_share_pct": _r(adval_share * 100, 2)},
+                   "advalorem_share_pct": _r(adval_share * 100, 2),
+                   "previous_flat_usd_mt": PREVIOUS_FLAT_USD_MT,
+                   "previous_quality_line": PREVIOUS_QUALITY_LINE,
+                   "live_usd_mt": _r(fixed + adval_share * last_base, 0)},
         "base_usd_mt": {"latest": _r(last_base, 0), "latest_date": base[-1][0],
                         "mean": _r(st.mean([b for _, b in base]), 0)},
-        "booked_as_pct_of_base": {"latest": _r(BOOKED_TOTAL_USD_MT / last_base * 100),
-                                  "min": _r(min(BOOKED_TOTAL_USD_MT / b * 100 for _, b in base)),
-                                  "max": _r(max(BOOKED_TOTAL_USD_MT / b * 100 for _, b in base))},
+        # What the OLD flat number was worth as a share of the coffee it moved —
+        # the drift that motivated the ad-valorem restatement.
+        "booked_as_pct_of_base": {"latest": _r(PREVIOUS_FLAT_USD_MT / last_base * 100),
+                                  "min": _r(min(PREVIOUS_FLAT_USD_MT / b * 100 for _, b in base)),
+                                  "max": _r(max(PREVIOUS_FLAT_USD_MT / b * 100 for _, b in base))},
         "measured_usd_mt": {
             "grade_uplift_mean": _r(st.mean([u for _, u in uplift]), 0),
             "grade_uplift_latest": _r(uplift[-1][1], 0),
@@ -342,7 +349,7 @@ def _fob_crosscheck(rows: list[dict], fx: dict[str, float]) -> dict:
         },
         "by_year": {y: {"base": _r(st.mean(v["base"]), 0), "uplift": _r(st.mean(v["uplift"]), 0),
                         "uplift_pct": _r(st.mean(v["uplift"]) / st.mean(v["base"]) * 100),
-                        "booked_pct": _r(BOOKED_TOTAL_USD_MT / st.mean(v["base"]) * 100)}
+                        "booked_pct": _r(PREVIOUS_FLAT_USD_MT / st.mean(v["base"]) * 100)}
                     for y, v in sorted(by_year.items())},
         # What a fixed + ad-valorem restatement of the SAME booked lines charges.
         "price_aware_stack": [{"base": lvl, "stack": _r(fixed + adval_share * lvl, 0)}

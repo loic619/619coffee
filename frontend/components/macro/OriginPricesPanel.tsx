@@ -6,7 +6,7 @@ import {
 } from "recharts";
 
 import { fmtDateLabel } from "@/lib/formatters";
-import { CIF_FINANCING_RATE, FEU_MT, ORIGIN_EXPORT_COSTS, SAMPLING_GRADING_USD_MT } from "@/lib/originCosts";
+import { CIF_FINANCING_RATE, FEU_MT, ORIGIN_EXPORT_COSTS, SAMPLING_GRADING_USD_MT, fobbingUsdMt } from "@/lib/originCosts";
 import { PARITY_ADDERS_USD } from "@/lib/research/certStocksParity";
 
 interface HistoryPoint {
@@ -234,7 +234,7 @@ export default function OriginPricesPanel() {
     if (usdMt == null || basis === "farmgate") return usdMt;
     const cost = ORIGIN_EXPORT_COSTS[k];
     if (!cost) return null;
-    const fob = usdMt + cost.fobbingUsdMt;
+    const fob = usdMt + fobbingUsdMt(cost.fobLabel, usdMt);
     if (basis === "fob") return fob;
     const fr = freightMtOnDate(cost.freightRoute, h.date);
     if (fr == null) return null;
@@ -339,7 +339,7 @@ export default function OriginPricesPanel() {
           const cost = ORIGIN_EXPORT_COSTS[k];
           if (cost) {
             if (basis === "farmgate") {
-              const fob = v + cost.fobbingUsdMt;
+              const fob = v + fobbingUsdMt(cost.fobLabel, v);
               row[`${k}__fob`] = [v, fob];
               const fr = freightMtOnDate(cost.freightRoute, d);
               if (fr != null) row[`${k}__tender`] = [fob, fob + fr + PARITY_ADDERS_USD];

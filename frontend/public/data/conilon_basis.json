@@ -1,6 +1,6 @@
 {
   "unit": "BRL/saca_60kg",
-  "updated": "2026-08-12T15:44:02.283067Z",
+  "updated": "2026-08-12T16:01:15.386088Z",
   "window": {
     "start": "2022-06-01",
     "end": "2026-08-11",
@@ -748,16 +748,9 @@
   "fob_crosscheck": {
     "available": true,
     "booked": {
-      "total_usd_mt": 200.0,
+      "total_usd_mt": 227.5,
       "reference_price": 3000.0,
       "lines": [
-        {
-          "line": "Quality preparation",
-          "lo": 55,
-          "hi": 65,
-          "scales": true,
-          "note": "sorting, hulling, polishing to Class 1+ spec"
-        },
         {
           "line": "L1 — farm to dry mill",
           "lo": 10,
@@ -787,25 +780,30 @@
           "note": "terminal handling, export docs"
         },
         {
-          "line": "Financing",
-          "lo": 15,
-          "hi": 15,
+          "line": "Quality preparation + outturn loss",
+          "pct": 4.0,
           "scales": true,
-          "note": "stated as ~0.5% × $3,000 × 3-week float"
+          "note": "grade uplift to Class 1+ / screen 13+; measured ladder 4.33%"
+        },
+        {
+          "line": "Financing",
+          "pct": 0.5,
+          "scales": true,
+          "note": "cargo value × ~3-week float"
         },
         {
           "line": "Exporter margin",
-          "lo": 30,
-          "hi": 30,
+          "pct": 1.0,
           "scales": true,
-          "note": "stated as ~1% of FOB price"
+          "note": "competitive floor for origin traders"
         }
       ],
-      "itemised_lo": 155,
-      "itemised_hi": 180,
       "fixed_usd_mt": 62.5,
-      "advalorem_usd_mt": 105.0,
-      "advalorem_share_pct": 3.5
+      "advalorem_usd_mt": 165.0,
+      "advalorem_share_pct": 5.5,
+      "previous_flat_usd_mt": 200.0,
+      "previous_quality_line": "$55-65 flat",
+      "live_usd_mt": 250.0
     },
     "base_usd_mt": {
       "latest": 3410.0,
@@ -860,19 +858,19 @@
     "price_aware_stack": [
       {
         "base": 2000,
-        "stack": 132.0
+        "stack": 172.0
       },
       {
         "base": 3000,
-        "stack": 168.0
+        "stack": 228.0
       },
       {
         "base": 3500,
-        "stack": 185.0
+        "stack": 255.0
       },
       {
         "base": 4500,
-        "stack": 220.0
+        "stack": 310.0
       }
     ]
   },
