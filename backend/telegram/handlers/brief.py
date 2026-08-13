@@ -956,18 +956,24 @@ def _load_archive() -> dict | None:
 def _open_direction_block(today: date) -> str | None:
     """One-liner from the pre-open overnight-gap model (03:00 UTC run).
 
-    Shown only when the prediction is FOR today's session — the brief chains on
-    the 1.16 log workflow, so normally it is. A stale/absent payload renders
-    nothing rather than yesterday's call.
+    The call is only valid FOR today's session — the brief chains on the 1.16
+    log workflow, so normally it is there. When it is missing or stale we say
+    so explicitly instead of rendering nothing: a silently absent prediction
+    is indistinguishable from "no view", and the brief is expected to carry
+    the call every day.
     """
     q = load("quant_report.json")
     od = (q or {}).get("open_direction") or {}
-    if not od.get("available") or od.get("for_session") != today.isoformat():
-        return None
     p_up = od.get("prob_up")
     direction = od.get("direction")
+    if not od.get("available"):
+        return "🔮 RC open call: <b>not available</b> (model produced no call for this session)"
+    if od.get("for_session") != today.isoformat():
+        for_s = od.get("for_session") or "?"
+        return (f"🔮 RC open call: <b>pending</b> — latest call is for {esc(str(for_s))}, "
+                f"not today's session")
     if p_up is None or direction is None:
-        return None
+        return "🔮 RC open call: <b>not available</b> (incomplete model output)"
     exp_usd = od.get("expected_gap_usd_mt")
     exp_s = (f" · exp. {'+' if exp_usd > 0 else ''}{exp_usd:,.0f}$/t"
              if isinstance(exp_usd, (int, float)) else "")
@@ -1008,6 +1014,45 @@ def _open_direction_block(today: date) -> str | None:
         head += (f"\n     ⚠️ <b>cold streak</b> — live hit-rate "
                  f"{rate * 100:.0f}% over last {n} calls; treat with caution")
     return head
+
+
+def _currency_index_block() -> str | None:
+    """Coffee Currency Index — the trade-weighted producer-vs-consumer FX
+    basket from quant_report.json (same figures as the macro tab's CCI panel).
+
+    Reading convention mirrors the app: the index rises when PRODUCER
+    currencies strengthen against the USD, which is price-supportive (origin
+    sellers need fewer USD per local unit), so ▲ = bullish, ▼ = bearish. The
+    z-score says how stretched the level is against its own history.
+    """
+    ci = (load("quant_report.json") or {}).get("currency_index") or {}
+    level = ci.get("index_value")
+    if not isinstance(level, (int, float)):
+        return None
+    pct = ci.get("daily_delta_pct")
+    z = ci.get("zscore")
+
+    bits = [f"💱 <b>CCI</b> {level:.2f}"]
+    if isinstance(pct, (int, float)):
+        lean = "bullish" if pct > 0 else "bearish" if pct < 0 else "flat"
+        bits.append(f"{'▲' if pct > 0 else '▼' if pct < 0 else '→'} {pct:+.2f}% d/d ({lean})")
+    if isinstance(z, (int, float)):
+        bits.append(f"z {z:+.2f}")
+    line = " · ".join(bits)
+
+    # The two currencies that actually moved the index today (by contribution,
+    # i.e. weight × move) — the "why" behind the headline number.
+    movers = [c for c in (ci.get("currencies") or [])
+              if isinstance(c.get("contribution"), (int, float))
+              and isinstance(c.get("daily_chg"), (int, float))]
+    movers.sort(key=lambda c: abs(c["contribution"]), reverse=True)
+    if movers:
+        drivers = " · ".join(
+            f"{esc(str(c.get('ticker', '?')).replace('=X', ''))} {c['daily_chg']:+.2f}%"
+            for c in movers[:2]
+        )
+        line += f"\n     driven by {drivers}"
+    return line
 
 
 def build_brief_message(db=None) -> str:
@@ -1064,6 +1109,9 @@ def build_brief_message(db=None) -> str:
     open_call = _open_direction_block(today)
     if open_call:
         parts.append(open_call)
+    cci = _currency_index_block()
+    if cci:
+        parts.append(cci)
     # Blank line between futures (RC/KC + their spread lines) and the
     # physical block — visual break since the two groups read differently
     # (futures = on-exchange, physical = farmgate-to-FOB basis).

@@ -164,3 +164,72 @@ def test_build_brief_message_does_not_crash_with_no_events(monkeypatch):
 # removed in the brief redesign (PR #215). The weather section is now driven
 # by `_weather_block` (frost-gate Jun-Aug + Vietnam rain/VHI dual-gate),
 # tested in scraper/tests/test_brief_layout.py.
+
+
+# ── Market prediction call + Coffee Currency Index ───────────────────────────
+# Both are expected in EVERY brief: the open call must announce itself even
+# when the model has no fresh view, and the CCI carries the FX read.
+
+TODAY = NOW.date()
+
+
+def _quant(**kw) -> dict:
+    return {"quant_report.json": kw}
+
+
+def _stub_quant(monkeypatch, payload: dict):
+    monkeypatch.setattr(brief, "load",
+                        lambda name: payload.get(name))
+
+
+def test_open_call_renders_direction_and_confidence(monkeypatch):
+    _stub_quant(monkeypatch, _quant(open_direction={
+        "available": True, "for_session": TODAY.isoformat(),
+        "direction": "Bearish", "prob_up": 0.2768, "expected_gap_usd_mt": -7.9,
+    }))
+    out = brief._open_direction_block(TODAY)
+    # Confidence is stated in the direction's own terms (72% down, not 28% up).
+    assert "RC open call" in out and "<b>Bearish</b> 72%" in out
+    assert "exp. -8$/t" in out
+
+
+def test_open_call_announces_itself_when_missing_or_stale(monkeypatch):
+    # Stale: the newest call belongs to another session — say so, never render
+    # yesterday's call as if it were today's.
+    _stub_quant(monkeypatch, _quant(open_direction={
+        "available": True, "for_session": "2026-05-29",
+        "direction": "Bullish", "prob_up": 0.8,
+    }))
+    stale = brief._open_direction_block(TODAY)
+    assert "pending" in stale and "2026-05-29" in stale
+    assert "Bullish" not in stale
+    # Absent / incomplete → an explicit "not available", not silence.
+    _stub_quant(monkeypatch, _quant(open_direction={"available": False}))
+    assert "not available" in brief._open_direction_block(TODAY)
+    _stub_quant(monkeypatch, _quant(open_direction={
+        "available": True, "for_session": TODAY.isoformat(), "direction": None, "prob_up": None}))
+    assert "not available" in brief._open_direction_block(TODAY)
+
+
+def test_currency_index_level_move_and_drivers(monkeypatch):
+    _stub_quant(monkeypatch, _quant(currency_index={
+        "index_value": 106.694508, "daily_delta_pct": -0.022643, "zscore": 1.268627,
+        "currencies": [
+            {"ticker": "BRL=X", "daily_chg": -0.4757, "contribution": -0.00244},
+            {"ticker": "COP=X", "daily_chg": 0.5642, "contribution": 0.000722},
+            {"ticker": "VND=X", "daily_chg": 0.1989, "contribution": 0.000521},
+        ],
+    }))
+    out = brief._currency_index_block()
+    assert "<b>CCI</b> 106.69" in out
+    # A falling index is price-bearish (producer currencies weakening vs USD).
+    assert "▼ -0.02% d/d (bearish)" in out and "z +1.27" in out
+    # Drivers are the biggest CONTRIBUTIONS (weight × move), largest first.
+    assert "driven by BRL -0.48% · COP +0.56%" in out
+
+
+def test_currency_index_silent_without_a_level(monkeypatch):
+    _stub_quant(monkeypatch, _quant(currency_index={"index_value": None}))
+    assert brief._currency_index_block() is None
+    _stub_quant(monkeypatch, {})
+    assert brief._currency_index_block() is None
