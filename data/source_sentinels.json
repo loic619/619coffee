@@ -16,7 +16,7 @@
   "comex": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-13T08:02:48+00:00",
+    "last_probe": "2026-08-13T10:45:44+00:00",
     "overdue_alerted": null,
     "signal": null,
     "verify": null
@@ -24,7 +24,7 @@
   "conab": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-13T08:02:48+00:00",
+    "last_probe": "2026-08-13T10:45:44+00:00",
     "overdue_alerted": null,
     "signal": null,
     "verify": null
@@ -54,13 +54,13 @@
       "expected": "https://www.ecf-coffee.org/wp-content/uploads/2026/08/2026-Stocks-European-Ports.pdf",
       "file": "frontend/public/data/ecf_history.json",
       "kind": "string_in_file",
-      "status": "pending"
+      "status": "ok"
     }
   },
   "fnc": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-13T08:02:48+00:00",
+    "last_probe": "2026-08-13T10:45:44+00:00",
     "overdue_alerted": null,
     "signal": "dd2fc0d9a849e90ab7d73f37f5fc6f89cf4f40a659b736c500856467d0ac59be",
     "verify": null
