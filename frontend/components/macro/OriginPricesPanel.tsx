@@ -297,6 +297,53 @@ export default function OriginPricesPanel() {
   //              tenders to KC at a 900-pt discount → +$198/MT to match).
   const showCostBands = effUsd && axisMode === "value";
 
+  // All-in (top-of-stack) value for one point: what this origin costs delivered
+  // into an exchange warehouse on the selected basis. Also defines "cheapest".
+  const allInValue = useCallback((k: OriginKey, h: HistoryPoint): number | null => {
+    const v = convertPoint(k, h);
+    if (v == null) return null;
+    const cost = ORIGIN_EXPORT_COSTS[k];
+    if (!cost) return null;
+    if (basis === "cif") {
+      return v + SAMPLING_GRADING_USD_MT[commodity]
+               + Math.max(0, -(cost.exchangePremiumUsdMt ?? 0));
+    }
+    const fr = freightMtOnDate(cost.freightRoute, h.date);
+    if (fr == null) return null;
+    const fob = basis === "farmgate" ? v + cost.fobbingUsdMt : v;
+    return fob + fr + PARITY_ADDERS_USD;
+  }, [convertPoint, basis, commodity, freightMtOnDate]);
+
+  // Cheapest origin = lowest all-in cost at its latest in-window quote. That is
+  // the one that actually sets tender parity, so it's the sensible default to
+  // shade; stacking every origin's bands buries it in overlapping fills.
+  const cheapestOrigin = useMemo<OriginKey | null>(() => {
+    if (!data) return null;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - WINDOW_DAYS[window]);
+    const cutoffIso = cutoff.toISOString().slice(0, 10);
+    let best: OriginKey | null = null, bestVal = Infinity;
+    for (const k of presentOrigins) {
+      const inWindow = (data.origins[k]?.history ?? []).filter(h => h.date >= cutoffIso);
+      const last = inWindow.length ? inWindow[inWindow.length - 1] : null;
+      const v = last ? allInValue(k, last) : null;
+      if (v != null && v < bestVal) { bestVal = v; best = k; }
+    }
+    return best;
+  }, [data, window, presentOrigins, allInValue]);
+
+  // null = follow the cheapest automatically; an array = explicit user pick.
+  const [bandSel, setBandSel] = useState<OriginKey[] | null>(null);
+  const activeBands = useMemo(
+    () => new Set(bandSel ?? (cheapestOrigin ? [cheapestOrigin] : [])),
+    [bandSel, cheapestOrigin]
+  );
+  const toggleBand = (k: OriginKey) => {
+    const next = new Set(activeBands);
+    if (next.has(k)) next.delete(k); else next.add(k);
+    setBandSel(Array.from(next));
+  };
+
   const chartData = useMemo(() => {
     if (!data) return [];
     const days = WINDOW_DAYS[window];
@@ -335,7 +382,7 @@ export default function OriginPricesPanel() {
         row[k] = v == null ? null : rebase ? (base[k] ? (v / base[k]!) * 100 : null) : v;
         // Range-area bands stacked on the line's USD/MT value (value view
         // only, so `v` is the unrebased figure on the selected basis).
-        if (showCostBands && v != null) {
+        if (showCostBands && activeBands.has(k) && v != null) {
           const cost = ORIGIN_EXPORT_COSTS[k];
           if (cost) {
             if (basis === "farmgate") {
@@ -361,7 +408,7 @@ export default function OriginPricesPanel() {
       }
       return row;
     });
-  }, [data, window, presentOrigins, convertPoint, axisMode, futuresSeries, showFutures, showCostBands, freightMtOnDate, basis, commodity]);
+  }, [data, window, presentOrigins, convertPoint, axisMode, futuresSeries, showFutures, showCostBands, activeBands, freightMtOnDate, basis, commodity]);
 
   const stats = useMemo(() => {
     if (!data) return [] as { key: OriginKey; name: string; latest: HistoryPoint | null; pct: number | null; color: string; unit: string; currency: string; source: string; count: number }[];
@@ -528,6 +575,46 @@ export default function OriginPricesPanel() {
             :                        " · shaded: +sampling/grading & quality adj"
             : ""}
         </div>
+
+        {/* Which origins get their cost bands drawn. Defaults to the cheapest
+            delivered origin — the one that sets tender parity — because
+            shading every origin buries it under overlapping fills. */}
+        {showCostBands && presentOrigins.length > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap mb-2 text-[10px]">
+            <span className="text-slate-500 uppercase tracking-wide">Cost bands</span>
+            <button
+              onClick={() => setBandSel(null)}
+              title="Follow the cheapest delivered origin automatically"
+              className={`px-2 py-0.5 rounded border transition ${
+                bandSel === null
+                  ? "bg-slate-700 border-slate-500 text-slate-100"
+                  : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}>
+              Auto{cheapestOrigin && bandSel === null ? " (cheapest)" : ""}
+            </button>
+            {presentOrigins.map(k => {
+              const o = data.origins[k];
+              const on = activeBands.has(k);
+              return (
+                <button key={k} onClick={() => toggleBand(k)}
+                  title={on ? `Hide ${o.name} cost bands` : `Show ${o.name} cost bands`}
+                  className={`px-2 py-0.5 rounded border transition flex items-center gap-1 ${
+                    on ? "border-slate-500 text-slate-100" : "border-slate-700 text-slate-500 hover:bg-slate-800"}`}
+                  style={on ? { background: `${o.color}33` } : undefined}>
+                  <span className="inline-block w-2 h-2 rounded-sm"
+                    style={{ background: on ? o.color : "#475569" }} />
+                  {o.name.split(/[(—]/)[0].trim()}
+                </button>
+              );
+            })}
+            {presentOrigins.length > 1 && (
+              <button
+                onClick={() => setBandSel(activeBands.size === presentOrigins.length ? [] : [...presentOrigins])}
+                className="px-2 py-0.5 rounded border border-slate-700 text-slate-400 hover:bg-slate-800 transition">
+                {activeBands.size === presentOrigins.length ? "None" : "All"}
+              </button>
+            )}
+          </div>
+        )}
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}>
@@ -552,7 +639,7 @@ export default function OriginPricesPanel() {
                   (→delivered-to-exchange); on CIF a single band for the ICE
                   sampling/grading fees + origin-quality adjustment. Range
                   areas: dataKey is [lo, hi]; keys absent on a basis no-op. */}
-              {showCostBands && basis === "farmgate" && presentOrigins.map(k => {
+              {showCostBands && basis === "farmgate" && presentOrigins.filter(k => activeBands.has(k)).map(k => {
                 const o = data.origins[k];
                 if (!o) return null;
                 return (
@@ -562,7 +649,7 @@ export default function OriginPricesPanel() {
                     activeDot={false} connectNulls />
                 );
               })}
-              {showCostBands && basis !== "cif" && presentOrigins.map(k => {
+              {showCostBands && basis !== "cif" && presentOrigins.filter(k => activeBands.has(k)).map(k => {
                 const o = data.origins[k];
                 if (!o) return null;
                 return (
@@ -572,7 +659,7 @@ export default function OriginPricesPanel() {
                     activeDot={false} connectNulls />
                 );
               })}
-              {showCostBands && basis === "cif" && presentOrigins.map(k => {
+              {showCostBands && basis === "cif" && presentOrigins.filter(k => activeBands.has(k)).map(k => {
                 const o = data.origins[k];
                 if (!o) return null;
                 return (
