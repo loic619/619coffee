@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-12T16:00:20.945866+00:00",
+  "generated_at": "2026-08-13T04:35:17.892184+00:00",
   "meta": {
     "adders_usd": 58.0,
     "container_mt": 21.6,
@@ -9,7 +9,7 @@
     "vietnam": {
       "name": "Vietnam Robusta FAQ G2",
       "market": "RC",
-      "fobbing_usd": 103.3,
+      "fobbing_usd": 102.8,
       "fobbing_fixed": 55.0,
       "fobbing_pct": 1.29,
       "fobbing_model": 3,
@@ -9205,6 +9205,18 @@
           "parity_gap": -381.6,
           "tenderable": false,
           "fobbing": 103.3
+        },
+        {
+          "date": "2026-08-13",
+          "farmgate_usd": 3707.1,
+          "fobbing": 102.8,
+          "at_port": 3809.9,
+          "freight": 256.1,
+          "tendering": 4123.9,
+          "rc": 3752.0,
+          "differential": 57.9,
+          "parity_gap": -371.9,
+          "tenderable": false
         }
       ]
     },
@@ -18989,7 +19001,7 @@
     "uganda": {
       "name": "Uganda Robusta S15",
       "market": "RC",
-      "fobbing_usd": 276.8,
+      "fobbing_usd": 276.0,
       "fobbing_fixed": 142.5,
       "fobbing_pct": 3.31,
       "fobbing_model": 3,
@@ -20085,6 +20097,18 @@
           "parity_gap": -793.2,
           "tenderable": false,
           "fobbing": 276.8
+        },
+        {
+          "date": "2026-08-13",
+          "farmgate_usd": 4032.0,
+          "fobbing": 276.0,
+          "at_port": 4308.0,
+          "freight": 179.3,
+          "tendering": 4545.2,
+          "rc": 3752.0,
+          "differential": 556.0,
+          "parity_gap": -793.2,
+          "tenderable": false
         }
       ]
     }
