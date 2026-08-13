@@ -240,7 +240,127 @@
       "timeframe": "forecast",
       "score": 0,
       "magnitude": "medium",
-      "text": "colombia/Caldas: Potential false flowering or dropped blossoms. Harvest delay.  [spei_3=-2.33, forecast_7d_rain=144.8]"
+      "text": "colombia/Caldas: Potential false flowering or dropped blossoms. Harvest delay.  [spei_3=-2.32, forecast_7d_rain=143.2]"
+    },
+    {
+      "id": "AGRO_indonesia_Java_drought_stress_watch",
+      "name": "Vegetative Drought Stress — early",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "watch",
+      "timeframe": "current",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "indonesia/Java: Early canopy stress. Yield impact not locked in yet — monitor.  [vhi=44.9, spei_3=-1.28]"
+    },
+    {
+      "id": "AGRO_uganda_Masaka_drought_stress_alert",
+      "name": "Drought Stress — established",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "alert",
+      "timeframe": "current",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "uganda/Masaka: Sustained moisture deficit with visible canopy stress. Bean-fill risk building.  [vhi=34.05, spei_3=-1.53]"
+    },
+    {
+      "id": "AGRO_uganda_Kasese_drought_stress_alert",
+      "name": "Drought Stress — established",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "alert",
+      "timeframe": "current",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "uganda/Kasese: Sustained moisture deficit with visible canopy stress. Bean-fill risk building.  [vhi=16.45, spei_3=-1.21]"
+    },
+    {
+      "id": "AGRO_uganda_Mbale_drought_stress_alert",
+      "name": "Drought Stress — established",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "alert",
+      "timeframe": "current",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "uganda/Mbale: Sustained moisture deficit with visible canopy stress. Bean-fill risk building.  [vhi=30.39, spei_3=-2.31]"
+    },
+    {
+      "id": "AGRO_uganda_Mt_Elgon_drought_stress_alert",
+      "name": "Drought Stress — established",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "alert",
+      "timeframe": "current",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "uganda/Mt Elgon: Sustained moisture deficit with visible canopy stress. Bean-fill risk building.  [vhi=30.39, spei_3=-1.75]"
+    },
+    {
+      "id": "AGRO_ethiopia_Sidama/Yirgacheffe_drought_stress_alert",
+      "name": "Drought Stress — established",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "alert",
+      "timeframe": "current",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "ethiopia/Sidama/Yirgacheffe: Sustained moisture deficit with visible canopy stress. Bean-fill risk building.  [vhi=25.09, spei_3=-1.38]"
+    },
+    {
+      "id": "AGRO_ethiopia_Jimma_drought_stress_watch",
+      "name": "Vegetative Drought Stress — early",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "watch",
+      "timeframe": "current",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "ethiopia/Jimma: Early canopy stress. Yield impact not locked in yet — monitor.  [vhi=34.8, spei_3=-1.14]"
+    },
+    {
+      "id": "AGRO_ethiopia_Kaffa_drought_stress_alert",
+      "name": "Drought Stress — established",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "alert",
+      "timeframe": "current",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "ethiopia/Kaffa: Sustained moisture deficit with visible canopy stress. Bean-fill risk building.  [vhi=25.09, spei_3=-1.93]"
+    },
+    {
+      "id": "AGRO_ethiopia_Harrar_drought_stress_alert",
+      "name": "Drought Stress — established",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "alert",
+      "timeframe": "current",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "ethiopia/Harrar: Sustained moisture deficit with visible canopy stress. Bean-fill risk building.  [vhi=34.8, spei_3=-1.51]"
+    },
+    {
+      "id": "AGRO_vn_Lam_Dong_drought_stress_watch",
+      "name": "Vegetative Drought Stress — early",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "watch",
+      "timeframe": "current",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "vn/Lam Dong: Early canopy stress. Yield impact not locked in yet — monitor.  [vhi=42.01, spei_3=-1.47, water_tbnn_pct=0.0]"
     }
   ],
   "history": [
@@ -2637,5 +2757,5 @@
       "priceLDN": 3853
     }
   ],
-  "generatedAt": "2026-08-12T21:46:09.243Z"
+  "generatedAt": "2026-08-13T04:01:57.214Z"
 }

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-12T03:58:33+00:00",
+  "generated_at": "2026-08-13T04:01:57+00:00",
   "ruleset_version": "iphm-v3",
   "origins": {
     "colombia": {
@@ -12,123 +12,277 @@
           "timeframe": "forecast",
           "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
           "triggers": {
-            "spei_3": -2.33,
-            "forecast_7d_rain": 144.8
+            "spei_3": -2.32,
+            "forecast_7d_rain": 143.2
+          }
+        }
+      ]
+    },
+    "indonesia": {
+      "Java": [
+        {
+          "threat_id": "drought_stress_watch",
+          "family": "drought_stress",
+          "name": "Vegetative Drought Stress — early",
+          "severity": "watch",
+          "timeframe": "current",
+          "market_impact": "Early canopy stress. Yield impact not locked in yet — monitor.",
+          "triggers": {
+            "vhi": 44.9,
+            "spei_3": -1.28
+          }
+        }
+      ]
+    },
+    "uganda": {
+      "Masaka": [
+        {
+          "threat_id": "drought_stress_alert",
+          "family": "drought_stress",
+          "name": "Drought Stress — established",
+          "severity": "alert",
+          "timeframe": "current",
+          "market_impact": "Sustained moisture deficit with visible canopy stress. Bean-fill risk building.",
+          "triggers": {
+            "vhi": 34.05,
+            "spei_3": -1.53
+          }
+        }
+      ],
+      "Kasese": [
+        {
+          "threat_id": "drought_stress_alert",
+          "family": "drought_stress",
+          "name": "Drought Stress — established",
+          "severity": "alert",
+          "timeframe": "current",
+          "market_impact": "Sustained moisture deficit with visible canopy stress. Bean-fill risk building.",
+          "triggers": {
+            "vhi": 16.45,
+            "spei_3": -1.21
+          }
+        }
+      ],
+      "Mbale": [
+        {
+          "threat_id": "drought_stress_alert",
+          "family": "drought_stress",
+          "name": "Drought Stress — established",
+          "severity": "alert",
+          "timeframe": "current",
+          "market_impact": "Sustained moisture deficit with visible canopy stress. Bean-fill risk building.",
+          "triggers": {
+            "vhi": 30.39,
+            "spei_3": -2.31
+          }
+        }
+      ],
+      "Mt Elgon": [
+        {
+          "threat_id": "drought_stress_alert",
+          "family": "drought_stress",
+          "name": "Drought Stress — established",
+          "severity": "alert",
+          "timeframe": "current",
+          "market_impact": "Sustained moisture deficit with visible canopy stress. Bean-fill risk building.",
+          "triggers": {
+            "vhi": 30.39,
+            "spei_3": -1.75
+          }
+        }
+      ]
+    },
+    "ethiopia": {
+      "Sidama/Yirgacheffe": [
+        {
+          "threat_id": "drought_stress_alert",
+          "family": "drought_stress",
+          "name": "Drought Stress — established",
+          "severity": "alert",
+          "timeframe": "current",
+          "market_impact": "Sustained moisture deficit with visible canopy stress. Bean-fill risk building.",
+          "triggers": {
+            "vhi": 25.09,
+            "spei_3": -1.38
+          }
+        }
+      ],
+      "Jimma": [
+        {
+          "threat_id": "drought_stress_watch",
+          "family": "drought_stress",
+          "name": "Vegetative Drought Stress — early",
+          "severity": "watch",
+          "timeframe": "current",
+          "market_impact": "Early canopy stress. Yield impact not locked in yet — monitor.",
+          "triggers": {
+            "vhi": 34.8,
+            "spei_3": -1.14
+          }
+        }
+      ],
+      "Kaffa": [
+        {
+          "threat_id": "drought_stress_alert",
+          "family": "drought_stress",
+          "name": "Drought Stress — established",
+          "severity": "alert",
+          "timeframe": "current",
+          "market_impact": "Sustained moisture deficit with visible canopy stress. Bean-fill risk building.",
+          "triggers": {
+            "vhi": 25.09,
+            "spei_3": -1.93
+          }
+        }
+      ],
+      "Harrar": [
+        {
+          "threat_id": "drought_stress_alert",
+          "family": "drought_stress",
+          "name": "Drought Stress — established",
+          "severity": "alert",
+          "timeframe": "current",
+          "market_impact": "Sustained moisture deficit with visible canopy stress. Bean-fill risk building.",
+          "triggers": {
+            "vhi": 34.8,
+            "spei_3": -1.51
+          }
+        }
+      ]
+    },
+    "vn": {
+      "Lam Dong": [
+        {
+          "threat_id": "drought_stress_watch",
+          "family": "drought_stress",
+          "name": "Vegetative Drought Stress — early",
+          "severity": "watch",
+          "timeframe": "current",
+          "market_impact": "Early canopy stress. Yield impact not locked in yet — monitor.",
+          "triggers": {
+            "vhi": 42.01,
+            "spei_3": -1.47,
+            "water_tbnn_pct": 0.0
           }
         }
       ]
     }
   },
   "summary": {
-    "total_alerts": 1,
+    "total_alerts": 11,
     "by_severity": {
-      "watch": 1
+      "watch": 4,
+      "alert": 7
     },
     "by_threat": {
-      "blossom_drop": 1
+      "blossom_drop": 1,
+      "drought_stress_watch": 3,
+      "drought_stress_alert": 7
     }
   },
   "state": {
     "colombia|Caldas|blossom_drop": {
       "first_seen": "2026-08-11",
-      "last_seen": "2026-08-12",
+      "last_seen": "2026-08-13",
       "active": true
-    },
-    "honduras|El Paraíso|drought_stress_watch": {
-      "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
     },
     "indonesia|Java|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13",
+      "active": true
     },
     "uganda|Masaka|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13"
     },
     "uganda|Masaka|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13",
+      "active": true
+    },
+    "uganda|Masaka|severe_defoliation": {
+      "first_seen": "2026-08-13",
+      "last_seen": "2026-08-13"
     },
     "uganda|Kasese|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13"
     },
     "uganda|Kasese|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13",
+      "active": true
     },
     "uganda|Mbale|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13"
     },
     "uganda|Mbale|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13",
+      "active": true
     },
     "uganda|Mbale|severe_defoliation": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13"
     },
     "uganda|Mt Elgon|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13"
     },
     "uganda|Mt Elgon|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13",
+      "active": true
     },
     "uganda|Mt Elgon|severe_defoliation": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13"
     },
     "ethiopia|Sidama/Yirgacheffe|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13"
     },
     "ethiopia|Sidama/Yirgacheffe|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
-    },
-    "ethiopia|Sidama/Yirgacheffe|severe_defoliation": {
-      "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13",
+      "active": true
     },
     "ethiopia|Jimma|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
-    },
-    "ethiopia|Jimma|drought_stress_alert": {
-      "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
-    },
-    "ethiopia|Limu|drought_stress_watch": {
-      "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13",
+      "active": true
     },
     "ethiopia|Kaffa|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13"
     },
     "ethiopia|Kaffa|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13",
+      "active": true
     },
     "ethiopia|Kaffa|severe_defoliation": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13"
     },
     "ethiopia|Harrar|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13"
     },
     "ethiopia|Harrar|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13",
+      "active": true
+    },
+    "ethiopia|Harrar|severe_defoliation": {
+      "first_seen": "2026-08-13",
+      "last_seen": "2026-08-13"
     },
     "vn|Lam Dong|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-12"
+      "last_seen": "2026-08-13",
+      "active": true
     }
   }
 }
