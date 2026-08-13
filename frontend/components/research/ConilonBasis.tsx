@@ -565,8 +565,8 @@ delivery   grading, allowances, and the T7/8 deliverable spec itself`}</Fml>
           <Highlight>
             <strong>Adopted.</strong> The CON T7 stack is now
             {" "}<Code>${fob.booked.fixed_usd_mt}/t fixed + {fob.booked.advalorem_share_pct}% of cargo value</Code> —
-            quality/outturn 4.0% (conservative against the measured {cepeaCccv?.mean_pct?.toFixed(2)}%, since part of
-            that gap is deal mix rather than grade), financing 0.5%, exporter margin 1.0%. That is
+            quality/outturn {cepeaCccv?.mean_pct?.toFixed(2)}% — the measured ladder itself — plus financing 0.5% and
+            exporter margin 1.0%. That is
             {" "}<strong>${fob.booked.live_usd_mt}/t at today&rsquo;s price</strong> against
             {" "}${fob.booked.previous_flat_usd_mt} before, and it re-rates every day instead of standing still. Every
             other origin was restated the same way — same form, unchanged level at its own reference price. The effect

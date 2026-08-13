@@ -1,6 +1,6 @@
 {
   "unit": "BRL/saca_60kg",
-  "updated": "2026-08-13T04:35:25.108767Z",
+  "updated": "2026-08-13T04:47:46.583026Z",
   "window": {
     "start": "2022-06-01",
     "end": "2026-08-12",
@@ -748,7 +748,7 @@
   "fob_crosscheck": {
     "available": true,
     "booked": {
-      "total_usd_mt": 227.5,
+      "total_usd_mt": 237.4,
       "reference_price": 3000.0,
       "lines": [
         {
@@ -781,9 +781,9 @@
         },
         {
           "line": "Quality preparation + outturn loss",
-          "pct": 4.0,
+          "pct": 4.33,
           "scales": true,
-          "note": "grade uplift to Class 1+ / screen 13+; measured ladder 4.33%"
+          "note": "grade uplift to Class 1+ / screen 13+ — the measured ladder itself"
         },
         {
           "line": "Financing",
@@ -799,11 +799,11 @@
         }
       ],
       "fixed_usd_mt": 62.5,
-      "advalorem_usd_mt": 165.0,
-      "advalorem_share_pct": 5.5,
+      "advalorem_usd_mt": 174.9,
+      "advalorem_share_pct": 5.83,
       "previous_flat_usd_mt": 200.0,
       "previous_quality_line": "$55-65 flat",
-      "live_usd_mt": 247.0
+      "live_usd_mt": 258.0
     },
     "base_usd_mt": {
       "latest": 3353.0,
@@ -858,19 +858,19 @@
     "price_aware_stack": [
       {
         "base": 2000,
-        "stack": 172.0
+        "stack": 179.0
       },
       {
         "base": 3000,
-        "stack": 228.0
+        "stack": 237.0
       },
       {
         "base": 3500,
-        "stack": 255.0
+        "stack": 267.0
       },
       {
         "base": 4500,
-        "stack": 310.0
+        "stack": 325.0
       }
     ]
   },

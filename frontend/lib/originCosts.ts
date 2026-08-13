@@ -22,8 +22,7 @@
 // directly: lifting Espírito Santo conilon from the tipo 7/8 the CON T7 quote
 // represents to a tipo 6 / screen-13+ export spec is worth ~4.3% of the price
 // (mean $135/MT, $176/MT at current levels) — not the flat $55–65 the stack used
-// to book. `quality` below is set to a deliberately conservative 4.0%, since
-// part of that measured 4.3% is deal-mix rather than pure grade.
+// to book. `quality` below is set to exactly that measured 4.33%.
 export interface FobbingModel {
   fixedUsdMt: number;      // haulage, inspection, terminal handling — no price scaling
   advaloremPct: number;    // quality/outturn + financing + exporter margin
@@ -38,11 +37,11 @@ export interface FobbingModel {
 // now re-rates daily with the price instead of standing still.
 //
 // CON T7 is the one deliberate level change — its quality line moves from a flat
-// $55–65 to 4.0% on the measured grade ladder (see the block comment above).
+// $55–65 to the measured 4.33% grade ladder (see the block comment above).
 export const FOBBING_MODEL: Record<string, FobbingModel> = {
   // fixed 62.5 = L1 12.5 + L2 22.5 + MAPA 10 + THC/docs 17.5
-  // 5.5% = quality/outturn 4.0 + financing 0.5 + exporter margin 1.0
-  "CON T7":  { fixedUsdMt: 62.5,  advaloremPct: 5.5, referenceUsdMt: 3000 },
+  // 5.83% = quality/outturn 4.33 + financing 0.5 + exporter margin 1.0
+  "CON T7":  { fixedUsdMt: 62.5,  advaloremPct: 5.83, referenceUsdMt: 3000 },
   // 1.29% = financing $10 + exporter margin $35, over the $3,500 reference
   "VN FAQ":  { fixedUsdMt: 55.0,  advaloremPct: 1.29, referenceUsdMt: 3500 },
   // 3.31% = drying shrinkage $37.5 + UCDA cess $30 + financing $18 + margin $37

@@ -57,7 +57,7 @@ SACA_PER_MT = 1000 / 60          # 16.667 sacas of 60 kg per tonne
 # research card's cost table, so the basis card can hold the booked stack
 # against what the market actually prices. Keep in sync when those change.
 BOOKED_FIXED_USD_MT = 62.5        # L1 12.5 + L2 22.5 + MAPA 10 + THC/docs 17.5
-BOOKED_ADVALOREM_PCT = 5.5        # quality/outturn 4.0 + financing 0.5 + margin 1.0
+BOOKED_ADVALOREM_PCT = 5.83       # quality/outturn 4.33 + financing 0.5 + margin 1.0
 BOOKED_REFERENCE_PRICE = 3000.0   # price level the headline figure is quoted at
 BOOKED_TOTAL_USD_MT = BOOKED_FIXED_USD_MT + BOOKED_ADVALOREM_PCT / 100 * BOOKED_REFERENCE_PRICE
 PREVIOUS_FLAT_USD_MT = 200.0      # what the stack booked before this study
@@ -67,8 +67,8 @@ BOOKED_STACK = [
     {"line": "L2 — mill to port", "lo": 20, "hi": 25, "scales": False, "note": "road haulage to Santos/Vitória"},
     {"line": "MAPA inspection & fumigation", "lo": 8, "hi": 12, "scales": False, "note": "mandatory checks"},
     {"line": "THC + port docs + B/L", "lo": 17, "hi": 18, "scales": False, "note": "terminal handling, export docs"},
-    {"line": "Quality preparation + outturn loss", "pct": 4.0, "scales": True,
-     "note": "grade uplift to Class 1+ / screen 13+; measured ladder 4.33%"},
+    {"line": "Quality preparation + outturn loss", "pct": 4.33, "scales": True,
+     "note": "grade uplift to Class 1+ / screen 13+ — the measured ladder itself"},
     {"line": "Financing", "pct": 0.5, "scales": True, "note": "cargo value × ~3-week float"},
     {"line": "Exporter margin", "pct": 1.0, "scales": True, "note": "competitive floor for origin traders"},
 ]
