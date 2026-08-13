@@ -12,6 +12,8 @@ export interface GradingDay { date: string; entries?: GradingEntry[] }
 // the extra cost to place FOB coffee into an exchange warehouse (port transport
 // + rent + loading-out + contract allowances) — the tenderable-parity stack from
 // the Contract-rules paper. Freight is the VN→N.Europe ocean leg (FBX base/21.6).
+import { fobbingUsdMt } from "@/lib/originCosts";
+
 export interface OriginParams {
   key: string;
   label: string;
@@ -19,15 +21,17 @@ export interface OriginParams {
   gradingOrigin: string;    // name as it appears in recent_activity.gradings
   fxTicker: string;         // fx_history pair key (local-per-USD); "" if already USD
   perKg: boolean;           // farmgate unit: true = per kg, false = per 60kg bag
-  fobbingUsd: number;       // origin→vessel, USD/MT
+  fobLabel: string;         // key into FOBBING_MODEL (lib/originCosts) — the
+                            // single source of truth for the fixed + ad-valorem
+                            // FOBbing model, shared with the backend exporter
 }
 
 export const PARITY_ADDERS_USD = 58;      // port transport 18 (EU avg DTHC+DO) + rent 0 (warehouse-financed) + loading-out 40 + import duty 0
 export const CONTAINER_MT = 21.6;
 
 export const PARITY_ORIGINS: OriginParams[] = [
-  { key: "vietnam", label: "Vietnam Robusta (FAQ G2)", farmgateKey: "vietnam", gradingOrigin: "Vietnam", fxTicker: "VND=X", perKg: true, fobbingUsd: 100 },
-  { key: "brazil", label: "Brazil Conilon", farmgateKey: "brazil_conilon", gradingOrigin: "Brazilian Conillon", fxTicker: "BRL=X", perKg: false, fobbingUsd: 200 },
+  { key: "vietnam", label: "Vietnam Robusta (FAQ G2)", farmgateKey: "vietnam", gradingOrigin: "Vietnam", fxTicker: "VND=X", perKg: true, fobLabel: "VN FAQ" },
+  { key: "brazil", label: "Brazil Conilon", farmgateKey: "brazil_conilon", gradingOrigin: "Brazilian Conillon", fxTicker: "BRL=X", perKg: false, fobLabel: "CON T7" },
 ];
 
 /** Convert a local farmgate quote to USD/MT using that day's FX (local-per-USD). */
@@ -71,7 +75,9 @@ export function buildCostStack(
     const farmUsd = params.fxTicker
       ? (fxRate != null ? farmgateToUsdMt(price, fxRate, params.perKg) : null)
       : farmgateToUsdMt(price, 1, params.perKg);
-    const atPort = farmUsd != null ? farmUsd + params.fobbingUsd : null;
+    // FOBbing is fixed + a share of cargo value, so it must be evaluated on
+    // THIS day's farmgate — not added as a constant (see lib/originCosts).
+    const atPort = farmUsd != null ? farmUsd + fobbingUsdMt(params.fobLabel, farmUsd) : null;
     const tendering = atPort != null ? atPort + freightUsdPerMt + PARITY_ADDERS_USD : null;
     out.push({ date, rc: rcVal, farmgate: farmUsd, atPort, tendering });
   }
@@ -190,10 +196,72 @@ export interface ParityRow {
   differential: number;
   // Cost-stack fields the pipeline persists (per-day, as-observed freight/FX/RC).
   farmgate_usd?: number;
+  fobbing?: number;         // fixed + pct% of that day's farmgate
   at_port?: number;
   freight?: number;
   tendering?: number;
   rc?: number;
+}
+
+/** Per-origin FOBbing model + adder breakdown, as published by the exporter. */
+export interface ParityOriginMeta {
+  fobbing_fixed?: number;
+  fobbing_pct?: number;
+  history: ParityRow[];
+}
+export interface ParityAdderLine { line: string; usd: number; note: string }
+
+/** One rung of the farmgate → tendering ladder, for the itemised table. */
+export interface LadderStep {
+  label: string;
+  amount: number | null;    // null for subtotal rows
+  running: number | null;   // running total after this step
+  note: string;
+  kind: "start" | "add" | "subtotal" | "total" | "market";
+}
+
+/** Expand the latest stored parity row into the full cost ladder.
+ *  Everything comes from what that row actually observed, so the table can
+ *  never drift from the chart above it. */
+export function buildLadder(
+  row: ParityRow,
+  fobFixed: number | undefined,
+  fobPct: number | undefined,
+  adders: ParityAdderLine[],
+  originLabel: string,
+): LadderStep[] {
+  const farm = row.farmgate_usd ?? 0;
+  const fobbing = row.fobbing ?? (row.at_port != null ? row.at_port - farm : 0);
+  const fixed = fobFixed ?? 0;
+  const adval = fobPct != null ? (fobPct / 100) * farm : Math.max(0, fobbing - fixed);
+  const steps: LadderStep[] = [];
+  let run = farm;
+  steps.push({ label: `Farmgate — ${originLabel}`, amount: farm, running: run,
+               kind: "start", note: "local quote converted at that day's FX" });
+  run += fixed;
+  steps.push({ label: "+ FOBbing, fixed block", amount: fixed, running: run, kind: "add",
+               note: "inland haulage, inspection, terminal handling — no price scaling" });
+  run += adval;
+  steps.push({ label: `+ FOBbing, ad valorem ${fobPct != null ? fobPct.toFixed(2) : "—"}%`,
+               amount: adval, running: run, kind: "add",
+               note: "quality prep / outturn loss, financing, exporter margin" });
+  steps.push({ label: "= At port (FOB)", amount: null, running: run, kind: "subtotal",
+               note: "the leg the ticker differential is quoted against" });
+  const fr = row.freight ?? 0;
+  run += fr;
+  steps.push({ label: "+ Ocean freight", amount: fr, running: run, kind: "add",
+               note: "route USD/FEU ÷ 21.6 MT, as observed that day" });
+  for (const a of adders) {
+    run += a.usd;
+    steps.push({ label: `+ ${a.line}`, amount: a.usd, running: run, kind: "add", note: a.note });
+  }
+  steps.push({ label: "= All-in tendering cost", amount: null, running: run, kind: "total",
+               note: "delivered into a certified warehouse, ready to tender" });
+  if (row.rc != null) {
+    steps.push({ label: "London RC (front)", amount: null, running: row.rc, kind: "market",
+                 note: "what the exchange pays for the same tonne" });
+  }
+  return steps;
 }
 export interface ParityInflowResult {
   ready: boolean;

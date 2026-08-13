@@ -785,7 +785,7 @@ function OriginLogistics() {
             <td className="pt-2 text-right font-mono text-slate-200">{FOBBING_MODEL["CON T7"].fixedUsdMt}</td>
             <td className="pt-2 text-slate-500 text-[11px]">does not scale with the coffee price</td>
           </tr>
-          <CostRow label="Quality preparation + outturn loss" cost="4.0%" note="Grade uplift to Class 1+ / screen 13+; measured ladder is 4.33%" />
+          <CostRow label="Quality preparation + outturn loss" cost="4.33%" note="Grade uplift to Class 1+ / screen 13+ — the measured ladder itself" />
           <CostRow label="Financing" cost="0.5%" note="Cargo value × ~3-week float" />
           <CostRow label="Exporter margin" cost="1.0%" note="The competitive floor for origin traders" />
           <tr className="border-t border-slate-700/70 font-semibold">
@@ -807,7 +807,7 @@ function OriginLogistics() {
         <P>
           <strong>Trader note:</strong> The quality component is the decisive variable, and it is the one that moves
           with the market. When Brazilian Conilon is already clean (cooperative members with processing equipment),
-          the real cost sits below the 4% booked here; when it arrives as naturals from smallholders, the outturn
+          the real cost sits below the 4.33% booked here; when it arrives as naturals from smallholders, the outturn
           loss pushes it above. The previous version of this stack booked a flat $200 — which was worth 12.3% of the
           coffee in 2022 and 3.5% at the 2025 highs. The split above holds the ratio steady instead, and every
           consumer of the number (ticker N-diff, tender parity, origin cost bands) now re-rates with the price.

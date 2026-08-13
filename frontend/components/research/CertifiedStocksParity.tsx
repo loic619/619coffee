@@ -7,8 +7,9 @@ import {
 import { cachedFetchStatic } from "@/lib/api";
 import {
   buildCostStack, buildLevelSeries, buildOriginInflow, eventStudy, parityInflowStudy,
-  PARITY_ORIGINS, CONTAINER_MT, PARITY_ADDERS_USD,
+  buildLadder, PARITY_ORIGINS, CONTAINER_MT, PARITY_ADDERS_USD,
   type DatedPrice, type Snapshot, type GradingDay, type ParityRow, type CostStackRow,
+  type ParityAdderLine,
 } from "@/lib/research/certStocksParity";
 
 // ── colours (fixed categorical order — never cycled) ────────────────────────
@@ -39,6 +40,8 @@ interface Loaded {
   gradings: GradingDay[];
   freightUsdMt: number;
   parity: Record<string, ParityRow[]>;
+  fobModel: Record<string, { fixed?: number; pct?: number }>;
+  adderLines: ParityAdderLine[];
 }
 
 export default function CertifiedStocksParity() {
@@ -58,7 +61,13 @@ export default function CertifiedStocksParity() {
           cachedFetchStatic<{ snapshots: Snapshot[] }>("/data/certified_stocks_robusta_deep_2025-2029.json").catch(() => ({ snapshots: [] })),
           cachedFetchStatic<{ snapshots: Snapshot[] }>("/data/certified_stocks_robusta_deep_2020-2024.json").catch(() => ({ snapshots: [] })),
           cachedFetchStatic<{ routes?: { id: string; rate: number }[] }>("/data/freight.json").catch(() => ({ routes: [] })),
-          cachedFetchStatic<{ origins?: Record<string, { history: ParityRow[] }> }>("/data/tender_parity_history.json").catch(() => ({ origins: {} as Record<string, { history: ParityRow[] }> })),
+          cachedFetchStatic<{
+            meta?: { adder_lines?: ParityAdderLine[] };
+            origins?: Record<string, { history: ParityRow[]; fobbing_fixed?: number; fobbing_pct?: number }>;
+          }>("/data/tender_parity_history.json").catch(() => ({
+            meta: undefined as { adder_lines?: ParityAdderLine[] } | undefined,
+            origins: {} as Record<string, { history: ParityRow[]; fobbing_fixed?: number; fobbing_pct?: number }>,
+          })),
         ]);
         const farmgate: Record<string, DatedPrice[]> = {};
         for (const o of PARITY_ORIGINS) farmgate[o.key] = (oph.origins?.[o.farmgateKey]?.history ?? []).map(d => ({ date: d.date, price: d.price }));
@@ -66,7 +75,12 @@ export default function CertifiedStocksParity() {
         for (const o of PARITY_ORIGINS) if (o.fxTicker) fxOut[o.fxTicker] = (fx.pairs?.[o.fxTicker]?.history ?? []).map(d => ({ date: d.date, price: d.close }));
         const vnEu = (freight.routes ?? []).find(r => r.id === "vn-eu");
         const parity: Record<string, ParityRow[]> = {};
-        for (const o of PARITY_ORIGINS) parity[o.key] = tp.origins?.[o.farmgateKey]?.history ?? [];
+        const fobModel: Record<string, { fixed?: number; pct?: number }> = {};
+        for (const o of PARITY_ORIGINS) {
+          const src = tp.origins?.[o.farmgateKey];
+          parity[o.key] = src?.history ?? [];
+          fobModel[o.key] = { fixed: src?.fobbing_fixed, pct: src?.fobbing_pct };
+        }
         if (alive) setData({
           rc: fph.robusta ?? [],
           farmgate, fx: fxOut,
@@ -74,7 +88,8 @@ export default function CertifiedStocksParity() {
           deep: [d20.snapshots ?? [], d25.snapshots ?? []],
           gradings: cs.recent_activity?.gradings ?? [],
           freightUsdMt: (vnEu ? vnEu.rate : 4741) / CONTAINER_MT,
-          parity,
+          parity, fobModel,
+          adderLines: tp.meta?.adder_lines ?? [],
         });
       } catch { if (alive) setErr(true); }
     })();
@@ -133,11 +148,23 @@ export default function CertifiedStocksParity() {
     return out;
   }, [inflow]);
 
+  // Itemised farmgate → tendering ladder for the latest stored parity row.
+  const fob = data?.fobModel?.[originKey] ?? {};
+  const ladderRow = useMemo(() => {
+    const rows = (data?.parity?.[originKey] ?? []).filter(r => r.farmgate_usd != null && r.tendering != null);
+    return rows.length ? rows[rows.length - 1] : null;
+  }, [data, originKey]);
+  const ladder = useMemo(
+    () => (ladderRow ? buildLadder(ladderRow, fob.fixed, fob.pct, data?.adderLines ?? [], origin.label) : null),
+    [ladderRow, fob.fixed, fob.pct, data, origin.label],
+  );
+
   if (err) return <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 text-xs text-red-400 max-w-4xl">Failed to load certified-stocks / price data.</div>;
   if (!data) return <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 text-xs text-slate-500 animate-pulse max-w-4xl">Loading certified-stocks &amp; parity data…</div>;
 
   const last = stack[stack.length - 1];
   const gapNow = last?.rc != null && last?.tendering != null ? last.rc - last.tendering : null;
+
   const totalOriginLots = inflow.reduce((s, d) => s + d.lots, 0);
 
   return (
@@ -203,6 +230,75 @@ export default function CertifiedStocksParity() {
         ) : "No overlapping price/farmgate data for this origin."}
         {stack.length > 0 && <>{" "}Window: {stack[0].date} → {stack[stack.length - 1].date} ({stack.length} days of farmgate).</>}
       </P>
+
+      {/* ── The itemised ladder behind the green line ─────────────────── */}
+      {ladder && (
+        <>
+          <H>1b · From farmgate to tendering cost — every rung</H>
+          <P>
+            The green line above is a total; this is what it is made of, for <strong>{origin.label}</strong> on the
+            latest session it prices ({ladderRow!.date}). Every figure is the one that row actually observed — the
+            same FX, freight and RC the chart uses — so the table can never drift from the line.
+          </P>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs my-2">
+              <thead>
+                <tr className="border-b border-slate-700 text-left text-[10px] uppercase tracking-wider text-slate-500">
+                  <th className="pb-1.5 pr-3">Step</th>
+                  <th className="pb-1.5 pr-3 text-right">USD/MT</th>
+                  <th className="pb-1.5 pr-3 text-right">Running</th>
+                  <th className="pb-1.5">What it covers</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ladder.map((st, i) => {
+                  const strong = st.kind === "subtotal" || st.kind === "total" || st.kind === "market";
+                  const tone = st.kind === "total" ? "text-emerald-400"
+                    : st.kind === "market" ? "text-amber-400"
+                    : st.kind === "subtotal" ? "text-violet-300"
+                    : st.kind === "start" ? "text-sky-300" : "text-slate-300";
+                  return (
+                    <tr key={i} className={`border-b border-slate-800 ${strong ? "font-semibold" : ""}`}>
+                      <td className={`py-1.5 pr-3 ${strong ? tone : "text-slate-300"}`}>{st.label}</td>
+                      <td className="py-1.5 pr-3 text-right font-mono text-slate-400">
+                        {st.amount == null ? "" : st.kind === "start" ? Math.round(st.amount).toLocaleString() : `+${Math.round(st.amount).toLocaleString()}`}
+                      </td>
+                      <td className={`py-1.5 pr-3 text-right font-mono ${strong ? tone : "text-slate-300"}`}>
+                        {st.running == null ? "" : Math.round(st.running).toLocaleString()}
+                      </td>
+                      <td className="py-1.5 text-slate-500 text-[11px]">{st.note}</td>
+                    </tr>
+                  );
+                })}
+                {ladderRow?.rc != null && ladderRow?.tendering != null && (
+                  <tr className="font-semibold">
+                    <td className="py-1.5 pr-3 text-slate-200">Parity gap (RC − tendering)</td>
+                    <td className="py-1.5 pr-3"></td>
+                    <td className={`py-1.5 pr-3 text-right font-mono ${ladderRow.rc >= ladderRow.tendering ? "text-emerald-400" : "text-red-400"}`}>
+                      {ladderRow.rc >= ladderRow.tendering ? "+" : "−"}{Math.abs(Math.round(ladderRow.rc - ladderRow.tendering)).toLocaleString()}
+                    </td>
+                    <td className="py-1.5 text-slate-500 text-[11px]">
+                      {ladderRow.rc >= ladderRow.tendering
+                        ? "the exchange pays more than it costs to deliver — tendering is economic"
+                        : "delivering costs more than the exchange pays — tendering is uneconomic today"}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <P className="text-[11px] text-slate-400">
+            <strong>Read the two FOBbing rungs together.</strong> The fixed block is inland haulage, inspection and
+            terminal handling — it does not care what coffee is worth. The ad-valorem rung is quality preparation and
+            outturn loss, financing and exporter margin, all of which scale with the cargo: for Brazil conilon that
+            share is <strong>{fob.pct != null ? `${fob.pct.toFixed(2)}%` : "—"}</strong>, of which
+            {" "}<strong>4.33%</strong> is the grade uplift measured directly in the conilon-basis research (tipo 7/8 →
+            tipo 6 · screen 13+). Because it is a percentage, the whole ladder re-rates with the market instead of
+            standing at a stale reference — and the history above was re-derived on that basis, so the green line is
+            consistent end to end rather than kinked at the date the model changed.
+          </P>
+        </>
+      )}
 
       {/* ── Chart B: gradings for this origin + who fills the exchange ── */}
       <H>2 · Gradings — who actually fills the exchange</H>

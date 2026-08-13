@@ -29,13 +29,21 @@ from scraper.validate_export import safe_write_json, validate_tender_parity
 
 OUT_PATH = OUT_DIR / "tender_parity_history.json"
 
-# Tenderable-parity adders beyond FOB + freight (USD/MT), per confirmed values:
-#   port transport 18  EU-average DTHC + DO from the Destination In-store cost research
-#                      (Bremen/Le Havre/Barcelona/Genoa/Trieste ≈ €16.3/t ≈ $18/t)
-#   rent            0  taken as financed by the chosen ICE-nominated warehouse
-#   loading-out    40  one-time load-out charge (OCA) when the buyer collects
-#   import duty     0  EU MFN tariff on green robusta (HS 0901.11) is 0%
-PARITY_ADDERS_USD = 58.0
+# Tenderable-parity adders beyond FOB + freight (USD/MT), per confirmed values.
+# Published in the payload's meta so the research card can itemise the ladder
+# instead of showing one opaque "+58".
+PARITY_ADDER_LINES = [
+    {"line": "Port transport (DTHC + DO)", "usd": 18.0,
+     "note": "EU average from the Destination In-store research — Bremen / Le Havre / "
+             "Barcelona / Genoa / Trieste ≈ €16.3/t"},
+    {"line": "Warehouse rent", "usd": 0.0,
+     "note": "taken as financed by the chosen ICE-nominated warehouse"},
+    {"line": "Loading-out charge (OCA)", "usd": 40.0,
+     "note": "one-time load-out paid when the buyer collects the coffee"},
+    {"line": "Import duty", "usd": 0.0,
+     "note": "EU MFN tariff on green robusta (HS 0901.11) is 0%"},
+]
+PARITY_ADDERS_USD = sum(line["usd"] for line in PARITY_ADDER_LINES)   # 58.0
 CONTAINER_MT      = 21.6
 LB_PER_MT         = 2204.62
 
@@ -50,14 +58,14 @@ LB_PER_MT         = 2204.62
 # terminal handling. Each origin's percentage is the sum of its own
 # value-scaling lines and its fixed block is set to reproduce the published
 # headline at that origin's reference price — a change of form, not level —
-# except Brazil conilon, whose quality component was re-based to 4.0% on the
-# measured tipo 7/8 → tipo 6 grade ladder (see exporters/conilon_basis.py).
-FOBBING_MODEL_VERSION = 3      # bump to re-derive stored rows under a new model
+# except Brazil conilon, whose quality component is the measured tipo 7/8 →
+# tipo 6 grade ladder itself, 4.33% (see exporters/conilon_basis.py).
+FOBBING_MODEL_VERSION = 4      # bump to re-derive stored rows under a new model
 ORIGINS = [
     {"key": "vietnam",        "name": "Vietnam Robusta FAQ G2", "fx": "VND=X", "unit": "per_kg",
      "fobbing_fixed": 55.0,  "fobbing_pct": 1.29, "freight_route": "vn-eu"},
     {"key": "brazil_conilon", "name": "Brazil Conilon T7",      "fx": "BRL=X", "unit": "per_saca_60kg",
-     "fobbing_fixed": 62.5,  "fobbing_pct": 5.5, "freight_route": "br-eu"},
+     "fobbing_fixed": 62.5,  "fobbing_pct": 5.83, "freight_route": "br-eu"},
     {"key": "uganda",         "name": "Uganda Robusta S15",     "fx": None,    "unit": "cents_lb",
      "fobbing_fixed": 142.5, "fobbing_pct": 3.31, "freight_route": "et-eu"},
 ]
@@ -232,8 +240,12 @@ def export_tender_parity() -> None:
         "generated_at": datetime.now(UTC).isoformat(),
         "meta": {
             "adders_usd": PARITY_ADDERS_USD, "container_mt": CONTAINER_MT,
+            "adder_lines": PARITY_ADDER_LINES,
+            "fobbing_model_version": FOBBING_MODEL_VERSION,
             "note": "differential = at_port − RC; parity_gap = RC − tendering (≥0 ⇒ tenderable). "
-                    "Append-only, as-observed; backfilled from origin_prices_history.",
+                    "Append-only, as-observed; backfilled from origin_prices_history. "
+                    "FOBbing = fobbing_fixed + fobbing_pct% × farmgate_usd, re-derived in "
+                    "place across the whole history whenever fobbing_model_version changes.",
         },
         "origins": out_origins,
     }
