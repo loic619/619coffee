@@ -22,6 +22,7 @@ freshness workflow (1.5) raises a Telegram alert on the next cycle.
 
 import sys
 from datetime import UTC, datetime
+from time import perf_counter
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -167,9 +168,11 @@ def _run_exporters(db, only_set: set[str] | None) -> dict[str, str]:
     health.json["exporters"] and the daily 1.5 freshness check.
     """
     published_at: dict[str, str] = {}
+    timings: list[tuple[str, float]] = []
     for key, fn in _exporters(db):
         if only_set is not None and key not in only_set:
             continue
+        t0 = perf_counter()
         try:
             fn()
         except Exception as e:  # noqa: BLE001 — isolate one topic from the rest
@@ -184,7 +187,21 @@ def _run_exporters(db, only_set: set[str] | None) -> dict[str, str]:
             except Exception:  # noqa: BLE001 — best-effort; loop must continue
                 pass
             continue
+        elapsed = perf_counter() - t0
+        timings.append((key, elapsed))
         published_at[key] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+    # Per-topic timing. The full nightly export spends ~5.5 min in this loop
+    # across ~37 topics and used to report nothing but success, so a single
+    # slow query was invisible. Slowest-first, with the total, so a regression
+    # shows up in the workflow log without extra tooling.
+    if timings:
+        total = sum(t for _k, t in timings)
+        slowest = sorted(timings, key=lambda kv: kv[1], reverse=True)[:8]
+        print(f"\n  timing: {len(timings)} topics in {total:.1f}s — slowest:")
+        for key, secs in slowest:
+            share = (secs / total * 100) if total else 0
+            print(f"    {secs:7.2f}s  {share:4.1f}%  {key}")
     return published_at
 
 
