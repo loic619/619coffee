@@ -19,9 +19,29 @@ const CACHE_MAX_ENTRIES = 50;
 // can't grow indefinitely on a long-lived tab.
 const _cache = new Map<string, { data: unknown; ts: number }>();
 
+// No API call may hang forever. On the server this runs during `next build`,
+// where a cold or unresponsive backend used to stall static generation past
+// Next's 60 s per-page limit and fail the whole deploy (/freight, the only
+// page that fetches at build time, has a committed static fallback that a
+// hang never reaches — `.catch()` only fires on rejection, not on a stall).
+// Short budget server-side so the build falls back fast; roomier in the
+// browser, where a slow response is still better than none.
+const API_TIMEOUT_MS = typeof window === "undefined" ? 6_000 : 20_000;
+
+function _timeoutSignal(): AbortSignal | undefined {
+  // Guard for runtimes without AbortSignal.timeout (Node <17.3 / older Safari):
+  // no signal is the previous behaviour, not a crash.
+  try {
+    return AbortSignal.timeout(API_TIMEOUT_MS);
+  } catch {
+    return undefined;
+  }
+}
+
 async function apiGet<T = unknown>(path: string, init?: RequestInit): Promise<T> {
   const url = `${API_URL}${path}`;
-  const res = await fetch(url, init);
+  // `...init` last so an explicit caller signal still wins.
+  const res = await fetch(url, { signal: _timeoutSignal(), ...init });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`Fetch failed: ${res.status} ${url} ${body.slice(0, 200)}`);
@@ -70,7 +90,7 @@ export async function cachedFetchStatic<T = unknown>(path: string): Promise<T> {
   if (existing) return existing as Promise<T>;
 
   const p = (async () => {
-    const res = await fetch(path);
+    const res = await fetch(path, { signal: _timeoutSignal() });
     if (!res.ok) throw new Error(`Fetch failed: ${res.status} ${path}`);
     const data = (await res.json()) as T;
     _cache.set(key, { data, ts: Date.now() });
