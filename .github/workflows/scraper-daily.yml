@@ -18,7 +18,7 @@ on:
   # Note: previously also triggered on `push` to main when backend/scraper/**
   # changed, so a scraper fix would auto-verify end-to-end. Removed 2026-06-12
   # because every overnight PR merge kicked off the full daily chain
-  # (scraper-daily → export-and-publish → morning-brief → vercel-redeploy →
+  # (scraper-daily → export-and-publish → vercel-redeploy →
   # ICE stocks) DURING the cron-job.org 01:07 UTC dispatch window, producing
   # duplicate cascades. On 2026-06-12 it actively broke the cascade: the
   # workflow_run payload from the push-triggered scraper arrived with
