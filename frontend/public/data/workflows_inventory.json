@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-14T05:08:00.370434Z",
-  "count": 72,
+  "generated_at": "2026-08-14T05:44:37.148646Z",
+  "count": 71,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -323,24 +323,6 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 3
-    },
-    {
-      "file": "morning-brief.yml",
-      "name": "1.6 \u2013 Morning Brief",
-      "triggers": [
-        "schedule",
-        "workflow_dispatch",
-        "workflow_run"
-      ],
-      "crons": [
-        "41 3 * * *"
-      ],
-      "workflow_run_deps": [
-        "1.16 \u2013 Open-Direction Prediction Log",
-        "1.4 \u2013 Export and Publish Static JSON"
-      ],
-      "concurrency_group": "morning-brief",
-      "timeout_minutes": 5
     },
     {
       "file": "open-direction-log.yml",
@@ -986,7 +968,8 @@
     ],
     "stale_curation": [
       "0.3",
-      "0.4"
+      "0.4",
+      "1.6"
     ],
     "non_workflow_entries": [
       "Acaphe poll",
@@ -999,6 +982,6 @@
       "various / manual"
     ],
     "uncovered_workflows_count": 5,
-    "stale_curation_count": 2
+    "stale_curation_count": 3
   }
 }
