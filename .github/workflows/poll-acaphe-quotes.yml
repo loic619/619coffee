@@ -31,6 +31,21 @@ on:
     # dispatches this workflow directly, so a throttled cron degrades to
     # at-most-hourly polls instead of a dead feed.
     - cron: '3,18,33,48 8-19 * * 1-5'
+    # VN physical window — 01:00-04:00 UTC = 08:00-11:00 Indochina time.
+    #
+    # acaphe publishes Dak Lak / HCM bid-offer and the R2 FOB differential
+    # only during the Vietnamese morning, and strips them from the page later
+    # in the day. The 08-19 UTC block above is anchored to the LONDON/NY
+    # futures sessions (15:00-02:00 ICT) and so never once overlapped that
+    # window — which is why the poller logs "VN data absent — injected
+    # last-known snapshot" on every tick, why the `if viet.get("bmt_bid")`
+    # branch that writes the DB has not fired since April, and why
+    # vietnam_last.json has been frozen at 2026-04-24.
+    #
+    # Futures fields are simply absent/stale on these early ticks; that is
+    # harmless — the poller writes whatever the payload contains and the
+    # 08-19 block remains the source of truth for RC/KC.
+    - cron: '7,22,37,52 1-4 * * 1-5'
   workflow_dispatch:
 
 # If a previous run is still in progress when the next cron tick fires,
@@ -102,4 +117,10 @@ jobs:
           DATABASE_URL:             ${{ secrets.DATABASE_URL }}
           ACAPHE_USER:              ${{ secrets.ACAPHE_USER }}
           ACAPHE_PASS:              ${{ secrets.ACAPHE_PASS }}
+          # The 01:00-04:00 UTC block chases the Vietnamese morning only. At that
+          # hour London and New York are shut, so the futures half of the payload
+          # is off-session: persist the VN snapshot but leave `live_quotes` alone.
+          # github.event.schedule is the literal cron string that fired, and is
+          # empty for workflow_dispatch (a manual run stays full-fidelity).
+          ACAPHE_VN_ONLY: ${{ github.event.schedule == '7,22,37,52 1-4 * * 1-5' }}
         run: python -m scraper.acaphe_poller --once

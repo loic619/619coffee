@@ -27,6 +27,17 @@ UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
 REDIS_KEY     = "live_quotes"
 DATABASE_URL  = os.environ.get("DATABASE_URL", "")
 
+# VN-only mode, set by the 01:00-04:00 UTC cron block in poll-acaphe-quotes.yml.
+# Those ticks exist purely to catch the Vietnamese morning, when acaphe publishes
+# the Dak Lak / HCM bid-offer and the R2 FOB differential. London and New York
+# are both closed at that hour, so the futures half of the payload is off-session
+# — pushing it to the `live_quotes` key would overwrite a good snapshot with an
+# out-of-session one and refresh its timestamp, which would also blind the 1.8
+# freshness checker to a genuinely dead feed. In this mode we still write the VN
+# snapshot (file + `vietnam_last` Redis key + DB) and skip only the live_quotes
+# push.
+VN_ONLY       = os.environ.get("ACAPHE_VN_ONLY", "").lower() in ("1", "true", "yes")
+
 
 def _push_redis(data: dict, key: str = REDIS_KEY) -> None:
     """Push data to Upstash Redis via REST API. Silent no-op if not configured."""
@@ -348,7 +359,10 @@ def fetch_and_save(cookies: dict) -> bool:
             except Exception as e:
                 print(f"[acaphe] VN inject failed: {e}")
 
-        _push_redis(data)
+        if VN_ONLY:
+            print("[acaphe] VN-only tick — skipping live_quotes push (futures off-session)")
+        else:
+            _push_redis(data)
 
         viet     = data.get("vietnam", {}) or {}
         bmt_bid  = viet.get("bmt_bid", "?")
