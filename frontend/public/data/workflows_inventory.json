@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T14:38:17.075805Z",
+  "generated_at": "2026-08-14T16:56:26.624759Z",
   "count": 71,
   "workflows": [
     {
@@ -890,12 +890,23 @@
       "name": "1.17 \u2013 Source Sentinel (monthly supply releases)",
       "triggers": [
         "schedule",
-        "workflow_dispatch"
+        "workflow_dispatch",
+        "workflow_run"
       ],
       "crons": [
         "37 6 * * *"
       ],
-      "workflow_run_deps": [],
+      "workflow_run_deps": [
+        "3.2 \u2013 Cecafe Export Scraper",
+        "0.10 \u2013 Colombia coffee exports (monthly \u00b7 DANE + FNC)",
+        "3.3.5 \u2013 Monthly Scraper \u00b7 Uganda UCDA Reports",
+        "3.3.1 \u2013 Monthly Scraper \u00b7 CONAB (Brazil supply)",
+        "3.3.2 \u2013 Monthly Scraper \u00b7 Brazil Fertilizer (Comex)",
+        "3.3.4 \u2013 Monthly Scraper \u00b7 Vietnam Coffee Exports",
+        "0.9 \u2013 VN Customs by-country (5X/5N) probe / backfill",
+        "3.4 \u2013 ECF stocks",
+        "1.4 \u2013 Export and Publish Static JSON"
+      ],
       "concurrency_group": "source-sentinel",
       "timeout_minutes": 10
     },
