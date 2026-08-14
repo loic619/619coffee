@@ -25,7 +25,6 @@ from scraper.sources import (
     cepea,
     futures,
     noticias_cafe,
-    origins,
     rss,
     technicals,
     uganda,
@@ -38,7 +37,6 @@ from scraper.sources import ethiopia as _ethiopia
 from scraper.sources import ethiopia_weather as _ethiopia_weather
 from scraper.sources import farmer_economics as _farmer_economics
 from scraper.sources import guatemala as _guatemala
-from scraper.sources import honduras as _honduras
 from scraper.sources import honduras_weather as _honduras_weather
 from scraper.sources import indonesia_weather as _indonesia_weather
 from scraper.sources import macro_cot as _macro_cot
@@ -53,7 +51,13 @@ from scraper.sources import uganda_weather as _uganda_weather
 # API and succeeds in the same second — ICF is B3's live coffee contract
 # code, ICA is not. So this was a duplicate pointed at a dead symbol, not
 # a market-hours problem.
-ALL_SOURCES = [barchart, brazil, vietnam, origins, technicals, futures, uganda, cepea, rss, noticias_cafe, b3_icf, _colombia, _honduras, _ethiopia, _guatemala]
+# origins (Alfabean) and honduras (IHCAFE) retired 2026-08-14: both loaded
+# their page fine and extracted nothing on every run — the price elements
+# they key on are gone from the markup. Neither had a live consumer left:
+# Alfabean fed no frontend component at all, and honduras_supply.json's
+# ihcafe_price was already null with the panel guarded behind it.
+# honduras_weather is a DIFFERENT module and is untouched.
+ALL_SOURCES = [barchart, brazil, vietnam, technicals, futures, uganda, cepea, rss, noticias_cafe, b3_icf, _colombia, _ethiopia, _guatemala]
 CONCURRENCY       = 3    # Max parallel Playwright pages
 SCRAPER_TIMEOUT   = 180  # Seconds before a single scraper is killed
 

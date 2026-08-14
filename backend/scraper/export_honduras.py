@@ -106,18 +106,15 @@ def export_honduras(db) -> None:
             print(f"  [honduras] PSD exports fallback error: {e}")
 
     # ── 2. IHCAFE price ───────────────────────────────────────────────────────
+    # The IHCAFE scraper was retired 2026-08-14 (ihcafe.hn still serves the page
+    # but no longer carries the reference-price element, so it returned 0 items
+    # on every run). Nothing writes source="IHCAFE" NewsItems any more, and the
+    # query here was unbounded by date — left in place it would eventually
+    # resurface a months-old price as if it were current. The key stays in the
+    # payload as null: HondurasFarmerEconomics.tsx already renders that block
+    # behind an `{ihcafe_price ? ...}` guard, and honduras_supply.json has been
+    # shipping null for it already.
     ihcafe_out = None
-    try:
-        ihcafe_item = (
-            db.query(NewsItem)
-            .filter(NewsItem.source == "IHCAFE")
-            .order_by(NewsItem.pub_date.desc())
-            .first()
-        )
-        if ihcafe_item:
-            ihcafe_out = json.loads(ihcafe_item.meta or "{}")
-    except Exception as e:
-        print(f"  [honduras] IHCAFE section error: {e}")
 
     # ── 3. Weather ────────────────────────────────────────────────────────────
     weather_out = None
