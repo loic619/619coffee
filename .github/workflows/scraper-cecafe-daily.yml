@@ -104,11 +104,24 @@ jobs:
               subprocess.run(['git', 'checkout', '--', 'frontend/public/data/cecafe_daily.json'])
           "
 
+      # Per-source Telegram text, fired the moment this data lands (replaces the
+      # retired 1.6 morning brief). Runs BEFORE the commit so the state file it
+      # writes is committed in the same step. Never fails the scraper.
+      - name: Telegram — brazil_daily
+        working-directory: backend
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          PYTHONPATH=. python -m scraper.topic_notify_daily brazil_daily || true
+
       - name: Commit updated JSON if changed
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add frontend/public/data/cecafe_daily.json
+          git add data/topic_notify_state.json \
+                   frontend/public/data/cecafe_daily.json
           git diff --cached --quiet \
             && echo "No changes." \
             || (git commit -m "data: cecafe daily registration $(date -u +%Y-%m-%d) [skip ci]" && git pull --rebase --autostash --strategy-option=theirs origin main && git push)

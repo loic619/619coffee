@@ -83,12 +83,25 @@ jobs:
             [ $attempt -lt 3 ] && echo "Attempt $attempt failed, retrying in 5m..." && sleep 300 || exit 1
           done
 
+      # Per-source Telegram text, fired the moment this data lands (replaces the
+      # retired 1.6 morning brief). Runs BEFORE the commit so the state file it
+      # writes is committed in the same step. Never fails the scraper.
+      - name: Telegram — weather
+        working-directory: backend
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          PYTHONPATH=. python -m scraper.topic_notify_daily weather || true
+
       - name: Commit updated weather data
         run: |
           set -e
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add backend/seed/weather_history/*.json frontend/public/data/*_weather.json
+          git add data/topic_notify_state.json \
+                   backend/seed/weather_history/*.json frontend/public/data/*_weather.json
           git add frontend/public/data/agronomic_alerts.json frontend/public/data/signals.json
           git add frontend/public/data/weather_analogs_brazil.json
           if git diff --cached --quiet; then

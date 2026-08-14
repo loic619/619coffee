@@ -143,12 +143,25 @@ jobs:
             [ $attempt -lt 3 ] && echo "Attempt $attempt failed, retrying in 5m..." && sleep 300 || exit 1
           done
 
+      # Per-source Telegram text, fired the moment this data lands (replaces the
+      # retired 1.6 morning brief). Runs BEFORE the commit so the state file it
+      # writes is committed in the same step. Never fails the scraper.
+      - name: Telegram — certified
+        working-directory: backend
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          PYTHONPATH=. python -m scraper.topic_notify_daily certified || true
+
       - name: Commit + push if changed
         if: ${{ steps.weekday.outputs.skip != 'true' && inputs.mode != 'smoke' }}
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add frontend/public/data/certified_stocks_arabica.json \
+          git add data/topic_notify_state.json \
+                   frontend/public/data/certified_stocks_arabica.json \
                   frontend/public/data/certified_stocks_robusta.json \
                   backend/scraper/sources/ice_certified_stocks/stock_report_hits.json
           git diff --cached --quiet \
