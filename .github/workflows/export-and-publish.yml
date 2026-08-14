@@ -36,7 +36,7 @@ jobs:
     # daily schedule/dispatch path is unaffected, and the 1.3-OI and 2.3-COT
     # workflow_run edges still re-publish (their event is 'workflow_run'/'schedule',
     # not 'push'; a push-origin 1.3 is already skipped upstream so its conclusion
-    # isn't 'success'). Morning Brief and the Vercel redeploy inherit this skip via
+    # isn't 'success'). The Vercel redeploy inherits this skip via
     # their own `conclusion == 'success'` guards.
     if: >-
       ${{ github.event_name != 'workflow_run'

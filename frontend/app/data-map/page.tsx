@@ -593,7 +593,7 @@ const ROWS: FlowMetadata[] = [
     resiliency: { onMissing: "Telegram ping per stale feed", debounce: "fires daily as long as stale (no cool-down yet)" },
   },
   {
-    wf: "1.6 Morning Brief", output: "reads signals/events/JSON", component: "—", visual: "Telegram brief (the message)",
+    wf: "Per-source Telegram alerts", output: "reads published JSON", component: "scraper/topic_notify_daily.py", visual: "Telegram — one text per source (1.6 brief retired 2026-08-14; /brief still on demand)",
     cadence: { recurrence: "03:00 UTC daily", trigger: "cron" },
     transport: { provider: "composite of all static JSONs", method: "compose-from-disk" },
     storage: { target: "Telegram channel post (not persisted)" },
@@ -885,7 +885,7 @@ const ROWS: FlowMetadata[] = [
     resiliency: { onMissing: "rules silently skip provinces with no underlying weather data instead of false-alarming" },
   },
   {
-    wf: "1.6 Morning Brief (Body-4)", output: "reads events.json", component: "telegram/handlers/brief.py::_upcoming_events_section",
+    wf: "Telegram week_ahead", output: "reads events.json", component: "telegram/handlers/brief.py::_upcoming_events_section",
     visual: "Telegram · 'Coming up · next 24h' block under weather",
     cadence: { recurrence: "03:00 UTC daily (piggybacks on 1.6)", trigger: "cron" },
     transport: { method: "compose-from-disk: events.json filtered to next 24h" },
@@ -893,7 +893,7 @@ const ROWS: FlowMetadata[] = [
     resiliency: { onMissing: "section omitted silently if events.json absent (same pattern as the rest of brief)" },
   },
   {
-    wf: "1.6 Morning Brief (Body-3)", output: "—", component: "telegram/handlers/brief.py::_weather_line",
+    wf: "Telegram weather", output: "—", component: "telegram/handlers/brief.py::_weather_line",
     visual: "Telegram · drought alerts gated by rain_mtd_mm < rain_hist_min (seasonal baseline)",
     cadence: { recurrence: "03:00 UTC daily (piggybacks on 1.6)", trigger: "cron" },
     transport: { method: "compose from weather_history + 30y seasonal baseline" },
