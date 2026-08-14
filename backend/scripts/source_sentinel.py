@@ -171,25 +171,6 @@ def probe_link_hash(pages: list[str], href_re: str, prev_signal: str | None,
     return changed, sig
 
 
-_SLUG_MONTHS = {
-    "january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6,
-    "july": 7, "august": 8, "september": 9, "october": 10, "november": 11, "december": 12,
-}
-_SLUG_PERIOD_RE = re.compile(
-    rf"-({'|'.join(_SLUG_MONTHS)})(?:-({'|'.join(_SLUG_MONTHS)}))?-(\d{{4}})$")
-
-
-def _period_from_slug(slug: str) -> str | None:
-    """'stocks-in-european-ports-may-june-2026' → '2026-06'. A month RANGE
-    resolves to its SECOND month — the data-as-of month ECF reports against
-    (same rule the ecf_stocks scraper uses)."""
-    m = _SLUG_PERIOD_RE.search(slug.lower())
-    if not m:
-        return None
-    second = m.group(2) or m.group(1)
-    return f"{int(m.group(3)):04d}-{_SLUG_MONTHS[second]:02d}"
-
-
 _ECF_PDF_RE = re.compile(
     r'https?://(?:www\.)?ecf-coffee\.org/wp-content/uploads/'
     r'(\d{4})/(\d{2})/[^"\'<>\s]*?(\d{4})-Stocks-European-Ports[^"\'<>\s]*?\.pdf',
@@ -255,44 +236,6 @@ def probe_pdf_upload(pages: list[str], post_re: str, data_file: str,
     print(f"    pdf_upload: site {site.rsplit('/uploads/', 1)[-1]}, "
           f"ingested {have.rsplit('/uploads/', 1)[-1] if have else 'none'}")
     return (have is None or _pdf_key(site) > _pdf_key(have)), site
-
-
-def probe_link_period(pages: list[str], href_re: str, data_file: str,
-                      headers: dict | None = None) -> tuple[bool, str | None]:
-    """ABSOLUTE publication check: the newest period advertised on the listing
-    page vs the newest period already in our data.
-
-    Unlike link_hash (a CHANGE detector that must first record a baseline and
-    is therefore blind to anything published before its first probe), this
-    answers "is there a published report we haven't ingested?" from scratch on
-    every run. Partial page failures are tolerated — missing a page can only
-    cost a detection, never invent one."""
-    slugs: set[str] = set()
-    reached = 0
-    for page in pages:
-        try:
-            r = requests.get(page, headers=headers or HEADERS, timeout=TIMEOUT)
-        except requests.RequestException as e:
-            print(f"    link_period: GET {page} failed ({type(e).__name__})")
-            continue
-        if r.status_code != 200:
-            print(f"    link_period: GET {page} → HTTP {r.status_code}")
-            continue
-        reached += 1
-        slugs.update(re.findall(href_re, r.text))
-    if not reached:
-        print("    link_period: no listing page reachable")
-        return False, None
-    periods = sorted(p for p in (_period_from_slug(s) for s in slugs) if p)
-    if not periods:
-        print(f"    link_period: {len(slugs)} slug(s) matched on {reached} page(s), none dated")
-        return False, None
-    site = periods[-1]
-    have = _months_in_json(ROOT / data_file)
-    latest_have = max(have) if have else None
-    print(f"    link_period: site latest {site} ({len(periods)} posts), "
-          f"ingested latest {latest_have or 'none'}")
-    return (latest_have is None or site > latest_have), site
 
 
 # ── Source catalogue ─────────────────────────────────────────────────────────
@@ -506,10 +449,6 @@ def build_verify(src: dict, pub_period: str, now_iso: str,
     elif spec["kind"] == "month_in_file":
         y, m = int(pub_period[:4]), int(pub_period[5:7])
         ey, em = _shift_month(y, m, -spec["lag"])
-        if spec.get("snap_even") and em % 2:
-            # Bi-monthly pairs end on even months; a release detected one
-            # month past its slot still carries the same pair's data.
-            ey, em = _shift_month(ey, em, -1)
         v["file"] = spec["file"]
         v["expected"] = f"{ey:04d}-{em:02d}"
     else:
@@ -619,9 +558,6 @@ def run(today: dt.date, dry: bool, verify_only: bool = False) -> int:
         elif src["kind"] == "pdf_upload":
             found, signal = probe_pdf_upload(src["pages"], src["post_re"],
                                              src["data_file"], src.get("headers"))
-        elif src["kind"] == "link_period":
-            found, signal = probe_link_period(src["pages"], src["href_re"],
-                                              src["data_file"], src.get("headers"))
         else:
             found, signal = probe_link_hash(src["pages"], src["href_re"], prev_signal,
                                             src.get("headers"))
@@ -668,12 +604,8 @@ def run(today: dt.date, dry: bool, verify_only: bool = False) -> int:
 
         state[key] = entry
 
-    if not dry:
-        STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-
     # ── Weekly topic texts (COT / freight) — their JSONs materialize via the
-    # export pipeline, so they ride this daily run, deduped once per new
+    # export pipeline, so they ride this run, deduped once per new
     # report/update through the state file.
     topics_state = state.setdefault("_topics", {})
     for topic, key_fn, compose in _topic_specs():
@@ -692,6 +624,13 @@ def run(today: dt.date, dry: bool, verify_only: bool = False) -> int:
                 topics_state[topic] = data_key
         except Exception as e:  # noqa: BLE001 — topics must never break the sweep
             print(f"[topic:{topic}] skipped ({e})")
+
+    # Written AFTER the topic loop: the state used to be flushed before it, so
+    # the per-topic dedup keys were computed and then thrown away — every run
+    # re-sent the COT/freight text for as long as its freshness gate held open.
+    if not dry:
+        STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     lines = []
     if fired:

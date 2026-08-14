@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ComposedChart, BarChart, Bar, Line, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -951,27 +951,38 @@ export default function WeatherCharts({
   }, [cropFrame, startMonthIdx]);
 
   // Per-slot calendar year on the displayed crop-year span.
-  const _slotYear = (dispIdx: number) =>
-    cropFrame.cropStartYear + Math.floor((startMonthIdx + dispIdx) / 12);
+  // useCallback: these three helpers are read inside the chart useMemos, so a
+  // fresh identity each render would either force needless recomputation or
+  // (as before) an incomplete dependency list.
+  const _slotYear = useCallback(
+    (dispIdx: number) => cropFrame.cropStartYear + Math.floor((startMonthIdx + dispIdx) / 12),
+    [cropFrame, startMonthIdx],
+  );
 
   // Rain lookup keyed by year: pulls monthly_actual_cur for cur_year,
   // monthly_last_year_rain for cur_year-1, monthly_two_years_ago_rain for
   // cur_year-2 (populated after the 30Y backfill workflow 0.9 ran). Null
   // otherwise — chart's connectNulls={false} hides the gap cleanly.
-  const _rainForYear = (p: WeatherData["provinces"][number], calIdx: number, yr: number): number | null => {
-    if (yr === cropFrame.curYear)      return p.monthly_actual_cur?.[calIdx] ?? null;
-    if (yr === cropFrame.lastYear)     return p.monthly_last_year_rain?.[calIdx] ?? null;
-    if (yr === cropFrame.lastYear - 1) return p.monthly_two_years_ago_rain?.[calIdx] ?? null;
-    return null;
-  };
+  const _rainForYear = useCallback(
+    (p: WeatherData["provinces"][number], calIdx: number, yr: number): number | null => {
+      if (yr === cropFrame.curYear)      return p.monthly_actual_cur?.[calIdx] ?? null;
+      if (yr === cropFrame.lastYear)     return p.monthly_last_year_rain?.[calIdx] ?? null;
+      if (yr === cropFrame.lastYear - 1) return p.monthly_two_years_ago_rain?.[calIdx] ?? null;
+      return null;
+    },
+    [cropFrame],
+  );
 
   // Temperature mirror of _rainForYear for the temperature chart.
-  const _tempForYear = (p: WeatherData["provinces"][number], calIdx: number, yr: number): number | null => {
-    if (yr === cropFrame.curYear)      return p.monthly_actual_temp_cur?.[calIdx] ?? null;
-    if (yr === cropFrame.lastYear)     return p.monthly_last_year_temp?.[calIdx] ?? null;
-    if (yr === cropFrame.lastYear - 1) return p.monthly_two_years_ago_temp?.[calIdx] ?? null;
-    return null;
-  };
+  const _tempForYear = useCallback(
+    (p: WeatherData["provinces"][number], calIdx: number, yr: number): number | null => {
+      if (yr === cropFrame.curYear)      return p.monthly_actual_temp_cur?.[calIdx] ?? null;
+      if (yr === cropFrame.lastYear)     return p.monthly_last_year_temp?.[calIdx] ?? null;
+      if (yr === cropFrame.lastYear - 1) return p.monthly_two_years_ago_temp?.[calIdx] ?? null;
+      return null;
+    },
+    [cropFrame],
+  );
 
   const monthlyRainData = useMemo<MonthlyRainRow[]>(() => {
     if (!data || !totalProd) return [];
@@ -1034,7 +1045,7 @@ export default function WeatherCharts({
       }
     }
     return rows;
-  }, [data, activeProv, totalProd, startMonthIdx]);
+  }, [data, activeProv, totalProd, startMonthIdx, _rainForYear, _slotYear]);
 
   const cumulativeData = useMemo<CumRainRow[]>(() => {
     if (!data || !totalProd) return [];
@@ -1185,7 +1196,7 @@ export default function WeatherCharts({
       }
     }
     return rows;
-  }, [data, activeProv, totalProd, startMonthIdx]);
+  }, [data, activeProv, totalProd, startMonthIdx, _rainForYear, _slotYear, cropFrame.cropStartYear]);
 
   const tempData = useMemo<TempRow[]>(() => {
     if (!totalProd) return [];
@@ -1208,7 +1219,7 @@ export default function WeatherCharts({
           : null,
       };
     });
-  }, [activeProv, totalProd, startMonthIdx]);
+  }, [activeProv, totalProd, startMonthIdx, _tempForYear, _slotYear]);
 
   const tempDomain = useMemo<[number, number]>(() => {
     const vals = tempData.flatMap((d) => [d.minTemp, d.maxTemp]).filter((v) => v > 0);

@@ -127,24 +127,6 @@ def test_shift_period_wraps_years():
     assert ss._shift_period("2025-12", 2) == "2026-02"
 
 
-def test_build_verify_snap_even_for_bimonthly():
-    spec = {"verify": {"kind": "month_in_file", "file": "x", "lag": 1, "snap_even": True}}
-    v_even = ss.build_verify(spec, "2026-07", "t")   # end-of-July release → June pair-end
-    v_odd = ss.build_verify(spec, "2026-08", "t")    # slipped to early August → July snaps to June
-    assert v_even["expected"] == "2026-06"
-    assert v_odd["expected"] == "2026-06"
-    # Year wrap: January detection → December (even) stays.
-    assert ss.build_verify(spec, "2026-01", "t")["expected"] == "2025-12"
-
-
-def test_period_from_slug_uses_second_month():
-    assert ss._period_from_slug("stocks-in-european-ports-may-june-2026") == "2026-06"
-    assert ss._period_from_slug("stocks-in-european-ports-november-december-2025") == "2025-12"
-    # Single-month slug: that month is the period.
-    assert ss._period_from_slug("stocks-in-european-ports-march-2024") == "2024-03"
-    assert ss._period_from_slug("some-other-post") is None
-
-
 class _FakeResp:
     def __init__(self, text="", status=200):
         self.text, self.status_code = text, status
@@ -158,46 +140,6 @@ def _stub_get(monkeypatch, pages: dict):
             raise r
         return r
     monkeypatch.setattr(ss.requests, "get", fake)
-
-
-def _listing(*slugs):
-    return "".join(f'<a href="https://www.ecf-coffee.org/{s}/">x</a>' for s in slugs)
-
-
-def test_link_period_fires_when_site_ahead_of_data(tmp_path, monkeypatch):
-    (tmp_path / "ecf.json").write_text(
-        '{"monthly": [{"period": "2026-02"}, {"period": "2026-04"}]}')
-    monkeypatch.setattr(ss, "ROOT", tmp_path)
-    _stub_get(monkeypatch, {"p1": _FakeResp(_listing(
-        "stocks-in-european-ports-march-april-2026",
-        "stocks-in-european-ports-may-june-2026"))})
-    href = r'href="https?://(?:www\.)?ecf-coffee\.org/(stocks-in-european-ports-[^/"?#]+)/?"'
-    found, signal = ss.probe_link_period(["p1"], href, "ecf.json")
-    assert found is True and signal == "2026-06"
-
-
-def test_link_period_quiet_when_data_is_current(tmp_path, monkeypatch):
-    (tmp_path / "ecf.json").write_text('{"monthly": [{"period": "2026-06"}]}')
-    monkeypatch.setattr(ss, "ROOT", tmp_path)
-    _stub_get(monkeypatch, {"p1": _FakeResp(_listing("stocks-in-european-ports-may-june-2026"))})
-    href = r'href="https?://(?:www\.)?ecf-coffee\.org/(stocks-in-european-ports-[^/"?#]+)/?"'
-    found, signal = ss.probe_link_period(["p1"], href, "ecf.json")
-    assert found is False and signal == "2026-06"
-
-
-def test_link_period_tolerates_a_dead_page_but_not_all(tmp_path, monkeypatch):
-    (tmp_path / "ecf.json").write_text('{"monthly": [{"period": "2026-04"}]}')
-    monkeypatch.setattr(ss, "ROOT", tmp_path)
-    href = r'href="https?://(?:www\.)?ecf-coffee\.org/(stocks-in-european-ports-[^/"?#]+)/?"'
-    # One page 404s, the other carries the new post → still detected.
-    _stub_get(monkeypatch, {
-        "dead": _FakeResp(status=404),
-        "live": _FakeResp(_listing("stocks-in-european-ports-may-june-2026")),
-    })
-    assert ss.probe_link_period(["dead", "live"], href, "ecf.json") == (True, "2026-06")
-    # Every page unreachable → no signal, and never a false positive.
-    _stub_get(monkeypatch, {"dead": ss.requests.RequestException("boom")})
-    assert ss.probe_link_period(["dead"], href, "ecf.json") == (False, None)
 
 
 _PDF_JUN = ("https://www.ecf-coffee.org/wp-content/uploads/2026/06/"
@@ -270,14 +212,6 @@ def test_build_verify_from_signal_carries_any_kind():
     assert ss.build_verify(src, "2026-08", "t", None) is None
 
 
-def test_build_verify_from_signal_uses_detected_period():
-    src = {"verify": {"kind": "month_in_file", "file": "ecf.json", "from_signal": True}}
-    v = ss.build_verify(src, "2026-08", "t", "2026-06")
-    assert v["expected"] == "2026-06" and v["file"] == "ecf.json"
-    # No signal → nothing to verify against.
-    assert ss.build_verify(src, "2026-08", "t", None) is None
-
-
 def test_months_in_json_reads_period_values(tmp_path, monkeypatch):
     f = tmp_path / "ecf.json"
     f.write_text('{"monthly": [{"period": "2026-04", "value_mt": 408956}]}')
@@ -344,3 +278,29 @@ def test_verify_only_closes_pending_checks_without_probing(tmp_path, monkeypatch
     # The probe-side state is untouched — a verify pass must not look like a sweep.
     assert written["cecafe"]["confirmed"] == "2026-07"
     assert written["cecafe"]["last_probe"] is None
+
+
+def test_topic_dedup_key_is_persisted(tmp_path, monkeypatch):
+    """The COT/freight text must be sent ONCE per new report. The state file
+    used to be flushed before the topic loop ran, so the dedup key never
+    reached disk and every run re-sent the same text while the composer's
+    freshness gate stayed open."""
+    import datetime as dt
+    (tmp_path / "data").mkdir()
+    (tmp_path / "data" / "source_sentinels.json").write_text("{}")
+    monkeypatch.setattr(ss, "ROOT", tmp_path)
+    monkeypatch.setattr(ss, "STATE_PATH", tmp_path / "data" / "source_sentinels.json")
+    monkeypatch.setattr(ss, "SOURCES", [])
+    sent = []
+    monkeypatch.setattr(ss, "telegram", lambda msg, dry: sent.append(msg))
+    monkeypatch.setattr(ss, "_topic_specs",
+                        lambda: [("cot", lambda: "2026-08-11", lambda now: "📊 COT text")])
+
+    ss.run(dt.date(2026, 8, 12), dry=False)
+    assert sent == ["📊 COT text"]
+    written = json.loads((tmp_path / "data" / "source_sentinels.json").read_text())
+    assert written["_topics"]["cot"] == "2026-08-11"
+
+    # Second run, same report → silent.
+    ss.run(dt.date(2026, 8, 12), dry=False)
+    assert len(sent) == 1

@@ -103,7 +103,9 @@ export default function AnnualTrendChart({ series, filteredSeries, typeFilter, i
       })
       .filter(r => (r.startYear as number) >= since);
     return { annualData: rows, projection: proj };
-  }, [activeSeries, series, since, isFiltered, typeFilter, activeKey, psdRows]);
+    // `series` is not listed: the memo reads only `activeSeries`, which is
+    // already derived from it (filteredSeries ?? series).
+  }, [activeSeries, since, isFiltered, typeFilter, activeKey, psdRows]);
 
   return (
     <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
