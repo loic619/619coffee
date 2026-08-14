@@ -4,6 +4,7 @@ probe inside the release window until the month is confirmed, and keep
 probing daily past the window — including across the month boundary — while
 a release is late."""
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -304,3 +305,42 @@ def test_vn5x_urls_mirror_2x_with_5x_stem():
     assert len(v) == 6
     assert v[0] == "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/8/1/2026-t7-5x(ta-sb).pdf"
     assert "2025-t12-5x" in ss._vn5x_urls(dt.date(2026, 1, 10))[0]  # year wrap
+
+
+def test_verify_only_closes_pending_checks_without_probing(tmp_path, monkeypatch):
+    """--verify-only runs after a scraper commits so the digest lands the same
+    day: it must close out a pending check but never probe or dispatch."""
+    import datetime as dt
+    (tmp_path / "data").mkdir()
+    (tmp_path / "out.json").write_text('{"series": [{"month": "2026-07"}]}')
+    state = {"cecafe": {
+        "confirmed": "2026-07", "signal": None, "last_probe": None, "last_found": None,
+        "verify": {"kind": "month_in_file", "file": "out.json", "expected": "2026-07",
+                   "dispatched_at": "2026-08-12T06:00:00+00:00", "status": "pending"},
+    }}
+    (tmp_path / "data" / "source_sentinels.json").write_text(json.dumps(state))
+    monkeypatch.setattr(ss, "ROOT", tmp_path)
+    monkeypatch.setattr(ss, "STATE_PATH", tmp_path / "data" / "source_sentinels.json")
+    monkeypatch.setattr(ss, "SOURCES", [{
+        "key": "cecafe", "label": "Cecafé monthly export report", "window_start": 1,
+        "kind": "head_month", "urls": lambda pub: ["http://x"],
+        "workflows": ["scraper-cecafe.yml"],
+        "verify": {"kind": "month_in_file", "file": "out.json", "lag": 1},
+    }])
+    monkeypatch.setattr(ss, "_topic_specs", lambda: [])
+
+    def _boom(*a, **k):
+        raise AssertionError("verify-only must not probe")
+    monkeypatch.setattr(ss, "probe_head_month", _boom)
+    dispatched, sent = [], []
+    monkeypatch.setattr(ss, "dispatch_workflow", lambda *a, **k: dispatched.append(a))
+    monkeypatch.setattr(ss, "telegram", lambda msg, dry: sent.append(msg))
+
+    assert ss.run(dt.date(2026, 8, 13), dry=False, verify_only=True) == 0
+    assert not dispatched
+    assert len(sent) == 1 and "ingestion check passed" in sent[0]
+    written = json.loads((tmp_path / "data" / "source_sentinels.json").read_text())
+    assert written["cecafe"]["verify"]["status"] == "ok"
+    # The probe-side state is untouched — a verify pass must not look like a sweep.
+    assert written["cecafe"]["confirmed"] == "2026-07"
+    assert written["cecafe"]["last_probe"] is None

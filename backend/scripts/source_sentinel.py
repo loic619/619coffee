@@ -551,7 +551,7 @@ def telegram(msg: str, dry: bool) -> None:
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
-def run(today: dt.date, dry: bool) -> int:
+def run(today: dt.date, dry: bool, verify_only: bool = False) -> int:
     state: dict = {}
     if STATE_PATH.exists():
         state = json.loads(STATE_PATH.read_text(encoding="utf-8"))
@@ -598,6 +598,14 @@ def run(today: dt.date, dry: bool) -> int:
                     print(f"[{key}] ingestion NOT verified after {VERIFY_DEADLINE_DAYS}d — alerting")
                 else:
                     print(f"[{key}] ingestion pending (dispatched {v['dispatched_at'][:10]})")
+
+        # --verify-only: this run exists purely to close the loop on an
+        # already-dispatched release the moment its data is committed, so the
+        # digest lands the same day instead of waiting for tomorrow's sweep.
+        # No probing, no dispatching — the mutated verify dict is already part
+        # of `state` (same object), so the status change persists.
+        if verify_only:
+            continue
 
         if not baseline and not should_probe(today.day, confirmed, expected, src["window_start"]):
             print(f"[{key}] idle (confirmed {confirmed}, window opens day {src['window_start']})")
@@ -695,7 +703,9 @@ def run(today: dt.date, dry: bool) -> int:
         lines.append("⚠️ needs a look →\n" + "\n".join(f"• {a}" for a in alerts))
     if lines:
         telegram("source sentinel:\n" + "\n".join(lines), dry)
-    print(f"[sentinel] done — {len(fired)} detected, {len(verified)} verified, {len(alerts)} alert(s).")
+    mode = "verify-only" if verify_only else "sweep"
+    print(f"[sentinel] done ({mode}) — {len(fired)} detected, {len(verified)} verified, "
+          f"{len(alerts)} alert(s).")
     return 0
 
 
@@ -751,8 +761,11 @@ def _days_past_window(today: dt.date, confirmed: str | None, window_start: int,
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="probe only: no state write, no dispatch, no telegram")
+    ap.add_argument("--verify-only", action="store_true",
+                    help="skip probing/dispatch; just close out pending ingestion checks "
+                         "(run after a scraper commits so its digest lands the same day)")
     args = ap.parse_args()
-    return run(dt.date.today(), args.dry_run)
+    return run(dt.date.today(), args.dry_run, args.verify_only)
 
 
 if __name__ == "__main__":

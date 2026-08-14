@@ -17,6 +17,26 @@ on:
   schedule:
     - cron: '37 6 * * *'
   workflow_dispatch:
+  # Same-day digests: the daily sweep DETECTS a release and dispatches its
+  # scraper, but the scraper commits its data after that sweep has finished —
+  # so the ingestion check (and the numbers that ride it) used to wait for the
+  # next morning. Every workflow that publishes data a sentinel source is
+  # verified against now re-triggers the sentinel in --verify-only mode, which
+  # closes out pending checks immediately without probing or dispatching.
+  workflow_run:
+    workflows:
+      - "3.2 – Cecafe Export Scraper"
+      - "0.10 – Colombia coffee exports (monthly · DANE + FNC)"
+      - "3.3.5 – Monthly Scraper · Uganda UCDA Reports"
+      - "3.3.1 – Monthly Scraper · CONAB (Brazil supply)"
+      - "3.3.2 – Monthly Scraper · Brazil Fertilizer (Comex)"
+      - "3.3.4 – Monthly Scraper · Vietnam Coffee Exports"
+      - "0.9 – VN Customs by-country (5X/5N) probe / backfill"
+      - "3.4 – ECF stocks"
+      # The export pipeline owns the published JSON for several sources
+      # (uganda_monthly, vn_export_by_destination, cot, freight).
+      - "1.4 – Export and Publish Static JSON"
+    types: [completed]
 
 # Own concurrency group — sharing a global data-commit group got the Uganda
 # monthly run silently CANCELLED once (GitHub keeps only one queued run per
@@ -35,7 +55,11 @@ jobs:
       actions: write      # workflow_dispatch the per-source scrapers
 
     steps:
+      # ref: main — a workflow_run fire checks out the SHA that triggered it,
+      # which predates the data commit we are here to verify.
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - uses: actions/setup-python@v5
         with:
@@ -49,7 +73,11 @@ jobs:
           GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python backend/scripts/source_sentinel.py
+        # A data-publish trigger only closes out pending ingestion checks; the
+        # scheduled/manual run does the full probe-and-dispatch sweep.
+        run: |
+          python backend/scripts/source_sentinel.py \
+            ${{ github.event_name == 'workflow_run' && '--verify-only' || '' }}
 
       - name: Commit sentinel state if changed
         run: |
