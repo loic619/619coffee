@@ -100,7 +100,6 @@ const COMMODITY_SPECS_FRONTEND: Record<string, { contract_unit: number }> = {
   lumber:        { contract_unit: 110000  },
   wheat_hrw:     { contract_unit: 5000    },
   platinum:      { contract_unit: 50      },
-  palladium:     { contract_unit: 100     },
 };
 
 // MacroCotEntry.sector values: "hard" | "grains" | "meats" | "softs" | "micros"

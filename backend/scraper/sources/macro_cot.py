@@ -315,13 +315,11 @@ COMMODITY_SPECS = {
     "price_source": "yfinance",
     "contract_unit": 50, "price_unit": "usd_per_oz", "currency": "USD",
   },
-  "palladium": {
-    "name": "Palladium", "sector": "hard", "exchange": "NYMEX",
-    "cftc_filter": "PALLADIUM - NEW YORK MERCANTILE EXCHANGE",
-    "ice_filter": None, "yfinance_ticker": "PA=F", "price_proxy": None,
-    "price_source": "yfinance",
-    "contract_unit": 100, "price_unit": "usd_per_oz", "currency": "USD",
-  },
+  # palladium removed 2026-08-14 (requested). Its 2026-07-21 close came in at
+  # 733.0 against ~1300 neighbours, so the poisoned-price healer flagged it and
+  # re-requested PA=F on every run — and yfinance answers that ticker with
+  # YFRateLimitError every time, so the heal could never converge. The retry was
+  # unbounded by design ("poisoned prices must keep retrying daily").
 }
 
 # ── CFTC / ICE column name constants (both files use the same disaggregated format) ──
