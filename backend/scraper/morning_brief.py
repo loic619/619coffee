@@ -69,19 +69,50 @@ def _futures_pub_date() -> date | None:
     return None
 
 
+def _open_call_ready(now: datetime) -> bool:
+    """True when quant_report.json carries an open-direction call FOR today's
+    session (the brief's headline line)."""
+    q = _load("quant_report.json")
+    od = (q or {}).get("open_direction") or {}
+    return bool(od.get("available")) and od.get("for_session") == now.date().isoformat()
+
+
 def _send_decision(now: datetime) -> tuple[bool, str]:
     """(should_send, reason). Gate the brief to the morning window + fresh data,
     with a fallback send once past _STALE_FALLBACK_H so it's never silently
-    skipped on a holiday or a stalled pipeline."""
+    skipped on a holiday or a stalled pipeline.
+
+    Two freshness conditions, both skip-and-wait:
+      * futures_chain carries the latest session's settle;
+      * on weekdays, the open-direction call is for TODAY's session.
+
+    The second exists because GitHub fires the 1.16 open-direction cron (03:07)
+    1.5–3h late in practice (observed 04:36–06:02 daily), while 1.4 Export-and-
+    Publish — the brief's other chained trigger — finishes earlier. Without the
+    gate, the 1.4-chained fire sent a call-less brief and burned the once-per-day
+    guard, so the later 1.16-chained fire was skipped and the call NEVER reached
+    Telegram (2026-08-14: "RC open call: pending"). Skipping with exit 75 leaves
+    the guard unburned so the 1.16 chain delivers the real brief. Weekends are
+    exempt — 1.16 doesn't run Sat/Sun, so there is no call to wait for.
+    """
     h = now.hour
     if not (_SEND_WINDOW_UTC[0] <= h < _SEND_WINDOW_UTC[1]):
         return False, f"outside send window {_SEND_WINDOW_UTC[0]:02d}-{_SEND_WINDOW_UTC[1]:02d} UTC (h={h})"
+
+    waiting: list[str] = []
     pub, exp = _futures_pub_date(), _expected_session(now)
-    if pub is not None and pub >= exp:
-        return True, f"fresh (futures {pub} >= expected {exp})"
+    if pub is None or pub < exp:
+        waiting.append(f"futures {pub} < expected {exp}")
+    if now.weekday() < 5 and not _open_call_ready(now):
+        waiting.append(f"open-direction call not yet published for {now.date()}")
+
+    if not waiting:
+        return True, f"fresh (futures {pub} >= expected {exp}; open call present)"
     if h >= _STALE_FALLBACK_H:
-        return True, f"stale (futures {pub} < expected {exp}) but past {_STALE_FALLBACK_H:02d}:00 fallback — sending anyway"
-    return False, f"stale (futures {pub} < expected {exp}) before {_STALE_FALLBACK_H:02d}:00 — waiting for fresh data"
+        return True, (f"waiting on [{'; '.join(waiting)}] but past "
+                      f"{_STALE_FALLBACK_H:02d}:00 fallback — sending anyway")
+    return False, (f"waiting on [{'; '.join(waiting)}] before "
+                   f"{_STALE_FALLBACK_H:02d}:00 — a later trigger will deliver it")
 
 
 # ── JSON loader (kept for backwards-compat with existing tests) ───────────────

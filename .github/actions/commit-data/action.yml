@@ -1,0 +1,61 @@
+name: "Commit data files"
+description: >
+  Stage, commit and push scraper output with retries. Pushing to main from a
+  data workflow fails for two transient reasons that must NOT lose a run's
+  work: a concurrent bot commit (non-fast-forward) and GitHub itself
+  (observed 2026-08-13: `remote: Internal Server Error` on push — the CPI run
+  had already fetched fresh BLS data, and the 500 threw it away). Each attempt
+  re-syncs with origin/main before pushing, so both cases resolve on retry.
+
+inputs:
+  files:
+    description: "Space- or newline-separated paths to stage (missing paths are skipped)"
+    required: true
+  message:
+    description: "Commit message"
+    required: true
+  attempts:
+    description: "Push attempts before failing the step"
+    required: false
+    default: "4"
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      env:
+        INPUT_FILES: ${{ inputs.files }}
+        INPUT_MESSAGE: ${{ inputs.message }}
+        INPUT_ATTEMPTS: ${{ inputs.attempts }}
+      run: |
+        set -uo pipefail
+        git config user.name  "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        staged=0
+        for f in $INPUT_FILES; do
+          if [ -f "$f" ]; then git add "$f" && staged=1; fi
+        done
+        if [ "$staged" -eq 0 ]; then echo "No target files present — nothing to commit."; exit 0; fi
+        if git diff --cached --quiet; then echo "No changes."; exit 0; fi
+
+        git commit -m "$INPUT_MESSAGE" || { echo "Commit failed"; exit 1; }
+
+        for attempt in $(seq 1 "$INPUT_ATTEMPTS"); do
+          # Re-sync first: another bot commit may have landed since checkout.
+          # --autostash keeps any unstaged noise out of the way; -X theirs keeps
+          # THIS run's freshly scraped values on conflicting data files.
+          git pull --rebase --autostash --strategy-option=theirs origin main || true
+          if git push; then
+            echo "Pushed on attempt $attempt."
+            exit 0
+          fi
+          if [ "$attempt" -lt "$INPUT_ATTEMPTS" ]; then
+            backoff=$((attempt * 15))
+            echo "Push attempt $attempt failed (transient?) — retrying in ${backoff}s..."
+            sleep "$backoff"
+          fi
+        done
+
+        echo "::error::Push failed after $INPUT_ATTEMPTS attempts — scraped data not persisted."
+        exit 1
