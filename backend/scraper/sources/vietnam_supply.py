@@ -311,16 +311,49 @@ def _parse_nso_xlsx(content: bytes, source_url: str) -> list[dict]:
     return out
 
 
+# nso.gov.vn is unreachable from GitHub runners (every connect times out —
+# likely geo/firewall). Because the walk is 3 years x 3 slug candidates, a
+# 30 s CONNECT timeout meant 9 x 30 s = 270 s burned per export run for a
+# source that contributed +0 months. Measured 2026-08-14: vietnam_supply was
+# 275 s of a 310 s export, i.e. 89% of the whole nightly job, and 1.4 runs
+# 5-10x/day. Two guards, both cheap:
+#   * connect timeout 8 s (a reachable host answers in <1 s; only a
+#     borderline-dead host needs 30) while the read timeout stays generous;
+#   * a per-process breaker — one connect-level failure means the HOST is
+#     unreachable, so every remaining year/slug is skipped instead of
+#     re-proving it 8 more times.
+# The source is NOT removed: a run where NSO answers works exactly as before,
+# and the breaker resets every process.
+_NSO_CONNECT_TIMEOUT_S = 8
+_NSO_READ_TIMEOUT_S = 30
+_nso_host_unreachable = False
+
+
 def _fetch_nso_year_page(year: int) -> str | None:
-    """Try each candidate slug for the year-archive page. Return HTML on success."""
+    """Try each candidate slug for the year-archive page. Return HTML on success.
+
+    Short-circuits the whole walk once the host proves unreachable — see the
+    breaker note above."""
+    global _nso_host_unreachable
+    if _nso_host_unreachable:
+        print(f"  [vn_exports][NSO] {year} index → skipped (host unreachable this run)")
+        return None
     for tpl in _NSO_YEAR_PAGE_TEMPLATES:
         url = tpl.format(year=year)
         try:
-            resp = requests.get(url, headers=_HEADERS, timeout=30)
+            resp = requests.get(url, headers=_HEADERS,
+                                timeout=(_NSO_CONNECT_TIMEOUT_S, _NSO_READ_TIMEOUT_S))
             print(f"  [vn_exports][NSO] {year} index → HTTP {resp.status_code} ({len(resp.content)}b) {url}")
             if resp.status_code == 200 and "xlsx" in resp.text.lower():
                 return resp.text
-        except Exception as e:
+        except (requests.ConnectionError, requests.Timeout) as e:
+            # Connect-level failure = the host is down/blocked for this run;
+            # the other slugs and years cannot possibly succeed.
+            _nso_host_unreachable = True
+            print(f"  [vn_exports][NSO] {year} index → {type(e).__name__} — "
+                  f"treating host as unreachable, skipping remaining NSO probes")
+            return None
+        except Exception as e:  # noqa: BLE001 — a per-URL parse issue, keep trying
             print(f"  [vn_exports][NSO] {year} index → {type(e).__name__}: {e}")
     return None
 
