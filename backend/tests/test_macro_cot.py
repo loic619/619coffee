@@ -48,6 +48,6 @@ def test_rough_rice_retired_and_replacements_present():
     assert "rough_rice" not in COMMODITY_SPECS
     assert COMMODITY_SPECS["wheat_hrw"]["cftc_filter"] == "WHEAT-HRW - CHICAGO BOARD OF TRADE"
     assert COMMODITY_SPECS["platinum"]["cftc_filter"] == "PLATINUM - NEW YORK MERCANTILE EXCHANGE"
-    assert COMMODITY_SPECS["palladium"]["cftc_filter"] == "PALLADIUM - NEW YORK MERCANTILE EXCHANGE"
+    assert "palladium" not in COMMODITY_SPECS  # removed 2026-08-14
     # HRW filter must never swallow SRW or Spring wheat rows
     assert COMMODITY_SPECS["wheat"]["cftc_filter"].startswith("WHEAT-SRW")

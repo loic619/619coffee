@@ -45,7 +45,6 @@ export const SECTOR_CONTRACTS: Record<SectorKey, { key: string; label: string; c
     { key: "silver",    label: "Silver",    color: "#cbd5e1" },
     { key: "copper",    label: "Copper",    color: "#ea580c" },
     { key: "platinum",  label: "Platinum",  color: "#5eead4" },
-    { key: "palladium", label: "Palladium", color: "#f0abfc" },
   ],
   grains: [
     { key: "corn",      label: "Corn",         color: "#facc15" },
