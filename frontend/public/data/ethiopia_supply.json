@@ -1,6 +1,6 @@
 {
   "country": "ethiopia",
-  "scraped_at": "2026-08-13T04:34:36.736155Z",
+  "scraped_at": "2026-08-14T04:32:57.826258Z",
   "exports": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-01",
@@ -351,7 +351,7 @@
     "grade": "All grades avg"
   },
   "weather": {
-    "scraped_at": "2026-08-13T03:45:17.253665Z",
+    "scraped_at": "2026-08-14T03:42:22.534993Z",
     "regions": [
       {
         "name": "Sidama/Yirgacheffe",
@@ -360,9 +360,9 @@
         "csi_60d": 0.094,
         "csi_30d_level": "LOW",
         "csi_60d_level": "LOW",
-        "rain_mtd_mm": 127.3,
-        "rain_hist_min": 30.8,
-        "rain_hist_max": 68.0
+        "rain_mtd_mm": 156.6,
+        "rain_hist_min": 32.5,
+        "rain_hist_max": 71.8
       },
       {
         "name": "Harrar",
@@ -401,7 +401,6 @@
       {
         "region": "Sidama/Yirgacheffe",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -466,6 +465,7 @@
           "L",
           "L",
           "L",
+          "M",
           "L",
           "L"
         ]
@@ -473,7 +473,6 @@
       {
         "region": "Harrar",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -535,6 +534,7 @@
           "M",
           "L",
           "-",
+          "L",
           "L",
           "M",
           "M",
@@ -545,7 +545,6 @@
       {
         "region": "Kaffa",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -609,7 +608,8 @@
           "M",
           "M",
           "M",
-          "L",
+          "M",
+          "M",
           "M",
           "M"
         ]
@@ -618,9 +618,9 @@
         "region": "Jimma",
         "days": [
           "-",
+          "L",
+          "L",
           "-",
-          "L",
-          "L",
           "-",
           "-",
           "-",
@@ -805,7 +805,7 @@
       }
     ],
     "historical_stat": "Neutral ENSO: near-average Ethiopia arabica output expected",
-    "last_updated": "2026-08-13"
+    "last_updated": "2026-08-14"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Jan",
