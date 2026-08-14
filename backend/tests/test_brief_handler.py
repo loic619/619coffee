@@ -211,6 +211,28 @@ def test_open_call_announces_itself_when_missing_or_stale(monkeypatch):
     assert "not available" in brief._open_direction_block(TODAY)
 
 
+def test_placeholder_is_off_for_the_standalone_alert(monkeypatch):
+    """The combined /brief digest reports 'no call yet' explicitly, but the
+    standalone open_call topic must stay SILENT — there, returning text is
+    what fires a Telegram push, so a placeholder would be a daily nag."""
+    from scraper import topic_notify_daily as tnd
+
+    for payload in (
+        {"available": False},
+        {"available": True, "for_session": "2026-05-29", "direction": "Bullish", "prob_up": 0.8},
+        {"available": True, "for_session": TODAY.isoformat(), "direction": None, "prob_up": None},
+    ):
+        _stub_quant(monkeypatch, _quant(open_direction=payload))
+        assert brief._open_direction_block(TODAY) is not None          # digest: says something
+        assert brief._open_direction_block(TODAY, placeholder=False) is None  # alert: silent
+        assert tnd.compose_open_call(NOW) is None
+    # A genuine call still fires the standalone alert.
+    _stub_quant(monkeypatch, _quant(open_direction={
+        "available": True, "for_session": TODAY.isoformat(),
+        "direction": "Bearish", "prob_up": 0.2768}))
+    assert "Bearish" in tnd.compose_open_call(NOW)
+
+
 def test_currency_index_level_move_and_drivers(monkeypatch):
     _stub_quant(monkeypatch, _quant(currency_index={
         "index_value": 106.694508, "daily_delta_pct": -0.022643, "zscore": 1.268627,

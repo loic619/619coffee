@@ -953,27 +953,35 @@ def _load_archive() -> dict | None:
     return None
 
 
-def _open_direction_block(today: date) -> str | None:
+def _open_direction_block(today: date, placeholder: bool = True) -> str | None:
     """One-liner from the pre-open overnight-gap model (03:00 UTC run).
 
-    The call is only valid FOR today's session — the brief chains on the 1.16
-    log workflow, so normally it is there. When it is missing or stale we say
-    so explicitly instead of rendering nothing: a silently absent prediction
-    is indistinguishable from "no view", and the brief is expected to carry
-    the call every day.
+    The call is only valid FOR today's session. `placeholder` decides what a
+    missing or stale payload renders:
+      True  — an explicit "pending"/"not available" status line. Right for a
+              COMBINED message (the /brief digest) that gets sent regardless:
+              a silently absent prediction reads as "no view".
+      False — None. Right for the STANDALONE open_call alert, where a return
+              value is what triggers a Telegram send: nobody wants a daily
+              push saying the prediction isn't ready.
+    A stale call is never rendered as if it were today's, either way.
     """
     q = load("quant_report.json")
     od = (q or {}).get("open_direction") or {}
     p_up = od.get("prob_up")
     direction = od.get("direction")
     if not od.get("available"):
-        return "🔮 RC open call: <b>not available</b> (model produced no call for this session)"
+        return ("🔮 RC open call: <b>not available</b> (model produced no call for this session)"
+                if placeholder else None)
     if od.get("for_session") != today.isoformat():
+        if not placeholder:
+            return None
         for_s = od.get("for_session") or "?"
         return (f"🔮 RC open call: <b>pending</b> — latest call is for {esc(str(for_s))}, "
                 f"not today's session")
     if p_up is None or direction is None:
-        return "🔮 RC open call: <b>not available</b> (incomplete model output)"
+        return ("🔮 RC open call: <b>not available</b> (incomplete model output)"
+                if placeholder else None)
     exp_usd = od.get("expected_gap_usd_mt")
     exp_s = (f" · exp. {'+' if exp_usd > 0 else ''}{exp_usd:,.0f}$/t"
              if isinstance(exp_usd, (int, float)) else "")

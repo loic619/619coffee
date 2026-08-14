@@ -83,7 +83,7 @@ def test_composers_return_none_when_data_absent(monkeypatch):
         def _upcoming_events_section(_n):
             return None
         @staticmethod
-        def _open_direction_block(_d):
+        def _open_direction_block(_d, placeholder=True):
             return None
     monkeypatch.setattr(t, "_brief", lambda: EmptyBrief)
     now = dt.datetime.now(dt.UTC)

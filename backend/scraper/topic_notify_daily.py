@@ -149,9 +149,13 @@ def compose_cci(now: dt.datetime) -> str | None:
 
 
 def compose_open_call(now: dt.datetime) -> str | None:
-    """The pre-open RC direction call, the moment 1.16 publishes it."""
+    """The pre-open RC direction call, the moment 1.16 publishes it.
+
+    placeholder=False: as a standalone alert, "no call yet" must stay silent —
+    returning text here is what fires a Telegram push.
+    """
     b = _brief()
-    return b._open_direction_block(now.date())
+    return b._open_direction_block(now.date(), placeholder=False)
 
 
 def compose_weather(now: dt.datetime) -> str | None:
