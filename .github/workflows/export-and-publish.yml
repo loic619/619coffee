@@ -87,17 +87,10 @@ jobs:
         if: steps.scope.outputs.signals == 'true'
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
 
       - name: Install Python dependencies
         working-directory: backend
         run: pip install -r scraper/requirements.txt pandas requests python-dotenv openpyxl
-
-      - name: Install frontend dev dependencies (for signal export)
-        if: steps.scope.outputs.signals == 'true'
-        working-directory: frontend
-        run: npm ci
 
       - name: Export static JSON files
         working-directory: backend
@@ -111,10 +104,19 @@ jobs:
             python -m scraper.export_static_json
           fi
 
+      # `export:signals` runs a PURE-TypeScript engine (frontend/lib/cot/*)
+      # whose import chain is entirely relative — it needs a TS loader and
+      # nothing else. This used to `npm ci` the whole app tree (776 MB /
+      # 468 packages, ~20 s + 6 s setup-node cache) to obtain one 12 MB tool,
+      # for a script that runs in ~1 s. npx fetches tsx into its own cache
+      # without touching the project's node_modules. Verified: identical
+      # signals.json (19 signals, scoreNY -4, scoreLDN 1) with no project
+      # install present. NOTE: `npm i --no-save tsx` does NOT work here — npm
+      # installs the full package.json tree alongside it.
       - name: Export rule-based COT signals (signals.json)
         if: steps.scope.outputs.signals == 'true'
         working-directory: frontend
-        run: npm run export:signals
+        run: npx --yes tsx@4.22.2 scripts/export-signals.mjs
 
       # Per-source Telegram text, fired the moment this data lands (replaces the
       # retired 1.6 morning brief). Runs BEFORE the commit so the state file it
