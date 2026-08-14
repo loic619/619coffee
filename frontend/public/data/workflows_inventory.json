@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T04:57:27.063654Z",
+  "generated_at": "2026-08-14T05:08:00.370434Z",
   "count": 72,
   "workflows": [
     {
@@ -353,7 +353,7 @@
         "7 3 * * 1-5"
       ],
       "workflow_run_deps": [],
-      "concurrency_group": "data-commit",
+      "concurrency_group": "open-direction",
       "timeout_minutes": 10
     },
     {
