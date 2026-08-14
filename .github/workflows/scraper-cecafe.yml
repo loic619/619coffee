@@ -6,8 +6,22 @@ on:
   # remains; the sentinel also verifies ingestion and alarms if a release is missed.
   workflow_dispatch:
 
+# Own lane — NOT the shared `data-commit` group.
+#
+# 25 workflows used to sit in that one group. GitHub's concurrency model only
+# protects the RUNNING member: `cancel-in-progress: false` keeps the in-progress
+# run alive, but the queue holds exactly ONE pending run, so whenever a third
+# member arrives the one already waiting is CANCELLED outright — its scraped
+# data thrown away before it ever ran. Observed 2026-08-14 on 1.3 Daily OI:
+# three cancelled runs in one morning, one of them killed after 31 minutes.
+# 1.16 hit the same thing and was given its own lane in August for exactly this
+# reason; this generalises that fix.
+#
+# Serialising the push is what the shared group was really buying, and that is
+# now handled properly by .github/actions/commit-data, which re-syncs with
+# origin/main and retries with backoff on every attempt.
 concurrency:
-  group: data-commit          # serialize all main-pushers
+  group: scraper-cecafe
   cancel-in-progress: false
 
 jobs:
