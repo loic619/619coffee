@@ -17,6 +17,8 @@ from datetime import date
 
 from bs4 import BeautifulSoup
 
+from scraper.utils.page_probe import probe_urls
+
 
 def _today() -> str:
     return date.today().isoformat()
@@ -76,17 +78,12 @@ async def run(page) -> list[dict]:
     results = []
 
     # 1. ECX price (Playwright — best-effort)
-    ecx_price = None
-    for url in _ECX_URLS:
-        try:
-            await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
-            await page.wait_for_timeout(3_000)
-            html = await page.content()
-            ecx_price = _extract_ecx_price(html)
-            if ecx_price:
-                break
-        except Exception as e:
-            print(f"[ethiopia] ECX {url} failed: {e}")
+    # ecx.com.et has been timing out from CI since ~2026-07-23; probe_urls stops
+    # after the first timeout instead of re-proving the dead host on all three
+    # candidates (was 3 x 30 s = 90 s per run, several runs a day, for nothing).
+    ecx_price = await probe_urls(
+        page, _ECX_URLS, _extract_ecx_price, tag="ethiopia/ECX", settle_ms=3_000,
+    )
 
     if ecx_price:
         results.append({

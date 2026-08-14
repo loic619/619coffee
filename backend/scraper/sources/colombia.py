@@ -13,6 +13,8 @@ import json
 import re
 from datetime import date
 
+from scraper.utils.page_probe import probe_urls
+
 
 def _today() -> str:
     return date.today().isoformat()
@@ -80,17 +82,11 @@ async def run(page) -> list[dict]:
     results = []
 
     # ── 1. FNC precio interno ────────────────────────────────────────────────
-    precio = None
-    for url in _FNC_URLS:
-        try:
-            await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
-            await page.wait_for_timeout(2_000)
-            html = await page.content()
-            precio = _extract_precio_interno(html)
-            if precio:
-                break
-        except Exception as e:
-            print(f"[colombia] FNC {url} failed: {e}")
+    # Working source (1 item/run) — same guard applied so a future FNC outage
+    # costs one timeout instead of one per candidate.
+    precio = await probe_urls(
+        page, _FNC_URLS, _extract_precio_interno, tag="colombia/FNC",
+    )
 
     if precio:
         results.append({

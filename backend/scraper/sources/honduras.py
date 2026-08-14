@@ -13,6 +13,8 @@ import json
 import re
 from datetime import date
 
+from scraper.utils.page_probe import probe_urls
+
 
 def _today() -> str:
     return date.today().isoformat()
@@ -66,17 +68,14 @@ async def run(page) -> list[dict]:
     results = []
 
     # ── 1. IHCAFE precio de referencia ────────────────────────────────────────
-    ihcafe_price = None
-    for url in _IHCAFE_URLS:
-        try:
-            await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
-            await page.wait_for_timeout(2_000)
-            html = await page.content()
-            ihcafe_price = _extract_ihcafe_price(html)
-            if ihcafe_price:
-                break
-        except Exception as e:
-            print(f"[honduras] IHCAFE {url} failed: {e}")
+    # NOTE: this returns 0 items in production (observed 2026-08-13/14) but with
+    # NO error logged — the pages load and _extract_ihcafe_price finds nothing.
+    # That is an extraction problem, not a reachability one, so probe_urls is
+    # here for the shared timeout guard; it also now logs the silent
+    # "loaded but no value extracted" case that hid this.
+    ihcafe_price = await probe_urls(
+        page, _IHCAFE_URLS, _extract_ihcafe_price, tag="honduras/IHCAFE",
+    )
 
     if ihcafe_price:
         results.append({
