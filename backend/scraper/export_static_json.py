@@ -22,8 +22,8 @@ freshness workflow (1.5) raises a Telegram alert on the next cycle.
 
 import sys
 from datetime import UTC, datetime
-from time import perf_counter
 from pathlib import Path
+from time import perf_counter
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))

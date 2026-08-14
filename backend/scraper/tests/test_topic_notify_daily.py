@@ -5,6 +5,7 @@ completes — several times a day for 1.4 Export-and-Publish — so an alert mus
 send only when its numbers actually changed, never on every trigger.
 """
 import datetime as dt
+import sys
 
 import pytest
 
@@ -95,5 +96,5 @@ def test_a_broken_composer_never_fails_the_scraper(monkeypatch, state):
     def boom(_now):
         raise RuntimeError("upstream shape changed")
     monkeypatch.setitem(t.TOPICS, "prices", boom)
-    monkeypatch.setattr(sys := __import__("sys"), "argv", ["x", "prices"])
+    monkeypatch.setattr(sys, "argv", ["x", "prices"])
     assert t.main() == 0
