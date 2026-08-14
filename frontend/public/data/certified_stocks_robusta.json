@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-13T21:47:40+00:00",
-  "as_of": "2026-08-13",
+  "generated_at": "2026-08-14T21:44:03+00:00",
+  "as_of": "2026-08-14",
   "snapshots": [
     {
       "date": "2025-05-28",
@@ -5959,16 +5959,42 @@
         "ROT": 0,
         "TRI": 0
       }
+    },
+    {
+      "date": "2026-08-14",
+      "cut_off_date": "2026-08-13",
+      "total_lots_certified": 4537,
+      "total_bags_60kg_equivalent": 756167,
+      "non_tend_lots": 2,
+      "suspended_lots": 0,
+      "lots_graded_today": 0,
+      "lots_sold_today": 0,
+      "lots_bought_today": 0,
+      "tenders_today": 0,
+      "by_port_lots": {
+        "ANT": 3106,
+        "LON": 1424,
+        "FEL": 6,
+        "BAR": 1,
+        "AMS": 0,
+        "BRE": 0,
+        "HAM": 0,
+        "LEH": 0,
+        "LIV": 0,
+        "NOR": 0,
+        "ROT": 0,
+        "TRI": 0
+      }
     }
   ],
   "latest_detail": {
     "stock_report": {
-      "cut_off_date": "2026-08-12",
+      "cut_off_date": "2026-08-13",
       "ports": [
         {
           "port_id": "ANT",
           "port_name": "Antwerp",
-          "with_val_cert": 3082,
+          "with_val_cert": 3106,
           "non_tend": 2,
           "suspended": 0
         },
@@ -5989,7 +6015,7 @@
         {
           "port_id": "BAR",
           "port_name": "Barcelona",
-          "with_val_cert": 2,
+          "with_val_cert": 1,
           "non_tend": 0,
           "suspended": 0
         },
@@ -6051,12 +6077,12 @@
         }
       ],
       "grand_total": {
-        "with_val_cert": 4514,
+        "with_val_cert": 4537,
         "non_tend": 2,
         "suspended": 0
       }
     },
-    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260813_103038.csv"
+    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260814_103106.csv"
   },
   "recent_activity": {
     "gradings": [
