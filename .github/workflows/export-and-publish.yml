@@ -116,6 +116,20 @@ jobs:
         working-directory: frontend
         run: npm run export:signals
 
+      # Per-source Telegram text, fired the moment this data lands (replaces the
+      # retired 1.6 morning brief). Runs BEFORE the commit so the state file it
+      # writes is committed in the same step. Never fails the scraper.
+      - name: Telegram — prices, origin_prices, week_ahead
+        working-directory: backend
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          PYTHONPATH=. python -m scraper.topic_notify_daily prices || true
+          PYTHONPATH=. python -m scraper.topic_notify_daily origin_prices || true
+          PYTHONPATH=. python -m scraper.topic_notify_daily week_ahead || true
+
       - name: Commit updated static JSON if changed
         run: |
           set -e
@@ -123,7 +137,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           # NOTE: oi_history.json is intentionally NOT staged here — it is
           # owned and committed by the Daily OI Snapshot workflow (1.3).
-          git add \
+          git add data/topic_notify_state.json \
+                   \
                   frontend/public/data/futures_chain.json \
                   frontend/public/data/futures_price_history.json \
                   frontend/public/data/oi_fnd_chart.json \

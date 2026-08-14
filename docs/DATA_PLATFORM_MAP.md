@@ -140,10 +140,17 @@ flowchart TD
 | 1.2 | Freight | 02:00 daily | rates | DB |
 | 1.4 | **Export & Publish** | 01:30 daily + on-2.3 | *(reads DB + archive)* | ~17 static JSON + signals |
 | 1.5 | Check Scrapers Fresh | 07:00 daily | *(reads health.json)* | Telegram |
-| 1.6 | Morning Brief | chained on 1.16 (fallback 03:41) | *(reads JSON incl. the pre-open RC call)* | Telegram |
+| ~~1.6~~ | ~~Morning Brief~~ | **retired 2026-08-14** | replaced by per-source alerts below; `/brief` still works on demand | — |
+| — | **Per-source Telegram alerts** (`topic_notify_daily.py`) | chained on each producing workflow | one short text per source, sent only when its numbers change | Telegram |
+| | ↳ `prices`, `origin_prices`, `week_ahead` | after 1.4 Export-and-Publish | RC/KC futures · origin basis · upcoming events | |
+| | ↳ `certified` | after ICE certified stocks | NY + London stocks/gradings | |
+| | ↳ `brazil_daily` | after 1.7 Cecafé daily | Brazil registrations + export pace | |
+| | ↳ `cci` | after 1.9 Quant CCI | Coffee Currency Index + z-score | |
+| | ↳ `open_call` | after 1.16 Open-Direction | the pre-open RC call | |
+| | ↳ `weather` | after 1.10 Weather Fetch | frost/rain/VHI per origin | |
 | 1.7 | Cecafe Daily | 09:00 daily | BR registrations | `cecafe_daily.json` (also pings Vercel deploy hook¹ to publish the day's `[skip ci]` data commits) |
 | 1.9 | Quant CCI | 21:30 Mon-Fri | FX + Robusta factors | `quant_report.json`+`fx_history.json` |
-| 1.16 | Open-Direction Log | 03:00 Mon-Fri (pre-open) | overnight-gap model (kc_after + days_since_roll [+ cci_overnight]) | `open_direction_history.json` + `quant_report.json (open_direction)` + `fx_intraday_snapshots.json`; brief (1.6) chains on completion |
+| 1.16 | Open-Direction Log | 03:07 Mon-Fri (pre-open; own concurrency lane) | overnight-gap model (kc_after + days_since_roll [+ cci_overnight]) | `open_direction_history.json` + `quant_report.json (open_direction)` + `fx_intraday_snapshots.json`; fires the `open_call` Telegram text |
 | **1.10** | **Weather Fetch & Accumulate** | 05:40 daily | per-origin rain+temp, Open-Meteo **forecast** API (`api.open-meteo.com`); **independent of 1.4** | `weather_history/{origin}.json` (accumulator) → rebuilds `{origin}_weather.json` ×6 |
 | Acaphe | Live Quotes Poll | every 15m | live quotes | `acaphe_live.json` |
 | 2.2 | Commodity Prices | Tue 22:55 | all-commodity prices | DB `commodity_prices` |

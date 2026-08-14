@@ -67,6 +67,16 @@ jobs:
         working-directory: backend
         run: python -m scraper.quant_model.open_direction_log
 
+      # The pre-open call as its own Telegram text, the moment it exists
+      # (replaces the retired 1.6 brief, which had to wait for this job).
+      - name: Telegram — open_call
+        working-directory: backend
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: PYTHONPATH=. python -m scraper.topic_notify_daily open_call || true
+
       - name: Commit updated history if changed
         uses: ./.github/actions/commit-data
         with:
@@ -76,6 +86,7 @@ jobs:
             frontend/public/data/fx_intraday_snapshots.json
             data/brent_intraday_anchors.json
             frontend/public/data/open_direction_wf_analysis.json
+            data/topic_notify_state.json
           message: "data: open-direction prediction log [skip ci]"
 
       - name: Notify on failure
