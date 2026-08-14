@@ -228,18 +228,75 @@
       }
     ]
   },
-  "scraped_at": "2026-08-14T21:50:16.978546+00:00",
+  "scraped_at": "2026-08-14T21:50:52.099677Z",
   "sentiment": {
     "available": true,
-    "scraped_at": "2026-08-13T22:12:00.876383Z",
+    "scraped_at": "2026-08-14T21:50:51.147580Z",
     "overall_sentiment": "Neutral",
-    "overall_confidence": 89.7,
-    "net_index": 13.6,
-    "bull_count": 4,
+    "overall_confidence": 86.5,
+    "net_index": 18.9,
+    "bull_count": 6,
     "bear_count": 1,
-    "neutral_count": 16,
-    "total": 21,
+    "neutral_count": 17,
+    "total": 24,
     "items": [
+      {
+        "headline": "Retomada do fluxo de caf\u00e9 da Col\u00f4mbia pode levar semanas",
+        "source": "Not\u00edcias Agr\u00edcolas",
+        "sentiment": "Bullish",
+        "confidence": 82.0,
+        "tags": [
+          "noticias_agricolas",
+          "cafe"
+        ]
+      },
+      {
+        "headline": "Peru\u2019s Specialty Coffee Sector Enters A New Era, Says New Harvest Guide",
+        "source": "Sprudge",
+        "sentiment": "Neutral",
+        "confidence": 75.0,
+        "tags": [
+          "sprudge"
+        ]
+      },
+      {
+        "headline": "Caf\u00e9 ganha for\u00e7a em NY com incertezas sobre a oferta, mas fecha com estabilidade a 6\u00aa feira",
+        "source": "Not\u00edcias Agr\u00edcolas",
+        "sentiment": "Bullish",
+        "confidence": 88.0,
+        "tags": [
+          "noticias_agricolas",
+          "cafe"
+        ]
+      },
+      {
+        "headline": "Pack Katisomsakul of Newbery Street Coffee Roasters: The Sprudge Twenty Interview",
+        "source": "Sprudge",
+        "sentiment": "Neutral",
+        "confidence": 95.0,
+        "tags": [
+          "sprudge"
+        ]
+      },
+      {
+        "headline": "Projeto Corredores Arborizados amplia iniciativas em cafeicultura regenerativa da Expocacer",
+        "source": "Not\u00edcias Agr\u00edcolas",
+        "sentiment": "Neutral",
+        "confidence": 70.0,
+        "tags": [
+          "noticias_agricolas",
+          "cafe"
+        ]
+      },
+      {
+        "headline": "A Magnitude 7.4 Earthquake In Colombia Has Halted Most Coffee Exports",
+        "source": "Sprudge",
+        "sentiment": "Bullish",
+        "confidence": 98.0,
+        "tags": [
+          "sprudge"
+        ]
+      },
       {
         "headline": "Coffee Design: OPBeans From Portland Coffee Roasters",
         "source": "Sprudge",
@@ -262,7 +319,7 @@
         "headline": "Caf\u00e9 fecha em alta em Nova York ainda refletindo preocupa\u00e7\u00f5es com a Col\u00f4mbia; pre\u00e7os sobem tamb\u00e9m no BR",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
-        "confidence": 90.0,
+        "confidence": 92.0,
         "tags": [
           "noticias_agricolas",
           "cafe"
@@ -272,7 +329,7 @@
         "headline": "The Crown Announces Third Annual \u201cDevelopment Stage\u201d \u2013 A Multi-Day Coffee Symposium",
         "source": "Sprudge",
         "sentiment": "Neutral",
-        "confidence": 90.0,
+        "confidence": 95.0,
         "tags": [
           "sprudge"
         ]
@@ -309,7 +366,7 @@
         "headline": "Caf\u00e9/Cepea: Fim da colheita direciona aten\u00e7\u00e3o \u00e0 safra 2027/28",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
-        "confidence": 85.0,
+        "confidence": 80.0,
         "tags": [
           "noticias_agricolas",
           "cafe"
@@ -319,7 +376,7 @@
         "headline": "Exporta\u00e7\u00e3o de caf\u00e9 do Brasil sobe 9,9% em julho, para 3 milh\u00f5es de sacas",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bearish",
-        "confidence": 80.0,
+        "confidence": 90.0,
         "tags": [
           "noticias_agricolas",
           "cafe"
@@ -339,7 +396,7 @@
         "headline": "\u00c1reas de caf\u00e9 na Col\u00f4mbia s\u00e3o afetadas por terremoto e parte das opera\u00e7\u00f5es est\u00e3o temporariamente suspensas",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
-        "confidence": 95.0,
+        "confidence": 98.0,
         "tags": [
           "noticias_agricolas",
           "cafe"
@@ -367,7 +424,7 @@
         "headline": "Caf\u00e9 fecha est\u00e1vel em NY nesta 2\u00aa feira (10) e neg\u00f3cios no Brasil permanecem restritos",
         "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
-        "confidence": 90.0,
+        "confidence": 80.0,
         "tags": [
           "noticias_agricolas",
           "cafe"
@@ -377,7 +434,7 @@
         "headline": "In Copenhagen, A New Crop Of Coffee Roasters Serves The City\u2019s Scene",
         "source": "Sprudge",
         "sentiment": "Neutral",
-        "confidence": 90.0,
+        "confidence": 75.0,
         "tags": [
           "sprudge"
         ]
@@ -409,100 +466,71 @@
         "tags": [
           "sprudge"
         ]
-      },
-      {
-        "headline": "Caf\u00e9 dispara em NY e fecha nas m\u00e1ximas em uma semana com temor sobre oferta e qualidade no BR",
-        "source": "Not\u00edcias Agr\u00edcolas",
-        "sentiment": "Bullish",
-        "confidence": 95.0,
-        "tags": [
-          "noticias_agricolas",
-          "cafe"
-        ]
-      },
-      {
-        "headline": "Concurso NossoCaf\u00e9 Yara celebra 10\u00aa edi\u00e7\u00e3o e abre espa\u00e7o pela primeira vez para caf\u00e9s Canephora",
-        "source": "Not\u00edcias Agr\u00edcolas",
-        "sentiment": "Neutral",
-        "confidence": 90.0,
-        "tags": [
-          "noticias_agricolas",
-          "cafe"
-        ]
-      },
-      {
-        "headline": "New Technology Looks To Turn Gas-Powered Coffee Roasters To Solar",
-        "source": "Sprudge",
-        "sentiment": "Neutral",
-        "confidence": 90.0,
-        "tags": [
-          "sprudge"
-        ]
       }
     ]
   },
   "robusta_factors": {
     "available": true,
-    "scraped_at": "2026-08-13T22:12:01.452416Z",
-    "as_of": "2026-08-04",
+    "scraped_at": "2026-08-14T21:50:51.582081Z",
+    "as_of": "2026-08-11",
     "model": {
       "r_squared": 0.012,
       "n_obs": 283,
-      "training_period": "2021-02-02 to 2026-07-07",
+      "training_period": "2021-02-09 to 2026-07-14",
       "residual_std": 332.0
     },
     "prediction": {
-      "delta_p": 89.7,
+      "delta_p": 77.9,
       "direction": "Bullish",
-      "confidence": 0.27
+      "confidence": 0.23
     },
-    "intercept": 38.19,
+    "intercept": 37.18,
     "factors": [
       {
         "label": "MM Net Positioning",
         "category": "Positioning",
         "quantile": 5,
-        "percentile": 97.9,
-        "value_z": 2.046,
-        "beta": 9.125,
-        "contribution": 18.67,
+        "percentile": 97.2,
+        "value_z": 1.863,
+        "beta": 8.901,
+        "contribution": 16.58,
         "available": true
       },
       {
         "label": "RC Momentum 4w",
         "category": "Momentum",
-        "quantile": -1,
-        "percentile": 42.8,
-        "value_z": -0.189,
-        "beta": -33.345,
-        "contribution": 6.29,
+        "quantile": -2,
+        "percentile": 39.9,
+        "value_z": -0.296,
+        "beta": -33.25,
+        "contribution": 9.83,
         "available": true
       },
       {
         "label": "RC Momentum 13w",
         "category": "Momentum",
-        "quantile": 2,
-        "percentile": 74.2,
-        "value_z": 0.911,
-        "beta": 19.977,
-        "contribution": 18.19,
+        "quantile": 1,
+        "percentile": 65.4,
+        "value_z": 0.541,
+        "beta": 19.605,
+        "contribution": 10.61,
         "available": true
       },
       {
         "label": "KC-RC Spread",
         "category": "Macro",
-        "quantile": -2,
-        "percentile": 36.4,
-        "value_z": -0.646,
-        "beta": -12.899,
-        "contribution": 8.33,
+        "quantile": -1,
+        "percentile": 43.1,
+        "value_z": -0.28,
+        "beta": -13.175,
+        "contribution": 3.68,
         "available": true
       }
     ]
   },
   "sentiment_calibration": {
     "available": true,
-    "scraped_at": "2026-08-13T22:12:01.778740Z",
+    "scraped_at": "2026-08-14T21:50:51.932040Z",
     "horizon_days": 5,
     "neutral_band": 8.0,
     "markets": {
@@ -643,11 +671,11 @@
         "label": "KC \u00b7 NY Arabica"
       },
       "robusta": {
-        "n": 21,
-        "n_directional": 10,
-        "hit_rate": 50.0,
-        "corr": -0.081,
-        "mean_ret_bull": -0.25,
+        "n": 25,
+        "n_directional": 14,
+        "hit_rate": 35.7,
+        "corr": -0.155,
+        "mean_ret_bull": -0.84,
         "mean_ret_bear": 1.06,
         "points": [
           {
@@ -754,6 +782,26 @@
             "date": "2026-07-20",
             "net": 17.5,
             "ret": 0.73
+          },
+          {
+            "date": "2026-08-01",
+            "net": 34.6,
+            "ret": -2.45
+          },
+          {
+            "date": "2026-08-03",
+            "net": 16.0,
+            "ret": -2.45
+          },
+          {
+            "date": "2026-08-04",
+            "net": 29.8,
+            "ret": -1.87
+          },
+          {
+            "date": "2026-08-05",
+            "net": 33.8,
+            "ret": -1.87
           }
         ],
         "label": "RC \u00b7 London Robusta"
