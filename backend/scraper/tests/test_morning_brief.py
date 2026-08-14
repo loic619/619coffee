@@ -85,9 +85,6 @@ def test_send_decision(monkeypatch):
     def at(h):
         return datetime(2026, 7, 1, h, 0, tzinfo=UTC)   # Wed → expected 06-30
 
-    # the open-direction gate is exercised separately below; default it ready
-    monkeypatch.setattr(mb, "_open_call_ready", lambda now: True)
-
     # fresh data (futures shows the expected session) inside the window → send
     monkeypatch.setattr(mb, "_futures_pub_date", lambda: date(2026, 6, 30))
     assert mb._send_decision(at(4))[0] is True
@@ -103,60 +100,3 @@ def test_send_decision(monkeypatch):
     monkeypatch.setattr(mb, "_futures_pub_date", lambda: date(2026, 6, 30))
     assert mb._send_decision(at(21))[0] is False
     assert mb._send_decision(at(1))[0] is False
-
-
-def test_send_decision_waits_for_the_open_call(monkeypatch):
-    """Regression for 2026-08-14: GitHub fires the 1.16 open-direction cron
-    1.5-3h late, so the earlier 1.4-chained trigger sent a call-less brief and
-    burned the once-per-day guard — the call never reached Telegram."""
-    from datetime import date, datetime
-
-    import scraper.morning_brief as mb
-
-    def at(h, day=1):
-        return datetime(2026, 7, day, h, 0, tzinfo=UTC)   # 2026-07-01 = Wednesday
-
-    monkeypatch.setattr(mb, "_futures_pub_date", lambda: date(2026, 6, 30))
-
-    # weekday, prices fresh, call NOT yet published → skip so the 1.16 chain wins
-    monkeypatch.setattr(mb, "_open_call_ready", lambda now: False)
-    send, why = mb._send_decision(at(4))
-    assert send is False and "open-direction call" in why
-
-    # ...the call lands → send
-    monkeypatch.setattr(mb, "_open_call_ready", lambda now: True)
-    assert mb._send_decision(at(4))[0] is True
-
-    # ...still missing past the fallback hour → send anyway (never silently skipped)
-    monkeypatch.setattr(mb, "_open_call_ready", lambda now: False)
-    assert mb._send_decision(at(8))[0] is True
-
-    # weekend: 1.16 doesn't run, so the brief must not wait for a call.
-    # (Sat/Sun expect Friday's session, so the futures mock moves with them.)
-    monkeypatch.setattr(mb, "_futures_pub_date", lambda: date(2026, 7, 3))
-    assert mb._send_decision(at(4, day=4))[0] is True    # 2026-07-04 = Saturday
-    assert mb._send_decision(at(4, day=5))[0] is True    # 2026-07-05 = Sunday
-
-
-def test_open_call_ready_matches_today_only(monkeypatch, tmp_path):
-    import json
-
-    import scraper.morning_brief as mb
-
-    def payload(for_session, available=True):
-        return {"open_direction": {"available": available, "for_session": for_session}}
-
-    from datetime import datetime
-    now = datetime(2026, 8, 14, 4, 0, tzinfo=UTC)
-
-    monkeypatch.setattr(mb, "_load", lambda f: payload("2026-08-14"))
-    assert mb._open_call_ready(now) is True
-    # yesterday's call (the actual 2026-08-14 failure) must NOT count
-    monkeypatch.setattr(mb, "_load", lambda f: payload("2026-08-13"))
-    assert mb._open_call_ready(now) is False
-    # unavailable payload
-    monkeypatch.setattr(mb, "_load", lambda f: payload("2026-08-14", available=False))
-    assert mb._open_call_ready(now) is False
-    # missing file
-    monkeypatch.setattr(mb, "_load", lambda f: None)
-    assert mb._open_call_ready(now) is False
