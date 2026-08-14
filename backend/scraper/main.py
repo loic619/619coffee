@@ -19,7 +19,6 @@ from scraper.errors import CriticalSourceError
 # index only moves end-of-week), so running it here daily was redundant.
 # ajca + psd_coffee moved off the daily run → monthly_scraper (slow-data).
 from scraper.sources import (
-    b3,
     b3_icf,
     barchart,
     brazil,
@@ -48,7 +47,13 @@ from scraper.sources import uganda_weather as _uganda_weather
 # _guatemala (ANACAFE) proven live via the "Probe: ANACAFE" workflow (run #1:
 # egress 200, RESULT PASS — 3 grades via the formula fallback), now in the daily
 # suite. The standalone probe-anacafe.yml workflow stays for ad-hoc re-checks.
-ALL_SOURCES = [barchart, b3, brazil, vietnam, origins, technicals, futures, uganda, cepea, rss, noticias_cafe, b3_icf, _colombia, _honduras, _ethiopia, _guatemala]
+# b3 (ICA) retired 2026-08-14: B3's DerivativeQuotation endpoint answers
+# "Quotation not available" for ICA at every hour, while b3_icf pulls the
+# SAME arabica 4/5 official settlement (prvsDayAdjstmntPric) from the same
+# API and succeeds in the same second — ICF is B3's live coffee contract
+# code, ICA is not. So this was a duplicate pointed at a dead symbol, not
+# a market-hours problem.
+ALL_SOURCES = [barchart, brazil, vietnam, origins, technicals, futures, uganda, cepea, rss, noticias_cafe, b3_icf, _colombia, _honduras, _ethiopia, _guatemala]
 CONCURRENCY       = 3    # Max parallel Playwright pages
 SCRAPER_TIMEOUT   = 180  # Seconds before a single scraper is killed
 

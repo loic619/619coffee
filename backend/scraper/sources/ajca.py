@@ -409,7 +409,7 @@ async def run(page, db) -> None:  # noqa: ARG001
         )
         # Persist to DB so export jobs on separate runners can fall back to DB.
         # Body now includes optional stocks + YoY tokens. The frontend
-        # NewsFeed.tsx + morning_brief.py AJCA-specific extractors regex
+        # NewsFeed.tsx AJCA-specific extractors regex
         # these out — see _SOURCE_EXTRACTORS["AJCA"]. Missing values are
         # omitted entirely so the line stays compact when stocks / YoY
         # aren't yet available (first run after a cache wipe, or hub page
