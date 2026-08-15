@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-14T16:56:26.624759Z",
-  "count": 71,
+  "generated_at": "2026-08-15T10:47:07.202242Z",
+  "count": 72,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -407,6 +407,17 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 10
+    },
+    {
+      "file": "probe-ice-volopts.yml",
+      "name": "Z \u2013 Probe: ICE volume+options endpoints (test)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 8
     },
     {
       "file": "quant-currency-index.yml",
