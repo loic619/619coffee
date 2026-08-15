@@ -11,7 +11,11 @@ import { fmtDateLabel } from "@/lib/formatters";
 // expiries. Newer files carry {contracts: [...]} per market and per-contract
 // history arrays; the first snapshots were single-contract objects, so both
 // shapes are normalised below.
-interface StrikeRow { strike: number; call_oi: number; put_oi: number; call_vol: number; put_vol: number }
+interface StrikeRow {
+  strike: number; call_oi: number; put_oi: number; call_vol: number; put_vol: number;
+  call_chg?: number | null; put_chg?: number | null;      // ΔOI vs prior session
+  call_iv?: number | null; put_iv?: number | null;        // Black-76 / Barchart IV
+}
 interface MarketSnap {
   underlying: string;
   future_price: number | null;
@@ -47,6 +51,7 @@ export default function OptionsOIPanel() {
   const [doc, setDoc] = useState<OptionsDoc | null>(null);
   const [mkt, setMkt] = useState<Mkt>("arabica");
   const [sel, setSel] = useState<string | null>(null);   // selected underlying
+  const [boardMode, setBoardMode] = useState<"oi" | "chg" | "iv">("oi");
 
   useEffect(() => {
     fetch("/data/options_oi.json")
@@ -70,18 +75,33 @@ export default function OptionsOIPanel() {
     [contracts, sel]
   );
 
-  // Per-strike board: puts drawn downward so the two sides mirror around zero,
-  // trimmed to strikes near the money (±35% of the future) so tails don't
-  // squash the visible structure.
-  const board = useMemo(() => {
+  // Per-strike board, trimmed to strikes near the money (±35% of the future)
+  // so tails don't squash the structure. Three views over the same strikes:
+  //   oi  — open interest, calls up / puts down (mirrored)
+  //   chg — day-over-day ΔOI vs the previous archived session, same mirror
+  //   iv  — implied vol per strike (the smile), calls and puts as lines
+  type BoardRow = { strike: number; calls?: number; puts?: number;
+                    callIv?: number | null; putIv?: number | null };
+  const board = useMemo<BoardRow[]>(() => {
     if (!snap?.strikes?.length) return [];
     const px = snap.future_price ?? undefined;
-    const rows = snap.strikes
+    const near = snap.strikes.filter(s => !px || (s.strike > px * 0.65 && s.strike < px * 1.35));
+    if (boardMode === "chg") {
+      return near
+        .filter(s => s.call_chg != null || s.put_chg != null)
+        .map(s => ({ strike: s.strike, calls: s.call_chg ?? 0, puts: -(s.put_chg ?? 0) }));
+    }
+    if (boardMode === "iv") {
+      return near
+        .filter(s => s.call_iv != null || s.put_iv != null)
+        .map(s => ({ strike: s.strike,
+                     callIv: s.call_iv != null ? s.call_iv * 100 : null,
+                     putIv: s.put_iv != null ? s.put_iv * 100 : null }));
+    }
+    return near
       .filter(s => (s.call_oi || 0) + (s.put_oi || 0) > 0)
-      .filter(s => !px || (s.strike > px * 0.65 && s.strike < px * 1.35))
       .map(s => ({ strike: s.strike, calls: s.call_oi, puts: -s.put_oi }));
-    return rows;
-  }, [snap]);
+  }, [snap, boardMode]);
 
   // Expiry countdown for the SELECTED contract: one row per session, ITM vs
   // total OI. Legacy rows carried a single object; normalise to an array.
@@ -194,30 +214,71 @@ export default function OptionsOIPanel() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Per-strike board */}
             <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
-                OI per strike · calls up, puts down · line = future
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[10px] text-slate-400 uppercase tracking-wide">
+                  {boardMode === "oi" ? "OI per strike · calls up, puts down"
+                    : boardMode === "chg" ? "ΔOI per strike vs prior session"
+                    : "Implied vol per strike (Black-76 from last premium)"}
+                  {" · line = future"}
+                </div>
+                <div className="flex bg-slate-900 border border-slate-700 rounded overflow-hidden text-[9px]">
+                  {([["oi", "OI"], ["chg", "Δ OI"], ["iv", "IV"]] as const).map(([m, label]) => (
+                    <button key={m} onClick={() => setBoardMode(m)}
+                      className={`px-2 py-1 transition ${boardMode === m ? "bg-slate-600 text-white" : "text-slate-400 hover:bg-slate-800"}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={board} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
-                    <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
-                    <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
-                      type="number" domain={["dataMin", "dataMax"]} tickCount={9} />
-                    <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
-                      tickFormatter={(v: number) => Math.abs(v).toLocaleString()} />
-                    <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
-                      labelFormatter={(v) => `strike ${v} ${UNIT[mkt]}`}
-                      formatter={(v) => typeof v === "number" ? `${Math.abs(v).toLocaleString()} lots` : "—"} />
-                    <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
-                    <ReferenceLine y={0} stroke="#475569" />
-                    {snap.future_price != null && (
-                      <ReferenceLine x={snap.future_price} stroke="#e2e8f0" strokeDasharray="4 3"
-                        label={{ value: "fut", fill: "#e2e8f0", fontSize: 9, position: "top" }} />
-                    )}
-                    <Bar dataKey="calls" name="Calls" fill="#34d399" fillOpacity={0.8} />
-                    <Bar dataKey="puts" name="Puts" fill="#f87171" fillOpacity={0.8} />
-                  </ComposedChart>
-                </ResponsiveContainer>
+                {board.length === 0 ? (
+                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                    {boardMode === "chg"
+                      ? "ΔOI needs a prior archived session — available from the next daily snapshot."
+                      : boardMode === "iv"
+                        ? "No arbitrage-consistent premiums to imply vol from on this board yet."
+                        : "No open interest on this board."}
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={board} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                      <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
+                        type="number" domain={["dataMin", "dataMax"]} tickCount={9} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
+                        tickFormatter={(v: number) => boardMode === "iv"
+                          ? `${v.toFixed(0)}%` : Math.abs(v).toLocaleString()} />
+                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                        labelFormatter={(v) => `strike ${v} ${UNIT[mkt]}`}
+                        formatter={(v) => typeof v === "number"
+                          ? (boardMode === "iv" ? `${v.toFixed(1)}%`
+                             : boardMode === "chg" ? `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toLocaleString()} lots`
+                             : `${Math.abs(v).toLocaleString()} lots`)
+                          : "—"} />
+                      <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
+                      {boardMode !== "iv" && <ReferenceLine y={0} stroke="#475569" />}
+                      {snap.future_price != null && (
+                        <ReferenceLine x={snap.future_price} stroke="#e2e8f0" strokeDasharray="4 3"
+                          label={{ value: "fut", fill: "#e2e8f0", fontSize: 9, position: "top" }} />
+                      )}
+                      {boardMode === "iv" ? (
+                        <>
+                          <Line type="monotone" dataKey="callIv" name="Call IV" stroke="#34d399"
+                            strokeWidth={1.5} dot={{ r: 1.5 }} connectNulls />
+                          <Line type="monotone" dataKey="putIv" name="Put IV" stroke="#f87171"
+                            strokeWidth={1.5} dot={{ r: 1.5 }} connectNulls />
+                        </>
+                      ) : (
+                        <>
+                          <Bar dataKey="calls" name={boardMode === "chg" ? "Δ Calls" : "Calls"}
+                            fill="#34d399" fillOpacity={0.8} />
+                          <Bar dataKey="puts" name={boardMode === "chg" ? "Δ Puts" : "Puts"}
+                            fill="#f87171" fillOpacity={0.8} />
+                        </>
+                      )}
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
 

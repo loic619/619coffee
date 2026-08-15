@@ -41,6 +41,13 @@ OUT = ROOT / "frontend" / "public" / "data" / "options_oi.json"
 INIT_URL = "https://www.barchart.com/futures/quotes/KCK26/overview"
 HISTORY_MAX_DAYS = 400          # ~1.5y of countdown history is plenty
 MAX_CONTRACTS = 3               # nearest live option boards per market
+ARCHIVE = ROOT / "data" / "options_boards_archive.json"
+# Archive row layout (per strike, one array per strike):
+ARCHIVE_HEADER = ["strike",
+                  "call_oi", "call_vol", "call_last", "call_iv", "call_delta",
+                  "call_gamma", "call_theta", "call_vega",
+                  "put_oi", "put_vol", "put_last", "put_iv", "put_delta",
+                  "put_gamma", "put_theta", "put_vega"]
 
 MARKETS = {"arabica": "KC", "robusta": "RM"}
 
@@ -92,7 +99,7 @@ async def _fetch() -> dict:
                         }
                         if (!picks.length) { res[mkt] = {error: 'no contracts'}; continue; }
                         const of_ = 'symbol,strike,optionType,lastPrice,volume,openInterest,' +
-                                    'expirationDate,daysToExpiration,tradeTime';
+                                    'impliedVolatility,delta,gamma,theta,vega,expirationDate,daysToExpiration,tradeTime';
                         const boards = [];
                         for (const pk of picks) {
                             const ou = base + '?symbol=' + pk.symbol +
@@ -156,6 +163,50 @@ def _rule_expiry(underlying: str) -> date | None:
     return None
 
 
+
+# ── Black-76 (options on futures, zero discounting over short DTE) ──────────
+def _norm_cdf(x: float) -> float:
+    import math
+    return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+
+def _black76(f: float, k: float, t: float, sigma: float, call: bool) -> float:
+    import math
+    if t <= 0 or sigma <= 0 or f <= 0 or k <= 0:
+        return max(0.0, (f - k) if call else (k - f))
+    sq = sigma * math.sqrt(t)
+    d1 = (math.log(f / k) + 0.5 * sigma * sigma * t) / sq
+    d2 = d1 - sq
+    if call:
+        return f * _norm_cdf(d1) - k * _norm_cdf(d2)
+    return k * _norm_cdf(-d2) - f * _norm_cdf(-d1)
+
+
+def _implied_vol(price: float, f: float, k: float, t: float, call: bool) -> float | None:
+    """Bisection Black-76 IV. None when the premium is outside no-arbitrage
+    bounds (stale last on an illiquid strike — better a gap than a lie)."""
+    intrinsic = max(0.0, (f - k) if call else (k - f))
+    if t <= 0 or price <= intrinsic + 1e-9 or price >= (f if call else k):
+        return None
+    lo, hi = 1e-3, 4.0
+    for _ in range(64):
+        mid = (lo + hi) / 2
+        if _black76(f, k, t, mid, call) > price:
+            hi = mid
+        else:
+            lo = mid
+    iv = (lo + hi) / 2
+    return round(iv, 4) if 1e-3 < iv < 3.999 else None
+
+
+def _b76_delta(f: float, k: float, t: float, sigma: float, call: bool) -> float | None:
+    import math
+    if t <= 0 or sigma is None or sigma <= 0 or f <= 0 or k <= 0:
+        return None
+    d1 = (math.log(f / k) + 0.5 * sigma * sigma * t) / (sigma * math.sqrt(t))
+    return round(_norm_cdf(d1) if call else _norm_cdf(d1) - 1.0, 3)
+
+
 def _num(v):
     try:
         if v in (None, "", "N/A", "N\\/A"):
@@ -195,6 +246,12 @@ def _rows(options_payload: dict) -> list[dict]:
             "type": "call" if typ == "C" else "put",
             "oi": _num(r.get("openInterest", it.get("openInterest"))),
             "vol": _num(r.get("volume", it.get("volume"))),
+            "last": _num(r.get("lastPrice", it.get("lastPrice"))),
+            "iv": _num(r.get("impliedVolatility", it.get("impliedVolatility"))),
+            "delta": _num(r.get("delta", it.get("delta"))),
+            "gamma": _num(r.get("gamma", it.get("gamma"))),
+            "theta": _num(r.get("theta", it.get("theta"))),
+            "vega": _num(r.get("vega", it.get("vega"))),
             "expiry": r.get("expirationDate") or it.get("expirationDate"),
             "dte": _num(r.get("daysToExpiration", it.get("daysToExpiration"))),
         })
@@ -210,13 +267,25 @@ def _market_snapshot(mkt_payload: dict) -> dict | None:
     by_strike: dict[float, dict] = {}
     for r in rows:
         slot = by_strike.setdefault(r["strike"], {"strike": r["strike"], "call_oi": 0,
-                                                  "put_oi": 0, "call_vol": 0, "put_vol": 0})
-        if r["type"] == "call":
-            slot["call_oi"] += r["oi"] or 0
-            slot["call_vol"] += r["vol"] or 0
-        else:
-            slot["put_oi"] += r["oi"] or 0
-            slot["put_vol"] += r["vol"] or 0
+                                                  "put_oi": 0, "call_vol": 0, "put_vol": 0,
+                                                  "call_last": None, "put_last": None,
+                                                  "call_iv": None, "put_iv": None,
+                                                  "call_delta": None, "put_delta": None,
+                                                  "call_gamma": None, "put_gamma": None,
+                                                  "call_theta": None, "put_theta": None,
+                                                  "call_vega": None, "put_vega": None})
+        side = "call" if r["type"] == "call" else "put"
+        slot[f"{side}_oi"] += r["oi"] or 0
+        slot[f"{side}_vol"] += r["vol"] or 0
+        if r.get("last") is not None:
+            slot[f"{side}_last"] = r["last"]
+        if r.get("iv") is not None:
+            slot[f"{side}_iv"] = r["iv"]
+        if r.get("delta") is not None:
+            slot[f"{side}_delta"] = r["delta"]
+        for g in ("gamma", "theta", "vega"):
+            if r.get(g) is not None:
+                slot[f"{side}_{g}"] = r[g]
     strikes = sorted(by_strike.values(), key=lambda s: s["strike"])
     call_oi = sum(s["call_oi"] for s in strikes)
     put_oi = sum(s["put_oi"] for s in strikes)
@@ -230,6 +299,19 @@ def _market_snapshot(mkt_payload: dict) -> dict | None:
             dte = ( _dt.fromisoformat(str(expiry)[:10]).date() - date.today() ).days
         except ValueError:
             pass
+    # IV + delta: prefer Barchart's own values; otherwise back them out of the
+    # last premium via Black-76 (F, K, T known; r≈0 over these horizons). A
+    # stale last that violates no-arbitrage bounds yields None, not a fake IV.
+    if price and dte and dte > 0:
+        t = dte / 365.0
+        for slot in strikes:
+            for side, is_call in (("call", True), ("put", False)):
+                if slot[f"{side}_iv"] is None and slot[f"{side}_last"]:
+                    slot[f"{side}_iv"] = _implied_vol(slot[f"{side}_last"], price,
+                                                      slot["strike"], t, is_call)
+                if slot[f"{side}_delta"] is None and slot[f"{side}_iv"]:
+                    slot[f"{side}_delta"] = _b76_delta(price, slot["strike"], t,
+                                                       slot[f"{side}_iv"], is_call)
     return {
         "underlying": front["symbol"],
         "future_price": price,
@@ -239,6 +321,77 @@ def _market_snapshot(mkt_payload: dict) -> dict | None:
         "totals": {"call_oi": call_oi, "put_oi": put_oi,
                    "itm_call_oi": itm_call, "itm_put_oi": itm_put},
     }
+
+
+
+def _load_archive() -> dict:
+    try:
+        return json.loads(ARCHIVE.read_text(encoding="utf-8"))
+    except Exception:
+        return {
+            "note": ("Per-session options boards for research/backtests. rows follow "
+                     "`header`; IV is Black-76-implied from the last premium when "
+                     "Barchart does not serve it (None = no fresh/arbitrage-consistent "
+                     "premium). IV+underlying+DTE reconstruct premiums and all greeks."),
+            "header": ARCHIVE_HEADER,
+            "days": {},
+        }
+
+
+def _prev_board(archive: dict, mkt: str, underlying: str, before: str) -> dict[float, tuple]:
+    """{strike: (call_oi, put_oi)} from the latest archived session < `before`."""
+    days = archive.get("days") or {}
+    for d in sorted(days.keys(), reverse=True):
+        if d >= before:
+            continue
+        for b in days[d].get(mkt) or []:
+            if b.get("u") == underlying:
+                out = {}
+                for row in b.get("rows") or []:
+                    try:
+                        # header: put_oi at index 9 (17-col rows) or 6 (legacy 11-col)
+                        p_idx = 9 if len(row) >= 17 else 6
+                        out[float(row[0])] = (row[1] or 0, row[p_idx] or 0)
+                    except (TypeError, ValueError, IndexError):
+                        continue
+                if out:
+                    return out
+    return {}
+
+
+def _apply_oi_change(snap: dict, prev: dict[float, tuple]) -> None:
+    """Per-strike day-over-day OI change vs the previous archived session.
+    None (not 0) when there is no prior board to diff against."""
+    for slot in snap["strikes"]:
+        p = prev.get(slot["strike"])
+        slot["call_chg"] = (slot["call_oi"] - p[0]) if p else None
+        slot["put_chg"] = (slot["put_oi"] - p[1]) if p else None
+
+
+def _archive_boards(archive: dict, today: str, markets: dict) -> None:
+    day = {}
+    for mkt, block in markets.items():
+        day[mkt] = [
+            {
+                "u": snap["underlying"], "px": snap["future_price"],
+                "dte": snap["days_to_expiry"],
+                "rows": [
+                    [sl["strike"],
+                     sl["call_oi"], sl["call_vol"], sl["call_last"],
+                     sl["call_iv"], sl["call_delta"],
+                     sl["call_gamma"], sl["call_theta"], sl["call_vega"],
+                     sl["put_oi"], sl["put_vol"], sl["put_last"],
+                     sl["put_iv"], sl["put_delta"],
+                     sl["put_gamma"], sl["put_theta"], sl["put_vega"]]
+                    for sl in snap["strikes"]
+                ],
+            }
+            for snap in block["contracts"]
+        ]
+    archive.setdefault("days", {})[today] = day
+    ARCHIVE.parent.mkdir(parents=True, exist_ok=True)
+    ARCHIVE.write_text(json.dumps(archive, ensure_ascii=False, separators=(",", ":")),
+                       encoding="utf-8")
 
 
 def main() -> int:
@@ -280,6 +433,14 @@ def main() -> int:
     if not markets:
         print("[options] nothing fetched — keeping existing file")
         return 1
+
+    today_iso = date.today().isoformat()
+    archive = _load_archive()
+    for mkt, block in markets.items():
+        for snap in block["contracts"]:
+            _apply_oi_change(snap, _prev_board(archive, mkt, snap["underlying"], today_iso))
+    _archive_boards(archive, today_iso, markets)
+    print(f"[options] archive → {len(archive['days'])} sessions stored")
 
     try:
         doc = json.loads(OUT.read_text(encoding="utf-8"))

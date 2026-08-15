@@ -1,17 +1,25 @@
-name: "Z – Seed: options OI snapshot (manual)"
+name: "Z – Backfill: options boards history (manual)"
 
-# One-off/manual: run the options-board fetch outside the 1.3 daily cadence
-# (e.g. to seed the first snapshot, or recover after a quiet failure) and
-# commit options_oi.json. No weekend gate — Barchart serves the latest
-# session's board at any time.
+# One-off/manual: seed data/options_boards_archive.json from Barchart's
+# per-option EOD history for the currently-live boards (expired contracts
+# return nothing — see backend/scraper/backfill_options_history.py).
+# Re-runnable: never overwrites a live-captured board-day.
 
 on:
   workflow_dispatch:
+    inputs:
+      start:
+        description: "History start date (YYYY-MM-DD)"
+        required: false
+        default: "2024-06-01"
 
 jobs:
-  seed:
+  backfill:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 30
+    concurrency:
+      group: options-archive-write
+      cancel-in-progress: false
     permissions:
       contents: write
     steps:
@@ -29,18 +37,17 @@ jobs:
           pip install playwright
           sudo rm -f /etc/apt/sources.list.d/*microsoft* /etc/apt/sources.list.d/*azure* || true
           playwright install chromium --with-deps || playwright install chromium
-      - name: Fetch options board
+      - name: Backfill options history
         env:
           PYTHONPATH: backend
-        run: python backend/scraper/fetch_options_json.py
+        run: python backend/scraper/backfill_options_history.py "${{ inputs.start || '2024-06-01' }}"
       - name: Commit
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add frontend/public/data/options_oi.json
-          [ -f data/options_boards_archive.json ] && git add data/options_boards_archive.json || true
+          git add data/options_boards_archive.json
           if git diff --cached --quiet; then echo "No changes."; else
-            git commit -m "data: options OI snapshot [skip ci]"
+            git commit -m "data: options boards history backfill [skip ci]"
             for i in 1 2 3 4 5; do
               git pull --rebase --autostash origin main && git push && exit 0
               sleep $((RANDOM % 5 + 3))
