@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-15T19:44:57.924421Z",
+  "generated_at": "2026-08-15T20:06:54.920271Z",
   "count": 74,
   "workflows": [
     {
@@ -88,7 +88,7 @@
       "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": null,
-      "timeout_minutes": 30
+      "timeout_minutes": 55
     },
     {
       "file": "backfill-sentiment.yml",
