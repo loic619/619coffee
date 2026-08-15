@@ -86,15 +86,39 @@ async def _fetch() -> dict:
                         }
                         if (!front || !front.symbol) { res[mkt] = {error: 'no front contract'}; continue; }
                         // 2. that contract's options board, both sides, with OI
-                        const of_ = 'strike,optionType,lastPrice,volume,openInterest,' +
+                        const of_ = 'symbol,strike,optionType,lastPrice,volume,openInterest,' +
                                     'expirationDate,daysToExpiration,tradeTime';
                         const ou = base + '?symbol=' + front.symbol +
                             '&list=futures.options&fields=' + of_ + '&raw=1&limit=999';
                         const or_ = await fetch(ou, h);
-                        res[mkt] = {
-                            front,
-                            options: or_.ok ? await or_.json() : {error: 'options http ' + or_.status},
-                        };
+                        const optionsJson = or_.ok ? await or_.json()
+                                                   : {error: 'options http ' + or_.status};
+                        // The grouped board omits expirationDate; one follow-up
+                        // quote on any option symbol carries it.
+                        let expiry = null;
+                        try {
+                            let sym = null;
+                            const dd = optionsJson && optionsJson.data;
+                            const firstArr = Array.isArray(dd) ? dd
+                                : dd ? (Object.values(dd)[0] || []) : [];
+                            for (const it of firstArr) {
+                                const r = it.raw || it;
+                                if (r.symbol) { sym = r.symbol; break; }
+                            }
+                            if (sym) {
+                                const eu = base + '?symbols=' + encodeURIComponent(sym) +
+                                    '&fields=symbol,expirationDate,daysToExpiration&raw=1';
+                                const er = await fetch(eu, h);
+                                if (er.ok) {
+                                    const ej = await er.json();
+                                    const row = (ej.data || [])[0] || {};
+                                    const rr = row.raw || row;
+                                    expiry = { date: rr.expirationDate || null,
+                                               dte: rr.daysToExpiration ?? null };
+                                }
+                            }
+                        } catch (e) { /* expiry stays null */ }
+                        res[mkt] = { front, options: optionsJson, expiry };
                     }
                     return res;
                 }""",
@@ -174,8 +198,18 @@ def _market_snapshot(mkt_payload: dict) -> dict | None:
     put_oi = sum(s["put_oi"] for s in strikes)
     itm_call = sum(s["call_oi"] for s in strikes if price and s["strike"] < price)
     itm_put = sum(s["put_oi"] for s in strikes if price and s["strike"] > price)
-    expiry = next((r["expiry"] for r in rows if r["expiry"]), None)
+    fu = (mkt_payload or {}).get("expiry") or {}
+    expiry = (next((r["expiry"] for r in rows if r["expiry"]), None)
+              or fu.get("date"))
     dte = next((r["dte"] for r in rows if r["dte"] is not None), None)
+    if dte is None:
+        dte = _num(fu.get("dte"))
+    if dte is None and expiry:
+        try:
+            from datetime import datetime as _dt
+            dte = ( _dt.fromisoformat(str(expiry)[:10]).date() - date.today() ).days
+        except ValueError:
+            pass
     return {
         "underlying": front["symbol"],
         "future_price": price,
