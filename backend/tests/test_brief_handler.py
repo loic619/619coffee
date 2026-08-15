@@ -274,8 +274,9 @@ def test_fnd_roll_line_letter_days_oi_and_position(monkeypatch):
     monkeypatch.setattr(brief, "load",
                         lambda n: _oi_doc(31_139, [23_116, 48_263, 29_241]) if n == "oi_fnd_chart.json" else None)
     out = brief._fnd_roll_line("arabica", date(2026, 5, 29))
-    # Letter from the contract label; days to FND are calendar days from today.
-    assert out.strip().startswith("U's FND in 7d")
+    # Letter from the contract label; days to FND are calendar days from today,
+    # with the trading-session count alongside (Fri 29 May → Fri 5 Jun = 5).
+    assert out.strip().startswith("· FND (U) in 7d / 5 sessions")
     assert "OI 31.1k" in out
     # (31139-23116)/(48263-23116) = 31.9% → 32%
     assert "32% min-max" in out and "prior range" not in out
@@ -327,9 +328,9 @@ def test_spec_line_apportions_managed_money_and_paces_it(monkeypatch):
                                          "oi_total": 100_000}}]
     _spec_stub(monkeypatch, doc, cot)
     out = brief._fnd_spec_line("arabica", date(2026, 5, 29))  # Fri → 5 sessions
-    assert "spec est. 10.0k long / 2.0k short" in out
-    # 10,000 / 5 sessions = 2.0k per session; 2,000 / 5 = 400.
-    assert "clear pace 2.0k / 400 per session (5 left)" in out
+    # Net = 10k long − 2k short = +8k; 8,000 / 5 sessions = 1.6k per session.
+    assert "Est. spec net position of +8.0k long" in out
+    assert "clear pace of 1.6k per session (5 left)" in out
 
 
 def test_spec_line_omits_pace_once_fnd_is_here(monkeypatch):
@@ -338,7 +339,7 @@ def test_spec_line_omits_pace_once_fnd_is_here(monkeypatch):
                                          "oi_total": 100_000}}]
     _spec_stub(monkeypatch, doc, cot)
     out = brief._fnd_spec_line("arabica", date(2026, 5, 29))
-    assert "spec est." in out and "clear pace" not in out    # no sessions left to divide by
+    assert "Est. spec net position" in out and "clear pace" not in out    # no sessions left to divide by
 
 
 def test_spec_line_reads_the_right_market_and_bails_without_cot(monkeypatch):
@@ -348,7 +349,7 @@ def test_spec_line_reads_the_right_market_and_bails_without_cot(monkeypatch):
             "ldn": {"mm_long": 50_000, "mm_short": 10_000, "oi_total": 100_000}}]
     _spec_stub(monkeypatch, doc, cot)
     # robusta must use the LDN book, never NY's.
-    assert "spec est. 10.0k long / 2.0k short" in brief._fnd_spec_line("robusta", date(2026, 5, 29))
+    assert "+8.0k long" in brief._fnd_spec_line("robusta", date(2026, 5, 29))
     # No COT file, or a market block without totals → no estimate at all.
     _spec_stub(monkeypatch, doc, None)
     assert brief._fnd_spec_line("robusta", date(2026, 5, 29)) is None

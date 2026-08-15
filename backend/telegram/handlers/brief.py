@@ -209,7 +209,7 @@ def _rc_section(chain: dict | None, acaphe: dict | None, archive: dict | None) -
             second_letter = _contract_letter(second["symbol"])
             # RC trades in whole-dollar/MT ticks → integer format is right here.
             chg_part = f" ({round(spread_chg):+,d})" if spread_chg is not None else ""
-            parts.append(f"     {letter}-{second_letter} spread at {round(spread):,}{chg_part}")
+            parts.append(f"   · {letter}-{second_letter} spread at {round(spread):,}{chg_part}")
     return "\n".join(parts), letter, front_last, front_sym
 
 
@@ -242,7 +242,7 @@ def _kc_section(chain: dict | None, acaphe: dict | None, archive: dict | None) -
             # KC trades in 0.05-cent ticks, so spreads land on 2-decimal values
             # (e.g. 4.75, not 6). Use 2dp here and let RC keep integer formatting.
             chg_part = f" ({spread_chg:+,.2f})" if spread_chg is not None else ""
-            parts.append(f"     {letter}-{second_letter} spread at {spread:,.2f}{chg_part}")
+            parts.append(f"   · {letter}-{second_letter} spread at {spread:,.2f}{chg_part}")
     return "\n".join(parts)
 
 
@@ -954,14 +954,16 @@ def _fnd_spec_line(market: str, today: date) -> str | None:
         return None
 
     share = min(1.0, front_oi / oi_total)
-    est_long, est_short = mm_long * share, mm_short * share
-    bits = [f"spec est. {_k_lots(est_long)} long / {_k_lots(est_short)} short"]
+    net = (mm_long - mm_short) * share
+    side = "long" if net > 0 else "short" if net < 0 else "flat"
+    sign = "+" if net > 0 else "-" if net < 0 else ""
+    line = f"Est. spec net position of {sign}{_k_lots(abs(net))} {side}"
 
     sessions = -trading_days_to(today, fnd)      # trading_days_to is signed
-    if sessions > 0:
-        bits.append(f"clear pace {_k_lots(est_long / sessions)} / "
-                    f"{_k_lots(est_short / sessions)} per session ({sessions} left)")
-    return "     " + " · ".join(bits)
+    if sessions > 0 and net != 0:
+        line += (f" → clear pace of {_k_lots(abs(net) / sessions)} "
+                 f"per session ({sessions} left)")
+    return "   · " + line
 
 
 def _fnd_roll_line(market: str, today: date) -> str | None:
@@ -985,8 +987,16 @@ def _fnd_roll_line(market: str, today: date) -> str | None:
     letter, fnd, day, oi, peers = front
 
     days_left = (fnd - today).days
-    when = f"FND in {days_left}d" if days_left > 0 else "FND today" if days_left == 0 else "past FND"
-    bits = [f"{letter}'s {when}", f"OI {_k_lots(oi)}"]
+    if days_left > 0:
+        when = f"FND ({letter}) in {days_left}d"
+        sessions = -trading_days_to(today, fnd)
+        if sessions > 0:
+            when += f" / {sessions} sessions"
+    elif days_left == 0:
+        when = f"FND ({letter}) today"
+    else:
+        when = f"FND ({letter}) passed"
+    oi_bits = [f"OI {_k_lots(oi)}"]
 
     if len(peers) >= 2:
         lo, hi = min(peers), max(peers)
@@ -998,8 +1008,8 @@ def _fnd_roll_line(market: str, today: date) -> str | None:
             # clamp read as a coincidental 0/100.
             edge = (" (above prior range)" if raw > 100 else
                     " (below prior range)" if raw < 0 else "")
-            bits.append(f"{pct:.0f}% min-max{edge}")
-    return "     " + " · ".join(bits)
+            oi_bits.append(f"{pct:.0f}% min-max{edge}")
+    return "   · " + when + "\n   · " + " · ".join(oi_bits)
 
 
 def _upcoming_events_section(now: datetime | None = None) -> str | None:
