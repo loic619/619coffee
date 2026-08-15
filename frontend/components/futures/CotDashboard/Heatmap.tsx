@@ -47,7 +47,11 @@ export default function CotHeatmap({ data }: { data: ProcessedCotRow[] }) {
   const renderCells = (vals: number[], isSpread: boolean) => {
     const min = Math.min(...vals), max = Math.max(...vals);
     return (
-      <div style={{ display: "grid", gridTemplateColumns: `repeat(${n}, 1fr)`, gap: 2 }}>
+      // minmax(0, 1fr): plain `1fr` means minmax(auto, 1fr), so wide cell text
+      // ("294k") forces content-based minimum widths — cells end up unequal and
+      // rows misalign against each other (worst on phones). Zero-min makes
+      // every column truly equal; overflow:hidden keeps text inside its cell.
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, gap: 2 }}>
         {vals.map((val, wi) => {
           const isLast  = wi === n - 1;
           const range   = isSpread ? (max - min) : mode === "net" ? Math.max(Math.abs(min), Math.abs(max)) : (max - min);
@@ -66,6 +70,7 @@ export default function CotHeatmap({ data }: { data: ProcessedCotRow[] }) {
                 fontWeight: isLast ? 700 : 400,
                 outline: isLast ? "2px solid #6366f1" : "none",
                 outlineOffset: "-1px",
+                overflow: "hidden", minWidth: 0, whiteSpace: "nowrap",
               }}>
               {Math.abs(val) >= 1000 ? (Math.abs(val) / 1000).toFixed(0) + "k" : Math.round(val)}
             </div>
@@ -98,9 +103,9 @@ export default function CotHeatmap({ data }: { data: ProcessedCotRow[] }) {
   const ldnSpreadRows = spreadFields.map(f => ({ label: f.label, color: f.color, vals: weeks13.map(d => gv(d, f.key, "ldn")) }));
 
   const dateRow = (
-    <div style={{ display: "grid", gridTemplateColumns: `repeat(${n}, 1fr)`, gap: 2 }}>
+    <div style={{ display: "grid", gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, gap: 2 }}>
       {weeks13.map((d, i) => (
-        <div key={i} style={{ fontSize: 9, color: i === n - 1 ? "#a5b4fc" : "#475569", textAlign: "center" }}>
+        <div key={i} style={{ fontSize: 9, color: i === n - 1 ? "#a5b4fc" : "#475569", textAlign: "center", overflow: "hidden", whiteSpace: "nowrap", minWidth: 0 }}>
           {d.date.slice(5)}
         </div>
       ))}
@@ -124,6 +129,9 @@ export default function CotHeatmap({ data }: { data: ProcessedCotRow[] }) {
       </div>
 
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 overflow-x-auto">
+        {/* min-width so phones scroll this block horizontally instead of
+            crushing 2×13 cells into ~7px slivers; desktop is unaffected. */}
+        <div style={{ minWidth: 640 }}>
         {/* Market column headers + date rows */}
         <div className="flex gap-2 mb-1">
           <div style={{ width: 72 }} />
@@ -168,6 +176,7 @@ export default function CotHeatmap({ data }: { data: ProcessedCotRow[] }) {
         ))}
 
         <div className="text-[9px] text-slate-700 mt-2">Hover for exact lots · Colors normalized per row · Purple = latest week</div>
+        </div>
       </div>
     </>
   );
