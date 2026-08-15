@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-15T11:05:58.698359Z",
-  "count": 71,
+  "generated_at": "2026-08-15T11:14:01.577213Z",
+  "count": 72,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -884,6 +884,17 @@
       "workflow_run_deps": [],
       "concurrency_group": "scraper-vn-water-levels",
       "timeout_minutes": 15
+    },
+    {
+      "file": "seed-options-oi.yml",
+      "name": "Z \u2013 Seed: options OI snapshot (manual)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 12
     },
     {
       "file": "source-sentinel.yml",
