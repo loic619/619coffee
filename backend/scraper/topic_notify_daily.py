@@ -88,6 +88,7 @@ def compose_prices(now: dt.datetime) -> str | None:
     today = now.date()
     parts = [f"📈 <b>Futures — session {pub}</b>"]
     for line, market in ((rc_line, "robusta"), (kc_line, "arabica")):
+        parts.append("")                       # blank line between blocks
         parts.append(line)
         for extra in (b._fnd_roll_line(market, today), b._fnd_spec_line(market, today)):
             if extra:
