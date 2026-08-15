@@ -21,9 +21,11 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import sys
 from datetime import date
 from pathlib import Path
+from urllib.parse import quote
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -44,9 +46,85 @@ PRICES = ROOT / "data" / "contract_prices_archive.json"
 DEFAULT_START = "2024-06-01"
 
 
+BASE = "https://www.barchart.com/proxies/core-api/v1"
+
+# one small in-page fetch per request: a single monolithic evaluate died
+# 20 minutes in when the barchart page auto-navigated and destroyed the
+# execution context. Python drives the loop; a destroyed context is healed
+# by re-navigating and retrying the one lost request.
+_JS_FETCH = """async (url) => {
+    function getCookie(n) {
+        const v = document.cookie.match('(^|;) ?' + n + '=([^;]*)(;|$)');
+        return v ? decodeURIComponent(v[2]) : null;
+    }
+    const r = await fetch(url, { credentials: 'include',
+        headers: { 'x-xsrf-token': getCookie('XSRF-TOKEN'),
+                   'accept': 'application/json' } });
+    if (!r.ok) return { __status: r.status };
+    return await r.json();
+}"""
+
+
+async def _api(pg, url: str, tries: int = 4):
+    """Fetch a core-api URL through the page; None on unrecoverable failure.
+
+    Barchart throttles hard after ~60 rapid calls — back off 20/40/60s on
+    429/5xx. On a destroyed context (page navigated), reload and retry."""
+    for i in range(tries):
+        try:
+            res = await pg.evaluate(_JS_FETCH, url)
+        except Exception:
+            try:
+                await pg.goto(INIT_URL, wait_until="domcontentloaded",
+                              timeout=45000)
+                await pg.wait_for_timeout(2000)
+            except Exception:
+                pass
+            continue
+        status = res.get("__status") if isinstance(res, dict) else None
+        if status is None:
+            return res
+        if status != 429 and status < 500:
+            return None
+        await asyncio.sleep(20 * (i + 1))
+    return None
+
+
+def _parse_board(bj: dict | None) -> dict:
+    """{optSym: {strike, type}} — side from optionType or the SYMBOL suffix
+    (KCZ6|1000C); the strike field is plain numeric, no C/P marker."""
+    bd = (bj or {}).get("data")
+    arr = bd if isinstance(bd, list) else [
+        x for v in (bd or {}).values()
+        for x in (v if isinstance(v, list) else [])]
+    options: dict = {}
+    for it in arr:
+        r = it.get("raw") or it
+        sym = str(r.get("symbol") or "")
+        if not sym:
+            continue
+        ot = str(r.get("optionType") or "").upper()
+        side = ("P" if ot.startswith("P") else "C" if ot.startswith("C")
+                else "P" if sym.endswith("P") else "C")
+        strike = None
+        try:
+            strike = float(re.sub(r"[^0-9.\-]", "", str(r.get("strike"))))
+        except ValueError:
+            if "|" in sym:
+                try:
+                    strike = float(sym.split("|")[1].rstrip("CP")) / 10
+                except ValueError:
+                    strike = None
+        if strike is None:
+            continue
+        options[sym] = {"strike": strike, "type": side}
+    return options
+
+
 async def _fetch_histories(start: str) -> dict:
     """{market: [{underlying, options: {optSym: {strike, type}},
-                  hist: {optSym: [[date, last, vol, oi], ...]}}]}"""
+                  hist: {optSym: [[date, last, vol, oi], ...]},
+                  futHist: {date: px}, fails: int}]}"""
     from playwright.async_api import async_playwright
     out: dict = {}
     async with async_playwright() as pw:
@@ -57,105 +135,68 @@ async def _fetch_histories(start: str) -> dict:
         pg = await ctx.new_page()
         await pg.goto(INIT_URL, wait_until="domcontentloaded", timeout=45000)
         await pg.wait_for_timeout(3000)
-        out = await pg.evaluate(
-            """async ([roots, startDate, maxContracts]) => {
-                function getCookie(n) {
-                    const v = document.cookie.match('(^|;) ?' + n + '=([^;]*)(;|$)');
-                    return v ? decodeURIComponent(v[2]) : null;
-                }
-                const h = { credentials: 'include',
-                            headers: { 'x-xsrf-token': getCookie('XSRF-TOKEN'),
-                                       'accept': 'application/json' } };
-                const base = 'https://www.barchart.com/proxies/core-api/v1';
-                const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-                // Barchart throttles hard after ~60 rapid core-api calls:
-                // pace every request and back off long on 429/5xx.
-                const jfetch = async (url) => {
-                    for (let i = 0; i < 4; i++) {
-                        try {
-                            const r = await fetch(url, h);
-                            if (r.ok) return await r.json();
-                            if (r.status !== 429 && r.status < 500) return null;
-                        } catch (e) { /* retry */ }
-                        await sleep(20000 * (i + 1));
-                    }
-                    return null;
-                };
-                const res = {};
-                for (const [mkt, root] of Object.entries(roots)) {
-                    const cj = await jfetch(base + '/quotes/get?symbol=' + root +
-                        '%5EF&fields=symbol&orderBy=contractExpirationDate&orderDir=asc&limit=6&raw=1');
-                    if (!cj) { res[mkt] = []; continue; }
-                    const chain = (cj.data || [])
-                        .map(c => (c.raw || c).symbol).filter(Boolean);
-                    const blocks = [];
-                    for (const und of chain) {
-                        if (blocks.length >= maxContracts) break;
-                        await sleep(1000);
-                        const bj = await jfetch(base + '/quotes/get?symbol=' + und +
-                            '&list=futures.options&fields=symbol,strike,optionType&raw=1&limit=999');
-                        if (!bj) continue;
-                        const bd = bj.data;
-                        const arr = Array.isArray(bd) ? bd
-                            : bd ? Object.values(bd).flat() : [];
-                        const options = {};
-                        for (const it of arr) {
-                            const r = it.raw || it;
-                            const s = String(r.symbol || '');
-                            if (!s) continue;
-                            // side comes from the SYMBOL suffix (KCZ6|1000C):
-                            // the strike field is plain numeric, no C/P marker
-                            const ot = String(r.optionType || '').toUpperCase();
-                            const side = ot.startsWith('P') ? 'P'
-                                : ot.startsWith('C') ? 'C'
-                                : s.endsWith('P') ? 'P' : 'C';
-                            let k = parseFloat(String(r.strike).replace(/[^0-9.\\-]/g, ''));
-                            if (!isFinite(k)) {
-                                const m = s.split('|')[1];
-                                k = m ? parseFloat(m) / 10 : NaN;
-                            }
-                            if (!isFinite(k)) continue;
-                            options[s] = { strike: k, type: side };
-                        }
-                        if (!Object.keys(options).length) continue;
-                        // the underlying future's own settlement series, for
-                        // historical IV where the local archive has no price
-                        const futHist = {};
-                        await sleep(1000);
-                        const fj = await jfetch(base + '/historical/get?symbol=' +
-                            encodeURIComponent(und) +
-                            '&type=eod&startDate=' + startDate +
-                            '&fields=tradeTime,lastPrice&raw=1&limit=600');
-                        for (const x of ((fj && fj.data) || [])) {
-                            const r = x.raw || x;
-                            if (r.tradeTime && r.lastPrice != null)
-                                futHist[String(r.tradeTime).slice(0, 10)] = r.lastPrice;
-                        }
-                        const hist = {};
-                        let fails = 0;
-                        for (const sym of Object.keys(options)) {
-                            await sleep(900);
-                            const hj = await jfetch(base + '/historical/get?symbol=' +
-                                encodeURIComponent(sym) +
-                                '&type=eod&startDate=' + startDate +
-                                '&fields=tradeTime,lastPrice,volume,openInterest&raw=1&limit=600');
-                            if (!hj) { fails++; continue; }
-                            const rows = (hj.data || [])
-                                .map(x => { const r = x.raw || x; return [
-                                    r.tradeTime, r.lastPrice, r.volume, r.openInterest]; })
-                                .filter(r => r[0]);
-                            if (rows.length) hist[sym] = rows;
-                        }
-                        blocks.push({ underlying: und, options, hist, futHist, fails });
-                    }
-                    res[mkt] = blocks;
-                }
-                return res;
-            }""",
-            [MARKETS, start, MAX_CONTRACTS],
-        )
+        for mkt, root in MARKETS.items():
+            blocks: list = []
+            cj = await _api(pg, f"{BASE}/quotes/get?symbol={root}%5EF"
+                            "&fields=symbol&orderBy=contractExpirationDate"
+                            "&orderDir=asc&limit=6&raw=1")
+            chain = [s for s in ((c.get("raw") or c).get("symbol")
+                                 for c in (cj or {}).get("data") or []) if s]
+            for und in chain:
+                if len(blocks) >= MAX_CONTRACTS:
+                    break
+                await asyncio.sleep(1.0)
+                bj = await _api(pg, f"{BASE}/quotes/get?symbol={und}"
+                                "&list=futures.options"
+                                "&fields=symbol,strike,optionType"
+                                "&raw=1&limit=999")
+                options = _parse_board(bj)
+                if not options:
+                    continue
+                await asyncio.sleep(1.0)
+                fj = await _api(pg, f"{BASE}/historical/get"
+                                f"?symbol={quote(und)}&type=eod"
+                                f"&startDate={start}"
+                                "&fields=tradeTime,lastPrice&raw=1&limit=600")
+                fut_hist = {}
+                for x in (fj or {}).get("data") or []:
+                    r = x.get("raw") or x
+                    if r.get("tradeTime") and r.get("lastPrice") is not None:
+                        fut_hist[str(r["tradeTime"])[:10]] = r["lastPrice"]
+                hist: dict = {}
+                fails = 0
+                for i, sym in enumerate(options, 1):
+                    await asyncio.sleep(0.9)
+                    hj = await _api(pg, f"{BASE}/historical/get"
+                                    f"?symbol={quote(sym)}&type=eod"
+                                    f"&startDate={start}"
+                                    "&fields=tradeTime,lastPrice,volume,"
+                                    "openInterest&raw=1&limit=600")
+                    if hj is None:
+                        fails += 1
+                        continue
+                    rows = []
+                    for x in hj.get("data") or []:
+                        r = x.get("raw") or x
+                        if r.get("tradeTime"):
+                            rows.append([r["tradeTime"], r.get("lastPrice"),
+                                         r.get("volume"),
+                                         r.get("openInterest")])
+                    if rows:
+                        hist[sym] = rows
+                    if i % 50 == 0:
+                        print(f"[backfill-options] {mkt} {und}: "
+                              f"{i}/{len(options)} series fetched",
+                              flush=True)
+                blocks.append({"underlying": und, "options": options,
+                               "hist": hist, "futHist": fut_hist,
+                               "fails": fails})
+                print(f"[backfill-options] fetched {mkt} {und}: "
+                      f"{len(hist)}/{len(options)} series "
+                      f"({fails} failed)", flush=True)
+            out[mkt] = blocks
         await browser.close()
-    return out or {}
+    return out
 
 
 def _future_prices() -> dict:
