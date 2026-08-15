@@ -1,15 +1,22 @@
-name: "Z – Seed: options OI snapshot (manual)"
+name: "1.3b – Options OI intraday refresh"
 
-# One-off/manual: run the options-board fetch outside the 1.3 daily cadence
-# (e.g. to seed the first snapshot, or recover after a quiet failure) and
-# commit options_oi.json. No weekend gate — Barchart serves the latest
-# session's board at any time.
+# Second options fetch at ~14:10 UTC Mon-Fri. The 02:13 UTC snapshot (riding
+# 1.3) runs before ICE's next-morning OI publication, so its open interest is
+# one session behind its prices. ICE's FINAL OI posts during the US morning;
+# this run re-fetches the boards and UPSERTS the same date's row + archive
+# entry, upgrading the day's numbers from preliminary to final.
 
 on:
+  schedule:
+    - cron: '10 14 * * 1-5'
   workflow_dispatch:
 
+concurrency:
+  group: options-oi-intraday
+  cancel-in-progress: true
+
 jobs:
-  seed:
+  refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     permissions:
@@ -29,7 +36,7 @@ jobs:
           pip install playwright
           sudo rm -f /etc/apt/sources.list.d/*microsoft* /etc/apt/sources.list.d/*azure* || true
           playwright install chromium --with-deps || playwright install chromium
-      - name: Fetch options board
+      - name: Fetch options boards (final OI)
         env:
           PYTHONPATH: backend
         run: python backend/scraper/fetch_options_json.py
@@ -40,7 +47,7 @@ jobs:
           git add frontend/public/data/options_oi.json
           [ -f data/options_boards_archive.json ] && git add data/options_boards_archive.json || true
           if git diff --cached --quiet; then echo "No changes."; else
-            git commit -m "data: options OI snapshot [skip ci]"
+            git commit -m "data: options OI intraday refresh [skip ci]"
             for i in 1 2 3 4 5; do
               git pull --rebase --autostash origin main && git push && exit 0
               sleep $((RANDOM % 5 + 3))
