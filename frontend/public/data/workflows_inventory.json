@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-15T11:14:01.577213Z",
-  "count": 72,
+  "generated_at": "2026-08-15T19:34:01.026428Z",
+  "count": 73,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -407,6 +407,17 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 10
+    },
+    {
+      "file": "probe-options-hist.yml",
+      "name": "Z \u2013 Probe: options greeks + history (test)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 12
     },
     {
       "file": "quant-currency-index.yml",
