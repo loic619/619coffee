@@ -2,24 +2,25 @@
 fetch_options_json.py — daily KC/RM options-on-futures snapshot from Barchart.
 
 Same Playwright + core-api pattern as fetch_oi_json.py (load a Barchart page,
-lift the XSRF cookie, call /proxies/core-api in-page). For each market it takes
-the FRONT futures contract (highest-OI, from the same chain call the OI fetcher
-uses) and pulls its full options board: per-strike call/put open interest,
-volume and last, plus the option expiry.
+lift the XSRF cookie, call /proxies/core-api in-page). For each market it pulls
+the options boards of the NEAREST few futures contracts whose options are
+still alive (positioning rolls to the back months well before the front's
+options expire, so a highest-OI pick used to skip the board that matters most
+in expiry week — e.g. RMU26 four days from option expiry while OI sat in X26).
 
 Writes frontend/public/data/options_oi.json:
   {
     updated, markets: {
-      arabica|robusta: {
-        underlying, future_price, option_expiry, days_to_expiry,
-        strikes: [{strike, call_oi, put_oi, call_vol, put_vol}],   # latest board
-        totals:  {call_oi, put_oi, itm_call_oi, itm_put_oi}
-      }
+      arabica|robusta: { contracts: [                # nearest expiry first
+        { underlying, future_price, option_expiry, days_to_expiry,
+          expiry_source, strikes: [{strike, call_oi, put_oi, call_vol, put_vol}],
+          totals: {call_oi, put_oi, itm_call_oi, itm_put_oi} }, ...] }
     },
-    history: [{date, arabica: {underlying, future_price, days_to_expiry,
-                               call_oi, put_oi, itm_call_oi, itm_put_oi},
-                     robusta: {...}}]
+    history: [{date, arabica: [{underlying, future_price, days_to_expiry,
+                                call_oi, put_oi, itm_call_oi, itm_put_oi}, ...],
+                     robusta: [...]}]
   }
+(Older rows/snapshots used a single-contract object; the panel normalises.)
 ITM = calls with strike < future price, puts with strike > future price —
 the OI that turns into futures positions (or gets defended) into expiry, which
 is what the countdown visual tracks. History accumulates one row per day;
@@ -39,6 +40,7 @@ ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "frontend" / "public" / "data" / "options_oi.json"
 INIT_URL = "https://www.barchart.com/futures/quotes/KCK26/overview"
 HISTORY_MAX_DAYS = 400          # ~1.5y of countdown history is plenty
+MAX_CONTRACTS = 3               # nearest live option boards per market
 
 MARKETS = {"arabica": "KC", "robusta": "RM"}
 
@@ -75,50 +77,34 @@ async def _fetch() -> dict:
                         const cr = await fetch(cu, h);
                         if (!cr.ok) { res[mkt] = {error: 'chain http ' + cr.status}; continue; }
                         const chain = (await cr.json()).data || [];
-                        let front = null;
+                        // Nearest contracts first (chain is expiry-ascending);
+                        // Python filters out those whose options already
+                        // expired and trims to MAX_CONTRACTS live boards.
+                        const picks = [];
                         for (const c of chain) {
                             const r = c.raw || c;
-                            const oi = Number(r.openInterest) || 0;
-                            if (!front || oi > front.oi) {
-                                front = { symbol: r.symbol || c.symbol, oi,
-                                          price: Number(r.lastPrice) || null };
-                            }
+                            const sym = r.symbol || c.symbol;
+                            if (!sym) continue;
+                            picks.push({ symbol: sym,
+                                         oi: Number(r.openInterest) || 0,
+                                         price: Number(r.lastPrice) || null });
+                            if (picks.length >= 5) break;
                         }
-                        if (!front || !front.symbol) { res[mkt] = {error: 'no front contract'}; continue; }
-                        // 2. that contract's options board, both sides, with OI
+                        if (!picks.length) { res[mkt] = {error: 'no contracts'}; continue; }
                         const of_ = 'symbol,strike,optionType,lastPrice,volume,openInterest,' +
                                     'expirationDate,daysToExpiration,tradeTime';
-                        const ou = base + '?symbol=' + front.symbol +
-                            '&list=futures.options&fields=' + of_ + '&raw=1&limit=999';
-                        const or_ = await fetch(ou, h);
-                        const optionsJson = or_.ok ? await or_.json()
-                                                   : {error: 'options http ' + or_.status};
-                        // The grouped board omits expirationDate; one follow-up
-                        // quote on any option symbol carries it.
-                        let expiry = null;
-                        try {
-                            let sym = null;
-                            const dd = optionsJson && optionsJson.data;
-                            const firstArr = Array.isArray(dd) ? dd
-                                : dd ? (Object.values(dd)[0] || []) : [];
-                            for (const it of firstArr) {
-                                const r = it.raw || it;
-                                if (r.symbol) { sym = r.symbol; break; }
-                            }
-                            if (sym) {
-                                const eu = base + '?symbols=' + encodeURIComponent(sym) +
-                                    '&fields=symbol,expirationDate,daysToExpiration&raw=1';
-                                const er = await fetch(eu, h);
-                                if (er.ok) {
-                                    const ej = await er.json();
-                                    const row = (ej.data || [])[0] || {};
-                                    const rr = row.raw || row;
-                                    expiry = { date: rr.expirationDate || null,
-                                               dte: rr.daysToExpiration ?? null };
-                                }
-                            }
-                        } catch (e) { /* expiry stays null */ }
-                        res[mkt] = { front, options: optionsJson, expiry };
+                        const boards = [];
+                        for (const pk of picks) {
+                            const ou = base + '?symbol=' + pk.symbol +
+                                '&list=futures.options&fields=' + of_ + '&raw=1&limit=999';
+                            const or_ = await fetch(ou, h);
+                            boards.push({
+                                front: pk,
+                                options: or_.ok ? await or_.json()
+                                                : {error: 'options http ' + or_.status},
+                            });
+                        }
+                        res[mkt] = { boards };
                     }
                     return res;
                 }""",
@@ -236,12 +222,8 @@ def _market_snapshot(mkt_payload: dict) -> dict | None:
     put_oi = sum(s["put_oi"] for s in strikes)
     itm_call = sum(s["call_oi"] for s in strikes if price and s["strike"] < price)
     itm_put = sum(s["put_oi"] for s in strikes if price and s["strike"] > price)
-    fu = (mkt_payload or {}).get("expiry") or {}
-    expiry = (next((r["expiry"] for r in rows if r["expiry"]), None)
-              or fu.get("date"))
+    expiry = next((r["expiry"] for r in rows if r["expiry"]), None)
     dte = next((r["dte"] for r in rows if r["dte"] is not None), None)
-    if dte is None:
-        dte = _num(fu.get("dte"))
     if dte is None and expiry:
         try:
             from datetime import datetime as _dt
@@ -263,10 +245,11 @@ def main() -> int:
     raw = asyncio.run(_fetch())
     markets = {}
     for mkt in MARKETS:
-        fu_dbg = (raw.get(mkt) or {}).get("expiry")
-        print(f"[options] {mkt}: follow-up expiry payload = {fu_dbg!r}")
-        snap = _market_snapshot(raw.get(mkt) or {})
-        if snap:
+        snaps = []
+        for board in (raw.get(mkt) or {}).get("boards") or []:
+            snap = _market_snapshot(board)
+            if not snap:
+                continue
             if not snap.get("option_expiry"):
                 rd = _rule_expiry(snap["underlying"])
                 if rd:
@@ -275,15 +258,25 @@ def main() -> int:
                     snap["expiry_source"] = "rule"
             else:
                 snap["expiry_source"] = "api"
-            markets[mkt] = snap
+            # A board whose options already expired is history, not signal —
+            # drop it so the front chip is always a LIVE expiry.
+            if snap.get("days_to_expiry") is not None and snap["days_to_expiry"] < 0:
+                print(f"[options] {mkt}: {snap['underlying']} options expired "
+                      f"{snap['option_expiry']} — skipped")
+                continue
+            snaps.append(snap)
             print(f"[options] {mkt}: {snap['underlying']} — "
                   f"{len(snap['strikes'])} strikes, call OI {snap['totals']['call_oi']:.0f}, "
                   f"put OI {snap['totals']['put_oi']:.0f}, "
                   f"ITM {snap['totals']['itm_call_oi'] + snap['totals']['itm_put_oi']:.0f}, "
-                  f"DTE {snap['days_to_expiry']}")
+                  f"DTE {snap['days_to_expiry']} ({snap.get('expiry_source')})")
+            if len(snaps) >= MAX_CONTRACTS:
+                break
+        if snaps:
+            markets[mkt] = {"contracts": snaps}
         else:
-            err = (raw.get(mkt) or {}).get("error") or (raw.get(mkt) or {}).get("options", {})
-            print(f"[options] {mkt}: no snapshot ({str(err)[:120]})")
+            err = (raw.get(mkt) or {}).get("error")
+            print(f"[options] {mkt}: no live boards ({str(err)[:120]})")
     if not markets:
         print("[options] nothing fetched — keeping existing file")
         return 1
@@ -296,13 +289,16 @@ def main() -> int:
 
     today = date.today().isoformat()
     hist_row = {"date": today}
-    for mkt, snap in markets.items():
-        hist_row[mkt] = {
-            "underlying": snap["underlying"],
-            "future_price": snap["future_price"],
-            "days_to_expiry": snap["days_to_expiry"],
-            **snap["totals"],
-        }
+    for mkt, block in markets.items():
+        hist_row[mkt] = [
+            {
+                "underlying": snap["underlying"],
+                "future_price": snap["future_price"],
+                "days_to_expiry": snap["days_to_expiry"],
+                **snap["totals"],
+            }
+            for snap in block["contracts"]
+        ]
     doc["history"] = ([r for r in doc["history"] if r.get("date") != today] + [hist_row])
     doc["history"] = sorted(doc["history"], key=lambda r: r["date"])[-HISTORY_MAX_DAYS:]
     doc["markets"] = markets
@@ -311,7 +307,8 @@ def main() -> int:
     doc.setdefault("note", "ITM = calls below / puts above the front future's last price; "
                            "history is one aggregate row per session for the expiry countdown.")
     OUT.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"[options] options_oi.json → {today}: {', '.join(markets)} "
+    n = {m: len(b["contracts"]) for m, b in markets.items()}
+    print(f"[options] options_oi.json → {today}: {n} "
           f"({len(doc['history'])} history rows)")
     return 0
 

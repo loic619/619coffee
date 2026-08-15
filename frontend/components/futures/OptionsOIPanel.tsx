@@ -7,7 +7,10 @@ import {
 
 import { fmtDateLabel } from "@/lib/formatters";
 
-// options_oi.json — daily Barchart options board for the front KC/RM future.
+// options_oi.json — daily Barchart boards for the nearest live KC/RM option
+// expiries. Newer files carry {contracts: [...]} per market and per-contract
+// history arrays; the first snapshots were single-contract objects, so both
+// shapes are normalised below.
 interface StrikeRow { strike: number; call_oi: number; put_oi: number; call_vol: number; put_vol: number }
 interface MarketSnap {
   underlying: string;
@@ -17,17 +20,24 @@ interface MarketSnap {
   strikes: StrikeRow[];
   totals: { call_oi: number; put_oi: number; itm_call_oi: number; itm_put_oi: number };
 }
+interface HistEntry {
+  underlying: string; future_price: number | null; days_to_expiry: number | null;
+  call_oi: number; put_oi: number; itm_call_oi: number; itm_put_oi: number;
+}
 interface HistRow {
   date: string;
-  arabica?: { underlying: string; future_price: number | null; days_to_expiry: number | null;
-              call_oi: number; put_oi: number; itm_call_oi: number; itm_put_oi: number };
-  robusta?: HistRow["arabica"];
+  arabica?: HistEntry | HistEntry[];
+  robusta?: HistEntry | HistEntry[];
 }
+type MarketBlock = { contracts?: MarketSnap[] } & Partial<MarketSnap>;
 interface OptionsDoc {
   updated?: string;
-  markets?: { arabica?: MarketSnap; robusta?: MarketSnap };
+  markets?: { arabica?: MarketBlock; robusta?: MarketBlock };
   history?: HistRow[];
 }
+
+// KCZ26 → "Z26" — the chip label; the root repeats the market toggle.
+const shortSym = (sym: string) => sym.replace(/^[A-Z]{2,3}(?=[FGHJKMNQUVXZ]\d{2}$)/, "");
 
 type Mkt = "arabica" | "robusta";
 const TT_STYLE = { background: "#1e293b", border: "1px solid #334155", borderRadius: 6, fontSize: 10 };
@@ -36,6 +46,7 @@ const UNIT: Record<Mkt, string> = { arabica: "¢/lb", robusta: "$/MT" };
 export default function OptionsOIPanel() {
   const [doc, setDoc] = useState<OptionsDoc | null>(null);
   const [mkt, setMkt] = useState<Mkt>("arabica");
+  const [sel, setSel] = useState<string | null>(null);   // selected underlying
 
   useEffect(() => {
     fetch("/data/options_oi.json")
@@ -44,7 +55,20 @@ export default function OptionsOIPanel() {
       .catch(() => { /* renders the accumulating note */ });
   }, []);
 
-  const snap = doc?.markets?.[mkt] ?? null;
+  // Nearest-first list of live option boards for the active market.
+  const contracts = useMemo<MarketSnap[]>(() => {
+    const block = doc?.markets?.[mkt];
+    if (!block) return [];
+    if (Array.isArray(block.contracts)) return block.contracts;
+    return block.underlying && block.strikes ? [block as MarketSnap] : [];
+  }, [doc, mkt]);
+
+  // Default to the FRONT (nearest expiry); an explicit pick sticks while it
+  // exists, and falls back to the front when the market/file changes.
+  const snap = useMemo(
+    () => contracts.find(c => c.underlying === sel) ?? contracts[0] ?? null,
+    [contracts, sel]
+  );
 
   // Per-strike board: puts drawn downward so the two sides mirror around zero,
   // trimmed to strikes near the money (±35% of the future) so tails don't
@@ -59,11 +83,16 @@ export default function OptionsOIPanel() {
     return rows;
   }, [snap]);
 
-  // Expiry countdown: one row per session for this market, ITM vs total OI.
+  // Expiry countdown for the SELECTED contract: one row per session, ITM vs
+  // total OI. Legacy rows carried a single object; normalise to an array.
   const countdown = useMemo(() => {
+    const want = snap?.underlying;
+    if (!want) return [];
     return (doc?.history ?? [])
       .map(r => {
-        const m = r[mkt];
+        const raw = r[mkt];
+        const arr = Array.isArray(raw) ? raw : raw ? [raw] : [];
+        const m = arr.find(e => e.underlying === want);
         if (!m) return null;
         return {
           date: r.date, label: fmtDateLabel(r.date),
@@ -74,7 +103,7 @@ export default function OptionsOIPanel() {
         };
       })
       .filter((x): x is NonNullable<typeof x> => x != null);
-  }, [doc, mkt]);
+  }, [doc, mkt, snap]);
 
   const last = countdown.length ? countdown[countdown.length - 1] : null;
   const itmShare = last && last.total > 0 ? (last.itm / last.total) * 100 : null;
@@ -85,19 +114,38 @@ export default function OptionsOIPanel() {
         <div>
           <h2 className="text-lg font-bold text-white">Options Open Interest</h2>
           <p className="text-xs text-slate-400 max-w-3xl">
-            Options board of the front {mkt === "arabica" ? "NY arabica (KC)" : "London robusta (RM)"} future
+            Options boards of the nearest {mkt === "arabica" ? "NY arabica (KC)" : "London robusta (RM)"} futures
             — per-strike call/put open interest around the money, and the in-the-money share of that OI as
             option expiry approaches (delta-hedging / pin-risk pressure). Delayed Barchart data, one snapshot
             per session{doc?.updated ? ` · last ${doc.updated.slice(0, 10)}` : ""}.
           </p>
         </div>
-        <div className="flex bg-slate-800 border border-slate-700 rounded-md overflow-hidden text-[10px]">
-          {(["arabica", "robusta"] as Mkt[]).map(m => (
-            <button key={m} onClick={() => setMkt(m)}
-              className={`px-2.5 py-1.5 transition ${mkt === m ? "bg-amber-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
-              {m === "arabica" ? "Arabica" : "Robusta"}
-            </button>
-          ))}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex bg-slate-800 border border-slate-700 rounded-md overflow-hidden text-[10px]">
+            {(["arabica", "robusta"] as Mkt[]).map(m => (
+              <button key={m} onClick={() => { setMkt(m); setSel(null); }}
+                className={`px-2.5 py-1.5 transition ${mkt === m ? "bg-amber-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
+                {m === "arabica" ? "Arabica" : "Robusta"}
+              </button>
+            ))}
+          </div>
+          {contracts.length > 1 && (
+            <div className="flex bg-slate-800 border border-slate-700 rounded-md overflow-hidden text-[10px]">
+              {contracts.map(c => {
+                const active = snap?.underlying === c.underlying;
+                return (
+                  <button key={c.underlying} onClick={() => setSel(c.underlying)}
+                    title={`${c.underlying} — options expire ${c.option_expiry?.slice(0, 10) ?? "?"}`}
+                    className={`px-2.5 py-1.5 transition font-mono ${active ? "bg-sky-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
+                    {shortSym(c.underlying)}
+                    {c.days_to_expiry != null && (
+                      <span className={active ? "text-sky-200" : "text-slate-500"}> {Math.round(c.days_to_expiry)}d</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
