@@ -7,20 +7,35 @@ import { fmtLotK as fmtLot } from "@/lib/formatters";
 type PositionField = keyof CotMarketPositions;
 type Mkt = "ny" | "ldn";
 
+// 5-year window (weekly reports). The published cot.json carries ~6y, so this
+// is fully backed by real data; shorter histories just clamp.
+const WEEKS_5Y = 260;
+
 export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
+  const hist5y = data.slice(-WEEKS_5Y);
   const hist52 = data.slice(-52);
   const curr = hist52[hist52.length - 1];
   const prev = hist52.length >= 2 ? hist52[hist52.length - 2] : null;
 
-  type GRData = { label: string; color: string; curr: number; prev: number; min: number; max: number; pct: number; isSpread?: boolean };
+  type GRData = {
+    label: string; color: string; curr: number; prev: number;
+    min5: number; max5: number;   // 5-year range (the bar track)
+    min52: number; max52: number; // 52-week range (solid band inside it)
+    pct: number;                  // current position within the 5y range
+    isSpread?: boolean;
+  };
 
   const mkRow = (market: Mkt, label: string, cat: string, field: PositionField, isSpread?: boolean): GRData => {
-    const vals = hist52.map(d => d[market]?.[field] ?? 0);
-    const min = Math.min(...vals), max = Math.max(...vals);
+    const vals5 = hist5y.map(d => d[market]?.[field] ?? 0);
+    const vals52 = hist52.map(d => d[market]?.[field] ?? 0);
+    const min5 = Math.min(...vals5), max5 = Math.max(...vals5);
     const cv = curr[market]?.[field] ?? 0;
     const pv = prev?.[market]?.[field] ?? cv;
-    return { label, color: HM_CAT_COLORS[cat] ?? "#64748b", curr: cv, prev: pv, min, max,
-      pct: max > min ? (cv - min) / (max - min) * 100 : 50, isSpread };
+    return {
+      label, color: HM_CAT_COLORS[cat] ?? "#64748b", curr: cv, prev: pv,
+      min5, max5, min52: Math.min(...vals52), max52: Math.max(...vals52),
+      pct: max5 > min5 ? (cv - min5) / (max5 - min5) * 100 : 50, isSpread,
+    };
   };
 
   const marketRows = (market: Mkt) => ({
@@ -48,6 +63,14 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
   const ny  = marketRows("ny");
   const ldn = marketRows("ldn");
 
+  // Bar length is proportional to the row's 5y range SIZE, relative to the
+  // widest range in the same market column — a swap-long range of ~5k lots
+  // renders ~4x shorter than a PMPU-long range of ~22k, so range magnitudes
+  // are comparable at a glance. Small floor keeps tiny rows usable.
+  const maxSpanOf = (rows: ReturnType<typeof marketRows>) =>
+    Math.max(1, ...[...rows.longRows, ...rows.shortRows, ...rows.spreadRows].map(r => r.max5 - r.min5));
+  const MIN_TRACK_PCT = 8;
+
   const pctColor = (pct: number) => {
     if (pct >= 80) return "#ef4444";
     if (pct >= 60) return "#f97316";
@@ -61,31 +84,46 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
     ...[...ldn.longRows, ...ldn.shortRows].map(r => ({ ...r, mkt: "LDN" })),
   ].filter(r => r.pct >= 80 || r.pct <= 20);
 
-  const renderGauge = (r: GRData) => {
-    const pct = Math.max(0, Math.min(100, r.pct));
-    const prevPct = r.max > r.min ? Math.max(0, Math.min(100, (r.prev - r.min) / (r.max - r.min) * 100)) : 50;
+  const renderGauge = (r: GRData, maxSpan: number) => {
+    const span5 = r.max5 - r.min5;
+    const trackPct = Math.max(MIN_TRACK_PCT, (span5 / maxSpan) * 100);
+    const pos = (v: number) => span5 > 0 ? Math.max(0, Math.min(100, (v - r.min5) / span5 * 100)) : 50;
+    const pct = pos(r.curr);
+    const prevPct = pos(r.prev);
+    // 52-week range band inside the 5y track
+    const band52L = pos(r.min52);
+    const band52W = Math.max(1.5, pos(r.max52) - band52L);
     const delta = r.curr - r.prev;
-    const color = r.isSpread ? "#a78bfa" : pctColor(pct);
+    // Dot: green when the current week added vs last week, red when it cut.
+    const dotColor = delta > 0 ? "#22c55e" : delta < 0 ? "#ef4444" : "#94a3b8";
     return (
       <div key={r.label} style={{ marginBottom: 10 }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3, alignItems: "baseline" }}>
           <span style={{ fontSize: 11, color: r.color, fontWeight: 600 }}>{r.label}</span>
           <span style={{ fontSize: 10, display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ color: "#475569" }}>{fmtLot(r.curr)}</span>
-            <span style={{ color, fontWeight: 600 }}>{Math.round(pct)}th</span>
+            <span style={{ color: r.isSpread ? "#a78bfa" : pctColor(pct), fontWeight: 600 }}>{Math.round(pct)}th</span>
             <span style={{ color: delta >= 0 ? "#22c55e" : "#ef4444", fontSize: 9 }}>
               {delta >= 0 ? "▲" : "▼"} {fmtLot(Math.abs(delta))}
             </span>
           </span>
         </div>
-        <div style={{ position: "relative", height: 11, background: "#1e293b", borderRadius: 6 }}>
-          <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${pct}%`, background: color, borderRadius: 6, opacity: 0.28 }} />
-          <div style={{ position: "absolute", top: 1, left: `calc(${prevPct}% - 1px)`, width: 2, height: 9, background: "#60a5fa", borderRadius: 1, opacity: 0.6 }} title={`Prev: ${fmtLot(r.prev)}`} />
-          <div style={{ position: "absolute", top: 0.5, left: `calc(${pct}% - 5px)`, width: 10, height: 10, background: color, borderRadius: "50%", border: "2px solid #0f172a", boxShadow: `0 0 4px ${color}80` }} />
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
-          <span style={{ fontSize: 9, color: "#334155" }}>{fmtLot(r.min)}</span>
-          <span style={{ fontSize: 9, color: "#334155" }}>{fmtLot(r.max)}</span>
+        {/* Track width ∝ 5y range size (vs the widest range in this market) */}
+        <div style={{ width: `${trackPct}%` }}>
+          <div style={{ position: "relative", height: 11, background: "rgba(59,130,246,0.12)", borderRadius: 6, border: "1px solid #1e293b" }}
+            title={`5y: ${fmtLot(r.min5)}–${fmtLot(r.max5)} · 52w: ${fmtLot(r.min52)}–${fmtLot(r.max52)}`}>
+            {/* 52-week range — solid blue band inside the faded 5y track */}
+            <div style={{ position: "absolute", left: `${band52L}%`, top: 0, height: "100%", width: `${band52W}%`, background: "rgba(59,130,246,0.45)", borderRadius: 4 }} />
+            {/* previous week — blue tick */}
+            <div style={{ position: "absolute", top: 1, left: `calc(${prevPct}% - 1px)`, width: 2, height: 9, background: "#60a5fa", borderRadius: 1 }} title={`Prev: ${fmtLot(r.prev)}`} />
+            {/* current week — green (added) / red (reduced) dot */}
+            <div style={{ position: "absolute", top: 0.5, left: `calc(${pct}% - 5px)`, width: 10, height: 10, background: dotColor, borderRadius: "50%", border: "2px solid #0f172a", boxShadow: `0 0 4px ${dotColor}80` }}
+              title={`Current: ${fmtLot(r.curr)} (${delta >= 0 ? "+" : ""}${fmtLot(delta)})`} />
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+            <span style={{ fontSize: 9, color: "#334155" }}>{fmtLot(r.min5)}</span>
+            <span style={{ fontSize: 9, color: "#334155" }}>{fmtLot(r.max5)}</span>
+          </div>
         </div>
       </div>
     );
@@ -95,27 +133,30 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
     <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-3 mt-1">{t}</div>
   );
 
-  const marketColumn = (title: string, rows: ReturnType<typeof marketRows>) => (
-    <div>
-      <div className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 pb-2 border-b border-slate-800">{title}</div>
-      {subHead("Longs")}
-      {rows.longRows.map(renderGauge)}
-      {subHead("Shorts")}
-      {rows.shortRows.map(renderGauge)}
-      <div style={{ borderTop: "1px dashed #334155", marginTop: 12, paddingTop: 10 }}>
-        {subHead("Spreading positions")}
-        {rows.spreadRows.map(renderGauge)}
+  const marketColumn = (title: string, rows: ReturnType<typeof marketRows>) => {
+    const maxSpan = maxSpanOf(rows);
+    return (
+      <div>
+        <div className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 pb-2 border-b border-slate-800">{title}</div>
+        {subHead("Longs")}
+        {rows.longRows.map(r => renderGauge(r, maxSpan))}
+        {subHead("Shorts")}
+        {rows.shortRows.map(r => renderGauge(r, maxSpan))}
+        <div style={{ borderTop: "1px dashed #334155", marginTop: 12, paddingTop: 10 }}>
+          {subHead("Spreading positions")}
+          {rows.spreadRows.map(r => renderGauge(r, maxSpan))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <>
-      <SectionHeader icon="Sliders" title="52-Week Positioning Gauges"
-        subtitle="Current level vs. 52-week range, per market (Arabica left · Robusta right). Longs then shorts. Colored dot = current week, blue tick = previous week. Red ≥80th pct · Green ≤20th." />
+      <SectionHeader icon="Sliders" title="Positioning Gauges"
+        subtitle="Faded blue = 5-year range · solid blue band = 52-week range · blue tick = previous week · dot = current week (green = added vs last week, red = reduced). Bar length ∝ range size within each market. Percentile is within the 5-year range." />
       {extremes.length > 0 && (
         <div className="bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 mb-4 flex flex-wrap gap-3">
-          <span className="text-[10px] text-slate-500 font-semibold self-center uppercase tracking-wider">Extremes:</span>
+          <span className="text-[10px] text-slate-500 font-semibold self-center uppercase tracking-wider">Extremes (5y):</span>
           {extremes.map(r => (
             <span key={`${r.mkt}-${r.label}`} style={{ fontSize: 11, color: pctColor(r.pct) }}>
               {r.mkt} {r.label} {Math.round(r.pct)}th
@@ -124,7 +165,7 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
         </div>
       )}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-        <div className="grid grid-cols-2 gap-x-3 gap-y-4 lg:gap-x-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
           {marketColumn("Arabica · NY", ny)}
           {marketColumn("Robusta · LDN", ldn)}
         </div>
