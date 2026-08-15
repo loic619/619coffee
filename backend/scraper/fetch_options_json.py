@@ -258,6 +258,28 @@ def _rows(options_payload: dict) -> list[dict]:
     return rows
 
 
+def _fill_iv(snap: dict) -> None:
+    """IV + delta: prefer Barchart's own values; otherwise back them out of the
+    last premium via Black-76 (F, K, T known; r≈0 over these horizons). A stale
+    last that violates no-arbitrage bounds yields None, not a fake IV.
+
+    Idempotent (only fills None slots) — main() calls it again after the
+    rule-based expiry lands, because the board payload itself carries no
+    expiry fields and days_to_expiry is unknown at snapshot time."""
+    price, dte = snap.get("future_price"), snap.get("days_to_expiry")
+    if not price or not dte or dte <= 0:
+        return
+    t = dte / 365.0
+    for slot in snap["strikes"]:
+        for side, is_call in (("call", True), ("put", False)):
+            if slot[f"{side}_iv"] is None and slot[f"{side}_last"]:
+                slot[f"{side}_iv"] = _implied_vol(slot[f"{side}_last"], price,
+                                                  slot["strike"], t, is_call)
+            if slot[f"{side}_delta"] is None and slot[f"{side}_iv"]:
+                slot[f"{side}_delta"] = _b76_delta(price, slot["strike"], t,
+                                                   slot[f"{side}_iv"], is_call)
+
+
 def _market_snapshot(mkt_payload: dict) -> dict | None:
     front = (mkt_payload or {}).get("front") or {}
     rows = _rows((mkt_payload or {}).get("options") or {})
@@ -299,20 +321,7 @@ def _market_snapshot(mkt_payload: dict) -> dict | None:
             dte = ( _dt.fromisoformat(str(expiry)[:10]).date() - date.today() ).days
         except ValueError:
             pass
-    # IV + delta: prefer Barchart's own values; otherwise back them out of the
-    # last premium via Black-76 (F, K, T known; r≈0 over these horizons). A
-    # stale last that violates no-arbitrage bounds yields None, not a fake IV.
-    if price and dte and dte > 0:
-        t = dte / 365.0
-        for slot in strikes:
-            for side, is_call in (("call", True), ("put", False)):
-                if slot[f"{side}_iv"] is None and slot[f"{side}_last"]:
-                    slot[f"{side}_iv"] = _implied_vol(slot[f"{side}_last"], price,
-                                                      slot["strike"], t, is_call)
-                if slot[f"{side}_delta"] is None and slot[f"{side}_iv"]:
-                    slot[f"{side}_delta"] = _b76_delta(price, slot["strike"], t,
-                                                       slot[f"{side}_iv"], is_call)
-    return {
+    snap = {
         "underlying": front["symbol"],
         "future_price": price,
         "option_expiry": expiry,
@@ -321,6 +330,8 @@ def _market_snapshot(mkt_payload: dict) -> dict | None:
         "totals": {"call_oi": call_oi, "put_oi": put_oi,
                    "itm_call_oi": itm_call, "itm_put_oi": itm_put},
     }
+    _fill_iv(snap)
+    return snap
 
 
 
@@ -409,6 +420,7 @@ def main() -> int:
                     snap["option_expiry"] = rd.isoformat()
                     snap["days_to_expiry"] = (rd - date.today()).days
                     snap["expiry_source"] = "rule"
+                    _fill_iv(snap)  # dte only just became known
             else:
                 snap["expiry_source"] = "api"
             # A board whose options already expired is history, not signal —
