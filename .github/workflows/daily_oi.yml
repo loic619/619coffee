@@ -99,6 +99,19 @@ jobs:
             [ $attempt -lt 3 ] && echo "Attempt $attempt failed, retrying in 5m..." && sleep 300 || exit 1
           done
 
+      - name: Fetch options board (KC/RM per-strike OI)
+        if: steps.weekday.outputs.skip != 'true'
+        # Non-fatal: options are an enrichment — a Barchart hiccup here must
+        # not take down the futures OI snapshot this workflow exists for.
+        continue-on-error: true
+        env:
+          PYTHONPATH: backend
+        run: |
+          for attempt in 1 2; do
+            python backend/scraper/fetch_options_json.py && break
+            [ $attempt -lt 2 ] && echo "options attempt $attempt failed, retrying in 2m..." && sleep 120
+          done
+
       - name: Copy OI history to frontend
         if: steps.weekday.outputs.skip != 'true'
         run: cp data/oi_history.json frontend/public/data/oi_history.json
@@ -123,6 +136,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/oi_history.json frontend/public/data/oi_history.json data/contract_prices_archive.json
+          [ -f frontend/public/data/options_oi.json ] && git add frontend/public/data/options_oi.json || true
           if git diff --cached --quiet; then
             echo "No changes."
             exit 0
