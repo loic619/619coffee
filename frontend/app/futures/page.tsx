@@ -5,6 +5,7 @@ import AcapheLiveQuotes from "@/components/futures/AcapheLiveQuotes";
 import OIFndChart from "@/components/futures/OIFndChart";
 import OriginPricesPanel from "@/components/macro/OriginPricesPanel";
 import B3CoffeePanel from "@/components/futures/B3CoffeePanel";
+import OptionsOIPanel from "@/components/futures/OptionsOIPanel";
 import PageHeader from "@/components/PageHeader";
 import { fmtNum as fmt } from "@/lib/formatters";
 import { FOBBING_USD, MONTHLY_CARRY_USD } from "@/lib/originCosts";
@@ -1033,6 +1034,12 @@ function FuturesPageInner() {
               <OIFndChart market="arabica" />
               <OIFndChart market="robusta" />
             </div>
+          </div>
+
+          {/* Options board — per-strike OI + ITM-into-expiry countdown for the
+              front KC/RM future (daily Barchart snapshot). */}
+          <div className="border-t border-slate-800 pt-4 mt-4">
+            <OptionsOIPanel />
           </div>
 
           {/* Origin Farmgate Prices — moved from /macro so the physical

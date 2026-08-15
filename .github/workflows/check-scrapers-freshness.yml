@@ -168,6 +168,11 @@ jobs:
                   (7 * 24, lambda d: d["history"][-1]["date"] if d.get("history") else None),
               "frontend/public/data/brazil_b3_arabica.json":
                   (7 * 24, lambda d: d["history"][-1]["date"] if d.get("history") else None),
+              # Options board rides the 1.3 daily-OI workflow but is marked
+              # continue-on-error there (a Barchart enrichment hiccup must not
+              # kill the futures snapshot) — this check surfaces a quiet death.
+              "frontend/public/data/options_oi.json":
+                  (6 * 24, lambda d: d["history"][-1]["date"] if d.get("history") else None),
           }
 
           def _parse_ts(ts):

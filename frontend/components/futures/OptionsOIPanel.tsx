@@ -1,0 +1,211 @@
+"use client";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  CartesianGrid, ReferenceLine, Legend,
+} from "recharts";
+
+import { fmtDateLabel } from "@/lib/formatters";
+
+// options_oi.json — daily Barchart options board for the front KC/RM future.
+interface StrikeRow { strike: number; call_oi: number; put_oi: number; call_vol: number; put_vol: number }
+interface MarketSnap {
+  underlying: string;
+  future_price: number | null;
+  option_expiry?: string | null;
+  days_to_expiry?: number | null;
+  strikes: StrikeRow[];
+  totals: { call_oi: number; put_oi: number; itm_call_oi: number; itm_put_oi: number };
+}
+interface HistRow {
+  date: string;
+  arabica?: { underlying: string; future_price: number | null; days_to_expiry: number | null;
+              call_oi: number; put_oi: number; itm_call_oi: number; itm_put_oi: number };
+  robusta?: HistRow["arabica"];
+}
+interface OptionsDoc {
+  updated?: string;
+  markets?: { arabica?: MarketSnap; robusta?: MarketSnap };
+  history?: HistRow[];
+}
+
+type Mkt = "arabica" | "robusta";
+const TT_STYLE = { background: "#1e293b", border: "1px solid #334155", borderRadius: 6, fontSize: 10 };
+const UNIT: Record<Mkt, string> = { arabica: "¢/lb", robusta: "$/MT" };
+
+export default function OptionsOIPanel() {
+  const [doc, setDoc] = useState<OptionsDoc | null>(null);
+  const [mkt, setMkt] = useState<Mkt>("arabica");
+
+  useEffect(() => {
+    fetch("/data/options_oi.json")
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d) setDoc(d); })
+      .catch(() => { /* renders the accumulating note */ });
+  }, []);
+
+  const snap = doc?.markets?.[mkt] ?? null;
+
+  // Per-strike board: puts drawn downward so the two sides mirror around zero,
+  // trimmed to strikes near the money (±35% of the future) so tails don't
+  // squash the visible structure.
+  const board = useMemo(() => {
+    if (!snap?.strikes?.length) return [];
+    const px = snap.future_price ?? undefined;
+    const rows = snap.strikes
+      .filter(s => (s.call_oi || 0) + (s.put_oi || 0) > 0)
+      .filter(s => !px || (s.strike > px * 0.65 && s.strike < px * 1.35))
+      .map(s => ({ strike: s.strike, calls: s.call_oi, puts: -s.put_oi }));
+    return rows;
+  }, [snap]);
+
+  // Expiry countdown: one row per session for this market, ITM vs total OI.
+  const countdown = useMemo(() => {
+    return (doc?.history ?? [])
+      .map(r => {
+        const m = r[mkt];
+        if (!m) return null;
+        return {
+          date: r.date, label: fmtDateLabel(r.date),
+          total: (m.call_oi || 0) + (m.put_oi || 0),
+          itm: (m.itm_call_oi || 0) + (m.itm_put_oi || 0),
+          dte: m.days_to_expiry,
+          underlying: m.underlying,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => x != null);
+  }, [doc, mkt]);
+
+  const last = countdown.length ? countdown[countdown.length - 1] : null;
+  const itmShare = last && last.total > 0 ? (last.itm / last.total) * 100 : null;
+
+  return (
+    <div className="p-4 space-y-3">
+      <div className="flex items-start justify-between flex-wrap gap-2">
+        <div>
+          <h2 className="text-lg font-bold text-white">Options Open Interest</h2>
+          <p className="text-xs text-slate-400 max-w-3xl">
+            Options board of the front {mkt === "arabica" ? "NY arabica (KC)" : "London robusta (RM)"} future
+            — per-strike call/put open interest around the money, and the in-the-money share of that OI as
+            option expiry approaches (delta-hedging / pin-risk pressure). Delayed Barchart data, one snapshot
+            per session{doc?.updated ? ` · last ${doc.updated.slice(0, 10)}` : ""}.
+          </p>
+        </div>
+        <div className="flex bg-slate-800 border border-slate-700 rounded-md overflow-hidden text-[10px]">
+          {(["arabica", "robusta"] as Mkt[]).map(m => (
+            <button key={m} onClick={() => setMkt(m)}
+              className={`px-2.5 py-1.5 transition ${mkt === m ? "bg-amber-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
+              {m === "arabica" ? "Arabica" : "Robusta"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {!snap ? (
+        <div className="text-[11px] text-slate-500 italic">
+          No options data yet — the board starts accumulating with the next daily OI snapshot.
+        </div>
+      ) : (
+        <>
+          {/* KPI strip */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
+              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Underlying</div>
+              <div className="text-base font-bold font-mono text-slate-100">{snap.underlying}</div>
+              <div className="text-[10px] text-slate-400 font-mono">
+                {snap.future_price != null ? `${snap.future_price.toLocaleString()} ${UNIT[mkt]}` : "—"}
+              </div>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
+              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Option expiry</div>
+              <div className="text-base font-bold font-mono text-amber-400">
+                {snap.days_to_expiry != null ? `${Math.round(snap.days_to_expiry)}d` : "—"}
+              </div>
+              <div className="text-[10px] text-slate-400 font-mono">{snap.option_expiry?.slice(0, 10) ?? ""}</div>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
+              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Total option OI</div>
+              <div className="text-base font-bold font-mono text-slate-100">
+                {(snap.totals.call_oi + snap.totals.put_oi).toLocaleString()}
+              </div>
+              <div className="text-[10px] text-slate-400 font-mono">
+                C {snap.totals.call_oi.toLocaleString()} · P {snap.totals.put_oi.toLocaleString()}
+              </div>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
+              <div className="text-[9px] text-slate-500 uppercase tracking-wide">In the money</div>
+              <div className={`text-base font-bold font-mono ${itmShare != null && itmShare > 50 ? "text-red-400" : "text-emerald-400"}`}>
+                {itmShare != null ? `${itmShare.toFixed(1)}%` : "—"}
+              </div>
+              <div className="text-[10px] text-slate-400 font-mono">
+                {(snap.totals.itm_call_oi + snap.totals.itm_put_oi).toLocaleString()} lots ITM
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Per-strike board */}
+            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+                OI per strike · calls up, puts down · line = future
+              </div>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={board} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                    <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                    <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
+                      type="number" domain={["dataMin", "dataMax"]} tickCount={9} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
+                      tickFormatter={(v: number) => Math.abs(v).toLocaleString()} />
+                    <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                      labelFormatter={(v) => `strike ${v} ${UNIT[mkt]}`}
+                      formatter={(v) => typeof v === "number" ? `${Math.abs(v).toLocaleString()} lots` : "—"} />
+                    <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
+                    <ReferenceLine y={0} stroke="#475569" />
+                    {snap.future_price != null && (
+                      <ReferenceLine x={snap.future_price} stroke="#e2e8f0" strokeDasharray="4 3"
+                        label={{ value: "fut", fill: "#e2e8f0", fontSize: 9, position: "top" }} />
+                    )}
+                    <Bar dataKey="calls" name="Calls" fill="#34d399" fillOpacity={0.8} />
+                    <Bar dataKey="puts" name="Puts" fill="#f87171" fillOpacity={0.8} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* ITM countdown */}
+            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+                ITM OI vs total into expiry{last?.dte != null ? ` · ${Math.round(last.dte)}d left` : ""}
+              </div>
+              <div className="h-64">
+                {countdown.length < 2 ? (
+                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                    Accumulating — one point per session from the daily snapshot.
+                    {countdown.length === 1 ? " First point captured." : ""}
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={countdown} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                      <XAxis dataKey="label" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={22} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
+                        tickFormatter={(v: number) => v.toLocaleString()} />
+                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                        formatter={(v) => typeof v === "number" ? `${v.toLocaleString()} lots` : "—"} />
+                      <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
+                      <Line type="monotone" dataKey="total" name="Total option OI"
+                        stroke="#e2e8f0" strokeWidth={1.5} dot={false} />
+                      <Line type="monotone" dataKey="itm" name="ITM OI"
+                        stroke="#f59e0b" strokeWidth={1.5} dot={false} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
