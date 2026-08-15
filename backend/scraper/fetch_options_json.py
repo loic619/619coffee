@@ -132,6 +132,44 @@ async def _fetch() -> dict:
     return out or {}
 
 
+_MONTH_CODES = {"F": 1, "G": 2, "H": 3, "J": 4, "K": 5, "M": 6,
+                "N": 7, "Q": 8, "U": 9, "V": 10, "X": 11, "Z": 12}
+
+
+def _nth_weekday(year: int, month: int, weekday: int, n: int) -> date:
+    """n-th `weekday` (Mon=0) of a month."""
+    d = date(year, month, 1)
+    off = (weekday - d.weekday()) % 7
+    return d.replace(day=1 + off + 7 * (n - 1))
+
+
+def _rule_expiry(underlying: str) -> date | None:
+    """Exchange-rule option expiry for a KC/RM futures symbol.
+
+    KC: last trading day is the SECOND FRIDAY of the calendar month preceding
+    the contract month (ICE Futures US rulebook ch.8; a rarely-hit proviso can
+    pull it earlier when FND is close). RM: 12:30 London on the THIRD
+    WEDNESDAY of the month preceding expiry (ICE Futures Europe spec; noted as
+    subject to change for post-Jul-2026 expiries, hence expiry_source="rule"
+    marks these as approximations whenever the API doesn't answer).
+    """
+    m = (underlying or "").strip().upper()
+    if len(m) < 5 or m[-3] not in _MONTH_CODES:
+        return None
+    root, code, yy = m[:-3], m[-3], m[-2:]
+    try:
+        year = 2000 + int(yy)
+    except ValueError:
+        return None
+    month = _MONTH_CODES[code]
+    pm, py = (month - 1, year) if month > 1 else (12, year - 1)
+    if root.startswith("KC"):
+        return _nth_weekday(py, pm, 4, 2)      # 2nd Friday
+    if root.startswith("RM") or root.startswith("RC"):
+        return _nth_weekday(py, pm, 2, 3)      # 3rd Wednesday
+    return None
+
+
 def _num(v):
     try:
         if v in (None, "", "N/A", "N\\/A"):
@@ -225,8 +263,18 @@ def main() -> int:
     raw = asyncio.run(_fetch())
     markets = {}
     for mkt in MARKETS:
+        fu_dbg = (raw.get(mkt) or {}).get("expiry")
+        print(f"[options] {mkt}: follow-up expiry payload = {fu_dbg!r}")
         snap = _market_snapshot(raw.get(mkt) or {})
         if snap:
+            if not snap.get("option_expiry"):
+                rd = _rule_expiry(snap["underlying"])
+                if rd:
+                    snap["option_expiry"] = rd.isoformat()
+                    snap["days_to_expiry"] = (rd - date.today()).days
+                    snap["expiry_source"] = "rule"
+            else:
+                snap["expiry_source"] = "api"
             markets[mkt] = snap
             print(f"[options] {mkt}: {snap['underlying']} — "
                   f"{len(snap['strikes'])} strikes, call OI {snap['totals']['call_oi']:.0f}, "
