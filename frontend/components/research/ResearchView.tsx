@@ -12,6 +12,7 @@ import CertifiedStocksParity from "./CertifiedStocksParity";
 import ConilonBasis from "./ConilonBasis";
 import SeptemberXray from "./SeptemberXray";
 import CropyearXray from "./CropyearXray";
+import CotSwapIdentity from "./CotSwapIdentity";
 import DroughtRiskMethodology from "./methodology/DroughtRiskMethodology";
 import YieldRainfall from "./YieldRainfall";
 import CpiMethodology from "./methodology/CpiMethodology";
@@ -1774,6 +1775,11 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
 
       {cat === "quant" && (
         <div className="space-y-4">
+          <CollapsibleCard tone="amber" updated="2026-08-14" kicker="COT · cohort identity"
+            title="Are swap dealers commercials or speculators?"
+            subtitle="Three behavioural tests on the disaggregated COT — both contracts, long and short legs kept separate">
+            <CotSwapIdentity />
+          </CollapsibleCard>
           <IntraweekMethodology />
           <CollapsibleCard bare tone="amber" updated="2026-07-14" kicker="COT · positioning" title="COT backtest report"
             subtitle="Walk-forward backtest of the intraweek positioning model">
