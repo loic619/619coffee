@@ -894,6 +894,63 @@ _EVENT_CATEGORY_LABEL = {
 }
 
 
+def _k_lots(n: float) -> str:
+    """31139 → '31.1k'; small numbers stay whole."""
+    return f"{n / 1000:.1f}k" if abs(n) >= 1000 else f"{n:,.0f}"
+
+
+def _fnd_roll_line(market: str, today: date) -> str | None:
+    """The front contract's run into First Notice Day: which letter, how long
+    it has left, its open interest, and how that OI compares with the same
+    point in earlier contracts' roll cycles.
+
+    OI drains mechanically as FND approaches, so the raw number alone says
+    nothing about whether this roll is heavy or light. The comparison is
+    therefore like-for-like — every prior contract's OI at the SAME number of
+    trading days from its own FND — expressed as a min–max position (0% = at
+    the lightest of that history, 100% = at the heaviest), the same
+    normalisation the COT coverage figures use.
+
+    Returns None rather than a partial line when the chart data is missing or
+    too thin to compare against (needs at least two prior contracts).
+    """
+    doc = load("oi_fnd_chart.json")
+    rows = (doc or {}).get(market) or []
+    if len(rows) < 2:
+        return None
+    cur = rows[-1]
+    pts = [p for p in (cur.get("data") or []) if p.get("oi") is not None]
+    if not pts:
+        return None
+    latest = max(pts, key=lambda p: p["day"])    # highest day = closest to FND
+    day, oi = latest["day"], latest["oi"]
+    letter = (cur.get("label") or "?")[:1]
+    try:
+        fnd = date.fromisoformat(str(cur.get("fnd")))
+    except ValueError:
+        return None
+
+    days_left = (fnd - today).days
+    when = f"FND in {days_left}d" if days_left > 0 else "FND today" if days_left == 0 else "past FND"
+    bits = [f"{letter}'s {when}", f"OI {_k_lots(oi)}"]
+
+    # Peers = prior contracts at the same trading-day distance from FND.
+    peers = [p["oi"] for prev in rows[:-1] for p in (prev.get("data") or [])
+             if p.get("day") == day and p.get("oi") is not None]
+    if len(peers) >= 2:
+        lo, hi = min(peers), max(peers)
+        if hi > lo:
+            raw = (oi - lo) / (hi - lo) * 100
+            pct = max(0.0, min(100.0, raw))
+            # Breaking the envelope is the informative case — record-heavy or
+            # record-light OI into this FND — so say so rather than let the
+            # clamp read as a coincidental 0/100.
+            edge = (" (above prior range)" if raw > 100 else
+                    " (below prior range)" if raw < 0 else "")
+            bits.append(f"{pct:.0f}% min-max{edge}")
+    return "     " + " · ".join(bits)
+
+
 def _upcoming_events_section(now: datetime | None = None) -> str | None:
     """Format the "Coming up · next 24h" block.
 

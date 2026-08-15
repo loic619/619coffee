@@ -83,7 +83,18 @@ def compose_prices(now: dt.datetime) -> str | None:
         return None
     pub = ((chain.get("robusta") or {}).get("pub_date")
            or (chain.get("arabica") or {}).get("pub_date") or "?")
-    return f"📈 <b>Futures — session {pub}</b>\n{rc_line}\n{kc_line}"
+    # Roll context under each market: front letter, days to FND, its OI and
+    # where that OI sits against the same point of previous roll cycles.
+    today = now.date()
+    parts = [f"📈 <b>Futures — session {pub}</b>", rc_line]
+    rc_roll = b._fnd_roll_line("robusta", today)
+    if rc_roll:
+        parts.append(rc_roll)
+    parts.append(kc_line)
+    kc_roll = b._fnd_roll_line("arabica", today)
+    if kc_roll:
+        parts.append(kc_roll)
+    return "\n".join(parts)
 
 
 def compose_origin_prices(now: dt.datetime) -> str | None:

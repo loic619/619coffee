@@ -1,7 +1,7 @@
 """Tests for the morning brief handler — upcoming events section (issue #132 Body-4)."""
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 import pytest
 
@@ -255,3 +255,58 @@ def test_currency_index_silent_without_a_level(monkeypatch):
     assert brief._currency_index_block() is None
     _stub_quant(monkeypatch, {})
     assert brief._currency_index_block() is None
+
+
+# ── Front-contract run into FND (OI vs prior roll cycles) ────────────────────
+
+def _oi_doc(cur_oi: int, peer_ois: list[int], day: int = -7, fnd: str = "2026-06-05"):
+    """Newest contract plus peers, all carrying a point at the same day-to-FND."""
+    peers = [{"symbol": f"KC{i}", "label": f"P{i}", "fnd": "2025-01-01",
+              "data": [{"day": day, "oi": v, "price": 1.0}]}
+             for i, v in enumerate(peer_ois)]
+    cur = {"symbol": "KCU26", "label": "U26", "fnd": fnd,
+           "data": [{"day": day - 1, "oi": cur_oi + 500, "price": 1.0},
+                    {"day": day, "oi": cur_oi, "price": 1.0}]}
+    return {"arabica": peers + [cur]}
+
+
+def test_fnd_roll_line_letter_days_oi_and_position(monkeypatch):
+    monkeypatch.setattr(brief, "load",
+                        lambda n: _oi_doc(31_139, [23_116, 48_263, 29_241]) if n == "oi_fnd_chart.json" else None)
+    out = brief._fnd_roll_line("arabica", date(2026, 5, 29))
+    # Letter from the contract label; days to FND are calendar days from today.
+    assert out.strip().startswith("U's FND in 7d")
+    assert "OI 31.1k" in out
+    # (31139-23116)/(48263-23116) = 31.9% → 32%
+    assert "32% min-max" in out and "prior range" not in out
+
+
+def test_fnd_roll_line_flags_a_broken_envelope(monkeypatch):
+    """Clamping alone would render record-heavy OI as a bland '100%'."""
+    monkeypatch.setattr(brief, "load",
+                        lambda n: _oi_doc(23_751, [13_105, 21_029, 19_148]) if n == "oi_fnd_chart.json" else None)
+    assert "100% min-max (above prior range)" in brief._fnd_roll_line("arabica", date(2026, 5, 29))
+    monkeypatch.setattr(brief, "load",
+                        lambda n: _oi_doc(9_000, [13_105, 21_029, 19_148]) if n == "oi_fnd_chart.json" else None)
+    assert "0% min-max (below prior range)" in brief._fnd_roll_line("arabica", date(2026, 5, 29))
+
+
+def test_fnd_roll_line_compares_like_for_like(monkeypatch):
+    """Peers only count at the SAME distance from their own FND — OI drains
+    into FND, so an off-day comparison would be meaningless."""
+    doc = _oi_doc(31_139, [23_116, 48_263], day=-7)
+    # A peer point at a different day-to-FND must be ignored entirely.
+    doc["arabica"][0]["data"].append({"day": -30, "oi": 999_999, "price": 1.0})
+    monkeypatch.setattr(brief, "load", lambda n: doc if n == "oi_fnd_chart.json" else None)
+    assert "32% min-max" in brief._fnd_roll_line("arabica", date(2026, 5, 29))
+
+
+def test_fnd_roll_line_silent_without_enough_history(monkeypatch):
+    # One peer → a range of one value is not a range.
+    monkeypatch.setattr(brief, "load",
+                        lambda n: _oi_doc(31_139, [23_116]) if n == "oi_fnd_chart.json" else None)
+    out = brief._fnd_roll_line("arabica", date(2026, 5, 29))
+    assert "min-max" not in out and "OI 31.1k" in out   # still reports FND + OI
+    # No chart data at all → nothing to say.
+    monkeypatch.setattr(brief, "load", lambda _n: None)
+    assert brief._fnd_roll_line("arabica", date(2026, 5, 29)) is None
