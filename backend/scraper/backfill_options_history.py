@@ -68,66 +68,85 @@ async def _fetch_histories(start: str) -> dict:
                                        'accept': 'application/json' } };
                 const base = 'https://www.barchart.com/proxies/core-api/v1';
                 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+                // Barchart throttles hard after ~60 rapid core-api calls:
+                // pace every request and back off long on 429/5xx.
+                const jfetch = async (url) => {
+                    for (let i = 0; i < 4; i++) {
+                        try {
+                            const r = await fetch(url, h);
+                            if (r.ok) return await r.json();
+                            if (r.status !== 429 && r.status < 500) return null;
+                        } catch (e) { /* retry */ }
+                        await sleep(20000 * (i + 1));
+                    }
+                    return null;
+                };
                 const res = {};
                 for (const [mkt, root] of Object.entries(roots)) {
-                    const cr = await fetch(base + '/quotes/get?symbol=' + root +
-                        '%5EF&fields=symbol&orderBy=contractExpirationDate&orderDir=asc&limit=6&raw=1', h);
-                    if (!cr.ok) { res[mkt] = []; continue; }
-                    const chain = ((await cr.json()).data || [])
+                    const cj = await jfetch(base + '/quotes/get?symbol=' + root +
+                        '%5EF&fields=symbol&orderBy=contractExpirationDate&orderDir=asc&limit=6&raw=1');
+                    if (!cj) { res[mkt] = []; continue; }
+                    const chain = (cj.data || [])
                         .map(c => (c.raw || c).symbol).filter(Boolean);
                     const blocks = [];
                     for (const und of chain) {
                         if (blocks.length >= maxContracts) break;
-                        const br = await fetch(base + '/quotes/get?symbol=' + und +
-                            '&list=futures.options&fields=symbol,strike,optionType&raw=1&limit=999', h);
-                        if (!br.ok) continue;
-                        const bd = (await br.json()).data;
+                        await sleep(1000);
+                        const bj = await jfetch(base + '/quotes/get?symbol=' + und +
+                            '&list=futures.options&fields=symbol,strike,optionType&raw=1&limit=999');
+                        if (!bj) continue;
+                        const bd = bj.data;
                         const arr = Array.isArray(bd) ? bd
                             : bd ? Object.values(bd).flat() : [];
                         const options = {};
                         for (const it of arr) {
                             const r = it.raw || it;
-                            if (!r.symbol) continue;
-                            options[r.symbol] = {
-                                strike: parseFloat(String(r.strike).replace(/[CP]$/i, '')),
-                                type: String(r.strike).toUpperCase().endsWith('P') ? 'P' : 'C',
-                            };
+                            const s = String(r.symbol || '');
+                            if (!s) continue;
+                            // side comes from the SYMBOL suffix (KCZ6|1000C):
+                            // the strike field is plain numeric, no C/P marker
+                            const ot = String(r.optionType || '').toUpperCase();
+                            const side = ot.startsWith('P') ? 'P'
+                                : ot.startsWith('C') ? 'C'
+                                : s.endsWith('P') ? 'P' : 'C';
+                            let k = parseFloat(String(r.strike).replace(/[^0-9.\\-]/g, ''));
+                            if (!isFinite(k)) {
+                                const m = s.split('|')[1];
+                                k = m ? parseFloat(m) / 10 : NaN;
+                            }
+                            if (!isFinite(k)) continue;
+                            options[s] = { strike: k, type: side };
                         }
                         if (!Object.keys(options).length) continue;
                         // the underlying future's own settlement series, for
                         // historical IV where the local archive has no price
                         const futHist = {};
-                        try {
-                            const fr = await fetch(base + '/historical/get?symbol=' +
-                                encodeURIComponent(und) +
-                                '&type=eod&startDate=' + startDate +
-                                '&fields=tradeTime,lastPrice&raw=1&limit=600', h);
-                            if (fr.ok) {
-                                for (const x of ((await fr.json()).data || [])) {
-                                    const r = x.raw || x;
-                                    if (r.tradeTime && r.lastPrice != null)
-                                        futHist[String(r.tradeTime).slice(0, 10)] = r.lastPrice;
-                                }
-                            }
-                        } catch (e) { /* archive fallback */ }
-                        const hist = {};
-                        for (const sym of Object.keys(options)) {
-                            try {
-                                const hr = await fetch(base + '/historical/get?symbol=' +
-                                    encodeURIComponent(sym) +
-                                    '&type=eod&startDate=' + startDate +
-                                    '&fields=tradeTime,lastPrice,volume,openInterest&raw=1&limit=600', h);
-                                if (hr.ok) {
-                                    const rows = ((await hr.json()).data || [])
-                                        .map(x => { const r = x.raw || x; return [
-                                            r.tradeTime, r.lastPrice, r.volume, r.openInterest]; })
-                                        .filter(r => r[0]);
-                                    if (rows.length) hist[sym] = rows;
-                                }
-                            } catch (e) { /* skip symbol */ }
-                            await sleep(60);
+                        await sleep(1000);
+                        const fj = await jfetch(base + '/historical/get?symbol=' +
+                            encodeURIComponent(und) +
+                            '&type=eod&startDate=' + startDate +
+                            '&fields=tradeTime,lastPrice&raw=1&limit=600');
+                        for (const x of ((fj && fj.data) || [])) {
+                            const r = x.raw || x;
+                            if (r.tradeTime && r.lastPrice != null)
+                                futHist[String(r.tradeTime).slice(0, 10)] = r.lastPrice;
                         }
-                        blocks.push({ underlying: und, options, hist, futHist });
+                        const hist = {};
+                        let fails = 0;
+                        for (const sym of Object.keys(options)) {
+                            await sleep(900);
+                            const hj = await jfetch(base + '/historical/get?symbol=' +
+                                encodeURIComponent(sym) +
+                                '&type=eod&startDate=' + startDate +
+                                '&fields=tradeTime,lastPrice,volume,openInterest&raw=1&limit=600');
+                            if (!hj) { fails++; continue; }
+                            const rows = (hj.data || [])
+                                .map(x => { const r = x.raw || x; return [
+                                    r.tradeTime, r.lastPrice, r.volume, r.openInterest]; })
+                                .filter(r => r[0]);
+                            if (rows.length) hist[sym] = rows;
+                        }
+                        blocks.push({ underlying: und, options, hist, futHist, fails });
                     }
                     res[mkt] = blocks;
                 }
@@ -159,6 +178,14 @@ def _future_prices() -> dict:
     return out
 
 
+def _one_sided(board: dict) -> bool:
+    """True when no row carries any put-side value (index 9+) — the mark of
+    a partial/corrupted backfill board; real boards always have both sides."""
+    rows = board.get("rows") or []
+    return bool(rows) and all(
+        all(v is None for v in r[9:]) for r in rows)
+
+
 def main() -> int:
     start = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_START
     raw = asyncio.run(_fetch_histories(start))
@@ -171,6 +198,7 @@ def main() -> int:
     n_cols = len(ARCHIVE_HEADER)
     c0, p0 = 1, 9          # call/put column offsets in the 17-col row
     added_days = 0
+    replaced = 0
 
     for mkt, blocks in raw.items():
         # RM prices live under the robusta archive keyed RC-normalised symbols;
@@ -215,23 +243,35 @@ def main() -> int:
                                 row[off + 3] = iv
                                 if iv:
                                     row[off + 4] = _b76_delta(px, strike, t, iv, is_call)
-                # merge into archive: never overwrite a live-captured board
+                # merge into archive. Keep an existing board unless ours is
+                # strictly richer (more strikes) or the existing one is
+                # one-sided (an earlier corrupted/partial backfill) — live
+                # boards carry every listed strike so they always win.
                 day_slot = days.setdefault(d, {})
                 mkt_boards = day_slot.setdefault(mkt, [])
-                if not any(b.get("u") == und for b in mkt_boards):
-                    mkt_boards.append({
-                        "u": und, "px": px,
-                        "dte": (exp - date.fromisoformat(d)).days if exp else None,
-                        "rows": [strikes[k] for k in sorted(strikes)],
-                    })
+                new_board = {
+                    "u": und, "px": px,
+                    "dte": (exp - date.fromisoformat(d)).days if exp else None,
+                    "rows": [strikes[k] for k in sorted(strikes)],
+                    "bf": 1,
+                }
+                old = next((b for b in mkt_boards if b.get("u") == und), None)
+                if old is None:
+                    mkt_boards.append(new_board)
                     added_days += 1
+                elif (len(new_board["rows"]) > len(old.get("rows") or [])
+                      or _one_sided(old)):
+                    mkt_boards[mkt_boards.index(old)] = new_board
+                    replaced += 1
             print(f"[backfill-options] {mkt} {und}: {len(by_day)} sessions "
-                  f"({len(blk.get('hist') or {})} option series)")
+                  f"({len(blk.get('hist') or {})} option series, "
+                  f"{blk.get('fails') or 0} failed fetches)")
 
     ARCHIVE.write_text(json.dumps(archive, ensure_ascii=False, separators=(",", ":")),
                        encoding="utf-8")
     print(f"[backfill-options] archive now holds {len(days)} dates "
-          f"(+{added_days} board-days), {ARCHIVE.stat().st_size / 1e6:.1f} MB")
+          f"(+{added_days} board-days, {replaced} replaced), "
+          f"{ARCHIVE.stat().st_size / 1e6:.1f} MB")
     return 0
 
 
