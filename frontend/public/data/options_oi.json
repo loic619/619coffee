@@ -5,7 +5,7 @@
       "arabica": {
         "underlying": "KCZ26",
         "future_price": 314.3,
-        "days_to_expiry": null,
+        "days_to_expiry": 90,
         "call_oi": 40915.0,
         "put_oi": 75084.0,
         "itm_call_oi": 12864.0,
@@ -14,7 +14,7 @@
       "robusta": {
         "underlying": "RMX26",
         "future_price": 3594,
-        "days_to_expiry": null,
+        "days_to_expiry": 67,
         "call_oi": 9446.0,
         "put_oi": 16483.0,
         "itm_call_oi": 424.0,
@@ -26,8 +26,8 @@
     "arabica": {
       "underlying": "KCZ26",
       "future_price": 314.3,
-      "option_expiry": null,
-      "days_to_expiry": null,
+      "option_expiry": "2026-11-13",
+      "days_to_expiry": 90,
       "strikes": [
         {
           "strike": 100.0,
@@ -889,13 +889,14 @@
         "put_oi": 75084.0,
         "itm_call_oi": 12864.0,
         "itm_put_oi": 2554.0
-      }
+      },
+      "expiry_source": "rule"
     },
     "robusta": {
       "underlying": "RMX26",
       "future_price": 3594,
-      "option_expiry": null,
-      "days_to_expiry": null,
+      "option_expiry": "2026-10-21",
+      "days_to_expiry": 67,
       "strikes": [
         {
           "strike": 2250.0,
@@ -1582,10 +1583,11 @@
         "put_oi": 16483.0,
         "itm_call_oi": 424.0,
         "itm_put_oi": 2961.0
-      }
+      },
+      "expiry_source": "rule"
     }
   },
-  "updated": "2026-08-15T11:22:58.118385+00:00",
+  "updated": "2026-08-15T11:31:11.283530+00:00",
   "source": "Barchart core-api (delayed) — options on ICE KC / RM futures",
   "note": "ITM = calls below / puts above the front future's last price; history is one aggregate row per session for the expiry countdown."
 }
