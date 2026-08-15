@@ -86,14 +86,12 @@ def compose_prices(now: dt.datetime) -> str | None:
     # Roll context under each market: front letter, days to FND, its OI and
     # where that OI sits against the same point of previous roll cycles.
     today = now.date()
-    parts = [f"📈 <b>Futures — session {pub}</b>", rc_line]
-    rc_roll = b._fnd_roll_line("robusta", today)
-    if rc_roll:
-        parts.append(rc_roll)
-    parts.append(kc_line)
-    kc_roll = b._fnd_roll_line("arabica", today)
-    if kc_roll:
-        parts.append(kc_roll)
+    parts = [f"📈 <b>Futures — session {pub}</b>"]
+    for line, market in ((rc_line, "robusta"), (kc_line, "arabica")):
+        parts.append(line)
+        for extra in (b._fnd_roll_line(market, today), b._fnd_spec_line(market, today)):
+            if extra:
+                parts.append(extra)
     return "\n".join(parts)
 
 

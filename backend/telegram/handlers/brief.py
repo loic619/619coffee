@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from datetime import UTC, date, datetime, timedelta
 
+from contract_dates import trading_days_to
 from telegram.data import load
 from telegram.sender import esc
 
@@ -899,6 +900,70 @@ def _k_lots(n: float) -> str:
     return f"{n / 1000:.1f}k" if abs(n) >= 1000 else f"{n:,.0f}"
 
 
+def _front_fnd(market: str) -> tuple[str, date, int, int, list[int]] | None:
+    """The contract heading into First Notice Day, from oi_fnd_chart.json:
+    (letter, FND date, trading-days-to-FND of the newest reading, its open
+    interest, prior contracts' OI at that same distance from their own FND).
+    """
+    rows = (load("oi_fnd_chart.json") or {}).get(market) or []
+    if len(rows) < 2:
+        return None
+    cur = rows[-1]
+    pts = [p for p in (cur.get("data") or []) if p.get("oi") is not None]
+    if not pts:
+        return None
+    latest = max(pts, key=lambda p: p["day"])    # highest day = closest to FND
+    try:
+        fnd = date.fromisoformat(str(cur.get("fnd")))
+    except ValueError:
+        return None
+    day = latest["day"]
+    peers = [p["oi"] for prev in rows[:-1] for p in (prev.get("data") or [])
+             if p.get("day") == day and p.get("oi") is not None]
+    return (cur.get("label") or "?")[:1], fnd, day, latest["oi"], peers
+
+
+# COT market key per futures chart market.
+_COT_KEY = {"arabica": "ny", "robusta": "ldn"}
+
+
+def _fnd_spec_line(market: str, today: date) -> str | None:
+    """Speculative exposure sitting in the contract that is about to reach
+    FND, and the daily pace needed to be out of it in time.
+
+    Managed money cannot stand for delivery, so every one of those lots has
+    to be offset or rolled before FND — the pace is what turns "OI is heavy"
+    into "here is the flow that must happen, per session".
+
+    ESTIMATE, and worth knowing how: the COT reports a market's total
+    positions, not a per-contract split, so managed-money gross long/short is
+    apportioned by the front contract's share of open interest. Two caveats
+    ride on that — the COT totals are as of the report's Tuesday while the
+    front-month OI is current, and specs concentrate in the liquid front
+    months rather than spreading pro-rata, so this most likely UNDERstates
+    the real front-month position.
+    """
+    front = _front_fnd(market)
+    rows = load("cot.json")
+    if front is None or not isinstance(rows, list) or not rows:
+        return None
+    _letter, fnd, _day, front_oi, _peers = front
+    cot = (rows[-1].get(_COT_KEY.get(market, "")) or {})
+    mm_long, mm_short, oi_total = cot.get("mm_long"), cot.get("mm_short"), cot.get("oi_total")
+    if not oi_total or mm_long is None or mm_short is None:
+        return None
+
+    share = min(1.0, front_oi / oi_total)
+    est_long, est_short = mm_long * share, mm_short * share
+    bits = [f"spec est. {_k_lots(est_long)} long / {_k_lots(est_short)} short"]
+
+    sessions = -trading_days_to(today, fnd)      # trading_days_to is signed
+    if sessions > 0:
+        bits.append(f"clear pace {_k_lots(est_long / sessions)} / "
+                    f"{_k_lots(est_short / sessions)} per session ({sessions} left)")
+    return "     " + " · ".join(bits)
+
+
 def _fnd_roll_line(market: str, today: date) -> str | None:
     """The front contract's run into First Notice Day: which letter, how long
     it has left, its open interest, and how that OI compares with the same
@@ -914,29 +979,15 @@ def _fnd_roll_line(market: str, today: date) -> str | None:
     Returns None rather than a partial line when the chart data is missing or
     too thin to compare against (needs at least two prior contracts).
     """
-    doc = load("oi_fnd_chart.json")
-    rows = (doc or {}).get(market) or []
-    if len(rows) < 2:
+    front = _front_fnd(market)
+    if front is None:
         return None
-    cur = rows[-1]
-    pts = [p for p in (cur.get("data") or []) if p.get("oi") is not None]
-    if not pts:
-        return None
-    latest = max(pts, key=lambda p: p["day"])    # highest day = closest to FND
-    day, oi = latest["day"], latest["oi"]
-    letter = (cur.get("label") or "?")[:1]
-    try:
-        fnd = date.fromisoformat(str(cur.get("fnd")))
-    except ValueError:
-        return None
+    letter, fnd, day, oi, peers = front
 
     days_left = (fnd - today).days
     when = f"FND in {days_left}d" if days_left > 0 else "FND today" if days_left == 0 else "past FND"
     bits = [f"{letter}'s {when}", f"OI {_k_lots(oi)}"]
 
-    # Peers = prior contracts at the same trading-day distance from FND.
-    peers = [p["oi"] for prev in rows[:-1] for p in (prev.get("data") or [])
-             if p.get("day") == day and p.get("oi") is not None]
     if len(peers) >= 2:
         lo, hi = min(peers), max(peers)
         if hi > lo:
