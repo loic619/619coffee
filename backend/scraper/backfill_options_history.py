@@ -94,6 +94,22 @@ async def _fetch_histories(start: str) -> dict:
                             };
                         }
                         if (!Object.keys(options).length) continue;
+                        // the underlying future's own settlement series, for
+                        // historical IV where the local archive has no price
+                        const futHist = {};
+                        try {
+                            const fr = await fetch(base + '/historical/get?symbol=' +
+                                encodeURIComponent(und) +
+                                '&type=eod&startDate=' + startDate +
+                                '&fields=tradeTime,lastPrice&raw=1&limit=600', h);
+                            if (fr.ok) {
+                                for (const x of ((await fr.json()).data || [])) {
+                                    const r = x.raw || x;
+                                    if (r.tradeTime && r.lastPrice != null)
+                                        futHist[String(r.tradeTime).slice(0, 10)] = r.lastPrice;
+                                }
+                            }
+                        } catch (e) { /* archive fallback */ }
                         const hist = {};
                         for (const sym of Object.keys(options)) {
                             try {
@@ -111,7 +127,7 @@ async def _fetch_histories(start: str) -> dict:
                             } catch (e) { /* skip symbol */ }
                             await sleep(60);
                         }
-                        blocks.push({ underlying: und, options, hist });
+                        blocks.push({ underlying: und, options, hist, futHist });
                     }
                     res[mkt] = blocks;
                 }
@@ -131,10 +147,14 @@ def _future_prices() -> dict:
         return {}
     out: dict = {}
     for mkt, days in arch.items():
+        if mkt.startswith("_") or not isinstance(days, dict):  # skip _meta
+            continue
         out[mkt] = {}
-        for d, contracts in (days or {}).items():
-            out[mkt][d] = {sym: (v or {}).get("price")
-                           for sym, v in (contracts or {}).items()
+        for d, contracts in days.items():
+            if not isinstance(contracts, dict):
+                continue
+            out[mkt][d] = {sym: v.get("price")
+                           for sym, v in contracts.items()
                            if isinstance(v, dict)}
     return out
 
@@ -173,10 +193,14 @@ def main() -> int:
                     row[off + 0] = oi
                     row[off + 1] = vol
                     row[off + 2] = last
-            # IV/delta per day from the futures archive settlement
+            # IV/delta per day: prefer the future's own fetched settlement
+            # series, fall back to the local futures archive (RC-keyed for RM)
+            fut_hist = blk.get("futHist") or {}
             px_days = fut.get(mkt) or {}
             for d, strikes in by_day.items():
-                px = (px_days.get(d) or {}).get(und)
+                px = fut_hist.get(d)
+                if px is None:
+                    px = (px_days.get(d) or {}).get(und)
                 if px is None and und.startswith("RM"):
                     px = (px_days.get(d) or {}).get("RC" + und[2:])
                 t = None
