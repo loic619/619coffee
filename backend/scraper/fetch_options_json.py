@@ -366,7 +366,9 @@ def _load_archive() -> dict:
 
 
 def _prev_board(archive: dict, mkt: str, underlying: str, before: str) -> dict[float, tuple]:
-    """{strike: (call_oi, put_oi)} from the latest archived session < `before`."""
+    """{strike: (call_oi, put_oi)} from the latest archived session < `before`
+    whose OI has been published — a session archived before ICE posted its
+    final OI carries all-None OI columns and is skipped, not read as zeros."""
     days = archive.get("days") or {}
     for d in sorted(days.keys(), reverse=True):
         if d >= before:
@@ -374,14 +376,17 @@ def _prev_board(archive: dict, mkt: str, underlying: str, before: str) -> dict[f
         for b in days[d].get(mkt) or []:
             if b.get("u") == underlying:
                 out = {}
+                filled = False
                 for row in b.get("rows") or []:
                     try:
                         # header: put_oi at index 9 (17-col rows) or 6 (legacy 11-col)
                         p_idx = 9 if len(row) >= 17 else 6
+                        if row[1] is not None or row[p_idx] is not None:
+                            filled = True
                         out[float(row[0])] = (row[1] or 0, row[p_idx] or 0)
                     except (TypeError, ValueError, IndexError):
                         continue
-                if out:
+                if out and filled:
                     return out
     return {}
 
@@ -414,10 +419,13 @@ def _history_from_archive(archive: dict, markets: dict) -> list[dict]:
                     continue
                 px = b.get("px")
                 call_oi = put_oi = itm_c = itm_p = 0
+                oi_published = False
                 atm_iv, atm_dist = None, None
                 for r in b.get("rows") or []:
                     k = r[0]
                     p_off = 9 if len(r) >= 17 else 6   # legacy 11-col rows
+                    if r[1] is not None or r[p_off] is not None:
+                        oi_published = True
                     c_oi, p_oi = r[1] or 0, r[p_off] or 0
                     call_oi += c_oi
                     put_oi += p_oi
@@ -432,16 +440,50 @@ def _history_from_archive(archive: dict, markets: dict) -> list[dict]:
                                         or abs(k - px) < atm_dist):
                                 atm_dist = abs(k - px)
                                 atm_iv = round(sum(ivs) / len(ivs), 4)
+                # A session whose final OI hasn't been published yet (all
+                # OI columns None) reports None, not zeros — the countdown
+                # line stops instead of plunging to 0.
                 entries.append({"underlying": und, "future_price": px,
                                 "days_to_expiry": b.get("dte"),
-                                "call_oi": call_oi, "put_oi": put_oi,
-                                "itm_call_oi": itm_c, "itm_put_oi": itm_p,
+                                "call_oi": call_oi if oi_published else None,
+                                "put_oi": put_oi if oi_published else None,
+                                "itm_call_oi": itm_c if oi_published else None,
+                                "itm_put_oi": itm_p if oi_published else None,
                                 "atm_iv": atm_iv})
             if entries:
                 row[mkt] = entries
         if len(row) > 1:
             out.append(row)
     return out[-HISTORY_MAX_DAYS:]
+
+
+def _retro_fill_oi(archive: dict, prev_sess: str | None, markets: dict) -> None:
+    """Write the live board's OI into the PREVIOUS session's archived rows.
+
+    ICE publishes an option session's final OI the next business morning, so
+    the OI visible on today's board is the CLOSING OI of the session before
+    the board's own trade date. Each session's row therefore gets its OI one
+    run later; the newest session stores None until its OI is published."""
+    if not prev_sess:
+        return
+    day = (archive.get("days") or {}).get(prev_sess) or {}
+    for mkt, block in markets.items():
+        for snap in block["contracts"]:
+            board = next((b for b in day.get(mkt) or []
+                          if b.get("u") == snap["underlying"]), None)
+            if board is None:
+                continue
+            rows = board.setdefault("rows", [])
+            by_strike = {r[0]: r for r in rows if r}
+            for sl in snap["strikes"]:
+                row = by_strike.get(sl["strike"])
+                if row is None:
+                    row = [sl["strike"]] + [None] * (len(ARCHIVE_HEADER) - 1)
+                    rows.append(row)
+                    by_strike[sl["strike"]] = row
+                if len(row) >= 17:          # legacy 11-col rows keep their shape
+                    row[1], row[9] = sl["call_oi"], sl["put_oi"]
+            rows.sort(key=lambda r: r[0])
 
 
 def _session_dte(snap: dict, session: str) -> float | None:
@@ -463,12 +505,15 @@ def _archive_boards(archive: dict, session: str, markets: dict) -> None:
             {
                 "u": snap["underlying"], "px": snap["future_price"],
                 "dte": _session_dte(snap, session),
+                # OI columns start as None: the OI on today's board belongs to
+                # the PREVIOUS session (see _retro_fill_oi), and this session's
+                # own closing OI arrives with the next run's retro-fill.
                 "rows": [
                     [sl["strike"],
-                     sl["call_oi"], sl["call_vol"], sl["call_last"],
+                     None, sl["call_vol"], sl["call_last"],
                      sl["call_iv"], sl["call_delta"],
                      sl["call_gamma"], sl["call_theta"], sl["call_vega"],
-                     sl["put_oi"], sl["put_vol"], sl["put_last"],
+                     None, sl["put_vol"], sl["put_last"],
                      sl["put_iv"], sl["put_delta"],
                      sl["put_gamma"], sl["put_theta"], sl["put_vega"]]
                     for sl in snap["strikes"]
@@ -533,9 +578,17 @@ def main() -> int:
     if session != today_iso:
         print(f"[options] boards belong to session {session} (ran {today_iso})")
     archive = _load_archive()
+    # The OI on the live board is the CLOSING OI of the session before
+    # `session` (ICE posts it the next business morning). It is written back
+    # into that previous session's row, and the ΔOI published with the board
+    # is that session's change: close(prev) − close(prev−1).
+    prev_sess = max((d for d in (archive.get("days") or {}) if d < session),
+                    default=None)
     for mkt, block in markets.items():
         for snap in block["contracts"]:
-            _apply_oi_change(snap, _prev_board(archive, mkt, snap["underlying"], session))
+            _apply_oi_change(snap, _prev_board(archive, mkt, snap["underlying"],
+                                               prev_sess or session))
+    _retro_fill_oi(archive, prev_sess, markets)
     _archive_boards(archive, session, markets)
     print(f"[options] archive → {len(archive['days'])} sessions stored")
 

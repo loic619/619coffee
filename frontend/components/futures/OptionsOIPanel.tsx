@@ -26,7 +26,9 @@ interface MarketSnap {
 }
 interface HistEntry {
   underlying: string; future_price: number | null; days_to_expiry: number | null;
-  call_oi: number; put_oi: number; itm_call_oi: number; itm_put_oi: number;
+  // null = that session's final OI isn't published yet (arrives next run)
+  call_oi: number | null; put_oi: number | null;
+  itm_call_oi: number | null; itm_put_oi: number | null;
   atm_iv?: number | null;                                 // at-the-money IV that day
 }
 interface HistRow {
@@ -115,10 +117,11 @@ export default function OptionsOIPanel() {
         const arr = Array.isArray(raw) ? raw : raw ? [raw] : [];
         const m = arr.find(e => e.underlying === want);
         if (!m) return null;
+        const oiKnown = m.call_oi != null || m.put_oi != null;
         return {
           date: r.date, label: fmtDateLabel(r.date),
-          total: (m.call_oi || 0) + (m.put_oi || 0),
-          itm: (m.itm_call_oi || 0) + (m.itm_put_oi || 0),
+          total: oiKnown ? (m.call_oi || 0) + (m.put_oi || 0) : null,
+          itm: oiKnown ? (m.itm_call_oi || 0) + (m.itm_put_oi || 0) : null,
           dte: m.days_to_expiry,
           underlying: m.underlying,
           atmIv: m.atm_iv != null ? m.atm_iv * 100 : null,
@@ -129,7 +132,12 @@ export default function OptionsOIPanel() {
   }, [doc, mkt, snap]);
 
   const last = countdown.length ? countdown[countdown.length - 1] : null;
-  const itmShare = last && last.total > 0 ? (last.itm / last.total) * 100 : null;
+  // ITM share from the live board (the latest published OI), not the history
+  // tail — whose newest session may not have its final OI yet.
+  const itmShare = useMemo(() => {
+    const t = snap ? snap.totals.call_oi + snap.totals.put_oi : 0;
+    return t > 0 && snap ? ((snap.totals.itm_call_oi + snap.totals.itm_put_oi) / t) * 100 : null;
+  }, [snap]);
 
   return (
     <div className="p-4 space-y-3">
