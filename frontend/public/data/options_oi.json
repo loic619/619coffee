@@ -25138,30 +25138,30 @@
           "underlying": "KCZ26",
           "future_price": 314.3,
           "days_to_expiry": 91,
-          "call_oi": 40915.0,
-          "put_oi": 75084.0,
-          "itm_call_oi": 12864.0,
-          "itm_put_oi": 2554.0,
+          "call_oi": null,
+          "put_oi": null,
+          "itm_call_oi": null,
+          "itm_put_oi": null,
           "atm_iv": 0.4349
         },
         {
           "underlying": "KCH27",
           "future_price": 303.2,
           "days_to_expiry": 182,
-          "call_oi": 8233.0,
-          "put_oi": 17884.0,
-          "itm_call_oi": 1894.0,
-          "itm_put_oi": 123.0,
+          "call_oi": null,
+          "put_oi": null,
+          "itm_call_oi": null,
+          "itm_put_oi": null,
           "atm_iv": 0.3951
         },
         {
           "underlying": "KCK27",
           "future_price": 299.4,
           "days_to_expiry": 238,
-          "call_oi": 125.0,
-          "put_oi": 4260.0,
-          "itm_call_oi": 10.0,
-          "itm_put_oi": 1.0,
+          "call_oi": null,
+          "put_oi": null,
+          "itm_call_oi": null,
+          "itm_put_oi": null,
           "atm_iv": 0.3849
         }
       ],
@@ -25170,30 +25170,30 @@
           "underlying": "RMU26",
           "future_price": 3621,
           "days_to_expiry": 5,
-          "call_oi": 15757.0,
-          "put_oi": 24502.0,
-          "itm_call_oi": 3601.0,
-          "itm_put_oi": 4020.0,
+          "call_oi": null,
+          "put_oi": null,
+          "itm_call_oi": null,
+          "itm_put_oi": null,
           "atm_iv": 0.3279
         },
         {
           "underlying": "RMX26",
           "future_price": 3594,
           "days_to_expiry": 68,
-          "call_oi": 9446.0,
-          "put_oi": 16483.0,
-          "itm_call_oi": 424.0,
-          "itm_put_oi": 2961.0,
+          "call_oi": null,
+          "put_oi": null,
+          "itm_call_oi": null,
+          "itm_put_oi": null,
           "atm_iv": 0.3707
         },
         {
           "underlying": "RMF27",
           "future_price": 3576,
           "days_to_expiry": 124,
-          "call_oi": 3677.0,
-          "put_oi": 1727.0,
-          "itm_call_oi": 190.0,
-          "itm_put_oi": 2.0,
+          "call_oi": null,
+          "put_oi": null,
+          "itm_call_oi": null,
+          "itm_put_oi": null,
           "atm_iv": 0.3724
         }
       ]
@@ -25416,7 +25416,7 @@
               "call_vega": 0.090806856006498,
               "put_vega": 0.01064746941536,
               "call_chg": 0,
-              "put_chg": 0.0
+              "put_chg": -12.0
             },
             {
               "strike": 152.5,
@@ -25773,7 +25773,7 @@
               "call_vega": 0.10702406249321,
               "put_vega": 0.055357250246937,
               "call_chg": 0,
-              "put_chg": 0.0
+              "put_chg": 20.0
             },
             {
               "strike": 195.0,
@@ -25836,7 +25836,7 @@
               "call_vega": 0.11527367039083,
               "put_vega": 0.071759964977731,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": -107.0
             },
             {
               "strike": 202.5,
@@ -26004,7 +26004,7 @@
               "call_vega": 0.15939802136556,
               "put_vega": 0.13563762378704,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": 625.0
             },
             {
               "strike": 222.5,
@@ -26088,7 +26088,7 @@
               "call_vega": 0.19624534311861,
               "put_vega": 0.18015120421109,
               "call_chg": 0,
-              "put_chg": 0.0
+              "put_chg": 33.0
             },
             {
               "strike": 232.5,
@@ -26172,7 +26172,7 @@
               "call_vega": 0.24465667285879,
               "put_vega": 0.23468840305541,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": 300.0
             },
             {
               "strike": 242.5,
@@ -26277,7 +26277,7 @@
               "call_vega": 0.32017790261204,
               "put_vega": 0.31517852591512,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": 9.0
             },
             {
               "strike": 255.0,
@@ -26298,7 +26298,7 @@
               "call_vega": 0.33646305835019,
               "put_vega": 0.33217970080106,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": -10.0
             },
             {
               "strike": 257.5,
@@ -26340,7 +26340,7 @@
               "call_vega": 0.36950059259919,
               "put_vega": 0.36644759984677,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": 198.0
             },
             {
               "strike": 262.5,
@@ -26424,7 +26424,7 @@
               "call_vega": 0.43424264520345,
               "put_vega": 0.43278331759169,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": 1.0
             },
             {
               "strike": 272.5,
@@ -26445,7 +26445,7 @@
               "call_vega": 0.44982663059598,
               "put_vega": 0.44867938343552,
               "call_chg": 0,
-              "put_chg": 0.0
+              "put_chg": 1.0
             },
             {
               "strike": 275.0,
@@ -26465,8 +26465,8 @@
               "put_theta": -0.10237525922991,
               "call_vega": 0.46494386448201,
               "put_vega": 0.46406096400914,
-              "call_chg": 0.0,
-              "put_chg": 0.0
+              "call_chg": -1.0,
+              "put_chg": -27.0
             },
             {
               "strike": 277.5,
@@ -26508,7 +26508,7 @@
               "call_vega": 0.49357428189898,
               "put_vega": 0.49296133650681,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": 1.0
             },
             {
               "strike": 282.5,
@@ -26592,7 +26592,7 @@
               "call_vega": 0.54261064045066,
               "put_vega": 0.542455856562,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": 209.0
             },
             {
               "strike": 292.5,
@@ -26760,7 +26760,7 @@
               "call_vega": 0.60114001671431,
               "put_vega": 0.60114158887527,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": 30.0
             },
             {
               "strike": 312.5,
@@ -26801,7 +26801,7 @@
               "put_theta": -0.13573571884906,
               "call_vega": 0.607143325993,
               "put_vega": 0.60714164650804,
-              "call_chg": 0.0,
+              "call_chg": 7.0,
               "put_chg": 0.0
             },
             {
@@ -26843,8 +26843,8 @@
               "put_theta": -0.13633619864613,
               "call_vega": 0.60986196671423,
               "put_vega": 0.60986062212605,
-              "call_chg": 0.0,
-              "put_chg": 0.0
+              "call_chg": 21.0,
+              "put_chg": 4.0
             },
             {
               "strike": 322.5,
@@ -26927,7 +26927,7 @@
               "put_theta": -0.13526402552496,
               "call_vega": 0.60622647037375,
               "put_vega": 0.60625380648757,
-              "call_chg": 0.0,
+              "call_chg": 17.0,
               "put_chg": 0.0
             },
             {
@@ -27095,7 +27095,7 @@
               "put_theta": -0.1256914792893,
               "call_vega": 0.56965166831219,
               "put_vega": 0.57005898446496,
-              "call_chg": 0.0,
+              "call_chg": -30.0,
               "put_chg": 0
             },
             {
@@ -27179,7 +27179,7 @@
               "put_theta": -0.11828877537082,
               "call_vega": 0.54115139673779,
               "put_vega": 0.54202729791858,
-              "call_chg": 0.0,
+              "call_chg": -24.0,
               "put_chg": 0
             },
             {
@@ -27263,7 +27263,7 @@
               "put_theta": -0.10977817725232,
               "call_vega": 0.50864881660433,
               "put_vega": 0.51021825728164,
-              "call_chg": 0.0,
+              "call_chg": -60.0,
               "put_chg": 0
             },
             {
@@ -27431,7 +27431,7 @@
               "put_theta": -0.082359486023513,
               "call_vega": 0.4036495127728,
               "put_vega": 0.40959197032693,
-              "call_chg": 0.0,
+              "call_chg": -16.0,
               "put_chg": 0
             },
             {
@@ -27536,7 +27536,7 @@
               "put_theta": -0.057301464215077,
               "call_vega": 0.30739125062614,
               "put_vega": 0.32158945513554,
-              "call_chg": 0.0,
+              "call_chg": -8.0,
               "put_chg": 0
             },
             {
@@ -27578,7 +27578,7 @@
               "put_theta": -0.05032271622248,
               "call_vega": 0.27973197199936,
               "put_vega": 0.29757113869006,
-              "call_chg": 0.0,
+              "call_chg": -1.0,
               "put_chg": 0
             },
             {
@@ -27704,7 +27704,7 @@
               "put_theta": -0.023912996950186,
               "call_vega": 0.083987402433857,
               "put_vega": 0.18515487901762,
-              "call_chg": 0.0,
+              "call_chg": 1.0,
               "put_chg": 0
             },
             {
@@ -27746,7 +27746,7 @@
               "put_theta": 0.082246667320069,
               "call_vega": 0.033720889264728,
               "put_vega": 0.00020881980752114,
-              "call_chg": 0.0,
+              "call_chg": -21.0,
               "put_chg": 0
             },
             {
@@ -27767,7 +27767,7 @@
               "put_theta": 0.092594568269144,
               "call_vega": 0.024210396195486,
               "put_vega": 2.3057920935702e-05,
-              "call_chg": 0.0,
+              "call_chg": 16.0,
               "put_chg": 0
             }
           ],
@@ -28708,7 +28708,7 @@
               "call_vega": 0.52180929225455,
               "put_vega": 0.51510255203285,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": -21.0
             },
             {
               "strike": 242.5,
@@ -28750,7 +28750,7 @@
               "call_vega": 0.55675252999552,
               "put_vega": 0.55173697398831,
               "call_chg": 0,
-              "put_chg": 0.0
+              "put_chg": 50.0
             },
             {
               "strike": 247.5,
@@ -28876,7 +28876,7 @@
               "call_vega": 0.6550932859254,
               "put_vega": 0.65340542445695,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": 1.0
             },
             {
               "strike": 262.5,
@@ -28960,7 +28960,7 @@
               "call_vega": 0.71156813495176,
               "put_vega": 0.71089456026441,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": 28.0
             },
             {
               "strike": 272.5,
@@ -29001,8 +29001,8 @@
               "put_theta": -0.070487759760326,
               "call_vega": 0.7361956547842,
               "put_vega": 0.73582518103674,
-              "call_chg": 0.0,
-              "put_chg": 0.0
+              "call_chg": 1.0,
+              "put_chg": 2.0
             },
             {
               "strike": 277.5,
@@ -29212,7 +29212,7 @@
               "call_vega": 0.81608612992283,
               "put_vega": 0.8160900726477,
               "call_chg": 0.0,
-              "put_chg": 0.0
+              "put_chg": -21.0
             },
             {
               "strike": 302.5,
@@ -29379,7 +29379,7 @@
               "put_theta": -0.07726911018863,
               "call_vega": 0.82832309998272,
               "put_vega": 0.82835238660616,
-              "call_chg": 0.0,
+              "call_chg": 21.0,
               "put_chg": 0.0
             },
             {
@@ -29799,7 +29799,7 @@
               "put_theta": -0.062120147190772,
               "call_vega": 0.72094049340129,
               "put_vega": 0.72502100435024,
-              "call_chg": 0.0,
+              "call_chg": 24.0,
               "put_chg": 0.0
             },
             {
@@ -31076,7 +31076,7 @@
               "call_vega": 0.72030543072857,
               "put_vega": 0.71728213760736,
               "call_chg": 0,
-              "put_chg": 0.0
+              "put_chg": 20.0
             },
             {
               "strike": 252.5,
@@ -32125,7 +32125,7 @@
               "put_theta": -0.046979661820595,
               "call_vega": 0.80564125032273,
               "put_vega": 0.81348611823208,
-              "call_chg": 0.0,
+              "call_chg": 20.0,
               "put_chg": 0
             },
             {
@@ -33195,8 +33195,8 @@
               "put_theta": -5.4265150742094,
               "call_vega": 0.46124605699485,
               "put_vega": 0.46253895363477,
-              "call_chg": 0.0,
-              "put_chg": 0.0
+              "call_chg": -192.0,
+              "put_chg": -67.0
             },
             {
               "strike": 3825.0,
@@ -33279,7 +33279,7 @@
               "put_theta": -2.5288224380953,
               "call_vega": 0.20689787014719,
               "put_vega": 0.21042633299677,
-              "call_chg": 0.0,
+              "call_chg": 50.0,
               "put_chg": 0
             },
             {
@@ -35374,7 +35374,7 @@
               "put_theta": -1.5218531445886,
               "call_vega": 5.9363219201097,
               "put_vega": 5.9363222561831,
-              "call_chg": 0.0,
+              "call_chg": -1.0,
               "put_chg": 0
             },
             {
@@ -35458,8 +35458,8 @@
               "put_theta": -1.5536283096563,
               "call_vega": 6.0090166298491,
               "put_vega": 6.0090465170818,
-              "call_chg": 0.0,
-              "put_chg": 0.0
+              "call_chg": 150.0,
+              "put_chg": 50.0
             },
             {
               "strike": 3675.0,
@@ -35584,7 +35584,7 @@
               "put_theta": -1.5042623028294,
               "call_vega": 5.8066458376937,
               "put_vega": 5.8106192995651,
-              "call_chg": 0.0,
+              "call_chg": -108.0,
               "put_chg": 0
             },
             {
@@ -35752,7 +35752,7 @@
               "put_theta": -1.3197325122047,
               "call_vega": 5.134775577206,
               "put_vega": 5.1624956881617,
-              "call_chg": 0.0,
+              "call_chg": -200.0,
               "put_chg": 0
             },
             {
@@ -38409,7 +38409,7 @@
       ]
     }
   },
-  "updated": "2026-08-16T05:06:11.707417+00:00",
+  "updated": "2026-08-16T05:16:39.355566+00:00",
   "source": "Barchart core-api (delayed) — options on ICE KC / RM futures",
-  "note": "ITM = calls below / puts above the front future's last price; history is one aggregate row per session for the expiry countdown."
+  "note": "ITM = calls below / puts above the future's price; history is one row per TRADING SESSION rebuilt from data/options_boards_archive.json — each session shows its own closing OI (published next business morning; the newest session's OI is null until then), so weekends/holidays never appear."
 }
