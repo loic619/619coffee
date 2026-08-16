@@ -128,12 +128,19 @@ function computeReport(snap: MarketSnap) {
            c25K: c25?.strike, p25K: p25?.strike, itmShare, itmLots };
 }
 
+/** Report sections, in render order. The Futures tab renders all of them;
+ *  the briefing registry renders one per tick (see OptionsReports). */
+export type OptSection = "tiles" | "positioning" | "greeks" | "expiry" | "vol";
+
 // One market's full report column: tiles, board, movers, P/C history,
 // greeks profiles, ITM countdown, ATM IV history, term structure. Rendered
 // twice by the panel — arabica LEFT, robusta RIGHT (site convention).
-function MarketReport({ mkt, doc, shist }: {
+function MarketReport({ mkt, doc, shist, sections }: {
   mkt: Mkt; doc: OptionsDoc | null; shist: StrikeHistDoc | null;
+  /** Undefined = render every section (the Futures tab). */
+  sections?: OptSection[];
 }) {
+  const show = (k: OptSection) => !sections || sections.includes(k);
   const [sel, setSel] = useState<string | null>(null);   // selected underlying
   const [boardMode, setBoardMode] = useState<"oi" | "chg" | "iv">("oi");
   // Variation window (sessions back from the latest published session) for
@@ -346,6 +353,7 @@ function MarketReport({ mkt, doc, shist }: {
         </div>
       ) : (
         <>
+          {show("tiles") && (<>
           {/* Merged tiles — four per contract, two facts each; single column
               on phones where each market only has half the screen width */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
@@ -397,7 +405,9 @@ function MarketReport({ mkt, doc, shist }: {
               </div>
             </div>
           </div>
+          </>)}
 
+          {show("positioning") && (<>
           <Section t="1 · Positioning" />
 
           {/* Per-strike board */}
@@ -572,7 +582,9 @@ function MarketReport({ mkt, doc, shist }: {
               )}
             </ChartFocus>
           </div>
+          </>)}
 
+          {show("greeks") && (<>
           <Section t="2 · Greeks pressure" />
 
           {/* Gamma exposure profile */}
@@ -650,7 +662,9 @@ function MarketReport({ mkt, doc, shist }: {
               )}
             </ChartFocus>
           </div>
+          </>)}
 
+          {show("expiry") && (<>
           <Section t="3 · Expiry & pin risk" />
 
           {/* ITM countdown — last 45 sessions into option expiry, same day
@@ -696,7 +710,9 @@ function MarketReport({ mkt, doc, shist }: {
               )}
             </ChartFocus>
           </div>
+          </>)}
 
+          {show("vol") && (<>
           <Section t="4 · Volatility" />
 
           {/* ATM implied vol history — the day-by-day at-the-money IV of the
@@ -774,13 +790,16 @@ function MarketReport({ mkt, doc, shist }: {
               )}
             </ChartFocus>
           </div>
+          </>)}
         </>
       )}
     </div>
   );
 }
 
-export default function OptionsOIPanel() {
+export default function OptionsOIPanel({ sections, isReportMode = false }: {
+  sections?: OptSection[]; isReportMode?: boolean;
+} = {}) {
   const [doc, setDoc] = useState<OptionsDoc | null>(null);
   const [shist, setShist] = useState<StrikeHistDoc | null>(null);
 
@@ -796,8 +815,9 @@ export default function OptionsOIPanel() {
   }, []);
 
   return (
-    <div className="p-4 space-y-3">
-      <div>
+    <div className={isReportMode ? "space-y-3" : "p-4 space-y-3"}>
+      {/* The briefing card supplies its own title/subtitle. */}
+      <div className={isReportMode ? "hidden" : undefined}>
         <h2 className="text-lg font-bold text-white">Options Report</h2>
         <p className="text-xs text-slate-400 max-w-4xl">
           Options boards of the nearest NY arabica (KC) and London robusta (RM) futures — positioning
@@ -813,8 +833,8 @@ export default function OptionsOIPanel() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-1.5 lg:gap-4 items-start">
-          <MarketReport mkt="arabica" doc={doc} shist={shist} />
-          <MarketReport mkt="robusta" doc={doc} shist={shist} />
+          <MarketReport mkt="arabica" doc={doc} shist={shist} sections={sections} />
+          <MarketReport mkt="robusta" doc={doc} shist={shist} sections={sections} />
         </div>
       )}
     </div>

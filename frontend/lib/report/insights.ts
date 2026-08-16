@@ -1456,12 +1456,193 @@ const openDirectionCall: Builder = async () => {
   };
 };
 
+// ── Options (options_oi.json) ─────────────────────────────────────────────────
+// Mirrors the Options report's own maths: P/C from totals, max pain by
+// minimising total in-the-money payout across strikes, net delta in
+// future-equivalent lots, 25Δ risk-reversal, gamma wall, ATM IV.
+interface OptStrike {
+  strike: number; call_oi?: number; put_oi?: number;
+  call_iv?: number | null; put_iv?: number | null;
+  call_delta?: number | null; put_delta?: number | null;
+  call_gamma?: number | null; put_gamma?: number | null;
+  call_chg?: number | null; put_chg?: number | null;
+}
+interface OptContract {
+  underlying: string; future_price?: number | null; option_expiry?: string | null;
+  days_to_expiry?: number | null; strikes?: OptStrike[];
+  totals?: { call_oi?: number; put_oi?: number; itm_call_oi?: number; itm_put_oi?: number };
+}
+const OPT_UNIT: Record<string, string> = { arabica: "¢/lb", robusta: "$/t" };
+
+async function optContracts(mkt: "arabica" | "robusta"): Promise<OptContract | null> {
+  const d = await load<{ markets?: Record<string, { contracts?: OptContract[] }> }>("/data/options_oi.json");
+  const cs = d?.markets?.[mkt]?.contracts;
+  if (!Array.isArray(cs) || !cs.length) return null;
+  return cs[0]; // front contract — the one the tab opens on
+}
+/** Strike minimising total ITM payout to option holders (classic max pain). */
+function maxPain(strikes: OptStrike[]): number | null {
+  if (!strikes.length) return null;
+  let best: { k: number; pain: number } | null = null;
+  for (const s of strikes) {
+    const k = s.strike;
+    let pain = 0;
+    for (const x of strikes) {
+      if (x.strike < k) pain += (x.call_oi ?? 0) * (k - x.strike);
+      if (x.strike > k) pain += (x.put_oi ?? 0) * (x.strike - k);
+    }
+    if (!best || pain < best.pain) best = { k, pain };
+  }
+  return best?.k ?? null;
+}
+/** ~25-delta risk reversal in IV points (put IV − call IV). */
+function riskReversal(strikes: OptStrike[]): number | null {
+  const near = (target: number, pick: (s: OptStrike) => number | null | undefined) => {
+    const cands = strikes.filter((s) => pick(s) != null && s.call_iv != null && s.put_iv != null);
+    if (!cands.length) return null;
+    return cands.reduce((b, s) => (Math.abs(Math.abs(pick(s)!) - target) < Math.abs(Math.abs(pick(b)!) - target) ? s : b), cands[0]);
+  };
+  const c25 = near(0.25, (s) => s.call_delta);
+  const p25 = near(0.25, (s) => s.put_delta);
+  if (!c25?.call_iv || !p25?.put_iv) return null;
+  return (p25.put_iv - c25.call_iv) * 100;
+}
+const atmIv = (c: OptContract): number | null => {
+  const px = c.future_price; const ss = c.strikes ?? [];
+  if (!px || !ss.length) return null;
+  const s = [...ss].filter((x) => x.call_iv != null || x.put_iv != null)
+    .sort((a, b) => Math.abs(a.strike - px) - Math.abs(b.strike - px))[0];
+  if (!s) return null;
+  const ivs = [s.call_iv, s.put_iv].filter((v): v is number => v != null);
+  return ivs.length ? (ivs.reduce((a, b) => a + b, 0) / ivs.length) * 100 : null;
+};
+
+/** Build one Note per market — the options ticks render KC left / RM right. */
+const optionsNote = (
+  build: (c: OptContract, mkt: "arabica" | "robusta") => Note | null,
+): Builder => async () => {
+  const out: Record<string, Note> = {};
+  for (const mkt of ["arabica", "robusta"] as const) {
+    const c = await optContracts(mkt);
+    if (!c) continue;
+    const n = build(c, mkt);
+    if (n?.facts.length) out[mkt] = n;
+  }
+  return Object.keys(out).length ? out : null;
+};
+
+const optionsTiles = optionsNote((c, mkt) => {
+  const t = c.totals ?? {};
+  const call = t.call_oi ?? 0, put = t.put_oi ?? 0, tot = call + put;
+  if (!tot) return null;
+  const pc = call ? put / call : null;
+  const itm = (t.itm_call_oi ?? 0) + (t.itm_put_oi ?? 0);
+  const itmShare = tot ? (itm / tot) * 100 : null;
+  const mp = maxPain(c.strikes ?? []);
+  const px = c.future_price ?? null;
+  const mpGap = mp != null && px ? ((mp - px) / px) * 100 : null;
+  return {
+    facts: [
+      { label: `${c.underlying}${c.days_to_expiry != null ? ` · ${Math.round(c.days_to_expiry)}d to expiry` : ""}`,
+        value: `future **${px != null ? n1(px) : "—"} ${OPT_UNIT[mkt]}**, total OI **${n0(tot)}** lots` },
+      { label: "Put/Call", value: `**${pc != null ? pc.toFixed(2) : "—"}** — ${pc != null && pc > 1 ? "put-heavy" : "call-heavy"}` },
+      { label: "ITM · max pain", value: `**${itmShare != null ? itmShare.toFixed(1) : "—"}%** in the money · pain **${mp != null ? n0(mp) : "—"}**${mpGap != null ? ` (${pct(mpGap)} vs future)` : ""}` },
+    ],
+    read: mpGap != null && Math.abs(mpGap) > 5
+      ? `Max pain sits ${pct(mpGap)} from the future — a magnet only if OI holds into expiry.`
+      : pc != null && pc > 1.5 ? "Heavily put-weighted book — downside protection is where the OI is."
+      : undefined,
+    flag: pc != null && pc > 1.5,
+  };
+});
+
+const optionsPositioning = optionsNote((c) => {
+  const ss = c.strikes ?? []; if (!ss.length) return null;
+  const callWall = [...ss].sort((a, b) => (b.call_oi ?? 0) - (a.call_oi ?? 0))[0];
+  const putWall = [...ss].sort((a, b) => (b.put_oi ?? 0) - (a.put_oi ?? 0))[0];
+  const movers = [...ss]
+    .map((s) => ({ k: s.strike, d: (s.call_chg ?? 0) + (s.put_chg ?? 0) }))
+    .filter((m) => m.d !== 0)
+    .sort((a, b) => Math.abs(b.d) - Math.abs(a.d))[0];
+  const px = c.future_price ?? null;
+  return {
+    facts: [
+      { label: "Call wall", value: `**${n0(callWall.strike)}** (${n0(callWall.call_oi ?? 0)} lots)${px ? ` — ${pct(((callWall.strike - px) / px) * 100)} vs future` : ""}` },
+      { label: "Put wall", value: `**${n0(putWall.strike)}** (${n0(putWall.put_oi ?? 0)} lots)${px ? ` — ${pct(((putWall.strike - px) / px) * 100)} vs future` : ""}` },
+      ...(movers ? [{ label: "Biggest ΔOI", value: `strike **${n0(movers.k)}** ${movers.d > 0 ? "+" : ""}${n0(movers.d)} lots this session` }] : []),
+    ],
+    read: px && callWall.strike > px && putWall.strike < px
+      ? `Book brackets the future — walls at ${n0(putWall.strike)} / ${n0(callWall.strike)} frame the near-term range.`
+      : undefined,
+  };
+});
+
+const optionsGreeks = optionsNote((c) => {
+  const ss = c.strikes ?? []; if (!ss.length) return null;
+  // Net delta in future-equivalent lots (calls long delta, puts short).
+  const netDelta = ss.reduce((a, s) => a + (s.call_delta ?? 0) * (s.call_oi ?? 0) + (s.put_delta ?? 0) * (s.put_oi ?? 0), 0);
+  const gammaBy = ss.map((s) => ({ k: s.strike, g: (s.call_gamma ?? 0) * (s.call_oi ?? 0) + (s.put_gamma ?? 0) * (s.put_oi ?? 0) }));
+  const gWall = gammaBy.sort((a, b) => b.g - a.g)[0];
+  const px = c.future_price ?? null;
+  return {
+    facts: [
+      { label: "Net delta", value: `**${netDelta > 0 ? "+" : ""}${n0(netDelta)}** future-equivalent lots` },
+      ...(gWall ? [{ label: "Gamma peak", value: `strike **${n0(gWall.k)}**${px ? ` (${pct(((gWall.k - px) / px) * 100)} vs future)` : ""}` }] : []),
+    ],
+    read: gWall && px && Math.abs((gWall.k - px) / px) < 0.02
+      ? "Future sits on the gamma peak — dealer hedging tends to pin price here."
+      : netDelta < 0 ? "Net-short delta book — hedging flows lean with a falling market."
+      : undefined,
+    flag: !!(gWall && px && Math.abs((gWall.k - px) / px) < 0.02),
+  };
+});
+
+const optionsExpiry = optionsNote((c) => {
+  const t = c.totals ?? {};
+  const itmC = t.itm_call_oi ?? 0, itmP = t.itm_put_oi ?? 0;
+  const tot = (t.call_oi ?? 0) + (t.put_oi ?? 0);
+  if (!tot) return null;
+  const dte = c.days_to_expiry != null ? Math.round(c.days_to_expiry) : null;
+  const share = ((itmC + itmP) / tot) * 100;
+  return {
+    facts: [
+      { label: `Expiry ${c.option_expiry?.slice(0, 10) ?? "—"}`, value: `**${dte ?? "—"} sessions** left` },
+      { label: "Deep ITM OI", value: `calls **${n0(itmC)}** / puts **${n0(itmP)}** lots — **${share.toFixed(1)}%** of the book` },
+    ],
+    read: dte != null && dte <= 10 && share > 15
+      ? "Expiry inside two weeks with a heavy ITM book — pin and assignment risk are live."
+      : dte != null && dte <= 10 ? "Expiry inside two weeks — watch the roll." : undefined,
+    flag: dte != null && dte <= 10 && share > 15,
+  };
+});
+
+const optionsVol = optionsNote((c) => {
+  const iv = atmIv(c);
+  const rr = riskReversal(c.strikes ?? []);
+  if (iv == null && rr == null) return null;
+  const facts: Fact[] = [];
+  if (iv != null) facts.push({ label: "ATM implied vol", value: `**${iv.toFixed(1)}%**${c.days_to_expiry != null ? ` (${Math.round(c.days_to_expiry)}d)` : ""}` });
+  if (rr != null) facts.push({ label: "25Δ risk reversal", value: `**${rr > 0 ? "+" : ""}${rr.toFixed(1)} pts** — ${rr > 0 ? "puts bid over calls" : "calls bid over puts"}` });
+  return {
+    facts,
+    read: iv != null && iv > 45 ? "Elevated implied vol — the market is paying up for protection."
+      : rr != null && Math.abs(rr) > 3 ? `Pronounced skew toward ${rr > 0 ? "downside" : "upside"} strikes.`
+      : undefined,
+    flag: (iv != null && iv > 45) || (rr != null && Math.abs(rr) > 3),
+  };
+});
+
 // ── id → builder map ──────────────────────────────────────────────────────────
 const INSIGHTS: Record<string, Builder> = {
   // Price
   daily_quotes: dailyQuotes,
   cot_overview: cotOverview,
   oi_fnd: oiFnd,
+  options_tiles: optionsTiles,
+  options_positioning: optionsPositioning,
+  options_greeks: optionsGreeks,
+  options_expiry: optionsExpiry,
+  options_vol: optionsVol,
   cot_heatmap: cotHeatmapNote,
   cot_gauges: cotGaugesNote,
   cot_global_flow: cotGlobalFlowNote,
