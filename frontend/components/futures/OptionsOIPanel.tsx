@@ -311,12 +311,12 @@ function MarketReport({ mkt, doc, shist }: {
   return (
     <div className="space-y-3 min-w-0">
       {/* Column header: market name + contract chips */}
-      <div className="flex items-center justify-between flex-wrap gap-1 border-b border-slate-700 pb-1.5">
-        <h3 className="text-[11px] font-bold uppercase tracking-widest text-amber-400">
+      <div className="flex items-center justify-between flex-nowrap gap-1 border-b border-slate-700 pb-1.5 h-9 overflow-x-auto overflow-y-hidden">
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-amber-400 truncate">
           {mkt === "arabica" ? "Arabica · NY (KC)" : "Robusta · London (RM)"}
         </h3>
         {contracts.length > 1 && (
-          <div className="flex bg-slate-900 border border-slate-700 rounded overflow-hidden text-[9px]">
+          <div className="flex shrink-0 bg-slate-900 border border-slate-700 rounded text-[9px]">
             {contracts.map(c => {
               const on = snap?.underlying === c.underlying;
               return (
@@ -326,7 +326,7 @@ function MarketReport({ mkt, doc, shist }: {
                   className={`px-2 py-1 transition font-mono ${on ? "bg-sky-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
                   {shortSym(c.underlying)}
                   {c.days_to_expiry != null && (
-                    <span className={on ? "text-sky-200" : "text-slate-500"}> {Math.round(c.days_to_expiry)}d</span>
+                    <span className={`hidden md:inline ${on ? "text-sky-200" : "text-slate-500"}`}> {Math.round(c.days_to_expiry)}d</span>
                   )}
                 </button>
               );
@@ -346,32 +346,32 @@ function MarketReport({ mkt, doc, shist }: {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
             <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
               <div className="text-[9px] text-slate-500 uppercase tracking-wide">Contract · expiry</div>
-              <div className="text-sm font-bold font-mono text-slate-100">
+              <div className="text-sm font-bold font-mono text-slate-100 truncate">
                 {snap.underlying}
                 <span className="text-slate-400 font-normal"> {snap.future_price != null ? `${snap.future_price.toLocaleString()} ${UNIT[mkt]}` : ""}</span>
               </div>
-              <div className="text-[10px] text-amber-400 font-mono">
+              <div className="text-[10px] text-amber-400 font-mono truncate">
                 {snap.option_expiry?.slice(0, 10) ?? "—"}
                 {snap.days_to_expiry != null ? ` · ${Math.round(snap.days_to_expiry)}d left` : ""}
               </div>
             </div>
             <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
               <div className="text-[9px] text-slate-500 uppercase tracking-wide">Open interest · P/C</div>
-              <div className="text-sm font-bold font-mono text-slate-100">
+              <div className="text-sm font-bold font-mono text-slate-100 truncate">
                 {(snap.totals.call_oi + snap.totals.put_oi).toLocaleString()}
                 <span className="text-[10px] text-slate-400 font-normal"> C {Math.round(snap.totals.call_oi / 1000)}k · P {Math.round(snap.totals.put_oi / 1000)}k</span>
               </div>
-              <div className={`text-[10px] font-mono ${report.pc != null && report.pc > 1 ? "text-red-400" : "text-emerald-400"}`}>
+              <div className={`text-[10px] font-mono truncate ${report.pc != null && report.pc > 1 ? "text-red-400" : "text-emerald-400"}`}>
                 {report.pc != null ? `P/C ${report.pc.toFixed(2)} · ${report.pc > 1 ? "put-heavy" : "call-heavy"}` : "—"}
               </div>
             </div>
             <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
               <div className="text-[9px] text-slate-500 uppercase tracking-wide">ITM · max pain</div>
-              <div className={`text-sm font-bold font-mono ${report.itmShare != null && report.itmShare > 50 ? "text-red-400" : "text-emerald-400"}`}>
+              <div className={`text-sm font-bold font-mono truncate ${report.itmShare != null && report.itmShare > 50 ? "text-red-400" : "text-emerald-400"}`}>
                 {report.itmShare != null ? `${report.itmShare.toFixed(1)}%` : "—"}
                 <span className="text-[10px] text-slate-400 font-normal"> {report.itmLots.toLocaleString()} lots</span>
               </div>
-              <div className="text-[10px] text-slate-400 font-mono">
+              <div className="text-[10px] text-slate-400 font-mono truncate">
                 pain {report.maxPain != null ? report.maxPain.toLocaleString() : "—"}
                 {report.maxPain != null && snap.future_price
                   ? ` (${(((report.maxPain - snap.future_price) / snap.future_price) * 100).toFixed(1)}%)` : ""}
@@ -379,13 +379,13 @@ function MarketReport({ mkt, doc, shist }: {
             </div>
             <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
               <div className="text-[9px] text-slate-500 uppercase tracking-wide">Net Δ · 25Δ skew</div>
-              <div className={`text-sm font-bold font-mono ${report.netDelta != null && report.netDelta < 0 ? "text-red-400" : "text-emerald-400"}`}>
+              <div className={`text-sm font-bold font-mono truncate ${report.netDelta != null && report.netDelta < 0 ? "text-red-400" : "text-emerald-400"}`}>
                 {report.netDelta != null
                   ? `${report.netDelta > 0 ? "+" : ""}${Math.round(report.netDelta).toLocaleString()}`
                   : "—"}
                 <span className="text-[10px] text-slate-400 font-normal"> fut-eq lots</span>
               </div>
-              <div className={`text-[10px] font-mono ${report.rr != null && report.rr > 0 ? "text-red-400" : "text-emerald-400"}`}>
+              <div className={`text-[10px] font-mono truncate ${report.rr != null && report.rr > 0 ? "text-red-400" : "text-emerald-400"}`}>
                 {report.rr != null
                   ? `RR ${report.rr > 0 ? "+" : ""}${report.rr.toFixed(1)}pts · ${report.rr > 0 ? "puts over calls" : "calls over puts"}`
                   : "RR —"}
@@ -529,16 +529,17 @@ function MarketReport({ mkt, doc, shist }: {
                 const m = movers[i];
                 return (
                   <div key={m ? `${m.strike}-${m.side}` : `empty-${i}`}
-                    className="flex items-center justify-between text-[11px] font-mono border-b border-slate-700/50 pb-1">
-                    <span className="text-slate-400">#{i + 1}</span>
+                    className="flex items-center justify-between gap-1 h-6 text-[10px] lg:text-[11px] font-mono border-b border-slate-700/50 whitespace-nowrap overflow-hidden">
+                    <span className="text-slate-400 shrink-0">#{i + 1}</span>
                     {m ? (
                       <>
-                        <span className={m.side === "C" ? "text-emerald-400" : "text-red-400"}>
-                          {m.strike.toLocaleString()} {m.side === "C" ? "Call" : "Put"}
+                        <span className={`shrink-0 ${m.side === "C" ? "text-emerald-400" : "text-red-400"}`}>
+                          {m.strike.toLocaleString()}{m.side === "C" ? "C" : "P"}
                         </span>
-                        <span className={m.chg > 0 ? "text-emerald-300" : "text-red-300"}>
-                          {m.chg > 0 ? "+" : "−"}{Math.abs(m.chg).toLocaleString()} lots
-                          <span className="text-slate-500"> {m.chg > 0 ? "build" : "unwind"}</span>
+                        <span className={`truncate ${m.chg > 0 ? "text-emerald-300" : "text-red-300"}`}>
+                          {m.chg > 0 ? "+" : "−"}{Math.abs(m.chg).toLocaleString()}
+                          <span className="hidden sm:inline"> lots</span>
+                          <span className="text-slate-500 hidden lg:inline"> {m.chg > 0 ? "build" : "unwind"}</span>
                         </span>
                       </>
                     ) : (
