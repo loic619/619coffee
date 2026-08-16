@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  ComposedChart, Area, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, ReferenceLine, Legend,
 } from "recharts";
 
@@ -200,6 +200,8 @@ export default function OptionsOIPanel() {
           day: expiry ? -busDaysTo(r.date, expiry) : null,
           total: oiKnown ? (m.call_oi || 0) + (m.put_oi || 0) : null,
           itm: oiKnown ? (m.itm_call_oi || 0) + (m.itm_put_oi || 0) : null,
+          itmCall: oiKnown ? m.itm_call_oi || 0 : null,
+          itmPut: oiKnown ? m.itm_put_oi || 0 : null,
           futOi: m.fut_oi ?? null,
           dte: m.days_to_expiry,
           underlying: m.underlying,
@@ -462,10 +464,13 @@ export default function OptionsOIPanel() {
                         }}
                         formatter={(v) => typeof v === "number" ? `${v.toLocaleString()} lots` : "—"} />
                       <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
+                      {/* stacked ITM split: calls + puts sum to total ITM OI */}
+                      <Area type="monotone" dataKey="itmCall" name="ITM calls" stackId="itm"
+                        stroke="#34d399" fill="#34d399" fillOpacity={0.45} strokeWidth={1} />
+                      <Area type="monotone" dataKey="itmPut" name="ITM puts" stackId="itm"
+                        stroke="#f87171" fill="#f87171" fillOpacity={0.45} strokeWidth={1} />
                       <Line type="monotone" dataKey="futOi" name={`${snap.underlying} future OI`}
                         stroke="#e2e8f0" strokeWidth={1.5} dot={false} connectNulls />
-                      <Line type="monotone" dataKey="itm" name="ITM option OI"
-                        stroke="#f59e0b" strokeWidth={1.5} dot={false} />
                     </ComposedChart>
                   </ResponsiveContainer>
                 )}
