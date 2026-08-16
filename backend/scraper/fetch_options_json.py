@@ -379,6 +379,55 @@ def _apply_oi_change(snap: dict, prev: dict[float, tuple]) -> None:
         slot["put_chg"] = (slot["put_oi"] - p[1]) if p else None
 
 
+def _history_from_archive(archive: dict, markets: dict) -> list[dict]:
+    """Rebuild the per-session history (countdown + ATM IV) from the FULL
+    archive, so the charts are deep from day one — the archive holds the
+    backfilled sessions, not just days the live fetch has run. Only the
+    currently tracked underlyings are surfaced; dead boards stay in the
+    archive for research but drop out of the frontend series."""
+    tracked = {mkt: {c["underlying"] for c in block["contracts"]}
+               for mkt, block in markets.items()}
+    out = []
+    for d in sorted(archive.get("days") or {}):
+        row: dict = {"date": d}
+        for mkt, boards in (archive["days"][d] or {}).items():
+            entries = []
+            for b in boards or []:
+                und = b.get("u")
+                if und not in tracked.get(mkt, set()):
+                    continue
+                px = b.get("px")
+                call_oi = put_oi = itm_c = itm_p = 0
+                atm_iv, atm_dist = None, None
+                for r in b.get("rows") or []:
+                    k = r[0]
+                    p_off = 9 if len(r) >= 17 else 6   # legacy 11-col rows
+                    c_oi, p_oi = r[1] or 0, r[p_off] or 0
+                    call_oi += c_oi
+                    put_oi += p_oi
+                    if px:
+                        if k < px:
+                            itm_c += c_oi
+                        if k > px:
+                            itm_p += p_oi
+                        if len(r) >= 17:
+                            ivs = [v for v in (r[4], r[12]) if v]
+                            if ivs and (atm_dist is None
+                                        or abs(k - px) < atm_dist):
+                                atm_dist = abs(k - px)
+                                atm_iv = round(sum(ivs) / len(ivs), 4)
+                entries.append({"underlying": und, "future_price": px,
+                                "days_to_expiry": b.get("dte"),
+                                "call_oi": call_oi, "put_oi": put_oi,
+                                "itm_call_oi": itm_c, "itm_put_oi": itm_p,
+                                "atm_iv": atm_iv})
+            if entries:
+                row[mkt] = entries
+        if len(row) > 1:
+            out.append(row)
+    return out[-HISTORY_MAX_DAYS:]
+
+
 def _archive_boards(archive: dict, today: str, markets: dict) -> None:
     day = {}
     for mkt, block in markets.items():
@@ -460,25 +509,16 @@ def main() -> int:
         doc = {"history": []}
     doc.setdefault("history", [])
 
-    today = date.today().isoformat()
-    hist_row = {"date": today}
-    for mkt, block in markets.items():
-        hist_row[mkt] = [
-            {
-                "underlying": snap["underlying"],
-                "future_price": snap["future_price"],
-                "days_to_expiry": snap["days_to_expiry"],
-                **snap["totals"],
-            }
-            for snap in block["contracts"]
-        ]
-    doc["history"] = ([r for r in doc["history"] if r.get("date") != today] + [hist_row])
-    doc["history"] = sorted(doc["history"], key=lambda r: r["date"])[-HISTORY_MAX_DAYS:]
+    today = today_iso
+    # History is DERIVED from the archive (which now includes today's boards),
+    # so backfilled sessions feed the countdown and ATM-IV charts immediately.
+    doc["history"] = _history_from_archive(archive, markets)
     doc["markets"] = markets
     doc["updated"] = datetime.now(UTC).isoformat()
     doc.setdefault("source", "Barchart core-api (delayed) — options on ICE KC / RM futures")
     doc.setdefault("note", "ITM = calls below / puts above the front future's last price; "
-                           "history is one aggregate row per session for the expiry countdown.")
+                           "history is one aggregate row per session (rebuilt from "
+                           "data/options_boards_archive.json) for the countdown and ATM-IV charts.")
     OUT.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
     n = {m: len(b["contracts"]) for m, b in markets.items()}
     print(f"[options] options_oi.json → {today}: {n} "

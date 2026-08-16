@@ -27,6 +27,7 @@ interface MarketSnap {
 interface HistEntry {
   underlying: string; future_price: number | null; days_to_expiry: number | null;
   call_oi: number; put_oi: number; itm_call_oi: number; itm_put_oi: number;
+  atm_iv?: number | null;                                 // at-the-money IV that day
 }
 interface HistRow {
   date: string;
@@ -120,6 +121,8 @@ export default function OptionsOIPanel() {
           itm: (m.itm_call_oi || 0) + (m.itm_put_oi || 0),
           dte: m.days_to_expiry,
           underlying: m.underlying,
+          atmIv: m.atm_iv != null ? m.atm_iv * 100 : null,
+          px: m.future_price,
         };
       })
       .filter((x): x is NonNullable<typeof x> => x != null);
@@ -307,6 +310,44 @@ export default function OptionsOIPanel() {
                         stroke="#e2e8f0" strokeWidth={1.5} dot={false} />
                       <Line type="monotone" dataKey="itm" name="ITM OI"
                         stroke="#f59e0b" strokeWidth={1.5} dot={false} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            {/* ATM implied vol history — the day-by-day at-the-money IV of the
+                selected board (Black-76 from the archived last premiums), with
+                the underlying future for context. */}
+            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3 lg:col-span-2">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+                ATM implied vol · {snap.underlying} — daily, from the boards archive
+              </div>
+              <div className="h-56">
+                {countdown.filter(c => c.atmIv != null).length < 2 ? (
+                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                    Accumulating — ATM IV is recorded with each archived session.
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={countdown} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                      <XAxis dataKey="label" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={26} />
+                      <YAxis yAxisId="iv" stroke="#a78bfa" tick={{ fontSize: 8 }} width={40}
+                        domain={["auto", "auto"]}
+                        tickFormatter={(v: number) => `${v.toFixed(0)}%`} />
+                      <YAxis yAxisId="px" orientation="right" stroke="#64748b" tick={{ fontSize: 8 }}
+                        width={44} domain={["auto", "auto"]}
+                        tickFormatter={(v: number) => v.toLocaleString()} />
+                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                        formatter={(v, name) => typeof v === "number"
+                          ? (name === "ATM IV" ? `${v.toFixed(1)}%` : `${v.toLocaleString()} ${UNIT[mkt]}`)
+                          : "—"} />
+                      <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
+                      <Line yAxisId="px" type="monotone" dataKey="px" name="Future"
+                        stroke="#475569" strokeWidth={1} dot={false} connectNulls />
+                      <Line yAxisId="iv" type="monotone" dataKey="atmIv" name="ATM IV"
+                        stroke="#a78bfa" strokeWidth={1.5} dot={false} connectNulls />
                     </ComposedChart>
                   </ResponsiveContainer>
                 )}

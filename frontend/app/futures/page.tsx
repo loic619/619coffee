@@ -13,8 +13,8 @@ import { PRINT_CSS_LIGHT, PRINT_CSS_DARK } from "@/lib/report/printStyles";
 import { useFetchJson } from "@/lib/useFetchJson";
 import { useUrlState } from "@/lib/useUrlState";
 
-type FuturesTab = "price" | "quotation";
-const FUTURES_TABS: FuturesTab[] = ["price", "quotation"];
+type FuturesTab = "price" | "options" | "quotation";
+const FUTURES_TABS: FuturesTab[] = ["price", "options", "quotation"];
 
 interface Contract {
   contract: string;
@@ -960,7 +960,7 @@ function FuturesPageInner() {
       <div className="p-6 space-y-4">
       {/* Tab bar */}
       <div className="flex items-center gap-1 border-b border-slate-700 flex-wrap">
-        {(["price", "quotation"] as const).map(t => (
+        {(["price", "options", "quotation"] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -1036,12 +1036,6 @@ function FuturesPageInner() {
             </div>
           </div>
 
-          {/* Options board — per-strike OI + ITM-into-expiry countdown for the
-              front KC/RM future (daily Barchart snapshot). */}
-          <div className="border-t border-slate-800 pt-4 mt-4">
-            <OptionsOIPanel />
-          </div>
-
           {/* Origin Farmgate Prices — moved from /macro so the physical
               side of the price story sits next to the futures chain. */}
           <div className="border-t border-slate-800 pt-4 mt-4">
@@ -1055,6 +1049,11 @@ function FuturesPageInner() {
           </div>
         </>
       )}
+
+      {/* Options tab — per-strike OI / ΔOI / IV boards, ITM-into-expiry
+          countdown and ATM-IV history for the nearest KC/RM option expiries
+          (daily Barchart snapshot + boards archive). */}
+      {tab === "options" && <OptionsOIPanel />}
 
       {/* Quotation tab */}
       {tab === "quotation" && (
