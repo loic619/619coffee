@@ -1,6 +1,6 @@
 {
   "country": "uganda",
-  "scraped_at": "2026-08-15T03:22:19.341455+00:00",
+  "scraped_at": "2026-08-16T03:31:56.180526+00:00",
   "exports": {
     "source": "UCDA Monthly Reports",
     "last_updated": "2026-06",
@@ -797,7 +797,7 @@
   },
   "ucda_price": {
     "usd_cwt": 172.62,
-    "as_of": "2026-08-15",
+    "as_of": "2026-08-16",
     "grade": "Screen 15",
     "grades": {
       "Screen 15": 172.62,
@@ -806,7 +806,7 @@
     }
   },
   "weather": {
-    "scraped_at": "2026-08-15T02:27:53.614472Z",
+    "scraped_at": "2026-08-16T02:34:40.104103Z",
     "regions": [
       {
         "name": "Kasese",
@@ -832,8 +832,8 @@
         "csi_30d_level": "OK",
         "csi_60d_level": "OK",
         "rain_mtd_mm": 118.2,
-        "rain_hist_min": 146.4,
-        "rain_hist_max": 358.4
+        "rain_hist_min": 157.4,
+        "rain_hist_max": 367.9
       },
       {
         "name": "Rwenzori",
@@ -857,7 +857,6 @@
         "region": "Kasese",
         "days": [
           "M",
-          "M",
           "H",
           "M",
           "M",
@@ -917,7 +916,8 @@
           "M",
           "H",
           "H",
-          "H",
+          "M",
+          "M",
           "M",
           "M",
           "M",
@@ -928,7 +928,6 @@
       {
         "region": "Mbale",
         "days": [
-          "L",
           "M",
           "M",
           "M",
@@ -993,6 +992,7 @@
           "M",
           "M",
           "L",
+          "M",
           "L",
           "M"
         ]
@@ -1078,7 +1078,6 @@
           "M",
           "M",
           "M",
-          "M",
           "L",
           "L",
           "L",
@@ -1138,7 +1137,8 @@
           "M",
           "M",
           "M",
-          "M"
+          "L",
+          "L"
         ]
       },
       {
@@ -1332,7 +1332,7 @@
       }
     ],
     "historical_stat": "Neutral ENSO: near-average Uganda coffee output expected",
-    "last_updated": "2026-08-15"
+    "last_updated": "2026-08-16"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Feb",

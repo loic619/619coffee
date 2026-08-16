@@ -1,6 +1,6 @@
 {
   "country": "ethiopia",
-  "scraped_at": "2026-08-15T03:22:20.036969Z",
+  "scraped_at": "2026-08-16T03:31:56.937989Z",
   "exports": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-01",
@@ -351,24 +351,24 @@
     "grade": "All grades avg"
   },
   "weather": {
-    "scraped_at": "2026-08-15T02:30:16.530947Z",
+    "scraped_at": "2026-08-16T02:38:15.253330Z",
     "regions": [
       {
         "name": "Sidama/Yirgacheffe",
         "drought": "MED",
-        "csi_30d": 0.094,
-        "csi_60d": 0.07,
+        "csi_30d": 0.046,
+        "csi_60d": 0.046,
         "csi_30d_level": "LOW",
         "csi_60d_level": "LOW",
-        "rain_mtd_mm": 176.7,
-        "rain_hist_min": 35.6,
-        "rain_hist_max": 77.0
+        "rain_mtd_mm": 153.4,
+        "rain_hist_min": 37.9,
+        "rain_hist_max": 82.2
       },
       {
         "name": "Harrar",
         "drought": "MED",
         "csi_30d": 1.0,
-        "csi_60d": 0.934,
+        "csi_60d": 0.91,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
       },
@@ -376,7 +376,7 @@
         "name": "Kaffa",
         "drought": "MED",
         "csi_30d": 1.0,
-        "csi_60d": 0.886,
+        "csi_60d": 0.864,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
       },
@@ -402,7 +402,6 @@
         "region": "Sidama/Yirgacheffe",
         "days": [
           "M",
-          "M",
           "L",
           "-",
           "L",
@@ -464,10 +463,11 @@
           "L",
           "-",
           "-",
-          "L",
+          "-",
+          "-",
           "-",
           "L",
-          "L"
+          "M"
         ]
       },
       {
@@ -496,7 +496,6 @@
           "M",
           "M",
           "M",
-          "M",
           "-",
           "-",
           "-",
@@ -534,9 +533,10 @@
           "L",
           "-",
           "-",
+          "-",
           "L",
           "M",
-          "M",
+          "L",
           "M",
           "M",
           "M"
@@ -557,7 +557,6 @@
           "M",
           "M",
           "M",
-          "M",
           "L",
           "M",
           "M",
@@ -605,11 +604,12 @@
           "L",
           "L",
           "L",
-          "M",
+          "L",
+          "L",
           "L",
           "M",
-          "M",
-          "M",
+          "L",
+          "L",
           "M",
           "M"
         ]
@@ -618,7 +618,7 @@
         "region": "Jimma",
         "days": [
           "L",
-          "L",
+          "-",
           "-",
           "-",
           "-",
@@ -805,7 +805,7 @@
       }
     ],
     "historical_stat": "Neutral ENSO: near-average Ethiopia arabica output expected",
-    "last_updated": "2026-08-15"
+    "last_updated": "2026-08-16"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Jan",
