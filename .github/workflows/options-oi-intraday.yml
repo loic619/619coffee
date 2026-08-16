@@ -33,13 +33,21 @@ jobs:
           key: playwright-chromium-${{ runner.os }}
       - name: Install dependencies
         run: |
-          pip install playwright
+          pip install playwright requests
           sudo rm -f /etc/apt/sources.list.d/*microsoft* /etc/apt/sources.list.d/*azure* || true
           playwright install chromium --with-deps || playwright install chromium
       - name: Fetch options boards (final OI)
         env:
           PYTHONPATH: backend
         run: python backend/scraper/fetch_options_json.py
+      - name: Options Telegram note
+        continue-on-error: true
+        working-directory: backend
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          PYTHONPATH=. python -m scraper.topic_notify_daily options || true
       - name: Commit
         run: |
           git config user.name  "github-actions[bot]"
@@ -47,6 +55,7 @@ jobs:
           git add frontend/public/data/options_oi.json
           [ -f data/options_boards_archive.json ] && git add data/options_boards_archive.json || true
           [ -f frontend/public/data/options_strike_history.json ] && git add frontend/public/data/options_strike_history.json || true
+          [ -f data/topic_notify_state.json ] && git add data/topic_notify_state.json || true
           if git diff --cached --quiet; then echo "No changes."; else
             git commit -m "data: options OI intraday refresh [skip ci]"
             for i in 1 2 3 4 5; do
