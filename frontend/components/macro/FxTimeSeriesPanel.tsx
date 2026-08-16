@@ -1,9 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  Legend, CartesianGrid, ReferenceLine,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
 import { fmtDateLabel } from "@/lib/formatters";
 

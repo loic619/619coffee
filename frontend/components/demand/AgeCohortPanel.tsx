@@ -1,9 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import {
-  ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  Legend, CartesianGrid, ReferenceLine,
-} from "recharts";
+import { ComposedChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { type AggMode, groupFor, groupOrder } from "@/lib/countryGroups";
 
 interface AnnualEntry {

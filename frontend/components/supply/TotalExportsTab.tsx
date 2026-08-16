@@ -11,10 +11,8 @@
 // is normalised to kt (thousand metric tons) at read time and the origin
 // registry below is the single place a new origin gets wired in.
 import { useEffect, useMemo, useState } from "react";
-import {
-  BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, LabelList, LineChart, Line,
-} from "recharts";
+import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList, LineChart, Line } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { COUNTRY_EN } from "./BrazilTab/constants";
 import { COUNTRY_HUB, HUB_COLORS, HUB_ORDER } from "./IndonesiaExports/constants";

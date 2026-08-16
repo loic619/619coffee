@@ -1,9 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import {
-  ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
 interface MarketInfo {
   price: number | null;

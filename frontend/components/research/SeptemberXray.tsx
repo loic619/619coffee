@@ -3,10 +3,8 @@
 // extracted from the CFTC old-crop bucket (see backend/scraper/exporters/
 // cot_sept_study.py for the mechanism and the empirical validation).
 import { useEffect, useMemo, useState } from "react";
-import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip,
-  ReferenceLine, CartesianGrid,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
 
 interface SeptRow {

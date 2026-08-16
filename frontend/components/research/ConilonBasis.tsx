@@ -3,10 +3,8 @@
 // future never print the same number, and how wide the gaps between them run.
 // Data: conilon_basis.json (backend/scraper/exporters/conilon_basis.py).
 import { useEffect, useMemo, useState } from "react";
-import {
-  ResponsiveContainer, ComposedChart, Line, Scatter, ScatterChart, XAxis, YAxis,
-  Tooltip, ReferenceLine, CartesianGrid, Legend,
-} from "recharts";
+import { ComposedChart, Line, Scatter, ScatterChart, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid, Legend } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
 import { H2, P, UL, LI, Code, Fml, Highlight, RefTable } from "./methodology/prose";
 

@@ -1,10 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import {
-  ComposedChart, Bar, Line,
-  XAxis, YAxis, Tooltip, ResponsiveContainer,
-  LineChart, CartesianGrid,
-} from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, LineChart, CartesianGrid } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import VietnamFertilizerContext from "@/components/supply/VietnamFertilizerContext";
 import { MONTH_ABBR } from "@/lib/formatters";
 

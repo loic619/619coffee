@@ -20,10 +20,8 @@
  * log-linear regression), with raw y/y in muted text below.
  */
 import { useEffect, useState } from "react";
-import {
-  ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis,
-  CartesianGrid, Tooltip, Legend, BarChart,
-} from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { MONTH_ABBR } from "@/lib/formatters";
 
 interface Stage {

@@ -16,9 +16,8 @@
  * tab renders unchanged.
  */
 import { useEffect, useState } from "react";
-import {
-  AreaChart, Area, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Tooltip,
-} from "recharts";
+import { AreaChart, Area, XAxis, YAxis, ReferenceLine, Tooltip } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import {
   ENSO_DEFAULT_RANGE, rangeMonths, type EnsoTimeRange,
 } from "@/lib/ensoTimeRange";

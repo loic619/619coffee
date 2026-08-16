@@ -1,8 +1,6 @@
 "use client";
-import {
-  ScatterChart, Scatter, Cell, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ReferenceArea, ReferenceLine,
-} from "recharts";
+import { ScatterChart, Scatter, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, ReferenceLine } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { Formatter, ValueType, NameType, Payload } from "recharts/types/component/DefaultTooltipContent";
 import type { TooltipContentProps } from "recharts/types/component/Tooltip";
 import type { ProcessedCotRow } from "@/lib/cot/types";

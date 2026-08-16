@@ -1,9 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  ComposedChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  Legend, CartesianGrid, ReferenceLine,
-} from "recharts";
+import { ComposedChart, Area, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
 import { fmtDateLabel } from "@/lib/formatters";
 import { CIF_FINANCING_RATE, FEU_MT, ORIGIN_EXPORT_COSTS, SAMPLING_GRADING_USD_MT, fobbingUsdMt } from "@/lib/originCosts";

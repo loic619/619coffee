@@ -1,8 +1,6 @@
 "use client";
-import {
-  BarChart, Bar, XAxis, YAxis, ReferenceLine, Tooltip,
-  Cell, ResponsiveContainer,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ReferenceLine, Tooltip, Cell } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { FarmerEconomicsData, EnsoPhase, ImpactType } from "./farmerEconomicsData";
 
 interface Props {

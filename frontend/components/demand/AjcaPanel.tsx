@@ -1,10 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useFetchJson } from "@/lib/useFetchJson";
-import {
-  Bar, BarChart, CartesianGrid, ComposedChart, Legend, Line, LineChart,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, ComposedChart, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
 interface StockMonth {
   period: string;

@@ -1,8 +1,6 @@
 "use client";
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  ReferenceLine,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { AgronomyCard, H, P, LI, Code } from "../agronomy/prose";
 
 // Japan's per-capita transition (kg/head) — the canonical S-curve the study

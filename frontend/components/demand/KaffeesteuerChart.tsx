@@ -1,8 +1,6 @@
 "use client";
-import {
-  ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine,
-} from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { useState, useMemo, useEffect } from "react";
 import PinToReport from "@/components/report/PinToReport";
 import { useFetchJson } from "@/lib/useFetchJson";

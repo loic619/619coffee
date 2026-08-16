@@ -1,10 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  ComposedChart, BarChart, Bar, Line, Area,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, ReferenceLine,
-} from "recharts";
+import { ComposedChart, BarChart, Bar, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { MONTH_ABBR as MONTHS } from "@/lib/formatters";
 import EnsoPanel from "./farmer-economics/EnsoPanel";
 import WeatherRiskPanel from "./farmer-economics/WeatherRiskPanel";

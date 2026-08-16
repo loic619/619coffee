@@ -6,10 +6,8 @@
 // (UCDA publishes the R/A split per destination from the enriched schema on;
 // older rows only carry totals, which land in the 'Unsplit' segment).
 import { useMemo, useState } from "react";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, Legend,
-  ResponsiveContainer, LabelList,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, Legend, LabelList } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { COUNTRY_HUB, HUB_COLORS, HUB_ORDER } from "../IndonesiaExports/constants";
 import { TT_STYLE, bagsToKT, type UgandaMonthlyRow } from "./helpers";

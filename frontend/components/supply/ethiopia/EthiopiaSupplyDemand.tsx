@@ -1,5 +1,6 @@
 "use client";
-import { ComposedChart, Bar, Line, LabelList, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LineChart, CartesianGrid, ReferenceLine } from "recharts";
+import { ComposedChart, Bar, Line, LabelList, XAxis, YAxis, Tooltip, Legend, LineChart, CartesianGrid, ReferenceLine } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import {
   SD_BALANCE, PRODUCTION_BY_REGION, PRODUCTION_TOTAL, DOMESTIC_CONSUMPTION,
   FORECAST_2627, HEADLINE, STONEX_META, type RegionRow,

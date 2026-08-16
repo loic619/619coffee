@@ -1,5 +1,6 @@
 "use client";
-import { PieChart, Pie, Cell, Tooltip, Label, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Label } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { ProcessedCotRow } from "@/lib/cot/types";
 import { ARABICA_MT_FACTOR, ROBUSTA_MT_FACTOR, CENTS_LB_TO_USD_TON } from "@/lib/cot/transformApiData";
 

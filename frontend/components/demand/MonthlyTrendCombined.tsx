@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import {
-  ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
-} from "recharts";
+import { ComposedChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
 const TT = { background: "#1e293b", border: "1px solid #334155", borderRadius: 6, fontSize: 10 };
 const US_C = "#0ea5e9", EU_C = "#f59e0b";

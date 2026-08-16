@@ -1,9 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
-import {
-  BarChart, Bar, ReferenceLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { BarChart, Bar, ReferenceLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { BLUE, TT_STYLE, TYPE_FILTER_OPTS, TYPE_SERIES } from "./constants";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { bagsToKT, cropYearKey } from "./helpers";

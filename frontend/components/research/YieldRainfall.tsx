@@ -3,10 +3,8 @@
 // overlaid with 29 harvests of reality and the live crop year.
 // Data: yield_rainfall_model.json (backend/scraper/exporters/yield_rainfall.py).
 import { useEffect, useMemo, useState } from "react";
-import {
-  ResponsiveContainer, ComposedChart, Area, Scatter, XAxis, YAxis, Tooltip,
-  ReferenceLine, ReferenceArea, CartesianGrid, LabelList,
-} from "recharts";
+import { ComposedChart, Area, Scatter, XAxis, YAxis, Tooltip, ReferenceLine, ReferenceArea, CartesianGrid, LabelList } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
 
 interface CurvePt { rain_mm: number; yield_potential_pct: number; stress: string }

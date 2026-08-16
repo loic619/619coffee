@@ -5,9 +5,8 @@
 // figure the bulletins publish. Renders nothing until the first harvest
 // lands (the JSON appears after the monthly vn_fertilizer run + export).
 import { useEffect, useMemo, useState } from "react";
-import {
-  Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 
 interface ImportMonth {

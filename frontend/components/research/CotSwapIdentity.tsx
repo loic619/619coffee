@@ -3,10 +3,8 @@
 // disaggregated COT, both contracts, long and short legs kept separate.
 // Data: cot_swap_identity.json (backend/scraper/exporters/cot_swap_identity.py).
 import { useEffect, useMemo, useState } from "react";
-import {
-  ResponsiveContainer, ComposedChart, BarChart, Bar, Line, XAxis, YAxis, Tooltip,
-  ReferenceLine, CartesianGrid, Legend, Cell, LabelList,
-} from "recharts";
+import { ComposedChart, BarChart, Bar, Line, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid, Legend, Cell, LabelList } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
 import { H2, P, UL, LI, Code, Highlight, RefTable } from "./methodology/prose";
 

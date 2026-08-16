@@ -1,9 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Treemap, Sankey, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, LineChart, Line, CartesianGrid,
-} from "recharts";
+import { Treemap, Sankey, XAxis, YAxis, Tooltip, LineChart, Line, CartesianGrid } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
 // ── data types ────────────────────────────────────────────────────────────
 export interface Origin { name: string; by_year: Record<string, number>; latest_mt: number | null; monthly?: Record<string, number> }

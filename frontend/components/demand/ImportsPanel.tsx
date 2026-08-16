@@ -1,9 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import {
-  BarChart, Bar, ComposedChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  Legend, CartesianGrid,
-} from "recharts";
+import { BarChart, Bar, ComposedChart, Area, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
 interface ImpYear {
   year: number;

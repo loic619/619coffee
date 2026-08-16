@@ -3,10 +3,8 @@
 // to every CFTC market with a real old/other crop-year split. Data:
 // cropyear_xray.json (backend/scraper/exporters/cot_cropyear_xray.py).
 import { useEffect, useMemo, useState } from "react";
-import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip,
-  ReferenceLine, CartesianGrid,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
 
 interface XRow {

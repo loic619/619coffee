@@ -1,5 +1,6 @@
 "use client";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { IMPACT_COLOR, MONTHS, PHASE_COLOR, TT_STYLE } from "@/components/supply/farmer-economics/farmerEconomicsConstants";
 
 const currentMonth = new Date().getMonth(); // 0-indexed

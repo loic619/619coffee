@@ -1,9 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
-import {
-  ComposedChart, Bar, Line,
-  XAxis, YAxis, Tooltip, ResponsiveContainer,
-} from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { MONTH_ABBR } from "@/lib/formatters";
 
 interface FertMonth {

@@ -1,8 +1,6 @@
 "use client";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine,
-  ResponsiveContainer, Cell, Legend, LineChart, Line,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Cell, Legend, LineChart, Line } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA — Walk-forward backtest, 863 out-of-sample weeks (2009–2026)

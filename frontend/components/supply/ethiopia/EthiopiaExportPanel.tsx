@@ -1,8 +1,6 @@
 "use client";
-import {
-  ComposedChart, Bar, Line,
-  XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine,
-} from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ReferenceLine } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { MONTH_ABBR } from "@/lib/formatters";
 
 interface ExportMonth {

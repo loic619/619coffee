@@ -1,8 +1,6 @@
 "use client";
-import {
-  ComposedChart, Bar, Line,
-  XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine,
-} from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ReferenceLine } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
 export interface AnnualExportRow {
   year: string;

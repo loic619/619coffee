@@ -1,9 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import {
-  ComposedChart, Bar, BarChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  Legend, ReferenceLine,
-} from "recharts";
+import { ComposedChart, Bar, BarChart, Line, XAxis, YAxis, Tooltip, Legend, ReferenceLine } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { MONTH_ABBR, MONTH_ABBR as MONTHS } from "@/lib/formatters";
 
 type Region = "eu" | "japan" | "usa";

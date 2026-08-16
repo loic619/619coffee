@@ -1,8 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
-import {
-  BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList,
-} from "recharts";
+import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import {
   AMBER, DEST_WINDOWS, EMPTY_CY, GREEN, HUB_COLORS, HUB_ORDER, ISLAND_COLORS, ISLAND_ORDER,
   SLATE, TT_STYLE, TYPE_LABELS,

@@ -12,10 +12,8 @@
  * section is unavailable. Reused on the Signals page and in the report builder.
  */
 import { useEffect, useState } from "react";
-import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  ReferenceLine, CartesianGrid,
-} from "recharts";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
 interface HistPoint {
   date: string;

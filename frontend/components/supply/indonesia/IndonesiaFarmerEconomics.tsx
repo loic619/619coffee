@@ -1,8 +1,6 @@
 "use client";
-import {
-  BarChart, Bar, XAxis, YAxis, ReferenceLine,
-  Tooltip, Cell, ResponsiveContainer,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ReferenceLine, Tooltip, Cell } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { IMPACT_TEXT, MONTHS as MONTH_NAMES, PHASE_STYLE, TT_STYLE } from "@/components/supply/farmer-economics/farmerEconomicsConstants";
 
 type RiskLevel = "HIGH" | "MED" | "LOW" | "NONE";

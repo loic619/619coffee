@@ -11,10 +11,8 @@
  * Until enough paired days accrue it shows an honest warm-up state.
  */
 import { useEffect, useState } from "react";
-import {
-  ScatterChart, Scatter, XAxis, YAxis, ZAxis, Tooltip, ResponsiveContainer,
-  ReferenceLine, CartesianGrid,
-} from "recharts";
+import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, Tooltip, ReferenceLine, CartesianGrid } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
 interface CalPoint { date: string; net: number; ret: number; }
 interface CalMarket {

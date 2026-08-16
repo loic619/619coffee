@@ -1,9 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import {
-  BarChart, Bar, ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  Legend, CartesianGrid, ReferenceLine, ReferenceArea,
-} from "recharts";
+import { BarChart, Bar, ComposedChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine, ReferenceArea } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { ceilingK, isDemographicallyDiscounted, demographicFactor, K_BASE, logisticIntensity, MODEL_LIMITS } from "@/lib/demandCeilings";
 
 interface AnnualEntry {

@@ -1,9 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import {
-  ResponsiveContainer, ComposedChart, LineChart, BarChart, Line, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell,
-} from "recharts";
+import { ComposedChart, LineChart, BarChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
 import {
   buildCostStack, buildLevelSeries, buildOriginInflow, eventStudy, parityInflowStudy,

@@ -1,10 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  CartesianGrid, Legend, Line, LineChart, ResponsiveContainer,
-  Tooltip, XAxis, YAxis,
-} from "recharts";
+import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
 interface FertilizerHistoryPoint {
   month: string;   // "YYYY-MM"

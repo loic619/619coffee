@@ -1,9 +1,7 @@
 "use client";
 import { useMemo } from "react";
-import {
-  ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine, Cell,
-} from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Cell } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { BalanceSheet, BalanceSeasonRow } from "./farmerEconomicsData";
 
 // ── helpers ───────────────────────────────────────────────────────────────────

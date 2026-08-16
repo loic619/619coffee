@@ -4,10 +4,8 @@
 // every origin renders an identical balance view. Self-contained (own fetch).
 import { useEffect, useState } from "react";
 import React from "react";
-import {
-  ComposedChart, Bar, Cell, Line, LabelList, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, Legend, CartesianGrid, ReferenceLine, ErrorBar,
-} from "recharts";
+import { ComposedChart, Bar, Cell, Line, LabelList, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine, ErrorBar } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import CropEstimateEditor from "./CropEstimateEditor";
 
 interface AnnualRow {

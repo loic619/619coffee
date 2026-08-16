@@ -1,9 +1,6 @@
 "use client";
-import {
-  ComposedChart, Bar, Line,
-  XAxis, YAxis, Tooltip, ResponsiveContainer,
-  LineChart,
-} from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, LineChart } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { FarmerEconomicsData, FertilizerItem, FertilizerImportMonth } from "./farmerEconomicsData";
 import { fertCostDelta, netFertImpact } from "./farmerEconomicsUtils";
 import { MONTH_ABBR } from "@/lib/formatters";

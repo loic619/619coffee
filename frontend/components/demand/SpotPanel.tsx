@@ -1,9 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer,
-  Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis,
-} from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import {
   cropTier, fmtVol, History, offerTons, offerVol, originColor, parsePrice,
   SpotData, SpotRow, Snapshot, uniq, Unit, unitLabel,

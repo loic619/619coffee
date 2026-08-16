@@ -3,10 +3,8 @@
 // lazy-loaded (next/dynamic, ssr:false) — keeps the ~120 kB recharts bundle
 // out of the page's initial load. The header + rate table render immediately;
 // these stream in a moment later.
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  ComposedChart, Bar, Area,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ComposedChart, Bar, Area } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { VESSEL_TYPE_META } from "./vesselTypes";
 import { MONTH_TICKS, monthTickLabel, idxToLabel } from "./seasonal";
 

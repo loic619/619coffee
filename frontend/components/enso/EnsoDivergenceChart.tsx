@@ -20,10 +20,8 @@
  * ENSO tab renders unchanged.
  */
 import { useEffect, useState } from "react";
-import {
-  ComposedChart, Bar, Line, Cell,
-  XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine,
-} from "recharts";
+import { ComposedChart, Bar, Line, Cell, XAxis, YAxis, Tooltip, ReferenceLine } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import {
   ENSO_DEFAULT_RANGE, rangeMonths, type EnsoTimeRange,
 } from "@/lib/ensoTimeRange";
