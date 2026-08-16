@@ -97,32 +97,32 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
     // Dot: green when the current week added vs last week, red when it cut.
     const dotColor = delta > 0 ? "#22c55e" : delta < 0 ? "#ef4444" : "#94a3b8";
     return (
-      <div key={r.label} style={{ marginBottom: 10 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3, alignItems: "baseline" }}>
-          <span style={{ fontSize: 11, color: r.color, fontWeight: 600 }}>{r.label}</span>
-          <span style={{ fontSize: 10, display: "flex", alignItems: "center", gap: 6 }}>
+      <div key={r.label} style={{ marginBottom: 5 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 1, alignItems: "baseline", flexWrap: "wrap", columnGap: 4 }}>
+          <span style={{ fontSize: 10, color: r.color, fontWeight: 600, whiteSpace: "nowrap" }}>{r.label}</span>
+          <span style={{ fontSize: 9, display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
             <span style={{ color: "#475569" }}>{fmtLot(r.curr)}</span>
             <span style={{ color: r.isSpread ? "#a78bfa" : pctColor(pct), fontWeight: 600 }}>{Math.round(pct)}th</span>
-            <span style={{ color: delta >= 0 ? "#22c55e" : "#ef4444", fontSize: 9 }}>
+            <span style={{ color: delta >= 0 ? "#22c55e" : "#ef4444", fontSize: 8 }}>
               {delta >= 0 ? "▲" : "▼"} {fmtLot(Math.abs(delta))}
             </span>
           </span>
         </div>
         {/* Track width ∝ 5y range size (vs the widest range in this market) */}
         <div style={{ width: `${trackPct}%` }}>
-          <div style={{ position: "relative", height: 11, background: "rgba(59,130,246,0.12)", borderRadius: 6, border: "1px solid #1e293b" }}
+          <div style={{ position: "relative", height: 9, background: "rgba(59,130,246,0.12)", borderRadius: 5, border: "1px solid #1e293b" }}
             title={`5y: ${fmtLot(r.min5)}–${fmtLot(r.max5)} · 52w: ${fmtLot(r.min52)}–${fmtLot(r.max52)}`}>
             {/* 52-week range — solid blue band inside the faded 5y track */}
             <div style={{ position: "absolute", left: `${band52L}%`, top: 0, height: "100%", width: `${band52W}%`, background: "rgba(59,130,246,0.45)", borderRadius: 4 }} />
             {/* previous week — blue tick */}
-            <div style={{ position: "absolute", top: 1, left: `calc(${prevPct}% - 1px)`, width: 2, height: 9, background: "#60a5fa", borderRadius: 1 }} title={`Prev: ${fmtLot(r.prev)}`} />
+            <div style={{ position: "absolute", top: 1, left: `calc(${prevPct}% - 1px)`, width: 2, height: 7, background: "#60a5fa", borderRadius: 1 }} title={`Prev: ${fmtLot(r.prev)}`} />
             {/* current week — green (added) / red (reduced) dot */}
-            <div style={{ position: "absolute", top: 0.5, left: `calc(${pct}% - 5px)`, width: 10, height: 10, background: dotColor, borderRadius: "50%", border: "2px solid #0f172a", boxShadow: `0 0 4px ${dotColor}80` }}
+            <div style={{ position: "absolute", top: 0, left: `calc(${pct}% - 4px)`, width: 9, height: 9, background: dotColor, borderRadius: "50%", border: "2px solid #0f172a", boxShadow: `0 0 4px ${dotColor}80` }}
               title={`Current: ${fmtLot(r.curr)} (${delta >= 0 ? "+" : ""}${fmtLot(delta)})`} />
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
-            <span style={{ fontSize: 9, color: "#334155" }}>{fmtLot(r.min5)}</span>
-            <span style={{ fontSize: 9, color: "#334155" }}>{fmtLot(r.max5)}</span>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 1 }}>
+            <span style={{ fontSize: 8, color: "#334155" }}>{fmtLot(r.min5)}</span>
+            <span style={{ fontSize: 8, color: "#334155" }}>{fmtLot(r.max5)}</span>
           </div>
         </div>
       </div>
@@ -130,19 +130,19 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
   };
 
   const subHead = (t: string) => (
-    <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-3 mt-1">{t}</div>
+    <div className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider mb-1.5">{t}</div>
   );
 
   const marketColumn = (title: string, rows: ReturnType<typeof marketRows>) => {
     const maxSpan = maxSpanOf(rows);
     return (
-      <div>
-        <div className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 pb-2 border-b border-slate-800">{title}</div>
+      <div style={{ minWidth: 0 }}>
+        <div className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2 pb-1.5 border-b border-slate-800 truncate">{title}</div>
         {subHead("Longs")}
         {rows.longRows.map(r => renderGauge(r, maxSpan))}
         {subHead("Shorts")}
         {rows.shortRows.map(r => renderGauge(r, maxSpan))}
-        <div style={{ borderTop: "1px dashed #334155", marginTop: 12, paddingTop: 10 }}>
+        <div style={{ borderTop: "1px dashed #334155", marginTop: 8, paddingTop: 6 }}>
           {subHead("Spreading positions")}
           {rows.spreadRows.map(r => renderGauge(r, maxSpan))}
         </div>
@@ -164,8 +164,10 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
           ))}
         </div>
       )}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3">
+        {/* Always two equal columns — Arabica left, Robusta right — on every
+            breakpoint (grid-cols-2 = repeat(2, minmax(0,1fr)), truly equal). */}
+        <div className="grid grid-cols-2 gap-x-3 sm:gap-x-6">
           {marketColumn("Arabica · NY", ny)}
           {marketColumn("Robusta · LDN", ldn)}
         </div>
