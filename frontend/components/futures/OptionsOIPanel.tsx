@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ComposedChart, Area, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  ComposedChart, Area, Bar, Cell, LabelList, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, ReferenceLine, Legend,
 } from "recharts";
 
@@ -15,6 +15,10 @@ interface StrikeRow {
   strike: number; call_oi: number; put_oi: number; call_vol: number; put_vol: number;
   call_chg?: number | null; put_chg?: number | null;      // ΔOI vs prior session
   call_iv?: number | null; put_iv?: number | null;        // Black-76 / Barchart IV
+  call_delta?: number | null; put_delta?: number | null;
+  call_gamma?: number | null; put_gamma?: number | null;
+  call_theta?: number | null; put_theta?: number | null;
+  call_vega?: number | null; put_vega?: number | null;
 }
 interface MarketSnap {
   underlying: string;
@@ -71,6 +75,17 @@ const busDaysTo = (from: string, to: string): number => {
 };
 
 const COUNTDOWN_WINDOW = 45;   // sessions before expiry shown on the countdown
+
+// Report section header — the page reads as a story: positioning → greeks
+// pressure → volatility → expiry.
+function Section({ t, c }: { t: string; c: string }) {
+  return (
+    <div className="lg:col-span-2 mt-2">
+      <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-300">{t}</h3>
+      <p className="text-[10px] text-slate-500 max-w-3xl">{c}</p>
+    </div>
+  );
+}
 
 type Mkt = "arabica" | "robusta";
 const TT_STYLE = { background: "#1e293b", border: "1px solid #334155", borderRadius: 6, fontSize: 10 };
@@ -203,6 +218,8 @@ export default function OptionsOIPanel() {
           itmCall: oiKnown ? m.itm_call_oi || 0 : null,
           itmPut: oiKnown ? m.itm_put_oi || 0 : null,
           futOi: m.fut_oi ?? null,
+          pcRatio: oiKnown && (m.call_oi || 0) > 0
+            ? Math.round(((m.put_oi || 0) / (m.call_oi || 1)) * 100) / 100 : null,
           dte: m.days_to_expiry,
           underlying: m.underlying,
           atmIv: m.atm_iv != null ? m.atm_iv * 100 : null,
@@ -225,6 +242,85 @@ export default function OptionsOIPanel() {
     const t = snap ? snap.totals.call_oi + snap.totals.put_oi : 0;
     return t > 0 && snap ? ((snap.totals.itm_call_oi + snap.totals.itm_put_oi) / t) * 100 : null;
   }, [snap]);
+
+  // Report analytics off the live board: P/C ratio, max pain, net delta of
+  // the open book (long-holder convention), 25Δ risk reversal.
+  const report = useMemo(() => {
+    if (!snap?.strikes?.length) return null;
+    const st = snap.strikes;
+    const pc = snap.totals.call_oi > 0 ? snap.totals.put_oi / snap.totals.call_oi : null;
+    // max pain: the settlement that minimises the total intrinsic payout
+    let maxPain: number | null = null;
+    let best = Infinity;
+    for (const k of st) {
+      let pay = 0;
+      for (const s of st) {
+        pay += (s.call_oi || 0) * Math.max(k.strike - s.strike, 0)
+             + (s.put_oi || 0) * Math.max(s.strike - k.strike, 0);
+      }
+      if (pay < best) { best = pay; maxPain = k.strike; }
+    }
+    let netDelta = 0;
+    let haveDelta = false;
+    for (const s of st) {
+      if (s.call_delta != null && s.call_oi) { netDelta += s.call_delta * s.call_oi; haveDelta = true; }
+      if (s.put_delta != null && s.put_oi) { netDelta += s.put_delta * s.put_oi; haveDelta = true; }
+    }
+    const c25 = st.filter(s => s.call_delta != null && s.call_iv != null && (s.call_oi || s.call_delta! > 0.02))
+      .sort((a, b) => Math.abs(a.call_delta! - 0.25) - Math.abs(b.call_delta! - 0.25))[0];
+    const p25 = st.filter(s => s.put_delta != null && s.put_iv != null)
+      .sort((a, b) => Math.abs(a.put_delta! + 0.25) - Math.abs(b.put_delta! + 0.25))[0];
+    const rr = c25 && p25 ? (p25.put_iv! - c25.call_iv!) * 100 : null;
+    return { pc, maxPain, netDelta: haveDelta ? netDelta : null, rr,
+             c25K: c25?.strike, p25K: p25?.strike };
+  }, [snap]);
+
+  // Per-strike greeks maps (near the money): gamma exposure Γ·OI with the
+  // naive calls-positive / puts-negative dealer convention, and net delta·OI.
+  const greekProfiles = useMemo(() => {
+    if (!snap?.strikes?.length) return { gex: [], dex: [] };
+    const px = snap.future_price ?? undefined;
+    const near = snap.strikes.filter(s => !px || (s.strike > px * 0.65 && s.strike < px * 1.35));
+    const gex = near
+      .map(s => ({ strike: s.strike,
+                   gex: (s.call_gamma ?? 0) * (s.call_oi || 0)
+                      - (s.put_gamma ?? 0) * (s.put_oi || 0) }))
+      .filter(r => r.gex !== 0)
+      .map(r => ({ ...r, gex: Math.round(r.gex) }));
+    const dex = near
+      .map(s => ({ strike: s.strike,
+                   dex: (s.call_delta ?? 0) * (s.call_oi || 0)
+                      + (s.put_delta ?? 0) * (s.put_oi || 0) }))
+      .filter(r => r.dex !== 0)
+      .map(r => ({ ...r, dex: Math.round(r.dex) }));
+    return { gex, dex };
+  }, [snap]);
+
+  // Biggest per-strike ΔOI moves of the last published session.
+  const movers = useMemo(() => {
+    if (!snap?.strikes?.length) return [];
+    const rows: { strike: number; side: "C" | "P"; chg: number }[] = [];
+    for (const s of snap.strikes) {
+      if (s.call_chg) rows.push({ strike: s.strike, side: "C", chg: s.call_chg });
+      if (s.put_chg) rows.push({ strike: s.strike, side: "P", chg: s.put_chg });
+    }
+    return rows.sort((a, b) => Math.abs(b.chg) - Math.abs(a.chg)).slice(0, 8);
+  }, [snap]);
+
+  // ATM IV per listed contract → the term structure.
+  const term = useMemo(() =>
+    contracts.map(c => {
+      const px = c.future_price;
+      const s = px
+        ? [...c.strikes]
+            .filter(x => x.call_iv != null || x.put_iv != null)
+            .sort((a, b) => Math.abs(a.strike - px) - Math.abs(b.strike - px))[0]
+        : undefined;
+      const ivs = s ? [s.call_iv, s.put_iv].filter((v): v is number => v != null) : [];
+      return { sym: shortSym(c.underlying), dte: c.days_to_expiry ?? 0,
+               iv: ivs.length ? (ivs.reduce((a, b) => a + b, 0) / ivs.length) * 100 : null };
+    }).filter(t => t.iv != null && t.dte >= 0),
+  [contracts]);
 
   return (
     <div className="p-4 space-y-3">
@@ -309,9 +405,52 @@ export default function OptionsOIPanel() {
                 {(snap.totals.itm_call_oi + snap.totals.itm_put_oi).toLocaleString()} lots ITM
               </div>
             </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
+              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Put / Call OI</div>
+              <div className={`text-base font-bold font-mono ${report?.pc != null && report.pc > 1 ? "text-red-400" : "text-emerald-400"}`}>
+                {report?.pc != null ? report.pc.toFixed(2) : "—"}
+              </div>
+              <div className="text-[10px] text-slate-400 font-mono">
+                {report?.pc != null ? (report.pc > 1 ? "put-heavy book" : "call-heavy book") : ""}
+              </div>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
+              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Max pain</div>
+              <div className="text-base font-bold font-mono text-slate-100">
+                {report?.maxPain != null ? report.maxPain.toLocaleString() : "—"}
+              </div>
+              <div className="text-[10px] text-slate-400 font-mono">
+                {report?.maxPain != null && snap.future_price
+                  ? `${(((report.maxPain - snap.future_price) / snap.future_price) * 100).toFixed(1)}% vs future`
+                  : "min. intrinsic payout"}
+              </div>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
+              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Net Δ of open book</div>
+              <div className={`text-base font-bold font-mono ${report?.netDelta != null && report.netDelta < 0 ? "text-red-400" : "text-emerald-400"}`}>
+                {report?.netDelta != null
+                  ? `${report.netDelta > 0 ? "+" : ""}${Math.round(report.netDelta).toLocaleString()}`
+                  : "—"}
+              </div>
+              <div className="text-[10px] text-slate-400 font-mono">futures-equiv lots (holder side)</div>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
+              <div className="text-[9px] text-slate-500 uppercase tracking-wide">25Δ risk reversal</div>
+              <div className={`text-base font-bold font-mono ${report?.rr != null && report.rr > 0 ? "text-red-400" : "text-emerald-400"}`}>
+                {report?.rr != null ? `${report.rr > 0 ? "+" : ""}${report.rr.toFixed(1)} pts` : "—"}
+              </div>
+              <div className="text-[10px] text-slate-400 font-mono">
+                {report?.rr != null
+                  ? `${report.rr > 0 ? "puts over calls" : "calls over puts"}${report.p25K && report.c25K ? ` · ${report.p25K}P/${report.c25K}C` : ""}`
+                  : "needs live IV + delta"}
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Section t="1 · Positioning" c={
+              "Where the open interest sits, how it moved last session, and how the " +
+              "put/call balance has trended. Strike walls act as magnets and barriers into expiry."} />
             {/* Per-strike board */}
             <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
               <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
@@ -433,6 +572,150 @@ export default function OptionsOIPanel() {
               </div>
             </div>
 
+            {/* Session ΔOI movers — the flows behind the board */}
+            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+                Biggest ΔOI moves · last published session
+              </div>
+              {movers.length === 0 ? (
+                <div className="text-[11px] text-slate-500 italic pt-6 text-center">
+                  No open-interest changes vs the prior session.
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {movers.map((m, i) => (
+                    <div key={`${m.strike}-${m.side}`}
+                      className="flex items-center justify-between text-[11px] font-mono border-b border-slate-700/50 pb-1">
+                      <span className="text-slate-400">#{i + 1}</span>
+                      <span className={m.side === "C" ? "text-emerald-400" : "text-red-400"}>
+                        {m.strike.toLocaleString()} {m.side === "C" ? "Call" : "Put"}
+                      </span>
+                      <span className={m.chg > 0 ? "text-emerald-300" : "text-red-300"}>
+                        {m.chg > 0 ? "+" : "−"}{Math.abs(m.chg).toLocaleString()} lots
+                        <span className="text-slate-500"> {m.chg > 0 ? "build" : "unwind"}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* P/C OI ratio through time */}
+            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+                Put / Call OI ratio · {snap.underlying} — daily
+              </div>
+              <div className="h-56">
+                {countdown.filter(c => c.pcRatio != null).length < 2 ? (
+                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                    Accumulating — one point per archived session.
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={countdown} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                      <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={26}
+                        tickFormatter={(v: string) => fmtDateLabel(v)} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={36}
+                        domain={["auto", "auto"]}
+                        tickFormatter={(v: number) => v.toFixed(1)} />
+                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                        formatter={(v) => typeof v === "number" ? v.toFixed(2) : "—"} />
+                      <ReferenceLine y={1} stroke="#475569" strokeDasharray="4 3"
+                        label={{ value: "1.0", fill: "#64748b", fontSize: 8, position: "left" }} />
+                      <Line type="monotone" dataKey="pcRatio" name="P/C OI ratio"
+                        stroke="#38bdf8" strokeWidth={1.5} dot={false} connectNulls />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            <Section t="2 · Greeks pressure" c={
+              "Gamma exposure (Γ·OI, calls positive / puts negative — the naive dealer book) maps " +
+              "where hedging flows amplify or dampen moves; the net delta profile shows where " +
+              "directional exposure concentrates."} />
+
+            {/* Gamma exposure profile */}
+            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+                Gamma exposure by strike · Δ-lots per 1pt move · line = future
+              </div>
+              <div className="h-56">
+                {greekProfiles.gex.length === 0 ? (
+                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                    Needs live board greeks (delta/gamma from Barchart or Black-76).
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={greekProfiles.gex} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                      <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
+                        type="number" domain={["dataMin", "dataMax"]} tickCount={9} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
+                        tickFormatter={(v: number) => v.toLocaleString()} />
+                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                        labelFormatter={(v) => `strike ${v} ${UNIT[mkt]}`}
+                        formatter={(v) => typeof v === "number"
+                          ? `${v > 0 ? "+" : ""}${v.toLocaleString()} Δ-lots/pt` : "—"} />
+                      <ReferenceLine y={0} stroke="#475569" />
+                      {snap.future_price != null && (
+                        <ReferenceLine x={snap.future_price} stroke="#e2e8f0" strokeDasharray="4 3"
+                          label={{ value: "fut", fill: "#e2e8f0", fontSize: 9, position: "top" }} />
+                      )}
+                      <Bar dataKey="gex" name="Γ · OI">
+                        {greekProfiles.gex.map(r => (
+                          <Cell key={r.strike} fill={r.gex >= 0 ? "#34d399" : "#f87171"} fillOpacity={0.8} />
+                        ))}
+                      </Bar>
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            {/* Net delta profile */}
+            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+                Net delta by strike · futures-equiv lots (holder side) · line = future
+              </div>
+              <div className="h-56">
+                {greekProfiles.dex.length === 0 ? (
+                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                    Needs live board greeks (delta from Barchart or Black-76).
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={greekProfiles.dex} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                      <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
+                        type="number" domain={["dataMin", "dataMax"]} tickCount={9} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
+                        tickFormatter={(v: number) => v.toLocaleString()} />
+                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                        labelFormatter={(v) => `strike ${v} ${UNIT[mkt]}`}
+                        formatter={(v) => typeof v === "number"
+                          ? `${v > 0 ? "+" : ""}${v.toLocaleString()} lots` : "—"} />
+                      <ReferenceLine y={0} stroke="#475569" />
+                      {snap.future_price != null && (
+                        <ReferenceLine x={snap.future_price} stroke="#e2e8f0" strokeDasharray="4 3"
+                          label={{ value: "fut", fill: "#e2e8f0", fontSize: 9, position: "top" }} />
+                      )}
+                      <Bar dataKey="dex" name="Δ · OI">
+                        {greekProfiles.dex.map(r => (
+                          <Cell key={r.strike} fill={r.dex >= 0 ? "#34d399" : "#f87171"} fillOpacity={0.8} />
+                        ))}
+                      </Bar>
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            <Section t="3 · Expiry & pin risk" c={
+              "How much of the option book is in the money versus the futures interest it would " +
+              "exercise into, over the final approach to expiry."} />
+
             {/* ITM countdown — last 45 sessions into option expiry, same day
                 axis as the OI-to-FND chart. */}
             <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
@@ -477,6 +760,10 @@ export default function OptionsOIPanel() {
               </div>
             </div>
 
+            <Section t="4 · Volatility" c={
+              "The level (ATM IV through time), the smile (per-strike IV on the board above), " +
+              "the skew (25Δ risk reversal in the header), and the term structure across expiries."} />
+
             {/* ATM implied vol history — the day-by-day at-the-money IV of the
                 selected board (Black-76 from the archived last premiums), with
                 the underlying future for context. */}
@@ -512,6 +799,41 @@ export default function OptionsOIPanel() {
                         stroke="#475569" strokeWidth={1} dot={false} connectNulls />
                       <Line yAxisId="iv" type="monotone" dataKey="atmIv" name="ATM IV"
                         stroke="#a78bfa" strokeWidth={1.5} dot={false} connectNulls />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            {/* IV term structure — ATM IV across the listed expiries */}
+            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+                IV term structure · ATM vol per expiry
+              </div>
+              <div className="h-56">
+                {term.length < 2 ? (
+                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                    Needs ATM IV on at least two listed expiries.
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={term} margin={{ top: 14, right: 16, left: -6, bottom: 0 }}>
+                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                      <XAxis dataKey="dte" type="number" domain={[0, "dataMax"]}
+                        stroke="#64748b" tick={{ fontSize: 8 }}
+                        tickFormatter={(v: number) => `${v}d`} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={40}
+                        domain={["auto", "auto"]}
+                        tickFormatter={(v: number) => `${v.toFixed(0)}%`} />
+                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                        labelFormatter={(v, payload) =>
+                          `${payload?.[0]?.payload?.sym ?? ""} · ${v}d to expiry`}
+                        formatter={(v) => typeof v === "number" ? `${v.toFixed(1)}%` : "—"} />
+                      <Line type="monotone" dataKey="iv" name="ATM IV"
+                        stroke="#a78bfa" strokeWidth={1.5} dot={{ r: 3 }}>
+                        <LabelList dataKey="sym" position="top"
+                          style={{ fill: "#94a3b8", fontSize: 9 }} />
+                      </Line>
                     </ComposedChart>
                   </ResponsiveContainer>
                 )}
