@@ -57,7 +57,7 @@ interface StrikeHistDoc {
   markets?: { arabica?: Record<string, StrikeHist>; robusta?: Record<string, StrikeHist> };
 }
 
-// KCZ26 → "Z26" — the chip label; the root repeats the market toggle.
+// KCZ26 → "Z26" — the chip label; the column header names the market.
 const shortSym = (sym: string) => sym.replace(/^[A-Z]{2,3}(?=[FGHJKMNQUVXZ]\d{2}$)/, "");
 
 // Mon–Fri sessions between two ISO dates (trading-day countdown, like the
@@ -76,14 +76,13 @@ const busDaysTo = (from: string, to: string): number => {
 
 const COUNTDOWN_WINDOW = 45;   // sessions before expiry shown on the countdown
 
-// Report section header — the page reads as a story: positioning → greeks
-// pressure → volatility → expiry.
-function Section({ t, c }: { t: string; c: string }) {
+// Slim in-column section divider — each market column reads as its own
+// report: positioning → greeks pressure → expiry → volatility.
+function Section({ t }: { t: string }) {
   return (
-    <div className="lg:col-span-2 mt-2">
-      <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-300">{t}</h3>
-      <p className="text-[10px] text-slate-500 max-w-3xl">{c}</p>
-    </div>
+    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pt-1">
+      {t}
+    </h3>
   );
 }
 
@@ -91,7 +90,7 @@ type Mkt = "arabica" | "robusta";
 const TT_STYLE = { background: "#1e293b", border: "1px solid #334155", borderRadius: 6, fontSize: 10 };
 const UNIT: Record<Mkt, string> = { arabica: "¢/lb", robusta: "$/MT" };
 
-// Headline analytics for one board — feeds the per-market tile blocks.
+// Headline analytics for one board — feeds the merged tiles.
 function computeReport(snap: MarketSnap) {
   const st = snap.strikes || [];
   const tot = snap.totals.call_oi + snap.totals.put_oi;
@@ -124,53 +123,33 @@ function computeReport(snap: MarketSnap) {
            c25K: c25?.strike, p25K: p25?.strike, itmShare, itmLots };
 }
 
-export default function OptionsOIPanel() {
-  const [doc, setDoc] = useState<OptionsDoc | null>(null);
-  const [shist, setShist] = useState<StrikeHistDoc | null>(null);
-  const [mkt, setMkt] = useState<Mkt>("arabica");
-  // one selected underlying per market — arabica tiles left, robusta right
-  const [selMap, setSelMap] = useState<Record<Mkt, string | null>>(
-    { arabica: null, robusta: null });
+// One market's full report column: tiles, board, movers, P/C history,
+// greeks profiles, ITM countdown, ATM IV history, term structure. Rendered
+// twice by the panel — arabica LEFT, robusta RIGHT (site convention).
+function MarketReport({ mkt, doc, shist }: {
+  mkt: Mkt; doc: OptionsDoc | null; shist: StrikeHistDoc | null;
+}) {
+  const [sel, setSel] = useState<string | null>(null);   // selected underlying
   const [boardMode, setBoardMode] = useState<"oi" | "chg" | "iv">("oi");
   // Board date selection: null/null = latest session vs previous (default).
-  // dateTo picks a session; dateFrom makes it an explicit period start.
   const [dateTo, setDateTo] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch("/data/options_oi.json")
-      .then(r => (r.ok ? r.json() : null))
-      .then(d => { if (d) setDoc(d); })
-      .catch(() => { /* renders the accumulating note */ });
-    fetch("/data/options_strike_history.json")
-      .then(r => (r.ok ? r.json() : null))
-      .then(d => { if (d) setShist(d); })
-      .catch(() => { /* selector simply stays hidden */ });
-  }, []);
+  // Nearest-first list of live option boards for this market.
+  const contracts = useMemo<MarketSnap[]>(() => {
+    const block = doc?.markets?.[mkt];
+    if (!block) return [];
+    if (Array.isArray(block.contracts)) return block.contracts;
+    return block.underlying && block.strikes ? [block as MarketSnap] : [];
+  }, [doc, mkt]);
 
-  // Nearest-first list of live option boards for BOTH markets.
-  const allContracts = useMemo<Record<Mkt, MarketSnap[]>>(() => {
-    const get = (m: Mkt): MarketSnap[] => {
-      const block = doc?.markets?.[m];
-      if (!block) return [];
-      if (Array.isArray(block.contracts)) return block.contracts;
-      return block.underlying && block.strikes ? [block as MarketSnap] : [];
-    };
-    return { arabica: get("arabica"), robusta: get("robusta") };
-  }, [doc]);
-
-  // Per-market selection (defaults to the FRONT) + headline analytics —
-  // drives the side-by-side tile blocks; the charts follow the active market.
-  const sides = useMemo(() =>
-    (["arabica", "robusta"] as Mkt[]).map(m => {
-      const cs = allContracts[m];
-      const s = cs.find(c => c.underlying === selMap[m]) ?? cs[0] ?? null;
-      return { m, contracts: cs, snap: s, report: s ? computeReport(s) : null };
-    }),
-  [allContracts, selMap]);
-
-  const contracts = allContracts[mkt];
-  const snap = sides.find(s => s.m === mkt)?.snap ?? null;
+  // Default to the FRONT (nearest expiry); an explicit pick sticks while it
+  // exists, and falls back to the front when the file changes.
+  const snap = useMemo(
+    () => contracts.find(c => c.underlying === sel) ?? contracts[0] ?? null,
+    [contracts, sel]
+  );
+  const report = useMemo(() => (snap ? computeReport(snap) : null), [snap]);
 
   // Per-strike OI history matrix for the selected contract (published
   // sessions only) — powers the date/period selector.
@@ -280,6 +259,7 @@ export default function OptionsOIPanel() {
   );
 
   const last = countdown.length ? countdown[countdown.length - 1] : null;
+
   // Per-strike greeks maps (near the money): gamma exposure Γ·OI with the
   // naive calls-positive / puts-negative dealer convention, and net delta·OI.
   const greekProfiles = useMemo(() => {
@@ -328,520 +308,514 @@ export default function OptionsOIPanel() {
   [contracts]);
 
   return (
-    <div className="p-4 space-y-3">
-      <div className="flex items-start justify-between flex-wrap gap-2">
-        <div>
-          <h2 className="text-lg font-bold text-white">Options Open Interest</h2>
-          <p className="text-xs text-slate-400 max-w-3xl">
-            Options boards of the nearest {mkt === "arabica" ? "NY arabica (KC)" : "London robusta (RM)"} futures
-            — per-strike call/put open interest around the money, and the in-the-money share of that OI as
-            option expiry approaches (delta-hedging / pin-risk pressure). Delayed Barchart data, one snapshot
-            per session{doc?.updated ? ` · last ${doc.updated.slice(0, 10)}` : ""}.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[9px] text-slate-500 uppercase tracking-wide">charts</span>
-          <div className="flex bg-slate-800 border border-slate-700 rounded-md overflow-hidden text-[10px]">
-            {(["arabica", "robusta"] as Mkt[]).map(m => (
-              <button key={m}
-                onClick={() => { setMkt(m); setDateTo(null); setDateFrom(null); }}
-                className={`px-2.5 py-1.5 transition ${mkt === m ? "bg-amber-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
-                {m === "arabica" ? "Arabica" : "Robusta"}
-              </button>
-            ))}
+    <div className="space-y-3 min-w-0">
+      {/* Column header: market name + contract chips */}
+      <div className="flex items-center justify-between flex-wrap gap-1 border-b border-slate-700 pb-1.5">
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-amber-400">
+          {mkt === "arabica" ? "Arabica · NY (KC)" : "Robusta · London (RM)"}
+        </h3>
+        {contracts.length > 1 && (
+          <div className="flex bg-slate-900 border border-slate-700 rounded overflow-hidden text-[9px]">
+            {contracts.map(c => {
+              const on = snap?.underlying === c.underlying;
+              return (
+                <button key={c.underlying}
+                  onClick={() => { setSel(c.underlying); setDateTo(null); setDateFrom(null); }}
+                  title={`${c.underlying} — options expire ${c.option_expiry?.slice(0, 10) ?? "?"}`}
+                  className={`px-2 py-1 transition font-mono ${on ? "bg-sky-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
+                  {shortSym(c.underlying)}
+                  {c.days_to_expiry != null && (
+                    <span className={on ? "text-sky-200" : "text-slate-500"}> {Math.round(c.days_to_expiry)}d</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
-        </div>
+        )}
       </div>
 
-      {!snap ? (
-        <div className="text-[11px] text-slate-500 italic">
-          No options data yet — the board starts accumulating with the next daily OI snapshot.
+      {!snap || !report ? (
+        <div className="text-[11px] text-slate-500 italic py-4">
+          No live boards yet for this market.
         </div>
       ) : (
         <>
-          {/* Per-market tile blocks — arabica LEFT, robusta RIGHT (site
-              convention). Four merged tiles per contract, two facts each.
-              Chips pick that market's contract and focus the charts on it. */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {sides.map(({ m, contracts: cs, snap: s, report: r }) => (
-              <div key={m} className={`rounded-lg border p-3 ${mkt === m ? "border-amber-700/60 bg-slate-800/60" : "border-slate-700 bg-slate-800/30"}`}>
-                <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
-                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-300">
-                    {m === "arabica" ? "Arabica · NY (KC)" : "Robusta · London (RM)"}
-                  </h3>
-                  {cs.length > 1 && (
-                    <div className="flex bg-slate-900 border border-slate-700 rounded overflow-hidden text-[9px]">
-                      {cs.map(c => {
-                        const on = s?.underlying === c.underlying;
-                        return (
-                          <button key={c.underlying}
-                            onClick={() => {
-                              setSelMap(prev => ({ ...prev, [m]: c.underlying }));
-                              setMkt(m); setDateTo(null); setDateFrom(null);
-                            }}
-                            title={`${c.underlying} — options expire ${c.option_expiry?.slice(0, 10) ?? "?"}`}
-                            className={`px-2 py-1 transition font-mono ${on ? "bg-sky-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
-                            {shortSym(c.underlying)}
-                            {c.days_to_expiry != null && (
-                              <span className={on ? "text-sky-200" : "text-slate-500"}> {Math.round(c.days_to_expiry)}d</span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-                {!s || !r ? (
-                  <div className="text-[11px] text-slate-500 italic py-4 text-center">No live boards.</div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
-                      <div className="text-[9px] text-slate-500 uppercase tracking-wide">Contract · expiry</div>
-                      <div className="text-sm font-bold font-mono text-slate-100">
-                        {s.underlying}
-                        <span className="text-slate-400 font-normal"> {s.future_price != null ? `${s.future_price.toLocaleString()} ${UNIT[m]}` : ""}</span>
-                      </div>
-                      <div className="text-[10px] text-amber-400 font-mono">
-                        {s.option_expiry?.slice(0, 10) ?? "—"}
-                        {s.days_to_expiry != null ? ` · ${Math.round(s.days_to_expiry)}d left` : ""}
-                      </div>
-                    </div>
-                    <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
-                      <div className="text-[9px] text-slate-500 uppercase tracking-wide">Open interest · P/C</div>
-                      <div className="text-sm font-bold font-mono text-slate-100">
-                        {(s.totals.call_oi + s.totals.put_oi).toLocaleString()}
-                        <span className="text-[10px] text-slate-400 font-normal"> C {Math.round(s.totals.call_oi / 1000)}k · P {Math.round(s.totals.put_oi / 1000)}k</span>
-                      </div>
-                      <div className={`text-[10px] font-mono ${r.pc != null && r.pc > 1 ? "text-red-400" : "text-emerald-400"}`}>
-                        {r.pc != null ? `P/C ${r.pc.toFixed(2)} · ${r.pc > 1 ? "put-heavy" : "call-heavy"}` : "—"}
-                      </div>
-                    </div>
-                    <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
-                      <div className="text-[9px] text-slate-500 uppercase tracking-wide">ITM · max pain</div>
-                      <div className={`text-sm font-bold font-mono ${r.itmShare != null && r.itmShare > 50 ? "text-red-400" : "text-emerald-400"}`}>
-                        {r.itmShare != null ? `${r.itmShare.toFixed(1)}%` : "—"}
-                        <span className="text-[10px] text-slate-400 font-normal"> {r.itmLots.toLocaleString()} lots</span>
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-mono">
-                        pain {r.maxPain != null ? r.maxPain.toLocaleString() : "—"}
-                        {r.maxPain != null && s.future_price
-                          ? ` (${(((r.maxPain - s.future_price) / s.future_price) * 100).toFixed(1)}%)` : ""}
-                      </div>
-                    </div>
-                    <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
-                      <div className="text-[9px] text-slate-500 uppercase tracking-wide">Net Δ · 25Δ skew</div>
-                      <div className={`text-sm font-bold font-mono ${r.netDelta != null && r.netDelta < 0 ? "text-red-400" : "text-emerald-400"}`}>
-                        {r.netDelta != null
-                          ? `${r.netDelta > 0 ? "+" : ""}${Math.round(r.netDelta).toLocaleString()}`
-                          : "—"}
-                        <span className="text-[10px] text-slate-400 font-normal"> fut-eq lots</span>
-                      </div>
-                      <div className={`text-[10px] font-mono ${r.rr != null && r.rr > 0 ? "text-red-400" : "text-emerald-400"}`}>
-                        {r.rr != null
-                          ? `RR ${r.rr > 0 ? "+" : ""}${r.rr.toFixed(1)}pts · ${r.rr > 0 ? "puts over calls" : "calls over puts"}`
-                          : "RR —"}
-                      </div>
-                    </div>
-                  </div>
-                )}
+          {/* Merged tiles — four per contract, two facts each */}
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
+              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Contract · expiry</div>
+              <div className="text-sm font-bold font-mono text-slate-100">
+                {snap.underlying}
+                <span className="text-slate-400 font-normal"> {snap.future_price != null ? `${snap.future_price.toLocaleString()} ${UNIT[mkt]}` : ""}</span>
               </div>
-            ))}
+              <div className="text-[10px] text-amber-400 font-mono">
+                {snap.option_expiry?.slice(0, 10) ?? "—"}
+                {snap.days_to_expiry != null ? ` · ${Math.round(snap.days_to_expiry)}d left` : ""}
+              </div>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
+              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Open interest · P/C</div>
+              <div className="text-sm font-bold font-mono text-slate-100">
+                {(snap.totals.call_oi + snap.totals.put_oi).toLocaleString()}
+                <span className="text-[10px] text-slate-400 font-normal"> C {Math.round(snap.totals.call_oi / 1000)}k · P {Math.round(snap.totals.put_oi / 1000)}k</span>
+              </div>
+              <div className={`text-[10px] font-mono ${report.pc != null && report.pc > 1 ? "text-red-400" : "text-emerald-400"}`}>
+                {report.pc != null ? `P/C ${report.pc.toFixed(2)} · ${report.pc > 1 ? "put-heavy" : "call-heavy"}` : "—"}
+              </div>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
+              <div className="text-[9px] text-slate-500 uppercase tracking-wide">ITM · max pain</div>
+              <div className={`text-sm font-bold font-mono ${report.itmShare != null && report.itmShare > 50 ? "text-red-400" : "text-emerald-400"}`}>
+                {report.itmShare != null ? `${report.itmShare.toFixed(1)}%` : "—"}
+                <span className="text-[10px] text-slate-400 font-normal"> {report.itmLots.toLocaleString()} lots</span>
+              </div>
+              <div className="text-[10px] text-slate-400 font-mono">
+                pain {report.maxPain != null ? report.maxPain.toLocaleString() : "—"}
+                {report.maxPain != null && snap.future_price
+                  ? ` (${(((report.maxPain - snap.future_price) / snap.future_price) * 100).toFixed(1)}%)` : ""}
+              </div>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
+              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Net Δ · 25Δ skew</div>
+              <div className={`text-sm font-bold font-mono ${report.netDelta != null && report.netDelta < 0 ? "text-red-400" : "text-emerald-400"}`}>
+                {report.netDelta != null
+                  ? `${report.netDelta > 0 ? "+" : ""}${Math.round(report.netDelta).toLocaleString()}`
+                  : "—"}
+                <span className="text-[10px] text-slate-400 font-normal"> fut-eq lots</span>
+              </div>
+              <div className={`text-[10px] font-mono ${report.rr != null && report.rr > 0 ? "text-red-400" : "text-emerald-400"}`}>
+                {report.rr != null
+                  ? `RR ${report.rr > 0 ? "+" : ""}${report.rr.toFixed(1)}pts · ${report.rr > 0 ? "puts over calls" : "calls over puts"}`
+                  : "RR —"}
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Section t="1 · Positioning" c={
-              "Where the open interest sits, how it moved last session, and how the " +
-              "put/call balance has trended. Strike walls act as magnets and barriers into expiry."} />
-            {/* Per-strike board */}
-            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
-              <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
-                <div className="text-[10px] text-slate-400 uppercase tracking-wide">
-                  {boardMode === "oi"
-                    ? (isPeriod && custom
-                        ? `OI per strike · ${fmtDateLabel(dateFromEff!)} (faded) vs ${fmtDateLabel(dateToEff!)}`
-                        : custom ? `OI per strike · ${fmtDateLabel(dateToEff!)}`
-                        : "OI per strike · calls up, puts down")
-                    : boardMode === "chg"
-                      ? (custom && dateFromEff && dateToEff
-                          ? `ΔOI per strike · ${fmtDateLabel(dateFromEff)} → ${fmtDateLabel(dateToEff)}`
-                          : "ΔOI per strike vs prior session")
-                      : "Implied vol per strike (Black-76 from last premium)"}
-                  {" · line = future"}
-                </div>
-                <div className="flex bg-slate-900 border border-slate-700 rounded overflow-hidden text-[9px]">
-                  {([["oi", "OI"], ["chg", "Δ OI"], ["iv", "IV"]] as const).map(([m, label]) => (
-                    <button key={m} onClick={() => setBoardMode(m)}
-                      className={`px-2 py-1 transition ${boardMode === m ? "bg-slate-600 text-white" : "text-slate-400 hover:bg-slate-800"}`}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
+          <Section t="1 · Positioning" />
+
+          {/* Per-strike board */}
+          <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+            <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide">
+                {boardMode === "oi"
+                  ? (isPeriod && custom
+                      ? `OI per strike · ${fmtDateLabel(dateFromEff!)} (faded) vs ${fmtDateLabel(dateToEff!)}`
+                      : custom ? `OI per strike · ${fmtDateLabel(dateToEff!)}`
+                      : "OI per strike · calls up, puts down")
+                  : boardMode === "chg"
+                    ? (custom && dateFromEff && dateToEff
+                        ? `ΔOI per strike · ${fmtDateLabel(dateFromEff)} → ${fmtDateLabel(dateToEff)}`
+                        : "ΔOI per strike vs prior session")
+                    : "Implied vol per strike (Black-76)"}
+                {" · line = future"}
               </div>
-              {/* Session / period selector — matrix-backed; hidden for the IV
-                  smile, which only exists for the live board. */}
-              {hist && hist.dates.length > 1 && boardMode !== "iv" && (
-                <div className="flex items-center gap-1.5 mb-2 text-[9px] text-slate-500">
-                  <span>from</span>
-                  <select
-                    value={dateFrom ?? "auto"}
-                    onChange={e => setDateFrom(e.target.value === "auto" ? null : e.target.value)}
-                    className="bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-slate-300">
-                    <option value="auto">prev session</option>
-                    {hist.dates.filter(d => !dateToEff || d < dateToEff).slice().reverse().map(d => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
-                  <span>to</span>
-                  <select
-                    value={dateTo ?? "latest"}
-                    onChange={e => {
-                      const v = e.target.value === "latest" ? null : e.target.value;
-                      setDateTo(v);
-                      if (dateFrom && v && dateFrom >= v) setDateFrom(null);
-                    }}
-                    className="bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-slate-300">
-                    <option value="latest">latest session</option>
-                    {hist.dates.slice().reverse().map(d => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
-                  {(dateTo != null || dateFrom != null) && (
-                    <button onClick={() => { setDateTo(null); setDateFrom(null); }}
-                      className="text-slate-400 hover:text-white border border-slate-700 rounded px-1.5 py-0.5">
-                      reset
-                    </button>
-                  )}
-                </div>
-              )}
-              <div className="h-64">
-                {board.length === 0 ? (
-                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
-                    {boardMode === "chg"
-                      ? "ΔOI needs a prior archived session — available from the next daily snapshot."
-                      : boardMode === "iv"
-                        ? "No arbitrage-consistent premiums to imply vol from on this board yet."
-                        : "No open interest on this board."}
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={board} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
-                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
-                      <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
-                        type="number" domain={["dataMin", "dataMax"]} tickCount={9} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
-                        tickFormatter={(v: number) => boardMode === "iv"
-                          ? `${v.toFixed(0)}%` : Math.abs(v).toLocaleString()} />
-                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
-                        labelFormatter={(v) => `strike ${v} ${UNIT[mkt]}`}
-                        formatter={(v) => typeof v === "number"
-                          ? (boardMode === "iv" ? `${v.toFixed(1)}%`
-                             : boardMode === "chg" ? `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toLocaleString()} lots`
-                             : `${Math.abs(v).toLocaleString()} lots`)
-                          : "—"} />
-                      <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
-                      {boardMode !== "iv" && <ReferenceLine y={0} stroke="#475569" />}
-                      {snap.future_price != null && (
-                        <ReferenceLine x={snap.future_price} stroke="#e2e8f0" strokeDasharray="4 3"
-                          label={{ value: "fut", fill: "#e2e8f0", fontSize: 9, position: "top" }} />
-                      )}
-                      {boardMode === "iv" ? (
-                        <>
-                          <Line type="monotone" dataKey="callIv" name="Call IV" stroke="#34d399"
-                            strokeWidth={1.5} dot={{ r: 1.5 }} connectNulls />
-                          <Line type="monotone" dataKey="putIv" name="Put IV" stroke="#f87171"
-                            strokeWidth={1.5} dot={{ r: 1.5 }} connectNulls />
-                        </>
-                      ) : (
-                        <>
-                          {boardMode === "oi" && isPeriod && custom && (
-                            <>
-                              <Bar dataKey="callsFrom" name={`Calls ${fmtDateLabel(dateFromEff!)}`}
-                                fill="#34d399" fillOpacity={0.3} />
-                              <Bar dataKey="putsFrom" name={`Puts ${fmtDateLabel(dateFromEff!)}`}
-                                fill="#f87171" fillOpacity={0.3} />
-                            </>
-                          )}
-                          <Bar dataKey="calls" name={boardMode === "chg" ? "Δ Calls" : "Calls"}
-                            fill="#34d399" fillOpacity={0.8} />
-                          <Bar dataKey="puts" name={boardMode === "chg" ? "Δ Puts" : "Puts"}
-                            fill="#f87171" fillOpacity={0.8} />
-                        </>
-                      )}
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
+              <div className="flex bg-slate-900 border border-slate-700 rounded overflow-hidden text-[9px]">
+                {([["oi", "OI"], ["chg", "Δ OI"], ["iv", "IV"]] as const).map(([m, label]) => (
+                  <button key={m} onClick={() => setBoardMode(m)}
+                    className={`px-2 py-1 transition ${boardMode === m ? "bg-slate-600 text-white" : "text-slate-400 hover:bg-slate-800"}`}>
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
-
-            {/* Session ΔOI movers — the flows behind the board */}
-            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
-                Biggest ΔOI moves · last published session
+            {/* Session / period selector — matrix-backed; hidden for the IV
+                smile, which only exists for the live board. */}
+            {hist && hist.dates.length > 1 && boardMode !== "iv" && (
+              <div className="flex items-center gap-1.5 mb-2 text-[9px] text-slate-500">
+                <span>from</span>
+                <select
+                  value={dateFrom ?? "auto"}
+                  onChange={e => setDateFrom(e.target.value === "auto" ? null : e.target.value)}
+                  className="bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-slate-300">
+                  <option value="auto">prev session</option>
+                  {hist.dates.filter(d => !dateToEff || d < dateToEff).slice().reverse().map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <span>to</span>
+                <select
+                  value={dateTo ?? "latest"}
+                  onChange={e => {
+                    const v = e.target.value === "latest" ? null : e.target.value;
+                    setDateTo(v);
+                    if (dateFrom && v && dateFrom >= v) setDateFrom(null);
+                  }}
+                  className="bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-slate-300">
+                  <option value="latest">latest session</option>
+                  {hist.dates.slice().reverse().map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                {(dateTo != null || dateFrom != null) && (
+                  <button onClick={() => { setDateTo(null); setDateFrom(null); }}
+                    className="text-slate-400 hover:text-white border border-slate-700 rounded px-1.5 py-0.5">
+                    reset
+                  </button>
+                )}
               </div>
-              {movers.length === 0 ? (
-                <div className="text-[11px] text-slate-500 italic pt-6 text-center">
-                  No open-interest changes vs the prior session.
+            )}
+            <div className="h-64">
+              {board.length === 0 ? (
+                <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                  {boardMode === "chg"
+                    ? "ΔOI needs a prior archived session — available from the next daily snapshot."
+                    : boardMode === "iv"
+                      ? "No arbitrage-consistent premiums to imply vol from on this board yet."
+                      : "No open interest on this board."}
                 </div>
               ) : (
-                <div className="space-y-1">
-                  {movers.map((m, i) => (
-                    <div key={`${m.strike}-${m.side}`}
-                      className="flex items-center justify-between text-[11px] font-mono border-b border-slate-700/50 pb-1">
-                      <span className="text-slate-400">#{i + 1}</span>
-                      <span className={m.side === "C" ? "text-emerald-400" : "text-red-400"}>
-                        {m.strike.toLocaleString()} {m.side === "C" ? "Call" : "Put"}
-                      </span>
-                      <span className={m.chg > 0 ? "text-emerald-300" : "text-red-300"}>
-                        {m.chg > 0 ? "+" : "−"}{Math.abs(m.chg).toLocaleString()} lots
-                        <span className="text-slate-500"> {m.chg > 0 ? "build" : "unwind"}</span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={board} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                    <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                    <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
+                      type="number" domain={["dataMin", "dataMax"]} tickCount={9} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
+                      tickFormatter={(v: number) => boardMode === "iv"
+                        ? `${v.toFixed(0)}%` : Math.abs(v).toLocaleString()} />
+                    <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                      labelFormatter={(v) => `strike ${v} ${UNIT[mkt]}`}
+                      formatter={(v) => typeof v === "number"
+                        ? (boardMode === "iv" ? `${v.toFixed(1)}%`
+                           : boardMode === "chg" ? `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toLocaleString()} lots`
+                           : `${Math.abs(v).toLocaleString()} lots`)
+                        : "—"} />
+                    <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
+                    {boardMode !== "iv" && <ReferenceLine y={0} stroke="#475569" />}
+                    {snap.future_price != null && (
+                      <ReferenceLine x={snap.future_price} stroke="#e2e8f0" strokeDasharray="4 3"
+                        label={{ value: "fut", fill: "#e2e8f0", fontSize: 9, position: "top" }} />
+                    )}
+                    {boardMode === "iv" ? (
+                      <>
+                        <Line type="monotone" dataKey="callIv" name="Call IV" stroke="#34d399"
+                          strokeWidth={1.5} dot={{ r: 1.5 }} connectNulls />
+                        <Line type="monotone" dataKey="putIv" name="Put IV" stroke="#f87171"
+                          strokeWidth={1.5} dot={{ r: 1.5 }} connectNulls />
+                      </>
+                    ) : (
+                      <>
+                        {boardMode === "oi" && isPeriod && custom && (
+                          <>
+                            <Bar dataKey="callsFrom" name={`Calls ${fmtDateLabel(dateFromEff!)}`}
+                              fill="#34d399" fillOpacity={0.3} />
+                            <Bar dataKey="putsFrom" name={`Puts ${fmtDateLabel(dateFromEff!)}`}
+                              fill="#f87171" fillOpacity={0.3} />
+                          </>
+                        )}
+                        <Bar dataKey="calls" name={boardMode === "chg" ? "Δ Calls" : "Calls"}
+                          fill="#34d399" fillOpacity={0.8} />
+                        <Bar dataKey="puts" name={boardMode === "chg" ? "Δ Puts" : "Puts"}
+                          fill="#f87171" fillOpacity={0.8} />
+                      </>
+                    )}
+                  </ComposedChart>
+                </ResponsiveContainer>
               )}
             </div>
+          </div>
 
-            {/* P/C OI ratio through time */}
-            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
-                Put / Call OI ratio · {snap.underlying} — daily
-              </div>
-              <div className="h-56">
-                {countdown.filter(c => c.pcRatio != null).length < 2 ? (
-                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
-                    Accumulating — one point per archived session.
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={countdown} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
-                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
-                      <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={26}
-                        tickFormatter={(v: string) => fmtDateLabel(v)} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={36}
-                        domain={["auto", "auto"]}
-                        tickFormatter={(v: number) => v.toFixed(1)} />
-                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
-                        formatter={(v) => typeof v === "number" ? v.toFixed(2) : "—"} />
-                      <ReferenceLine y={1} stroke="#475569" strokeDasharray="4 3"
-                        label={{ value: "1.0", fill: "#64748b", fontSize: 8, position: "left" }} />
-                      <Line type="monotone" dataKey="pcRatio" name="P/C OI ratio"
-                        stroke="#38bdf8" strokeWidth={1.5} dot={false} connectNulls />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+          {/* Session ΔOI movers — the flows behind the board */}
+          <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+              Biggest ΔOI moves · last published session
             </div>
-
-            <Section t="2 · Greeks pressure" c={
-              "Gamma exposure (Γ·OI, calls positive / puts negative — the naive dealer book) maps " +
-              "where hedging flows amplify or dampen moves; the net delta profile shows where " +
-              "directional exposure concentrates."} />
-
-            {/* Gamma exposure profile */}
-            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
-                Gamma exposure by strike · Δ-lots per 1pt move · line = future
+            {movers.length === 0 ? (
+              <div className="text-[11px] text-slate-500 italic pt-2 pb-2 text-center">
+                No open-interest changes vs the prior session.
               </div>
-              <div className="h-56">
-                {greekProfiles.gex.length === 0 ? (
-                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
-                    Needs live board greeks (delta/gamma from Barchart or Black-76).
+            ) : (
+              <div className="space-y-1">
+                {movers.map((m, i) => (
+                  <div key={`${m.strike}-${m.side}`}
+                    className="flex items-center justify-between text-[11px] font-mono border-b border-slate-700/50 pb-1">
+                    <span className="text-slate-400">#{i + 1}</span>
+                    <span className={m.side === "C" ? "text-emerald-400" : "text-red-400"}>
+                      {m.strike.toLocaleString()} {m.side === "C" ? "Call" : "Put"}
+                    </span>
+                    <span className={m.chg > 0 ? "text-emerald-300" : "text-red-300"}>
+                      {m.chg > 0 ? "+" : "−"}{Math.abs(m.chg).toLocaleString()} lots
+                      <span className="text-slate-500"> {m.chg > 0 ? "build" : "unwind"}</span>
+                    </span>
                   </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={greekProfiles.gex} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
-                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
-                      <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
-                        type="number" domain={["dataMin", "dataMax"]} tickCount={9} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
-                        tickFormatter={(v: number) => v.toLocaleString()} />
-                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
-                        labelFormatter={(v) => `strike ${v} ${UNIT[mkt]}`}
-                        formatter={(v) => typeof v === "number"
-                          ? `${v > 0 ? "+" : ""}${v.toLocaleString()} Δ-lots/pt` : "—"} />
-                      <ReferenceLine y={0} stroke="#475569" />
-                      {snap.future_price != null && (
-                        <ReferenceLine x={snap.future_price} stroke="#e2e8f0" strokeDasharray="4 3"
-                          label={{ value: "fut", fill: "#e2e8f0", fontSize: 9, position: "top" }} />
-                      )}
-                      <Bar dataKey="gex" name="Γ · OI">
-                        {greekProfiles.gex.map(r => (
-                          <Cell key={r.strike} fill={r.gex >= 0 ? "#34d399" : "#f87171"} fillOpacity={0.8} />
-                        ))}
-                      </Bar>
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
+                ))}
               </div>
+            )}
+          </div>
+
+          {/* P/C OI ratio through time */}
+          <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+              Put / Call OI ratio · {snap.underlying} — daily
             </div>
-
-            {/* Net delta profile */}
-            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
-                Net delta by strike · futures-equiv lots (holder side) · line = future
-              </div>
-              <div className="h-56">
-                {greekProfiles.dex.length === 0 ? (
-                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
-                    Needs live board greeks (delta from Barchart or Black-76).
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={greekProfiles.dex} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
-                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
-                      <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
-                        type="number" domain={["dataMin", "dataMax"]} tickCount={9} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
-                        tickFormatter={(v: number) => v.toLocaleString()} />
-                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
-                        labelFormatter={(v) => `strike ${v} ${UNIT[mkt]}`}
-                        formatter={(v) => typeof v === "number"
-                          ? `${v > 0 ? "+" : ""}${v.toLocaleString()} lots` : "—"} />
-                      <ReferenceLine y={0} stroke="#475569" />
-                      {snap.future_price != null && (
-                        <ReferenceLine x={snap.future_price} stroke="#e2e8f0" strokeDasharray="4 3"
-                          label={{ value: "fut", fill: "#e2e8f0", fontSize: 9, position: "top" }} />
-                      )}
-                      <Bar dataKey="dex" name="Δ · OI">
-                        {greekProfiles.dex.map(r => (
-                          <Cell key={r.strike} fill={r.dex >= 0 ? "#34d399" : "#f87171"} fillOpacity={0.8} />
-                        ))}
-                      </Bar>
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+            <div className="h-48">
+              {countdown.filter(c => c.pcRatio != null).length < 2 ? (
+                <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                  Accumulating — one point per archived session.
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={countdown} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                    <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                    <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={26}
+                      tickFormatter={(v: string) => fmtDateLabel(v)} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={36}
+                      domain={["auto", "auto"]}
+                      tickFormatter={(v: number) => v.toFixed(1)} />
+                    <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                      formatter={(v) => typeof v === "number" ? v.toFixed(2) : "—"} />
+                    <ReferenceLine y={1} stroke="#475569" strokeDasharray="4 3"
+                      label={{ value: "1.0", fill: "#64748b", fontSize: 8, position: "left" }} />
+                    <Line type="monotone" dataKey="pcRatio" name="P/C OI ratio"
+                      stroke="#38bdf8" strokeWidth={1.5} dot={false} connectNulls />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              )}
             </div>
+          </div>
 
-            <Section t="3 · Expiry & pin risk" c={
-              "How much of the option book is in the money versus the futures interest it would " +
-              "exercise into, over the final approach to expiry."} />
+          <Section t="2 · Greeks pressure" />
 
-            {/* ITM countdown — last 45 sessions into option expiry, same day
-                axis as the OI-to-FND chart. */}
-            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
-                ITM OI vs {snap.underlying} future OI · last {COUNTDOWN_WINDOW} sessions to expiry
-                {last?.dte != null ? ` · ${Math.round(last.dte)}d left` : ""}
-              </div>
-              <div className="h-64">
-                {countdownWindow.length < 2 ? (
-                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
-                    {last?.day != null && last.day < -COUNTDOWN_WINDOW
-                      ? `Countdown begins ${COUNTDOWN_WINDOW} sessions before expiry — ` +
-                        `${snap.underlying} is still ${Math.abs(last.day)} sessions out.`
-                      : "Accumulating — one point per session from the daily snapshot."}
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={countdownWindow} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
-                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
-                      <XAxis dataKey="day" type="number" domain={[-COUNTDOWN_WINDOW, 0]}
-                        stroke="#64748b" tick={{ fontSize: 8 }} tickCount={10}
-                        tickFormatter={(v: number) => `${v}`} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
-                        tickFormatter={(v: number) => v.toLocaleString()} />
-                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
-                        labelFormatter={(l, payload) => {
-                          const d = payload?.[0]?.payload?.date;
-                          return `Day ${l} to expiry${d ? ` · ${d}` : ""}`;
-                        }}
-                        formatter={(v) => typeof v === "number" ? `${v.toLocaleString()} lots` : "—"} />
-                      <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
-                      {/* stacked ITM split: calls + puts sum to total ITM OI */}
-                      <Area type="monotone" dataKey="itmCall" name="ITM calls" stackId="itm"
-                        stroke="#34d399" fill="#34d399" fillOpacity={0.45} strokeWidth={1} />
-                      <Area type="monotone" dataKey="itmPut" name="ITM puts" stackId="itm"
-                        stroke="#f87171" fill="#f87171" fillOpacity={0.45} strokeWidth={1} />
-                      <Line type="monotone" dataKey="futOi" name={`${snap.underlying} future OI`}
-                        stroke="#e2e8f0" strokeWidth={1.5} dot={false} connectNulls />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+          {/* Gamma exposure profile */}
+          <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+              Gamma exposure by strike · Δ-lots per 1pt move · line = future
             </div>
-
-            <Section t="4 · Volatility" c={
-              "The level (ATM IV through time), the smile (per-strike IV on the board above), " +
-              "the skew (25Δ risk reversal in the header), and the term structure across expiries."} />
-
-            {/* ATM implied vol history — the day-by-day at-the-money IV of the
-                selected board (Black-76 from the archived last premiums), with
-                the underlying future for context. */}
-            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3 lg:col-span-2">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
-                ATM implied vol · {snap.underlying} — daily, from the boards archive
-              </div>
-              <div className="h-56">
-                {countdown.filter(c => c.atmIv != null).length < 2 ? (
-                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
-                    Accumulating — ATM IV is recorded with each archived session.
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={countdown} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
-                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
-                      {/* keyed by full ISO date: MM/DD labels repeat across
-                          years and made tooltips hit the wrong year's point */}
-                      <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={26}
-                        tickFormatter={(v: string) => fmtDateLabel(v)} />
-                      <YAxis yAxisId="iv" stroke="#a78bfa" tick={{ fontSize: 8 }} width={40}
-                        domain={["auto", "auto"]}
-                        tickFormatter={(v: number) => `${v.toFixed(0)}%`} />
-                      <YAxis yAxisId="px" orientation="right" stroke="#64748b" tick={{ fontSize: 8 }}
-                        width={44} domain={["auto", "auto"]}
-                        tickFormatter={(v: number) => v.toLocaleString()} />
-                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
-                        formatter={(v, name) => typeof v === "number"
-                          ? (name === "ATM IV" ? `${v.toFixed(1)}%` : `${v.toLocaleString()} ${UNIT[mkt]}`)
-                          : "—"} />
-                      <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
-                      <Line yAxisId="px" type="monotone" dataKey="px" name="Future"
-                        stroke="#475569" strokeWidth={1} dot={false} connectNulls />
-                      <Line yAxisId="iv" type="monotone" dataKey="atmIv" name="ATM IV"
-                        stroke="#a78bfa" strokeWidth={1.5} dot={false} connectNulls />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+            <div className="h-48">
+              {greekProfiles.gex.length === 0 ? (
+                <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                  Needs live board greeks (delta/gamma from Barchart or Black-76).
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={greekProfiles.gex} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                    <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                    <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
+                      type="number" domain={["dataMin", "dataMax"]} tickCount={9} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
+                      tickFormatter={(v: number) => v.toLocaleString()} />
+                    <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                      labelFormatter={(v) => `strike ${v} ${UNIT[mkt]}`}
+                      formatter={(v) => typeof v === "number"
+                        ? `${v > 0 ? "+" : ""}${v.toLocaleString()} Δ-lots/pt` : "—"} />
+                    <ReferenceLine y={0} stroke="#475569" />
+                    {snap.future_price != null && (
+                      <ReferenceLine x={snap.future_price} stroke="#e2e8f0" strokeDasharray="4 3"
+                        label={{ value: "fut", fill: "#e2e8f0", fontSize: 9, position: "top" }} />
+                    )}
+                    <Bar dataKey="gex" name="Γ · OI">
+                      {greekProfiles.gex.map(r => (
+                        <Cell key={r.strike} fill={r.gex >= 0 ? "#34d399" : "#f87171"} fillOpacity={0.8} />
+                      ))}
+                    </Bar>
+                  </ComposedChart>
+                </ResponsiveContainer>
+              )}
             </div>
+          </div>
 
-            {/* IV term structure — ATM IV across the listed expiries */}
-            <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
-                IV term structure · ATM vol per expiry
-              </div>
-              <div className="h-56">
-                {term.length < 2 ? (
-                  <div className="text-[11px] text-slate-500 italic pt-8 text-center">
-                    Needs ATM IV on at least two listed expiries.
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={term} margin={{ top: 14, right: 16, left: -6, bottom: 0 }}>
-                      <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
-                      <XAxis dataKey="dte" type="number" domain={[0, "dataMax"]}
-                        stroke="#64748b" tick={{ fontSize: 8 }}
-                        tickFormatter={(v: number) => `${v}d`} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={40}
-                        domain={["auto", "auto"]}
-                        tickFormatter={(v: number) => `${v.toFixed(0)}%`} />
-                      <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
-                        labelFormatter={(v, payload) =>
-                          `${payload?.[0]?.payload?.sym ?? ""} · ${v}d to expiry`}
-                        formatter={(v) => typeof v === "number" ? `${v.toFixed(1)}%` : "—"} />
-                      <Line type="monotone" dataKey="iv" name="ATM IV"
-                        stroke="#a78bfa" strokeWidth={1.5} dot={{ r: 3 }}>
-                        <LabelList dataKey="sym" position="top"
-                          style={{ fill: "#94a3b8", fontSize: 9 }} />
-                      </Line>
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+          {/* Net delta profile */}
+          <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+              Net delta by strike · futures-equiv lots (holder side) · line = future
+            </div>
+            <div className="h-48">
+              {greekProfiles.dex.length === 0 ? (
+                <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                  Needs live board greeks (delta from Barchart or Black-76).
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={greekProfiles.dex} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                    <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                    <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
+                      type="number" domain={["dataMin", "dataMax"]} tickCount={9} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
+                      tickFormatter={(v: number) => v.toLocaleString()} />
+                    <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                      labelFormatter={(v) => `strike ${v} ${UNIT[mkt]}`}
+                      formatter={(v) => typeof v === "number"
+                        ? `${v > 0 ? "+" : ""}${v.toLocaleString()} lots` : "—"} />
+                    <ReferenceLine y={0} stroke="#475569" />
+                    {snap.future_price != null && (
+                      <ReferenceLine x={snap.future_price} stroke="#e2e8f0" strokeDasharray="4 3"
+                        label={{ value: "fut", fill: "#e2e8f0", fontSize: 9, position: "top" }} />
+                    )}
+                    <Bar dataKey="dex" name="Δ · OI">
+                      {greekProfiles.dex.map(r => (
+                        <Cell key={r.strike} fill={r.dex >= 0 ? "#34d399" : "#f87171"} fillOpacity={0.8} />
+                      ))}
+                    </Bar>
+                  </ComposedChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          <Section t="3 · Expiry & pin risk" />
+
+          {/* ITM countdown — last 45 sessions into option expiry, same day
+              axis as the OI-to-FND chart. */}
+          <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+              ITM OI vs {snap.underlying} future OI · last {COUNTDOWN_WINDOW} sessions to expiry
+              {last?.dte != null ? ` · ${Math.round(last.dte)}d left` : ""}
+            </div>
+            <div className="h-56">
+              {countdownWindow.length < 2 ? (
+                <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                  {last?.day != null && last.day < -COUNTDOWN_WINDOW
+                    ? `Countdown begins ${COUNTDOWN_WINDOW} sessions before expiry — ` +
+                      `${snap.underlying} is still ${Math.abs(last.day)} sessions out.`
+                    : "Accumulating — one point per session from the daily snapshot."}
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={countdownWindow} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                    <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                    <XAxis dataKey="day" type="number" domain={[-COUNTDOWN_WINDOW, 0]}
+                      stroke="#64748b" tick={{ fontSize: 8 }} tickCount={10}
+                      tickFormatter={(v: number) => `${v}`} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
+                      tickFormatter={(v: number) => v.toLocaleString()} />
+                    <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                      labelFormatter={(l, payload) => {
+                        const d = payload?.[0]?.payload?.date;
+                        return `Day ${l} to expiry${d ? ` · ${d}` : ""}`;
+                      }}
+                      formatter={(v) => typeof v === "number" ? `${v.toLocaleString()} lots` : "—"} />
+                    <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
+                    {/* stacked ITM split: calls + puts sum to total ITM OI */}
+                    <Area type="monotone" dataKey="itmCall" name="ITM calls" stackId="itm"
+                      stroke="#34d399" fill="#34d399" fillOpacity={0.45} strokeWidth={1} />
+                    <Area type="monotone" dataKey="itmPut" name="ITM puts" stackId="itm"
+                      stroke="#f87171" fill="#f87171" fillOpacity={0.45} strokeWidth={1} />
+                    <Line type="monotone" dataKey="futOi" name={`${snap.underlying} future OI`}
+                      stroke="#e2e8f0" strokeWidth={1.5} dot={false} connectNulls />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          <Section t="4 · Volatility" />
+
+          {/* ATM implied vol history — the day-by-day at-the-money IV of the
+              selected board (Black-76 from the archived last premiums), with
+              the underlying future for context. */}
+          <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+              ATM implied vol · {snap.underlying} — daily, from the boards archive
+            </div>
+            <div className="h-48">
+              {countdown.filter(c => c.atmIv != null).length < 2 ? (
+                <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                  Accumulating — ATM IV is recorded with each archived session.
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={countdown} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                    <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                    {/* keyed by full ISO date: MM/DD labels repeat across
+                        years and made tooltips hit the wrong year's point */}
+                    <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={26}
+                      tickFormatter={(v: string) => fmtDateLabel(v)} />
+                    <YAxis yAxisId="iv" stroke="#a78bfa" tick={{ fontSize: 8 }} width={40}
+                      domain={["auto", "auto"]}
+                      tickFormatter={(v: number) => `${v.toFixed(0)}%`} />
+                    <YAxis yAxisId="px" orientation="right" stroke="#64748b" tick={{ fontSize: 8 }}
+                      width={44} domain={["auto", "auto"]}
+                      tickFormatter={(v: number) => v.toLocaleString()} />
+                    <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                      formatter={(v, name) => typeof v === "number"
+                        ? (name === "ATM IV" ? `${v.toFixed(1)}%` : `${v.toLocaleString()} ${UNIT[mkt]}`)
+                        : "—"} />
+                    <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
+                    <Line yAxisId="px" type="monotone" dataKey="px" name="Future"
+                      stroke="#475569" strokeWidth={1} dot={false} connectNulls />
+                    <Line yAxisId="iv" type="monotone" dataKey="atmIv" name="ATM IV"
+                      stroke="#a78bfa" strokeWidth={1.5} dot={false} connectNulls />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          {/* IV term structure — ATM IV across the listed expiries */}
+          <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+              IV term structure · ATM vol per expiry
+            </div>
+            <div className="h-48">
+              {term.length < 2 ? (
+                <div className="text-[11px] text-slate-500 italic pt-8 text-center">
+                  Needs ATM IV on at least two listed expiries.
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={term} margin={{ top: 14, right: 16, left: -6, bottom: 0 }}>
+                    <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                    <XAxis dataKey="dte" type="number" domain={[0, "dataMax"]}
+                      stroke="#64748b" tick={{ fontSize: 8 }}
+                      tickFormatter={(v: number) => `${v}d`} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={40}
+                      domain={["auto", "auto"]}
+                      tickFormatter={(v: number) => `${v.toFixed(0)}%`} />
+                    <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                      labelFormatter={(v, payload) =>
+                        `${payload?.[0]?.payload?.sym ?? ""} · ${v}d to expiry`}
+                      formatter={(v) => typeof v === "number" ? `${v.toFixed(1)}%` : "—"} />
+                    <Line type="monotone" dataKey="iv" name="ATM IV"
+                      stroke="#a78bfa" strokeWidth={1.5} dot={{ r: 3 }}>
+                      <LabelList dataKey="sym" position="top"
+                        style={{ fill: "#94a3b8", fontSize: 9 }} />
+                    </Line>
+                  </ComposedChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
         </>
+      )}
+    </div>
+  );
+}
+
+export default function OptionsOIPanel() {
+  const [doc, setDoc] = useState<OptionsDoc | null>(null);
+  const [shist, setShist] = useState<StrikeHistDoc | null>(null);
+
+  useEffect(() => {
+    fetch("/data/options_oi.json")
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d) setDoc(d); })
+      .catch(() => { /* renders the accumulating note */ });
+    fetch("/data/options_strike_history.json")
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d) setShist(d); })
+      .catch(() => { /* selector simply stays hidden */ });
+  }, []);
+
+  return (
+    <div className="p-4 space-y-3">
+      <div>
+        <h2 className="text-lg font-bold text-white">Options Report</h2>
+        <p className="text-xs text-slate-400 max-w-4xl">
+          Options boards of the nearest NY arabica (KC) and London robusta (RM) futures — positioning
+          (per-strike OI, ΔOI and strike walls), greeks pressure (gamma / net-delta profiles), pin risk
+          into option expiry, and the vol surface (ATM level, smile, skew, term structure). Delayed
+          Barchart data, one snapshot per session{doc?.updated ? ` · last ${doc.updated.slice(0, 10)}` : ""}.
+        </p>
+      </div>
+
+      {!doc ? (
+        <div className="text-[11px] text-slate-500 italic">
+          No options data yet — the report starts accumulating with the next daily OI snapshot.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+          <MarketReport mkt="arabica" doc={doc} shist={shist} />
+          <MarketReport mkt="robusta" doc={doc} shist={shist} />
+        </div>
       )}
     </div>
   );
