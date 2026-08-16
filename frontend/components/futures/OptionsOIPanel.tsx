@@ -5,6 +5,7 @@ import {
   CartesianGrid, ReferenceLine, Legend,
 } from "recharts";
 
+import ChartFocus from "@/components/ChartFocus";
 import { fmtDateLabel } from "@/lib/formatters";
 
 // options_oi.json — daily Barchart boards for the nearest live KC/RM option
@@ -76,6 +77,9 @@ const busDaysTo = (from: string, to: string): number => {
 
 const COUNTDOWN_WINDOW = 45;   // sessions before expiry shown on the countdown
 const MOVERS_ROWS = 8;         // fixed row count keeps both market cards equal height
+// Variation windows for the board's OI/dOI views, in TRADING SESSIONS back
+// from the latest published session.
+const CHG_WINDOWS = [[1, "1D"], [5, "1W"], [10, "2W"], [21, "1M"]] as const;
 
 // Slim in-column section divider — each market column reads as its own
 // report: positioning → greeks pressure → expiry → volatility.
@@ -132,9 +136,10 @@ function MarketReport({ mkt, doc, shist }: {
 }) {
   const [sel, setSel] = useState<string | null>(null);   // selected underlying
   const [boardMode, setBoardMode] = useState<"oi" | "chg" | "iv">("oi");
-  // Board date selection: null/null = latest session vs previous (default).
-  const [dateTo, setDateTo] = useState<string | null>(null);
-  const [dateFrom, setDateFrom] = useState<string | null>(null);
+  // Variation window (sessions back from the latest published session) for
+  // the dOI view and the faded comparison bars on the OI view. 1 = default
+  // day-over-day.
+  const [chgWin, setChgWin] = useState<number>(1);
 
   // Nearest-first list of live option boards for this market.
   const contracts = useMemo<MarketSnap[]>(() => {
@@ -158,14 +163,11 @@ function MarketReport({ mkt, doc, shist }: {
     () => (snap ? shist?.markets?.[mkt]?.[snap.underlying] ?? null : null),
     [shist, mkt, snap]
   );
-  const idxTo = hist ? (dateTo ? hist.dates.indexOf(dateTo) : hist.dates.length - 1) : -1;
-  const idxFrom = hist && idxTo >= 0
-    ? (dateFrom ? hist.dates.indexOf(dateFrom) : idxTo - 1) : -1;
-  const isPeriod = dateFrom != null && idxFrom >= 0;
-  // custom = the user moved off the default (latest vs previous) view
-  const custom = (dateTo != null || dateFrom != null) && idxTo >= 0;
-  const dateToEff = hist && idxTo >= 0 ? hist.dates[idxTo] : null;
-  const dateFromEff = hist && idxFrom >= 0 ? hist.dates[idxFrom] : null;
+  const idxTo = hist ? hist.dates.length - 1 : -1;
+  const idxFrom = idxTo >= 0 ? idxTo - chgWin : -1;
+  const winOK = hist != null && idxFrom >= 0;
+  const dateToEff = winOK ? hist!.dates[idxTo] : null;
+  const dateFromEff = winOK ? hist!.dates[idxFrom] : null;
 
   // Per-strike board, trimmed to strikes near the money (±35% of the future)
   // so tails don't squash the structure. Three views over the same strikes:
@@ -181,21 +183,24 @@ function MarketReport({ mkt, doc, shist }: {
     if (!snap?.strikes?.length) return [];
     const px = snap.future_price ?? undefined;
     const nearK = (k: number) => !px || (k > px * 0.65 && k < px * 1.35);
-    if (custom && hist && boardMode !== "iv") {
+    const multi = chgWin > 1;
+    // dOI over the selected window, and the faded window-start bars on the
+    // OI view, come from the per-strike matrix; 1D dOI falls back to the
+    // live board's own chg when no matrix is loaded yet.
+    if (winOK && hist && boardMode !== "iv" && (boardMode === "chg" || multi)) {
       const rows: BoardRow[] = [];
       hist.strikes.forEach((k, i) => {
         if (!nearK(k)) return;
         const cTo = hist.call[idxTo]?.[i] ?? 0, pTo = hist.put[idxTo]?.[i] ?? 0;
-        const cFrom = idxFrom >= 0 ? hist.call[idxFrom]?.[i] ?? 0 : 0;
-        const pFrom = idxFrom >= 0 ? hist.put[idxFrom]?.[i] ?? 0 : 0;
+        const cFrom = hist.call[idxFrom]?.[i] ?? 0;
+        const pFrom = hist.put[idxFrom]?.[i] ?? 0;
         if (boardMode === "chg") {
-          if (idxFrom < 0) return;
           if (cTo - cFrom || pTo - pFrom) {
             rows.push({ strike: k, calls: cTo - cFrom, puts: -(pTo - pFrom) });
           }
-        } else if (cTo + pTo > 0 || (isPeriod && cFrom + pFrom > 0)) {
+        } else if (cTo + pTo > 0 || cFrom + pFrom > 0) {
           rows.push({ strike: k, calls: cTo, puts: -pTo,
-                      ...(isPeriod ? { callsFrom: cFrom, putsFrom: -pFrom } : {}) });
+                      callsFrom: cFrom, putsFrom: -pFrom });
         }
       });
       return rows;
@@ -216,7 +221,7 @@ function MarketReport({ mkt, doc, shist }: {
     return near
       .filter(s => (s.call_oi || 0) + (s.put_oi || 0) > 0)
       .map(s => ({ strike: s.strike, calls: s.call_oi, puts: -s.put_oi }));
-  }, [snap, boardMode, custom, hist, idxTo, idxFrom, isPeriod]);
+  }, [snap, boardMode, chgWin, winOK, hist, idxTo, idxFrom]);
 
   // Expiry countdown for the SELECTED contract: one row per session, ITM vs
   // total OI. Legacy rows carried a single object; normalise to an array.
@@ -321,7 +326,7 @@ function MarketReport({ mkt, doc, shist }: {
               const on = snap?.underlying === c.underlying;
               return (
                 <button key={c.underlying}
-                  onClick={() => { setSel(c.underlying); setDateTo(null); setDateFrom(null); }}
+                  onClick={() => setSel(c.underlying)}
                   title={`${c.underlying} — options expire ${c.option_expiry?.slice(0, 10) ?? "?"}`}
                   className={`px-2 py-1 transition font-mono ${on ? "bg-sky-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
                   {shortSym(c.underlying)}
@@ -400,13 +405,12 @@ function MarketReport({ mkt, doc, shist }: {
             <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
               <div className="text-[10px] text-slate-400 uppercase tracking-wide">
                 {boardMode === "oi"
-                  ? (isPeriod && custom
+                  ? (chgWin > 1 && winOK
                       ? `OI per strike · ${fmtDateLabel(dateFromEff!)} (faded) vs ${fmtDateLabel(dateToEff!)}`
-                      : custom ? `OI per strike · ${fmtDateLabel(dateToEff!)}`
                       : "OI per strike · calls up, puts down")
                   : boardMode === "chg"
-                    ? (custom && dateFromEff && dateToEff
-                        ? `ΔOI per strike · ${fmtDateLabel(dateFromEff)} → ${fmtDateLabel(dateToEff)}`
+                    ? (chgWin > 1 && winOK
+                        ? `ΔOI per strike · ${fmtDateLabel(dateFromEff!)} → ${fmtDateLabel(dateToEff!)}`
                         : "ΔOI per strike vs prior session")
                     : "Implied vol per strike (Black-76)"}
                 {" · line = future"}
@@ -420,43 +424,30 @@ function MarketReport({ mkt, doc, shist }: {
                 ))}
               </div>
             </div>
-            {/* Session / period selector — matrix-backed; hidden for the IV
-                smile, which only exists for the live board. */}
-            {hist && hist.dates.length > 1 && boardMode !== "iv" && (
-              <div className="flex items-center gap-1.5 mb-2 text-[9px] text-slate-500">
-                <span>from</span>
-                <select
-                  value={dateFrom ?? "auto"}
-                  onChange={e => setDateFrom(e.target.value === "auto" ? null : e.target.value)}
-                  className="bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-slate-300">
-                  <option value="auto">prev session</option>
-                  {hist.dates.filter(d => !dateToEff || d < dateToEff).slice().reverse().map(d => (
-                    <option key={d} value={d}>{d}</option>
+            {/* Variation window — sessions back from the latest published
+                session; drives dOI and the faded start bars on the OI view.
+                Hidden for the IV smile, which is live-board only. */}
+            {hist && boardMode !== "iv" && (
+              <div className="flex items-center gap-1.5 mb-2 text-[9px] text-slate-500 whitespace-nowrap overflow-x-auto">
+                <span>vs</span>
+                <div className="flex bg-slate-900 border border-slate-700 rounded overflow-hidden shrink-0">
+                  {CHG_WINDOWS.map(([n, lab]) => (
+                    <button key={n}
+                      onClick={() => setChgWin(n)}
+                      disabled={idxTo - n < 0}
+                      className={`px-2 py-0.5 transition ${chgWin === n
+                        ? "bg-slate-600 text-white"
+                        : idxTo - n < 0 ? "text-slate-700 cursor-not-allowed" : "text-slate-400 hover:bg-slate-800"}`}>
+                      {lab}
+                    </button>
                   ))}
-                </select>
-                <span>to</span>
-                <select
-                  value={dateTo ?? "latest"}
-                  onChange={e => {
-                    const v = e.target.value === "latest" ? null : e.target.value;
-                    setDateTo(v);
-                    if (dateFrom && v && dateFrom >= v) setDateFrom(null);
-                  }}
-                  className="bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-slate-300">
-                  <option value="latest">latest session</option>
-                  {hist.dates.slice().reverse().map(d => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-                {(dateTo != null || dateFrom != null) && (
-                  <button onClick={() => { setDateTo(null); setDateFrom(null); }}
-                    className="text-slate-400 hover:text-white border border-slate-700 rounded px-1.5 py-0.5">
-                    reset
-                  </button>
+                </div>
+                {chgWin > 1 && winOK && (
+                  <span className="truncate">{dateFromEff} → {dateToEff}</span>
                 )}
               </div>
             )}
-            <div className="h-64">
+            <ChartFocus height="h-64" title={`${snap.underlying} · per-strike board`}>
               {board.length === 0 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   {boardMode === "chg"
@@ -496,7 +487,7 @@ function MarketReport({ mkt, doc, shist }: {
                       </>
                     ) : (
                       <>
-                        {boardMode === "oi" && isPeriod && custom && (
+                        {boardMode === "oi" && chgWin > 1 && winOK && (
                           <>
                             <Bar dataKey="callsFrom" name={`Calls ${fmtDateLabel(dateFromEff!)}`}
                               fill="#34d399" fillOpacity={0.3} />
@@ -513,7 +504,7 @@ function MarketReport({ mkt, doc, shist }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </div>
+            </ChartFocus>
           </div>
 
           {/* Session ΔOI movers — the flows behind the board */}
@@ -556,7 +547,7 @@ function MarketReport({ mkt, doc, shist }: {
             <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
               Put / Call OI ratio · {snap.underlying} — daily
             </div>
-            <div className="h-48">
+            <ChartFocus height="h-48" title={`${snap.underlying} · put/call OI ratio — daily`}>
               {countdown.filter(c => c.pcRatio != null).length < 2 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   Accumulating — one point per archived session.
@@ -579,7 +570,7 @@ function MarketReport({ mkt, doc, shist }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </div>
+            </ChartFocus>
           </div>
 
           <Section t="2 · Greeks pressure" />
@@ -589,7 +580,7 @@ function MarketReport({ mkt, doc, shist }: {
             <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
               Gamma exposure by strike · Δ-lots per 1pt move · line = future
             </div>
-            <div className="h-48">
+            <ChartFocus height="h-48" title={`${snap.underlying} · gamma exposure by strike`}>
               {greekProfiles.gex.length === 0 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   Needs live board greeks (delta/gamma from Barchart or Black-76).
@@ -619,7 +610,7 @@ function MarketReport({ mkt, doc, shist }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </div>
+            </ChartFocus>
           </div>
 
           {/* Net delta profile */}
@@ -627,7 +618,7 @@ function MarketReport({ mkt, doc, shist }: {
             <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
               Net delta by strike · futures-equiv lots (holder side) · line = future
             </div>
-            <div className="h-48">
+            <ChartFocus height="h-48" title={`${snap.underlying} · net delta by strike`}>
               {greekProfiles.dex.length === 0 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   Needs live board greeks (delta from Barchart or Black-76).
@@ -657,7 +648,7 @@ function MarketReport({ mkt, doc, shist }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </div>
+            </ChartFocus>
           </div>
 
           <Section t="3 · Expiry & pin risk" />
@@ -669,7 +660,7 @@ function MarketReport({ mkt, doc, shist }: {
               ITM OI vs {snap.underlying} future OI · last {COUNTDOWN_WINDOW} sessions to expiry
               {last?.dte != null ? ` · ${Math.round(last.dte)}d left` : ""}
             </div>
-            <div className="h-56">
+            <ChartFocus height="h-56" title={`${snap.underlying} · ITM OI vs future OI into expiry`}>
               {countdownWindow.length < 2 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   {last?.day != null && last.day < -COUNTDOWN_WINDOW
@@ -703,7 +694,7 @@ function MarketReport({ mkt, doc, shist }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </div>
+            </ChartFocus>
           </div>
 
           <Section t="4 · Volatility" />
@@ -715,7 +706,7 @@ function MarketReport({ mkt, doc, shist }: {
             <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
               ATM implied vol · {snap.underlying} — daily, from the boards archive
             </div>
-            <div className="h-48">
+            <ChartFocus height="h-48" title={`${snap.underlying} · ATM implied vol — daily`}>
               {countdown.filter(c => c.atmIv != null).length < 2 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   Accumulating — ATM IV is recorded with each archived session.
@@ -746,7 +737,7 @@ function MarketReport({ mkt, doc, shist }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </div>
+            </ChartFocus>
           </div>
 
           {/* IV term structure — ATM IV across the listed expiries */}
@@ -754,7 +745,7 @@ function MarketReport({ mkt, doc, shist }: {
             <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
               IV term structure · ATM vol per expiry
             </div>
-            <div className="h-48">
+            <ChartFocus height="h-48" title={`${mkt} · IV term structure`}>
               {term.length < 2 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   Needs ATM IV on at least two listed expiries.
@@ -781,7 +772,7 @@ function MarketReport({ mkt, doc, shist }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </div>
+            </ChartFocus>
           </div>
         </>
       )}
