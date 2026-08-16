@@ -42,6 +42,15 @@ interface OptionsDoc {
   markets?: { arabica?: MarketBlock; robusta?: MarketBlock };
   history?: HistRow[];
 }
+// options_strike_history.json — per-strike OI matrix (published sessions only)
+// feeding the date/period selector on the board.
+interface StrikeHist {
+  dates: string[]; strikes: number[];
+  call: (number | null)[][]; put: (number | null)[][];
+}
+interface StrikeHistDoc {
+  markets?: { arabica?: Record<string, StrikeHist>; robusta?: Record<string, StrikeHist> };
+}
 
 // KCZ26 → "Z26" — the chip label; the root repeats the market toggle.
 const shortSym = (sym: string) => sym.replace(/^[A-Z]{2,3}(?=[FGHJKMNQUVXZ]\d{2}$)/, "");
@@ -68,15 +77,24 @@ const UNIT: Record<Mkt, string> = { arabica: "¢/lb", robusta: "$/MT" };
 
 export default function OptionsOIPanel() {
   const [doc, setDoc] = useState<OptionsDoc | null>(null);
+  const [shist, setShist] = useState<StrikeHistDoc | null>(null);
   const [mkt, setMkt] = useState<Mkt>("arabica");
   const [sel, setSel] = useState<string | null>(null);   // selected underlying
   const [boardMode, setBoardMode] = useState<"oi" | "chg" | "iv">("oi");
+  // Board date selection: null/null = latest session vs previous (default).
+  // dateTo picks a session; dateFrom makes it an explicit period start.
+  const [dateTo, setDateTo] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/data/options_oi.json")
       .then(r => (r.ok ? r.json() : null))
       .then(d => { if (d) setDoc(d); })
       .catch(() => { /* renders the accumulating note */ });
+    fetch("/data/options_strike_history.json")
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d) setShist(d); })
+      .catch(() => { /* selector simply stays hidden */ });
   }, []);
 
   // Nearest-first list of live option boards for the active market.
@@ -94,17 +112,55 @@ export default function OptionsOIPanel() {
     [contracts, sel]
   );
 
+  // Per-strike OI history matrix for the selected contract (published
+  // sessions only) — powers the date/period selector.
+  const hist = useMemo<StrikeHist | null>(
+    () => (snap ? shist?.markets?.[mkt]?.[snap.underlying] ?? null : null),
+    [shist, mkt, snap]
+  );
+  const idxTo = hist ? (dateTo ? hist.dates.indexOf(dateTo) : hist.dates.length - 1) : -1;
+  const idxFrom = hist && idxTo >= 0
+    ? (dateFrom ? hist.dates.indexOf(dateFrom) : idxTo - 1) : -1;
+  const isPeriod = dateFrom != null && idxFrom >= 0;
+  // custom = the user moved off the default (latest vs previous) view
+  const custom = (dateTo != null || dateFrom != null) && idxTo >= 0;
+  const dateToEff = hist && idxTo >= 0 ? hist.dates[idxTo] : null;
+  const dateFromEff = hist && idxFrom >= 0 ? hist.dates[idxFrom] : null;
+
   // Per-strike board, trimmed to strikes near the money (±35% of the future)
   // so tails don't squash the structure. Three views over the same strikes:
-  //   oi  — open interest, calls up / puts down (mirrored)
-  //   chg — day-over-day ΔOI vs the previous archived session, same mirror
+  //   oi  — open interest, calls up / puts down (mirrored); with a period
+  //         selected, faded bars show the period-start session
+  //   chg — ΔOI: latest vs previous session by default, or across the
+  //         selected date/period
   //   iv  — implied vol per strike (the smile), calls and puts as lines
   type BoardRow = { strike: number; calls?: number; puts?: number;
+                    callsFrom?: number; putsFrom?: number;
                     callIv?: number | null; putIv?: number | null };
   const board = useMemo<BoardRow[]>(() => {
     if (!snap?.strikes?.length) return [];
     const px = snap.future_price ?? undefined;
-    const near = snap.strikes.filter(s => !px || (s.strike > px * 0.65 && s.strike < px * 1.35));
+    const nearK = (k: number) => !px || (k > px * 0.65 && k < px * 1.35);
+    if (custom && hist && boardMode !== "iv") {
+      const rows: BoardRow[] = [];
+      hist.strikes.forEach((k, i) => {
+        if (!nearK(k)) return;
+        const cTo = hist.call[idxTo]?.[i] ?? 0, pTo = hist.put[idxTo]?.[i] ?? 0;
+        const cFrom = idxFrom >= 0 ? hist.call[idxFrom]?.[i] ?? 0 : 0;
+        const pFrom = idxFrom >= 0 ? hist.put[idxFrom]?.[i] ?? 0 : 0;
+        if (boardMode === "chg") {
+          if (idxFrom < 0) return;
+          if (cTo - cFrom || pTo - pFrom) {
+            rows.push({ strike: k, calls: cTo - cFrom, puts: -(pTo - pFrom) });
+          }
+        } else if (cTo + pTo > 0 || (isPeriod && cFrom + pFrom > 0)) {
+          rows.push({ strike: k, calls: cTo, puts: -pTo,
+                      ...(isPeriod ? { callsFrom: cFrom, putsFrom: -pFrom } : {}) });
+        }
+      });
+      return rows;
+    }
+    const near = snap.strikes.filter(s => nearK(s.strike));
     if (boardMode === "chg") {
       return near
         .filter(s => s.call_chg != null || s.put_chg != null)
@@ -120,7 +176,7 @@ export default function OptionsOIPanel() {
     return near
       .filter(s => (s.call_oi || 0) + (s.put_oi || 0) > 0)
       .map(s => ({ strike: s.strike, calls: s.call_oi, puts: -s.put_oi }));
-  }, [snap, boardMode]);
+  }, [snap, boardMode, custom, hist, idxTo, idxFrom, isPeriod]);
 
   // Expiry countdown for the SELECTED contract: one row per session, ITM vs
   // total OI. Legacy rows carried a single object; normalise to an array.
@@ -181,7 +237,8 @@ export default function OptionsOIPanel() {
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex bg-slate-800 border border-slate-700 rounded-md overflow-hidden text-[10px]">
             {(["arabica", "robusta"] as Mkt[]).map(m => (
-              <button key={m} onClick={() => { setMkt(m); setSel(null); }}
+              <button key={m}
+                onClick={() => { setMkt(m); setSel(null); setDateTo(null); setDateFrom(null); }}
                 className={`px-2.5 py-1.5 transition ${mkt === m ? "bg-amber-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
                 {m === "arabica" ? "Arabica" : "Robusta"}
               </button>
@@ -192,7 +249,8 @@ export default function OptionsOIPanel() {
               {contracts.map(c => {
                 const active = snap?.underlying === c.underlying;
                 return (
-                  <button key={c.underlying} onClick={() => setSel(c.underlying)}
+                  <button key={c.underlying}
+                    onClick={() => { setSel(c.underlying); setDateTo(null); setDateFrom(null); }}
                     title={`${c.underlying} — options expire ${c.option_expiry?.slice(0, 10) ?? "?"}`}
                     className={`px-2.5 py-1.5 transition font-mono ${active ? "bg-sky-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
                     {shortSym(c.underlying)}
@@ -252,11 +310,18 @@ export default function OptionsOIPanel() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Per-strike board */}
             <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
                 <div className="text-[10px] text-slate-400 uppercase tracking-wide">
-                  {boardMode === "oi" ? "OI per strike · calls up, puts down"
-                    : boardMode === "chg" ? "ΔOI per strike vs prior session"
-                    : "Implied vol per strike (Black-76 from last premium)"}
+                  {boardMode === "oi"
+                    ? (isPeriod && custom
+                        ? `OI per strike · ${fmtDateLabel(dateFromEff!)} (faded) vs ${fmtDateLabel(dateToEff!)}`
+                        : custom ? `OI per strike · ${fmtDateLabel(dateToEff!)}`
+                        : "OI per strike · calls up, puts down")
+                    : boardMode === "chg"
+                      ? (custom && dateFromEff && dateToEff
+                          ? `ΔOI per strike · ${fmtDateLabel(dateFromEff)} → ${fmtDateLabel(dateToEff)}`
+                          : "ΔOI per strike vs prior session")
+                      : "Implied vol per strike (Black-76 from last premium)"}
                   {" · line = future"}
                 </div>
                 <div className="flex bg-slate-900 border border-slate-700 rounded overflow-hidden text-[9px]">
@@ -268,6 +333,42 @@ export default function OptionsOIPanel() {
                   ))}
                 </div>
               </div>
+              {/* Session / period selector — matrix-backed; hidden for the IV
+                  smile, which only exists for the live board. */}
+              {hist && hist.dates.length > 1 && boardMode !== "iv" && (
+                <div className="flex items-center gap-1.5 mb-2 text-[9px] text-slate-500">
+                  <span>from</span>
+                  <select
+                    value={dateFrom ?? "auto"}
+                    onChange={e => setDateFrom(e.target.value === "auto" ? null : e.target.value)}
+                    className="bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-slate-300">
+                    <option value="auto">prev session</option>
+                    {hist.dates.filter(d => !dateToEff || d < dateToEff).slice().reverse().map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  <span>to</span>
+                  <select
+                    value={dateTo ?? "latest"}
+                    onChange={e => {
+                      const v = e.target.value === "latest" ? null : e.target.value;
+                      setDateTo(v);
+                      if (dateFrom && v && dateFrom >= v) setDateFrom(null);
+                    }}
+                    className="bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-slate-300">
+                    <option value="latest">latest session</option>
+                    {hist.dates.slice().reverse().map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  {(dateTo != null || dateFrom != null) && (
+                    <button onClick={() => { setDateTo(null); setDateFrom(null); }}
+                      className="text-slate-400 hover:text-white border border-slate-700 rounded px-1.5 py-0.5">
+                      reset
+                    </button>
+                  )}
+                </div>
+              )}
               <div className="h-64">
                 {board.length === 0 ? (
                   <div className="text-[11px] text-slate-500 italic pt-8 text-center">
@@ -308,6 +409,14 @@ export default function OptionsOIPanel() {
                         </>
                       ) : (
                         <>
+                          {boardMode === "oi" && isPeriod && custom && (
+                            <>
+                              <Bar dataKey="callsFrom" name={`Calls ${fmtDateLabel(dateFromEff!)}`}
+                                fill="#34d399" fillOpacity={0.3} />
+                              <Bar dataKey="putsFrom" name={`Puts ${fmtDateLabel(dateFromEff!)}`}
+                                fill="#f87171" fillOpacity={0.3} />
+                            </>
+                          )}
                           <Bar dataKey="calls" name={boardMode === "chg" ? "Δ Calls" : "Calls"}
                             fill="#34d399" fillOpacity={0.8} />
                           <Bar dataKey="puts" name={boardMode === "chg" ? "Δ Puts" : "Puts"}

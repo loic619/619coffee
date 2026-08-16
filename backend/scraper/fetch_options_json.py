@@ -38,6 +38,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "frontend" / "public" / "data" / "options_oi.json"
+STRIKE_HIST_OUT = ROOT / "frontend" / "public" / "data" / "options_strike_history.json"
 INIT_URL = "https://www.barchart.com/futures/quotes/KCK26/overview"
 HISTORY_MAX_DAYS = 400          # ~1.5y of countdown history is plenty
 MAX_CONTRACTS = 3               # nearest live option boards per market
@@ -498,6 +499,47 @@ def _session_dte(snap: dict, session: str) -> float | None:
     return snap["days_to_expiry"]
 
 
+def _strike_history(archive: dict, markets: dict) -> dict:
+    """Slim per-strike OI matrix for the frontend's date/period selector:
+    {market: {underlying: {dates, strikes, call[[...]], put[[...]]}}} — OI
+    only, published sessions only, capped to HISTORY_MAX_DAYS. The full
+    per-strike IV/greeks history stays in the research archive."""
+    out: dict = {}
+    day_keys = sorted(archive.get("days") or {})
+    for mkt, block in markets.items():
+        mm = out.setdefault(mkt, {})
+        for snap in block["contracts"]:
+            und = snap["underlying"]
+            per_day = []
+            for d in day_keys:
+                b = next((x for x in (archive["days"][d].get(mkt) or [])
+                          if x.get("u") == und), None)
+                if b is None:
+                    continue
+                cells, published = {}, False
+                for r in b.get("rows") or []:
+                    p_off = 9 if len(r) >= 17 else 6
+                    c, p = r[1], r[p_off]
+                    if c is not None or p is not None:
+                        published = True
+                    cells[r[0]] = (c, p)
+                if published:
+                    per_day.append((d, cells))
+            per_day = per_day[-HISTORY_MAX_DAYS:]
+            if not per_day:
+                continue
+            strikes = sorted({k for _, cells in per_day for k in cells})
+            mm[und] = {
+                "dates": [d for d, _ in per_day],
+                "strikes": strikes,
+                "call": [[None if (v := (cells.get(k) or (None, None))[0]) is None
+                          else int(v) for k in strikes] for _, cells in per_day],
+                "put": [[None if (v := (cells.get(k) or (None, None))[1]) is None
+                         else int(v) for k in strikes] for _, cells in per_day],
+            }
+    return out
+
+
 def _archive_boards(archive: dict, session: str, markets: dict) -> None:
     day = {}
     for mkt, block in markets.items():
@@ -609,6 +651,9 @@ def main() -> int:
                            "history is one aggregate row per session (rebuilt from "
                            "data/options_boards_archive.json) for the countdown and ATM-IV charts.")
     OUT.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
+    STRIKE_HIST_OUT.write_text(json.dumps(
+        {"updated": doc["updated"], "markets": _strike_history(archive, markets)},
+        ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     n = {m: len(b["contracts"]) for m, b in markets.items()}
     print(f"[options] options_oi.json → {today}: {n} "
           f"({len(doc['history'])} history rows)")

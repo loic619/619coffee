@@ -138,6 +138,7 @@ jobs:
           git add data/oi_history.json frontend/public/data/oi_history.json data/contract_prices_archive.json
           [ -f frontend/public/data/options_oi.json ] && git add frontend/public/data/options_oi.json || true
           [ -f data/options_boards_archive.json ] && git add data/options_boards_archive.json || true
+          [ -f frontend/public/data/options_strike_history.json ] && git add frontend/public/data/options_strike_history.json || true
           if git diff --cached --quiet; then
             echo "No changes."
             exit 0
