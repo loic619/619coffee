@@ -29,6 +29,7 @@ interface HistEntry {
   // null = that session's final OI isn't published yet (arrives next run)
   call_oi: number | null; put_oi: number | null;
   itm_call_oi: number | null; itm_put_oi: number | null;
+  fut_oi?: number | null;                                 // the underlying future's OI
   atm_iv?: number | null;                                 // at-the-money IV that day
 }
 interface HistRow {
@@ -199,6 +200,7 @@ export default function OptionsOIPanel() {
           day: expiry ? -busDaysTo(r.date, expiry) : null,
           total: oiKnown ? (m.call_oi || 0) + (m.put_oi || 0) : null,
           itm: oiKnown ? (m.itm_call_oi || 0) + (m.itm_put_oi || 0) : null,
+          futOi: m.fut_oi ?? null,
           dte: m.days_to_expiry,
           underlying: m.underlying,
           atmIv: m.atm_iv != null ? m.atm_iv * 100 : null,
@@ -433,7 +435,7 @@ export default function OptionsOIPanel() {
                 axis as the OI-to-FND chart. */}
             <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
               <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
-                ITM OI vs total · last {COUNTDOWN_WINDOW} sessions to expiry
+                ITM OI vs {snap.underlying} future OI · last {COUNTDOWN_WINDOW} sessions to expiry
                 {last?.dte != null ? ` · ${Math.round(last.dte)}d left` : ""}
               </div>
               <div className="h-64">
@@ -460,9 +462,9 @@ export default function OptionsOIPanel() {
                         }}
                         formatter={(v) => typeof v === "number" ? `${v.toLocaleString()} lots` : "—"} />
                       <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
-                      <Line type="monotone" dataKey="total" name="Total option OI"
-                        stroke="#e2e8f0" strokeWidth={1.5} dot={false} />
-                      <Line type="monotone" dataKey="itm" name="ITM OI"
+                      <Line type="monotone" dataKey="futOi" name={`${snap.underlying} future OI`}
+                        stroke="#e2e8f0" strokeWidth={1.5} dot={false} connectNulls />
+                      <Line type="monotone" dataKey="itm" name="ITM option OI"
                         stroke="#f59e0b" strokeWidth={1.5} dot={false} />
                     </ComposedChart>
                   </ResponsiveContainer>

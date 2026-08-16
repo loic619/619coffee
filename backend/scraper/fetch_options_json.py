@@ -43,6 +43,7 @@ INIT_URL = "https://www.barchart.com/futures/quotes/KCK26/overview"
 HISTORY_MAX_DAYS = 400          # ~1.5y of countdown history is plenty
 MAX_CONTRACTS = 3               # nearest live option boards per market
 ARCHIVE = ROOT / "data" / "options_boards_archive.json"
+PRICES = ROOT / "data" / "contract_prices_archive.json"
 # Archive row layout (per strike, one array per strike):
 ARCHIVE_HEADER = ["strike",
                   "call_oi", "call_vol", "call_last", "call_iv", "call_delta",
@@ -401,6 +402,25 @@ def _apply_oi_change(snap: dict, prev: dict[float, tuple]) -> None:
         slot["put_chg"] = (slot["put_oi"] - p[1]) if p else None
 
 
+def _future_oi() -> dict:
+    """{market: {date: {symbol: oi}}} from the per-contract futures archive
+    (session-close convention there too; RM robusta symbols stored as RC)."""
+    try:
+        arch = json.loads(PRICES.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    out: dict = {}
+    for mkt, days in arch.items():
+        if mkt.startswith("_") or not isinstance(days, dict):
+            continue
+        out[mkt] = {}
+        for d, contracts in days.items():
+            if isinstance(contracts, dict):
+                out[mkt][d] = {sym: v.get("oi") for sym, v in contracts.items()
+                               if isinstance(v, dict)}
+    return out
+
+
 def _history_from_archive(archive: dict, markets: dict) -> list[dict]:
     """Rebuild the per-session history (countdown + ATM IV) from the FULL
     archive, so the charts are deep from day one — the archive holds the
@@ -409,6 +429,7 @@ def _history_from_archive(archive: dict, markets: dict) -> list[dict]:
     archive for research but drop out of the frontend series."""
     tracked = {mkt: {c["underlying"] for c in block["contracts"]}
                for mkt, block in markets.items()}
+    fut_oi = _future_oi()
     out = []
     for d in sorted(archive.get("days") or {}):
         row: dict = {"date": d}
@@ -444,12 +465,17 @@ def _history_from_archive(archive: dict, markets: dict) -> list[dict]:
                 # A session whose final OI hasn't been published yet (all
                 # OI columns None) reports None, not zeros — the countdown
                 # line stops instead of plunging to 0.
+                day_oi = (fut_oi.get(mkt) or {}).get(d) or {}
+                f_oi = day_oi.get(und)
+                if f_oi is None and und.startswith("RM"):
+                    f_oi = day_oi.get("RC" + und[2:])
                 entries.append({"underlying": und, "future_price": px,
                                 "days_to_expiry": b.get("dte"),
                                 "call_oi": call_oi if oi_published else None,
                                 "put_oi": put_oi if oi_published else None,
                                 "itm_call_oi": itm_c if oi_published else None,
                                 "itm_put_oi": itm_p if oi_published else None,
+                                "fut_oi": f_oi,
                                 "atm_iv": atm_iv})
             if entries:
                 row[mkt] = entries
