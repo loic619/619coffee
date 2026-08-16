@@ -77,6 +77,7 @@ def _exporters(db):
     from scraper.exporters.cot_cropyear_xray import export_cot_cropyear_xray
     from scraper.exporters.cot_sept_study import export_cot_sept_study
     from scraper.exporters.cot_swap_identity import export_cot_swap_identity
+    from scraper.exporters.options_expiry_study import export_options_expiry_study
     from scraper.exporters.tender_parity import export_tender_parity
     from scraper.exporters.yield_rainfall import export_yield_rainfall
     from scraper.sources.brazil_arabica_fisico import export_brazil_arabica_fisico
@@ -130,6 +131,7 @@ def _exporters(db):
         ("cot_sept_study",        lambda: export_cot_sept_study()),
         ("cot_cropyear_xray",     lambda: export_cot_cropyear_xray()),
         ("cot_swap_identity",     lambda: export_cot_swap_identity()),
+        ("options_expiry_study",  lambda: export_options_expiry_study()),
         ("yield_rainfall",        lambda: export_yield_rainfall()),
         ("conilon_basis",         lambda: export_conilon_basis()),
         ("news",                  lambda: export_news(db)),

@@ -48,7 +48,7 @@ export function Highlight({ children }: { children: React.ReactNode }) {
 // kicker (sub-category colour), one-line title, one-line subtitle, the toggle,
 // and the last-edited date. `tone` colour-codes the former sub-category the
 // piece belongs to. Bump `updated` whenever an article's CONTENT changes.
-export type Tone = "amber" | "sky" | "emerald" | "violet" | "rose" | "teal" | "lime" | "cyan" | "orange" | "green";
+export type Tone = "amber" | "sky" | "emerald" | "violet" | "rose" | "teal" | "lime" | "cyan" | "orange" | "green" | "indigo";
 const TONES: Record<Tone, { kicker: string; border: string }> = {
   amber:   { kicker: "text-amber-500/90",   border: "border-l-amber-400/60" },
   sky:     { kicker: "text-sky-400/90",     border: "border-l-sky-400/60" },
@@ -60,6 +60,7 @@ const TONES: Record<Tone, { kicker: string; border: string }> = {
   cyan:    { kicker: "text-cyan-400/90",    border: "border-l-cyan-400/60" },
   orange:  { kicker: "text-orange-400/90",  border: "border-l-orange-400/60" },
   green:   { kicker: "text-green-400/90",   border: "border-l-green-400/60" },
+  indigo:  { kicker: "text-indigo-400/90",  border: "border-l-indigo-400/60" },   // Options
 };
 
 export function ResearchCard({ tone = "amber", kicker, title, subtitle, updated, defaultOpen = false, bare = false, children }: {

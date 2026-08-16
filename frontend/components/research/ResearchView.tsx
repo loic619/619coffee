@@ -10,6 +10,7 @@ import DemandArticles from "./DemandArticles";
 import EnsoExplainer from "./EnsoExplainer";
 import CertifiedStocksParity from "./CertifiedStocksParity";
 import ConilonBasis from "./ConilonBasis";
+import OptionsExpiryStudy from "./OptionsExpiryStudy";
 import SeptemberXray from "./SeptemberXray";
 import CropyearXray from "./CropyearXray";
 import CotSwapIdentity from "./CotSwapIdentity";
@@ -1840,6 +1841,11 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
         <div className="space-y-4">
           <DifferentialModelNote />
           <CertifiedStocksMethodology />
+          <CollapsibleCard tone="indigo" updated="2026-08-16" kicker="Options · expiry mechanics"
+            title="Options expiry and the ITM overhang"
+            subtitle="55 expiries of history, the live countdown with the full board, and the ledger that turns each expiry into a datapoint">
+            <OptionsExpiryStudy />
+          </CollapsibleCard>
           <CollapsibleCard tone="teal" updated="2026-08-12" kicker="Basis · conilon references"
             title="The conilon reference stack — Cooabriel, CEPEA, Vitória and the B3 future"
             subtitle="Four prices for the same coffee: what separates them, how much is fixed cost vs percentage of the price, and how wide the gap runs">
