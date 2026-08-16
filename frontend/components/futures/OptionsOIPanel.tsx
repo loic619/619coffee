@@ -91,11 +91,46 @@ type Mkt = "arabica" | "robusta";
 const TT_STYLE = { background: "#1e293b", border: "1px solid #334155", borderRadius: 6, fontSize: 10 };
 const UNIT: Record<Mkt, string> = { arabica: "¢/lb", robusta: "$/MT" };
 
+// Headline analytics for one board — feeds the per-market tile blocks.
+function computeReport(snap: MarketSnap) {
+  const st = snap.strikes || [];
+  const tot = snap.totals.call_oi + snap.totals.put_oi;
+  const itmLots = snap.totals.itm_call_oi + snap.totals.itm_put_oi;
+  const itmShare = tot > 0 ? (itmLots / tot) * 100 : null;
+  const pc = snap.totals.call_oi > 0 ? snap.totals.put_oi / snap.totals.call_oi : null;
+  // max pain: the settlement that minimises the total intrinsic payout
+  let maxPain: number | null = null;
+  let best = Infinity;
+  for (const k of st) {
+    let pay = 0;
+    for (const s of st) {
+      pay += (s.call_oi || 0) * Math.max(k.strike - s.strike, 0)
+           + (s.put_oi || 0) * Math.max(s.strike - k.strike, 0);
+    }
+    if (pay < best) { best = pay; maxPain = k.strike; }
+  }
+  let netDelta = 0;
+  let haveDelta = false;
+  for (const s of st) {
+    if (s.call_delta != null && s.call_oi) { netDelta += s.call_delta * s.call_oi; haveDelta = true; }
+    if (s.put_delta != null && s.put_oi) { netDelta += s.put_delta * s.put_oi; haveDelta = true; }
+  }
+  const c25 = st.filter(s => s.call_delta != null && s.call_iv != null)
+    .sort((a, b) => Math.abs(a.call_delta! - 0.25) - Math.abs(b.call_delta! - 0.25))[0];
+  const p25 = st.filter(s => s.put_delta != null && s.put_iv != null)
+    .sort((a, b) => Math.abs(a.put_delta! + 0.25) - Math.abs(b.put_delta! + 0.25))[0];
+  const rr = c25 && p25 ? (p25.put_iv! - c25.call_iv!) * 100 : null;
+  return { pc, maxPain, netDelta: haveDelta ? netDelta : null, rr,
+           c25K: c25?.strike, p25K: p25?.strike, itmShare, itmLots };
+}
+
 export default function OptionsOIPanel() {
   const [doc, setDoc] = useState<OptionsDoc | null>(null);
   const [shist, setShist] = useState<StrikeHistDoc | null>(null);
   const [mkt, setMkt] = useState<Mkt>("arabica");
-  const [sel, setSel] = useState<string | null>(null);   // selected underlying
+  // one selected underlying per market — arabica tiles left, robusta right
+  const [selMap, setSelMap] = useState<Record<Mkt, string | null>>(
+    { arabica: null, robusta: null });
   const [boardMode, setBoardMode] = useState<"oi" | "chg" | "iv">("oi");
   // Board date selection: null/null = latest session vs previous (default).
   // dateTo picks a session; dateFrom makes it an explicit period start.
@@ -113,20 +148,29 @@ export default function OptionsOIPanel() {
       .catch(() => { /* selector simply stays hidden */ });
   }, []);
 
-  // Nearest-first list of live option boards for the active market.
-  const contracts = useMemo<MarketSnap[]>(() => {
-    const block = doc?.markets?.[mkt];
-    if (!block) return [];
-    if (Array.isArray(block.contracts)) return block.contracts;
-    return block.underlying && block.strikes ? [block as MarketSnap] : [];
-  }, [doc, mkt]);
+  // Nearest-first list of live option boards for BOTH markets.
+  const allContracts = useMemo<Record<Mkt, MarketSnap[]>>(() => {
+    const get = (m: Mkt): MarketSnap[] => {
+      const block = doc?.markets?.[m];
+      if (!block) return [];
+      if (Array.isArray(block.contracts)) return block.contracts;
+      return block.underlying && block.strikes ? [block as MarketSnap] : [];
+    };
+    return { arabica: get("arabica"), robusta: get("robusta") };
+  }, [doc]);
 
-  // Default to the FRONT (nearest expiry); an explicit pick sticks while it
-  // exists, and falls back to the front when the market/file changes.
-  const snap = useMemo(
-    () => contracts.find(c => c.underlying === sel) ?? contracts[0] ?? null,
-    [contracts, sel]
-  );
+  // Per-market selection (defaults to the FRONT) + headline analytics —
+  // drives the side-by-side tile blocks; the charts follow the active market.
+  const sides = useMemo(() =>
+    (["arabica", "robusta"] as Mkt[]).map(m => {
+      const cs = allContracts[m];
+      const s = cs.find(c => c.underlying === selMap[m]) ?? cs[0] ?? null;
+      return { m, contracts: cs, snap: s, report: s ? computeReport(s) : null };
+    }),
+  [allContracts, selMap]);
+
+  const contracts = allContracts[mkt];
+  const snap = sides.find(s => s.m === mkt)?.snap ?? null;
 
   // Per-strike OI history matrix for the selected contract (published
   // sessions only) — powers the date/period selector.
@@ -236,45 +280,6 @@ export default function OptionsOIPanel() {
   );
 
   const last = countdown.length ? countdown[countdown.length - 1] : null;
-  // ITM share from the live board (the latest published OI), not the history
-  // tail — whose newest session may not have its final OI yet.
-  const itmShare = useMemo(() => {
-    const t = snap ? snap.totals.call_oi + snap.totals.put_oi : 0;
-    return t > 0 && snap ? ((snap.totals.itm_call_oi + snap.totals.itm_put_oi) / t) * 100 : null;
-  }, [snap]);
-
-  // Report analytics off the live board: P/C ratio, max pain, net delta of
-  // the open book (long-holder convention), 25Δ risk reversal.
-  const report = useMemo(() => {
-    if (!snap?.strikes?.length) return null;
-    const st = snap.strikes;
-    const pc = snap.totals.call_oi > 0 ? snap.totals.put_oi / snap.totals.call_oi : null;
-    // max pain: the settlement that minimises the total intrinsic payout
-    let maxPain: number | null = null;
-    let best = Infinity;
-    for (const k of st) {
-      let pay = 0;
-      for (const s of st) {
-        pay += (s.call_oi || 0) * Math.max(k.strike - s.strike, 0)
-             + (s.put_oi || 0) * Math.max(s.strike - k.strike, 0);
-      }
-      if (pay < best) { best = pay; maxPain = k.strike; }
-    }
-    let netDelta = 0;
-    let haveDelta = false;
-    for (const s of st) {
-      if (s.call_delta != null && s.call_oi) { netDelta += s.call_delta * s.call_oi; haveDelta = true; }
-      if (s.put_delta != null && s.put_oi) { netDelta += s.put_delta * s.put_oi; haveDelta = true; }
-    }
-    const c25 = st.filter(s => s.call_delta != null && s.call_iv != null && (s.call_oi || s.call_delta! > 0.02))
-      .sort((a, b) => Math.abs(a.call_delta! - 0.25) - Math.abs(b.call_delta! - 0.25))[0];
-    const p25 = st.filter(s => s.put_delta != null && s.put_iv != null)
-      .sort((a, b) => Math.abs(a.put_delta! + 0.25) - Math.abs(b.put_delta! + 0.25))[0];
-    const rr = c25 && p25 ? (p25.put_iv! - c25.call_iv!) * 100 : null;
-    return { pc, maxPain, netDelta: haveDelta ? netDelta : null, rr,
-             c25K: c25?.strike, p25K: p25?.strike };
-  }, [snap]);
-
   // Per-strike greeks maps (near the money): gamma exposure Γ·OI with the
   // naive calls-positive / puts-negative dealer convention, and net delta·OI.
   const greekProfiles = useMemo(() => {
@@ -335,33 +340,16 @@ export default function OptionsOIPanel() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[9px] text-slate-500 uppercase tracking-wide">charts</span>
           <div className="flex bg-slate-800 border border-slate-700 rounded-md overflow-hidden text-[10px]">
             {(["arabica", "robusta"] as Mkt[]).map(m => (
               <button key={m}
-                onClick={() => { setMkt(m); setSel(null); setDateTo(null); setDateFrom(null); }}
+                onClick={() => { setMkt(m); setDateTo(null); setDateFrom(null); }}
                 className={`px-2.5 py-1.5 transition ${mkt === m ? "bg-amber-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
                 {m === "arabica" ? "Arabica" : "Robusta"}
               </button>
             ))}
           </div>
-          {contracts.length > 1 && (
-            <div className="flex bg-slate-800 border border-slate-700 rounded-md overflow-hidden text-[10px]">
-              {contracts.map(c => {
-                const active = snap?.underlying === c.underlying;
-                return (
-                  <button key={c.underlying}
-                    onClick={() => { setSel(c.underlying); setDateTo(null); setDateFrom(null); }}
-                    title={`${c.underlying} — options expire ${c.option_expiry?.slice(0, 10) ?? "?"}`}
-                    className={`px-2.5 py-1.5 transition font-mono ${active ? "bg-sky-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
-                    {shortSym(c.underlying)}
-                    {c.days_to_expiry != null && (
-                      <span className={active ? "text-sky-200" : "text-slate-500"}> {Math.round(c.days_to_expiry)}d</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </div>
       </div>
 
@@ -371,80 +359,93 @@ export default function OptionsOIPanel() {
         </div>
       ) : (
         <>
-          {/* KPI strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
-              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Underlying</div>
-              <div className="text-base font-bold font-mono text-slate-100">{snap.underlying}</div>
-              <div className="text-[10px] text-slate-400 font-mono">
-                {snap.future_price != null ? `${snap.future_price.toLocaleString()} ${UNIT[mkt]}` : "—"}
+          {/* Per-market tile blocks — arabica LEFT, robusta RIGHT (site
+              convention). Four merged tiles per contract, two facts each.
+              Chips pick that market's contract and focus the charts on it. */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {sides.map(({ m, contracts: cs, snap: s, report: r }) => (
+              <div key={m} className={`rounded-lg border p-3 ${mkt === m ? "border-amber-700/60 bg-slate-800/60" : "border-slate-700 bg-slate-800/30"}`}>
+                <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
+                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-300">
+                    {m === "arabica" ? "Arabica · NY (KC)" : "Robusta · London (RM)"}
+                  </h3>
+                  {cs.length > 1 && (
+                    <div className="flex bg-slate-900 border border-slate-700 rounded overflow-hidden text-[9px]">
+                      {cs.map(c => {
+                        const on = s?.underlying === c.underlying;
+                        return (
+                          <button key={c.underlying}
+                            onClick={() => {
+                              setSelMap(prev => ({ ...prev, [m]: c.underlying }));
+                              setMkt(m); setDateTo(null); setDateFrom(null);
+                            }}
+                            title={`${c.underlying} — options expire ${c.option_expiry?.slice(0, 10) ?? "?"}`}
+                            className={`px-2 py-1 transition font-mono ${on ? "bg-sky-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
+                            {shortSym(c.underlying)}
+                            {c.days_to_expiry != null && (
+                              <span className={on ? "text-sky-200" : "text-slate-500"}> {Math.round(c.days_to_expiry)}d</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                {!s || !r ? (
+                  <div className="text-[11px] text-slate-500 italic py-4 text-center">No live boards.</div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
+                      <div className="text-[9px] text-slate-500 uppercase tracking-wide">Contract · expiry</div>
+                      <div className="text-sm font-bold font-mono text-slate-100">
+                        {s.underlying}
+                        <span className="text-slate-400 font-normal"> {s.future_price != null ? `${s.future_price.toLocaleString()} ${UNIT[m]}` : ""}</span>
+                      </div>
+                      <div className="text-[10px] text-amber-400 font-mono">
+                        {s.option_expiry?.slice(0, 10) ?? "—"}
+                        {s.days_to_expiry != null ? ` · ${Math.round(s.days_to_expiry)}d left` : ""}
+                      </div>
+                    </div>
+                    <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
+                      <div className="text-[9px] text-slate-500 uppercase tracking-wide">Open interest · P/C</div>
+                      <div className="text-sm font-bold font-mono text-slate-100">
+                        {(s.totals.call_oi + s.totals.put_oi).toLocaleString()}
+                        <span className="text-[10px] text-slate-400 font-normal"> C {Math.round(s.totals.call_oi / 1000)}k · P {Math.round(s.totals.put_oi / 1000)}k</span>
+                      </div>
+                      <div className={`text-[10px] font-mono ${r.pc != null && r.pc > 1 ? "text-red-400" : "text-emerald-400"}`}>
+                        {r.pc != null ? `P/C ${r.pc.toFixed(2)} · ${r.pc > 1 ? "put-heavy" : "call-heavy"}` : "—"}
+                      </div>
+                    </div>
+                    <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
+                      <div className="text-[9px] text-slate-500 uppercase tracking-wide">ITM · max pain</div>
+                      <div className={`text-sm font-bold font-mono ${r.itmShare != null && r.itmShare > 50 ? "text-red-400" : "text-emerald-400"}`}>
+                        {r.itmShare != null ? `${r.itmShare.toFixed(1)}%` : "—"}
+                        <span className="text-[10px] text-slate-400 font-normal"> {r.itmLots.toLocaleString()} lots</span>
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-mono">
+                        pain {r.maxPain != null ? r.maxPain.toLocaleString() : "—"}
+                        {r.maxPain != null && s.future_price
+                          ? ` (${(((r.maxPain - s.future_price) / s.future_price) * 100).toFixed(1)}%)` : ""}
+                      </div>
+                    </div>
+                    <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
+                      <div className="text-[9px] text-slate-500 uppercase tracking-wide">Net Δ · 25Δ skew</div>
+                      <div className={`text-sm font-bold font-mono ${r.netDelta != null && r.netDelta < 0 ? "text-red-400" : "text-emerald-400"}`}>
+                        {r.netDelta != null
+                          ? `${r.netDelta > 0 ? "+" : ""}${Math.round(r.netDelta).toLocaleString()}`
+                          : "—"}
+                        <span className="text-[10px] text-slate-400 font-normal"> fut-eq lots</span>
+                      </div>
+                      <div className={`text-[10px] font-mono ${r.rr != null && r.rr > 0 ? "text-red-400" : "text-emerald-400"}`}>
+                        {r.rr != null
+                          ? `RR ${r.rr > 0 ? "+" : ""}${r.rr.toFixed(1)}pts · ${r.rr > 0 ? "puts over calls" : "calls over puts"}`
+                          : "RR —"}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
-              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Option expiry</div>
-              <div className="text-base font-bold font-mono text-amber-400">
-                {snap.days_to_expiry != null ? `${Math.round(snap.days_to_expiry)}d` : "—"}
-              </div>
-              <div className="text-[10px] text-slate-400 font-mono">{snap.option_expiry?.slice(0, 10) ?? ""}</div>
-            </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
-              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Total option OI</div>
-              <div className="text-base font-bold font-mono text-slate-100">
-                {(snap.totals.call_oi + snap.totals.put_oi).toLocaleString()}
-              </div>
-              <div className="text-[10px] text-slate-400 font-mono">
-                C {snap.totals.call_oi.toLocaleString()} · P {snap.totals.put_oi.toLocaleString()}
-              </div>
-            </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
-              <div className="text-[9px] text-slate-500 uppercase tracking-wide">In the money</div>
-              <div className={`text-base font-bold font-mono ${itmShare != null && itmShare > 50 ? "text-red-400" : "text-emerald-400"}`}>
-                {itmShare != null ? `${itmShare.toFixed(1)}%` : "—"}
-              </div>
-              <div className="text-[10px] text-slate-400 font-mono">
-                {(snap.totals.itm_call_oi + snap.totals.itm_put_oi).toLocaleString()} lots ITM
-              </div>
-            </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
-              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Put / Call OI</div>
-              <div className={`text-base font-bold font-mono ${report?.pc != null && report.pc > 1 ? "text-red-400" : "text-emerald-400"}`}>
-                {report?.pc != null ? report.pc.toFixed(2) : "—"}
-              </div>
-              <div className="text-[10px] text-slate-400 font-mono">
-                {report?.pc != null ? (report.pc > 1 ? "put-heavy book" : "call-heavy book") : ""}
-              </div>
-            </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
-              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Max pain</div>
-              <div className="text-base font-bold font-mono text-slate-100">
-                {report?.maxPain != null ? report.maxPain.toLocaleString() : "—"}
-              </div>
-              <div className="text-[10px] text-slate-400 font-mono">
-                {report?.maxPain != null && snap.future_price
-                  ? `${(((report.maxPain - snap.future_price) / snap.future_price) * 100).toFixed(1)}% vs future`
-                  : "min. intrinsic payout"}
-              </div>
-            </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
-              <div className="text-[9px] text-slate-500 uppercase tracking-wide">Net Δ of open book</div>
-              <div className={`text-base font-bold font-mono ${report?.netDelta != null && report.netDelta < 0 ? "text-red-400" : "text-emerald-400"}`}>
-                {report?.netDelta != null
-                  ? `${report.netDelta > 0 ? "+" : ""}${Math.round(report.netDelta).toLocaleString()}`
-                  : "—"}
-              </div>
-              <div className="text-[10px] text-slate-400 font-mono">futures-equiv lots (holder side)</div>
-            </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
-              <div className="text-[9px] text-slate-500 uppercase tracking-wide">25Δ risk reversal</div>
-              <div className={`text-base font-bold font-mono ${report?.rr != null && report.rr > 0 ? "text-red-400" : "text-emerald-400"}`}>
-                {report?.rr != null ? `${report.rr > 0 ? "+" : ""}${report.rr.toFixed(1)} pts` : "—"}
-              </div>
-              <div className="text-[10px] text-slate-400 font-mono">
-                {report?.rr != null
-                  ? `${report.rr > 0 ? "puts over calls" : "calls over puts"}${report.p25K && report.c25K ? ` · ${report.p25K}P/${report.c25K}C` : ""}`
-                  : "needs live IV + delta"}
-              </div>
-            </div>
+            ))}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
