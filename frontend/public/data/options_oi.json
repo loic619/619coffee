@@ -1,6 +1,100 @@
 {
   "history": [
     {
+      "date": "2025-01-28",
+      "arabica": [
+        {
+          "underlying": "KCZ26",
+          "future_price": 251.85,
+          "days_to_expiry": 654,
+          "call_oi": 0,
+          "put_oi": 0,
+          "itm_call_oi": 0,
+          "itm_put_oi": 0,
+          "atm_iv": 0.3202
+        },
+        {
+          "underlying": "KCH27",
+          "future_price": 242.7,
+          "days_to_expiry": 745,
+          "call_oi": 0,
+          "put_oi": 0,
+          "itm_call_oi": 0,
+          "itm_put_oi": 0,
+          "atm_iv": 0.3105
+        },
+        {
+          "underlying": "KCK27",
+          "future_price": 234.6,
+          "days_to_expiry": 801,
+          "call_oi": 0,
+          "put_oi": 0,
+          "itm_call_oi": 0,
+          "itm_put_oi": 0,
+          "atm_iv": 0.3073
+        }
+      ],
+      "robusta": [
+        {
+          "underlying": "RMU26",
+          "future_price": 4848,
+          "days_to_expiry": 568,
+          "call_oi": 0,
+          "put_oi": 0,
+          "itm_call_oi": 0,
+          "itm_put_oi": 0,
+          "atm_iv": 0.3619
+        }
+      ]
+    },
+    {
+      "date": "2025-01-29",
+      "arabica": [
+        {
+          "underlying": "KCZ26",
+          "future_price": 255.45,
+          "days_to_expiry": 653,
+          "call_oi": 0,
+          "put_oi": 0,
+          "itm_call_oi": 0,
+          "itm_put_oi": 0,
+          "atm_iv": 0.3219
+        },
+        {
+          "underlying": "KCH27",
+          "future_price": 245.7,
+          "days_to_expiry": 744,
+          "call_oi": 0,
+          "put_oi": 0,
+          "itm_call_oi": 0,
+          "itm_put_oi": 0,
+          "atm_iv": 0.3124
+        },
+        {
+          "underlying": "KCK27",
+          "future_price": 236.85,
+          "days_to_expiry": 800,
+          "call_oi": 0,
+          "put_oi": 0,
+          "itm_call_oi": 0,
+          "itm_put_oi": 0,
+          "atm_iv": 0.3093
+        }
+      ],
+      "robusta": [
+        {
+          "underlying": "RMU26",
+          "future_price": 4917,
+          "days_to_expiry": 567,
+          "call_oi": 0,
+          "put_oi": 0,
+          "itm_call_oi": 0,
+          "itm_put_oi": 0,
+          "atm_iv": 0.3594
+        }
+      ]
+    },
+    {
       "date": "2025-01-30",
       "arabica": [
         {
@@ -25044,140 +25138,6 @@
           "underlying": "KCZ26",
           "future_price": 314.3,
           "days_to_expiry": 91,
-          "call_oi": 0,
-          "put_oi": 0,
-          "itm_call_oi": 0,
-          "itm_put_oi": 0,
-          "atm_iv": 0.4301
-        },
-        {
-          "underlying": "KCH27",
-          "future_price": 303.2,
-          "days_to_expiry": 182,
-          "call_oi": 0,
-          "put_oi": 0,
-          "itm_call_oi": 0,
-          "itm_put_oi": 0,
-          "atm_iv": 0.3929
-        },
-        {
-          "underlying": "KCK27",
-          "future_price": 299.4,
-          "days_to_expiry": 238,
-          "call_oi": 0,
-          "put_oi": 0,
-          "itm_call_oi": 0,
-          "itm_put_oi": 0,
-          "atm_iv": 0.3832
-        }
-      ],
-      "robusta": [
-        {
-          "underlying": "RMU26",
-          "future_price": 3621,
-          "days_to_expiry": 5,
-          "call_oi": 0,
-          "put_oi": 0,
-          "itm_call_oi": 0,
-          "itm_put_oi": 0,
-          "atm_iv": 0.254
-        },
-        {
-          "underlying": "RMX26",
-          "future_price": 3594,
-          "days_to_expiry": 68,
-          "call_oi": 0,
-          "put_oi": 0,
-          "itm_call_oi": 0,
-          "itm_put_oi": 0,
-          "atm_iv": 0.3652
-        },
-        {
-          "underlying": "RMF27",
-          "future_price": 3576,
-          "days_to_expiry": 124,
-          "call_oi": 0,
-          "put_oi": 0,
-          "itm_call_oi": 0,
-          "itm_put_oi": 0,
-          "atm_iv": 0.3694
-        }
-      ]
-    },
-    {
-      "date": "2026-08-15",
-      "arabica": [
-        {
-          "underlying": "KCZ26",
-          "future_price": 314.3,
-          "days_to_expiry": 90,
-          "call_oi": 40915.0,
-          "put_oi": 75084.0,
-          "itm_call_oi": 12864.0,
-          "itm_put_oi": 2554.0,
-          "atm_iv": 0.4325
-        },
-        {
-          "underlying": "KCH27",
-          "future_price": 303.2,
-          "days_to_expiry": 181,
-          "call_oi": 8233.0,
-          "put_oi": 17884.0,
-          "itm_call_oi": 1894.0,
-          "itm_put_oi": 123.0,
-          "atm_iv": 0.394
-        },
-        {
-          "underlying": "KCK27",
-          "future_price": 299.4,
-          "days_to_expiry": 237,
-          "call_oi": 125.0,
-          "put_oi": 4260.0,
-          "itm_call_oi": 10.0,
-          "itm_put_oi": 1.0,
-          "atm_iv": 0.3841
-        }
-      ],
-      "robusta": [
-        {
-          "underlying": "RMU26",
-          "future_price": 3621,
-          "days_to_expiry": 4,
-          "call_oi": 15757.0,
-          "put_oi": 24502.0,
-          "itm_call_oi": 3601.0,
-          "itm_put_oi": 4020.0,
-          "atm_iv": 0.284
-        },
-        {
-          "underlying": "RMX26",
-          "future_price": 3594,
-          "days_to_expiry": 67,
-          "call_oi": 9446.0,
-          "put_oi": 16483.0,
-          "itm_call_oi": 424.0,
-          "itm_put_oi": 2961.0,
-          "atm_iv": 0.368
-        },
-        {
-          "underlying": "RMF27",
-          "future_price": 3576,
-          "days_to_expiry": 123,
-          "call_oi": 3677.0,
-          "put_oi": 1727.0,
-          "itm_call_oi": 190.0,
-          "itm_put_oi": 2.0,
-          "atm_iv": 0.3709
-        }
-      ]
-    },
-    {
-      "date": "2026-08-16",
-      "arabica": [
-        {
-          "underlying": "KCZ26",
-          "future_price": 314.3,
-          "days_to_expiry": 89,
           "call_oi": 40915.0,
           "put_oi": 75084.0,
           "itm_call_oi": 12864.0,
@@ -25187,7 +25147,7 @@
         {
           "underlying": "KCH27",
           "future_price": 303.2,
-          "days_to_expiry": 180,
+          "days_to_expiry": 182,
           "call_oi": 8233.0,
           "put_oi": 17884.0,
           "itm_call_oi": 1894.0,
@@ -25197,7 +25157,7 @@
         {
           "underlying": "KCK27",
           "future_price": 299.4,
-          "days_to_expiry": 236,
+          "days_to_expiry": 238,
           "call_oi": 125.0,
           "put_oi": 4260.0,
           "itm_call_oi": 10.0,
@@ -25209,7 +25169,7 @@
         {
           "underlying": "RMU26",
           "future_price": 3621,
-          "days_to_expiry": 3,
+          "days_to_expiry": 5,
           "call_oi": 15757.0,
           "put_oi": 24502.0,
           "itm_call_oi": 3601.0,
@@ -25219,7 +25179,7 @@
         {
           "underlying": "RMX26",
           "future_price": 3594,
-          "days_to_expiry": 66,
+          "days_to_expiry": 68,
           "call_oi": 9446.0,
           "put_oi": 16483.0,
           "itm_call_oi": 424.0,
@@ -25229,7 +25189,7 @@
         {
           "underlying": "RMF27",
           "future_price": 3576,
-          "days_to_expiry": 122,
+          "days_to_expiry": 124,
           "call_oi": 3677.0,
           "put_oi": 1727.0,
           "itm_call_oi": 190.0,
@@ -27597,8 +27557,8 @@
               "put_theta": -0.053684937896676,
               "call_vega": 0.29299703267605,
               "put_vega": 0.3091605755534,
-              "call_chg": 0,
-              "put_chg": 0
+              "call_chg": null,
+              "put_chg": null
             },
             {
               "strike": 440.0,
@@ -27817,7 +27777,8 @@
             "itm_call_oi": 12864.0,
             "itm_put_oi": 2554.0
           },
-          "expiry_source": "rule"
+          "expiry_source": "rule",
+          "session_date": "2026-08-14"
         },
         {
           "underlying": "KCH27",
@@ -30205,7 +30166,8 @@
             "itm_call_oi": 1894.0,
             "itm_put_oi": 123.0
           },
-          "expiry_source": "rule"
+          "expiry_source": "rule",
+          "session_date": "2026-08-14"
         },
         {
           "underlying": "KCK27",
@@ -32257,7 +32219,8 @@
             "itm_call_oi": 10.0,
             "itm_put_oi": 1.0
           },
-          "expiry_source": "rule"
+          "expiry_source": "rule",
+          "session_date": "2026-08-14"
         }
       ]
     },
@@ -34628,7 +34591,8 @@
             "itm_call_oi": 3601.0,
             "itm_put_oi": 4020.0
           },
-          "expiry_source": "rule"
+          "expiry_source": "rule",
+          "session_date": "2026-08-14"
         },
         {
           "underlying": "RMX26",
@@ -36680,7 +36644,8 @@
             "itm_call_oi": 424.0,
             "itm_put_oi": 2961.0
           },
-          "expiry_source": "rule"
+          "expiry_source": "rule",
+          "session_date": "2026-08-14"
         },
         {
           "underlying": "RMF27",
@@ -38438,12 +38403,13 @@
             "itm_call_oi": 190.0,
             "itm_put_oi": 2.0
           },
-          "expiry_source": "rule"
+          "expiry_source": "rule",
+          "session_date": "2026-08-14"
         }
       ]
     }
   },
-  "updated": "2026-08-16T04:49:47.004387+00:00",
+  "updated": "2026-08-16T05:06:11.707417+00:00",
   "source": "Barchart core-api (delayed) — options on ICE KC / RM futures",
   "note": "ITM = calls below / puts above the front future's last price; history is one aggregate row per session for the expiry countdown."
 }

@@ -254,8 +254,20 @@ def _rows(options_payload: dict) -> list[dict]:
             "vega": _num(r.get("vega", it.get("vega"))),
             "expiry": r.get("expirationDate") or it.get("expirationDate"),
             "dte": _num(r.get("daysToExpiration", it.get("daysToExpiration"))),
+            "trade": r.get("tradeTime", it.get("tradeTime")),
         })
     return rows
+
+
+def _trade_date(v) -> str | None:
+    """tradeTime → YYYY-MM-DD; epoch numbers and ISO-ish strings both occur."""
+    if v is None:
+        return None
+    if isinstance(v, (int, float)) and v > 1e9:
+        from datetime import datetime as _dt
+        return _dt.fromtimestamp(v, UTC).date().isoformat()
+    s = str(v)[:10]
+    return s if len(s) == 10 and s[4] == "-" else None
 
 
 def _fill_iv(snap: dict) -> None:
@@ -329,6 +341,10 @@ def _market_snapshot(mkt_payload: dict) -> dict | None:
         "strikes": strikes,
         "totals": {"call_oi": call_oi, "put_oi": put_oi,
                    "itm_call_oi": itm_call, "itm_put_oi": itm_put},
+        # newest trade date on the board = the session this data belongs to
+        # (on weekends/holidays Barchart keeps serving the last session)
+        "session_date": max((d for d in (_trade_date(r.get("trade"))
+                                         for r in rows) if d), default=None),
     }
     _fill_iv(snap)
     return snap
@@ -428,13 +444,25 @@ def _history_from_archive(archive: dict, markets: dict) -> list[dict]:
     return out[-HISTORY_MAX_DAYS:]
 
 
-def _archive_boards(archive: dict, today: str, markets: dict) -> None:
+def _session_dte(snap: dict, session: str) -> float | None:
+    """DTE relative to the SESSION date (the archive key), so a weekend run
+    stores the same countdown value the session itself would have."""
+    if snap.get("option_expiry"):
+        try:
+            return (date.fromisoformat(str(snap["option_expiry"])[:10])
+                    - date.fromisoformat(session)).days
+        except ValueError:
+            pass
+    return snap["days_to_expiry"]
+
+
+def _archive_boards(archive: dict, session: str, markets: dict) -> None:
     day = {}
     for mkt, block in markets.items():
         day[mkt] = [
             {
                 "u": snap["underlying"], "px": snap["future_price"],
-                "dte": snap["days_to_expiry"],
+                "dte": _session_dte(snap, session),
                 "rows": [
                     [sl["strike"],
                      sl["call_oi"], sl["call_vol"], sl["call_last"],
@@ -448,7 +476,7 @@ def _archive_boards(archive: dict, today: str, markets: dict) -> None:
             }
             for snap in block["contracts"]
         ]
-    archive.setdefault("days", {})[today] = day
+    archive.setdefault("days", {})[session] = day
     ARCHIVE.parent.mkdir(parents=True, exist_ok=True)
     ARCHIVE.write_text(json.dumps(archive, ensure_ascii=False, separators=(",", ":")),
                        encoding="utf-8")
@@ -495,12 +523,20 @@ def main() -> int:
         print("[options] nothing fetched — keeping existing file")
         return 1
 
+    # Everything is stamped with the SESSION the boards belong to (newest
+    # trade date seen), not the wall-clock date: a Saturday/holiday run just
+    # re-upserts Friday's session instead of minting a bogus new day.
     today_iso = date.today().isoformat()
+    session = max((s["session_date"] for b in markets.values()
+                   for s in b["contracts"] if s.get("session_date")),
+                  default=today_iso)
+    if session != today_iso:
+        print(f"[options] boards belong to session {session} (ran {today_iso})")
     archive = _load_archive()
     for mkt, block in markets.items():
         for snap in block["contracts"]:
-            _apply_oi_change(snap, _prev_board(archive, mkt, snap["underlying"], today_iso))
-    _archive_boards(archive, today_iso, markets)
+            _apply_oi_change(snap, _prev_board(archive, mkt, snap["underlying"], session))
+    _archive_boards(archive, session, markets)
     print(f"[options] archive → {len(archive['days'])} sessions stored")
 
     try:
