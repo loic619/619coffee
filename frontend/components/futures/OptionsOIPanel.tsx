@@ -340,8 +340,9 @@ function MarketReport({ mkt, doc, shist }: {
         </div>
       ) : (
         <>
-          {/* Merged tiles — four per contract, two facts each */}
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          {/* Merged tiles — four per contract, two facts each; single column
+              on phones where each market only has half the screen width */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
             <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5">
               <div className="text-[9px] text-slate-500 uppercase tracking-wide">Contract · expiry</div>
               <div className="text-sm font-bold font-mono text-slate-100">
@@ -812,7 +813,7 @@ export default function OptionsOIPanel() {
           No options data yet — the report starts accumulating with the next daily OI snapshot.
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        <div className="grid grid-cols-2 gap-1.5 lg:gap-4 items-start">
           <MarketReport mkt="arabica" doc={doc} shist={shist} />
           <MarketReport mkt="robusta" doc={doc} shist={shist} />
         </div>
