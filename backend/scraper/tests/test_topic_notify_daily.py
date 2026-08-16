@@ -51,8 +51,8 @@ def test_corrupt_state_file_does_not_block_sending(state):
 # ── composers ────────────────────────────────────────────────────────────────
 
 def test_every_topic_is_registered_and_callable():
-    expected = {"prices", "origin_prices", "certified", "brazil_daily",
-                "cci", "open_call", "weather", "week_ahead"}
+    expected = {"prices", "origin_prices", "options", "certified",
+                "brazil_daily", "cci", "open_call", "weather", "week_ahead"}
     assert set(t.TOPICS) == expected
     assert all(callable(fn) for fn in t.TOPICS.values())
 

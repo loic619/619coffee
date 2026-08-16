@@ -174,6 +174,127 @@ def compose_weather(now: dt.datetime) -> str | None:
     return block or None
 
 
+def _fmt_k(v: float) -> str:
+    return f"{v / 1000:.1f}k" if abs(v) >= 1000 else f"{v:.0f}"
+
+
+def _fmt_strike(k: float) -> str:
+    return f"{k:g}"
+
+
+def compose_options(now: dt.datetime) -> str | None:
+    """Options report note — front board per market: OI + P/C, ΔOI with top
+    movers, ITM vs max pain, ATM IV (d/d) and 25Δ risk reversal. Mirrors the
+    Options tab; sent once per session (fingerprint dedup)."""
+    b = _brief()
+    doc = b.load("options_oi.json")
+    markets = (doc or {}).get("markets") or {}
+    hist = (doc or {}).get("history") or []
+    session = None
+    blocks: list[str] = []
+    for mkt, label, unit in (("robusta", "RC", "$/MT"), ("arabica", "KC", "¢/lb")):
+        contracts = (markets.get(mkt) or {}).get("contracts") or []
+        if not contracts:
+            continue
+        c = contracts[0]                       # front expiry — same as the tab
+        st = c.get("strikes") or []
+        t = c.get("totals") or {}
+        px = c.get("future_price")
+        session = c.get("session_date") or session
+        call_oi, put_oi = t.get("call_oi") or 0, t.get("put_oi") or 0
+        tot = call_oi + put_oi
+        if not tot:
+            continue
+        pc = put_oi / call_oi if call_oi else None
+        itm = (t.get("itm_call_oi") or 0) + (t.get("itm_put_oi") or 0)
+        # max pain: settlement minimising total intrinsic payout
+        max_pain, best = None, float("inf")
+        for k in st:
+            pay = sum((s.get("call_oi") or 0) * max(k["strike"] - s["strike"], 0)
+                      + (s.get("put_oi") or 0) * max(s["strike"] - k["strike"], 0)
+                      for s in st)
+            if pay < best:
+                best, max_pain = pay, k["strike"]
+        # ΔOI totals + top movers
+        d_call = d_put = 0.0
+        any_chg = False
+        movers: list[tuple[float, float, float, str]] = []
+        for s in st:
+            for side, key in (("C", "call_chg"), ("P", "put_chg")):
+                v = s.get(key)
+                if v is None:
+                    continue
+                any_chg = True
+                if side == "C":
+                    d_call += v
+                else:
+                    d_put += v
+                if v:
+                    movers.append((abs(v), v, s["strike"], side))
+        movers.sort(key=lambda x: -x[0])
+        # ATM IV now/prev + underlying future OI from the session history
+        entries = []
+        for r in hist:
+            raw = r.get(mkt)
+            arr = raw if isinstance(raw, list) else [raw] if raw else []
+            entries += [e for e in arr if e.get("underlying") == c.get("underlying")]
+        ivs = [e["atm_iv"] for e in entries if e.get("atm_iv")]
+        fut_oi = next((e["fut_oi"] for e in reversed(entries)
+                       if e.get("fut_oi") is not None), None)
+        # 25Δ risk reversal off the live board
+        c25 = min((s for s in st if s.get("call_delta") is not None
+                   and s.get("call_iv") is not None),
+                  key=lambda s: abs(s["call_delta"] - 0.25), default=None)
+        p25 = min((s for s in st if s.get("put_delta") is not None
+                   and s.get("put_iv") is not None),
+                  key=lambda s: abs(s["put_delta"] + 0.25), default=None)
+        rr = (p25["put_iv"] - c25["call_iv"]) * 100 if c25 and p25 else None
+
+        px_txt = (f"{px:,.0f}" if px and px >= 1000 else
+                  f"{px:.2f}" if px is not None else "?")
+        dte = c.get("days_to_expiry")
+        lines = [f"<b>{label}</b> {c.get('underlying', '?')} · fut {px_txt} {unit}"
+                 f" · exp {str(c.get('option_expiry') or '?')[5:10]}"
+                 + (f" ({dte:.0f}d)" if dte is not None else "")]
+        oi_line = f"· OI {_fmt_k(tot)} (C {_fmt_k(call_oi)} / P {_fmt_k(put_oi)}"
+        if pc is not None:
+            oi_line += f" · P/C {pc:.2f}"
+        lines.append(oi_line + ")")
+        if any_chg:
+            chg = f"· ΔOI C {d_call:+,.0f} / P {d_put:+,.0f}"
+            if movers:
+                top = ", ".join(f"{v:+,.0f} {_fmt_strike(k)}{side}"
+                                for _, v, k, side in movers[:3])
+                chg += f" · top: {top}"
+            else:
+                chg += " · flat"
+            lines.append(chg)
+        itm_line = f"· ITM {100 * itm / tot:.0f}% ({_fmt_k(itm)} lots"
+        if fut_oi:
+            itm_line += f" vs fut OI {_fmt_k(fut_oi)}"
+        itm_line += ")"
+        if max_pain is not None:
+            itm_line += f" · max pain {_fmt_strike(max_pain)}"
+            if px:
+                itm_line += f" ({(max_pain - px) / px * 100:+.1f}%)"
+        lines.append(itm_line)
+        vol_line = None
+        if ivs:
+            vol_line = f"· ATM IV {ivs[-1] * 100:.1f}%"
+            if len(ivs) > 1:
+                vol_line += f" ({(ivs[-1] - ivs[-2]) * 100:+.1f}pt d/d)"
+        if rr is not None:
+            vol_line = (vol_line or "·") + (
+                f" · 25Δ RR {rr:+.1f}pt ({'puts' if rr > 0 else 'calls'} over)")
+        if vol_line:
+            lines.append(vol_line)
+        blocks.append("\n".join(lines))
+    if not blocks:
+        return None
+    head = session or str((doc or {}).get("updated") or "")[:10] or "?"
+    return "\n\n".join([f"🎯 <b>Options — session {head}</b>"] + blocks)
+
+
 def compose_week_ahead(now: dt.datetime) -> str | None:
     """Upcoming releases/events — the one brief section with no scraper of its
     own, kept as a small standalone note so retiring the brief loses nothing."""
@@ -185,6 +306,7 @@ def compose_week_ahead(now: dt.datetime) -> str | None:
 TOPICS = {
     "prices":        compose_prices,
     "origin_prices": compose_origin_prices,
+    "options":       compose_options,
     "certified":     compose_certified,
     "brazil_daily":  compose_brazil_daily,
     "cci":           compose_cci,
