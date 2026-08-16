@@ -47,6 +47,12 @@ export interface ReportChartDef {
 
 const loading = () => <div className="p-4 text-xs text-slate-500">Loading…</div>;
 
+// Arabica/Robusta split notes — the options ticks render KC left / RM right.
+const KC_RM_NOTES = [
+  { key: "arabica", label: "Arabica · KC" },
+  { key: "robusta", label: "Robusta · RM" },
+];
+
 // NY/London split notes — shared by the dual futures visuals.
 const NY_LDN_NOTES = [
   { key: "ny", label: "NY · Arabica" },
@@ -153,6 +159,56 @@ export const REPORT_REGISTRY: ReportChartDef[] = [
     description: "Open-interest run-down into First Notice Day — NY Arabica (left) & London Robusta (right).",
     Component: dynamic(() => import("@/components/report/charts/FuturesReports"), { ssr: false, loading }),
     notes: NY_LDN_NOTES,
+    width: "full",
+  },
+  {
+    id: "options_tiles",
+    label: "Options — Headline Tiles",
+    category: "Price",
+    group: "Options",
+    description: "Per-contract expiry, total OI + put/call ratio, ITM share vs max pain, net delta and 25Δ skew — KC & RM.",
+    Component: dynamic(() => import("@/components/report/charts/OptionsReports").then((m) => ({ default: m.OptionsTiles })), { ssr: false, loading }),
+    notes: KC_RM_NOTES,
+    width: "full",
+  },
+  {
+    id: "options_positioning",
+    label: "Options — Positioning",
+    category: "Price",
+    group: "Options",
+    description: "Per-strike OI board with strike walls, session ΔOI movers and the put/call ratio through time.",
+    Component: dynamic(() => import("@/components/report/charts/OptionsReports").then((m) => ({ default: m.OptionsPositioning })), { ssr: false, loading }),
+    notes: KC_RM_NOTES,
+    width: "full",
+  },
+  {
+    id: "options_greeks",
+    label: "Options — Greeks Pressure",
+    category: "Price",
+    group: "Options",
+    description: "Gamma-exposure and net-delta profiles by strike — where dealer hedging pins or accelerates the futures.",
+    Component: dynamic(() => import("@/components/report/charts/OptionsReports").then((m) => ({ default: m.OptionsGreeks })), { ssr: false, loading }),
+    notes: KC_RM_NOTES,
+    width: "full",
+  },
+  {
+    id: "options_expiry",
+    label: "Options — Expiry & Pin Risk",
+    category: "Price",
+    group: "Options",
+    description: "Deep-ITM option OI vs the underlying future's OI over the last 45 sessions into option expiry.",
+    Component: dynamic(() => import("@/components/report/charts/OptionsReports").then((m) => ({ default: m.OptionsExpiry })), { ssr: false, loading }),
+    notes: KC_RM_NOTES,
+    width: "full",
+  },
+  {
+    id: "options_vol",
+    label: "Options — Volatility",
+    category: "Price",
+    group: "Options",
+    description: "ATM implied-vol history and the IV term structure across listed expiries.",
+    Component: dynamic(() => import("@/components/report/charts/OptionsReports").then((m) => ({ default: m.OptionsVol })), { ssr: false, loading }),
+    notes: KC_RM_NOTES,
     width: "full",
   },
   {
