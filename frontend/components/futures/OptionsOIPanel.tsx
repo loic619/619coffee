@@ -46,6 +46,22 @@ interface OptionsDoc {
 // KCZ26 → "Z26" — the chip label; the root repeats the market toggle.
 const shortSym = (sym: string) => sym.replace(/^[A-Z]{2,3}(?=[FGHJKMNQUVXZ]\d{2}$)/, "");
 
+// Mon–Fri sessions between two ISO dates (trading-day countdown, like the
+// OI-to-FND chart's day axis).
+const busDaysTo = (from: string, to: string): number => {
+  const a = new Date(from + "T00:00:00Z");
+  const b = new Date(to + "T00:00:00Z");
+  if (!(a < b)) return 0;
+  let n = 0;
+  for (const t = new Date(a); t < b; t.setUTCDate(t.getUTCDate() + 1)) {
+    const w = t.getUTCDay();
+    if (w !== 0 && w !== 6) n++;
+  }
+  return n;
+};
+
+const COUNTDOWN_WINDOW = 45;   // sessions before expiry shown on the countdown
+
 type Mkt = "arabica" | "robusta";
 const TT_STYLE = { background: "#1e293b", border: "1px solid #334155", borderRadius: 6, fontSize: 10 };
 const UNIT: Record<Mkt, string> = { arabica: "¢/lb", robusta: "$/MT" };
@@ -118,8 +134,13 @@ export default function OptionsOIPanel() {
         const m = arr.find(e => e.underlying === want);
         if (!m) return null;
         const oiKnown = m.call_oi != null || m.put_oi != null;
+        const expiry = snap?.option_expiry?.slice(0, 10);
         return {
           date: r.date, label: fmtDateLabel(r.date),
+          // trading sessions to option expiry, as a negative countdown
+          // (numeric + unique per session, so tooltips can't collide the way
+          // repeated MM/DD category labels across years did)
+          day: expiry ? -busDaysTo(r.date, expiry) : null,
           total: oiKnown ? (m.call_oi || 0) + (m.put_oi || 0) : null,
           itm: oiKnown ? (m.itm_call_oi || 0) + (m.itm_put_oi || 0) : null,
           dte: m.days_to_expiry,
@@ -130,6 +151,12 @@ export default function OptionsOIPanel() {
       })
       .filter((x): x is NonNullable<typeof x> => x != null);
   }, [doc, mkt, snap]);
+
+  // Countdown card shows only the final approach: [-45, 0] sessions to expiry.
+  const countdownWindow = useMemo(
+    () => countdown.filter(p => p.day != null && p.day >= -COUNTDOWN_WINDOW),
+    [countdown]
+  );
 
   const last = countdown.length ? countdown[countdown.length - 1] : null;
   // ITM share from the live board (the latest published OI), not the history
@@ -293,25 +320,35 @@ export default function OptionsOIPanel() {
               </div>
             </div>
 
-            {/* ITM countdown */}
+            {/* ITM countdown — last 45 sessions into option expiry, same day
+                axis as the OI-to-FND chart. */}
             <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
               <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
-                ITM OI vs total into expiry{last?.dte != null ? ` · ${Math.round(last.dte)}d left` : ""}
+                ITM OI vs total · last {COUNTDOWN_WINDOW} sessions to expiry
+                {last?.dte != null ? ` · ${Math.round(last.dte)}d left` : ""}
               </div>
               <div className="h-64">
-                {countdown.length < 2 ? (
+                {countdownWindow.length < 2 ? (
                   <div className="text-[11px] text-slate-500 italic pt-8 text-center">
-                    Accumulating — one point per session from the daily snapshot.
-                    {countdown.length === 1 ? " First point captured." : ""}
+                    {last?.day != null && last.day < -COUNTDOWN_WINDOW
+                      ? `Countdown begins ${COUNTDOWN_WINDOW} sessions before expiry — ` +
+                        `${snap.underlying} is still ${Math.abs(last.day)} sessions out.`
+                      : "Accumulating — one point per session from the daily snapshot."}
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={countdown} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                    <ComposedChart data={countdownWindow} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
                       <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
-                      <XAxis dataKey="label" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={22} />
+                      <XAxis dataKey="day" type="number" domain={[-COUNTDOWN_WINDOW, 0]}
+                        stroke="#64748b" tick={{ fontSize: 8 }} tickCount={10}
+                        tickFormatter={(v: number) => `${v}`} />
                       <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={44}
                         tickFormatter={(v: number) => v.toLocaleString()} />
                       <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                        labelFormatter={(l, payload) => {
+                          const d = payload?.[0]?.payload?.date;
+                          return `Day ${l} to expiry${d ? ` · ${d}` : ""}`;
+                        }}
                         formatter={(v) => typeof v === "number" ? `${v.toLocaleString()} lots` : "—"} />
                       <Legend wrapperStyle={{ fontSize: 10 }} iconSize={8} />
                       <Line type="monotone" dataKey="total" name="Total option OI"
@@ -340,7 +377,10 @@ export default function OptionsOIPanel() {
                   <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={countdown} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
                       <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
-                      <XAxis dataKey="label" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={26} />
+                      {/* keyed by full ISO date: MM/DD labels repeat across
+                          years and made tooltips hit the wrong year's point */}
+                      <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={26}
+                        tickFormatter={(v: string) => fmtDateLabel(v)} />
                       <YAxis yAxisId="iv" stroke="#a78bfa" tick={{ fontSize: 8 }} width={40}
                         domain={["auto", "auto"]}
                         tickFormatter={(v: number) => `${v.toFixed(0)}%`} />
