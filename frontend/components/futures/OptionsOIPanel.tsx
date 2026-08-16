@@ -75,6 +75,7 @@ const busDaysTo = (from: string, to: string): number => {
 };
 
 const COUNTDOWN_WINDOW = 45;   // sessions before expiry shown on the countdown
+const MOVERS_ROWS = 8;         // fixed row count keeps both market cards equal height
 
 // Slim in-column section divider — each market column reads as its own
 // report: positioning → greeks pressure → expiry → volatility.
@@ -289,7 +290,7 @@ function MarketReport({ mkt, doc, shist }: {
       if (s.call_chg) rows.push({ strike: s.strike, side: "C", chg: s.call_chg });
       if (s.put_chg) rows.push({ strike: s.strike, side: "P", chg: s.put_chg });
     }
-    return rows.sort((a, b) => Math.abs(b.chg) - Math.abs(a.chg)).slice(0, 8);
+    return rows.sort((a, b) => Math.abs(b.chg) - Math.abs(a.chg)).slice(0, MOVERS_ROWS);
   }, [snap]);
 
   // ATM IV per listed contract → the term structure.
@@ -520,27 +521,33 @@ function MarketReport({ mkt, doc, shist }: {
             <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
               Biggest ΔOI moves · last published session
             </div>
-            {movers.length === 0 ? (
-              <div className="text-[11px] text-slate-500 italic pt-2 pb-2 text-center">
-                No open-interest changes vs the prior session.
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {movers.map((m, i) => (
-                  <div key={`${m.strike}-${m.side}`}
+            {/* Always exactly MOVERS_ROWS rows (placeholders fill the tail) so
+                the arabica and robusta cards stay the same height and the
+                columns below them line up. */}
+            <div className="space-y-1">
+              {Array.from({ length: MOVERS_ROWS }, (_, i) => {
+                const m = movers[i];
+                return (
+                  <div key={m ? `${m.strike}-${m.side}` : `empty-${i}`}
                     className="flex items-center justify-between text-[11px] font-mono border-b border-slate-700/50 pb-1">
                     <span className="text-slate-400">#{i + 1}</span>
-                    <span className={m.side === "C" ? "text-emerald-400" : "text-red-400"}>
-                      {m.strike.toLocaleString()} {m.side === "C" ? "Call" : "Put"}
-                    </span>
-                    <span className={m.chg > 0 ? "text-emerald-300" : "text-red-300"}>
-                      {m.chg > 0 ? "+" : "−"}{Math.abs(m.chg).toLocaleString()} lots
-                      <span className="text-slate-500"> {m.chg > 0 ? "build" : "unwind"}</span>
-                    </span>
+                    {m ? (
+                      <>
+                        <span className={m.side === "C" ? "text-emerald-400" : "text-red-400"}>
+                          {m.strike.toLocaleString()} {m.side === "C" ? "Call" : "Put"}
+                        </span>
+                        <span className={m.chg > 0 ? "text-emerald-300" : "text-red-300"}>
+                          {m.chg > 0 ? "+" : "−"}{Math.abs(m.chg).toLocaleString()} lots
+                          <span className="text-slate-500"> {m.chg > 0 ? "build" : "unwind"}</span>
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-slate-600">—</span>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
+                );
+              })}
+            </div>
           </div>
 
           {/* P/C OI ratio through time */}
