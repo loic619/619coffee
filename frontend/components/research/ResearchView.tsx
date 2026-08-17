@@ -16,6 +16,7 @@ import OptionsVrp from "./OptionsVrp";
 import OptionsSkew from "./OptionsSkew";
 import OptionsFlowCot from "./OptionsFlowCot";
 import OptionsOiWalls from "./OptionsOiWalls";
+import OptionsOptionization from "./OptionsOptionization";
 import SeptemberXray from "./SeptemberXray";
 import CropyearXray from "./CropyearXray";
 import CotSwapIdentity from "./CotSwapIdentity";
@@ -1875,6 +1876,11 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
             title="OI walls — where the strike matrix defends a level"
             subtitle="Call walls above, put walls below: the crossing test that holds in both markets, the falsification family that localises it, and the live map">
             <OptionsOiWalls />
+          </CollapsibleCard>
+          <CollapsibleCard tone="indigo" updated="2026-08-17" kicker="Options · market structure"
+            title="The optionization ratio — coffee's risk is moving into the options book"
+            subtitle="KC crossed parity this year: more option OI than futures OI on the front complex — and a delta-equivalent book our futures-only COT feed cannot see">
+            <OptionsOptionization />
           </CollapsibleCard>
           <CollapsibleCard tone="teal" updated="2026-08-12" kicker="Basis · conilon references"
             title="The conilon reference stack — Cooabriel, CEPEA, Vitória and the B3 future"
