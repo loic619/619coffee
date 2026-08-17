@@ -80,6 +80,7 @@ def _exporters(db):
     from scraper.exporters.options_expiry_study import export_options_expiry_study
     from scraper.exporters.options_flow_cot import export_options_flow_cot
     from scraper.exporters.options_gamma_map import export_options_gamma_map
+    from scraper.exporters.options_oi_walls import export_options_oi_walls
     from scraper.exporters.options_skew import export_options_skew
     from scraper.exporters.options_vrp import export_options_vrp
     from scraper.exporters.tender_parity import export_tender_parity
@@ -140,6 +141,7 @@ def _exporters(db):
         ("options_vrp",           lambda: export_options_vrp()),
         ("options_skew",          lambda: export_options_skew()),
         ("options_flow_cot",      lambda: export_options_flow_cot()),
+        ("options_oi_walls",      lambda: export_options_oi_walls()),
         ("yield_rainfall",        lambda: export_yield_rainfall()),
         ("conilon_basis",         lambda: export_conilon_basis()),
         ("news",                  lambda: export_news(db)),
