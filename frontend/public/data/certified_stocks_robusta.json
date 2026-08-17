@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-17T03:31:51+00:00",
-  "as_of": "2026-08-14",
+  "generated_at": "2026-08-17T21:34:10+00:00",
+  "as_of": "2026-08-17",
   "snapshots": [
     {
       "date": "2025-05-28",
@@ -5985,16 +5985,42 @@
         "ROT": 0,
         "TRI": 0
       }
+    },
+    {
+      "date": "2026-08-17",
+      "cut_off_date": "2026-08-16",
+      "total_lots_certified": 4506,
+      "total_bags_60kg_equivalent": 751000,
+      "non_tend_lots": 2,
+      "suspended_lots": 0,
+      "lots_graded_today": 126,
+      "lots_sold_today": 0,
+      "lots_bought_today": 0,
+      "tenders_today": 0,
+      "by_port_lots": {
+        "ANT": 3075,
+        "LON": 1424,
+        "FEL": 6,
+        "BAR": 1,
+        "AMS": 0,
+        "BRE": 0,
+        "HAM": 0,
+        "LEH": 0,
+        "LIV": 0,
+        "NOR": 0,
+        "ROT": 0,
+        "TRI": 0
+      }
     }
   ],
   "latest_detail": {
     "stock_report": {
-      "cut_off_date": "2026-08-13",
+      "cut_off_date": "2026-08-16",
       "ports": [
         {
           "port_id": "ANT",
           "port_name": "Antwerp",
-          "with_val_cert": 3106,
+          "with_val_cert": 3075,
           "non_tend": 2,
           "suspended": 0
         },
@@ -6077,12 +6103,12 @@
         }
       ],
       "grand_total": {
-        "with_val_cert": 4537,
+        "with_val_cert": 4506,
         "non_tend": 2,
         "suspended": 0
       }
     },
-    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260814_103106.csv"
+    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260817_103033.csv"
   },
   "recent_activity": {
     "gradings": [
@@ -9344,6 +9370,69 @@
           "non_tenderable_month": 0,
           "lots_graded_today": 54,
           "lots_graded_month": 402
+        }
+      },
+      {
+        "date": "2026-08-17",
+        "url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/gradings/gradrc_260817-1.txt",
+        "report_date": "2026-08-17",
+        "report_time": "17:04",
+        "panel_date": "2026-08-17",
+        "panel_time": "08:00",
+        "entries": [
+          {
+            "section": "CONTINENTAL LOTS",
+            "origin": "Brazilian Conillon",
+            "port": "ANT",
+            "class": 1,
+            "tenderable": true,
+            "allowance_cts_lb": 0.0,
+            "lots": 12
+          },
+          {
+            "section": "CONTINENTAL LOTS",
+            "origin": "Brazilian Conillon",
+            "port": "ANT",
+            "class": 2,
+            "tenderable": true,
+            "allowance_cts_lb": -30.0,
+            "lots": 88
+          },
+          {
+            "section": "CONTINENTAL LOTS",
+            "origin": "Brazilian Conillon",
+            "port": "ANT",
+            "class": 3,
+            "tenderable": true,
+            "allowance_cts_lb": -60.0,
+            "lots": 2
+          },
+          {
+            "section": "CONTINENTAL LOTS",
+            "origin": "Brazilian Conillon",
+            "port": "TRI",
+            "class": 1,
+            "tenderable": true,
+            "allowance_cts_lb": 0.0,
+            "lots": 13
+          },
+          {
+            "section": "CONTINENTAL LOTS",
+            "origin": "Brazilian Conillon",
+            "port": "TRI",
+            "class": 2,
+            "tenderable": true,
+            "allowance_cts_lb": -30.0,
+            "lots": 11
+          }
+        ],
+        "summary": {
+          "tenderable_today": 126,
+          "tenderable_month": 528,
+          "non_tenderable_today": 0,
+          "non_tenderable_month": 0,
+          "lots_graded_today": 126,
+          "lots_graded_month": 528
         }
       }
     ],
@@ -17002,6 +17091,13 @@
       {
         "date": "2026-08-13",
         "report_date": "2026-08-13",
+        "queue_lots": 0,
+        "forecast_lots": 0,
+        "total_pending_lots": 0
+      },
+      {
+        "date": "2026-08-17",
+        "report_date": "2026-08-17",
         "queue_lots": 0,
         "forecast_lots": 0,
         "total_pending_lots": 0
