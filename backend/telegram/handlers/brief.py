@@ -827,19 +827,19 @@ def _cert_arabica_section(doc: dict | None) -> str:
         # the bags that were graded). On a no-grading day, the list is just
         # noise about what's already sitting in the warehouses.
         origin_str = f" · top origins {', '.join(origins)}" if origins else ""
-        lines.append(f"Grading: {graded:,} bags graded, {failed:,} passed{origin_str}")
+        lines.append(f"· Grading: {graded:,} bags graded, {failed:,} passed{origin_str}")
     else:
-        lines.append("Grading: no grading today")
+        lines.append("· Grading: none")
 
     if prev and prev.get("total_bags") is not None:
         delta = total - prev["total_bags"]
-        lines.append(f"Stocks: {total:,} bags ({_sign(delta, ',d')})")
+        lines.append(f"· Stocks: {total:,} bags ({_sign(delta, ',d')})")
     else:
-        lines.append(f"Stocks: {total:,} bags")
+        lines.append(f"· Stocks: {total:,} bags")
 
     port, mag = _largest_negative_port(prev.get("by_port") if prev else {}, cur.get("by_port") or {})
     if port and mag > 0:
-        lines.append(f"Decertified: {mag:,} bags in {port}")
+        lines.append(f"· Decertified: {mag:,} bags in {port}")
     return "\n".join(lines)
 
 
@@ -861,12 +861,12 @@ def _cert_robusta_section(doc: dict | None) -> str:
     ]
     if prev and prev.get("total_lots_certified") is not None:
         delta = total - prev["total_lots_certified"]
-        lines.append(f"Stocks: {total:,} lots ({_sign(delta, ',d')})")
+        lines.append(f"· Stocks: {total:,} lots ({_sign(delta, ',d')})")
     else:
-        lines.append(f"Stocks: {total:,} lots")
+        lines.append(f"· Stocks: {total:,} lots")
     port, mag = _largest_negative_port(prev.get("by_port_lots") if prev else {}, cur.get("by_port_lots") or {})
     if port and mag > 0:
-        lines.append(f"Decertified: {mag:,} lots in {port}")
+        lines.append(f"· Decertified: {mag:,} lots in {port}")
     return "\n".join(lines)
 
 
