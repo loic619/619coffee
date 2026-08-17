@@ -1,8 +1,24 @@
 """
 uganda_weather.py — Open-Meteo weather for Uganda coffee regions.
 
-Regions: Kasese (robusta lowland), Mbale (eastern slopes),
-         Mt Elgon (arabica highlands), Rwenzori (western arabica), Masaka (robusta).
+One station per production belt (rebuilt Aug 2026):
+
+  Robusta (~85% of exports)
+    Greater Masaka — Lake Victoria crescent, the single largest belt
+    Central        — Mityana / Mubende / Mukono / Luwero
+    Western        — Bushenyi / Mitooma / Sheema / Rukungiri
+    Busoga         — Iganga / Bugiri / Jinja / Kamuli
+
+  Arabica (~15%)
+    Mt Elgon       — Bugisu highlands (Kapchorwa / Kween / Bulambuli / Sironko)
+    West Nile      — Okoro (Zombo / Nebbi / Arua)
+    Rwenzori       — Kasese / Bundibugyo / Kabarole / Bunyangabu
+
+The previous set sampled the Rwenzori massif twice (Kasese sat 20 km from
+Fort Portal) and Mt Elgon twice (Mbale 47 km from Sironko), classified
+Kasese as robusta although UCDA maps it an arabica district, and left the
+two biggest robusta belts and all of West Nile unsampled.
+
 No frost risk (all below 2500m or equatorial).
 El Nino = drier = bad; La Nina = wetter = positive.
 """
@@ -13,11 +29,13 @@ from datetime import UTC, datetime
 _HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; CoffeeIntelScraper/1.0)"}
 
 _REGIONS = [
-    {"name": "Kasese",    "lat":  0.18, "lng":  30.08},
-    {"name": "Mbale",     "lat":  1.08, "lng":  34.18},
-    {"name": "Mt Elgon",  "lat":  1.13, "lng":  34.60},
-    {"name": "Rwenzori",  "lat":  0.35, "lng":  30.02},
-    {"name": "Masaka",    "lat": -0.34, "lng":  31.74},
+    {"name": "Greater Masaka", "lat": -0.33, "lng": 31.73},
+    {"name": "Central",        "lat":  0.40, "lng": 32.04},
+    {"name": "Western",        "lat": -0.59, "lng": 30.19},
+    {"name": "Busoga",         "lat":  0.61, "lng": 33.47},
+    {"name": "Mt Elgon",       "lat":  1.39, "lng": 34.45},
+    {"name": "West Nile",      "lat":  2.52, "lng": 30.90},
+    {"name": "Rwenzori",       "lat":  0.66, "lng": 30.27},
 ]
 
 # Andisol-like soils; Uganda highlands moderate AWC

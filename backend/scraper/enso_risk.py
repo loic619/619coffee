@@ -48,7 +48,8 @@ _EFFECTS: dict[str, dict[str, dict[str, tuple[str, int]]]] = {
     },
     "uganda": {
         r: {"el-nino": ("Drought / heat", 2), "la-nina": ("Flooding risk", 1)}
-        for r in ("Masaka", "Kasese", "Rwenzori", "Mbale", "Mt Elgon")
+        for r in ("Greater Masaka", "Central", "Western", "Busoga",
+                  "Mt Elgon", "West Nile", "Rwenzori")
     },
     "ethiopia": {
         "Sidama/Yirgacheffe": {"el-nino": ("Drought", 2), "la-nina": ("Wet (favourable)", 0)},

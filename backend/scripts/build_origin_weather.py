@@ -118,13 +118,38 @@ ORIGINS: dict[str, dict] = {
     "uganda": {
         "label": "Uganda",
         "share_label": "Uganda robusta+arabica",
-        "source_production": "UCDA 2024 regional output (approx. weights)",
+        "source_production": (
+            "UCDA regional structure; weights scaled to the 85/15 robusta:arabica "
+            "split measured over 78 months of UCDA export data (uganda_monthly.json)"
+        ),
+        # Rebuilt Aug 2026. The previous five points sampled the Rwenzori
+        # massif twice (Kasese 20 km from Fort Portal) and Mt Elgon twice
+        # (Mbale 47 km from Sironko), tagged Kasese as robusta though UCDA
+        # maps it an arabica district, and left the two largest robusta
+        # areas — the Lake Victoria crescent and the western belt — plus the
+        # whole West Nile arabica belt unsampled.
+        #
+        # Now one station per production belt, weights summing to ~440 kt
+        # (robusta 374 = 85%, arabica 66 = 15%). Kisoro/Kabale/Rubanda
+        # arabica is real but ~3 kt — too small to justify its own daily
+        # fetch, so it is deliberately unsampled.
         "regions": [
-            {"name": "Masaka",   "station": "Masaka",  "lat": -0.33, "lon": 31.73, "prod_mt_k": 220},
-            {"name": "Kasese",   "station": "Kasese",  "lat": 0.18,  "lon": 30.08, "prod_mt_k": 140},
-            {"name": "Rwenzori", "station": "Fort Portal","lat": 0.66,"lon": 30.27, "prod_mt_k": 120},
-            {"name": "Mbale",    "station": "Mbale",   "lat": 1.08,  "lon": 34.18, "prod_mt_k": 110},
-            {"name": "Mt Elgon", "station": "Sironko", "lat": 1.23,  "lon": 34.25, "prod_mt_k": 90},
+            # ── Robusta belts (85%) ──────────────────────────────────────
+            {"name": "Greater Masaka",  "station": "Masaka",      "lat": -0.33, "lon": 31.73,
+             "prod_mt_k": 118, "crop_type": "robusta", "prod_mt_k_arabica":  0, "prod_mt_k_robusta": 118},
+            {"name": "Central",         "station": "Mityana",     "lat":  0.40, "lon": 32.04,
+             "prod_mt_k": 105, "crop_type": "robusta", "prod_mt_k_arabica":  0, "prod_mt_k_robusta": 105},
+            {"name": "Western",         "station": "Bushenyi",    "lat": -0.59, "lon": 30.19,
+             "prod_mt_k":  96, "crop_type": "robusta", "prod_mt_k_arabica":  0, "prod_mt_k_robusta":  96},
+            {"name": "Busoga",          "station": "Iganga",      "lat":  0.61, "lon": 33.47,
+             "prod_mt_k":  55, "crop_type": "robusta", "prod_mt_k_arabica":  0, "prod_mt_k_robusta":  55},
+            # ── Arabica belts (15%) ──────────────────────────────────────
+            {"name": "Mt Elgon",        "station": "Kapchorwa",   "lat":  1.39, "lon": 34.45,
+             "prod_mt_k":  38, "crop_type": "arabica", "prod_mt_k_arabica": 38, "prod_mt_k_robusta":   0},
+            {"name": "West Nile",       "station": "Zombo",       "lat":  2.52, "lon": 30.90,
+             "prod_mt_k":  16, "crop_type": "arabica", "prod_mt_k_arabica": 16, "prod_mt_k_robusta":   0},
+            {"name": "Rwenzori",        "station": "Fort Portal", "lat":  0.66, "lon": 30.27,
+             "prod_mt_k":  12, "crop_type": "arabica", "prod_mt_k_arabica": 12, "prod_mt_k_robusta":   0},
         ],
     },
     "ethiopia": {
