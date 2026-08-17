@@ -1,0 +1,19 @@
+{
+ "note": "Daily record of active IPHM alert families per origin (max severity). Appended by the options_skew exporter; append-once per date. Powers the skew-vs-alerts event study as it accumulates.",
+ "entries": {
+  "2026-08-17": {
+   "colombia": {
+    "blossom_drop": "watch"
+   },
+   "uganda": {
+    "drought_stress": "critical"
+   },
+   "ethiopia": {
+    "drought_stress": "critical"
+   },
+   "vn": {
+    "drought_stress": "alert"
+   }
+  }
+ }
+}
