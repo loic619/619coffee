@@ -11,6 +11,7 @@ import EnsoExplainer from "./EnsoExplainer";
 import CertifiedStocksParity from "./CertifiedStocksParity";
 import ConilonBasis from "./ConilonBasis";
 import OptionsExpiryStudy from "./OptionsExpiryStudy";
+import OptionsGammaMap from "./OptionsGammaMap";
 import SeptemberXray from "./SeptemberXray";
 import CropyearXray from "./CropyearXray";
 import CotSwapIdentity from "./CotSwapIdentity";
@@ -1845,6 +1846,11 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
             title="Options expiry and the ITM overhang"
             subtitle="55 expiries of history, the live countdown with the full board, and the ledger that turns each expiry into a datapoint">
             <OptionsExpiryStudy />
+          </CollapsibleCard>
+          <CollapsibleCard tone="indigo" updated="2026-08-16" kicker="Options · dealer gamma"
+            title="The gamma map — where hedging stabilises, and where it amplifies"
+            subtitle="Net dealer gamma by price level from every board's IV and OI: the flip point, the walls, and the vol-regime test">
+            <OptionsGammaMap />
           </CollapsibleCard>
           <CollapsibleCard tone="teal" updated="2026-08-12" kicker="Basis · conilon references"
             title="The conilon reference stack — Cooabriel, CEPEA, Vitória and the B3 future"
