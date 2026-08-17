@@ -12,6 +12,7 @@ import CertifiedStocksParity from "./CertifiedStocksParity";
 import ConilonBasis from "./ConilonBasis";
 import OptionsExpiryStudy from "./OptionsExpiryStudy";
 import OptionsGammaMap from "./OptionsGammaMap";
+import OptionsVrp from "./OptionsVrp";
 import SeptemberXray from "./SeptemberXray";
 import CropyearXray from "./CropyearXray";
 import CotSwapIdentity from "./CotSwapIdentity";
@@ -1851,6 +1852,11 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
             title="The gamma map — where hedging stabilises, and where it amplifies"
             subtitle="Net dealer gamma by price level from every board's IV and OI: the flip point, the walls, and the vol-regime test">
             <OptionsGammaMap />
+          </CollapsibleCard>
+          <CollapsibleCard tone="indigo" updated="2026-08-17" kicker="Options · volatility"
+            title="The variance risk premium — what implied costs vs what realized delivers"
+            subtitle="ATM implied vs subsequent realized vol on every tracked board: no systematic premium in coffee, and where today's spread sits in the distribution">
+            <OptionsVrp />
           </CollapsibleCard>
           <CollapsibleCard tone="teal" updated="2026-08-12" kicker="Basis · conilon references"
             title="The conilon reference stack — Cooabriel, CEPEA, Vitória and the B3 future"

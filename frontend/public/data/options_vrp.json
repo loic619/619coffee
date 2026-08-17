@@ -1,0 +1,7465 @@
+{
+  "generated_at": "2026-08-17T04:06:02.203649Z",
+  "method": {
+    "iv": "ATM IV per session: mean of call/put IVs on the strikes bracketing the settlement, from the boards archive (Black-76-implied from settlement premiums where the vendor serves no IV).",
+    "rv": "Annualized close-to-close vol of the SAME contract's settlements over the next 21 sessions (per-contract archive; RM underlyings map to RC futures).",
+    "vrp": "VRP = IV − forward RV, vol points. Horizon mismatch (contract-life IV vs 21-session RV) is inherent and stated.",
+    "significance": "Level stats use all daily (overlapping) observations; t-stats use non-overlapping 21-session blocks only."
+  },
+  "markets": {
+    "arabica": {
+      "spread_now": {
+        "date": "2026-08-14",
+        "spread": 12.1,
+        "percentile": 99.0,
+        "n": 554
+      },
+      "all": {
+        "n": 1598,
+        "start": "2024-06-03",
+        "end": "2026-07-16",
+        "mean_iv": 32.2,
+        "mean_rv": 33.8,
+        "mean_vrp": -1.6,
+        "median_vrp": 0.1,
+        "share_positive": 50.4,
+        "n_blocks": 77,
+        "t_blocks": -1.43,
+        "first_half_vrp": -2.5,
+        "second_half_vrp": -0.7
+      },
+      "by_bucket": {
+        "near": {
+          "n": 0
+        },
+        "mid": {
+          "n": 117,
+          "start": "2026-03-09",
+          "end": "2026-07-16",
+          "mean_iv": 37.3,
+          "mean_rv": 46.9,
+          "mean_vrp": -9.6,
+          "median_vrp": 5.4,
+          "share_positive": 60.7,
+          "n_blocks": 6,
+          "t_blocks": -0.64,
+          "first_half_vrp": 7.1,
+          "second_half_vrp": -26.0
+        },
+        "far": {
+          "n": 1481,
+          "start": "2024-06-03",
+          "end": "2026-07-16",
+          "mean_iv": 31.8,
+          "mean_rv": 32.8,
+          "mean_vrp": -1.0,
+          "median_vrp": -0.1,
+          "share_positive": 49.6,
+          "n_blocks": 71,
+          "t_blocks": -1.54,
+          "first_half_vrp": -2.7,
+          "second_half_vrp": 0.7
+        }
+      },
+      "series": [
+        {
+          "date": "2024-06-03",
+          "contract": "KCZ26",
+          "dte": 893,
+          "iv": 28.5,
+          "rv_fwd": 30.8,
+          "vrp": -2.3
+        },
+        {
+          "date": "2024-06-04",
+          "contract": "KCZ26",
+          "dte": 892,
+          "iv": 28.8,
+          "rv_fwd": 29.6,
+          "vrp": -0.8
+        },
+        {
+          "date": "2024-06-05",
+          "contract": "KCZ26",
+          "dte": 891,
+          "iv": 28.4,
+          "rv_fwd": 30.2,
+          "vrp": -1.7
+        },
+        {
+          "date": "2024-06-06",
+          "contract": "KCZ26",
+          "dte": 890,
+          "iv": 28.7,
+          "rv_fwd": 31.2,
+          "vrp": -2.4
+        },
+        {
+          "date": "2024-06-07",
+          "contract": "KCZ26",
+          "dte": 889,
+          "iv": 28.3,
+          "rv_fwd": 31.8,
+          "vrp": -3.5
+        },
+        {
+          "date": "2024-06-10",
+          "contract": "KCZ26",
+          "dte": 886,
+          "iv": 28.2,
+          "rv_fwd": 32.7,
+          "vrp": -4.4
+        },
+        {
+          "date": "2024-06-11",
+          "contract": "KCZ26",
+          "dte": 885,
+          "iv": 28.0,
+          "rv_fwd": 32.5,
+          "vrp": -4.5
+        },
+        {
+          "date": "2024-06-12",
+          "contract": "KCZ26",
+          "dte": 884,
+          "iv": 27.9,
+          "rv_fwd": 33.4,
+          "vrp": -5.5
+        },
+        {
+          "date": "2024-06-13",
+          "contract": "KCZ26",
+          "dte": 883,
+          "iv": 27.6,
+          "rv_fwd": 33.9,
+          "vrp": -6.3
+        },
+        {
+          "date": "2024-06-14",
+          "contract": "KCZ26",
+          "dte": 882,
+          "iv": 27.7,
+          "rv_fwd": 33.9,
+          "vrp": -6.3
+        },
+        {
+          "date": "2024-06-17",
+          "contract": "KCZ26",
+          "dte": 879,
+          "iv": 27.4,
+          "rv_fwd": 33.8,
+          "vrp": -6.5
+        },
+        {
+          "date": "2024-06-18",
+          "contract": "KCZ26",
+          "dte": 878,
+          "iv": 27.6,
+          "rv_fwd": 33.9,
+          "vrp": -6.3
+        },
+        {
+          "date": "2024-06-20",
+          "contract": "KCZ26",
+          "dte": 876,
+          "iv": 28.0,
+          "rv_fwd": 34.1,
+          "vrp": -6.1
+        },
+        {
+          "date": "2024-06-21",
+          "contract": "KCZ26",
+          "dte": 875,
+          "iv": 27.7,
+          "rv_fwd": 32.6,
+          "vrp": -4.9
+        },
+        {
+          "date": "2024-06-24",
+          "contract": "KCZ26",
+          "dte": 872,
+          "iv": 28.5,
+          "rv_fwd": 28.0,
+          "vrp": 0.5
+        },
+        {
+          "date": "2024-06-25",
+          "contract": "KCZ26",
+          "dte": 871,
+          "iv": 27.5,
+          "rv_fwd": 26.7,
+          "vrp": 0.8
+        },
+        {
+          "date": "2024-06-26",
+          "contract": "KCZ26",
+          "dte": 870,
+          "iv": 27.0,
+          "rv_fwd": 27.2,
+          "vrp": -0.2
+        },
+        {
+          "date": "2024-06-27",
+          "contract": "KCZ26",
+          "dte": 869,
+          "iv": 26.9,
+          "rv_fwd": 27.8,
+          "vrp": -0.9
+        },
+        {
+          "date": "2024-06-28",
+          "contract": "KCZ26",
+          "dte": 868,
+          "iv": 27.1,
+          "rv_fwd": 27.7,
+          "vrp": -0.6
+        },
+        {
+          "date": "2024-07-01",
+          "contract": "KCZ26",
+          "dte": 865,
+          "iv": 27.1,
+          "rv_fwd": 27.3,
+          "vrp": -0.2
+        },
+        {
+          "date": "2024-07-02",
+          "contract": "KCZ26",
+          "dte": 864,
+          "iv": 27.0,
+          "rv_fwd": 27.5,
+          "vrp": -0.5
+        },
+        {
+          "date": "2024-07-03",
+          "contract": "KCZ26",
+          "dte": 863,
+          "iv": 26.8,
+          "rv_fwd": 27.1,
+          "vrp": -0.3
+        },
+        {
+          "date": "2024-07-04",
+          "contract": "KCZ26",
+          "dte": 862,
+          "iv": 26.8,
+          "rv_fwd": 27.4,
+          "vrp": -0.6
+        },
+        {
+          "date": "2024-07-05",
+          "contract": "KCZ26",
+          "dte": 861,
+          "iv": 32.5,
+          "rv_fwd": 27.9,
+          "vrp": 4.6
+        },
+        {
+          "date": "2024-07-08",
+          "contract": "KCZ26",
+          "dte": 858,
+          "iv": 32.7,
+          "rv_fwd": 28.0,
+          "vrp": 4.7
+        },
+        {
+          "date": "2024-07-09",
+          "contract": "KCZ26",
+          "dte": 857,
+          "iv": 34.1,
+          "rv_fwd": 26.8,
+          "vrp": 7.2
+        },
+        {
+          "date": "2024-07-10",
+          "contract": "KCZ26",
+          "dte": 856,
+          "iv": 33.8,
+          "rv_fwd": 26.7,
+          "vrp": 7.1
+        },
+        {
+          "date": "2024-07-11",
+          "contract": "KCZ26",
+          "dte": 855,
+          "iv": 34.2,
+          "rv_fwd": 27.7,
+          "vrp": 6.5
+        },
+        {
+          "date": "2024-07-12",
+          "contract": "KCZ26",
+          "dte": 854,
+          "iv": 34.5,
+          "rv_fwd": 29.0,
+          "vrp": 5.4
+        },
+        {
+          "date": "2024-07-15",
+          "contract": "KCZ26",
+          "dte": 851,
+          "iv": 34.7,
+          "rv_fwd": 31.2,
+          "vrp": 3.5
+        },
+        {
+          "date": "2024-07-16",
+          "contract": "KCZ26",
+          "dte": 850,
+          "iv": 34.1,
+          "rv_fwd": 32.9,
+          "vrp": 1.2
+        },
+        {
+          "date": "2024-07-17",
+          "contract": "KCZ26",
+          "dte": 849,
+          "iv": 33.7,
+          "rv_fwd": 33.0,
+          "vrp": 0.7
+        },
+        {
+          "date": "2024-07-18",
+          "contract": "KCZ26",
+          "dte": 848,
+          "iv": 33.8,
+          "rv_fwd": 34.3,
+          "vrp": -0.4
+        },
+        {
+          "date": "2024-07-19",
+          "contract": "KCZ26",
+          "dte": 847,
+          "iv": 32.9,
+          "rv_fwd": 34.0,
+          "vrp": -1.1
+        },
+        {
+          "date": "2024-07-22",
+          "contract": "KCZ26",
+          "dte": 844,
+          "iv": 33.3,
+          "rv_fwd": 33.8,
+          "vrp": -0.5
+        },
+        {
+          "date": "2024-07-23",
+          "contract": "KCZ26",
+          "dte": 843,
+          "iv": 33.3,
+          "rv_fwd": 33.3,
+          "vrp": 0.1
+        },
+        {
+          "date": "2024-07-24",
+          "contract": "KCZ26",
+          "dte": 842,
+          "iv": 33.4,
+          "rv_fwd": 33.5,
+          "vrp": -0.0
+        },
+        {
+          "date": "2024-07-25",
+          "contract": "KCZ26",
+          "dte": 841,
+          "iv": 33.6,
+          "rv_fwd": 32.6,
+          "vrp": 0.9
+        },
+        {
+          "date": "2024-07-26",
+          "contract": "KCZ26",
+          "dte": 840,
+          "iv": 33.3,
+          "rv_fwd": 31.9,
+          "vrp": 1.5
+        },
+        {
+          "date": "2024-07-29",
+          "contract": "KCZ26",
+          "dte": 837,
+          "iv": 33.2,
+          "rv_fwd": 32.5,
+          "vrp": 0.6
+        },
+        {
+          "date": "2024-07-30",
+          "contract": "KCZ26",
+          "dte": 836,
+          "iv": 32.9,
+          "rv_fwd": 32.6,
+          "vrp": 0.3
+        },
+        {
+          "date": "2024-07-31",
+          "contract": "KCZ26",
+          "dte": 835,
+          "iv": 33.3,
+          "rv_fwd": 34.7,
+          "vrp": -1.4
+        },
+        {
+          "date": "2024-08-01",
+          "contract": "KCZ26",
+          "dte": 834,
+          "iv": 33.0,
+          "rv_fwd": 35.1,
+          "vrp": -2.0
+        },
+        {
+          "date": "2024-08-02",
+          "contract": "KCZ26",
+          "dte": 833,
+          "iv": 33.3,
+          "rv_fwd": 34.8,
+          "vrp": -1.5
+        },
+        {
+          "date": "2024-08-05",
+          "contract": "KCZ26",
+          "dte": 830,
+          "iv": 33.5,
+          "rv_fwd": 33.9,
+          "vrp": -0.4
+        },
+        {
+          "date": "2024-08-06",
+          "contract": "KCZ26",
+          "dte": 829,
+          "iv": 34.3,
+          "rv_fwd": 33.0,
+          "vrp": 1.3
+        },
+        {
+          "date": "2024-08-07",
+          "contract": "KCZ26",
+          "dte": 828,
+          "iv": 34.9,
+          "rv_fwd": 33.9,
+          "vrp": 1.0
+        },
+        {
+          "date": "2024-08-08",
+          "contract": "KCZ26",
+          "dte": 827,
+          "iv": 34.5,
+          "rv_fwd": 35.2,
+          "vrp": -0.7
+        },
+        {
+          "date": "2024-08-09",
+          "contract": "KCZ26",
+          "dte": 826,
+          "iv": 33.0,
+          "rv_fwd": 34.4,
+          "vrp": -1.4
+        },
+        {
+          "date": "2024-08-12",
+          "contract": "KCZ26",
+          "dte": 823,
+          "iv": 34.1,
+          "rv_fwd": 32.1,
+          "vrp": 2.0
+        },
+        {
+          "date": "2024-08-13",
+          "contract": "KCZ26",
+          "dte": 822,
+          "iv": 31.9,
+          "rv_fwd": 29.7,
+          "vrp": 2.3
+        },
+        {
+          "date": "2024-08-14",
+          "contract": "KCZ26",
+          "dte": 821,
+          "iv": 32.7,
+          "rv_fwd": 30.3,
+          "vrp": 2.4
+        },
+        {
+          "date": "2024-08-15",
+          "contract": "KCZ26",
+          "dte": 820,
+          "iv": 32.7,
+          "rv_fwd": 31.1,
+          "vrp": 1.5
+        },
+        {
+          "date": "2024-08-16",
+          "contract": "KCZ26",
+          "dte": 819,
+          "iv": 30.6,
+          "rv_fwd": 30.6,
+          "vrp": 0.1
+        },
+        {
+          "date": "2024-08-19",
+          "contract": "KCZ26",
+          "dte": 816,
+          "iv": 29.3,
+          "rv_fwd": 30.7,
+          "vrp": -1.4
+        },
+        {
+          "date": "2024-08-20",
+          "contract": "KCZ26",
+          "dte": 815,
+          "iv": 33.2,
+          "rv_fwd": 30.2,
+          "vrp": 3.0
+        },
+        {
+          "date": "2024-08-21",
+          "contract": "KCZ26",
+          "dte": 814,
+          "iv": 30.4,
+          "rv_fwd": 33.4,
+          "vrp": -3.0
+        },
+        {
+          "date": "2024-08-22",
+          "contract": "KCZ26",
+          "dte": 813,
+          "iv": 27.2,
+          "rv_fwd": 36.1,
+          "vrp": -8.8
+        },
+        {
+          "date": "2024-08-23",
+          "contract": "KCZ26",
+          "dte": 812,
+          "iv": 27.4,
+          "rv_fwd": 36.4,
+          "vrp": -9.0
+        },
+        {
+          "date": "2024-08-26",
+          "contract": "KCZ26",
+          "dte": 809,
+          "iv": 27.7,
+          "rv_fwd": 36.4,
+          "vrp": -8.7
+        },
+        {
+          "date": "2024-08-27",
+          "contract": "KCZ26",
+          "dte": 808,
+          "iv": 27.3,
+          "rv_fwd": 36.3,
+          "vrp": -8.9
+        },
+        {
+          "date": "2024-08-28",
+          "contract": "KCZ26",
+          "dte": 807,
+          "iv": 27.5,
+          "rv_fwd": 36.3,
+          "vrp": -8.9
+        },
+        {
+          "date": "2024-08-29",
+          "contract": "KCZ26",
+          "dte": 806,
+          "iv": 27.4,
+          "rv_fwd": 34.6,
+          "vrp": -7.2
+        },
+        {
+          "date": "2024-08-30",
+          "contract": "KCZ26",
+          "dte": 805,
+          "iv": 27.4,
+          "rv_fwd": 35.8,
+          "vrp": -8.4
+        },
+        {
+          "date": "2024-09-03",
+          "contract": "KCZ26",
+          "dte": 801,
+          "iv": 27.7,
+          "rv_fwd": 37.0,
+          "vrp": -9.3
+        },
+        {
+          "date": "2024-09-04",
+          "contract": "KCZ26",
+          "dte": 800,
+          "iv": 28.0,
+          "rv_fwd": 37.4,
+          "vrp": -9.5
+        },
+        {
+          "date": "2024-09-05",
+          "contract": "KCZ26",
+          "dte": 799,
+          "iv": 28.6,
+          "rv_fwd": 38.1,
+          "vrp": -9.5
+        },
+        {
+          "date": "2024-09-06",
+          "contract": "KCZ26",
+          "dte": 798,
+          "iv": 28.2,
+          "rv_fwd": 39.2,
+          "vrp": -11.1
+        },
+        {
+          "date": "2024-09-09",
+          "contract": "KCZ26",
+          "dte": 795,
+          "iv": 28.2,
+          "rv_fwd": 37.8,
+          "vrp": -9.6
+        },
+        {
+          "date": "2024-09-10",
+          "contract": "KCZ26",
+          "dte": 794,
+          "iv": 28.3,
+          "rv_fwd": 37.9,
+          "vrp": -9.6
+        },
+        {
+          "date": "2024-09-11",
+          "contract": "KCZ26",
+          "dte": 793,
+          "iv": 28.3,
+          "rv_fwd": 38.0,
+          "vrp": -9.7
+        },
+        {
+          "date": "2024-09-12",
+          "contract": "KCZ26",
+          "dte": 792,
+          "iv": 28.3,
+          "rv_fwd": 38.1,
+          "vrp": -9.8
+        },
+        {
+          "date": "2024-09-13",
+          "contract": "KCZ26",
+          "dte": 791,
+          "iv": 29.4,
+          "rv_fwd": 37.4,
+          "vrp": -8.0
+        },
+        {
+          "date": "2024-09-16",
+          "contract": "KCZ26",
+          "dte": 788,
+          "iv": 29.9,
+          "rv_fwd": 37.6,
+          "vrp": -7.7
+        },
+        {
+          "date": "2024-09-17",
+          "contract": "KCZ26",
+          "dte": 787,
+          "iv": 30.3,
+          "rv_fwd": 36.8,
+          "vrp": -6.5
+        },
+        {
+          "date": "2024-09-18",
+          "contract": "KCZ26",
+          "dte": 786,
+          "iv": 30.8,
+          "rv_fwd": 37.0,
+          "vrp": -6.1
+        },
+        {
+          "date": "2024-09-19",
+          "contract": "KCZ26",
+          "dte": 785,
+          "iv": 30.3,
+          "rv_fwd": 37.1,
+          "vrp": -6.8
+        },
+        {
+          "date": "2024-09-20",
+          "contract": "KCZ26",
+          "dte": 784,
+          "iv": 29.5,
+          "rv_fwd": 34.5,
+          "vrp": -5.1
+        },
+        {
+          "date": "2024-09-23",
+          "contract": "KCZ26",
+          "dte": 781,
+          "iv": 29.9,
+          "rv_fwd": 30.6,
+          "vrp": -0.8
+        },
+        {
+          "date": "2024-09-24",
+          "contract": "KCZ26",
+          "dte": 780,
+          "iv": 31.1,
+          "rv_fwd": 30.3,
+          "vrp": 0.8
+        },
+        {
+          "date": "2024-09-25",
+          "contract": "KCZ26",
+          "dte": 779,
+          "iv": 30.5,
+          "rv_fwd": 30.8,
+          "vrp": -0.3
+        },
+        {
+          "date": "2024-09-26",
+          "contract": "KCZ26",
+          "dte": 778,
+          "iv": 31.7,
+          "rv_fwd": 30.8,
+          "vrp": 0.9
+        },
+        {
+          "date": "2024-09-27",
+          "contract": "KCZ26",
+          "dte": 777,
+          "iv": 31.8,
+          "rv_fwd": 31.3,
+          "vrp": 0.5
+        },
+        {
+          "date": "2024-09-30",
+          "contract": "KCZ26",
+          "dte": 774,
+          "iv": 30.4,
+          "rv_fwd": 31.1,
+          "vrp": -0.8
+        },
+        {
+          "date": "2024-10-01",
+          "contract": "KCZ26",
+          "dte": 773,
+          "iv": 29.2,
+          "rv_fwd": 29.5,
+          "vrp": -0.3
+        },
+        {
+          "date": "2024-10-02",
+          "contract": "KCZ26",
+          "dte": 772,
+          "iv": 29.1,
+          "rv_fwd": 28.1,
+          "vrp": 1.0
+        },
+        {
+          "date": "2024-10-03",
+          "contract": "KCZ26",
+          "dte": 771,
+          "iv": 29.0,
+          "rv_fwd": 28.0,
+          "vrp": 1.0
+        },
+        {
+          "date": "2024-10-04",
+          "contract": "KCZ26",
+          "dte": 770,
+          "iv": 29.0,
+          "rv_fwd": 27.2,
+          "vrp": 1.7
+        },
+        {
+          "date": "2024-10-07",
+          "contract": "KCZ26",
+          "dte": 767,
+          "iv": 28.8,
+          "rv_fwd": 23.0,
+          "vrp": 5.8
+        },
+        {
+          "date": "2024-10-08",
+          "contract": "KCZ26",
+          "dte": 766,
+          "iv": 28.3,
+          "rv_fwd": 22.4,
+          "vrp": 5.9
+        },
+        {
+          "date": "2024-10-09",
+          "contract": "KCZ26",
+          "dte": 765,
+          "iv": 28.1,
+          "rv_fwd": 24.9,
+          "vrp": 3.2
+        },
+        {
+          "date": "2024-10-10",
+          "contract": "KCZ26",
+          "dte": 764,
+          "iv": 28.3,
+          "rv_fwd": 27.3,
+          "vrp": 1.0
+        },
+        {
+          "date": "2024-10-11",
+          "contract": "KCZ26",
+          "dte": 763,
+          "iv": 27.8,
+          "rv_fwd": 27.3,
+          "vrp": 0.5
+        },
+        {
+          "date": "2024-10-14",
+          "contract": "KCZ26",
+          "dte": 760,
+          "iv": 28.3,
+          "rv_fwd": 26.4,
+          "vrp": 1.9
+        },
+        {
+          "date": "2024-10-15",
+          "contract": "KCZ26",
+          "dte": 759,
+          "iv": 29.0,
+          "rv_fwd": 25.9,
+          "vrp": 3.1
+        },
+        {
+          "date": "2024-10-16",
+          "contract": "KCZ26",
+          "dte": 758,
+          "iv": 28.9,
+          "rv_fwd": 26.7,
+          "vrp": 2.2
+        },
+        {
+          "date": "2024-10-17",
+          "contract": "KCZ26",
+          "dte": 757,
+          "iv": 28.5,
+          "rv_fwd": 27.1,
+          "vrp": 1.5
+        },
+        {
+          "date": "2024-10-18",
+          "contract": "KCZ26",
+          "dte": 756,
+          "iv": 28.5,
+          "rv_fwd": 27.1,
+          "vrp": 1.4
+        },
+        {
+          "date": "2024-10-21",
+          "contract": "KCZ26",
+          "dte": 753,
+          "iv": 28.6,
+          "rv_fwd": 26.7,
+          "vrp": 1.9
+        },
+        {
+          "date": "2024-10-22",
+          "contract": "KCZ26",
+          "dte": 752,
+          "iv": 28.6,
+          "rv_fwd": 29.4,
+          "vrp": -0.8
+        },
+        {
+          "date": "2024-10-23",
+          "contract": "KCZ26",
+          "dte": 751,
+          "iv": 28.8,
+          "rv_fwd": 29.3,
+          "vrp": -0.5
+        },
+        {
+          "date": "2024-10-24",
+          "contract": "KCZ26",
+          "dte": 750,
+          "iv": 27.6,
+          "rv_fwd": 28.7,
+          "vrp": -1.1
+        },
+        {
+          "date": "2024-10-25",
+          "contract": "KCZ26",
+          "dte": 749,
+          "iv": 27.8,
+          "rv_fwd": 28.3,
+          "vrp": -0.5
+        },
+        {
+          "date": "2024-10-28",
+          "contract": "KCZ26",
+          "dte": 746,
+          "iv": 27.9,
+          "rv_fwd": 28.7,
+          "vrp": -0.8
+        },
+        {
+          "date": "2024-10-29",
+          "contract": "KCZ26",
+          "dte": 745,
+          "iv": 27.3,
+          "rv_fwd": 31.8,
+          "vrp": -4.5
+        },
+        {
+          "date": "2024-10-30",
+          "contract": "KCZ26",
+          "dte": 744,
+          "iv": 26.5,
+          "rv_fwd": 32.1,
+          "vrp": -5.6
+        },
+        {
+          "date": "2024-10-31",
+          "contract": "KCZ26",
+          "dte": 743,
+          "iv": 27.4,
+          "rv_fwd": 38.4,
+          "vrp": -11.0
+        },
+        {
+          "date": "2024-11-01",
+          "contract": "KCZ26",
+          "dte": 742,
+          "iv": 27.2,
+          "rv_fwd": 38.0,
+          "vrp": -10.8
+        },
+        {
+          "date": "2024-11-04",
+          "contract": "KCZ26",
+          "dte": 739,
+          "iv": 27.1,
+          "rv_fwd": 38.8,
+          "vrp": -11.7
+        },
+        {
+          "date": "2024-11-05",
+          "contract": "KCZ26",
+          "dte": 738,
+          "iv": 27.9,
+          "rv_fwd": 39.3,
+          "vrp": -11.3
+        },
+        {
+          "date": "2024-11-06",
+          "contract": "KCZ26",
+          "dte": 737,
+          "iv": 27.6,
+          "rv_fwd": 39.7,
+          "vrp": -12.1
+        },
+        {
+          "date": "2024-11-07",
+          "contract": "KCZ26",
+          "dte": 736,
+          "iv": 28.8,
+          "rv_fwd": 38.1,
+          "vrp": -9.3
+        },
+        {
+          "date": "2024-11-08",
+          "contract": "KCZ26",
+          "dte": 735,
+          "iv": 28.6,
+          "rv_fwd": 36.4,
+          "vrp": -7.8
+        },
+        {
+          "date": "2024-11-11",
+          "contract": "KCZ26",
+          "dte": 732,
+          "iv": 28.5,
+          "rv_fwd": 38.7,
+          "vrp": -10.2
+        },
+        {
+          "date": "2024-11-12",
+          "contract": "KCZ26",
+          "dte": 731,
+          "iv": 28.7,
+          "rv_fwd": 38.0,
+          "vrp": -9.3
+        },
+        {
+          "date": "2024-11-13",
+          "contract": "KCZ26",
+          "dte": 730,
+          "iv": 29.6,
+          "rv_fwd": 37.8,
+          "vrp": -8.2
+        },
+        {
+          "date": "2024-11-14",
+          "contract": "KCZ26",
+          "dte": 729,
+          "iv": 30.4,
+          "rv_fwd": 37.6,
+          "vrp": -7.2
+        },
+        {
+          "date": "2024-11-15",
+          "contract": "KCZ26",
+          "dte": 728,
+          "iv": 30.3,
+          "rv_fwd": 37.4,
+          "vrp": -7.1
+        },
+        {
+          "date": "2024-11-18",
+          "contract": "KCZ26",
+          "dte": 725,
+          "iv": 30.5,
+          "rv_fwd": 37.3,
+          "vrp": -6.8
+        },
+        {
+          "date": "2024-11-19",
+          "contract": "KCZ26",
+          "dte": 724,
+          "iv": 30.7,
+          "rv_fwd": 39.1,
+          "vrp": -8.4
+        },
+        {
+          "date": "2024-11-20",
+          "contract": "KCZ26",
+          "dte": 723,
+          "iv": 31.7,
+          "rv_fwd": 37.3,
+          "vrp": -5.7
+        },
+        {
+          "date": "2024-11-21",
+          "contract": "KCZ26",
+          "dte": 722,
+          "iv": 32.3,
+          "rv_fwd": 37.5,
+          "vrp": -5.2
+        },
+        {
+          "date": "2024-11-22",
+          "contract": "KCZ26",
+          "dte": 721,
+          "iv": 31.7,
+          "rv_fwd": 38.0,
+          "vrp": -6.3
+        },
+        {
+          "date": "2024-11-25",
+          "contract": "KCZ26",
+          "dte": 718,
+          "iv": 31.9,
+          "rv_fwd": 37.9,
+          "vrp": -6.0
+        },
+        {
+          "date": "2024-11-26",
+          "contract": "KCZ26",
+          "dte": 717,
+          "iv": 31.0,
+          "rv_fwd": 37.1,
+          "vrp": -6.1
+        },
+        {
+          "date": "2024-11-27",
+          "contract": "KCZ26",
+          "dte": 716,
+          "iv": 32.3,
+          "rv_fwd": 34.5,
+          "vrp": -2.2
+        },
+        {
+          "date": "2024-11-29",
+          "contract": "KCZ26",
+          "dte": 714,
+          "iv": 33.0,
+          "rv_fwd": 34.0,
+          "vrp": -1.0
+        },
+        {
+          "date": "2024-12-02",
+          "contract": "KCZ26",
+          "dte": 711,
+          "iv": 31.4,
+          "rv_fwd": 28.0,
+          "vrp": 3.4
+        },
+        {
+          "date": "2024-12-03",
+          "contract": "KCZ26",
+          "dte": 710,
+          "iv": 31.2,
+          "rv_fwd": 30.9,
+          "vrp": 0.3
+        },
+        {
+          "date": "2024-12-04",
+          "contract": "KCZ26",
+          "dte": 709,
+          "iv": 31.4,
+          "rv_fwd": 29.7,
+          "vrp": 1.6
+        },
+        {
+          "date": "2024-12-05",
+          "contract": "KCZ26",
+          "dte": 708,
+          "iv": 31.9,
+          "rv_fwd": 28.7,
+          "vrp": 3.3
+        },
+        {
+          "date": "2024-12-06",
+          "contract": "KCZ26",
+          "dte": 707,
+          "iv": 34.8,
+          "rv_fwd": 28.4,
+          "vrp": 6.4
+        },
+        {
+          "date": "2024-12-09",
+          "contract": "KCZ26",
+          "dte": 704,
+          "iv": 35.0,
+          "rv_fwd": 28.4,
+          "vrp": 6.5
+        },
+        {
+          "date": "2024-12-10",
+          "contract": "KCZ26",
+          "dte": 703,
+          "iv": 35.4,
+          "rv_fwd": 28.4,
+          "vrp": 7.1
+        },
+        {
+          "date": "2024-12-11",
+          "contract": "KCZ26",
+          "dte": 702,
+          "iv": 35.2,
+          "rv_fwd": 25.3,
+          "vrp": 9.9
+        },
+        {
+          "date": "2024-12-12",
+          "contract": "KCZ26",
+          "dte": 701,
+          "iv": 34.6,
+          "rv_fwd": 25.9,
+          "vrp": 8.7
+        },
+        {
+          "date": "2024-12-13",
+          "contract": "KCZ26",
+          "dte": 700,
+          "iv": 34.1,
+          "rv_fwd": 26.1,
+          "vrp": 8.0
+        },
+        {
+          "date": "2024-12-16",
+          "contract": "KCZ26",
+          "dte": 697,
+          "iv": 35.0,
+          "rv_fwd": 26.0,
+          "vrp": 9.0
+        },
+        {
+          "date": "2024-12-17",
+          "contract": "KCZ26",
+          "dte": 696,
+          "iv": 34.4,
+          "rv_fwd": 25.6,
+          "vrp": 8.8
+        },
+        {
+          "date": "2024-12-18",
+          "contract": "KCZ26",
+          "dte": 695,
+          "iv": 35.3,
+          "rv_fwd": 25.6,
+          "vrp": 9.6
+        },
+        {
+          "date": "2024-12-19",
+          "contract": "KCZ26",
+          "dte": 694,
+          "iv": 34.9,
+          "rv_fwd": 23.6,
+          "vrp": 11.4
+        },
+        {
+          "date": "2024-12-20",
+          "contract": "KCZ26",
+          "dte": 693,
+          "iv": 34.2,
+          "rv_fwd": 23.6,
+          "vrp": 10.6
+        },
+        {
+          "date": "2024-12-23",
+          "contract": "KCZ26",
+          "dte": 690,
+          "iv": 34.3,
+          "rv_fwd": 23.4,
+          "vrp": 10.9
+        },
+        {
+          "date": "2024-12-24",
+          "contract": "KCZ26",
+          "dte": 689,
+          "iv": 33.5,
+          "rv_fwd": 22.5,
+          "vrp": 11.0
+        },
+        {
+          "date": "2024-12-26",
+          "contract": "KCZ26",
+          "dte": 687,
+          "iv": 33.6,
+          "rv_fwd": 22.8,
+          "vrp": 10.8
+        },
+        {
+          "date": "2024-12-27",
+          "contract": "KCZ26",
+          "dte": 686,
+          "iv": 33.1,
+          "rv_fwd": 23.3,
+          "vrp": 9.8
+        },
+        {
+          "date": "2024-12-30",
+          "contract": "KCZ26",
+          "dte": 683,
+          "iv": 33.3,
+          "rv_fwd": 23.7,
+          "vrp": 9.6
+        },
+        {
+          "date": "2024-12-31",
+          "contract": "KCZ26",
+          "dte": 682,
+          "iv": 29.8,
+          "rv_fwd": 23.8,
+          "vrp": 5.9
+        },
+        {
+          "date": "2025-01-02",
+          "contract": "KCZ26",
+          "dte": 680,
+          "iv": 30.7,
+          "rv_fwd": 22.3,
+          "vrp": 8.4
+        },
+        {
+          "date": "2025-01-03",
+          "contract": "KCZ26",
+          "dte": 679,
+          "iv": 29.3,
+          "rv_fwd": 18.2,
+          "vrp": 11.1
+        },
+        {
+          "date": "2025-01-06",
+          "contract": "KCZ26",
+          "dte": 676,
+          "iv": 29.9,
+          "rv_fwd": 18.7,
+          "vrp": 11.1
+        },
+        {
+          "date": "2025-01-07",
+          "contract": "KCZ26",
+          "dte": 675,
+          "iv": 30.1,
+          "rv_fwd": 23.3,
+          "vrp": 6.7
+        },
+        {
+          "date": "2025-01-08",
+          "contract": "KCZ26",
+          "dte": 674,
+          "iv": 29.7,
+          "rv_fwd": 22.8,
+          "vrp": 6.9
+        },
+        {
+          "date": "2025-01-09",
+          "contract": "KCZ26",
+          "dte": 673,
+          "iv": 29.1,
+          "rv_fwd": 34.9,
+          "vrp": -5.8
+        },
+        {
+          "date": "2025-01-10",
+          "contract": "KCZ26",
+          "dte": 672,
+          "iv": 29.0,
+          "rv_fwd": 38.2,
+          "vrp": -9.3
+        },
+        {
+          "date": "2025-01-13",
+          "contract": "KCZ26",
+          "dte": 669,
+          "iv": 28.7,
+          "rv_fwd": 39.3,
+          "vrp": -10.6
+        },
+        {
+          "date": "2025-01-14",
+          "contract": "KCZ26",
+          "dte": 668,
+          "iv": 28.3,
+          "rv_fwd": 40.3,
+          "vrp": -11.9
+        },
+        {
+          "date": "2025-01-15",
+          "contract": "KCZ26",
+          "dte": 667,
+          "iv": 30.3,
+          "rv_fwd": 39.8,
+          "vrp": -9.5
+        },
+        {
+          "date": "2025-01-16",
+          "contract": "KCZ26",
+          "dte": 666,
+          "iv": 30.1,
+          "rv_fwd": 39.5,
+          "vrp": -9.4
+        },
+        {
+          "date": "2025-01-17",
+          "contract": "KCZ26",
+          "dte": 665,
+          "iv": 30.5,
+          "rv_fwd": 40.1,
+          "vrp": -9.6
+        },
+        {
+          "date": "2025-01-21",
+          "contract": "KCZ26",
+          "dte": 661,
+          "iv": 30.2,
+          "rv_fwd": 41.6,
+          "vrp": -11.4
+        },
+        {
+          "date": "2025-01-22",
+          "contract": "KCZ26",
+          "dte": 660,
+          "iv": 31.4,
+          "rv_fwd": 41.1,
+          "vrp": -9.7
+        },
+        {
+          "date": "2025-01-23",
+          "contract": "KCZ26",
+          "dte": 659,
+          "iv": 31.4,
+          "rv_fwd": 41.2,
+          "vrp": -9.8
+        },
+        {
+          "date": "2025-01-24",
+          "contract": "KCZ26",
+          "dte": 658,
+          "iv": 30.9,
+          "rv_fwd": 42.2,
+          "vrp": -11.3
+        },
+        {
+          "date": "2025-01-27",
+          "contract": "KCZ26",
+          "dte": 655,
+          "iv": 31.8,
+          "rv_fwd": 42.2,
+          "vrp": -10.4
+        },
+        {
+          "date": "2025-01-28",
+          "contract": "KCZ26",
+          "dte": 654,
+          "iv": 32.0,
+          "rv_fwd": 42.0,
+          "vrp": -10.0
+        },
+        {
+          "date": "2025-01-29",
+          "contract": "KCZ26",
+          "dte": 653,
+          "iv": 32.2,
+          "rv_fwd": 41.8,
+          "vrp": -9.6
+        },
+        {
+          "date": "2025-01-30",
+          "contract": "KCZ26",
+          "dte": 652,
+          "iv": 32.1,
+          "rv_fwd": 43.5,
+          "vrp": -11.3
+        },
+        {
+          "date": "2025-01-31",
+          "contract": "KCZ26",
+          "dte": 651,
+          "iv": 32.5,
+          "rv_fwd": 44.1,
+          "vrp": -11.5
+        },
+        {
+          "date": "2025-02-03",
+          "contract": "KCZ26",
+          "dte": 648,
+          "iv": 33.0,
+          "rv_fwd": 45.3,
+          "vrp": -12.2
+        },
+        {
+          "date": "2025-02-04",
+          "contract": "KCZ26",
+          "dte": 647,
+          "iv": 33.0,
+          "rv_fwd": 51.0,
+          "vrp": -18.0
+        },
+        {
+          "date": "2025-02-05",
+          "contract": "KCZ26",
+          "dte": 646,
+          "iv": 33.0,
+          "rv_fwd": 50.9,
+          "vrp": -17.9
+        },
+        {
+          "date": "2025-02-06",
+          "contract": "KCZ26",
+          "dte": 645,
+          "iv": 34.0,
+          "rv_fwd": 49.0,
+          "vrp": -15.0
+        },
+        {
+          "date": "2025-02-07",
+          "contract": "KCZ26",
+          "dte": 644,
+          "iv": 33.3,
+          "rv_fwd": 50.1,
+          "vrp": -16.8
+        },
+        {
+          "date": "2025-02-10",
+          "contract": "KCZ26",
+          "dte": 641,
+          "iv": 34.3,
+          "rv_fwd": 42.9,
+          "vrp": -8.7
+        },
+        {
+          "date": "2025-02-11",
+          "contract": "KCZ26",
+          "dte": 640,
+          "iv": 33.6,
+          "rv_fwd": 40.1,
+          "vrp": -6.5
+        },
+        {
+          "date": "2025-02-12",
+          "contract": "KCZ26",
+          "dte": 639,
+          "iv": 34.4,
+          "rv_fwd": 38.8,
+          "vrp": -4.3
+        },
+        {
+          "date": "2025-02-13",
+          "contract": "KCZ26",
+          "dte": 638,
+          "iv": 33.5,
+          "rv_fwd": 38.4,
+          "vrp": -4.9
+        },
+        {
+          "date": "2025-02-14",
+          "contract": "KCZ26",
+          "dte": 637,
+          "iv": 32.8,
+          "rv_fwd": 38.3,
+          "vrp": -5.6
+        },
+        {
+          "date": "2025-02-18",
+          "contract": "KCZ26",
+          "dte": 633,
+          "iv": 31.6,
+          "rv_fwd": 38.8,
+          "vrp": -7.2
+        },
+        {
+          "date": "2025-02-19",
+          "contract": "KCZ26",
+          "dte": 632,
+          "iv": 31.6,
+          "rv_fwd": 38.2,
+          "vrp": -6.6
+        },
+        {
+          "date": "2025-02-20",
+          "contract": "KCZ26",
+          "dte": 631,
+          "iv": 32.0,
+          "rv_fwd": 36.5,
+          "vrp": -4.6
+        },
+        {
+          "date": "2025-02-21",
+          "contract": "KCZ26",
+          "dte": 630,
+          "iv": 32.0,
+          "rv_fwd": 36.5,
+          "vrp": -4.5
+        },
+        {
+          "date": "2025-02-24",
+          "contract": "KCZ26",
+          "dte": 627,
+          "iv": 31.9,
+          "rv_fwd": 36.9,
+          "vrp": -5.0
+        },
+        {
+          "date": "2025-02-25",
+          "contract": "KCZ26",
+          "dte": 626,
+          "iv": 31.2,
+          "rv_fwd": 36.2,
+          "vrp": -5.0
+        },
+        {
+          "date": "2025-02-26",
+          "contract": "KCZ26",
+          "dte": 625,
+          "iv": 28.7,
+          "rv_fwd": 37.0,
+          "vrp": -8.3
+        },
+        {
+          "date": "2025-02-27",
+          "contract": "KCZ26",
+          "dte": 624,
+          "iv": 28.3,
+          "rv_fwd": 37.2,
+          "vrp": -8.9
+        },
+        {
+          "date": "2025-02-28",
+          "contract": "KCZ26",
+          "dte": 623,
+          "iv": 28.4,
+          "rv_fwd": 37.3,
+          "vrp": -8.9
+        },
+        {
+          "date": "2025-03-03",
+          "contract": "KCZ26",
+          "dte": 620,
+          "iv": 29.1,
+          "rv_fwd": 36.1,
+          "vrp": -7.0
+        },
+        {
+          "date": "2025-03-04",
+          "contract": "KCZ26",
+          "dte": 619,
+          "iv": 29.6,
+          "rv_fwd": 35.3,
+          "vrp": -5.7
+        },
+        {
+          "date": "2025-03-05",
+          "contract": "KCZ26",
+          "dte": 618,
+          "iv": 30.5,
+          "rv_fwd": 33.8,
+          "vrp": -3.3
+        },
+        {
+          "date": "2025-03-06",
+          "contract": "KCZ26",
+          "dte": 617,
+          "iv": 30.2,
+          "rv_fwd": 30.8,
+          "vrp": -0.7
+        },
+        {
+          "date": "2025-03-07",
+          "contract": "KCZ26",
+          "dte": 616,
+          "iv": 30.0,
+          "rv_fwd": 34.7,
+          "vrp": -4.7
+        },
+        {
+          "date": "2025-03-10",
+          "contract": "KCZ26",
+          "dte": 613,
+          "iv": 30.1,
+          "rv_fwd": 35.2,
+          "vrp": -5.1
+        },
+        {
+          "date": "2025-03-11",
+          "contract": "KCZ26",
+          "dte": 612,
+          "iv": 30.5,
+          "rv_fwd": 34.0,
+          "vrp": -3.5
+        },
+        {
+          "date": "2025-03-12",
+          "contract": "KCZ26",
+          "dte": 611,
+          "iv": 30.7,
+          "rv_fwd": 33.5,
+          "vrp": -2.8
+        },
+        {
+          "date": "2025-03-13",
+          "contract": "KCZ26",
+          "dte": 610,
+          "iv": 30.9,
+          "rv_fwd": 34.0,
+          "vrp": -3.1
+        },
+        {
+          "date": "2025-03-14",
+          "contract": "KCZ26",
+          "dte": 609,
+          "iv": 30.8,
+          "rv_fwd": 34.2,
+          "vrp": -3.4
+        },
+        {
+          "date": "2025-03-17",
+          "contract": "KCZ26",
+          "dte": 606,
+          "iv": 30.6,
+          "rv_fwd": 33.7,
+          "vrp": -3.2
+        },
+        {
+          "date": "2025-03-18",
+          "contract": "KCZ26",
+          "dte": 605,
+          "iv": 30.8,
+          "rv_fwd": 34.0,
+          "vrp": -3.3
+        },
+        {
+          "date": "2025-03-19",
+          "contract": "KCZ26",
+          "dte": 604,
+          "iv": 31.2,
+          "rv_fwd": 33.5,
+          "vrp": -2.4
+        },
+        {
+          "date": "2025-03-20",
+          "contract": "KCZ26",
+          "dte": 603,
+          "iv": 31.0,
+          "rv_fwd": 34.3,
+          "vrp": -3.2
+        },
+        {
+          "date": "2025-03-21",
+          "contract": "KCZ26",
+          "dte": 602,
+          "iv": 31.0,
+          "rv_fwd": 35.5,
+          "vrp": -4.5
+        },
+        {
+          "date": "2025-03-24",
+          "contract": "KCZ26",
+          "dte": 599,
+          "iv": 31.6,
+          "rv_fwd": 36.8,
+          "vrp": -5.3
+        },
+        {
+          "date": "2025-03-25",
+          "contract": "KCZ26",
+          "dte": 598,
+          "iv": 30.9,
+          "rv_fwd": 37.1,
+          "vrp": -6.2
+        },
+        {
+          "date": "2025-03-26",
+          "contract": "KCZ26",
+          "dte": 597,
+          "iv": 31.3,
+          "rv_fwd": 36.7,
+          "vrp": -5.4
+        },
+        {
+          "date": "2025-03-27",
+          "contract": "KCZ26",
+          "dte": 596,
+          "iv": 31.0,
+          "rv_fwd": 36.6,
+          "vrp": -5.6
+        },
+        {
+          "date": "2025-03-28",
+          "contract": "KCZ26",
+          "dte": 595,
+          "iv": 30.4,
+          "rv_fwd": 38.1,
+          "vrp": -7.6
+        },
+        {
+          "date": "2025-03-31",
+          "contract": "KCZ26",
+          "dte": 592,
+          "iv": 30.4,
+          "rv_fwd": 38.2,
+          "vrp": -7.8
+        },
+        {
+          "date": "2025-04-01",
+          "contract": "KCZ26",
+          "dte": 591,
+          "iv": 30.4,
+          "rv_fwd": 40.0,
+          "vrp": -9.6
+        },
+        {
+          "date": "2025-04-02",
+          "contract": "KCZ26",
+          "dte": 590,
+          "iv": 30.5,
+          "rv_fwd": 40.1,
+          "vrp": -9.7
+        },
+        {
+          "date": "2025-04-03",
+          "contract": "KCZ26",
+          "dte": 589,
+          "iv": 31.1,
+          "rv_fwd": 40.1,
+          "vrp": -9.0
+        },
+        {
+          "date": "2025-04-04",
+          "contract": "KCZ26",
+          "dte": 588,
+          "iv": 31.4,
+          "rv_fwd": 35.2,
+          "vrp": -3.8
+        },
+        {
+          "date": "2025-04-07",
+          "contract": "KCZ26",
+          "dte": 585,
+          "iv": 31.4,
+          "rv_fwd": 31.6,
+          "vrp": -0.2
+        },
+        {
+          "date": "2025-04-08",
+          "contract": "KCZ26",
+          "dte": 584,
+          "iv": 31.5,
+          "rv_fwd": 31.2,
+          "vrp": 0.3
+        },
+        {
+          "date": "2025-04-09",
+          "contract": "KCZ26",
+          "dte": 583,
+          "iv": 32.1,
+          "rv_fwd": 30.7,
+          "vrp": 1.4
+        },
+        {
+          "date": "2025-04-10",
+          "contract": "KCZ26",
+          "dte": 582,
+          "iv": 31.9,
+          "rv_fwd": 33.3,
+          "vrp": -1.4
+        },
+        {
+          "date": "2025-04-11",
+          "contract": "KCZ26",
+          "dte": 581,
+          "iv": 32.1,
+          "rv_fwd": 33.3,
+          "vrp": -1.3
+        },
+        {
+          "date": "2025-04-14",
+          "contract": "KCZ26",
+          "dte": 578,
+          "iv": 32.2,
+          "rv_fwd": 34.0,
+          "vrp": -1.8
+        },
+        {
+          "date": "2025-04-15",
+          "contract": "KCZ26",
+          "dte": 577,
+          "iv": 31.8,
+          "rv_fwd": 34.2,
+          "vrp": -2.4
+        },
+        {
+          "date": "2025-04-16",
+          "contract": "KCZ26",
+          "dte": 576,
+          "iv": 31.8,
+          "rv_fwd": 34.3,
+          "vrp": -2.6
+        },
+        {
+          "date": "2025-04-17",
+          "contract": "KCZ26",
+          "dte": 575,
+          "iv": 32.1,
+          "rv_fwd": 35.5,
+          "vrp": -3.4
+        },
+        {
+          "date": "2025-04-21",
+          "contract": "KCZ26",
+          "dte": 571,
+          "iv": 32.2,
+          "rv_fwd": 34.9,
+          "vrp": -2.7
+        },
+        {
+          "date": "2025-04-22",
+          "contract": "KCZ26",
+          "dte": 570,
+          "iv": 32.8,
+          "rv_fwd": 33.6,
+          "vrp": -0.8
+        },
+        {
+          "date": "2025-04-23",
+          "contract": "KCZ26",
+          "dte": 569,
+          "iv": 33.0,
+          "rv_fwd": 32.7,
+          "vrp": 0.2
+        },
+        {
+          "date": "2025-04-24",
+          "contract": "KCZ26",
+          "dte": 568,
+          "iv": 33.0,
+          "rv_fwd": 31.6,
+          "vrp": 1.4
+        },
+        {
+          "date": "2025-04-25",
+          "contract": "KCZ26",
+          "dte": 567,
+          "iv": 33.2,
+          "rv_fwd": 31.6,
+          "vrp": 1.6
+        },
+        {
+          "date": "2025-04-28",
+          "contract": "KCZ26",
+          "dte": 564,
+          "iv": 33.4,
+          "rv_fwd": 31.6,
+          "vrp": 1.8
+        },
+        {
+          "date": "2025-04-29",
+          "contract": "KCZ26",
+          "dte": 563,
+          "iv": 33.6,
+          "rv_fwd": 29.8,
+          "vrp": 3.7
+        },
+        {
+          "date": "2025-04-30",
+          "contract": "KCZ26",
+          "dte": 562,
+          "iv": 33.5,
+          "rv_fwd": 29.9,
+          "vrp": 3.6
+        },
+        {
+          "date": "2025-05-01",
+          "contract": "KCZ26",
+          "dte": 561,
+          "iv": 33.2,
+          "rv_fwd": 25.8,
+          "vrp": 7.4
+        },
+        {
+          "date": "2025-05-02",
+          "contract": "KCZ26",
+          "dte": 560,
+          "iv": 33.0,
+          "rv_fwd": 25.5,
+          "vrp": 7.4
+        },
+        {
+          "date": "2025-05-05",
+          "contract": "KCZ26",
+          "dte": 557,
+          "iv": 32.5,
+          "rv_fwd": 26.5,
+          "vrp": 6.0
+        },
+        {
+          "date": "2025-05-06",
+          "contract": "KCZ26",
+          "dte": 556,
+          "iv": 32.6,
+          "rv_fwd": 28.1,
+          "vrp": 4.4
+        },
+        {
+          "date": "2025-05-07",
+          "contract": "KCZ26",
+          "dte": 555,
+          "iv": 32.4,
+          "rv_fwd": 27.7,
+          "vrp": 4.7
+        },
+        {
+          "date": "2025-05-08",
+          "contract": "KCZ26",
+          "dte": 554,
+          "iv": 32.9,
+          "rv_fwd": 27.5,
+          "vrp": 5.4
+        },
+        {
+          "date": "2025-05-09",
+          "contract": "KCZ26",
+          "dte": 553,
+          "iv": 33.0,
+          "rv_fwd": 28.1,
+          "vrp": 4.9
+        },
+        {
+          "date": "2025-05-12",
+          "contract": "KCZ26",
+          "dte": 550,
+          "iv": 32.9,
+          "rv_fwd": 25.5,
+          "vrp": 7.4
+        },
+        {
+          "date": "2025-05-13",
+          "contract": "KCZ26",
+          "dte": 549,
+          "iv": 32.7,
+          "rv_fwd": 24.8,
+          "vrp": 7.9
+        },
+        {
+          "date": "2025-05-14",
+          "contract": "KCZ26",
+          "dte": 548,
+          "iv": 32.9,
+          "rv_fwd": 23.7,
+          "vrp": 9.2
+        },
+        {
+          "date": "2025-05-15",
+          "contract": "KCZ26",
+          "dte": 547,
+          "iv": 33.0,
+          "rv_fwd": 22.9,
+          "vrp": 10.1
+        },
+        {
+          "date": "2025-05-16",
+          "contract": "KCZ26",
+          "dte": 546,
+          "iv": 32.9,
+          "rv_fwd": 22.6,
+          "vrp": 10.3
+        },
+        {
+          "date": "2025-05-19",
+          "contract": "KCZ26",
+          "dte": 543,
+          "iv": 33.5,
+          "rv_fwd": 23.3,
+          "vrp": 10.2
+        },
+        {
+          "date": "2025-05-20",
+          "contract": "KCZ26",
+          "dte": 542,
+          "iv": 33.4,
+          "rv_fwd": 24.1,
+          "vrp": 9.3
+        },
+        {
+          "date": "2025-05-21",
+          "contract": "KCZ26",
+          "dte": 541,
+          "iv": 33.4,
+          "rv_fwd": 26.2,
+          "vrp": 7.2
+        },
+        {
+          "date": "2025-05-22",
+          "contract": "KCZ26",
+          "dte": 540,
+          "iv": 33.5,
+          "rv_fwd": 29.2,
+          "vrp": 4.3
+        },
+        {
+          "date": "2025-05-23",
+          "contract": "KCZ26",
+          "dte": 539,
+          "iv": 33.7,
+          "rv_fwd": 30.0,
+          "vrp": 3.7
+        },
+        {
+          "date": "2025-05-27",
+          "contract": "KCZ26",
+          "dte": 535,
+          "iv": 34.1,
+          "rv_fwd": 30.1,
+          "vrp": 4.0
+        },
+        {
+          "date": "2025-05-28",
+          "contract": "KCZ26",
+          "dte": 534,
+          "iv": 34.1,
+          "rv_fwd": 29.3,
+          "vrp": 4.8
+        },
+        {
+          "date": "2025-05-29",
+          "contract": "KCZ26",
+          "dte": 533,
+          "iv": 33.6,
+          "rv_fwd": 29.1,
+          "vrp": 4.5
+        },
+        {
+          "date": "2025-05-30",
+          "contract": "KCZ26",
+          "dte": 532,
+          "iv": 33.5,
+          "rv_fwd": 30.5,
+          "vrp": 3.0
+        },
+        {
+          "date": "2025-06-02",
+          "contract": "KCZ26",
+          "dte": 529,
+          "iv": 32.9,
+          "rv_fwd": 30.5,
+          "vrp": 2.4
+        },
+        {
+          "date": "2025-06-03",
+          "contract": "KCZ26",
+          "dte": 528,
+          "iv": 32.7,
+          "rv_fwd": 30.5,
+          "vrp": 2.1
+        },
+        {
+          "date": "2025-06-04",
+          "contract": "KCZ26",
+          "dte": 527,
+          "iv": 32.7,
+          "rv_fwd": 33.1,
+          "vrp": -0.4
+        },
+        {
+          "date": "2025-06-05",
+          "contract": "KCZ26",
+          "dte": 526,
+          "iv": 33.4,
+          "rv_fwd": 33.0,
+          "vrp": 0.4
+        },
+        {
+          "date": "2025-06-06",
+          "contract": "KCZ26",
+          "dte": 525,
+          "iv": 33.7,
+          "rv_fwd": 33.1,
+          "vrp": 0.6
+        },
+        {
+          "date": "2025-06-09",
+          "contract": "KCZ26",
+          "dte": 522,
+          "iv": 33.8,
+          "rv_fwd": 33.2,
+          "vrp": 0.6
+        },
+        {
+          "date": "2025-06-10",
+          "contract": "KCZ26",
+          "dte": 521,
+          "iv": 33.6,
+          "rv_fwd": 32.7,
+          "vrp": 0.9
+        },
+        {
+          "date": "2025-06-11",
+          "contract": "KCZ26",
+          "dte": 520,
+          "iv": 33.3,
+          "rv_fwd": 36.0,
+          "vrp": -2.8
+        },
+        {
+          "date": "2025-06-12",
+          "contract": "KCZ26",
+          "dte": 519,
+          "iv": 32.6,
+          "rv_fwd": 36.3,
+          "vrp": -3.7
+        },
+        {
+          "date": "2025-06-13",
+          "contract": "KCZ26",
+          "dte": 518,
+          "iv": 32.8,
+          "rv_fwd": 37.9,
+          "vrp": -5.1
+        },
+        {
+          "date": "2025-06-16",
+          "contract": "KCZ26",
+          "dte": 515,
+          "iv": 32.6,
+          "rv_fwd": 37.8,
+          "vrp": -5.2
+        },
+        {
+          "date": "2025-06-17",
+          "contract": "KCZ26",
+          "dte": 514,
+          "iv": 32.6,
+          "rv_fwd": 37.6,
+          "vrp": -5.0
+        },
+        {
+          "date": "2025-06-18",
+          "contract": "KCZ26",
+          "dte": 513,
+          "iv": 32.4,
+          "rv_fwd": 37.3,
+          "vrp": -4.8
+        },
+        {
+          "date": "2025-06-20",
+          "contract": "KCZ26",
+          "dte": 511,
+          "iv": 32.6,
+          "rv_fwd": 36.8,
+          "vrp": -4.2
+        },
+        {
+          "date": "2025-06-23",
+          "contract": "KCZ26",
+          "dte": 508,
+          "iv": 33.7,
+          "rv_fwd": 35.7,
+          "vrp": -2.0
+        },
+        {
+          "date": "2025-06-24",
+          "contract": "KCZ26",
+          "dte": 507,
+          "iv": 33.0,
+          "rv_fwd": 32.9,
+          "vrp": 0.1
+        },
+        {
+          "date": "2025-06-25",
+          "contract": "KCZ26",
+          "dte": 506,
+          "iv": 32.4,
+          "rv_fwd": 32.8,
+          "vrp": -0.4
+        },
+        {
+          "date": "2025-06-26",
+          "contract": "KCZ26",
+          "dte": 505,
+          "iv": 33.0,
+          "rv_fwd": 33.1,
+          "vrp": -0.1
+        },
+        {
+          "date": "2025-06-27",
+          "contract": "KCZ26",
+          "dte": 504,
+          "iv": 32.9,
+          "rv_fwd": 33.2,
+          "vrp": -0.3
+        },
+        {
+          "date": "2025-06-30",
+          "contract": "KCZ26",
+          "dte": 501,
+          "iv": 33.2,
+          "rv_fwd": 33.3,
+          "vrp": -0.1
+        },
+        {
+          "date": "2025-07-01",
+          "contract": "KCZ26",
+          "dte": 500,
+          "iv": 32.3,
+          "rv_fwd": 31.7,
+          "vrp": 0.6
+        },
+        {
+          "date": "2025-07-02",
+          "contract": "KCZ26",
+          "dte": 499,
+          "iv": 33.5,
+          "rv_fwd": 34.9,
+          "vrp": -1.5
+        },
+        {
+          "date": "2025-07-03",
+          "contract": "KCZ26",
+          "dte": 498,
+          "iv": 33.4,
+          "rv_fwd": 35.3,
+          "vrp": -1.9
+        },
+        {
+          "date": "2025-07-07",
+          "contract": "KCZ26",
+          "dte": 494,
+          "iv": 34.1,
+          "rv_fwd": 33.5,
+          "vrp": 0.7
+        },
+        {
+          "date": "2025-07-08",
+          "contract": "KCZ26",
+          "dte": 493,
+          "iv": 34.5,
+          "rv_fwd": 32.6,
+          "vrp": 1.9
+        },
+        {
+          "date": "2025-07-09",
+          "contract": "KCZ26",
+          "dte": 492,
+          "iv": 33.4,
+          "rv_fwd": 33.1,
+          "vrp": 0.3
+        },
+        {
+          "date": "2025-07-10",
+          "contract": "KCZ26",
+          "dte": 491,
+          "iv": 34.2,
+          "rv_fwd": 34.8,
+          "vrp": -0.6
+        },
+        {
+          "date": "2025-07-11",
+          "contract": "KCZ26",
+          "dte": 490,
+          "iv": 32.2,
+          "rv_fwd": 36.4,
+          "vrp": -4.2
+        },
+        {
+          "date": "2025-07-14",
+          "contract": "KCZ26",
+          "dte": 487,
+          "iv": 33.2,
+          "rv_fwd": 33.4,
+          "vrp": -0.2
+        },
+        {
+          "date": "2025-07-15",
+          "contract": "KCZ26",
+          "dte": 486,
+          "iv": 32.8,
+          "rv_fwd": 33.2,
+          "vrp": -0.4
+        },
+        {
+          "date": "2025-07-16",
+          "contract": "KCZ26",
+          "dte": 485,
+          "iv": 32.9,
+          "rv_fwd": 32.1,
+          "vrp": 0.9
+        },
+        {
+          "date": "2025-07-17",
+          "contract": "KCZ26",
+          "dte": 484,
+          "iv": 32.4,
+          "rv_fwd": 34.0,
+          "vrp": -1.6
+        },
+        {
+          "date": "2025-07-18",
+          "contract": "KCZ26",
+          "dte": 483,
+          "iv": 33.1,
+          "rv_fwd": 34.0,
+          "vrp": -0.8
+        },
+        {
+          "date": "2025-07-21",
+          "contract": "KCZ26",
+          "dte": 480,
+          "iv": 34.0,
+          "rv_fwd": 33.8,
+          "vrp": 0.2
+        },
+        {
+          "date": "2025-07-22",
+          "contract": "KCZ26",
+          "dte": 479,
+          "iv": 32.9,
+          "rv_fwd": 33.9,
+          "vrp": -1.0
+        },
+        {
+          "date": "2025-07-23",
+          "contract": "KCZ26",
+          "dte": 478,
+          "iv": 32.2,
+          "rv_fwd": 34.0,
+          "vrp": -1.8
+        },
+        {
+          "date": "2025-07-24",
+          "contract": "KCZ26",
+          "dte": 477,
+          "iv": 32.3,
+          "rv_fwd": 35.1,
+          "vrp": -2.8
+        },
+        {
+          "date": "2025-07-25",
+          "contract": "KCZ26",
+          "dte": 476,
+          "iv": 32.0,
+          "rv_fwd": 34.5,
+          "vrp": -2.6
+        },
+        {
+          "date": "2025-07-28",
+          "contract": "KCZ26",
+          "dte": 473,
+          "iv": 31.5,
+          "rv_fwd": 34.2,
+          "vrp": -2.7
+        },
+        {
+          "date": "2025-07-29",
+          "contract": "KCZ26",
+          "dte": 472,
+          "iv": 31.4,
+          "rv_fwd": 34.9,
+          "vrp": -3.5
+        },
+        {
+          "date": "2025-07-30",
+          "contract": "KCZ26",
+          "dte": 471,
+          "iv": 32.1,
+          "rv_fwd": 34.9,
+          "vrp": -2.8
+        },
+        {
+          "date": "2025-07-31",
+          "contract": "KCZ26",
+          "dte": 470,
+          "iv": 32.4,
+          "rv_fwd": 35.3,
+          "vrp": -2.9
+        },
+        {
+          "date": "2025-08-01",
+          "contract": "KCZ26",
+          "dte": 469,
+          "iv": 34.3,
+          "rv_fwd": 36.0,
+          "vrp": -1.7
+        },
+        {
+          "date": "2025-08-04",
+          "contract": "KCZ26",
+          "dte": 466,
+          "iv": 34.3,
+          "rv_fwd": 35.7,
+          "vrp": -1.3
+        },
+        {
+          "date": "2025-08-05",
+          "contract": "KCZ26",
+          "dte": 465,
+          "iv": 34.0,
+          "rv_fwd": 34.3,
+          "vrp": -0.3
+        },
+        {
+          "date": "2025-08-06",
+          "contract": "KCZ26",
+          "dte": 464,
+          "iv": 33.8,
+          "rv_fwd": 33.9,
+          "vrp": -0.1
+        },
+        {
+          "date": "2025-08-07",
+          "contract": "KCZ26",
+          "dte": 463,
+          "iv": 33.9,
+          "rv_fwd": 34.6,
+          "vrp": -0.7
+        },
+        {
+          "date": "2025-08-08",
+          "contract": "KCZ26",
+          "dte": 462,
+          "iv": 33.6,
+          "rv_fwd": 32.9,
+          "vrp": 0.8
+        },
+        {
+          "date": "2025-08-11",
+          "contract": "KCZ26",
+          "dte": 459,
+          "iv": 33.6,
+          "rv_fwd": 31.2,
+          "vrp": 2.4
+        },
+        {
+          "date": "2025-08-12",
+          "contract": "KCZ26",
+          "dte": 458,
+          "iv": 33.6,
+          "rv_fwd": 30.5,
+          "vrp": 3.1
+        },
+        {
+          "date": "2025-08-13",
+          "contract": "KCZ26",
+          "dte": 457,
+          "iv": 33.0,
+          "rv_fwd": 30.8,
+          "vrp": 2.2
+        },
+        {
+          "date": "2025-08-14",
+          "contract": "KCZ26",
+          "dte": 456,
+          "iv": 32.7,
+          "rv_fwd": 34.1,
+          "vrp": -1.4
+        },
+        {
+          "date": "2025-08-15",
+          "contract": "KCZ26",
+          "dte": 455,
+          "iv": 32.8,
+          "rv_fwd": 33.0,
+          "vrp": -0.2
+        },
+        {
+          "date": "2025-08-18",
+          "contract": "KCZ26",
+          "dte": 452,
+          "iv": 33.0,
+          "rv_fwd": 45.9,
+          "vrp": -12.9
+        },
+        {
+          "date": "2025-08-19",
+          "contract": "KCZ26",
+          "dte": 451,
+          "iv": 33.5,
+          "rv_fwd": 45.2,
+          "vrp": -11.7
+        },
+        {
+          "date": "2025-08-20",
+          "contract": "KCZ26",
+          "dte": 450,
+          "iv": 33.9,
+          "rv_fwd": 46.7,
+          "vrp": -12.8
+        },
+        {
+          "date": "2025-08-21",
+          "contract": "KCZ26",
+          "dte": 449,
+          "iv": 34.4,
+          "rv_fwd": 46.4,
+          "vrp": -12.0
+        },
+        {
+          "date": "2025-08-22",
+          "contract": "KCZ26",
+          "dte": 448,
+          "iv": 34.4,
+          "rv_fwd": 46.2,
+          "vrp": -11.8
+        },
+        {
+          "date": "2025-08-25",
+          "contract": "KCZ26",
+          "dte": 445,
+          "iv": 35.0,
+          "rv_fwd": 48.1,
+          "vrp": -13.1
+        },
+        {
+          "date": "2025-08-26",
+          "contract": "KCZ26",
+          "dte": 444,
+          "iv": 35.7,
+          "rv_fwd": 48.0,
+          "vrp": -12.3
+        },
+        {
+          "date": "2025-08-27",
+          "contract": "KCZ26",
+          "dte": 443,
+          "iv": 35.6,
+          "rv_fwd": 48.4,
+          "vrp": -12.7
+        },
+        {
+          "date": "2025-08-28",
+          "contract": "KCZ26",
+          "dte": 442,
+          "iv": 35.4,
+          "rv_fwd": 48.2,
+          "vrp": -12.8
+        },
+        {
+          "date": "2025-08-29",
+          "contract": "KCZ26",
+          "dte": 441,
+          "iv": 35.9,
+          "rv_fwd": 48.1,
+          "vrp": -12.2
+        },
+        {
+          "date": "2025-09-02",
+          "contract": "KCZ26",
+          "dte": 437,
+          "iv": 36.4,
+          "rv_fwd": 46.5,
+          "vrp": -10.2
+        },
+        {
+          "date": "2025-09-03",
+          "contract": "KCZ26",
+          "dte": 436,
+          "iv": 36.3,
+          "rv_fwd": 46.7,
+          "vrp": -10.5
+        },
+        {
+          "date": "2025-09-04",
+          "contract": "KCZ26",
+          "dte": 435,
+          "iv": 35.5,
+          "rv_fwd": 47.8,
+          "vrp": -12.3
+        },
+        {
+          "date": "2025-09-05",
+          "contract": "KCZ26",
+          "dte": 434,
+          "iv": 35.0,
+          "rv_fwd": 48.7,
+          "vrp": -13.7
+        },
+        {
+          "date": "2025-09-08",
+          "contract": "KCZ26",
+          "dte": 431,
+          "iv": 35.7,
+          "rv_fwd": 48.4,
+          "vrp": -12.7
+        },
+        {
+          "date": "2025-09-09",
+          "contract": "KCZ26",
+          "dte": 430,
+          "iv": 35.2,
+          "rv_fwd": 49.1,
+          "vrp": -13.9
+        },
+        {
+          "date": "2025-09-10",
+          "contract": "KCZ26",
+          "dte": 429,
+          "iv": 35.2,
+          "rv_fwd": 49.6,
+          "vrp": -14.4
+        },
+        {
+          "date": "2025-09-11",
+          "contract": "KCZ26",
+          "dte": 428,
+          "iv": 35.5,
+          "rv_fwd": 49.8,
+          "vrp": -14.2
+        },
+        {
+          "date": "2025-09-12",
+          "contract": "KCZ26",
+          "dte": 427,
+          "iv": 35.7,
+          "rv_fwd": 50.4,
+          "vrp": -14.7
+        },
+        {
+          "date": "2025-09-15",
+          "contract": "KCZ26",
+          "dte": 424,
+          "iv": 36.4,
+          "rv_fwd": 48.1,
+          "vrp": -11.7
+        },
+        {
+          "date": "2025-09-16",
+          "contract": "KCZ26",
+          "dte": 423,
+          "iv": 36.4,
+          "rv_fwd": 47.8,
+          "vrp": -11.4
+        },
+        {
+          "date": "2025-09-17",
+          "contract": "KCZ26",
+          "dte": 422,
+          "iv": 36.1,
+          "rv_fwd": 35.5,
+          "vrp": 0.6
+        },
+        {
+          "date": "2025-09-18",
+          "contract": "KCZ26",
+          "dte": 421,
+          "iv": 35.4,
+          "rv_fwd": 35.5,
+          "vrp": -0.1
+        },
+        {
+          "date": "2025-09-19",
+          "contract": "KCZ26",
+          "dte": 420,
+          "iv": 35.8,
+          "rv_fwd": 33.4,
+          "vrp": 2.3
+        },
+        {
+          "date": "2025-09-22",
+          "contract": "KCZ26",
+          "dte": 417,
+          "iv": 35.7,
+          "rv_fwd": 34.4,
+          "vrp": 1.2
+        },
+        {
+          "date": "2025-09-23",
+          "contract": "KCZ26",
+          "dte": 416,
+          "iv": 35.8,
+          "rv_fwd": 33.4,
+          "vrp": 2.4
+        },
+        {
+          "date": "2025-09-24",
+          "contract": "KCZ26",
+          "dte": 415,
+          "iv": 36.0,
+          "rv_fwd": 32.6,
+          "vrp": 3.3
+        },
+        {
+          "date": "2025-09-25",
+          "contract": "KCZ26",
+          "dte": 414,
+          "iv": 36.4,
+          "rv_fwd": 32.9,
+          "vrp": 3.5
+        },
+        {
+          "date": "2025-09-26",
+          "contract": "KCZ26",
+          "dte": 413,
+          "iv": 37.2,
+          "rv_fwd": 32.7,
+          "vrp": 4.5
+        },
+        {
+          "date": "2025-09-29",
+          "contract": "KCZ26",
+          "dte": 410,
+          "iv": 37.4,
+          "rv_fwd": 32.8,
+          "vrp": 4.5
+        },
+        {
+          "date": "2025-09-30",
+          "contract": "KCZ26",
+          "dte": 409,
+          "iv": 36.8,
+          "rv_fwd": 33.0,
+          "vrp": 3.8
+        },
+        {
+          "date": "2025-10-01",
+          "contract": "KCZ26",
+          "dte": 408,
+          "iv": 36.4,
+          "rv_fwd": 31.2,
+          "vrp": 5.3
+        },
+        {
+          "date": "2025-10-02",
+          "contract": "KCZ26",
+          "dte": 407,
+          "iv": 36.4,
+          "rv_fwd": 30.8,
+          "vrp": 5.6
+        },
+        {
+          "date": "2025-10-03",
+          "contract": "KCZ26",
+          "dte": 406,
+          "iv": 36.7,
+          "rv_fwd": 31.3,
+          "vrp": 5.4
+        },
+        {
+          "date": "2025-10-06",
+          "contract": "KCZ26",
+          "dte": 403,
+          "iv": 36.3,
+          "rv_fwd": 29.9,
+          "vrp": 6.5
+        },
+        {
+          "date": "2025-10-07",
+          "contract": "KCZ26",
+          "dte": 402,
+          "iv": 36.4,
+          "rv_fwd": 30.8,
+          "vrp": 5.6
+        },
+        {
+          "date": "2025-10-08",
+          "contract": "KCZ26",
+          "dte": 401,
+          "iv": 36.6,
+          "rv_fwd": 31.8,
+          "vrp": 4.8
+        },
+        {
+          "date": "2025-10-09",
+          "contract": "KCZ26",
+          "dte": 400,
+          "iv": 36.4,
+          "rv_fwd": 31.3,
+          "vrp": 5.0
+        },
+        {
+          "date": "2025-10-10",
+          "contract": "KCZ26",
+          "dte": 399,
+          "iv": 36.4,
+          "rv_fwd": 31.9,
+          "vrp": 4.5
+        },
+        {
+          "date": "2025-10-13",
+          "contract": "KCZ26",
+          "dte": 396,
+          "iv": 36.9,
+          "rv_fwd": 30.5,
+          "vrp": 6.4
+        },
+        {
+          "date": "2025-10-14",
+          "contract": "KCZ26",
+          "dte": 395,
+          "iv": 37.4,
+          "rv_fwd": 37.4,
+          "vrp": 0.0
+        },
+        {
+          "date": "2025-10-15",
+          "contract": "KCZ26",
+          "dte": 394,
+          "iv": 37.5,
+          "rv_fwd": 36.9,
+          "vrp": 0.6
+        },
+        {
+          "date": "2025-10-16",
+          "contract": "KCZ26",
+          "dte": 393,
+          "iv": 37.4,
+          "rv_fwd": 36.9,
+          "vrp": 0.5
+        },
+        {
+          "date": "2025-10-17",
+          "contract": "KCZ26",
+          "dte": 392,
+          "iv": 37.5,
+          "rv_fwd": 36.9,
+          "vrp": 0.6
+        },
+        {
+          "date": "2025-10-20",
+          "contract": "KCZ26",
+          "dte": 389,
+          "iv": 38.3,
+          "rv_fwd": 37.7,
+          "vrp": 0.6
+        },
+        {
+          "date": "2025-10-21",
+          "contract": "KCZ26",
+          "dte": 388,
+          "iv": 37.4,
+          "rv_fwd": 38.3,
+          "vrp": -0.9
+        },
+        {
+          "date": "2025-10-22",
+          "contract": "KCZ26",
+          "dte": 387,
+          "iv": 37.8,
+          "rv_fwd": 38.1,
+          "vrp": -0.4
+        },
+        {
+          "date": "2025-10-23",
+          "contract": "KCZ26",
+          "dte": 386,
+          "iv": 38.4,
+          "rv_fwd": 36.8,
+          "vrp": 1.5
+        },
+        {
+          "date": "2025-10-24",
+          "contract": "KCZ26",
+          "dte": 385,
+          "iv": 37.7,
+          "rv_fwd": 37.0,
+          "vrp": 0.8
+        },
+        {
+          "date": "2025-10-27",
+          "contract": "KCZ26",
+          "dte": 382,
+          "iv": 37.2,
+          "rv_fwd": 36.7,
+          "vrp": 0.5
+        },
+        {
+          "date": "2025-10-28",
+          "contract": "KCZ26",
+          "dte": 381,
+          "iv": 37.6,
+          "rv_fwd": 36.8,
+          "vrp": 0.8
+        },
+        {
+          "date": "2025-10-29",
+          "contract": "KCZ26",
+          "dte": 380,
+          "iv": 37.2,
+          "rv_fwd": 36.5,
+          "vrp": 0.8
+        },
+        {
+          "date": "2025-10-30",
+          "contract": "KCZ26",
+          "dte": 379,
+          "iv": 36.9,
+          "rv_fwd": 36.4,
+          "vrp": 0.5
+        },
+        {
+          "date": "2025-10-31",
+          "contract": "KCZ26",
+          "dte": 378,
+          "iv": 36.6,
+          "rv_fwd": 37.1,
+          "vrp": -0.5
+        },
+        {
+          "date": "2025-11-03",
+          "contract": "KCZ26",
+          "dte": 375,
+          "iv": 37.1,
+          "rv_fwd": 35.3,
+          "vrp": 1.8
+        },
+        {
+          "date": "2025-11-04",
+          "contract": "KCZ26",
+          "dte": 374,
+          "iv": 37.4,
+          "rv_fwd": 36.2,
+          "vrp": 1.2
+        },
+        {
+          "date": "2025-11-05",
+          "contract": "KCZ26",
+          "dte": 373,
+          "iv": 37.8,
+          "rv_fwd": 35.2,
+          "vrp": 2.6
+        },
+        {
+          "date": "2025-11-06",
+          "contract": "KCZ26",
+          "dte": 372,
+          "iv": 37.6,
+          "rv_fwd": 34.3,
+          "vrp": 3.3
+        },
+        {
+          "date": "2025-11-07",
+          "contract": "KCZ26",
+          "dte": 371,
+          "iv": 37.5,
+          "rv_fwd": 34.1,
+          "vrp": 3.4
+        },
+        {
+          "date": "2025-11-10",
+          "contract": "KCZ26",
+          "dte": 368,
+          "iv": 37.7,
+          "rv_fwd": 33.6,
+          "vrp": 4.1
+        },
+        {
+          "date": "2025-11-11",
+          "contract": "KCZ26",
+          "dte": 367,
+          "iv": 37.8,
+          "rv_fwd": 33.4,
+          "vrp": 4.3
+        },
+        {
+          "date": "2025-11-12",
+          "contract": "KCZ26",
+          "dte": 366,
+          "iv": 37.4,
+          "rv_fwd": 25.5,
+          "vrp": 12.0
+        },
+        {
+          "date": "2025-11-13",
+          "contract": "KCZ26",
+          "dte": 365,
+          "iv": 37.2,
+          "rv_fwd": 26.2,
+          "vrp": 11.0
+        },
+        {
+          "date": "2025-11-14",
+          "contract": "KCZ26",
+          "dte": 364,
+          "iv": 36.9,
+          "rv_fwd": 27.1,
+          "vrp": 9.9
+        },
+        {
+          "date": "2025-11-17",
+          "contract": "KCZ26",
+          "dte": 361,
+          "iv": 37.0,
+          "rv_fwd": 27.3,
+          "vrp": 9.7
+        },
+        {
+          "date": "2025-11-18",
+          "contract": "KCZ26",
+          "dte": 360,
+          "iv": 36.6,
+          "rv_fwd": 25.9,
+          "vrp": 10.7
+        },
+        {
+          "date": "2025-11-19",
+          "contract": "KCZ26",
+          "dte": 359,
+          "iv": 36.2,
+          "rv_fwd": 23.6,
+          "vrp": 12.5
+        },
+        {
+          "date": "2025-11-20",
+          "contract": "KCZ26",
+          "dte": 358,
+          "iv": 35.8,
+          "rv_fwd": 24.7,
+          "vrp": 11.1
+        },
+        {
+          "date": "2025-11-21",
+          "contract": "KCZ26",
+          "dte": 357,
+          "iv": 35.3,
+          "rv_fwd": 24.2,
+          "vrp": 11.1
+        },
+        {
+          "date": "2025-11-24",
+          "contract": "KCZ26",
+          "dte": 354,
+          "iv": 34.7,
+          "rv_fwd": 23.6,
+          "vrp": 11.1
+        },
+        {
+          "date": "2025-11-25",
+          "contract": "KCZ26",
+          "dte": 353,
+          "iv": 34.2,
+          "rv_fwd": 22.7,
+          "vrp": 11.4
+        },
+        {
+          "date": "2025-11-26",
+          "contract": "KCZ26",
+          "dte": 352,
+          "iv": 33.8,
+          "rv_fwd": 22.6,
+          "vrp": 11.2
+        },
+        {
+          "date": "2025-11-28",
+          "contract": "KCZ26",
+          "dte": 350,
+          "iv": 33.8,
+          "rv_fwd": 22.5,
+          "vrp": 11.3
+        },
+        {
+          "date": "2025-12-01",
+          "contract": "KCZ26",
+          "dte": 347,
+          "iv": 33.1,
+          "rv_fwd": 22.5,
+          "vrp": 10.6
+        },
+        {
+          "date": "2025-12-02",
+          "contract": "KCZ26",
+          "dte": 346,
+          "iv": 33.1,
+          "rv_fwd": 23.2,
+          "vrp": 9.9
+        },
+        {
+          "date": "2025-12-03",
+          "contract": "KCZ26",
+          "dte": 345,
+          "iv": 33.3,
+          "rv_fwd": 23.2,
+          "vrp": 10.2
+        },
+        {
+          "date": "2025-12-04",
+          "contract": "KCZ26",
+          "dte": 344,
+          "iv": 32.8,
+          "rv_fwd": 23.7,
+          "vrp": 9.1
+        },
+        {
+          "date": "2025-12-05",
+          "contract": "KCZ26",
+          "dte": 343,
+          "iv": 33.0,
+          "rv_fwd": 23.1,
+          "vrp": 9.8
+        },
+        {
+          "date": "2025-12-08",
+          "contract": "KCZ26",
+          "dte": 340,
+          "iv": 32.6,
+          "rv_fwd": 21.3,
+          "vrp": 11.2
+        },
+        {
+          "date": "2025-12-09",
+          "contract": "KCZ26",
+          "dte": 339,
+          "iv": 32.7,
+          "rv_fwd": 24.8,
+          "vrp": 8.0
+        },
+        {
+          "date": "2025-12-10",
+          "contract": "KCZ26",
+          "dte": 338,
+          "iv": 32.4,
+          "rv_fwd": 24.4,
+          "vrp": 8.0
+        },
+        {
+          "date": "2025-12-11",
+          "contract": "KCZ26",
+          "dte": 337,
+          "iv": 33.0,
+          "rv_fwd": 24.4,
+          "vrp": 8.6
+        },
+        {
+          "date": "2025-12-12",
+          "contract": "KCZ26",
+          "dte": 336,
+          "iv": 33.0,
+          "rv_fwd": 24.1,
+          "vrp": 8.9
+        },
+        {
+          "date": "2025-12-15",
+          "contract": "KCZ26",
+          "dte": 333,
+          "iv": 33.2,
+          "rv_fwd": 23.4,
+          "vrp": 9.8
+        },
+        {
+          "date": "2025-12-16",
+          "contract": "KCZ26",
+          "dte": 332,
+          "iv": 33.3,
+          "rv_fwd": 22.5,
+          "vrp": 10.9
+        },
+        {
+          "date": "2025-12-17",
+          "contract": "KCZ26",
+          "dte": 331,
+          "iv": 34.2,
+          "rv_fwd": 23.8,
+          "vrp": 10.4
+        },
+        {
+          "date": "2025-12-18",
+          "contract": "KCZ26",
+          "dte": 330,
+          "iv": 34.4,
+          "rv_fwd": 23.7,
+          "vrp": 10.7
+        },
+        {
+          "date": "2025-12-19",
+          "contract": "KCZ26",
+          "dte": 329,
+          "iv": 34.2,
+          "rv_fwd": 23.6,
+          "vrp": 10.6
+        },
+        {
+          "date": "2025-12-22",
+          "contract": "KCZ26",
+          "dte": 326,
+          "iv": 33.8,
+          "rv_fwd": 22.5,
+          "vrp": 11.3
+        },
+        {
+          "date": "2025-12-23",
+          "contract": "KCZ26",
+          "dte": 325,
+          "iv": 33.6,
+          "rv_fwd": 22.9,
+          "vrp": 10.6
+        },
+        {
+          "date": "2025-12-24",
+          "contract": "KCZ26",
+          "dte": 324,
+          "iv": 33.6,
+          "rv_fwd": 23.8,
+          "vrp": 9.9
+        },
+        {
+          "date": "2025-12-26",
+          "contract": "KCZ26",
+          "dte": 322,
+          "iv": 33.3,
+          "rv_fwd": 26.2,
+          "vrp": 7.0
+        },
+        {
+          "date": "2025-12-29",
+          "contract": "KCZ26",
+          "dte": 319,
+          "iv": 32.9,
+          "rv_fwd": 26.5,
+          "vrp": 6.5
+        },
+        {
+          "date": "2025-12-30",
+          "contract": "KCZ26",
+          "dte": 318,
+          "iv": 33.0,
+          "rv_fwd": 29.8,
+          "vrp": 3.3
+        },
+        {
+          "date": "2025-12-31",
+          "contract": "KCZ26",
+          "dte": 317,
+          "iv": 33.2,
+          "rv_fwd": 29.7,
+          "vrp": 3.5
+        },
+        {
+          "date": "2026-01-02",
+          "contract": "KCZ26",
+          "dte": 315,
+          "iv": 32.7,
+          "rv_fwd": 31.7,
+          "vrp": 1.0
+        },
+        {
+          "date": "2026-01-05",
+          "contract": "KCZ26",
+          "dte": 312,
+          "iv": 33.1,
+          "rv_fwd": 31.9,
+          "vrp": 1.3
+        },
+        {
+          "date": "2026-01-06",
+          "contract": "KCZ26",
+          "dte": 311,
+          "iv": 33.6,
+          "rv_fwd": 30.5,
+          "vrp": 3.2
+        },
+        {
+          "date": "2026-01-07",
+          "contract": "KCZ26",
+          "dte": 310,
+          "iv": 34.0,
+          "rv_fwd": 31.4,
+          "vrp": 2.6
+        },
+        {
+          "date": "2026-01-08",
+          "contract": "KCZ26",
+          "dte": 309,
+          "iv": 34.0,
+          "rv_fwd": 31.9,
+          "vrp": 2.1
+        },
+        {
+          "date": "2026-01-09",
+          "contract": "KCZ26",
+          "dte": 308,
+          "iv": 33.6,
+          "rv_fwd": 29.4,
+          "vrp": 4.2
+        },
+        {
+          "date": "2026-01-12",
+          "contract": "KCZ26",
+          "dte": 305,
+          "iv": 33.7,
+          "rv_fwd": 29.8,
+          "vrp": 3.9
+        },
+        {
+          "date": "2026-01-13",
+          "contract": "KCZ26",
+          "dte": 304,
+          "iv": 33.5,
+          "rv_fwd": 30.1,
+          "vrp": 3.4
+        },
+        {
+          "date": "2026-01-14",
+          "contract": "KCZ26",
+          "dte": 303,
+          "iv": 33.5,
+          "rv_fwd": 30.0,
+          "vrp": 3.6
+        },
+        {
+          "date": "2026-01-15",
+          "contract": "KCZ26",
+          "dte": 302,
+          "iv": 33.2,
+          "rv_fwd": 34.4,
+          "vrp": -1.3
+        },
+        {
+          "date": "2026-01-16",
+          "contract": "KCZ26",
+          "dte": 301,
+          "iv": 33.0,
+          "rv_fwd": 34.4,
+          "vrp": -1.3
+        },
+        {
+          "date": "2026-01-20",
+          "contract": "KCZ26",
+          "dte": 297,
+          "iv": 33.7,
+          "rv_fwd": 33.4,
+          "vrp": 0.3
+        },
+        {
+          "date": "2026-01-21",
+          "contract": "KCZ26",
+          "dte": 296,
+          "iv": 33.8,
+          "rv_fwd": 33.4,
+          "vrp": 0.4
+        },
+        {
+          "date": "2026-01-22",
+          "contract": "KCZ26",
+          "dte": 295,
+          "iv": 33.3,
+          "rv_fwd": 34.8,
+          "vrp": -1.5
+        },
+        {
+          "date": "2026-01-23",
+          "contract": "KCZ26",
+          "dte": 294,
+          "iv": 33.2,
+          "rv_fwd": 35.6,
+          "vrp": -2.4
+        },
+        {
+          "date": "2026-01-26",
+          "contract": "KCZ26",
+          "dte": 291,
+          "iv": 33.3,
+          "rv_fwd": 35.3,
+          "vrp": -2.0
+        },
+        {
+          "date": "2026-01-27",
+          "contract": "KCZ26",
+          "dte": 290,
+          "iv": 33.2,
+          "rv_fwd": 34.9,
+          "vrp": -1.7
+        },
+        {
+          "date": "2026-01-28",
+          "contract": "KCZ26",
+          "dte": 289,
+          "iv": 33.7,
+          "rv_fwd": 32.8,
+          "vrp": 0.8
+        },
+        {
+          "date": "2026-01-29",
+          "contract": "KCZ26",
+          "dte": 288,
+          "iv": 33.7,
+          "rv_fwd": 32.9,
+          "vrp": 0.8
+        },
+        {
+          "date": "2026-01-30",
+          "contract": "KCZ26",
+          "dte": 287,
+          "iv": 34.1,
+          "rv_fwd": 30.0,
+          "vrp": 4.1
+        },
+        {
+          "date": "2026-02-02",
+          "contract": "KCZ26",
+          "dte": 284,
+          "iv": 33.6,
+          "rv_fwd": 30.0,
+          "vrp": 3.5
+        },
+        {
+          "date": "2026-02-03",
+          "contract": "KCZ26",
+          "dte": 283,
+          "iv": 34.1,
+          "rv_fwd": 26.6,
+          "vrp": 7.5
+        },
+        {
+          "date": "2026-02-04",
+          "contract": "KCZ26",
+          "dte": 282,
+          "iv": 34.5,
+          "rv_fwd": 26.8,
+          "vrp": 7.7
+        },
+        {
+          "date": "2026-02-05",
+          "contract": "KCZ26",
+          "dte": 281,
+          "iv": 34.2,
+          "rv_fwd": 26.8,
+          "vrp": 7.4
+        },
+        {
+          "date": "2026-02-06",
+          "contract": "KCZ26",
+          "dte": 280,
+          "iv": 34.8,
+          "rv_fwd": 25.5,
+          "vrp": 9.2
+        },
+        {
+          "date": "2026-02-09",
+          "contract": "KCZ26",
+          "dte": 277,
+          "iv": 34.8,
+          "rv_fwd": 26.9,
+          "vrp": 7.9
+        },
+        {
+          "date": "2026-02-10",
+          "contract": "KCZ26",
+          "dte": 276,
+          "iv": 34.0,
+          "rv_fwd": 27.1,
+          "vrp": 6.9
+        },
+        {
+          "date": "2026-02-11",
+          "contract": "KCZ26",
+          "dte": 275,
+          "iv": 33.8,
+          "rv_fwd": 28.1,
+          "vrp": 5.6
+        },
+        {
+          "date": "2026-02-12",
+          "contract": "KCZ26",
+          "dte": 274,
+          "iv": 33.9,
+          "rv_fwd": 28.0,
+          "vrp": 5.9
+        },
+        {
+          "date": "2026-02-13",
+          "contract": "KCZ26",
+          "dte": 273,
+          "iv": 34.9,
+          "rv_fwd": 28.0,
+          "vrp": 6.9
+        },
+        {
+          "date": "2026-02-17",
+          "contract": "KCZ26",
+          "dte": 269,
+          "iv": 35.6,
+          "rv_fwd": 22.2,
+          "vrp": 13.4
+        },
+        {
+          "date": "2026-02-18",
+          "contract": "KCZ26",
+          "dte": 268,
+          "iv": 35.3,
+          "rv_fwd": 23.3,
+          "vrp": 12.0
+        },
+        {
+          "date": "2026-02-19",
+          "contract": "KCZ26",
+          "dte": 267,
+          "iv": 35.4,
+          "rv_fwd": 23.7,
+          "vrp": 11.7
+        },
+        {
+          "date": "2026-02-20",
+          "contract": "KCZ26",
+          "dte": 266,
+          "iv": 35.0,
+          "rv_fwd": 24.5,
+          "vrp": 10.5
+        },
+        {
+          "date": "2026-02-23",
+          "contract": "KCZ26",
+          "dte": 263,
+          "iv": 35.4,
+          "rv_fwd": 24.6,
+          "vrp": 10.8
+        },
+        {
+          "date": "2026-02-24",
+          "contract": "KCZ26",
+          "dte": 262,
+          "iv": 34.9,
+          "rv_fwd": 23.2,
+          "vrp": 11.7
+        },
+        {
+          "date": "2026-02-25",
+          "contract": "KCZ26",
+          "dte": 261,
+          "iv": 34.7,
+          "rv_fwd": 23.8,
+          "vrp": 10.9
+        },
+        {
+          "date": "2026-02-26",
+          "contract": "KCZ26",
+          "dte": 260,
+          "iv": 34.5,
+          "rv_fwd": 24.6,
+          "vrp": 10.0
+        },
+        {
+          "date": "2026-02-27",
+          "contract": "KCZ26",
+          "dte": 259,
+          "iv": 34.7,
+          "rv_fwd": 26.5,
+          "vrp": 8.2
+        },
+        {
+          "date": "2026-03-02",
+          "contract": "KCZ26",
+          "dte": 256,
+          "iv": 35.2,
+          "rv_fwd": 26.2,
+          "vrp": 9.0
+        },
+        {
+          "date": "2026-03-03",
+          "contract": "KCZ26",
+          "dte": 255,
+          "iv": 34.6,
+          "rv_fwd": 26.2,
+          "vrp": 8.4
+        },
+        {
+          "date": "2026-03-04",
+          "contract": "KCZ26",
+          "dte": 254,
+          "iv": 34.5,
+          "rv_fwd": 26.2,
+          "vrp": 8.3
+        },
+        {
+          "date": "2026-03-05",
+          "contract": "KCZ26",
+          "dte": 253,
+          "iv": 34.1,
+          "rv_fwd": 26.2,
+          "vrp": 7.9
+        },
+        {
+          "date": "2026-03-06",
+          "contract": "KCZ26",
+          "dte": 252,
+          "iv": 34.1,
+          "rv_fwd": 28.3,
+          "vrp": 5.7
+        },
+        {
+          "date": "2026-03-09",
+          "contract": "KCZ26",
+          "dte": 249,
+          "iv": 34.1,
+          "rv_fwd": 29.5,
+          "vrp": 4.6
+        },
+        {
+          "date": "2026-03-10",
+          "contract": "KCZ26",
+          "dte": 248,
+          "iv": 34.3,
+          "rv_fwd": 29.5,
+          "vrp": 4.8
+        },
+        {
+          "date": "2026-03-11",
+          "contract": "KCZ26",
+          "dte": 247,
+          "iv": 34.9,
+          "rv_fwd": 28.3,
+          "vrp": 6.6
+        },
+        {
+          "date": "2026-03-12",
+          "contract": "KCZ26",
+          "dte": 246,
+          "iv": 35.0,
+          "rv_fwd": 27.9,
+          "vrp": 7.1
+        },
+        {
+          "date": "2026-03-13",
+          "contract": "KCZ26",
+          "dte": 245,
+          "iv": 35.4,
+          "rv_fwd": 26.5,
+          "vrp": 8.9
+        },
+        {
+          "date": "2026-03-16",
+          "contract": "KCZ26",
+          "dte": 242,
+          "iv": 35.1,
+          "rv_fwd": 26.0,
+          "vrp": 9.1
+        },
+        {
+          "date": "2026-03-17",
+          "contract": "KCZ26",
+          "dte": 241,
+          "iv": 34.9,
+          "rv_fwd": 27.3,
+          "vrp": 7.6
+        },
+        {
+          "date": "2026-03-18",
+          "contract": "KCZ26",
+          "dte": 240,
+          "iv": 34.4,
+          "rv_fwd": 27.8,
+          "vrp": 6.6
+        },
+        {
+          "date": "2026-03-19",
+          "contract": "KCZ26",
+          "dte": 239,
+          "iv": 34.1,
+          "rv_fwd": 27.4,
+          "vrp": 6.7
+        },
+        {
+          "date": "2026-03-20",
+          "contract": "KCZ26",
+          "dte": 238,
+          "iv": 34.4,
+          "rv_fwd": 27.8,
+          "vrp": 6.6
+        },
+        {
+          "date": "2026-03-23",
+          "contract": "KCZ26",
+          "dte": 235,
+          "iv": 34.5,
+          "rv_fwd": 28.1,
+          "vrp": 6.4
+        },
+        {
+          "date": "2026-03-24",
+          "contract": "KCZ26",
+          "dte": 234,
+          "iv": 35.4,
+          "rv_fwd": 28.8,
+          "vrp": 6.6
+        },
+        {
+          "date": "2026-03-25",
+          "contract": "KCZ26",
+          "dte": 233,
+          "iv": 35.5,
+          "rv_fwd": 28.9,
+          "vrp": 6.6
+        },
+        {
+          "date": "2026-03-26",
+          "contract": "KCZ26",
+          "dte": 232,
+          "iv": 34.8,
+          "rv_fwd": 29.4,
+          "vrp": 5.4
+        },
+        {
+          "date": "2026-03-27",
+          "contract": "KCZ26",
+          "dte": 231,
+          "iv": 35.3,
+          "rv_fwd": 28.7,
+          "vrp": 6.6
+        },
+        {
+          "date": "2026-03-30",
+          "contract": "KCZ26",
+          "dte": 228,
+          "iv": 35.5,
+          "rv_fwd": 26.9,
+          "vrp": 8.6
+        },
+        {
+          "date": "2026-03-31",
+          "contract": "KCZ26",
+          "dte": 227,
+          "iv": 35.2,
+          "rv_fwd": 27.5,
+          "vrp": 7.7
+        },
+        {
+          "date": "2026-04-01",
+          "contract": "KCZ26",
+          "dte": 226,
+          "iv": 35.0,
+          "rv_fwd": 27.5,
+          "vrp": 7.5
+        },
+        {
+          "date": "2026-04-02",
+          "contract": "KCZ26",
+          "dte": 225,
+          "iv": 35.0,
+          "rv_fwd": 27.4,
+          "vrp": 7.6
+        },
+        {
+          "date": "2026-04-06",
+          "contract": "KCZ26",
+          "dte": 221,
+          "iv": 34.3,
+          "rv_fwd": 27.7,
+          "vrp": 6.6
+        },
+        {
+          "date": "2026-04-07",
+          "contract": "KCZ26",
+          "dte": 220,
+          "iv": 34.6,
+          "rv_fwd": 25.4,
+          "vrp": 9.2
+        },
+        {
+          "date": "2026-04-08",
+          "contract": "KCZ26",
+          "dte": 219,
+          "iv": 34.5,
+          "rv_fwd": 27.7,
+          "vrp": 6.9
+        },
+        {
+          "date": "2026-04-09",
+          "contract": "KCZ26",
+          "dte": 218,
+          "iv": 34.3,
+          "rv_fwd": 27.8,
+          "vrp": 6.5
+        },
+        {
+          "date": "2026-04-10",
+          "contract": "KCZ26",
+          "dte": 217,
+          "iv": 34.1,
+          "rv_fwd": 28.9,
+          "vrp": 5.2
+        },
+        {
+          "date": "2026-04-13",
+          "contract": "KCZ26",
+          "dte": 214,
+          "iv": 34.8,
+          "rv_fwd": 29.0,
+          "vrp": 5.8
+        },
+        {
+          "date": "2026-04-14",
+          "contract": "KCZ26",
+          "dte": 213,
+          "iv": 34.9,
+          "rv_fwd": 28.9,
+          "vrp": 6.0
+        },
+        {
+          "date": "2026-04-15",
+          "contract": "KCZ26",
+          "dte": 212,
+          "iv": 34.3,
+          "rv_fwd": 29.7,
+          "vrp": 4.6
+        },
+        {
+          "date": "2026-04-16",
+          "contract": "KCZ26",
+          "dte": 211,
+          "iv": 34.5,
+          "rv_fwd": 30.6,
+          "vrp": 4.0
+        },
+        {
+          "date": "2026-04-17",
+          "contract": "KCZ26",
+          "dte": 210,
+          "iv": 34.8,
+          "rv_fwd": 30.5,
+          "vrp": 4.2
+        },
+        {
+          "date": "2026-04-20",
+          "contract": "KCZ26",
+          "dte": 207,
+          "iv": 34.9,
+          "rv_fwd": 30.6,
+          "vrp": 4.3
+        },
+        {
+          "date": "2026-04-21",
+          "contract": "KCZ26",
+          "dte": 206,
+          "iv": 34.7,
+          "rv_fwd": 30.0,
+          "vrp": 4.7
+        },
+        {
+          "date": "2026-04-22",
+          "contract": "KCZ26",
+          "dte": 205,
+          "iv": 34.6,
+          "rv_fwd": 29.6,
+          "vrp": 4.9
+        },
+        {
+          "date": "2026-04-23",
+          "contract": "KCZ26",
+          "dte": 204,
+          "iv": 34.6,
+          "rv_fwd": 27.3,
+          "vrp": 7.3
+        },
+        {
+          "date": "2026-04-24",
+          "contract": "KCZ26",
+          "dte": 203,
+          "iv": 34.6,
+          "rv_fwd": 27.1,
+          "vrp": 7.5
+        },
+        {
+          "date": "2026-04-27",
+          "contract": "KCZ26",
+          "dte": 200,
+          "iv": 34.3,
+          "rv_fwd": 26.1,
+          "vrp": 8.2
+        },
+        {
+          "date": "2026-04-28",
+          "contract": "KCZ26",
+          "dte": 199,
+          "iv": 34.0,
+          "rv_fwd": 26.6,
+          "vrp": 7.3
+        },
+        {
+          "date": "2026-04-29",
+          "contract": "KCZ26",
+          "dte": 198,
+          "iv": 34.1,
+          "rv_fwd": 27.4,
+          "vrp": 6.8
+        },
+        {
+          "date": "2026-04-30",
+          "contract": "KCZ26",
+          "dte": 197,
+          "iv": 34.1,
+          "rv_fwd": 28.5,
+          "vrp": 5.6
+        },
+        {
+          "date": "2026-05-01",
+          "contract": "KCZ26",
+          "dte": 196,
+          "iv": 34.1,
+          "rv_fwd": 29.2,
+          "vrp": 4.9
+        },
+        {
+          "date": "2026-05-04",
+          "contract": "KCZ26",
+          "dte": 193,
+          "iv": 34.8,
+          "rv_fwd": 29.3,
+          "vrp": 5.5
+        },
+        {
+          "date": "2026-05-05",
+          "contract": "KCZ26",
+          "dte": 192,
+          "iv": 35.2,
+          "rv_fwd": 29.6,
+          "vrp": 5.6
+        },
+        {
+          "date": "2026-05-06",
+          "contract": "KCZ26",
+          "dte": 191,
+          "iv": 35.2,
+          "rv_fwd": 30.2,
+          "vrp": 5.0
+        },
+        {
+          "date": "2026-05-07",
+          "contract": "KCZ26",
+          "dte": 190,
+          "iv": 36.5,
+          "rv_fwd": 26.9,
+          "vrp": 9.6
+        },
+        {
+          "date": "2026-05-08",
+          "contract": "KCZ26",
+          "dte": 189,
+          "iv": 36.6,
+          "rv_fwd": 26.8,
+          "vrp": 9.8
+        },
+        {
+          "date": "2026-05-11",
+          "contract": "KCZ26",
+          "dte": 186,
+          "iv": 36.7,
+          "rv_fwd": 24.9,
+          "vrp": 11.8
+        },
+        {
+          "date": "2026-05-12",
+          "contract": "KCZ26",
+          "dte": 185,
+          "iv": 36.7,
+          "rv_fwd": 25.2,
+          "vrp": 11.5
+        },
+        {
+          "date": "2026-05-13",
+          "contract": "KCZ26",
+          "dte": 184,
+          "iv": 36.9,
+          "rv_fwd": 26.6,
+          "vrp": 10.2
+        },
+        {
+          "date": "2026-05-14",
+          "contract": "KCZ26",
+          "dte": 183,
+          "iv": 36.9,
+          "rv_fwd": 26.1,
+          "vrp": 10.8
+        },
+        {
+          "date": "2026-05-15",
+          "contract": "KCZ26",
+          "dte": 182,
+          "iv": 37.3,
+          "rv_fwd": 24.8,
+          "vrp": 12.5
+        },
+        {
+          "date": "2026-05-18",
+          "contract": "KCZ26",
+          "dte": 179,
+          "iv": 37.8,
+          "rv_fwd": 29.0,
+          "vrp": 8.8
+        },
+        {
+          "date": "2026-05-19",
+          "contract": "KCZ26",
+          "dte": 178,
+          "iv": 37.4,
+          "rv_fwd": 28.3,
+          "vrp": 9.2
+        },
+        {
+          "date": "2026-05-20",
+          "contract": "KCZ26",
+          "dte": 177,
+          "iv": 36.5,
+          "rv_fwd": 29.0,
+          "vrp": 7.5
+        },
+        {
+          "date": "2026-05-21",
+          "contract": "KCZ26",
+          "dte": 176,
+          "iv": 36.0,
+          "rv_fwd": 28.4,
+          "vrp": 7.6
+        },
+        {
+          "date": "2026-05-22",
+          "contract": "KCZ26",
+          "dte": 175,
+          "iv": 35.4,
+          "rv_fwd": 28.5,
+          "vrp": 6.9
+        },
+        {
+          "date": "2026-05-26",
+          "contract": "KCZ26",
+          "dte": 171,
+          "iv": 35.6,
+          "rv_fwd": 29.7,
+          "vrp": 5.9
+        },
+        {
+          "date": "2026-05-27",
+          "contract": "KCZ26",
+          "dte": 170,
+          "iv": 34.6,
+          "rv_fwd": 29.1,
+          "vrp": 5.5
+        },
+        {
+          "date": "2026-05-28",
+          "contract": "KCZ26",
+          "dte": 169,
+          "iv": 34.6,
+          "rv_fwd": 28.6,
+          "vrp": 6.0
+        },
+        {
+          "date": "2026-05-29",
+          "contract": "KCZ26",
+          "dte": 168,
+          "iv": 34.9,
+          "rv_fwd": 26.9,
+          "vrp": 8.1
+        },
+        {
+          "date": "2026-06-01",
+          "contract": "KCZ26",
+          "dte": 165,
+          "iv": 35.8,
+          "rv_fwd": 35.3,
+          "vrp": 0.5
+        },
+        {
+          "date": "2026-06-02",
+          "contract": "KCZ26",
+          "dte": 164,
+          "iv": 36.0,
+          "rv_fwd": 38.4,
+          "vrp": -2.4
+        },
+        {
+          "date": "2026-06-03",
+          "contract": "KCZ26",
+          "dte": 163,
+          "iv": 36.3,
+          "rv_fwd": 39.2,
+          "vrp": -2.9
+        },
+        {
+          "date": "2026-06-04",
+          "contract": "KCZ26",
+          "dte": 162,
+          "iv": 36.2,
+          "rv_fwd": 38.5,
+          "vrp": -2.3
+        },
+        {
+          "date": "2026-06-05",
+          "contract": "KCZ26",
+          "dte": 161,
+          "iv": 36.5,
+          "rv_fwd": 67.0,
+          "vrp": -30.5
+        },
+        {
+          "date": "2026-06-08",
+          "contract": "KCZ26",
+          "dte": 158,
+          "iv": 35.9,
+          "rv_fwd": 74.6,
+          "vrp": -38.7
+        },
+        {
+          "date": "2026-06-09",
+          "contract": "KCZ26",
+          "dte": 157,
+          "iv": 35.0,
+          "rv_fwd": 75.1,
+          "vrp": -40.1
+        },
+        {
+          "date": "2026-06-10",
+          "contract": "KCZ26",
+          "dte": 156,
+          "iv": 35.5,
+          "rv_fwd": 82.5,
+          "vrp": -47.0
+        },
+        {
+          "date": "2026-06-11",
+          "contract": "KCZ26",
+          "dte": 155,
+          "iv": 36.0,
+          "rv_fwd": 83.1,
+          "vrp": -47.0
+        },
+        {
+          "date": "2026-06-12",
+          "contract": "KCZ26",
+          "dte": 154,
+          "iv": 35.5,
+          "rv_fwd": 83.1,
+          "vrp": -47.6
+        },
+        {
+          "date": "2026-06-15",
+          "contract": "KCZ26",
+          "dte": 151,
+          "iv": 35.6,
+          "rv_fwd": 82.9,
+          "vrp": -47.2
+        },
+        {
+          "date": "2026-06-16",
+          "contract": "KCZ26",
+          "dte": 150,
+          "iv": 35.5,
+          "rv_fwd": 81.3,
+          "vrp": -45.9
+        },
+        {
+          "date": "2026-06-17",
+          "contract": "KCZ26",
+          "dte": 149,
+          "iv": 35.4,
+          "rv_fwd": 82.6,
+          "vrp": -47.3
+        },
+        {
+          "date": "2026-06-18",
+          "contract": "KCZ26",
+          "dte": 148,
+          "iv": 36.1,
+          "rv_fwd": 82.7,
+          "vrp": -46.6
+        },
+        {
+          "date": "2026-06-22",
+          "contract": "KCZ26",
+          "dte": 144,
+          "iv": 37.0,
+          "rv_fwd": 82.9,
+          "vrp": -45.9
+        },
+        {
+          "date": "2026-06-23",
+          "contract": "KCZ26",
+          "dte": 143,
+          "iv": 36.4,
+          "rv_fwd": 82.6,
+          "vrp": -46.3
+        },
+        {
+          "date": "2026-06-24",
+          "contract": "KCZ26",
+          "dte": 142,
+          "iv": 36.2,
+          "rv_fwd": 83.0,
+          "vrp": -46.8
+        },
+        {
+          "date": "2026-06-25",
+          "contract": "KCZ26",
+          "dte": 141,
+          "iv": 36.4,
+          "rv_fwd": 83.0,
+          "vrp": -46.6
+        },
+        {
+          "date": "2026-06-26",
+          "contract": "KCZ26",
+          "dte": 140,
+          "iv": 36.2,
+          "rv_fwd": 83.5,
+          "vrp": -47.3
+        },
+        {
+          "date": "2026-06-29",
+          "contract": "KCZ26",
+          "dte": 137,
+          "iv": 35.7,
+          "rv_fwd": 84.4,
+          "vrp": -48.6
+        },
+        {
+          "date": "2026-06-30",
+          "contract": "KCZ26",
+          "dte": 136,
+          "iv": 37.3,
+          "rv_fwd": 81.5,
+          "vrp": -44.2
+        },
+        {
+          "date": "2026-07-01",
+          "contract": "KCZ26",
+          "dte": 135,
+          "iv": 37.5,
+          "rv_fwd": 80.1,
+          "vrp": -42.5
+        },
+        {
+          "date": "2026-07-02",
+          "contract": "KCZ26",
+          "dte": 134,
+          "iv": 40.2,
+          "rv_fwd": 79.8,
+          "vrp": -39.6
+        },
+        {
+          "date": "2026-07-06",
+          "contract": "KCZ26",
+          "dte": 130,
+          "iv": 45.4,
+          "rv_fwd": 59.2,
+          "vrp": -13.8
+        },
+        {
+          "date": "2026-07-07",
+          "contract": "KCZ26",
+          "dte": 129,
+          "iv": 49.1,
+          "rv_fwd": 49.3,
+          "vrp": -0.2
+        },
+        {
+          "date": "2026-07-08",
+          "contract": "KCZ26",
+          "dte": 128,
+          "iv": 48.3,
+          "rv_fwd": 48.9,
+          "vrp": -0.6
+        },
+        {
+          "date": "2026-07-09",
+          "contract": "KCZ26",
+          "dte": 127,
+          "iv": 57.1,
+          "rv_fwd": 36.5,
+          "vrp": 20.6
+        },
+        {
+          "date": "2026-07-10",
+          "contract": "KCZ26",
+          "dte": 126,
+          "iv": 55.6,
+          "rv_fwd": 34.1,
+          "vrp": 21.5
+        },
+        {
+          "date": "2026-07-13",
+          "contract": "KCZ26",
+          "dte": 123,
+          "iv": 52.2,
+          "rv_fwd": 33.7,
+          "vrp": 18.5
+        },
+        {
+          "date": "2026-07-14",
+          "contract": "KCZ26",
+          "dte": 122,
+          "iv": 51.2,
+          "rv_fwd": 33.9,
+          "vrp": 17.4
+        },
+        {
+          "date": "2026-07-15",
+          "contract": "KCZ26",
+          "dte": 121,
+          "iv": 48.9,
+          "rv_fwd": 34.7,
+          "vrp": 14.2
+        },
+        {
+          "date": "2026-07-16",
+          "contract": "KCZ26",
+          "dte": 120,
+          "iv": 47.3,
+          "rv_fwd": 31.6,
+          "vrp": 15.7
+        }
+      ],
+      "life_matched": null,
+      "latest": {
+        "KCZ26": {
+          "date": "2026-08-14",
+          "dte": 91,
+          "iv": 43.7,
+          "rv_trailing": 31.6
+        },
+        "KCH27": {
+          "date": "2026-08-14",
+          "dte": 182,
+          "iv": 39.6,
+          "rv_trailing": 30.3
+        },
+        "KCK27": {
+          "date": "2026-08-14",
+          "dte": 238,
+          "iv": 38.6,
+          "rv_trailing": 28.8
+        }
+      }
+    },
+    "robusta": {
+      "spread_now": {
+        "date": "2026-08-14",
+        "spread": 16.1,
+        "percentile": 98.0,
+        "n": 377
+      },
+      "all": {
+        "n": 1005,
+        "start": "2025-01-28",
+        "end": "2026-07-16",
+        "mean_iv": 37.0,
+        "mean_rv": 34.7,
+        "mean_vrp": 2.4,
+        "median_vrp": 4.0,
+        "share_positive": 66.4,
+        "n_blocks": 48,
+        "t_blocks": 1.41,
+        "first_half_vrp": -0.1,
+        "second_half_vrp": 4.8
+      },
+      "by_bucket": {
+        "near": {
+          "n": 78,
+          "start": "2026-04-22",
+          "end": "2026-07-16",
+          "mean_iv": 35.0,
+          "mean_rv": 37.3,
+          "mean_vrp": -2.3,
+          "median_vrp": 2.9,
+          "share_positive": 60.3,
+          "n_blocks": 4,
+          "t_blocks": -0.3,
+          "first_half_vrp": -0.0,
+          "second_half_vrp": -4.5
+        },
+        "mid": {
+          "n": 247,
+          "start": "2025-12-15",
+          "end": "2026-07-16",
+          "mean_iv": 34.3,
+          "mean_rv": 31.4,
+          "mean_vrp": 2.9,
+          "median_vrp": 4.7,
+          "share_positive": 84.2,
+          "n_blocks": 12,
+          "t_blocks": 0.7,
+          "first_half_vrp": 6.5,
+          "second_half_vrp": -0.7
+        },
+        "far": {
+          "n": 680,
+          "start": "2025-01-28",
+          "end": "2026-04-10",
+          "mean_iv": 38.3,
+          "mean_rv": 35.5,
+          "mean_vrp": 2.7,
+          "median_vrp": 3.2,
+          "share_positive": 60.6,
+          "n_blocks": 33,
+          "t_blocks": 1.9,
+          "first_half_vrp": -2.2,
+          "second_half_vrp": 7.7
+        }
+      },
+      "series": [
+        {
+          "date": "2025-01-28",
+          "contract": "RMU26",
+          "dte": 568,
+          "iv": 36.2,
+          "rv_fwd": 27.1,
+          "vrp": 9.1
+        },
+        {
+          "date": "2025-01-29",
+          "contract": "RMU26",
+          "dte": 567,
+          "iv": 35.9,
+          "rv_fwd": 26.7,
+          "vrp": 9.2
+        },
+        {
+          "date": "2025-01-30",
+          "contract": "RMU26",
+          "dte": 566,
+          "iv": 36.1,
+          "rv_fwd": 26.2,
+          "vrp": 9.9
+        },
+        {
+          "date": "2025-01-31",
+          "contract": "RMU26",
+          "dte": 565,
+          "iv": 36.1,
+          "rv_fwd": 27.6,
+          "vrp": 8.4
+        },
+        {
+          "date": "2025-02-03",
+          "contract": "RMU26",
+          "dte": 562,
+          "iv": 36.2,
+          "rv_fwd": 27.5,
+          "vrp": 8.7
+        },
+        {
+          "date": "2025-02-04",
+          "contract": "RMU26",
+          "dte": 561,
+          "iv": 35.9,
+          "rv_fwd": 27.5,
+          "vrp": 8.4
+        },
+        {
+          "date": "2025-02-05",
+          "contract": "RMU26",
+          "dte": 560,
+          "iv": 36.0,
+          "rv_fwd": 31.7,
+          "vrp": 4.3
+        },
+        {
+          "date": "2025-02-06",
+          "contract": "RMU26",
+          "dte": 559,
+          "iv": 35.8,
+          "rv_fwd": 30.8,
+          "vrp": 5.1
+        },
+        {
+          "date": "2025-02-07",
+          "contract": "RMU26",
+          "dte": 558,
+          "iv": 35.7,
+          "rv_fwd": 30.1,
+          "vrp": 5.6
+        },
+        {
+          "date": "2025-02-10",
+          "contract": "RMU26",
+          "dte": 555,
+          "iv": 35.6,
+          "rv_fwd": 31.6,
+          "vrp": 4.1
+        },
+        {
+          "date": "2025-02-11",
+          "contract": "RMU26",
+          "dte": 554,
+          "iv": 35.1,
+          "rv_fwd": 31.6,
+          "vrp": 3.5
+        },
+        {
+          "date": "2025-02-12",
+          "contract": "RMU26",
+          "dte": 553,
+          "iv": 35.1,
+          "rv_fwd": 29.7,
+          "vrp": 5.4
+        },
+        {
+          "date": "2025-02-13",
+          "contract": "RMU26",
+          "dte": 552,
+          "iv": 36.1,
+          "rv_fwd": 30.3,
+          "vrp": 5.7
+        },
+        {
+          "date": "2025-02-14",
+          "contract": "RMU26",
+          "dte": 551,
+          "iv": 35.8,
+          "rv_fwd": 30.2,
+          "vrp": 5.6
+        },
+        {
+          "date": "2025-02-17",
+          "contract": "RMU26",
+          "dte": 548,
+          "iv": 35.6,
+          "rv_fwd": 30.1,
+          "vrp": 5.5
+        },
+        {
+          "date": "2025-02-18",
+          "contract": "RMU26",
+          "dte": 547,
+          "iv": 35.7,
+          "rv_fwd": 30.1,
+          "vrp": 5.6
+        },
+        {
+          "date": "2025-02-19",
+          "contract": "RMU26",
+          "dte": 546,
+          "iv": 35.7,
+          "rv_fwd": 30.1,
+          "vrp": 5.7
+        },
+        {
+          "date": "2025-02-20",
+          "contract": "RMU26",
+          "dte": 545,
+          "iv": 35.4,
+          "rv_fwd": 29.7,
+          "vrp": 5.7
+        },
+        {
+          "date": "2025-02-21",
+          "contract": "RMU26",
+          "dte": 544,
+          "iv": 35.1,
+          "rv_fwd": 29.6,
+          "vrp": 5.5
+        },
+        {
+          "date": "2025-02-24",
+          "contract": "RMU26",
+          "dte": 541,
+          "iv": 34.6,
+          "rv_fwd": 28.1,
+          "vrp": 6.4
+        },
+        {
+          "date": "2025-02-25",
+          "contract": "RMU26",
+          "dte": 540,
+          "iv": 34.6,
+          "rv_fwd": 28.7,
+          "vrp": 5.9
+        },
+        {
+          "date": "2025-02-26",
+          "contract": "RMU26",
+          "dte": 539,
+          "iv": 34.7,
+          "rv_fwd": 29.2,
+          "vrp": 5.5
+        },
+        {
+          "date": "2025-02-27",
+          "contract": "RMU26",
+          "dte": 538,
+          "iv": 34.4,
+          "rv_fwd": 29.2,
+          "vrp": 5.2
+        },
+        {
+          "date": "2025-02-28",
+          "contract": "RMU26",
+          "dte": 537,
+          "iv": 34.4,
+          "rv_fwd": 29.4,
+          "vrp": 5.1
+        },
+        {
+          "date": "2025-03-03",
+          "contract": "RMU26",
+          "dte": 534,
+          "iv": 34.3,
+          "rv_fwd": 29.9,
+          "vrp": 4.3
+        },
+        {
+          "date": "2025-03-04",
+          "contract": "RMU26",
+          "dte": 533,
+          "iv": 34.7,
+          "rv_fwd": 28.5,
+          "vrp": 6.2
+        },
+        {
+          "date": "2025-03-05",
+          "contract": "RMU26",
+          "dte": 532,
+          "iv": 34.8,
+          "rv_fwd": 28.8,
+          "vrp": 6.0
+        },
+        {
+          "date": "2025-03-06",
+          "contract": "RMU26",
+          "dte": 531,
+          "iv": 35.2,
+          "rv_fwd": 26.7,
+          "vrp": 8.5
+        },
+        {
+          "date": "2025-03-07",
+          "contract": "RMU26",
+          "dte": 530,
+          "iv": 35.2,
+          "rv_fwd": 34.1,
+          "vrp": 1.1
+        },
+        {
+          "date": "2025-03-10",
+          "contract": "RMU26",
+          "dte": 527,
+          "iv": 35.2,
+          "rv_fwd": 34.3,
+          "vrp": 0.9
+        },
+        {
+          "date": "2025-03-11",
+          "contract": "RMU26",
+          "dte": 526,
+          "iv": 34.1,
+          "rv_fwd": 33.0,
+          "vrp": 1.2
+        },
+        {
+          "date": "2025-03-12",
+          "contract": "RMU26",
+          "dte": 525,
+          "iv": 34.2,
+          "rv_fwd": 34.8,
+          "vrp": -0.6
+        },
+        {
+          "date": "2025-03-13",
+          "contract": "RMU26",
+          "dte": 524,
+          "iv": 34.1,
+          "rv_fwd": 35.6,
+          "vrp": -1.5
+        },
+        {
+          "date": "2025-03-14",
+          "contract": "RMU26",
+          "dte": 523,
+          "iv": 34.2,
+          "rv_fwd": 37.6,
+          "vrp": -3.4
+        },
+        {
+          "date": "2025-03-17",
+          "contract": "RMU26",
+          "dte": 520,
+          "iv": 36.0,
+          "rv_fwd": 37.8,
+          "vrp": -1.8
+        },
+        {
+          "date": "2025-03-18",
+          "contract": "RMU26",
+          "dte": 519,
+          "iv": 36.0,
+          "rv_fwd": 37.9,
+          "vrp": -1.9
+        },
+        {
+          "date": "2025-03-19",
+          "contract": "RMU26",
+          "dte": 518,
+          "iv": 36.2,
+          "rv_fwd": 38.4,
+          "vrp": -2.3
+        },
+        {
+          "date": "2025-03-20",
+          "contract": "RMU26",
+          "dte": 517,
+          "iv": 36.2,
+          "rv_fwd": 38.4,
+          "vrp": -2.3
+        },
+        {
+          "date": "2025-03-21",
+          "contract": "RMU26",
+          "dte": 516,
+          "iv": 36.6,
+          "rv_fwd": 38.4,
+          "vrp": -1.8
+        },
+        {
+          "date": "2025-03-24",
+          "contract": "RMU26",
+          "dte": 513,
+          "iv": 36.1,
+          "rv_fwd": 38.9,
+          "vrp": -2.8
+        },
+        {
+          "date": "2025-03-25",
+          "contract": "RMU26",
+          "dte": 512,
+          "iv": 36.5,
+          "rv_fwd": 38.9,
+          "vrp": -2.4
+        },
+        {
+          "date": "2025-03-26",
+          "contract": "RMU26",
+          "dte": 511,
+          "iv": 36.5,
+          "rv_fwd": 37.9,
+          "vrp": -1.4
+        },
+        {
+          "date": "2025-03-27",
+          "contract": "RMU26",
+          "dte": 510,
+          "iv": 37.0,
+          "rv_fwd": 37.6,
+          "vrp": -0.6
+        },
+        {
+          "date": "2025-03-28",
+          "contract": "RMU26",
+          "dte": 509,
+          "iv": 37.0,
+          "rv_fwd": 38.4,
+          "vrp": -1.4
+        },
+        {
+          "date": "2025-03-31",
+          "contract": "RMU26",
+          "dte": 506,
+          "iv": 37.0,
+          "rv_fwd": 38.1,
+          "vrp": -1.1
+        },
+        {
+          "date": "2025-04-01",
+          "contract": "RMU26",
+          "dte": 505,
+          "iv": 37.0,
+          "rv_fwd": 40.0,
+          "vrp": -3.0
+        },
+        {
+          "date": "2025-04-02",
+          "contract": "RMU26",
+          "dte": 504,
+          "iv": 37.0,
+          "rv_fwd": 40.9,
+          "vrp": -3.9
+        },
+        {
+          "date": "2025-04-03",
+          "contract": "RMU26",
+          "dte": 503,
+          "iv": 36.9,
+          "rv_fwd": 40.7,
+          "vrp": -3.8
+        },
+        {
+          "date": "2025-04-04",
+          "contract": "RMU26",
+          "dte": 502,
+          "iv": 36.6,
+          "rv_fwd": 39.0,
+          "vrp": -2.4
+        },
+        {
+          "date": "2025-04-07",
+          "contract": "RMU26",
+          "dte": 499,
+          "iv": 37.4,
+          "rv_fwd": 32.4,
+          "vrp": 5.0
+        },
+        {
+          "date": "2025-04-08",
+          "contract": "RMU26",
+          "dte": 498,
+          "iv": 38.0,
+          "rv_fwd": 32.2,
+          "vrp": 5.8
+        },
+        {
+          "date": "2025-04-09",
+          "contract": "RMU26",
+          "dte": 497,
+          "iv": 39.6,
+          "rv_fwd": 33.6,
+          "vrp": 6.0
+        },
+        {
+          "date": "2025-04-10",
+          "contract": "RMU26",
+          "dte": 496,
+          "iv": 39.2,
+          "rv_fwd": 32.2,
+          "vrp": 6.9
+        },
+        {
+          "date": "2025-04-11",
+          "contract": "RMU26",
+          "dte": 495,
+          "iv": 38.5,
+          "rv_fwd": 31.5,
+          "vrp": 7.0
+        },
+        {
+          "date": "2025-04-14",
+          "contract": "RMU26",
+          "dte": 492,
+          "iv": 37.9,
+          "rv_fwd": 28.5,
+          "vrp": 9.4
+        },
+        {
+          "date": "2025-04-15",
+          "contract": "RMU26",
+          "dte": 491,
+          "iv": 36.9,
+          "rv_fwd": 27.9,
+          "vrp": 9.0
+        },
+        {
+          "date": "2025-04-16",
+          "contract": "RMU26",
+          "dte": 490,
+          "iv": 37.2,
+          "rv_fwd": 29.2,
+          "vrp": 8.1
+        },
+        {
+          "date": "2025-04-17",
+          "contract": "RMU26",
+          "dte": 489,
+          "iv": 36.7,
+          "rv_fwd": 28.7,
+          "vrp": 8.0
+        },
+        {
+          "date": "2025-04-21",
+          "contract": "RMU26",
+          "dte": 485,
+          "iv": 36.9,
+          "rv_fwd": 28.9,
+          "vrp": 8.0
+        },
+        {
+          "date": "2025-04-22",
+          "contract": "RMU26",
+          "dte": 484,
+          "iv": 36.7,
+          "rv_fwd": 29.6,
+          "vrp": 7.1
+        },
+        {
+          "date": "2025-04-23",
+          "contract": "RMU26",
+          "dte": 483,
+          "iv": 36.7,
+          "rv_fwd": 28.8,
+          "vrp": 7.9
+        },
+        {
+          "date": "2025-04-24",
+          "contract": "RMU26",
+          "dte": 482,
+          "iv": 36.7,
+          "rv_fwd": 28.9,
+          "vrp": 7.8
+        },
+        {
+          "date": "2025-04-25",
+          "contract": "RMU26",
+          "dte": 481,
+          "iv": 37.6,
+          "rv_fwd": 30.8,
+          "vrp": 6.8
+        },
+        {
+          "date": "2025-04-28",
+          "contract": "RMU26",
+          "dte": 478,
+          "iv": 37.7,
+          "rv_fwd": 30.8,
+          "vrp": 6.9
+        },
+        {
+          "date": "2025-04-29",
+          "contract": "RMU26",
+          "dte": 477,
+          "iv": 37.6,
+          "rv_fwd": 29.9,
+          "vrp": 7.7
+        },
+        {
+          "date": "2025-04-30",
+          "contract": "RMU26",
+          "dte": 476,
+          "iv": 37.7,
+          "rv_fwd": 29.6,
+          "vrp": 8.1
+        },
+        {
+          "date": "2025-05-01",
+          "contract": "RMU26",
+          "dte": 475,
+          "iv": 37.5,
+          "rv_fwd": 25.3,
+          "vrp": 12.2
+        },
+        {
+          "date": "2025-05-02",
+          "contract": "RMU26",
+          "dte": 474,
+          "iv": 37.0,
+          "rv_fwd": 23.9,
+          "vrp": 13.1
+        },
+        {
+          "date": "2025-05-05",
+          "contract": "RMU26",
+          "dte": 471,
+          "iv": 37.1,
+          "rv_fwd": 23.9,
+          "vrp": 13.3
+        },
+        {
+          "date": "2025-05-06",
+          "contract": "RMU26",
+          "dte": 470,
+          "iv": 37.2,
+          "rv_fwd": 24.9,
+          "vrp": 12.3
+        },
+        {
+          "date": "2025-05-07",
+          "contract": "RMU26",
+          "dte": 469,
+          "iv": 37.0,
+          "rv_fwd": 25.6,
+          "vrp": 11.3
+        },
+        {
+          "date": "2025-05-08",
+          "contract": "RMU26",
+          "dte": 468,
+          "iv": 36.9,
+          "rv_fwd": 26.3,
+          "vrp": 10.6
+        },
+        {
+          "date": "2025-05-09",
+          "contract": "RMU26",
+          "dte": 467,
+          "iv": 36.5,
+          "rv_fwd": 27.4,
+          "vrp": 9.1
+        },
+        {
+          "date": "2025-05-12",
+          "contract": "RMU26",
+          "dte": 464,
+          "iv": 36.4,
+          "rv_fwd": 24.9,
+          "vrp": 11.5
+        },
+        {
+          "date": "2025-05-13",
+          "contract": "RMU26",
+          "dte": 463,
+          "iv": 36.4,
+          "rv_fwd": 24.0,
+          "vrp": 12.4
+        },
+        {
+          "date": "2025-05-14",
+          "contract": "RMU26",
+          "dte": 462,
+          "iv": 36.7,
+          "rv_fwd": 23.8,
+          "vrp": 12.9
+        },
+        {
+          "date": "2025-05-15",
+          "contract": "RMU26",
+          "dte": 461,
+          "iv": 36.7,
+          "rv_fwd": 24.7,
+          "vrp": 12.0
+        },
+        {
+          "date": "2025-05-16",
+          "contract": "RMU26",
+          "dte": 460,
+          "iv": 36.8,
+          "rv_fwd": 24.7,
+          "vrp": 12.1
+        },
+        {
+          "date": "2025-05-19",
+          "contract": "RMU26",
+          "dte": 457,
+          "iv": 37.1,
+          "rv_fwd": 31.2,
+          "vrp": 5.9
+        },
+        {
+          "date": "2025-05-20",
+          "contract": "RMU26",
+          "dte": 456,
+          "iv": 37.5,
+          "rv_fwd": 30.8,
+          "vrp": 6.7
+        },
+        {
+          "date": "2025-05-21",
+          "contract": "RMU26",
+          "dte": 455,
+          "iv": 37.6,
+          "rv_fwd": 33.2,
+          "vrp": 4.4
+        },
+        {
+          "date": "2025-05-22",
+          "contract": "RMU26",
+          "dte": 454,
+          "iv": 36.8,
+          "rv_fwd": 36.0,
+          "vrp": 0.8
+        },
+        {
+          "date": "2025-05-23",
+          "contract": "RMU26",
+          "dte": 453,
+          "iv": 36.8,
+          "rv_fwd": 40.7,
+          "vrp": -3.9
+        },
+        {
+          "date": "2025-05-27",
+          "contract": "RMU26",
+          "dte": 449,
+          "iv": 37.2,
+          "rv_fwd": 43.7,
+          "vrp": -6.5
+        },
+        {
+          "date": "2025-05-28",
+          "contract": "RMU26",
+          "dte": 448,
+          "iv": 37.9,
+          "rv_fwd": 42.8,
+          "vrp": -4.9
+        },
+        {
+          "date": "2025-05-29",
+          "contract": "RMU26",
+          "dte": 447,
+          "iv": 37.9,
+          "rv_fwd": 42.9,
+          "vrp": -5.0
+        },
+        {
+          "date": "2025-05-30",
+          "contract": "RMU26",
+          "dte": 446,
+          "iv": 37.8,
+          "rv_fwd": 42.8,
+          "vrp": -5.0
+        },
+        {
+          "date": "2025-06-02",
+          "contract": "RMU26",
+          "dte": 443,
+          "iv": 37.9,
+          "rv_fwd": 42.8,
+          "vrp": -4.8
+        },
+        {
+          "date": "2025-06-03",
+          "contract": "RMU26",
+          "dte": 442,
+          "iv": 38.0,
+          "rv_fwd": 42.7,
+          "vrp": -4.7
+        },
+        {
+          "date": "2025-06-04",
+          "contract": "RMU26",
+          "dte": 441,
+          "iv": 38.2,
+          "rv_fwd": 42.7,
+          "vrp": -4.5
+        },
+        {
+          "date": "2025-06-05",
+          "contract": "RMU26",
+          "dte": 440,
+          "iv": 37.6,
+          "rv_fwd": 42.2,
+          "vrp": -4.5
+        },
+        {
+          "date": "2025-06-06",
+          "contract": "RMU26",
+          "dte": 439,
+          "iv": 38.0,
+          "rv_fwd": 44.6,
+          "vrp": -6.6
+        },
+        {
+          "date": "2025-06-09",
+          "contract": "RMU26",
+          "dte": 436,
+          "iv": 38.1,
+          "rv_fwd": 44.4,
+          "vrp": -6.3
+        },
+        {
+          "date": "2025-06-10",
+          "contract": "RMU26",
+          "dte": 435,
+          "iv": 38.1,
+          "rv_fwd": 44.2,
+          "vrp": -6.1
+        },
+        {
+          "date": "2025-06-11",
+          "contract": "RMU26",
+          "dte": 434,
+          "iv": 37.6,
+          "rv_fwd": 45.9,
+          "vrp": -8.2
+        },
+        {
+          "date": "2025-06-12",
+          "contract": "RMU26",
+          "dte": 433,
+          "iv": 37.3,
+          "rv_fwd": 47.2,
+          "vrp": -9.9
+        },
+        {
+          "date": "2025-06-13",
+          "contract": "RMU26",
+          "dte": 432,
+          "iv": 37.1,
+          "rv_fwd": 55.5,
+          "vrp": -18.4
+        },
+        {
+          "date": "2025-06-16",
+          "contract": "RMU26",
+          "dte": 429,
+          "iv": 37.2,
+          "rv_fwd": 55.8,
+          "vrp": -18.7
+        },
+        {
+          "date": "2025-06-17",
+          "contract": "RMU26",
+          "dte": 428,
+          "iv": 37.2,
+          "rv_fwd": 56.0,
+          "vrp": -18.8
+        },
+        {
+          "date": "2025-06-18",
+          "contract": "RMU26",
+          "dte": 427,
+          "iv": 37.2,
+          "rv_fwd": 53.1,
+          "vrp": -15.9
+        },
+        {
+          "date": "2025-06-19",
+          "contract": "RMU26",
+          "dte": 426,
+          "iv": 36.7,
+          "rv_fwd": 53.3,
+          "vrp": -16.6
+        },
+        {
+          "date": "2025-06-20",
+          "contract": "RMU26",
+          "dte": 425,
+          "iv": 36.6,
+          "rv_fwd": 54.2,
+          "vrp": -17.7
+        },
+        {
+          "date": "2025-06-23",
+          "contract": "RMU26",
+          "dte": 422,
+          "iv": 37.7,
+          "rv_fwd": 52.9,
+          "vrp": -15.2
+        },
+        {
+          "date": "2025-06-24",
+          "contract": "RMU26",
+          "dte": 421,
+          "iv": 37.0,
+          "rv_fwd": 49.3,
+          "vrp": -12.3
+        },
+        {
+          "date": "2025-06-25",
+          "contract": "RMU26",
+          "dte": 420,
+          "iv": 39.4,
+          "rv_fwd": 46.6,
+          "vrp": -7.2
+        },
+        {
+          "date": "2025-06-26",
+          "contract": "RMU26",
+          "dte": 419,
+          "iv": 39.2,
+          "rv_fwd": 47.5,
+          "vrp": -8.3
+        },
+        {
+          "date": "2025-06-27",
+          "contract": "RMU26",
+          "dte": 418,
+          "iv": 39.5,
+          "rv_fwd": 48.3,
+          "vrp": -8.8
+        },
+        {
+          "date": "2025-06-30",
+          "contract": "RMU26",
+          "dte": 415,
+          "iv": 40.2,
+          "rv_fwd": 48.6,
+          "vrp": -8.3
+        },
+        {
+          "date": "2025-07-01",
+          "contract": "RMU26",
+          "dte": 414,
+          "iv": 40.0,
+          "rv_fwd": 48.6,
+          "vrp": -8.6
+        },
+        {
+          "date": "2025-07-02",
+          "contract": "RMU26",
+          "dte": 413,
+          "iv": 40.3,
+          "rv_fwd": 48.7,
+          "vrp": -8.4
+        },
+        {
+          "date": "2025-07-03",
+          "contract": "RMU26",
+          "dte": 412,
+          "iv": 40.2,
+          "rv_fwd": 49.4,
+          "vrp": -9.2
+        },
+        {
+          "date": "2025-07-04",
+          "contract": "RMU26",
+          "dte": 411,
+          "iv": 40.1,
+          "rv_fwd": 49.7,
+          "vrp": -9.6
+        },
+        {
+          "date": "2025-07-07",
+          "contract": "RMU26",
+          "dte": 408,
+          "iv": 41.0,
+          "rv_fwd": 47.2,
+          "vrp": -6.2
+        },
+        {
+          "date": "2025-07-08",
+          "contract": "RMU26",
+          "dte": 407,
+          "iv": 40.9,
+          "rv_fwd": 47.2,
+          "vrp": -6.3
+        },
+        {
+          "date": "2025-07-09",
+          "contract": "RMU26",
+          "dte": 406,
+          "iv": 40.3,
+          "rv_fwd": 47.1,
+          "vrp": -6.8
+        },
+        {
+          "date": "2025-07-10",
+          "contract": "RMU26",
+          "dte": 405,
+          "iv": 41.9,
+          "rv_fwd": 47.0,
+          "vrp": -5.0
+        },
+        {
+          "date": "2025-07-11",
+          "contract": "RMU26",
+          "dte": 404,
+          "iv": 42.2,
+          "rv_fwd": 48.5,
+          "vrp": -6.3
+        },
+        {
+          "date": "2025-07-14",
+          "contract": "RMU26",
+          "dte": 401,
+          "iv": 41.8,
+          "rv_fwd": 39.0,
+          "vrp": 2.8
+        },
+        {
+          "date": "2025-07-15",
+          "contract": "RMU26",
+          "dte": 400,
+          "iv": 42.1,
+          "rv_fwd": 39.6,
+          "vrp": 2.5
+        },
+        {
+          "date": "2025-07-16",
+          "contract": "RMU26",
+          "dte": 399,
+          "iv": 41.7,
+          "rv_fwd": 40.1,
+          "vrp": 1.6
+        },
+        {
+          "date": "2025-07-17",
+          "contract": "RMU26",
+          "dte": 398,
+          "iv": 41.6,
+          "rv_fwd": 40.6,
+          "vrp": 1.0
+        },
+        {
+          "date": "2025-07-18",
+          "contract": "RMU26",
+          "dte": 397,
+          "iv": 41.1,
+          "rv_fwd": 40.4,
+          "vrp": 0.7
+        },
+        {
+          "date": "2025-07-21",
+          "contract": "RMU26",
+          "dte": 394,
+          "iv": 41.4,
+          "rv_fwd": 42.2,
+          "vrp": -0.8
+        },
+        {
+          "date": "2025-07-22",
+          "contract": "RMU26",
+          "dte": 393,
+          "iv": 41.5,
+          "rv_fwd": 41.9,
+          "vrp": -0.4
+        },
+        {
+          "date": "2025-07-23",
+          "contract": "RMU26",
+          "dte": 392,
+          "iv": 41.5,
+          "rv_fwd": 43.4,
+          "vrp": -2.0
+        },
+        {
+          "date": "2025-07-24",
+          "contract": "RMU26",
+          "dte": 391,
+          "iv": 39.6,
+          "rv_fwd": 44.2,
+          "vrp": -4.6
+        },
+        {
+          "date": "2025-07-25",
+          "contract": "RMU26",
+          "dte": 390,
+          "iv": 40.0,
+          "rv_fwd": 42.9,
+          "vrp": -2.9
+        },
+        {
+          "date": "2025-07-28",
+          "contract": "RMU26",
+          "dte": 387,
+          "iv": 40.1,
+          "rv_fwd": 41.9,
+          "vrp": -1.8
+        },
+        {
+          "date": "2025-07-29",
+          "contract": "RMU26",
+          "dte": 386,
+          "iv": 39.9,
+          "rv_fwd": 43.7,
+          "vrp": -3.8
+        },
+        {
+          "date": "2025-07-30",
+          "contract": "RMU26",
+          "dte": 385,
+          "iv": 39.1,
+          "rv_fwd": 43.8,
+          "vrp": -4.7
+        },
+        {
+          "date": "2025-07-31",
+          "contract": "RMU26",
+          "dte": 384,
+          "iv": 39.1,
+          "rv_fwd": 43.6,
+          "vrp": -4.5
+        },
+        {
+          "date": "2025-08-01",
+          "contract": "RMU26",
+          "dte": 383,
+          "iv": 39.5,
+          "rv_fwd": 44.4,
+          "vrp": -4.9
+        },
+        {
+          "date": "2025-08-04",
+          "contract": "RMU26",
+          "dte": 380,
+          "iv": 40.5,
+          "rv_fwd": 46.7,
+          "vrp": -6.2
+        },
+        {
+          "date": "2025-08-05",
+          "contract": "RMU26",
+          "dte": 379,
+          "iv": 39.9,
+          "rv_fwd": 46.8,
+          "vrp": -6.9
+        },
+        {
+          "date": "2025-08-06",
+          "contract": "RMU26",
+          "dte": 378,
+          "iv": 39.7,
+          "rv_fwd": 46.6,
+          "vrp": -6.9
+        },
+        {
+          "date": "2025-08-07",
+          "contract": "RMU26",
+          "dte": 377,
+          "iv": 38.9,
+          "rv_fwd": 46.8,
+          "vrp": -7.9
+        },
+        {
+          "date": "2025-08-08",
+          "contract": "RMU26",
+          "dte": 376,
+          "iv": 38.9,
+          "rv_fwd": 45.9,
+          "vrp": -7.0
+        },
+        {
+          "date": "2025-08-11",
+          "contract": "RMU26",
+          "dte": 373,
+          "iv": 38.7,
+          "rv_fwd": 43.1,
+          "vrp": -4.4
+        },
+        {
+          "date": "2025-08-12",
+          "contract": "RMU26",
+          "dte": 372,
+          "iv": 38.7,
+          "rv_fwd": 43.3,
+          "vrp": -4.6
+        },
+        {
+          "date": "2025-08-13",
+          "contract": "RMU26",
+          "dte": 371,
+          "iv": 40.7,
+          "rv_fwd": 41.7,
+          "vrp": -1.0
+        },
+        {
+          "date": "2025-08-14",
+          "contract": "RMU26",
+          "dte": 370,
+          "iv": 40.7,
+          "rv_fwd": 41.2,
+          "vrp": -0.5
+        },
+        {
+          "date": "2025-08-15",
+          "contract": "RMU26",
+          "dte": 369,
+          "iv": 39.3,
+          "rv_fwd": 41.9,
+          "vrp": -2.6
+        },
+        {
+          "date": "2025-08-18",
+          "contract": "RMU26",
+          "dte": 366,
+          "iv": 39.4,
+          "rv_fwd": 42.0,
+          "vrp": -2.6
+        },
+        {
+          "date": "2025-08-19",
+          "contract": "RMU26",
+          "dte": 365,
+          "iv": 39.2,
+          "rv_fwd": 43.7,
+          "vrp": -4.4
+        },
+        {
+          "date": "2025-08-20",
+          "contract": "RMU26",
+          "dte": 364,
+          "iv": 40.1,
+          "rv_fwd": 43.0,
+          "vrp": -2.9
+        },
+        {
+          "date": "2025-08-21",
+          "contract": "RMU26",
+          "dte": 363,
+          "iv": 40.5,
+          "rv_fwd": 47.3,
+          "vrp": -6.8
+        },
+        {
+          "date": "2025-08-22",
+          "contract": "RMU26",
+          "dte": 362,
+          "iv": 40.2,
+          "rv_fwd": 47.8,
+          "vrp": -7.6
+        },
+        {
+          "date": "2025-08-25",
+          "contract": "RMU26",
+          "dte": 359,
+          "iv": 40.4,
+          "rv_fwd": 49.1,
+          "vrp": -8.8
+        },
+        {
+          "date": "2025-08-26",
+          "contract": "RMU26",
+          "dte": 358,
+          "iv": 40.6,
+          "rv_fwd": 50.0,
+          "vrp": -9.4
+        },
+        {
+          "date": "2025-08-27",
+          "contract": "RMU26",
+          "dte": 357,
+          "iv": 40.4,
+          "rv_fwd": 48.8,
+          "vrp": -8.4
+        },
+        {
+          "date": "2025-08-28",
+          "contract": "RMU26",
+          "dte": 356,
+          "iv": 40.3,
+          "rv_fwd": 49.3,
+          "vrp": -9.0
+        },
+        {
+          "date": "2025-08-29",
+          "contract": "RMU26",
+          "dte": 355,
+          "iv": 40.6,
+          "rv_fwd": 49.3,
+          "vrp": -8.7
+        },
+        {
+          "date": "2025-09-01",
+          "contract": "RMU26",
+          "dte": 352,
+          "iv": 40.6,
+          "rv_fwd": 48.0,
+          "vrp": -7.4
+        },
+        {
+          "date": "2025-09-02",
+          "contract": "RMU26",
+          "dte": 351,
+          "iv": 40.1,
+          "rv_fwd": 47.5,
+          "vrp": -7.5
+        },
+        {
+          "date": "2025-09-03",
+          "contract": "RMU26",
+          "dte": 350,
+          "iv": 40.3,
+          "rv_fwd": 47.6,
+          "vrp": -7.3
+        },
+        {
+          "date": "2025-09-04",
+          "contract": "RMU26",
+          "dte": 349,
+          "iv": 39.9,
+          "rv_fwd": 49.2,
+          "vrp": -9.2
+        },
+        {
+          "date": "2025-09-05",
+          "contract": "RMU26",
+          "dte": 348,
+          "iv": 40.3,
+          "rv_fwd": 48.8,
+          "vrp": -8.5
+        },
+        {
+          "date": "2025-09-08",
+          "contract": "RMU26",
+          "dte": 345,
+          "iv": 40.6,
+          "rv_fwd": 48.5,
+          "vrp": -7.8
+        },
+        {
+          "date": "2025-09-09",
+          "contract": "RMU26",
+          "dte": 344,
+          "iv": 40.7,
+          "rv_fwd": 48.8,
+          "vrp": -8.0
+        },
+        {
+          "date": "2025-09-10",
+          "contract": "RMU26",
+          "dte": 343,
+          "iv": 37.3,
+          "rv_fwd": 48.3,
+          "vrp": -11.0
+        },
+        {
+          "date": "2025-09-11",
+          "contract": "RMU26",
+          "dte": 342,
+          "iv": 39.2,
+          "rv_fwd": 48.6,
+          "vrp": -9.4
+        },
+        {
+          "date": "2025-09-12",
+          "contract": "RMU26",
+          "dte": 341,
+          "iv": 40.0,
+          "rv_fwd": 48.5,
+          "vrp": -8.4
+        },
+        {
+          "date": "2025-09-15",
+          "contract": "RMU26",
+          "dte": 338,
+          "iv": 40.2,
+          "rv_fwd": 46.2,
+          "vrp": -6.0
+        },
+        {
+          "date": "2025-09-16",
+          "contract": "RMU26",
+          "dte": 337,
+          "iv": 40.3,
+          "rv_fwd": 46.1,
+          "vrp": -5.9
+        },
+        {
+          "date": "2025-09-17",
+          "contract": "RMU26",
+          "dte": 336,
+          "iv": 40.0,
+          "rv_fwd": 39.9,
+          "vrp": 0.1
+        },
+        {
+          "date": "2025-09-18",
+          "contract": "RMU26",
+          "dte": 335,
+          "iv": 40.0,
+          "rv_fwd": 40.0,
+          "vrp": 0.0
+        },
+        {
+          "date": "2025-09-19",
+          "contract": "RMU26",
+          "dte": 334,
+          "iv": 40.9,
+          "rv_fwd": 32.8,
+          "vrp": 8.1
+        },
+        {
+          "date": "2025-09-22",
+          "contract": "RMU26",
+          "dte": 331,
+          "iv": 41.1,
+          "rv_fwd": 31.9,
+          "vrp": 9.3
+        },
+        {
+          "date": "2025-09-23",
+          "contract": "RMU26",
+          "dte": 330,
+          "iv": 41.8,
+          "rv_fwd": 30.8,
+          "vrp": 11.0
+        },
+        {
+          "date": "2025-09-24",
+          "contract": "RMU26",
+          "dte": 329,
+          "iv": 41.7,
+          "rv_fwd": 31.7,
+          "vrp": 10.0
+        },
+        {
+          "date": "2025-09-25",
+          "contract": "RMU26",
+          "dte": 328,
+          "iv": 42.0,
+          "rv_fwd": 30.8,
+          "vrp": 11.2
+        },
+        {
+          "date": "2025-09-26",
+          "contract": "RMU26",
+          "dte": 327,
+          "iv": 42.3,
+          "rv_fwd": 30.7,
+          "vrp": 11.6
+        },
+        {
+          "date": "2025-09-29",
+          "contract": "RMU26",
+          "dte": 324,
+          "iv": 42.3,
+          "rv_fwd": 30.7,
+          "vrp": 11.6
+        },
+        {
+          "date": "2025-09-30",
+          "contract": "RMU26",
+          "dte": 323,
+          "iv": 41.4,
+          "rv_fwd": 32.3,
+          "vrp": 9.2
+        },
+        {
+          "date": "2025-10-01",
+          "contract": "RMU26",
+          "dte": 322,
+          "iv": 40.5,
+          "rv_fwd": 28.8,
+          "vrp": 11.7
+        },
+        {
+          "date": "2025-10-02",
+          "contract": "RMU26",
+          "dte": 321,
+          "iv": 40.1,
+          "rv_fwd": 29.4,
+          "vrp": 10.8
+        },
+        {
+          "date": "2025-10-03",
+          "contract": "RMU26",
+          "dte": 320,
+          "iv": 40.9,
+          "rv_fwd": 28.4,
+          "vrp": 12.5
+        },
+        {
+          "date": "2025-10-06",
+          "contract": "RMU26",
+          "dte": 317,
+          "iv": 40.7,
+          "rv_fwd": 28.2,
+          "vrp": 12.5
+        },
+        {
+          "date": "2025-10-07",
+          "contract": "RMU26",
+          "dte": 316,
+          "iv": 40.7,
+          "rv_fwd": 27.3,
+          "vrp": 13.4
+        },
+        {
+          "date": "2025-10-08",
+          "contract": "RMU26",
+          "dte": 315,
+          "iv": 39.9,
+          "rv_fwd": 28.9,
+          "vrp": 11.0
+        },
+        {
+          "date": "2025-10-09",
+          "contract": "RMU26",
+          "dte": 314,
+          "iv": 39.9,
+          "rv_fwd": 29.4,
+          "vrp": 10.5
+        },
+        {
+          "date": "2025-10-10",
+          "contract": "RMU26",
+          "dte": 313,
+          "iv": 39.4,
+          "rv_fwd": 28.9,
+          "vrp": 10.4
+        },
+        {
+          "date": "2025-10-13",
+          "contract": "RMU26",
+          "dte": 310,
+          "iv": 39.8,
+          "rv_fwd": 28.7,
+          "vrp": 11.0
+        },
+        {
+          "date": "2025-10-14",
+          "contract": "RMU26",
+          "dte": 309,
+          "iv": 39.9,
+          "rv_fwd": 35.3,
+          "vrp": 4.7
+        },
+        {
+          "date": "2025-10-15",
+          "contract": "RMU26",
+          "dte": 308,
+          "iv": 38.2,
+          "rv_fwd": 35.3,
+          "vrp": 2.9
+        },
+        {
+          "date": "2025-10-16",
+          "contract": "RMU26",
+          "dte": 307,
+          "iv": 37.4,
+          "rv_fwd": 36.2,
+          "vrp": 1.2
+        },
+        {
+          "date": "2025-10-17",
+          "contract": "RMU26",
+          "dte": 306,
+          "iv": 37.4,
+          "rv_fwd": 39.2,
+          "vrp": -1.8
+        },
+        {
+          "date": "2025-10-20",
+          "contract": "RMU26",
+          "dte": 303,
+          "iv": 38.5,
+          "rv_fwd": 39.9,
+          "vrp": -1.4
+        },
+        {
+          "date": "2025-10-21",
+          "contract": "RMU26",
+          "dte": 302,
+          "iv": 38.2,
+          "rv_fwd": 39.5,
+          "vrp": -1.3
+        },
+        {
+          "date": "2025-10-22",
+          "contract": "RMU26",
+          "dte": 301,
+          "iv": 37.6,
+          "rv_fwd": 39.6,
+          "vrp": -2.0
+        },
+        {
+          "date": "2025-10-23",
+          "contract": "RMU26",
+          "dte": 300,
+          "iv": 39.4,
+          "rv_fwd": 38.9,
+          "vrp": 0.6
+        },
+        {
+          "date": "2025-10-24",
+          "contract": "RMU26",
+          "dte": 299,
+          "iv": 38.9,
+          "rv_fwd": 38.9,
+          "vrp": -0.0
+        },
+        {
+          "date": "2025-10-27",
+          "contract": "RMU26",
+          "dte": 296,
+          "iv": 39.0,
+          "rv_fwd": 39.0,
+          "vrp": 0.0
+        },
+        {
+          "date": "2025-10-28",
+          "contract": "RMU26",
+          "dte": 295,
+          "iv": 38.7,
+          "rv_fwd": 39.0,
+          "vrp": -0.3
+        },
+        {
+          "date": "2025-10-29",
+          "contract": "RMU26",
+          "dte": 294,
+          "iv": 38.7,
+          "rv_fwd": 37.7,
+          "vrp": 1.0
+        },
+        {
+          "date": "2025-10-30",
+          "contract": "RMU26",
+          "dte": 293,
+          "iv": 38.8,
+          "rv_fwd": 37.7,
+          "vrp": 1.1
+        },
+        {
+          "date": "2025-10-31",
+          "contract": "RMU26",
+          "dte": 292,
+          "iv": 38.8,
+          "rv_fwd": 37.4,
+          "vrp": 1.4
+        },
+        {
+          "date": "2025-11-03",
+          "contract": "RMU26",
+          "dte": 289,
+          "iv": 39.4,
+          "rv_fwd": 37.1,
+          "vrp": 2.3
+        },
+        {
+          "date": "2025-11-04",
+          "contract": "RMU26",
+          "dte": 288,
+          "iv": 39.2,
+          "rv_fwd": 37.1,
+          "vrp": 2.1
+        },
+        {
+          "date": "2025-11-05",
+          "contract": "RMU26",
+          "dte": 287,
+          "iv": 39.2,
+          "rv_fwd": 37.1,
+          "vrp": 2.0
+        },
+        {
+          "date": "2025-11-06",
+          "contract": "RMU26",
+          "dte": 286,
+          "iv": 39.5,
+          "rv_fwd": 35.6,
+          "vrp": 3.9
+        },
+        {
+          "date": "2025-11-07",
+          "contract": "RMU26",
+          "dte": 285,
+          "iv": 38.8,
+          "rv_fwd": 35.7,
+          "vrp": 3.1
+        },
+        {
+          "date": "2025-11-10",
+          "contract": "RMU26",
+          "dte": 282,
+          "iv": 39.4,
+          "rv_fwd": 35.7,
+          "vrp": 3.8
+        },
+        {
+          "date": "2025-11-11",
+          "contract": "RMU26",
+          "dte": 281,
+          "iv": 39.8,
+          "rv_fwd": 35.7,
+          "vrp": 4.1
+        },
+        {
+          "date": "2025-11-12",
+          "contract": "RMU26",
+          "dte": 280,
+          "iv": 40.6,
+          "rv_fwd": 29.1,
+          "vrp": 11.5
+        },
+        {
+          "date": "2025-11-13",
+          "contract": "RMU26",
+          "dte": 279,
+          "iv": 40.4,
+          "rv_fwd": 30.2,
+          "vrp": 10.2
+        },
+        {
+          "date": "2025-11-14",
+          "contract": "RMU26",
+          "dte": 278,
+          "iv": 40.0,
+          "rv_fwd": 29.8,
+          "vrp": 10.2
+        },
+        {
+          "date": "2025-11-17",
+          "contract": "RMU26",
+          "dte": 275,
+          "iv": 39.4,
+          "rv_fwd": 26.7,
+          "vrp": 12.7
+        },
+        {
+          "date": "2025-11-18",
+          "contract": "RMU26",
+          "dte": 274,
+          "iv": 38.9,
+          "rv_fwd": 27.2,
+          "vrp": 11.7
+        },
+        {
+          "date": "2025-11-19",
+          "contract": "RMU26",
+          "dte": 273,
+          "iv": 39.0,
+          "rv_fwd": 27.2,
+          "vrp": 11.8
+        },
+        {
+          "date": "2025-11-20",
+          "contract": "RMU26",
+          "dte": 272,
+          "iv": 39.4,
+          "rv_fwd": 26.0,
+          "vrp": 13.4
+        },
+        {
+          "date": "2025-11-21",
+          "contract": "RMU26",
+          "dte": 271,
+          "iv": 38.8,
+          "rv_fwd": 26.0,
+          "vrp": 12.9
+        },
+        {
+          "date": "2025-11-24",
+          "contract": "RMU26",
+          "dte": 268,
+          "iv": 38.7,
+          "rv_fwd": 26.2,
+          "vrp": 12.5
+        },
+        {
+          "date": "2025-11-25",
+          "contract": "RMU26",
+          "dte": 267,
+          "iv": 37.9,
+          "rv_fwd": 25.3,
+          "vrp": 12.6
+        },
+        {
+          "date": "2025-11-26",
+          "contract": "RMU26",
+          "dte": 266,
+          "iv": 37.6,
+          "rv_fwd": 25.2,
+          "vrp": 12.4
+        },
+        {
+          "date": "2025-11-27",
+          "contract": "RMU26",
+          "dte": 265,
+          "iv": 37.5,
+          "rv_fwd": 25.2,
+          "vrp": 12.3
+        },
+        {
+          "date": "2025-11-28",
+          "contract": "RMU26",
+          "dte": 264,
+          "iv": 37.5,
+          "rv_fwd": 25.3,
+          "vrp": 12.2
+        },
+        {
+          "date": "2025-12-01",
+          "contract": "RMU26",
+          "dte": 261,
+          "iv": 37.8,
+          "rv_fwd": 24.8,
+          "vrp": 13.0
+        },
+        {
+          "date": "2025-12-02",
+          "contract": "RMU26",
+          "dte": 260,
+          "iv": 37.5,
+          "rv_fwd": 23.0,
+          "vrp": 14.4
+        },
+        {
+          "date": "2025-12-03",
+          "contract": "RMU26",
+          "dte": 259,
+          "iv": 37.1,
+          "rv_fwd": 23.2,
+          "vrp": 13.9
+        },
+        {
+          "date": "2025-12-04",
+          "contract": "RMU26",
+          "dte": 258,
+          "iv": 36.9,
+          "rv_fwd": 24.3,
+          "vrp": 12.7
+        },
+        {
+          "date": "2025-12-05",
+          "contract": "RMU26",
+          "dte": 257,
+          "iv": 36.4,
+          "rv_fwd": 24.3,
+          "vrp": 12.2
+        },
+        {
+          "date": "2025-12-08",
+          "contract": "RMU26",
+          "dte": 254,
+          "iv": 37.1,
+          "rv_fwd": 23.5,
+          "vrp": 13.6
+        },
+        {
+          "date": "2025-12-09",
+          "contract": "RMU26",
+          "dte": 253,
+          "iv": 37.5,
+          "rv_fwd": 23.8,
+          "vrp": 13.7
+        },
+        {
+          "date": "2025-12-10",
+          "contract": "RMU26",
+          "dte": 252,
+          "iv": 36.6,
+          "rv_fwd": 23.7,
+          "vrp": 12.9
+        },
+        {
+          "date": "2025-12-11",
+          "contract": "RMU26",
+          "dte": 251,
+          "iv": 36.5,
+          "rv_fwd": 23.9,
+          "vrp": 12.6
+        },
+        {
+          "date": "2025-12-12",
+          "contract": "RMU26",
+          "dte": 250,
+          "iv": 36.8,
+          "rv_fwd": 22.4,
+          "vrp": 14.4
+        },
+        {
+          "date": "2025-12-15",
+          "contract": "RMU26",
+          "dte": 247,
+          "iv": 37.3,
+          "rv_fwd": 21.2,
+          "vrp": 16.1
+        },
+        {
+          "date": "2025-12-16",
+          "contract": "RMU26",
+          "dte": 246,
+          "iv": 38.0,
+          "rv_fwd": 19.7,
+          "vrp": 18.3
+        },
+        {
+          "date": "2025-12-17",
+          "contract": "RMU26",
+          "dte": 245,
+          "iv": 37.8,
+          "rv_fwd": 17.4,
+          "vrp": 20.4
+        },
+        {
+          "date": "2025-12-18",
+          "contract": "RMU26",
+          "dte": 244,
+          "iv": 38.3,
+          "rv_fwd": 17.5,
+          "vrp": 20.8
+        },
+        {
+          "date": "2025-12-19",
+          "contract": "RMU26",
+          "dte": 243,
+          "iv": 38.5,
+          "rv_fwd": 19.3,
+          "vrp": 19.2
+        },
+        {
+          "date": "2025-12-22",
+          "contract": "RMU26",
+          "dte": 240,
+          "iv": 38.0,
+          "rv_fwd": 16.7,
+          "vrp": 21.3
+        },
+        {
+          "date": "2025-12-23",
+          "contract": "RMU26",
+          "dte": 239,
+          "iv": 37.9,
+          "rv_fwd": 17.5,
+          "vrp": 20.4
+        },
+        {
+          "date": "2025-12-24",
+          "contract": "RMU26",
+          "dte": 238,
+          "iv": 37.8,
+          "rv_fwd": 17.6,
+          "vrp": 20.2
+        },
+        {
+          "date": "2025-12-26",
+          "contract": "RMU26",
+          "dte": 236,
+          "iv": 38.0,
+          "rv_fwd": 18.8,
+          "vrp": 19.2
+        },
+        {
+          "date": "2025-12-29",
+          "contract": "RMU26",
+          "dte": 233,
+          "iv": 37.7,
+          "rv_fwd": 21.2,
+          "vrp": 16.6
+        },
+        {
+          "date": "2025-12-30",
+          "contract": "RMU26",
+          "dte": 232,
+          "iv": 37.3,
+          "rv_fwd": 20.9,
+          "vrp": 16.4
+        },
+        {
+          "date": "2025-12-31",
+          "contract": "RMU26",
+          "dte": 231,
+          "iv": 37.1,
+          "rv_fwd": 21.3,
+          "vrp": 15.7
+        },
+        {
+          "date": "2026-01-02",
+          "contract": "RMU26",
+          "dte": 229,
+          "iv": 36.8,
+          "rv_fwd": 21.8,
+          "vrp": 15.0
+        },
+        {
+          "date": "2026-01-05",
+          "contract": "RMU26",
+          "dte": 226,
+          "iv": 36.9,
+          "rv_fwd": 29.3,
+          "vrp": 7.5
+        },
+        {
+          "date": "2026-01-06",
+          "contract": "RMU26",
+          "dte": 225,
+          "iv": 36.5,
+          "rv_fwd": 28.7,
+          "vrp": 7.9
+        },
+        {
+          "date": "2026-01-07",
+          "contract": "RMU26",
+          "dte": 224,
+          "iv": 36.9,
+          "rv_fwd": 28.7,
+          "vrp": 8.2
+        },
+        {
+          "date": "2026-01-08",
+          "contract": "RMU26",
+          "dte": 223,
+          "iv": 37.4,
+          "rv_fwd": 29.7,
+          "vrp": 7.7
+        },
+        {
+          "date": "2026-01-09",
+          "contract": "RMU26",
+          "dte": 222,
+          "iv": 37.0,
+          "rv_fwd": 30.4,
+          "vrp": 6.7
+        },
+        {
+          "date": "2026-01-12",
+          "contract": "RMU26",
+          "dte": 219,
+          "iv": 36.9,
+          "rv_fwd": 31.2,
+          "vrp": 5.7
+        },
+        {
+          "date": "2026-01-13",
+          "contract": "RMU26",
+          "dte": 218,
+          "iv": 35.7,
+          "rv_fwd": 31.0,
+          "vrp": 4.7
+        },
+        {
+          "date": "2026-01-14",
+          "contract": "RMU26",
+          "dte": 217,
+          "iv": 35.7,
+          "rv_fwd": 31.8,
+          "vrp": 3.9
+        },
+        {
+          "date": "2026-01-15",
+          "contract": "RMU26",
+          "dte": 216,
+          "iv": 36.5,
+          "rv_fwd": 32.0,
+          "vrp": 4.5
+        },
+        {
+          "date": "2026-01-16",
+          "contract": "RMU26",
+          "dte": 215,
+          "iv": 36.2,
+          "rv_fwd": 32.0,
+          "vrp": 4.2
+        },
+        {
+          "date": "2026-01-19",
+          "contract": "RMU26",
+          "dte": 212,
+          "iv": 36.6,
+          "rv_fwd": 36.4,
+          "vrp": 0.2
+        },
+        {
+          "date": "2026-01-20",
+          "contract": "RMU26",
+          "dte": 211,
+          "iv": 36.2,
+          "rv_fwd": 36.1,
+          "vrp": 0.1
+        },
+        {
+          "date": "2026-01-21",
+          "contract": "RMU26",
+          "dte": 210,
+          "iv": 36.4,
+          "rv_fwd": 35.5,
+          "vrp": 0.9
+        },
+        {
+          "date": "2026-01-22",
+          "contract": "RMU26",
+          "dte": 209,
+          "iv": 36.6,
+          "rv_fwd": 35.4,
+          "vrp": 1.2
+        },
+        {
+          "date": "2026-01-23",
+          "contract": "RMU26",
+          "dte": 208,
+          "iv": 36.5,
+          "rv_fwd": 34.9,
+          "vrp": 1.5
+        },
+        {
+          "date": "2026-01-26",
+          "contract": "RMU26",
+          "dte": 205,
+          "iv": 36.6,
+          "rv_fwd": 35.6,
+          "vrp": 1.0
+        },
+        {
+          "date": "2026-01-27",
+          "contract": "RMU26",
+          "dte": 204,
+          "iv": 37.1,
+          "rv_fwd": 35.4,
+          "vrp": 1.6
+        },
+        {
+          "date": "2026-01-28",
+          "contract": "RMU26",
+          "dte": 203,
+          "iv": 36.4,
+          "rv_fwd": 34.5,
+          "vrp": 1.9
+        },
+        {
+          "date": "2026-01-29",
+          "contract": "RMU26",
+          "dte": 202,
+          "iv": 35.8,
+          "rv_fwd": 34.5,
+          "vrp": 1.3
+        },
+        {
+          "date": "2026-01-30",
+          "contract": "RMU26",
+          "dte": 201,
+          "iv": 35.3,
+          "rv_fwd": 35.6,
+          "vrp": -0.3
+        },
+        {
+          "date": "2026-02-02",
+          "contract": "RMU26",
+          "dte": 198,
+          "iv": 34.8,
+          "rv_fwd": 35.5,
+          "vrp": -0.7
+        },
+        {
+          "date": "2026-02-03",
+          "contract": "RMU26",
+          "dte": 197,
+          "iv": 35.2,
+          "rv_fwd": 29.6,
+          "vrp": 5.6
+        },
+        {
+          "date": "2026-02-04",
+          "contract": "RMU26",
+          "dte": 196,
+          "iv": 36.4,
+          "rv_fwd": 29.4,
+          "vrp": 7.0
+        },
+        {
+          "date": "2026-02-05",
+          "contract": "RMU26",
+          "dte": 195,
+          "iv": 36.3,
+          "rv_fwd": 29.1,
+          "vrp": 7.2
+        },
+        {
+          "date": "2026-02-06",
+          "contract": "RMU26",
+          "dte": 194,
+          "iv": 36.2,
+          "rv_fwd": 28.1,
+          "vrp": 8.1
+        },
+        {
+          "date": "2026-02-09",
+          "contract": "RMU26",
+          "dte": 191,
+          "iv": 36.0,
+          "rv_fwd": 27.9,
+          "vrp": 8.1
+        },
+        {
+          "date": "2026-02-10",
+          "contract": "RMU26",
+          "dte": 190,
+          "iv": 36.2,
+          "rv_fwd": 29.5,
+          "vrp": 6.8
+        },
+        {
+          "date": "2026-02-11",
+          "contract": "RMU26",
+          "dte": 189,
+          "iv": 36.1,
+          "rv_fwd": 29.8,
+          "vrp": 6.3
+        },
+        {
+          "date": "2026-02-12",
+          "contract": "RMU26",
+          "dte": 188,
+          "iv": 36.3,
+          "rv_fwd": 32.3,
+          "vrp": 4.0
+        },
+        {
+          "date": "2026-02-13",
+          "contract": "RMU26",
+          "dte": 187,
+          "iv": 35.7,
+          "rv_fwd": 32.1,
+          "vrp": 3.6
+        },
+        {
+          "date": "2026-02-16",
+          "contract": "RMU26",
+          "dte": 184,
+          "iv": 36.0,
+          "rv_fwd": 32.5,
+          "vrp": 3.5
+        },
+        {
+          "date": "2026-02-17",
+          "contract": "RMU26",
+          "dte": 183,
+          "iv": 36.3,
+          "rv_fwd": 27.7,
+          "vrp": 8.6
+        },
+        {
+          "date": "2026-02-18",
+          "contract": "RMU26",
+          "dte": 182,
+          "iv": 36.3,
+          "rv_fwd": 27.8,
+          "vrp": 8.5
+        },
+        {
+          "date": "2026-02-19",
+          "contract": "RMU26",
+          "dte": 181,
+          "iv": 36.3,
+          "rv_fwd": 27.7,
+          "vrp": 8.6
+        },
+        {
+          "date": "2026-02-20",
+          "contract": "RMU26",
+          "dte": 180,
+          "iv": 36.0,
+          "rv_fwd": 27.7,
+          "vrp": 8.3
+        },
+        {
+          "date": "2026-02-23",
+          "contract": "RMU26",
+          "dte": 177,
+          "iv": 36.1,
+          "rv_fwd": 27.6,
+          "vrp": 8.5
+        },
+        {
+          "date": "2026-02-24",
+          "contract": "RMU26",
+          "dte": 176,
+          "iv": 35.8,
+          "rv_fwd": 26.5,
+          "vrp": 9.4
+        },
+        {
+          "date": "2026-02-25",
+          "contract": "RMU26",
+          "dte": 175,
+          "iv": 35.4,
+          "rv_fwd": 26.1,
+          "vrp": 9.4
+        },
+        {
+          "date": "2026-02-26",
+          "contract": "RMU26",
+          "dte": 174,
+          "iv": 35.2,
+          "rv_fwd": 25.5,
+          "vrp": 9.6
+        },
+        {
+          "date": "2026-02-27",
+          "contract": "RMU26",
+          "dte": 173,
+          "iv": 34.9,
+          "rv_fwd": 30.5,
+          "vrp": 4.3
+        },
+        {
+          "date": "2026-03-02",
+          "contract": "RMU26",
+          "dte": 170,
+          "iv": 35.1,
+          "rv_fwd": 29.3,
+          "vrp": 5.8
+        },
+        {
+          "date": "2026-03-03",
+          "contract": "RMU26",
+          "dte": 169,
+          "iv": 34.7,
+          "rv_fwd": 29.2,
+          "vrp": 5.6
+        },
+        {
+          "date": "2026-03-04",
+          "contract": "RMU26",
+          "dte": 168,
+          "iv": 34.4,
+          "rv_fwd": 30.0,
+          "vrp": 4.4
+        },
+        {
+          "date": "2026-03-05",
+          "contract": "RMU26",
+          "dte": 167,
+          "iv": 34.2,
+          "rv_fwd": 30.0,
+          "vrp": 4.2
+        },
+        {
+          "date": "2026-03-06",
+          "contract": "RMU26",
+          "dte": 166,
+          "iv": 34.1,
+          "rv_fwd": 32.8,
+          "vrp": 1.2
+        },
+        {
+          "date": "2026-03-09",
+          "contract": "RMU26",
+          "dte": 163,
+          "iv": 33.6,
+          "rv_fwd": 32.9,
+          "vrp": 0.7
+        },
+        {
+          "date": "2026-03-10",
+          "contract": "RMU26",
+          "dte": 162,
+          "iv": 33.8,
+          "rv_fwd": 32.3,
+          "vrp": 1.5
+        },
+        {
+          "date": "2026-03-11",
+          "contract": "RMU26",
+          "dte": 161,
+          "iv": 33.8,
+          "rv_fwd": 30.0,
+          "vrp": 3.8
+        },
+        {
+          "date": "2026-03-12",
+          "contract": "RMU26",
+          "dte": 160,
+          "iv": 33.7,
+          "rv_fwd": 29.6,
+          "vrp": 4.0
+        },
+        {
+          "date": "2026-03-13",
+          "contract": "RMU26",
+          "dte": 159,
+          "iv": 34.0,
+          "rv_fwd": 27.5,
+          "vrp": 6.5
+        },
+        {
+          "date": "2026-03-16",
+          "contract": "RMU26",
+          "dte": 156,
+          "iv": 33.8,
+          "rv_fwd": 27.8,
+          "vrp": 6.0
+        },
+        {
+          "date": "2026-03-17",
+          "contract": "RMU26",
+          "dte": 155,
+          "iv": 33.9,
+          "rv_fwd": 27.8,
+          "vrp": 6.1
+        },
+        {
+          "date": "2026-03-18",
+          "contract": "RMU26",
+          "dte": 154,
+          "iv": 34.3,
+          "rv_fwd": 29.0,
+          "vrp": 5.3
+        },
+        {
+          "date": "2026-03-19",
+          "contract": "RMU26",
+          "dte": 153,
+          "iv": 33.8,
+          "rv_fwd": 30.7,
+          "vrp": 3.1
+        },
+        {
+          "date": "2026-03-20",
+          "contract": "RMU26",
+          "dte": 152,
+          "iv": 33.8,
+          "rv_fwd": 30.6,
+          "vrp": 3.2
+        },
+        {
+          "date": "2026-03-23",
+          "contract": "RMU26",
+          "dte": 149,
+          "iv": 33.7,
+          "rv_fwd": 31.3,
+          "vrp": 2.4
+        },
+        {
+          "date": "2026-03-24",
+          "contract": "RMU26",
+          "dte": 148,
+          "iv": 33.9,
+          "rv_fwd": 32.7,
+          "vrp": 1.2
+        },
+        {
+          "date": "2026-03-25",
+          "contract": "RMU26",
+          "dte": 147,
+          "iv": 33.9,
+          "rv_fwd": 32.7,
+          "vrp": 1.2
+        },
+        {
+          "date": "2026-03-26",
+          "contract": "RMU26",
+          "dte": 146,
+          "iv": 32.9,
+          "rv_fwd": 33.1,
+          "vrp": -0.2
+        },
+        {
+          "date": "2026-03-27",
+          "contract": "RMU26",
+          "dte": 145,
+          "iv": 32.9,
+          "rv_fwd": 33.4,
+          "vrp": -0.5
+        },
+        {
+          "date": "2026-03-30",
+          "contract": "RMU26",
+          "dte": 142,
+          "iv": 33.3,
+          "rv_fwd": 29.1,
+          "vrp": 4.2
+        },
+        {
+          "date": "2026-03-31",
+          "contract": "RMU26",
+          "dte": 141,
+          "iv": 32.3,
+          "rv_fwd": 29.6,
+          "vrp": 2.7
+        },
+        {
+          "date": "2026-04-01",
+          "contract": "RMU26",
+          "dte": 140,
+          "iv": 32.3,
+          "rv_fwd": 29.6,
+          "vrp": 2.7
+        },
+        {
+          "date": "2026-04-02",
+          "contract": "RMU26",
+          "dte": 139,
+          "iv": 32.3,
+          "rv_fwd": 28.6,
+          "vrp": 3.7
+        },
+        {
+          "date": "2026-04-06",
+          "contract": "RMU26",
+          "dte": 135,
+          "iv": 32.7,
+          "rv_fwd": 28.7,
+          "vrp": 4.1
+        },
+        {
+          "date": "2026-04-07",
+          "contract": "RMU26",
+          "dte": 134,
+          "iv": 32.5,
+          "rv_fwd": 25.5,
+          "vrp": 7.1
+        },
+        {
+          "date": "2026-04-08",
+          "contract": "RMU26",
+          "dte": 133,
+          "iv": 32.6,
+          "rv_fwd": 25.3,
+          "vrp": 7.4
+        },
+        {
+          "date": "2026-04-09",
+          "contract": "RMU26",
+          "dte": 132,
+          "iv": 32.9,
+          "rv_fwd": 25.3,
+          "vrp": 7.5
+        },
+        {
+          "date": "2026-04-10",
+          "contract": "RMU26",
+          "dte": 131,
+          "iv": 32.5,
+          "rv_fwd": 26.7,
+          "vrp": 5.8
+        },
+        {
+          "date": "2026-04-13",
+          "contract": "RMU26",
+          "dte": 128,
+          "iv": 32.2,
+          "rv_fwd": 26.7,
+          "vrp": 5.5
+        },
+        {
+          "date": "2026-04-14",
+          "contract": "RMU26",
+          "dte": 127,
+          "iv": 32.1,
+          "rv_fwd": 26.3,
+          "vrp": 5.8
+        },
+        {
+          "date": "2026-04-15",
+          "contract": "RMU26",
+          "dte": 126,
+          "iv": 32.0,
+          "rv_fwd": 26.8,
+          "vrp": 5.2
+        },
+        {
+          "date": "2026-04-16",
+          "contract": "RMU26",
+          "dte": 125,
+          "iv": 31.9,
+          "rv_fwd": 29.5,
+          "vrp": 2.4
+        },
+        {
+          "date": "2026-04-17",
+          "contract": "RMU26",
+          "dte": 124,
+          "iv": 31.6,
+          "rv_fwd": 29.1,
+          "vrp": 2.5
+        },
+        {
+          "date": "2026-04-20",
+          "contract": "RMU26",
+          "dte": 121,
+          "iv": 31.8,
+          "rv_fwd": 27.0,
+          "vrp": 4.7
+        },
+        {
+          "date": "2026-04-21",
+          "contract": "RMU26",
+          "dte": 120,
+          "iv": 32.0,
+          "rv_fwd": 26.7,
+          "vrp": 5.3
+        },
+        {
+          "date": "2026-04-22",
+          "contract": "RMU26",
+          "dte": 119,
+          "iv": 32.6,
+          "rv_fwd": 26.4,
+          "vrp": 6.1
+        },
+        {
+          "date": "2026-04-23",
+          "contract": "RMU26",
+          "dte": 118,
+          "iv": 32.5,
+          "rv_fwd": 27.3,
+          "vrp": 5.2
+        },
+        {
+          "date": "2026-04-24",
+          "contract": "RMU26",
+          "dte": 117,
+          "iv": 32.5,
+          "rv_fwd": 27.5,
+          "vrp": 5.0
+        },
+        {
+          "date": "2026-04-27",
+          "contract": "RMU26",
+          "dte": 114,
+          "iv": 31.9,
+          "rv_fwd": 27.9,
+          "vrp": 4.0
+        },
+        {
+          "date": "2026-04-28",
+          "contract": "RMU26",
+          "dte": 113,
+          "iv": 32.3,
+          "rv_fwd": 28.4,
+          "vrp": 3.9
+        },
+        {
+          "date": "2026-04-29",
+          "contract": "RMU26",
+          "dte": 112,
+          "iv": 31.7,
+          "rv_fwd": 28.3,
+          "vrp": 3.4
+        },
+        {
+          "date": "2026-04-30",
+          "contract": "RMU26",
+          "dte": 111,
+          "iv": 31.4,
+          "rv_fwd": 27.4,
+          "vrp": 4.0
+        },
+        {
+          "date": "2026-05-01",
+          "contract": "RMU26",
+          "dte": 110,
+          "iv": 31.8,
+          "rv_fwd": 28.0,
+          "vrp": 3.8
+        },
+        {
+          "date": "2026-05-04",
+          "contract": "RMU26",
+          "dte": 107,
+          "iv": 32.3,
+          "rv_fwd": 28.0,
+          "vrp": 4.2
+        },
+        {
+          "date": "2026-05-05",
+          "contract": "RMU26",
+          "dte": 106,
+          "iv": 32.8,
+          "rv_fwd": 28.2,
+          "vrp": 4.6
+        },
+        {
+          "date": "2026-05-06",
+          "contract": "RMU26",
+          "dte": 105,
+          "iv": 33.0,
+          "rv_fwd": 28.3,
+          "vrp": 4.7
+        },
+        {
+          "date": "2026-05-07",
+          "contract": "RMU26",
+          "dte": 104,
+          "iv": 32.4,
+          "rv_fwd": 28.5,
+          "vrp": 3.9
+        },
+        {
+          "date": "2026-05-08",
+          "contract": "RMU26",
+          "dte": 103,
+          "iv": 31.8,
+          "rv_fwd": 29.3,
+          "vrp": 2.5
+        },
+        {
+          "date": "2026-05-11",
+          "contract": "RMU26",
+          "dte": 100,
+          "iv": 32.0,
+          "rv_fwd": 29.8,
+          "vrp": 2.2
+        },
+        {
+          "date": "2026-05-12",
+          "contract": "RMU26",
+          "dte": 99,
+          "iv": 32.0,
+          "rv_fwd": 32.5,
+          "vrp": -0.5
+        },
+        {
+          "date": "2026-05-13",
+          "contract": "RMU26",
+          "dte": 98,
+          "iv": 32.1,
+          "rv_fwd": 31.5,
+          "vrp": 0.6
+        },
+        {
+          "date": "2026-05-14",
+          "contract": "RMU26",
+          "dte": 97,
+          "iv": 31.9,
+          "rv_fwd": 31.5,
+          "vrp": 0.4
+        },
+        {
+          "date": "2026-05-15",
+          "contract": "RMU26",
+          "dte": 96,
+          "iv": 32.2,
+          "rv_fwd": 28.6,
+          "vrp": 3.5
+        },
+        {
+          "date": "2026-05-18",
+          "contract": "RMU26",
+          "dte": 93,
+          "iv": 32.1,
+          "rv_fwd": 27.6,
+          "vrp": 4.5
+        },
+        {
+          "date": "2026-05-19",
+          "contract": "RMU26",
+          "dte": 92,
+          "iv": 32.0,
+          "rv_fwd": 27.6,
+          "vrp": 4.3
+        },
+        {
+          "date": "2026-05-20",
+          "contract": "RMU26",
+          "dte": 91,
+          "iv": 32.0,
+          "rv_fwd": 28.1,
+          "vrp": 4.0
+        },
+        {
+          "date": "2026-05-21",
+          "contract": "RMU26",
+          "dte": 90,
+          "iv": 31.3,
+          "rv_fwd": 27.6,
+          "vrp": 3.8
+        },
+        {
+          "date": "2026-05-22",
+          "contract": "RMU26",
+          "dte": 89,
+          "iv": 31.7,
+          "rv_fwd": 27.6,
+          "vrp": 4.2
+        },
+        {
+          "date": "2026-05-26",
+          "contract": "RMU26",
+          "dte": 85,
+          "iv": 31.7,
+          "rv_fwd": 25.4,
+          "vrp": 6.3
+        },
+        {
+          "date": "2026-05-27",
+          "contract": "RMU26",
+          "dte": 84,
+          "iv": 31.8,
+          "rv_fwd": 25.7,
+          "vrp": 6.1
+        },
+        {
+          "date": "2026-05-28",
+          "contract": "RMU26",
+          "dte": 83,
+          "iv": 31.5,
+          "rv_fwd": 24.7,
+          "vrp": 6.8
+        },
+        {
+          "date": "2026-05-29",
+          "contract": "RMU26",
+          "dte": 82,
+          "iv": 31.5,
+          "rv_fwd": 24.4,
+          "vrp": 7.1
+        },
+        {
+          "date": "2026-06-01",
+          "contract": "RMU26",
+          "dte": 79,
+          "iv": 31.5,
+          "rv_fwd": 25.8,
+          "vrp": 5.7
+        },
+        {
+          "date": "2026-06-02",
+          "contract": "RMU26",
+          "dte": 78,
+          "iv": 31.5,
+          "rv_fwd": 27.8,
+          "vrp": 3.7
+        },
+        {
+          "date": "2026-06-03",
+          "contract": "RMU26",
+          "dte": 77,
+          "iv": 31.8,
+          "rv_fwd": 27.2,
+          "vrp": 4.6
+        },
+        {
+          "date": "2026-06-04",
+          "contract": "RMU26",
+          "dte": 76,
+          "iv": 31.6,
+          "rv_fwd": 27.9,
+          "vrp": 3.7
+        },
+        {
+          "date": "2026-06-05",
+          "contract": "RMU26",
+          "dte": 75,
+          "iv": 31.6,
+          "rv_fwd": 40.3,
+          "vrp": -8.7
+        },
+        {
+          "date": "2026-06-08",
+          "contract": "RMU26",
+          "dte": 72,
+          "iv": 32.1,
+          "rv_fwd": 42.9,
+          "vrp": -10.7
+        },
+        {
+          "date": "2026-06-09",
+          "contract": "RMU26",
+          "dte": 71,
+          "iv": 31.6,
+          "rv_fwd": 44.4,
+          "vrp": -12.8
+        },
+        {
+          "date": "2026-06-10",
+          "contract": "RMU26",
+          "dte": 70,
+          "iv": 31.7,
+          "rv_fwd": 51.4,
+          "vrp": -19.7
+        },
+        {
+          "date": "2026-06-11",
+          "contract": "RMU26",
+          "dte": 69,
+          "iv": 32.2,
+          "rv_fwd": 53.1,
+          "vrp": -20.9
+        },
+        {
+          "date": "2026-06-12",
+          "contract": "RMU26",
+          "dte": 68,
+          "iv": 32.8,
+          "rv_fwd": 51.5,
+          "vrp": -18.7
+        },
+        {
+          "date": "2026-06-15",
+          "contract": "RMU26",
+          "dte": 65,
+          "iv": 33.0,
+          "rv_fwd": 51.5,
+          "vrp": -18.5
+        },
+        {
+          "date": "2026-06-16",
+          "contract": "RMU26",
+          "dte": 64,
+          "iv": 33.5,
+          "rv_fwd": 51.4,
+          "vrp": -17.9
+        },
+        {
+          "date": "2026-06-17",
+          "contract": "RMU26",
+          "dte": 63,
+          "iv": 33.4,
+          "rv_fwd": 52.4,
+          "vrp": -19.0
+        },
+        {
+          "date": "2026-06-18",
+          "contract": "RMU26",
+          "dte": 62,
+          "iv": 32.9,
+          "rv_fwd": 52.9,
+          "vrp": -20.0
+        },
+        {
+          "date": "2026-06-19",
+          "contract": "RMU26",
+          "dte": 61,
+          "iv": 32.8,
+          "rv_fwd": 52.7,
+          "vrp": -20.0
+        },
+        {
+          "date": "2026-06-22",
+          "contract": "RMU26",
+          "dte": 58,
+          "iv": 33.2,
+          "rv_fwd": 52.9,
+          "vrp": -19.7
+        },
+        {
+          "date": "2026-06-23",
+          "contract": "RMU26",
+          "dte": 57,
+          "iv": 32.5,
+          "rv_fwd": 52.9,
+          "vrp": -20.3
+        },
+        {
+          "date": "2026-06-24",
+          "contract": "RMU26",
+          "dte": 56,
+          "iv": 32.6,
+          "rv_fwd": 53.3,
+          "vrp": -20.7
+        },
+        {
+          "date": "2026-06-25",
+          "contract": "RMU26",
+          "dte": 55,
+          "iv": 32.7,
+          "rv_fwd": 53.2,
+          "vrp": -20.5
+        },
+        {
+          "date": "2026-06-26",
+          "contract": "RMU26",
+          "dte": 54,
+          "iv": 32.0,
+          "rv_fwd": 53.2,
+          "vrp": -21.2
+        },
+        {
+          "date": "2026-06-29",
+          "contract": "RMU26",
+          "dte": 51,
+          "iv": 31.9,
+          "rv_fwd": 53.4,
+          "vrp": -21.5
+        },
+        {
+          "date": "2026-06-30",
+          "contract": "RMU26",
+          "dte": 50,
+          "iv": 33.9,
+          "rv_fwd": 53.4,
+          "vrp": -19.5
+        },
+        {
+          "date": "2026-07-01",
+          "contract": "RMU26",
+          "dte": 49,
+          "iv": 34.5,
+          "rv_fwd": 52.4,
+          "vrp": -17.9
+        },
+        {
+          "date": "2026-07-02",
+          "contract": "RMU26",
+          "dte": 48,
+          "iv": 38.1,
+          "rv_fwd": 52.4,
+          "vrp": -14.3
+        },
+        {
+          "date": "2026-07-03",
+          "contract": "RMU26",
+          "dte": 47,
+          "iv": 38.0,
+          "rv_fwd": 52.0,
+          "vrp": -14.0
+        },
+        {
+          "date": "2026-07-06",
+          "contract": "RMU26",
+          "dte": 44,
+          "iv": 44.6,
+          "rv_fwd": 43.4,
+          "vrp": 1.2
+        },
+        {
+          "date": "2026-07-07",
+          "contract": "RMU26",
+          "dte": 43,
+          "iv": 44.8,
+          "rv_fwd": 40.8,
+          "vrp": 4.0
+        },
+        {
+          "date": "2026-07-08",
+          "contract": "RMU26",
+          "dte": 42,
+          "iv": 41.7,
+          "rv_fwd": 39.9,
+          "vrp": 1.7
+        },
+        {
+          "date": "2026-07-09",
+          "contract": "RMU26",
+          "dte": 41,
+          "iv": 44.5,
+          "rv_fwd": 29.6,
+          "vrp": 14.9
+        },
+        {
+          "date": "2026-07-10",
+          "contract": "RMU26",
+          "dte": 40,
+          "iv": 44.9,
+          "rv_fwd": 24.4,
+          "vrp": 20.5
+        },
+        {
+          "date": "2026-07-13",
+          "contract": "RMU26",
+          "dte": 37,
+          "iv": 43.8,
+          "rv_fwd": 24.4,
+          "vrp": 19.3
+        },
+        {
+          "date": "2026-07-14",
+          "contract": "RMU26",
+          "dte": 36,
+          "iv": 44.7,
+          "rv_fwd": 24.4,
+          "vrp": 20.3
+        },
+        {
+          "date": "2026-07-15",
+          "contract": "RMU26",
+          "dte": 35,
+          "iv": 42.7,
+          "rv_fwd": 25.7,
+          "vrp": 17.0
+        },
+        {
+          "date": "2026-07-16",
+          "contract": "RMU26",
+          "dte": 34,
+          "iv": 39.5,
+          "rv_fwd": 23.9,
+          "vrp": 15.5
+        }
+      ],
+      "life_matched": {
+        "contract": "RMU26",
+        "window": "2025-01-28 → 2026-08-14",
+        "sessions": 395,
+        "mean_iv": 36.8,
+        "rv": 35.4,
+        "vrp": 1.4
+      },
+      "latest": {
+        "RMU26": {
+          "date": "2026-08-14",
+          "dte": 5,
+          "iv": 40.0,
+          "rv_trailing": 23.9
+        },
+        "RMX26": {
+          "date": "2026-08-14",
+          "dte": 68,
+          "iv": 37.3,
+          "rv_trailing": 24.0
+        },
+        "RMF27": {
+          "date": "2026-08-14",
+          "dte": 124,
+          "iv": 37.4,
+          "rv_trailing": 23.6
+        }
+      }
+    }
+  }
+}
