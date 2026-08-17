@@ -118,12 +118,16 @@ ORIGINS: dict[str, list[dict]] = {
         {"name": "Toraja",  "lat": -2.97, "lon": 119.90},
         {"name": "Flores",  "lat": -8.79, "lon": 120.98},
     ],
+    # Rebuilt Aug 2026 — one station per production belt. Names MUST match
+    # build_origin_weather.py's uganda regions (the rebuild keys on them).
     "uganda": [
-        {"name": "Masaka",   "lat": -0.33, "lon": 31.73},
-        {"name": "Kasese",   "lat": 0.18,  "lon": 30.08},
-        {"name": "Rwenzori", "lat": 0.66,  "lon": 30.27},
-        {"name": "Mbale",    "lat": 1.08,  "lon": 34.18},
-        {"name": "Mt Elgon", "lat": 1.23,  "lon": 34.25},
+        {"name": "Greater Masaka", "lat": -0.33, "lon": 31.73},   # robusta
+        {"name": "Central",        "lat":  0.40, "lon": 32.04},   # robusta
+        {"name": "Western",        "lat": -0.59, "lon": 30.19},   # robusta
+        {"name": "Busoga",         "lat":  0.61, "lon": 33.47},   # robusta
+        {"name": "Mt Elgon",       "lat":  1.39, "lon": 34.45},   # arabica
+        {"name": "West Nile",      "lat":  2.52, "lon": 30.90},   # arabica
+        {"name": "Rwenzori",       "lat":  0.66, "lon": 30.27},   # arabica
     ],
     "ethiopia": [
         {"name": "Sidama/Yirgacheffe", "lat": 6.16, "lon": 38.20},

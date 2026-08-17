@@ -29,36 +29,46 @@ ROOT    = Path(__file__).resolve().parents[2]
 OUT_DIR = ROOT / "frontend" / "public" / "data"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-_UGANDA_REGIONS = ["Kasese", "Mbale", "Mt Elgon", "Rwenzori", "Masaka"]
+# One entry per production belt — must match sources/uganda_weather.py.
+_UGANDA_REGIONS = [
+    "Greater Masaka", "Central", "Western", "Busoga",   # robusta ~85%
+    "Mt Elgon", "West Nile", "Rwenzori",                 # arabica ~15%
+]
 
 _UGANDA_ENSO_IMPACT = {
     "el-nino": {
         "regions": [
-            {"region": "Kasese",    "type": "DRY",  "note": "western lowlands moisture deficit, heat stress"},
-            {"region": "Mbale",     "type": "DRY",  "note": "eastern slopes below-avg rainfall"},
-            {"region": "Mt Elgon",  "type": "DRY",  "note": "highland arabica moisture stress"},
-            {"region": "Rwenzori",  "type": "DRY",  "note": "Rwenzori range rainfall deficit"},
-            {"region": "Masaka",    "type": "DRY",  "note": "central robusta belt drought risk"},
+            {"region": "Greater Masaka", "type": "DRY", "note": "Lake Victoria crescent robusta — drought risk in the largest belt"},
+            {"region": "Central",        "type": "DRY", "note": "Mityana/Mubende robusta moisture deficit"},
+            {"region": "Western",        "type": "DRY", "note": "Bushenyi/Sheema robusta below-avg rainfall"},
+            {"region": "Busoga",         "type": "DRY", "note": "eastern robusta lowlands heat stress"},
+            {"region": "Mt Elgon",       "type": "DRY", "note": "Bugisu highland arabica moisture stress"},
+            {"region": "West Nile",      "type": "DRY", "note": "Okoro arabica — driest belt, most exposed"},
+            {"region": "Rwenzori",       "type": "DRY", "note": "Rwenzori arabica rainfall deficit"},
         ],
         "historical_stat": "El Nino years: Uganda coffee output -10 to -20% vs neutral (UCDA)",
     },
     "la-nina": {
         "regions": [
-            {"region": "Kasese",    "type": "WET",  "note": "above-avg rainfall, flooding risk"},
-            {"region": "Mbale",     "type": "WET",  "note": "elevated moisture, positive for robusta"},
-            {"region": "Mt Elgon",  "type": "WET",  "note": "good conditions for arabica flowering"},
-            {"region": "Rwenzori",  "type": "WET",  "note": "excess moisture — fungal disease risk"},
-            {"region": "Masaka",    "type": "WET",  "note": "above-avg rainfall, quality risk if excess"},
+            {"region": "Greater Masaka", "type": "WET", "note": "above-avg rainfall — positive for robusta yield"},
+            {"region": "Central",        "type": "WET", "note": "elevated moisture, positive for robusta"},
+            {"region": "Western",        "type": "WET", "note": "good conditions for robusta flowering"},
+            {"region": "Busoga",         "type": "WET", "note": "above-avg rainfall, flooding risk in lowlands"},
+            {"region": "Mt Elgon",       "type": "WET", "note": "good conditions for arabica flowering"},
+            {"region": "West Nile",      "type": "WET", "note": "wetter Okoro — relieves the belt's usual deficit"},
+            {"region": "Rwenzori",       "type": "WET", "note": "excess moisture — fungal disease risk"},
         ],
         "historical_stat": "La Nina: above-average rainfall — positive for yield; flooding risk in lowlands",
     },
     "neutral": {
         "regions": [
-            {"region": "Kasese",    "type": "WARM", "note": "near-normal conditions"},
-            {"region": "Mbale",     "type": "WARM", "note": "near-normal conditions"},
-            {"region": "Mt Elgon",  "type": "WARM", "note": "near-normal arabica growing conditions"},
-            {"region": "Rwenzori",  "type": "WARM", "note": "near-normal conditions"},
-            {"region": "Masaka",    "type": "WARM", "note": "near-normal robusta conditions"},
+            {"region": "Greater Masaka", "type": "WARM", "note": "near-normal robusta conditions"},
+            {"region": "Central",        "type": "WARM", "note": "near-normal robusta conditions"},
+            {"region": "Western",        "type": "WARM", "note": "near-normal robusta conditions"},
+            {"region": "Busoga",         "type": "WARM", "note": "near-normal conditions"},
+            {"region": "Mt Elgon",       "type": "WARM", "note": "near-normal arabica growing conditions"},
+            {"region": "West Nile",      "type": "WARM", "note": "near-normal arabica conditions"},
+            {"region": "Rwenzori",       "type": "WARM", "note": "near-normal arabica conditions"},
         ],
         "historical_stat": "Neutral ENSO: near-average Uganda coffee output expected",
     },
@@ -315,16 +325,25 @@ def export_uganda(db) -> None:
             "fly_crop_flowering":  "Oct-Dec",
             "description": (
                 "Uganda has two crop cycles. Main crop Oct-Feb (robusta & arabica); "
-                "fly crop Apr-Jun. 75% robusta (Screen 15 benchmark), 25% arabica."
+                "fly crop Apr-Jun. 85% robusta (Screen 15 benchmark), 15% arabica."
             ),
         },
         "production_mix": {
-            "robusta_pct": 75,
-            "arabica_pct": 25,
-            "note": "Uganda is Africa's leading robusta exporter. Screen 15 benchmark grade.",
+            # Measured, not assumed: 78 months of UCDA by-type export data in
+            # uganda_monthly.json give robusta 85.6% / arabica 14.4% (last 12M
+            # 85.4/14.6 — the ratio is stable). The previous 75/25 overstated
+            # arabica by ~10pp.
+            "robusta_pct": 85,
+            "arabica_pct": 15,
+            "note": (
+                "Uganda is Africa's leading robusta exporter. Screen 15 benchmark grade. "
+                "Split measured from UCDA monthly by-type exports."
+            ),
             "key_regions": {
-                "robusta": ["Kasese", "Masaka", "Mbale"],
-                "arabica": ["Mt Elgon", "Rwenzori"],
+                "robusta": ["Greater Masaka", "Central", "Western", "Busoga"],
+                # Kasese sits in the Rwenzori arabica belt (UCDA maps it an
+                # arabica district) — it used to be listed under robusta.
+                "arabica": ["Mt Elgon", "West Nile", "Rwenzori"],
             },
         },
     }

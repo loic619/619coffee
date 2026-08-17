@@ -88,12 +88,18 @@ interface UgandaSupply {
 const DEFAULT_HARVEST = {
   main_crop_harvest: "Oct-Feb",
   fly_crop_harvest:  "Apr-Jun",
-  description: "Uganda has two crop cycles. Main crop Oct-Feb; fly crop Apr-Jun. 75% robusta, 25% arabica.",
+  description: "Uganda has two crop cycles. Main crop Oct-Feb; fly crop Apr-Jun. 85% robusta, 15% arabica.",
 };
+// Fallbacks only — the live values come from uganda_supply.json. The split
+// is measured from 78 months of UCDA by-type exports (85.6/14.4), not the
+// 75/25 previously assumed here.
 const DEFAULT_MIX = {
-  robusta_pct: 75, arabica_pct: 25,
+  robusta_pct: 85, arabica_pct: 15,
   note: "Uganda is Africa's leading robusta exporter. Screen 15 benchmark grade.",
-  key_regions: { robusta: ["Kasese", "Masaka", "Mbale"], arabica: ["Mt Elgon", "Rwenzori"] },
+  key_regions: {
+    robusta: ["Greater Masaka", "Central", "Western", "Busoga"],
+    arabica: ["Mt Elgon", "West Nile", "Rwenzori"],
+  },
 };
 
 export default function UgandaTab() {
