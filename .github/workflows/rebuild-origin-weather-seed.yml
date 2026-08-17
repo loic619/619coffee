@@ -1,0 +1,88 @@
+name: "0.11 – Rebuild origin weather seed (climatology + region set)"
+
+# Regenerates frontend/public/data/{origin}_weather.json from scratch via
+# backend/scripts/build_origin_weather.py: the region set, production
+# weights, crop_type / per-crop volumes and the 30Y climatology bands.
+#
+# WHY THIS EXISTS: the daily 1.10 job only refreshes actuals, MTD and the
+# forecast INTO an existing file, keyed by province name. It cannot add,
+# rename or re-weight regions — so after editing ORIGINS in
+# build_origin_weather.py the shipped JSON keeps the old provinces
+# indefinitely and the change looks like it silently did nothing (exactly
+# what happened to the Uganda region rebuild, Aug 2026).
+#
+# Run this whenever a region set, its weights or its crop split change.
+# Open-Meteo is not reachable from the dev sandbox, so Actions is the only
+# place this can run. The script is idempotent — safe to re-run.
+
+on:
+  workflow_dispatch:
+    inputs:
+      origins:
+        description: "Space-separated origin keys (e.g. 'uganda brazil'), or blank for all"
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  # Shares the weather group: this rewrites the same files 1.10 appends to,
+  # so the two must never interleave.
+  group: weather-fetch
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests scipy
+
+      - name: Rebuild seed
+        working-directory: backend
+        env:
+          ORIGINS_IN: ${{ inputs.origins }}
+        run: |
+          set -e
+          ARGS="--write"
+          [ -n "$ORIGINS_IN" ] && ARGS="$ARGS --origins $ORIGINS_IN"
+          python scripts/build_origin_weather.py $ARGS
+
+      - name: Commit rebuilt seed
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data/*_weather.json
+          if git diff --cached --quiet; then
+            echo "No seed change."
+            exit 0
+          fi
+          git commit -m "data: rebuild origin weather seed [skip ci]"
+          ok=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" \
+               && git push origin "HEAD:${GITHUB_REF_NAME}"; then ok=1; break; fi
+            echo "push attempt $attempt failed (concurrent push?); retrying in $((5*attempt))s…"
+            sleep $((5 * attempt))
+          done
+          [ "$ok" = 1 ] || { echo "push failed after 5 attempts"; exit 1; }
+
+      - name: Notify on failure or cancellation
+        if: failure() || cancelled()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=🚨 ${{ github.workflow }} ${{ job.status }} — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
