@@ -228,24 +228,67 @@ def compose_freight(now: dt.datetime) -> str | None:
     return f"🚢 Freight rates ({d.get('updated')}):\n" + "\n".join(lines)
 
 
+def _ytd(monthly: dict[str, float], year: str, through_mm: str) -> float | None:
+    """Sum of `year`'s months up to and including `through_mm` (e.g. '06')."""
+    vals = [v for k, v in monthly.items()
+            if k[:4] == year and k[5:7] <= through_mm and isinstance(v, (int, float))]
+    return sum(vals) if vals else None
+
+
 def _imports_text(path: Path, flag: str, dest: str, now: dt.datetime) -> str | None:
+    """Latest reported MONTH first, then year-to-date on a like-for-like basis.
+
+    This used to headline `total_by_year`, which holds only COMPLETE calendar
+    years — the annual query asks for fullYears and skips the year in progress
+    — so in August 2026 the message still announced 2025 while monthly data
+    ran to June 2026. Leading with the month is both current and the right
+    granularity for a series that publishes monthly.
+
+    The year-to-date comparison is deliberately same-months-last-year, never
+    partial-vs-full: 6 months of 2026 against all of 2025 would read as a
+    collapse in demand that never happened.
+    """
     d = _load(path)
     if not isinstance(d, dict) or not _fresh(d.get("updated"), 2, now):
         return None
-    totals = d.get("total_by_year") or {}
-    years = sorted(totals)
-    if not years:
+    monthly = {k: v for k, v in (d.get("monthly_total") or {}).items()
+               if isinstance(v, (int, float))}
+    if not monthly:
         return None
-    y = years[-1]
-    prev_y = years[-2] if len(years) > 1 else None
-    top = sorted(
-        ((o.get("name"), (o.get("by_year") or {}).get(y)) for o in d.get("origins") or []),
-        key=lambda t: -(t[1] or 0),
-    )[:3]
-    top_txt = ", ".join(f"{n} { _fmt(v/1000,1)}k t" for n, v in top if v)
-    return (f"{flag} {dest} coffee imports — {y}: {_fmt(totals[y]/1000,1)}k t"
-            f"{_yoy(totals.get(y), totals.get(prev_y) if prev_y else None)}\n"
-            f"• top origins: {top_txt}")
+    last = max(monthly)
+    year, mm = last[:4], last[5:7]
+    prev_year = f"{int(year) - 1:04d}"
+
+    lines = [f"{flag} {dest} coffee imports — {last}: {_fmt(monthly[last] / 1000, 1)}k t"
+             f"{_yoy(monthly[last], monthly.get(f'{prev_year}-{mm}'))}"]
+
+    ytd, ytd_prev = _ytd(monthly, year, mm), _ytd(monthly, prev_year, mm)
+    if ytd is not None:
+        months = int(mm)
+        line = f"• YTD {_fmt(ytd / 1000, 1)}k t"
+        if ytd_prev is not None:
+            line += (f" ({_pct(ytd, ytd_prev)} vs same {months} "
+                     f"{'month' if months == 1 else 'months'} {prev_year})")
+        lines.append(line)
+
+    # Top origins: monthly-by-origin when the source breaks it out (USITC), so
+    # the ranking matches the YTD window. Eurostat ships origins annually only,
+    # so that fallback names the year it is actually showing.
+    mo = {n: s for n, s in (d.get("monthly_origins") or {}).items() if isinstance(s, dict)}
+    if mo:
+        ranked = sorted(((n, _ytd(s, year, mm) or 0) for n, s in mo.items()),
+                        key=lambda t: -t[1])[:3]
+        label = "top origins YTD"
+    else:
+        by_year = d.get("total_by_year") or {}
+        src_year = max(by_year) if by_year else None
+        ranked = sorted(((o.get("name"), (o.get("by_year") or {}).get(src_year) or 0)
+                         for o in d.get("origins") or []), key=lambda t: -t[1])[:3]
+        label = f"top origins ({src_year} full year)" if src_year else "top origins"
+    top_txt = ", ".join(f"{n} {_fmt(v / 1000, 1)}k t" for n, v in ranked if v)
+    if top_txt:
+        lines.append(f"• {label}: {top_txt}")
+    return "\n".join(lines)
 
 
 def compose_us_imports(now: dt.datetime) -> str | None:

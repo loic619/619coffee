@@ -40,16 +40,53 @@ def test_freight_gate_and_arrows(tmp_path, monkeypatch):
     assert tn.compose_freight(_at("2026-08-20T06:00")) is None
 
 
-def test_imports_yoy_and_top_origins(tmp_path, monkeypatch):
+def test_imports_lead_with_latest_month_not_last_full_year(tmp_path, monkeypatch):
+    """total_by_year only holds COMPLETE years, so headlining it announced
+    2025 in August 2026 while monthly data already ran to June."""
     monkeypatch.setattr(tn, "DATA", tmp_path)
     (tmp_path / "us_coffee_imports.json").write_text(json.dumps({
         "updated": "2026-07-16T09:35:22Z",
-        "total_by_year": {"2024": 1000000, "2025": 1100000},
-        "origins": [{"name": "Brazil", "by_year": {"2025": 400000}},
-                    {"name": "Peru", "by_year": {"2025": 50000}}],
+        "total_by_year": {"2024": 1_000_000, "2025": 1_100_000},
+        "origins": [{"name": "Brazil", "by_year": {"2025": 400_000}}],
+        "monthly_total": {"2025-01": 100_000, "2025-02": 100_000, "2025-03": 100_000,
+                          "2026-01": 110_000, "2026-02": 110_000, "2026-03": 121_000},
+        "monthly_origins": {
+            "Brazil": {"2026-01": 40_000, "2026-02": 40_000, "2026-03": 40_000},
+            "Peru":   {"2026-01": 5_000,  "2026-02": 5_000,  "2026-03": 5_000},
+        },
     }))
     txt = tn.compose_us_imports(_at("2026-07-17T06:00"))
-    assert "+10.0% y/y" in txt and "Brazil 400.0k t" in txt
+    assert txt.startswith("🇺🇸 US coffee imports — 2026-03: 121.0k t (+21.0% y/y)")
+    # YTD is same-months-last-year, never 3 months against a full 12.
+    assert "YTD 341.0k t (+13.7% vs same 3 months 2025)" in txt
+    assert "top origins YTD: Brazil 120.0k t, Peru 15.0k t" in txt
+
+
+def test_imports_fall_back_to_annual_origins_and_name_the_year(tmp_path, monkeypatch):
+    """Eurostat ships origins annually only — the label must say so rather
+    than implying the split matches the YTD window."""
+    monkeypatch.setattr(tn, "DATA", tmp_path)
+    (tmp_path / "eu_coffee_imports.json").write_text(json.dumps({
+        "updated": "2026-07-16T09:35:22Z",
+        "total_by_year": {"2024": 1_000_000, "2025": 1_100_000},
+        "origins": [{"name": "Brazil", "by_year": {"2025": 400_000}},
+                    {"name": "Vietnam", "by_year": {"2025": 250_000}}],
+        "monthly_total": {"2026-01": 90_000, "2026-02": 95_000},
+        "monthly_origins": {},
+    }))
+    txt = tn.compose_eu_imports(_at("2026-07-17T06:00"))
+    assert "— 2026-02: 95.0k t" in txt
+    assert "top origins (2025 full year): Brazil 400.0k t, Vietnam 250.0k t" in txt
+    # No prior-year months in the file → no invented comparison.
+    assert "vs same" not in txt
+
+
+def test_imports_silent_without_monthly_data(tmp_path, monkeypatch):
+    monkeypatch.setattr(tn, "DATA", tmp_path)
+    (tmp_path / "us_coffee_imports.json").write_text(json.dumps({
+        "updated": "2026-07-16T09:35:22Z", "total_by_year": {"2025": 1_100_000},
+    }))
+    assert tn.compose_us_imports(_at("2026-07-17T06:00")) is None
 
 
 def test_origin_digest_missing_month_is_none(tmp_path, monkeypatch):
