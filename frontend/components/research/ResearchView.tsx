@@ -13,6 +13,7 @@ import ConilonBasis from "./ConilonBasis";
 import OptionsExpiryStudy from "./OptionsExpiryStudy";
 import OptionsGammaMap from "./OptionsGammaMap";
 import OptionsVrp from "./OptionsVrp";
+import OptionsSkew from "./OptionsSkew";
 import SeptemberXray from "./SeptemberXray";
 import CropyearXray from "./CropyearXray";
 import CotSwapIdentity from "./CotSwapIdentity";
@@ -1857,6 +1858,11 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
             title="The variance risk premium — what implied costs vs what realized delivers"
             subtitle="ATM implied vs subsequent realized vol on every tracked board: no systematic premium in coffee, and where today's spread sits in the distribution">
             <OptionsVrp />
+          </CollapsibleCard>
+          <CollapsibleCard tone="indigo" updated="2026-08-17" kicker="Options · skew"
+            title="The 25-delta risk reversal — what the wings say about weather"
+            subtitle="Coffee's call-side skew reconstructed from every stored board: the frost calendar it trades on, the Uganda drought it tracked, and the alert ledger it feeds">
+            <OptionsSkew />
           </CollapsibleCard>
           <CollapsibleCard tone="teal" updated="2026-08-12" kicker="Basis · conilon references"
             title="The conilon reference stack — Cooabriel, CEPEA, Vitória and the B3 future"
