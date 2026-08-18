@@ -67,6 +67,7 @@ _ROOT      = Path(__file__).resolve().parents[3]
 _INTRADAY  = _ROOT / "frontend" / "public" / "data" / "intraday_kc_rc_15min.json"
 _FX_SNAPS  = _ROOT / "frontend" / "public" / "data" / "fx_intraday_snapshots.json"
 _BRENT     = _ROOT / "data" / "brent_intraday_anchors.json"
+_B3_SNAPS  = _ROOT / "frontend" / "public" / "data" / "b3_kc_close_snapshots.json"
 
 _KC_TO_USD_PER_MT = 22.0462   # KC ¢/lb → USD/MT
 
@@ -80,6 +81,7 @@ _KC_TO_USD_PER_MT = 22.0462   # KC ¢/lb → USD/MT
 _ABSTAIN_BAND    = 0.10       # |prob_up − 0.5| below this → Undefined
 _MIN_TRAIN       = 252        # ≥ ~1y of labelled sessions before predicting
 _MIN_CCI_OVERLAP = 40         # days of FX snapshots before cci_overnight joins
+_MIN_B3_OVERLAP  = 40         # sessions of B3 gap captures before b3_close_gap joins
 _WF_STEP         = 5          # walk-forward refit cadence (matches the ablation)
 _WF_EMBARGO      = 1          # single-session labels don't overlap; 1 day guard
 
@@ -161,6 +163,10 @@ def build_dataset() -> "pd.DataFrame | None":
     brent = _brent_overnight_series()
     if brent is not None:
         out["brent_overnight"] = brent.reindex(out.index)
+    b3 = _b3_close_gap_series()
+    if b3 is not None:
+        # gap of session t-1 is the pre-open information for session t
+        out["b3_close_gap"] = b3.reindex(out.index).shift(1)
     return out
 
 
@@ -226,6 +232,26 @@ def _cci_overnight_series() -> "pd.Series | None":
     return pd.Series(out).sort_index()
 
 
+def _b3_close_gap_series() -> "pd.Series | None":
+    """{session date → B3 arabica move at-KC-close → official fechamento}
+    from the two-phase capture (capture_b3_at_kc_close.py). B3's regular
+    session outlives the KC settle (and its after-hours runs to 18:00 BRT),
+    so this is Brazilian arabica pricing New York hasn't seen — knowable the
+    evening before the session it predicts. Forward-only accumulation, same
+    path as cci_overnight: dormant until _MIN_B3_OVERLAP sessions exist."""
+    if not _B3_SNAPS.exists():
+        return None
+    try:
+        rows = json.loads(_B3_SNAPS.read_text(encoding="utf-8")).get("days") or []
+    except Exception:
+        return None
+    out = {r["date"]: r["gap"] for r in rows
+           if r.get("date") and isinstance(r.get("gap"), (int, float))}
+    if not out:
+        return None
+    return pd.Series({pd.Timestamp(d): v for d, v in out.items()}).sort_index()
+
+
 def active_features(frame: "pd.DataFrame") -> list[str]:
     """The model's feature set for a given dataset — single source of truth,
     shared by run() and the log module's seed so they can never diverge.
@@ -240,6 +266,8 @@ def active_features(frame: "pd.DataFrame") -> list[str]:
     active = ["kc_after_rc_diff", "days_since_roll"]
     if "cci_overnight" in frame.columns and frame["cci_overnight"].notna().sum() >= _MIN_CCI_OVERLAP:
         active.append("cci_overnight")
+    if "b3_close_gap" in frame.columns and frame["b3_close_gap"].notna().sum() >= _MIN_B3_OVERLAP:
+        active.append("b3_close_gap")
     return active
 
 
@@ -408,6 +436,13 @@ def run(db=None) -> dict:
             # feature by imputing the training mean (z = 0 ⇒ φ = 0).
             v = float(mu[active.index("cci_overnight")])
         live_vals["cci_overnight"] = float(v)
+    if "b3_close_gap" in active:
+        b3 = _b3_close_gap_series()
+        # the gap computed on the LAST traded session is the pre-open info
+        v = b3.get(last_date) if b3 is not None else None
+        if v is None:
+            v = float(mu[active.index("b3_close_gap")])
+        live_vals["b3_close_gap"] = float(v)
 
     x_raw = np.array([live_vals[k] for k in active], dtype=float)
     z = (x_raw - mu) / sd
@@ -495,6 +530,11 @@ def run(db=None) -> dict:
         elif key == "cci_overnight":
             item["detail"] = {
                 "text": "Coffee Currency Index move 17:30 London → 03:00 UTC (intraday FX snapshots)"
+            }
+        elif key == "b3_close_gap":
+            item["detail"] = {
+                "text": ("B3 arabica 4/5 front: official fechamento vs its price at the "
+                         "KC settle — Brazil's post-NY-close move, prior session")
             }
         features_out.append(item)
     features_out.sort(key=lambda f: abs(f["phi"]), reverse=True)
