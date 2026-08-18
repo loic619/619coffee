@@ -51,17 +51,25 @@ def test_imports_lead_with_latest_month_not_last_full_year(tmp_path, monkeypatch
         "monthly_total": {"2025-01": 100_000, "2025-02": 100_000, "2025-03": 100_000,
                           "2026-01": 110_000, "2026-02": 110_000, "2026-03": 121_000},
         "monthly_origins": {
-            "Brazil": {"2026-01": 40_000, "2026-02": 40_000, "2026-03": 40_000},
-            "Peru":   {"2026-01": 5_000,  "2026-02": 5_000,  "2026-03": 5_000},
+            "Brazil": {"2025-01": 30_000, "2025-02": 30_000, "2025-03": 30_000,
+                       "2026-01": 40_000, "2026-02": 40_000, "2026-03": 40_000},
+            "Peru":   {"2025-01": 5_000,  "2025-02": 5_000,  "2025-03": 5_000,
+                       "2026-01": 5_000,  "2026-02": 5_000,  "2026-03": 5_000},
+            # No prior-year window — a newly-reporting supplier.
+            "NewCo":  {"2026-01": 6_000,  "2026-02": 6_000,  "2026-03": 6_000},
         },
     }))
     txt = tn.compose_us_imports(_at("2026-07-17T06:00"))
     assert txt.startswith("🇺🇸 US coffee imports — 2026-03: 121.0k t (+21.0% y/y)")
     # YTD is same-months-last-year, never 3 months against a full 12.
     assert "• YTD 341.0k t (+13.7%), of which" in txt
-    # Origins are monthly here, so the shares are genuinely of that YTD total.
-    assert "• Brazil 120.0k t (35%)" in txt      # 120/341
-    assert "• Peru 15.0k t (4%)" in txt          # 15/341
+    # Each origin carries its OWN y/y over the same window, not its share.
+    assert "• Brazil 120.0k t (+33.3%)" in txt   # 120 vs 90
+    assert "• Peru 15.0k t (+0.0%)" in txt       # flat, still stated
+    # Ranked by size, so NewCo (18k) sits above Peru (15k).
+    assert txt.index("NewCo") < txt.index("Peru")
+    # …and with no prior-year window it states tonnage without inventing a change.
+    assert "• NewCo 18.0k t\n" in txt + "\n"
     # The published annual totals sit in the fixture and must be ignored.
     assert "1,100.0k" not in txt and "full year" not in txt
 
@@ -80,16 +88,18 @@ def test_imports_read_eurostat_origins_nested_under_reporters(tmp_path, monkeypa
             "DE": {"monthly_total": {"2026-01": 1},  # a member, not the bloc
                    "origins": [{"name": "Wrong", "monthly": {"2026-01": 1, "2026-02": 1}}]},
             "EU27_2020": {"monthly_total": bloc_monthly, "origins": [
-                {"name": "Vietnam", "monthly": {"2026-01": 30_000, "2026-02": 32_000}},
-                {"name": "Brazil",  "monthly": {"2026-01": 28_000, "2026-02": 25_000}},
+                {"name": "Vietnam", "monthly": {"2025-01": 25_000, "2025-02": 25_000,
+                                                "2026-01": 30_000, "2026-02": 32_000}},
+                {"name": "Brazil",  "monthly": {"2025-01": 30_000, "2025-02": 30_000,
+                                                "2026-01": 28_000, "2026-02": 25_000}},
                 {"name": "NoMonthly"},              # annual-only rows are skipped
             ]},
         },
     }))
     txt = tn.compose_eu_imports(_at("2026-07-17T06:00"))
     assert "• YTD 185.0k t, of which" in txt
-    assert "• Vietnam 62.0k t (34%)" in txt        # 62/185
-    assert "• Brazil 53.0k t (29%)" in txt         # 53/185
+    assert "• Vietnam 62.0k t (+24.0%)" in txt     # 62 vs 50
+    assert "• Brazil 53.0k t (-11.7%)" in txt      # 53 vs 60
     assert "Wrong" not in txt                       # member reporter not used
 
 

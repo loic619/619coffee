@@ -303,20 +303,28 @@ def _imports_text(path: Path, flag: str, dest: str, now: dt.datetime) -> str | N
     if ytd_prev is not None:
         ytd_line += f" ({_pct(ytd, ytd_prev)})"
 
-    # Origins are a split of the YTD above them, always — the shares divide the
-    # number actually printed. Nothing here reads total_by_year or origins[].
-    # by_year: those hold complete calendar years only, which is what made the
-    # message announce 2025 in August 2026. Any annual figure we ever want is
-    # the accumulated monthly one (_ytd(monthly, year, "12")), which reconciles
-    # to the published annual totals exactly.
-    ranked = [(n, v) for n, v in
-              sorted(((n, _ytd(s, year, mm) or 0) for n, s in _monthly_origins(d).items()),
+    # Origins: the biggest contributors to that YTD, each carrying its OWN
+    # y/y over the same window — so the line says whether a supplier is
+    # growing or shrinking, not merely how big it is. Nothing here reads
+    # total_by_year or origins[].by_year: those hold complete calendar years
+    # only, which is what made the message announce 2025 in August 2026. Any
+    # annual figure we ever want is the accumulated monthly one
+    # (_ytd(monthly, year, "12")), which reconciles to the published annual
+    # totals exactly.
+    ranked = [(n, v, s) for n, v, s in
+              sorted(((n, _ytd(s, year, mm) or 0, s) for n, s in _monthly_origins(d).items()),
                      key=lambda t: -t[1])[:3] if n and v]
     if not ranked:
         lines.append(ytd_line)
         return "\n".join(lines)
     lines.append(ytd_line + ", of which")
-    lines += [f"• {n} {_fmt(v / 1000, 1)}k t ({v / ytd * 100:.0f}%)" for n, v in ranked]
+    for name, cur, series in ranked:
+        prev = _ytd(series, prev_year, mm)
+        # No prior-year window for this origin (a newly-reporting supplier) →
+        # state the tonnage without inventing a comparison, exactly as the
+        # YTD line above does.
+        chg = f" ({_pct(cur, prev)})" if prev else ""
+        lines.append(f"• {name} {_fmt(cur / 1000, 1)}k t{chg}")
     return "\n".join(lines)
 
 
