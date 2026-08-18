@@ -62,6 +62,8 @@ def test_imports_lead_with_latest_month_not_last_full_year(tmp_path, monkeypatch
     # Origins are monthly here, so the shares are genuinely of that YTD total.
     assert "• Brazil 120.0k t (35%)" in txt      # 120/341
     assert "• Peru 15.0k t (4%)" in txt          # 15/341
+    # The published annual totals sit in the fixture and must be ignored.
+    assert "1,100.0k" not in txt and "full year" not in txt
 
 
 def test_imports_read_eurostat_origins_nested_under_reporters(tmp_path, monkeypatch):
@@ -91,9 +93,11 @@ def test_imports_read_eurostat_origins_nested_under_reporters(tmp_path, monkeypa
     assert "Wrong" not in txt                       # member reporter not used
 
 
-def test_imports_fall_back_to_annual_origins_and_name_the_year(tmp_path, monkeypatch):
-    """With no monthly split anywhere, annual origins are shown against their
-    own annual base — never as a share of a part-year total."""
+def test_imports_never_quote_the_published_annual_totals(tmp_path, monkeypatch):
+    """The annual view is gone. total_by_year / origins[].by_year hold only
+    COMPLETE years — the field that made the message announce 2025 in August
+    2026 — so with no monthly origin split the message stops at the YTD rather
+    than reaching back for a stale annual breakdown."""
     monkeypatch.setattr(tn, "DATA", tmp_path)
     (tmp_path / "eu_coffee_imports.json").write_text(json.dumps({
         "updated": "2026-07-16T09:35:22Z",
@@ -104,14 +108,20 @@ def test_imports_fall_back_to_annual_origins_and_name_the_year(tmp_path, monkeyp
         "monthly_origins": {},
     }))
     txt = tn.compose_eu_imports(_at("2026-07-17T06:00"))
-    assert "— 2026-02: 95.0k t" in txt
-    assert "• YTD 185.0k t" in txt
-    # Annual origins must NOT hang off the YTD — they would sum past it. The
-    # split states the annual base it is actually a split of.
-    assert "• 2025 full year 1,100.0k t, of which" in txt
-    assert "• Brazil 400.0k t (36%)" in txt      # 400/1100
-    assert "• Vietnam 250.0k t (23%)" in txt     # 250/1100
-    assert "YTD 185.0k t, of which" not in txt
+    assert txt == ("🇪🇺 EU coffee imports — 2026-02: 95.0k t\n"
+                   "• YTD 185.0k t")
+    for gone in ("full year", "of which", "1,100.0k", "400.0k", "2025"):
+        assert gone not in txt
+
+
+def test_accumulated_monthly_is_the_only_annual_figure():
+    """Any annual number is the summed monthly one — asking for months through
+    December yields the full year, and that is what reconciles to the sources'
+    own published totals."""
+    monthly = {f"2025-{m:02d}": 100 for m in range(1, 13)} | {"2026-01": 90}
+    assert tn._ytd(monthly, "2025", "12") == 1200
+    assert tn._ytd(monthly, "2025", "06") == 600
+    assert tn._ytd(monthly, "2024", "12") is None
 
 
 def test_imports_silent_without_monthly_data(tmp_path, monkeypatch):

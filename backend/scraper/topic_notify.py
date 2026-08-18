@@ -229,7 +229,13 @@ def compose_freight(now: dt.datetime) -> str | None:
 
 
 def _ytd(monthly: dict[str, float], year: str, through_mm: str) -> float | None:
-    """Sum of `year`'s months up to and including `through_mm` (e.g. '06')."""
+    """Sum of `year`'s months up to and including `through_mm` (e.g. '06').
+
+    through_mm="12" gives the accumulated-monthly FULL year — the only annual
+    figure this module will quote. It matches the sources' own published
+    annual totals to the tonne, so the monthly series is the single base for
+    every number here.
+    """
     vals = [v for k, v in monthly.items()
             if k[:4] == year and k[5:7] <= through_mm and isinstance(v, (int, float))]
     return sum(vals) if vals else None
@@ -291,38 +297,26 @@ def _imports_text(path: Path, flag: str, dest: str, now: dt.datetime) -> str | N
              f"{_yoy(monthly[last], monthly.get(f'{prev_year}-{mm}'))}"]
 
     ytd, ytd_prev = _ytd(monthly, year, mm), _ytd(monthly, prev_year, mm)
-    ytd_line = None
-    if ytd is not None:
-        ytd_line = f"• YTD {_fmt(ytd / 1000, 1)}k t"
-        if ytd_prev is not None:
-            ytd_line += f" ({_pct(ytd, ytd_prev)})"
+    if ytd is None:
+        return "\n".join(lines)
+    ytd_line = f"• YTD {_fmt(ytd / 1000, 1)}k t"
+    if ytd_prev is not None:
+        ytd_line += f" ({_pct(ytd, ytd_prev)})"
 
-    # The origin split hangs off whichever total it is genuinely a split OF:
-    # monthly origins divide the YTD, annual ones divide their own year. Never
-    # the cross of the two — full-year origins against a part-year total would
-    # sum past 100%.
-    mo = _monthly_origins(d)
-    if mo and ytd:
-        ranked = sorted(((n, _ytd(s, year, mm) or 0) for n, s in mo.items()),
-                        key=lambda t: -t[1])[:3]
-        base, base_line = ytd, (ytd_line or "") + ", of which"
-    else:
-        by_year = d.get("total_by_year") or {}
-        src_year = max(by_year) if by_year else None
-        ranked = sorted(((o.get("name"), (o.get("by_year") or {}).get(src_year) or 0)
-                         for o in d.get("origins") or []), key=lambda t: -t[1])[:3]
-        base = by_year.get(src_year) or 0
-        if ytd_line:
-            lines.append(ytd_line)
-        base_line = (f"• {src_year} full year {_fmt(base / 1000, 1)}k t, of which"
-                     if src_year and base else None)
-
-    ranked = [(n, v) for n, v in ranked if n and v]
-    if ranked and base_line and base:
-        lines.append(base_line)
-        lines += [f"• {n} {_fmt(v / 1000, 1)}k t ({v / base * 100:.0f}%)" for n, v in ranked]
-    elif ytd_line and ytd_line not in lines:
+    # Origins are a split of the YTD above them, always — the shares divide the
+    # number actually printed. Nothing here reads total_by_year or origins[].
+    # by_year: those hold complete calendar years only, which is what made the
+    # message announce 2025 in August 2026. Any annual figure we ever want is
+    # the accumulated monthly one (_ytd(monthly, year, "12")), which reconciles
+    # to the published annual totals exactly.
+    ranked = [(n, v) for n, v in
+              sorted(((n, _ytd(s, year, mm) or 0) for n, s in _monthly_origins(d).items()),
+                     key=lambda t: -t[1])[:3] if n and v]
+    if not ranked:
         lines.append(ytd_line)
+        return "\n".join(lines)
+    lines.append(ytd_line + ", of which")
+    lines += [f"• {n} {_fmt(v / 1000, 1)}k t ({v / ytd * 100:.0f}%)" for n, v in ranked]
     return "\n".join(lines)
 
 
