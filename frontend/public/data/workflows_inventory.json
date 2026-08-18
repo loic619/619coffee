@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-17T09:13:58.107835Z",
-  "count": 75,
+  "generated_at": "2026-08-18T08:10:10.720880Z",
+  "count": 76,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -22,6 +22,22 @@
       "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": null,
+      "timeout_minutes": 10
+    },
+    {
+      "file": "b3-kc-close.yml",
+      "name": "1.5 \u2013 B3 at KC close + final fechamento",
+      "triggers": [
+        "schedule",
+        "workflow_dispatch"
+      ],
+      "crons": [
+        "33 17 * * 1-5",
+        "33 18 * * 1-5",
+        "37 21 * * 1-5"
+      ],
+      "workflow_run_deps": [],
+      "concurrency_group": "b3-kc-close",
       "timeout_minutes": 10
     },
     {
