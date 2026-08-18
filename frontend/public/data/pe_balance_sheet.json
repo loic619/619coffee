@@ -17,6 +17,11 @@
       "key": "marex",
       "label": "Marex",
       "color": "#a78bfa"
+    },
+    {
+      "key": "sopex",
+      "label": "Sopex",
+      "color": "#22d3ee"
     }
   ],
   "seasons": [
@@ -77,11 +82,15 @@
       "forecast": true,
       "production": {
         "usda": 4.8,
-        "marex": 4.0
+        "marex": 4.0,
+        "sopex": 4.3
       },
       "production_split": {
         "marex": {
           "arabica": 4.0
+        },
+        "sopex": {
+          "arabica": 4.3
         }
       }
     },
@@ -90,11 +99,15 @@
       "forecast": true,
       "production": {
         "marex": 4.2,
-        "usda": 4.8
+        "usda": 4.8,
+        "sopex": 4.1
       },
       "production_split": {
         "marex": {
           "arabica": 4.2
+        },
+        "sopex": {
+          "arabica": 4.1
         }
       }
     }
