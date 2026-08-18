@@ -235,6 +235,34 @@ def _ytd(monthly: dict[str, float], year: str, through_mm: str) -> float | None:
     return sum(vals) if vals else None
 
 
+def _monthly_origins(d: dict) -> dict[str, dict]:
+    """{origin: {'YYYY-MM': tonnes}} — from whichever shape the source uses.
+
+    USITC ships a flat top-level `monthly_origins`. Eurostat nests the same
+    thing per reporter (`reporters.EU27_2020.origins[].monthly`), which is why
+    a top-level lookup found nothing and the message fell back to annual
+    origins. Prefer the reporter whose monthly_total IS the file's headline
+    series — that is the bloc the totals are quoted for, so its origin split
+    divides the number shown above it.
+    """
+    flat = {n: s for n, s in (d.get("monthly_origins") or {}).items() if isinstance(s, dict)}
+    if flat:
+        return flat
+
+    reporters = {c: r for c, r in (d.get("reporters") or {}).items() if isinstance(r, dict)}
+    top = d.get("monthly_total") or {}
+    bloc = next((r for r in reporters.values() if top and r.get("monthly_total") == top), None)
+    if bloc is None:
+        # No exact match (older file, or totals rebuilt) — take whichever
+        # reporter carries the most monthly-bearing origins.
+        bloc = max(reporters.values(), default=None,
+                   key=lambda r: sum(1 for o in (r.get("origins") or []) if o.get("monthly")))
+    if not bloc:
+        return {}
+    return {o["name"]: o["monthly"] for o in (bloc.get("origins") or [])
+            if o.get("name") and isinstance(o.get("monthly"), dict)}
+
+
 def _imports_text(path: Path, flag: str, dest: str, now: dt.datetime) -> str | None:
     """Latest reported MONTH first, then year-to-date on a like-for-like basis.
 
@@ -269,12 +297,11 @@ def _imports_text(path: Path, flag: str, dest: str, now: dt.datetime) -> str | N
         if ytd_prev is not None:
             ytd_line += f" ({_pct(ytd, ytd_prev)})"
 
-    # The origin split hangs off whichever total it is genuinely a split OF.
-    # USITC breaks origins out monthly, so the shares are of the YTD figure
-    # itself. Eurostat ships origins annually only — hanging those off the YTD
-    # would be arithmetically false (2025 full-year origins sum well past a
-    # 5-month 2026 total), so that branch states its own annual base instead.
-    mo = {n: s for n, s in (d.get("monthly_origins") or {}).items() if isinstance(s, dict)}
+    # The origin split hangs off whichever total it is genuinely a split OF:
+    # monthly origins divide the YTD, annual ones divide their own year. Never
+    # the cross of the two — full-year origins against a part-year total would
+    # sum past 100%.
+    mo = _monthly_origins(d)
     if mo and ytd:
         ranked = sorted(((n, _ytd(s, year, mm) or 0) for n, s in mo.items()),
                         key=lambda t: -t[1])[:3]

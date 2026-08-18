@@ -64,9 +64,36 @@ def test_imports_lead_with_latest_month_not_last_full_year(tmp_path, monkeypatch
     assert "• Peru 15.0k t (4%)" in txt          # 15/341
 
 
+def test_imports_read_eurostat_origins_nested_under_reporters(tmp_path, monkeypatch):
+    """Eurostat DOES publish monthly-by-origin, just nested per reporter — a
+    top-level-only lookup missed it and fell back to annual origins. The bloc
+    is picked by matching the file's own headline monthly series."""
+    monkeypatch.setattr(tn, "DATA", tmp_path)
+    bloc_monthly = {"2026-01": 90_000, "2026-02": 95_000}
+    (tmp_path / "eu_coffee_imports.json").write_text(json.dumps({
+        "updated": "2026-07-16T09:35:22Z",
+        "monthly_total": bloc_monthly,
+        "monthly_origins": {},                      # empty at top level
+        "reporters": {
+            "DE": {"monthly_total": {"2026-01": 1},  # a member, not the bloc
+                   "origins": [{"name": "Wrong", "monthly": {"2026-01": 1, "2026-02": 1}}]},
+            "EU27_2020": {"monthly_total": bloc_monthly, "origins": [
+                {"name": "Vietnam", "monthly": {"2026-01": 30_000, "2026-02": 32_000}},
+                {"name": "Brazil",  "monthly": {"2026-01": 28_000, "2026-02": 25_000}},
+                {"name": "NoMonthly"},              # annual-only rows are skipped
+            ]},
+        },
+    }))
+    txt = tn.compose_eu_imports(_at("2026-07-17T06:00"))
+    assert "• YTD 185.0k t, of which" in txt
+    assert "• Vietnam 62.0k t (34%)" in txt        # 62/185
+    assert "• Brazil 53.0k t (29%)" in txt         # 53/185
+    assert "Wrong" not in txt                       # member reporter not used
+
+
 def test_imports_fall_back_to_annual_origins_and_name_the_year(tmp_path, monkeypatch):
-    """Eurostat ships origins annually only — the label must say so rather
-    than implying the split matches the YTD window."""
+    """With no monthly split anywhere, annual origins are shown against their
+    own annual base — never as a share of a part-year total."""
     monkeypatch.setattr(tn, "DATA", tmp_path)
     (tmp_path / "eu_coffee_imports.json").write_text(json.dumps({
         "updated": "2026-07-16T09:35:22Z",
