@@ -1,7 +1,7 @@
 {
   "date": "2026-08-11",
   "scoreNY": 4,
-  "scoreLDN": 0,
+  "scoreLDN": -1,
   "signals": [
     {
       "id": "CP1",
@@ -223,15 +223,15 @@
       "text": "RC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
     },
     {
-      "id": "CS5",
-      "name": "Deepening Inversion",
+      "id": "CS6",
+      "name": "Inversion Easing",
       "category": "CS",
       "categoryLabel": "Curve Structure",
       "market": "LDN",
-      "severity": "alert",
-      "score": 2,
+      "severity": "warn",
+      "score": -1,
       "magnitude": "large",
-      "text": "RC backwardation deepening while roasters are under-covered (<25th pct) — cost of forward coverage increasing week-on-week, amplifying squeeze risk. Cross-check against roll window."
+      "text": "RC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
     },
     {
       "id": "SP3",
@@ -2660,15 +2660,15 @@
           "text": "RC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
-          "id": "CS5",
-          "name": "Deepening Inversion",
+          "id": "CS6",
+          "name": "Inversion Easing",
           "category": "CS",
           "categoryLabel": "Curve Structure",
           "market": "LDN",
-          "severity": "alert",
-          "score": 2,
+          "severity": "warn",
+          "score": -1,
           "magnitude": "large",
-          "text": "RC backwardation deepening while roasters are under-covered (<25th pct) — cost of forward coverage increasing week-on-week, amplifying squeeze risk. Cross-check against roll window."
+          "text": "RC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
         },
         {
           "id": "SP3",
@@ -2694,10 +2694,10 @@
         }
       ],
       "scoreNY": 4,
-      "scoreLDN": 0,
+      "scoreLDN": -1,
       "priceNY": 315.7,
       "priceLDN": 3777
     }
   ],
-  "generatedAt": "2026-08-18T03:27:08.668Z"
+  "generatedAt": "2026-08-18T21:24:59.315Z"
 }
