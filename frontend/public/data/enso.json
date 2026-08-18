@@ -612,7 +612,7 @@
         "severity": 0
       },
       {
-        "region": "Masaka",
+        "region": "Greater Masaka",
         "country": "Uganda",
         "lat": -0.33,
         "lon": 31.73,
@@ -622,10 +622,50 @@
         "severity": 0
       },
       {
-        "region": "Kasese",
+        "region": "Central",
         "country": "Uganda",
-        "lat": 0.18,
-        "lon": 30.08,
+        "lat": 0.4,
+        "lon": 32.04,
+        "level": "low",
+        "color": "#16a34a",
+        "driver": "Near-normal",
+        "severity": 0
+      },
+      {
+        "region": "Western",
+        "country": "Uganda",
+        "lat": -0.59,
+        "lon": 30.19,
+        "level": "low",
+        "color": "#16a34a",
+        "driver": "Near-normal",
+        "severity": 0
+      },
+      {
+        "region": "Busoga",
+        "country": "Uganda",
+        "lat": 0.61,
+        "lon": 33.47,
+        "level": "low",
+        "color": "#16a34a",
+        "driver": "Near-normal",
+        "severity": 0
+      },
+      {
+        "region": "Mt Elgon",
+        "country": "Uganda",
+        "lat": 1.39,
+        "lon": 34.45,
+        "level": "low",
+        "color": "#16a34a",
+        "driver": "Near-normal",
+        "severity": 0
+      },
+      {
+        "region": "West Nile",
+        "country": "Uganda",
+        "lat": 2.52,
+        "lon": 30.9,
         "level": "low",
         "color": "#16a34a",
         "driver": "Near-normal",
@@ -636,26 +676,6 @@
         "country": "Uganda",
         "lat": 0.66,
         "lon": 30.27,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
-      },
-      {
-        "region": "Mbale",
-        "country": "Uganda",
-        "lat": 1.08,
-        "lon": 34.18,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
-      },
-      {
-        "region": "Mt Elgon",
-        "country": "Uganda",
-        "lat": 1.23,
-        "lon": 34.25,
         "level": "low",
         "color": "#16a34a",
         "driver": "Near-normal",
@@ -765,8 +785,8 @@
     "summary": {
       "high": 0,
       "moderate": 0,
-      "low": 34
+      "low": 36
     }
   },
-  "last_updated": "2026-08-17"
+  "last_updated": "2026-08-18"
 }

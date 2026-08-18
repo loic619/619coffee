@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-17T03:32:23.991159Z",
+  "generated_at": "2026-08-18T03:26:58.313023Z",
   "method": {
     "comovement": "Pearson on weekly CHANGES in lots; partials strip ΔOI, which the report's adding-up constraint (Σ long = Σ short = OI) would otherwise impose on every cohort pair.",
     "price_response": "corr(Δposition, same-week % return of the front contract). Hedgers lean against the move, speculators with it.",
@@ -14,7 +14,7 @@
           "share_oi_pct": 24.77,
           "mean_lots": 53647.0,
           "price_response_r": -0.303,
-          "price_response_t": -4.1,
+          "price_response_t": -4.09,
           "significant": true,
           "ar1": 0.967,
           "weekly_turnover_pct": 6.29
@@ -23,7 +23,7 @@
           "share_oi_pct": 46.56,
           "mean_lots": 101669.0,
           "price_response_r": 0.446,
-          "price_response_t": 6.44,
+          "price_response_t": 6.42,
           "significant": true,
           "ar1": 0.988,
           "weekly_turnover_pct": 3.07
@@ -32,7 +32,7 @@
           "share_oi_pct": 15.83,
           "mean_lots": 34349.0,
           "price_response_r": 0.123,
-          "price_response_t": 1.6,
+          "price_response_t": 1.59,
           "significant": false,
           "ar1": 0.994,
           "weekly_turnover_pct": 2.15
@@ -50,7 +50,7 @@
           "share_oi_pct": 22.67,
           "mean_lots": 47562.0,
           "price_response_r": 0.525,
-          "price_response_t": 7.97,
+          "price_response_t": 7.95,
           "significant": true,
           "ar1": 0.968,
           "weekly_turnover_pct": 5.37
@@ -59,7 +59,7 @@
           "share_oi_pct": 7.65,
           "mean_lots": 16085.0,
           "price_response_r": -0.401,
-          "price_response_t": -5.65,
+          "price_response_t": -5.64,
           "significant": true,
           "ar1": 0.963,
           "weekly_turnover_pct": 12.93
@@ -92,7 +92,7 @@
               "mm": 0.038
             }
           ],
-          "price_response_first_half": 0.089,
+          "price_response_first_half": 0.087,
           "price_response_second_half": 0.155
         },
         "short": {
@@ -122,7 +122,7 @@
             }
           ],
           "price_response_first_half": 0.124,
-          "price_response_second_half": -0.068
+          "price_response_second_half": -0.067
         }
       },
       "rolling": {
@@ -1419,12 +1419,6 @@
           }
         ],
         "price_response_long": [
-          {
-            "date": "2024-05-14",
-            "pmpu": -0.313,
-            "swap": 0.051,
-            "mm": 0.687
-          },
           {
             "date": "2024-05-21",
             "pmpu": -0.316,
@@ -3422,12 +3416,6 @@
         ],
         "price_response_short": [
           {
-            "date": "2024-05-14",
-            "pmpu": 0.662,
-            "swap": 0.361,
-            "mm": -0.561
-          },
-          {
             "date": "2024-05-21",
             "pmpu": 0.656,
             "swap": 0.319,
@@ -4132,9 +4120,9 @@
         ]
       },
       "price_window": {
-        "start": "2023-05-23",
+        "start": "2023-05-30",
         "end": "2026-08-11",
-        "weeks": 169
+        "weeks": 168
       },
       "label": "New York — KC arabica",
       "contract": "ICE US Coffee C",
