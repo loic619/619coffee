@@ -1,0 +1,69 @@
+name: "1.5 – B3 at KC close + final fechamento"
+
+# Two-phase capture of the B3 arabica 4/5 (ICF) front price
+# (backend/scraper/capture_b3_at_kc_close.py):
+#   kc_close — live price at the ICE Coffee C settle (13:30 ET). Fired at
+#              17:33 AND 18:33 UTC; a New-York wall-clock guard in the script
+#              lets exactly one through per DST season.
+#   final    — the session's official fechamento ~30 min after B3's
+#              after-hours closes (18:37 BRT = 21:37 UTC, Brazil has no DST),
+#              storing the post-KC-close gap and refreshing the panel series
+#              hours before the nightly export.
+
+on:
+  schedule:
+    - cron: '33 17 * * 1-5'    # kc_close (EDT season)
+    - cron: '33 18 * * 1-5'    # kc_close (EST season)
+    - cron: '37 21 * * 1-5'    # final (18:37 BRT)
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: "Phase to run"
+        type: choice
+        options: [kc_close, final]
+        default: kc_close
+
+concurrency:
+  group: b3-kc-close
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+      - name: Resolve phase
+        id: phase
+        run: |
+          if [ -n "${{ inputs.phase }}" ]; then
+            echo "phase=${{ inputs.phase }}" >> "$GITHUB_OUTPUT"
+          elif [ "$(date -u +%H)" = "21" ]; then
+            echo "phase=final" >> "$GITHUB_OUTPUT"
+          else
+            echo "phase=kc_close" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Capture
+        working-directory: backend
+        run: PYTHONPATH=. python -m scraper.capture_b3_at_kc_close "${{ steps.phase.outputs.phase }}"
+      - name: Commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          [ -f frontend/public/data/b3_kc_close_snapshots.json ] && git add frontend/public/data/b3_kc_close_snapshots.json || true
+          [ -f frontend/public/data/brazil_b3_arabica.json ] && git add frontend/public/data/brazil_b3_arabica.json || true
+          if git diff --cached --quiet; then echo "No changes."; else
+            git commit -m "data: B3 at-KC-close capture (${{ steps.phase.outputs.phase }}) [skip ci]"
+            for i in 1 2 3 4 5; do
+              git pull --rebase --autostash origin main && git push && exit 0
+              sleep $((RANDOM % 5 + 3))
+            done
+            echo "::error::push failed"; exit 1
+          fi
