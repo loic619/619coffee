@@ -263,31 +263,39 @@ def _imports_text(path: Path, flag: str, dest: str, now: dt.datetime) -> str | N
              f"{_yoy(monthly[last], monthly.get(f'{prev_year}-{mm}'))}"]
 
     ytd, ytd_prev = _ytd(monthly, year, mm), _ytd(monthly, prev_year, mm)
+    ytd_line = None
     if ytd is not None:
-        months = int(mm)
-        line = f"• YTD {_fmt(ytd / 1000, 1)}k t"
+        ytd_line = f"• YTD {_fmt(ytd / 1000, 1)}k t"
         if ytd_prev is not None:
-            line += (f" ({_pct(ytd, ytd_prev)} vs same {months} "
-                     f"{'month' if months == 1 else 'months'} {prev_year})")
-        lines.append(line)
+            ytd_line += f" ({_pct(ytd, ytd_prev)})"
 
-    # Top origins: monthly-by-origin when the source breaks it out (USITC), so
-    # the ranking matches the YTD window. Eurostat ships origins annually only,
-    # so that fallback names the year it is actually showing.
+    # The origin split hangs off whichever total it is genuinely a split OF.
+    # USITC breaks origins out monthly, so the shares are of the YTD figure
+    # itself. Eurostat ships origins annually only — hanging those off the YTD
+    # would be arithmetically false (2025 full-year origins sum well past a
+    # 5-month 2026 total), so that branch states its own annual base instead.
     mo = {n: s for n, s in (d.get("monthly_origins") or {}).items() if isinstance(s, dict)}
-    if mo:
+    if mo and ytd:
         ranked = sorted(((n, _ytd(s, year, mm) or 0) for n, s in mo.items()),
                         key=lambda t: -t[1])[:3]
-        label = "top origins YTD"
+        base, base_line = ytd, (ytd_line or "") + ", of which"
     else:
         by_year = d.get("total_by_year") or {}
         src_year = max(by_year) if by_year else None
         ranked = sorted(((o.get("name"), (o.get("by_year") or {}).get(src_year) or 0)
                          for o in d.get("origins") or []), key=lambda t: -t[1])[:3]
-        label = f"top origins ({src_year} full year)" if src_year else "top origins"
-    top_txt = ", ".join(f"{n} {_fmt(v / 1000, 1)}k t" for n, v in ranked if v)
-    if top_txt:
-        lines.append(f"• {label}: {top_txt}")
+        base = by_year.get(src_year) or 0
+        if ytd_line:
+            lines.append(ytd_line)
+        base_line = (f"• {src_year} full year {_fmt(base / 1000, 1)}k t, of which"
+                     if src_year and base else None)
+
+    ranked = [(n, v) for n, v in ranked if n and v]
+    if ranked and base_line and base:
+        lines.append(base_line)
+        lines += [f"• {n} {_fmt(v / 1000, 1)}k t ({v / base * 100:.0f}%)" for n, v in ranked]
+    elif ytd_line and ytd_line not in lines:
+        lines.append(ytd_line)
     return "\n".join(lines)
 
 

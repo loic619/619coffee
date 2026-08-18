@@ -58,8 +58,10 @@ def test_imports_lead_with_latest_month_not_last_full_year(tmp_path, monkeypatch
     txt = tn.compose_us_imports(_at("2026-07-17T06:00"))
     assert txt.startswith("🇺🇸 US coffee imports — 2026-03: 121.0k t (+21.0% y/y)")
     # YTD is same-months-last-year, never 3 months against a full 12.
-    assert "YTD 341.0k t (+13.7% vs same 3 months 2025)" in txt
-    assert "top origins YTD: Brazil 120.0k t, Peru 15.0k t" in txt
+    assert "• YTD 341.0k t (+13.7%), of which" in txt
+    # Origins are monthly here, so the shares are genuinely of that YTD total.
+    assert "• Brazil 120.0k t (35%)" in txt      # 120/341
+    assert "• Peru 15.0k t (4%)" in txt          # 15/341
 
 
 def test_imports_fall_back_to_annual_origins_and_name_the_year(tmp_path, monkeypatch):
@@ -76,9 +78,13 @@ def test_imports_fall_back_to_annual_origins_and_name_the_year(tmp_path, monkeyp
     }))
     txt = tn.compose_eu_imports(_at("2026-07-17T06:00"))
     assert "— 2026-02: 95.0k t" in txt
-    assert "top origins (2025 full year): Brazil 400.0k t, Vietnam 250.0k t" in txt
-    # No prior-year months in the file → no invented comparison.
-    assert "vs same" not in txt
+    assert "• YTD 185.0k t" in txt
+    # Annual origins must NOT hang off the YTD — they would sum past it. The
+    # split states the annual base it is actually a split of.
+    assert "• 2025 full year 1,100.0k t, of which" in txt
+    assert "• Brazil 400.0k t (36%)" in txt      # 400/1100
+    assert "• Vietnam 250.0k t (23%)" in txt     # 250/1100
+    assert "YTD 185.0k t, of which" not in txt
 
 
 def test_imports_silent_without_monthly_data(tmp_path, monkeypatch):
