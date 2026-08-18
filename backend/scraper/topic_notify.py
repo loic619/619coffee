@@ -228,6 +228,15 @@ def compose_freight(now: dt.datetime) -> str | None:
     return f"🚢 Freight rates ({d.get('updated')}):\n" + "\n".join(lines)
 
 
+# Origin list length: keep adding suppliers largest-first until they explain
+# this share of the year-to-date total, so the breakdown covers most of the
+# headline number instead of stopping at an arbitrary top-3.
+ORIGIN_COVERAGE = 0.80
+# Hard stop regardless (a fragmented market must not blow the 4096-char
+# Telegram limit); a run that ends here reports how much it managed to cover.
+ORIGIN_MAX_LINES = 12
+
+
 def _ytd(monthly: dict[str, float], year: str, through_mm: str) -> float | None:
     """Sum of `year`'s months up to and including `through_mm` (e.g. '06').
 
@@ -311,20 +320,37 @@ def _imports_text(path: Path, flag: str, dest: str, now: dt.datetime) -> str | N
     # annual figure we ever want is the accumulated monthly one
     # (_ytd(monthly, year, "12")), which reconciles to the published annual
     # totals exactly.
-    ranked = [(n, v, s) for n, v, s in
-              sorted(((n, _ytd(s, year, mm) or 0, s) for n, s in _monthly_origins(d).items()),
-                     key=lambda t: -t[1])[:3] if n and v]
-    if not ranked:
+    all_origins = [(n, v, s) for n, v, s in
+                   sorted(((n, _ytd(s, year, mm) or 0, s) for n, s in _monthly_origins(d).items()),
+                          key=lambda t: -t[1]) if n and v > 0]
+    if not all_origins:
         lines.append(ytd_line)
         return "\n".join(lines)
+
+    # Take origins largest-first until they account for ORIGIN_COVERAGE of the
+    # YTD, so the list explains most of the number above it rather than showing
+    # an arbitrary top-3. ORIGIN_MAX_LINES bounds a pathologically fragmented
+    # market (Telegram rejects a message over 4096 chars, and this sender does
+    # not split); if that cap binds first, the shortfall is stated rather than
+    # silently truncated.
+    picked, covered = [], 0.0
+    for row in all_origins:
+        picked.append(row)
+        covered += row[1]
+        if covered / ytd >= ORIGIN_COVERAGE or len(picked) >= ORIGIN_MAX_LINES:
+            break
+
     lines.append(ytd_line + ", of which")
-    for name, cur, series in ranked:
+    for name, cur, series in picked:
         prev = _ytd(series, prev_year, mm)
         # No prior-year window for this origin (a newly-reporting supplier) →
         # state the tonnage without inventing a comparison, exactly as the
         # YTD line above does.
         chg = f" ({_pct(cur, prev)})" if prev else ""
         lines.append(f"• {name} {_fmt(cur / 1000, 1)}k t{chg}")
+    if covered / ytd < ORIGIN_COVERAGE and len(all_origins) > len(picked):
+        lines.append(f"• …{len(all_origins) - len(picked)} smaller origins "
+                     f"({covered / ytd * 100:.0f}% shown)")
     return "\n".join(lines)
 
 

@@ -217,3 +217,43 @@ def test_dedup_keys_read_latest(tmp_path, monkeypatch):
     (tmp_path / "freight.json").write_text(json.dumps({"updated": "2026-08-07"}))
     assert tn.latest_cot_key() == "2026-08-04"
     assert tn.latest_freight_key() == "2026-08-07"
+
+
+# ── Origin list length: cover most of the total, not an arbitrary top-3 ──────
+
+def _origin_doc(shares: dict[str, int]) -> dict:
+    """One month of 2026 with the given per-origin tonnages."""
+    return {
+        "updated": "2026-07-16T09:35:22Z",
+        "monthly_total": {"2026-01": sum(shares.values())},
+        "monthly_origins": {n: {"2026-01": v} for n, v in shares.items()},
+    }
+
+
+def test_origin_list_grows_until_it_covers_the_threshold(tmp_path, monkeypatch):
+    monkeypatch.setattr(tn, "DATA", tmp_path)
+    # 50/20/12/10/8: three origins reach 82%, so the list stops at three —
+    # the fourth would add nothing to the point of the breakdown.
+    (tmp_path / "us_coffee_imports.json").write_text(json.dumps(
+        _origin_doc({"A": 50_000, "B": 20_000, "C": 12_000, "D": 10_000, "E": 8_000})))
+    txt = tn.compose_us_imports(_at("2026-07-17T06:00"))
+    assert "• A 50.0k t" in txt and "• B 20.0k t" in txt and "• C 12.0k t" in txt
+    assert "• D " not in txt and "• E " not in txt   # "D " alone matches "YTD "
+    assert tn.ORIGIN_COVERAGE == 0.80
+
+    # A flat market needs many more names before 80% is explained.
+    (tmp_path / "us_coffee_imports.json").write_text(json.dumps(
+        _origin_doc({chr(65 + i): 10_000 for i in range(10)})))
+    txt = tn.compose_us_imports(_at("2026-07-17T06:00"))
+    assert txt.count("k t") == 1 + 1 + 8    # header + YTD + 8 origins = 80%
+
+
+def test_origin_list_reports_a_shortfall_rather_than_truncating(tmp_path, monkeypatch):
+    """A pathologically fragmented market hits the line cap first; the message
+    must say how much it actually covered instead of implying 80%."""
+    monkeypatch.setattr(tn, "DATA", tmp_path)
+    (tmp_path / "us_coffee_imports.json").write_text(json.dumps(
+        _origin_doc({f"O{i:02d}": 1_000 for i in range(40)})))
+    txt = tn.compose_us_imports(_at("2026-07-17T06:00"))
+    assert txt.count("\n• O") == tn.ORIGIN_MAX_LINES
+    assert "• …28 smaller origins (30% shown)" in txt
