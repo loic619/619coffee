@@ -308,16 +308,18 @@ export default function DestinationChart() {
       <div className="mt-3 text-[8px] text-slate-600 leading-relaxed">
         Source: {data.source}. {data.coverage_note ?? ""} Preliminary figures;
         months absent from both sources are omitted rather than interpolated.
-        {data.source_boundary && ` Months before ${data.source_boundary} are the green-bean XLSX series.`}
+        {data.source_boundary && ` Months before ${data.source_boundary} are the XLSX series.`}
         {data.gbe_uplift_t_per_month ? (
           <span className="block mt-1 text-amber-700/80">
-            Shown on a <strong>green-bean-equivalent</strong> basis:{" "}
-            {(data.gbe_uplift_t_per_month / 1000).toFixed(0)} kt/month is added across
-            destinations pro-rata on the {data.gbe_months?.length ?? 0} customs months,
-            covering the green coffee behind Vietnam&apos;s instant/soluble exports
-            (~2 t green per 1 t instant, counted once at product weight by customs).
-            Pro-rata is an assumption — customs publishes no per-destination split for
-            soluble.
+            Whole series shown on a <strong>green-bean-equivalent</strong> basis.
+            Customs counts Vietnam&apos;s instant/soluble exports once at product
+            weight, so {(data.gbe_uplift_t_per_month / 1000).toFixed(0)} kt/month —
+            the extra green coffee behind them at ~2 t green per 1 t instant — is added
+            back pro-rata across destinations on the {data.gbe_months?.length ?? 0}{" "}
+            customs months. The pre-{data.source_boundary ?? "2024"} XLSX months already
+            arrive on a green-bean-equivalent basis and are left as published, so the two
+            halves compare like for like. Pro-rata is an assumption — customs publishes
+            no per-destination split for soluble.
           </span>
         ) : null}
       </div>
