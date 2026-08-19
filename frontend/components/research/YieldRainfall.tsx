@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ComposedChart, Area, Scatter, XAxis, YAxis, Tooltip, ReferenceLine, ReferenceArea, CartesianGrid, LabelList } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
+import { DataFiles } from "./methodology/prose";
 
 interface CurvePt { rain_mm: number; yield_potential_pct: number; stress: string }
 interface ScatterPt { year: number; rain_mm: number; realized_pct: number; label?: string }
@@ -235,6 +236,7 @@ export default function YieldRainfall() {
           </span></li>
         </ul>
       </div>
+      <DataFiles files={["yield_rainfall_model.json"]} />
     </div>
   );
 }

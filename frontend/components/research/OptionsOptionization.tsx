@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
-import { H2, P, UL, LI, Code, Highlight, RefTable } from "./methodology/prose";
+import { H2, P, UL, LI, Code, Highlight, RefTable, DataFiles } from "./methodology/prose";
 
 interface SeriesPt { date: string; opt: number; fut: number; ratio: number }
 interface CotRow { t: string; dw_net: number; mm_net: number; pmpu_net: number; share_of_mm: number | null }
@@ -273,6 +273,7 @@ export default function OptionsOptionization() {
         the delta conversion); cot.json (CFTC <Code>fut_disagg</Code> NY / ICE London weekly). Ratio, curves and
         the COT overlay recomputed on every export from <Code>options_optionization.json</Code>.
       </P>
+      <DataFiles files={["options_optionization.json", "options_oi.json", "cot.json"]} />
     </div>
   );
 }

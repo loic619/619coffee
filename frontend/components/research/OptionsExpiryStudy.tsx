@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
-import { H2, P, UL, LI, Code, RefTable } from "./methodology/prose";
+import { H2, P, UL, LI, Code, RefTable, DataFiles } from "./methodology/prose";
 
 interface Agg { n: number; mean?: number; median?: number; t?: number }
 interface Ev {
@@ -328,6 +328,7 @@ export default function OptionsExpiryStudy() {
         boards: daily per-strike OI archive since 2024-06 with ITM splits. {d.method.oi_dating} {d.method.max_pain}
         {" "}Statistics recomputed on every export from <Code>options_expiry_study.json</Code>.
       </P>
+      <DataFiles files={["options_expiry_study.json", "options_oi.json"]} />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import {
   ComposedChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid, Legend,
 } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
+import { DataFiles } from "./prose";
 
 interface Factor {
   key: string; label: string; status: string; n: number;
@@ -15,11 +16,26 @@ interface Factor {
 }
 interface EdgeCell { n: number; span: [string, string]; acc: number; base: number; edge: number }
 interface PowerBucket { band: string; n: number; acc?: number; blind?: number; skill?: number; avg_abs_gap?: number }
+interface Split { n: number; r: number | null; t: number | null }
+interface HeavyCell { n: number; cont?: number }
+interface Seasonality {
+  harvest_def: string;
+  b3_by_season: { harvest: Split; off: Split };
+  b3_abs_move: { harvest: number | null; off: number | null };
+  last_hour: Record<"gap" | "day" | "drift" | "kc_day", { harvest: Split; off: Split }>;
+  heavy: Record<"gap" | "day" | "drift", { harvest: HeavyCell; off: HeavyCell }>;
+  heavy_drift_detail: {
+    up: number | null; dn: number | null; aligned_drift_pct: number | null;
+    z_vs_coin: number | null; z_vs_offseason: number | null;
+  };
+  rc_last_hour_status: string;
+}
 interface Doc {
   generated_at: string; method: Record<string, string | number>;
   factors: Factor[];
   rolling: ({ date: string } & Record<string, number | string>)[];
   power?: { n: number; buckets: PowerBucket[]; inverted_tail_z: number | null; verdict: string };
+  seasonality?: Seasonality;
   gate: {
     baseline: EdgeCell & { per_year: Record<string, number> };
     b3_univariate: EdgeCell | null;
@@ -277,12 +293,110 @@ export default function OpenDirectionFactors() {
         </div>
       )}
 
+      {d.seasonality && (() => {
+        const s = d.seasonality;
+        const hd = s.heavy_drift_detail;
+        return (
+          <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+              Harvest seasonality &amp; the last-hour pre-hedging test
+            </div>
+            <p className="text-[11px] text-slate-400 mb-2 leading-relaxed">
+              Two owner hypotheses, one window. <b className="text-slate-200">(1)</b> B3&rsquo;s late session should
+              be worth more during Brazil harvest. <b className="text-slate-200">(2)</b> Commercials pre-hedging
+              next-day purchases in the <em>last hour</em> should leave a trace: either a reversal (pressure that
+              unwinds) or a trend start (informed flow). Harvest window = {s.harvest_def}.
+            </p>
+            <table className="w-full text-[11px] mb-3">
+              <thead>
+                <tr className="text-[9px] text-slate-500 uppercase tracking-wider border-b border-slate-700 text-left">
+                  <th className="py-1 pr-2">Test</th>
+                  <th className="py-1 pr-2 text-right">Harvest (May–Sep)</th>
+                  <th className="py-1 pr-2 text-right">Off-season</th>
+                  <th className="py-1 pr-2">Read</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800 font-mono">
+                <tr>
+                  <td className="py-1 pr-2 text-slate-300">B3 residual → next open gap</td>
+                  <td className="py-1 pr-2 text-right">{fr(s.b3_by_season.harvest.r)} (t {s.b3_by_season.harvest.t}, n {s.b3_by_season.harvest.n})</td>
+                  <td className="py-1 pr-2 text-right">{fr(s.b3_by_season.off.r)} (t {s.b3_by_season.off.t}, n {s.b3_by_season.off.n})</td>
+                  <td className="py-1 pr-2 text-[10px] font-sans text-slate-400">seasonal, still n.s.</td>
+                </tr>
+                <tr>
+                  <td className="py-1 pr-2 text-slate-300">KC last hour → next open gap</td>
+                  <td className="py-1 pr-2 text-right">{fr(s.last_hour.gap.harvest.r)} (t {s.last_hour.gap.harvest.t})</td>
+                  <td className="py-1 pr-2 text-right">{fr(s.last_hour.gap.off.r)} (t {s.last_hour.gap.off.t})</td>
+                  <td className="py-1 pr-2 text-[10px] font-sans text-slate-400">no seasonality — the model&rsquo;s own feature</td>
+                </tr>
+                <tr>
+                  <td className="py-1 pr-2 text-slate-300">KC last hour → next RC full day</td>
+                  <td className="py-1 pr-2 text-right text-emerald-400">{fr(s.last_hour.day.harvest.r)} (t {s.last_hour.day.harvest.t})</td>
+                  <td className="py-1 pr-2 text-right">{fr(s.last_hour.day.off.r)} (t {s.last_hour.day.off.t})</td>
+                  <td className="py-1 pr-2 text-[10px] font-sans text-slate-400">2× stronger in harvest</td>
+                </tr>
+                <tr>
+                  <td className="py-1 pr-2 text-slate-300">KC last hour → next <em>post-open drift</em></td>
+                  <td className="py-1 pr-2 text-right text-emerald-400">{fr(s.last_hour.drift.harvest.r)} (t {s.last_hour.drift.harvest.t})</td>
+                  <td className="py-1 pr-2 text-right">{fr(s.last_hour.drift.off.r)} (t {s.last_hour.drift.off.t})</td>
+                  <td className="py-1 pr-2 text-[10px] font-sans text-slate-400"><b className="text-slate-200">the finding</b> — vanishes off-season</td>
+                </tr>
+              </tbody>
+            </table>
+            <div className="text-[11px] text-slate-400 leading-relaxed space-y-1.5">
+              <p>
+                <b className="text-slate-200">H1 — B3 in harvest: directionally right, still not significant.</b> The
+                residual&rsquo;s correlation with the next open goes from {fr(s.b3_by_season.off.r)} off-season to
+                {" "}<b className="text-slate-200">{fr(s.b3_by_season.harvest.r)}</b> in harvest — the sign the
+                hypothesis predicts, on {s.b3_by_season.harvest.n} sessions, but t {s.b3_by_season.harvest.t} does not
+                clear the bar, and the seasonal slice was chosen after seeing the full-sample null. Notably B3&rsquo;s
+                late window is not even <em>busier</em> in harvest (mean |move| {s.b3_abs_move.harvest}% vs
+                {" "}{s.b3_abs_move.off}% off-season). Verdict: still no model change — but this is now the
+                {" "}<em>specific</em> cell to re-test as ICF data accrues, rather than the whole factor.
+              </p>
+              <p>
+                <b className="text-slate-200">H2 — the pre-hedging trace is real, and it is a TREND STARTER, not a
+                reversal.</b> The last hour&rsquo;s move predicts the next open equally in both seasons (that is the
+                model&rsquo;s existing feature, no seasonality) — but its power over what happens <em>after</em> the
+                open is almost entirely a harvest phenomenon: post-open drift r
+                {" "}<b className="text-emerald-400">{fr(s.last_hour.drift.harvest.r)}</b> in harvest vs
+                {" "}{fr(s.last_hour.drift.off.r)} off-season. On <b className="text-slate-200">heavy</b> last hours
+                (|z| ≥ 1.5) the drift continues in the same direction
+                {" "}<b className="text-slate-200">{s.heavy.drift.harvest.cont}%</b> of the time in harvest
+                (n {s.heavy.drift.harvest.n}, z {hd.z_vs_coin} vs a coin flip) against
+                {" "}{s.heavy.drift.off.cont}% off-season — worth {hd.aligned_drift_pct}% of aligned drift per event.
+                Heavy <em>selling</em> in the last hour is the sharper half ({hd.dn}% continuation vs {hd.up}% for
+                buying), exactly the asymmetry a pre-hedging story implies.
+              </p>
+              <p>
+                <b className="text-slate-200">What it does and doesn&rsquo;t change.</b> The seasonal contrast itself is
+                z {hd.z_vs_offseason} — suggestive, not decisive — and, crucially,
+                {" "}<em>this is a different target than the model predicts</em>: the open-direction model calls the
+                overnight <em>gap</em>, and on that target the last hour shows no seasonality at all. So there is no
+                new feature and no coefficient change here. What it does justify is a
+                {" "}<b className="text-slate-200">separate intraday-drift study</b> — the same signal, a horizon the
+                current model doesn&rsquo;t trade — and it explains <em>why</em> the model runs hot in harvest
+                months: the feature it already owns is genuinely more informative then.
+              </p>
+              <p className="text-slate-500">
+                <b className="text-slate-400">London&rsquo;s own last hour is not testable yet.</b> {s.rc_last_hour_status}.
+                The KC last hour is measurable across the whole archive because the 17:30/18:30 anchors were always
+                stored; RC&rsquo;s 16:30 anchor was not, so the London-side version of this test starts accruing now.
+              </p>
+            </div>
+          </div>
+        );
+      })()}
+
       <p className="text-[10px] text-slate-500 italic">
         Same harness as every prior feature decision: expanding walk-forward, standardise-on-past, refit every 5,
         marginals on matched OOS dates vs the rolling-majority baseline. Full evidence trail:{" "}
-        <span className="font-mono not-italic">docs/research/open-price-direction-findings.md</span> · data:{" "}
-        <span className="font-mono not-italic">open_direction_factors.json</span>.
+        <span className="font-mono not-italic">docs/research/open-price-direction-findings.md</span>.
       </p>
+
+      <DataFiles files={["open_direction_factors.json", "open_direction_wf_analysis.json",
+                         "open_direction_history.json", "intraday_kc_rc_15min.json",
+                         "brazil_b3_arabica.json"]} />
     </div>
   );
 }

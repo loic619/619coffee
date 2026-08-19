@@ -1,5 +1,5 @@
 "use client";
-import { Paper, H2, P, UL, LI, Code, Fml, Highlight, RefTable } from "./prose";
+import { Paper, H2, P, UL, LI, Code, Fml, Highlight, RefTable, DataFiles } from "./prose";
 
 export default function DroughtRiskMethodology() {
   return (
@@ -197,6 +197,7 @@ SPI  = Φ⁻¹( H(current) )             Φ⁻¹ = inverse normal`}</Fml>
         publishes to the map&rsquo;s agronomic ticker, the signals feed and the morning brief. Front-end surfaces:
         the per-origin weather charts (SPI/SPEI ramps), the map ticker and the supply-page weather panels.
       </P>
+      <DataFiles files={["agronomic_alerts.json", "vhi_brazil.json", "brazil_weather.json"]} />
     </Paper>
   );
 }

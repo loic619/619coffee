@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ComposedChart, LineChart, BarChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
+import { DataFiles } from "./methodology/prose";
 import {
   buildCostStack, buildLevelSeries, buildOriginInflow, eventStudy, parityInflowStudy,
   buildLadder, PARITY_ORIGINS, CONTAINER_MT, PARITY_ADDERS_USD,
@@ -435,6 +436,7 @@ export default function CertifiedStocksParity() {
         levels and per-origin gradings. Cost constants from <Code>lib/originCosts</Code> and the Contract-rules parity
         stack. Everything recomputes live as the feeds update.
       </P>
+      <DataFiles files={["tender_parity_history.json", "certified_stocks_robusta.json", "origin_prices_history.json"]} />
     </div>
   );
 }

@@ -43,6 +43,9 @@ OUT_PATH = _REPO / "frontend" / "public" / "data" / "intraday_kc_rc_15min.json"
 _CHICAGO = ZoneInfo("America/Chicago")
 _LONDON  = ZoneInfo("Europe/London")
 _T_1730, _T_1830, _T_OPEN = "17:15", "18:15", "09:00"
+# RC last-hour start (16:30 London) — added 2026-08 for the harvest
+# pre-hedging study; the daily refresher records it forward from here.
+_T_1630 = "16:15"
 _MAXREC  = 5000
 
 # Delivery-month codes per market, and the first-notice-day offset (business

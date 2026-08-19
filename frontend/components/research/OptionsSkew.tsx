@@ -11,7 +11,7 @@ import {
 } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
-import { H2, P, UL, LI, Code, Highlight, RefTable } from "./methodology/prose";
+import { H2, P, UL, LI, Code, Highlight, RefTable, DataFiles } from "./methodology/prose";
 
 interface SeriesPt {
   date: string; u: string; dte: number; px: number;
@@ -373,6 +373,7 @@ export default function OptionsSkew() {
         daily weather seed 1995→present (region tmean); weekly NOAA STAR VHI; IPHM alert engine state
         (first-seen dates). Statistics recomputed on every export from <Code>options_skew.json</Code>.
       </P>
+      <DataFiles files={["options_skew.json", "agronomic_alerts.json", "vhi_uganda.json"]} />
     </div>
   );
 }

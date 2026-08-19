@@ -1,5 +1,5 @@
 "use client";
-import { Paper, H2, P, UL, LI, Code, Highlight, RefTable } from "./prose";
+import { Paper, H2, P, UL, LI, Code, Highlight, RefTable, DataFiles } from "./prose";
 
 export default function CpiMethodology() {
   return (
@@ -162,6 +162,7 @@ export default function CpiMethodology() {
         COICOP 2018 transition); Destatis and CBS(NL) 2026 transition notes; CRS Insight IN12596 on CPI data
         quality. Series identifiers referenced are the ones our exporters consume.
       </P>
+      <DataFiles files={["retail_cpi.json", "us_cpi.json"]} />
     </Paper>
   );
 }

@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
+import { DataFiles } from "./methodology/prose";
 
 interface SeptRow {
   date: string; dtf: number; phase: string;
@@ -505,6 +506,7 @@ export default function SeptemberXray() {
           </span></li>
         </ul>
       </div>
+      <DataFiles files={["sept_positioning.json", "cot.json"]} />
     </div>
   );
 }

@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
-import { H2, P, UL, LI, Code, Highlight, RefTable } from "./methodology/prose";
+import { H2, P, UL, LI, Code, Highlight, RefTable, DataFiles } from "./methodology/prose";
 
 interface GridPt { pct: number; price: number; net_lots_per_1pct: number | null }
 interface StrikePt { strike: number; net_lots_per_1pct: number }
@@ -269,6 +269,7 @@ export default function OptionsGammaMap() {
         {d.method.convention} {d.method.units} Front-contract returns from the continuous settlement series.
         Statistics recomputed on every export from <Code>options_gamma_map.json</Code>.
       </P>
+      <DataFiles files={["options_gamma_map.json"]} />
     </div>
   );
 }

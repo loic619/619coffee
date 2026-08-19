@@ -59,6 +59,34 @@ UTC firing.
   does: 56.5%→63.6%); B3's curve is non-monotone. **Verdict: strength does
   not rescue the factor; the wrong-way tail is logged as an accumulation
   flag (re-look as a fade candidate at ~40 tail days).** No model change.
+- **Harvest seasonality + last-hour pre-hedging (2026-08, owner hypotheses)**
+  Window = May–Sep (Brazil arabica main + conilon overlap).
+  * **H1 — is the B3 gap worth more in harvest?** Directionally yes, still
+    not significant: b3→gap r **+0.13 (t 1.66, n 164)** in harvest vs
+    **−0.00** off-season. The sign the hypothesis predicts, but below the
+    bar, and the slice was chosen after seeing the full-sample null. B3's
+    late window is not even busier in harvest (mean |move| 0.77% vs 0.94%).
+    No model change — but this specific CELL is now the retest target as
+    ICF accrues, rather than the whole factor.
+  * **H2 — last-hour pre-hedging: TREND STARTER, not reversal.** KC's last
+    hour (17:30→18:30 Ldn) predicts the next *gap* identically in both
+    seasons (it is the model's own feature — no seasonality). But its power
+    over the next session's POST-OPEN DRIFT is almost entirely seasonal:
+    r **+0.16 (t 3.67)** in harvest vs **+0.03 (t 0.78)** off. On heavy last
+    hours (|z|≥1.5) drift continues **69.0%** in harvest (n=71, z 3.2 vs a
+    coin flip) vs 56.0% off-season, worth **+0.90%** aligned drift per
+    event. Heavy SELLING is the sharper half (75.0% continuation vs 62.9%
+    for buying) — the asymmetry a pre-hedging story implies.
+    Seasonal contrast itself: z 1.69 (suggestive, not decisive).
+    **Verdict: no new feature — this is a DIFFERENT TARGET than the model
+    predicts** (gap vs intraday drift), and on the gap the last hour shows
+    no seasonality at all. It justifies a separate intraday-drift study,
+    and it explains WHY the model runs hot in harvest months: the feature
+    it already owns is genuinely more informative then.
+  * **London's own last hour is not testable yet** — `rc_last_1630` was
+    never stored. Added to the daily refresher 2026-08 (and the fetcher /
+    backfill anchor set); the RC-side version of H2 activates at ~120
+    harvest sessions.
 - **Side-finding from the same battery — the factor panel** (now a nightly
   exporter, `open_direction_factors.json`, rendered in the research card):
   rolling-120 lead correlations of all candidates. Two regime facts:

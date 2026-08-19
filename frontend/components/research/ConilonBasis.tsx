@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ComposedChart, Line, Scatter, ScatterChart, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid, Legend } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
-import { H2, P, UL, LI, Code, Fml, Highlight, RefTable } from "./methodology/prose";
+import { H2, P, UL, LI, Code, Fml, Highlight, RefTable, DataFiles } from "./methodology/prose";
 
 interface Leg { key: string; label: string; spec: string; place: string; role: string }
 interface Pair {
@@ -613,6 +613,7 @@ delivery   grading, allowances, and the T7/8 deliverable spec itself`}</Fml>
         {" "}{d.window.sessions.toLocaleString()} sessions. Statistics recomputed on every export from
         {" "}<Code>conilon_basis.json</Code>.
       </P>
+      <DataFiles files={["conilon_basis.json", "brazil_conilon_vitoria.json", "cepea_conilon_indicator.json", "brazil_b3_conilon.json"]} />
     </div>
   );
 }

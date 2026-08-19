@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ComposedChart, BarChart, Bar, Line, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid, Legend, Cell, LabelList } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
-import { H2, P, UL, LI, Code, Highlight, RefTable } from "./methodology/prose";
+import { H2, P, UL, LI, Code, Highlight, RefTable, DataFiles } from "./methodology/prose";
 
 interface Cohort {
   share_oi_pct: number; mean_lots: number;
@@ -336,6 +336,7 @@ export default function CotSwapIdentity() {
         {" "}<Code>{String(d.method.comovement)}</Code> Statistics recomputed on every export from
         {" "}<Code>cot_swap_identity.json</Code>.
       </P>
+      <DataFiles files={["cot_swap_identity.json", "cot.json"]} />
     </div>
   );
 }

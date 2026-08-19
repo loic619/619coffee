@@ -1,5 +1,5 @@
 "use client";
-import { Paper, H2, H, P, UL, LI, Code, Fml, Highlight } from "./prose";
+import { Paper, H2, H, P, UL, LI, Code, Fml, Highlight, DataFiles } from "./prose";
 
 // Small text matrix (not numbers) — distinct from RefTable's mono/right-aligned cells.
 function Matrix({ head, rows }: { head: string[]; rows: string[][] }) {
@@ -21,6 +21,7 @@ function Matrix({ head, rows }: { head: string[]; rows: string[][] }) {
           ))}
         </tbody>
       </table>
+      <DataFiles files={["news.json"]} />
     </div>
   );
 }

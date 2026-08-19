@@ -1,5 +1,5 @@
 "use client";
-import { Paper, H2, H, P, UL, LI, Code, Fml, Highlight, RefTable } from "./prose";
+import { Paper, H2, H, P, UL, LI, Code, Fml, Highlight, RefTable, DataFiles } from "./prose";
 import { FactorMapFigure, CorridorFigure } from "./DifferentialModelFigures";
 
 export default function DifferentialModelNote() {
@@ -299,6 +299,7 @@ Conversion    kg of cherry per 1 kg of green bean  ← harvest timing → ripe-c
         Brennan (1958) on the price of storage; Garbade &amp; Silber (1983) on cash-futures linkage; Pirrong on
         delivery squeezes and market-power manipulation; USDA/ICO structures for consumption accounting.
       </P>
+      <DataFiles files={["origin_prices_history.json", "tender_parity_history.json", "futures_price_history.json"]} />
     </Paper>
   );
 }
