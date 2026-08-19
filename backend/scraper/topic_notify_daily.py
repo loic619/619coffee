@@ -303,8 +303,22 @@ def compose_week_ahead(now: dt.datetime) -> str | None:
     return block or None
 
 
-def _b3_line(doc: dict | None, label: str, sym: str) -> str | None:
-    """One B3 market's close: front contract, price and the day's move."""
+# A saca is 60 kg; 1 lb = 0.45359237 kg → 132.2774 lb per saca. Both B3 boards
+# quote per saca, so the moves need restating in the units the desks actually
+# trade against: cents/lb for arabica (vs KC) and USD/tonne for conilon (vs RC).
+LB_PER_SACA = 60 / 0.45359237
+SACAS_PER_TONNE = 1000 / 60
+
+
+def _b3_line(doc: dict | None, label: str, sym: str,
+             usd_per_brl: float | None = None) -> str | None:
+    """One B3 market's close: front contract, price, and the day's move with
+    that move restated in the market's reference unit.
+
+    Arabica is already quoted in USD, so cents/lb is pure arithmetic. Conilon
+    is in BRL, so USD/t needs the session's FX — without it the conversion is
+    omitted rather than guessed.
+    """
     hist = (doc or {}).get("history") or []
     if not hist:
         return None
@@ -317,7 +331,14 @@ def _b3_line(doc: dict | None, label: str, sym: str) -> str | None:
     move = ""
     if prev:
         chg = px - prev
-        move = f" {'▲' if chg > 0 else '▼' if chg < 0 else '→'}{chg:+,.2f} ({chg / prev * 100:+.1f}%)"
+        arrow = "▲" if chg > 0 else "▼" if chg < 0 else "→"
+        if sym == "US$":                      # USD/saca → US cents/lb
+            conv = f" ({chg / LB_PER_SACA * 100:+.2f} ¢/lb)"
+        elif usd_per_brl:                     # BRL/saca → USD/tonne
+            conv = f" ({chg * SACAS_PER_TONNE / usd_per_brl:+,.0f} $/t)"
+        else:
+            conv = ""
+        move = f" {arrow}{chg:+,.2f} ({chg / prev * 100:+.1f}%){conv}"
     return (f"• {label} {sym} {px:,.2f}/saca"
             f" ({last.get('front_month', '?')}){move}")
 
@@ -331,11 +352,13 @@ def compose_b3(now: dt.datetime) -> str | None:
     """
     b = _brief()
     ara, con = b.load("brazil_b3_arabica.json"), b.load("brazil_b3_conilon.json")
+    day = _b3_key() or "?"
+    # Conilon's USD/t conversion needs the session's rate, not today's.
+    usd_per_brl = b._fx_close_on(b.load("fx_history.json"), "BRL=X", day)
     lines = [x for x in (_b3_line(ara, "Arábica 4/5 (ICF)", "US$"),
-                         _b3_line(con, "Conilon 7/8 (CNL)", "R$")) if x]
+                         _b3_line(con, "Conilon 7/8 (CNL)", "R$", usd_per_brl)) if x]
     if not lines:
         return None
-    day = _b3_key() or "?"
     return f"🇧🇷 <b>B3 close — {day}</b>\n" + "\n".join(lines)
 
 

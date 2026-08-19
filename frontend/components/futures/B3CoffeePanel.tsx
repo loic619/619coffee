@@ -35,6 +35,13 @@ interface PhysQuote { section: string; tipo: string; price: number }
 interface PhysEntry { date: string; benchmark: number | null; quotes?: PhysQuote[] }
 interface PhysDoc   { source?: string; history?: PhysEntry[] }
 
+// futures_price_history.json — the NY/London front-contract daily settles.
+// Arabica is quoted in US cents/lb; the B3 arabica board is US$/saca, so the
+// overlay converts (a saca is 60 kg = 132.2774 lb) and the visible gap between
+// the two lines IS the Brazilian differential to New York.
+interface PriceHistDoc { arabica?: { date: string; price: number }[] }
+const LB_PER_SACA = 60 / 0.45359237;
+
 // cepea_conilon_indicator.json — CEPEA/ESALQ conilon daily indicator.
 interface CepeaEntry { date: string; price: number }
 interface CepeaDoc   { source?: string; history?: CepeaEntry[] }
@@ -191,6 +198,7 @@ export default function B3CoffeePanel() {
   const [conilon, setConilon] = useState<B3Doc | null>(null);
   const [vitoria, setVitoria] = useState<PhysDoc | null>(null);
   const [cepea,   setCepea]   = useState<CepeaDoc | null>(null);
+  const [ny,      setNy]      = useState<PriceHistDoc | null>(null);
   const [window,  setWindow]  = useState<Window>("6M");
 
   useEffect(() => {
@@ -209,7 +217,20 @@ export default function B3CoffeePanel() {
     fetch("/data/cepea_conilon_indicator.json")
       .then(r => r.ok ? r.json() : null).then(d => { if (d) setCepea(d); })
       .catch(() => { /* futures-only */ });
+    // NY KC front settles — overlaid on the arabica board for the differential.
+    fetch("/data/futures_price_history.json")
+      .then(r => r.ok ? r.json() : null).then(d => { if (d) setNy(d); })
+      .catch(() => { /* B3-only */ });
   }, []);
+
+  // NY KC on the B3 arabica card, restated in US$/saca so both lines share an
+  // axis — the spread between them is the Brazil differential.
+  const arabicaOverlays = useMemo<Overlay[]>(() => [{
+    key: "kc", name: "NY KC front (US$/saca eq.)", color: "#38bdf8",
+    points: (ny?.arabica ?? [])
+      .filter(p => p.price != null)
+      .map(p => ({ date: p.date, value: p.price * LB_PER_SACA / 100 })),
+  }], [ny]);
 
   // Conilon references drawn with the CNL front (solid emerald): the CCCV
   // T7/8 delivery-spec physical (grey — the deep history the young futures
@@ -258,7 +279,8 @@ export default function B3CoffeePanel() {
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <MarketCard title="B3 Arábica 4/5 (Pregão Regular)" doc={arabica} color="#f59e0b" window={window} />
+        <MarketCard title="B3 Arábica 4/5 (Pregão Regular)" doc={arabica} color="#f59e0b" window={window}
+          overlays={arabicaOverlays} />
         <MarketCard title="B3 Conilon 7/8 (CNL)"            doc={conilon} color="#34d399" window={window}
           overlays={conilonOverlays} />
       </div>

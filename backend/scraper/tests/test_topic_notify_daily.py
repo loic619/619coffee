@@ -103,9 +103,15 @@ def test_a_broken_composer_never_fails_the_scraper(monkeypatch, state):
 # ── dedup on the report's identity, not its text ─────────────────────────────
 
 class _StubBrief:
-    """Minimal brief stand-in exposing just load()."""
+    """Brief stand-in: canned files, but the REAL fx lookup so the currency
+    conversion is exercised rather than mocked away."""
     def __init__(self, files): self._f = files
     def load(self, name): return self._f.get(name)
+
+    @staticmethod
+    def _fx_close_on(doc, pair, on_date):
+        from telegram.handlers.brief import _fx_close_on
+        return _fx_close_on(doc, pair, on_date)
 
 
 def _stub(monkeypatch, files):
@@ -162,11 +168,27 @@ def test_b3_reports_both_boards_with_their_own_units(monkeypatch):
         "brazil_b3_conilon.json": {"history": [
             {"date": "2026-08-16", "front_month": "Sep '26", "front_price": 1052.28},
             {"date": "2026-08-18", "front_month": "Sep '26", "front_price": 1037.01}]},
+        "fx_history.json": {"pairs": {"BRL=X": {"history": [
+            {"date": "2026-08-18", "close": 5.204454}]}}},
     })
     txt = t.compose_b3(dt.datetime.now(dt.UTC))
     assert "B3 close — 2026-08-18" in txt
-    assert "• Arábica 4/5 (ICF) US$ 419.00/saca (Setembro/2026) ▲+13.40 (+3.3%)" in txt
-    assert "• Conilon 7/8 (CNL) R$ 1,037.01/saca (Sep '26) ▼-15.27 (-1.5%)" in txt
+    # Arabica is quoted in USD, so the move restates as cents/lb:
+    # 13.40 / 132.2774 lb-per-saca × 100 = 10.13 ¢/lb.
+    assert "• Arábica 4/5 (ICF) US$ 419.00/saca (Setembro/2026) ▲+13.40 (+3.3%) (+10.13 ¢/lb)" in txt
+    # Conilon is BRL, so USD/t needs the session FX:
+    # −15.27 × 1000/60 = −254.5 BRL/t ÷ 5.204454 = −48.9 → −49 $/t.
+    assert "• Conilon 7/8 (CNL) R$ 1,037.01/saca (Sep '26) ▼-15.27 (-1.5%) (-49 $/t)" in txt
+
+
+def test_b3_omits_the_usd_conversion_when_fx_is_missing():
+    """A BRL move cannot be restated in USD without a rate — say nothing
+    rather than guess one."""
+    docs = {"brazil_b3_conilon.json": {"history": [
+        {"date": "2026-08-16", "front_month": "Sep '26", "front_price": 1052.28},
+        {"date": "2026-08-18", "front_month": "Sep '26", "front_price": 1037.01}]}}
+    line = t._b3_line(docs["brazil_b3_conilon.json"], "Conilon 7/8 (CNL)", "R$", None)
+    assert "▼-15.27 (-1.5%)" in line and "$/t" not in line
 
 
 def test_b3_survives_one_board_missing(monkeypatch):
