@@ -75,6 +75,7 @@ def _exporters(db):
     """
     from scraper.exporters.conilon_basis import export_conilon_basis
     from scraper.exporters.cot_cropyear_xray import export_cot_cropyear_xray
+    from scraper.exporters.cot_options_book import export_cot_options_book
     from scraper.exporters.cot_sept_study import export_cot_sept_study
     from scraper.exporters.cot_swap_identity import export_cot_swap_identity
     from scraper.exporters.intraday_drift import export_intraday_drift
@@ -139,6 +140,7 @@ def _exporters(db):
         ("cot_sept_study",        lambda: export_cot_sept_study()),
         ("cot_cropyear_xray",     lambda: export_cot_cropyear_xray()),
         ("cot_swap_identity",     lambda: export_cot_swap_identity()),
+        ("cot_options_book",      lambda: export_cot_options_book()),
         ("options_expiry_study",  lambda: export_options_expiry_study()),
         ("options_gamma_map",     lambda: export_options_gamma_map()),
         ("options_vrp",           lambda: export_options_vrp()),

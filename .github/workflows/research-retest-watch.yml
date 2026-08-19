@@ -1,0 +1,72 @@
+name: "9.9 – Research retest watch"
+
+# The memory for parked research. Several studies ended with "not enough data
+# yet — retest at N": the conilon late-close factor, London's own last hour,
+# the Vietnam physical feature, the B3 wrong-way tail, the options-flow COT
+# lead, and the ledgers that accumulate one datapoint per expiry / per alert.
+# Those thresholds are months away and nothing else in the pipeline remembers
+# them, so this job counts each accumulator against its threshold and pings
+# Telegram the day one matures.
+#
+# Weekly on purpose: these move by single digits per week, so a daily alert
+# would be noise. The status file it writes is regenerated every run, so the
+# progress bars on the site stay current between alerts.
+
+on:
+  schedule:
+    - cron: '15 8 * * 1'   # Mondays 08:15 UTC — after the weekend's exports have landed
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Check parked hypotheses
+        id: check
+        working-directory: backend
+        run: python -m scraper.research_retest_watch
+
+      # Runs whether or not anything matured, so the published status file
+      # (and its progress bars) never goes stale.
+      - name: Commit status file
+        if: always()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data/research_retest_status.json || true
+          if git diff --cached --quiet; then
+            echo "no change"
+          else
+            git commit -m "chore(research): refresh retest-watch status [skip ci]"
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+            git push || echo "push failed — status will refresh next run"
+          fi
+
+      - name: Notify Telegram when a hypothesis matures
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          READY:              ${{ steps.check.outputs.ready }}
+        run: |
+          if [ -z "${TELEGRAM_BOT_TOKEN:-}" ] || [ -z "${TELEGRAM_CHAT_ID:-}" ]; then
+            echo "Telegram secrets not configured — skipping notification"
+            exit 0
+          fi
+          body="${READY:-Retest watch failed (no detail captured)}"
+          run_url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          text=$(printf '%s\n\nRun: %s' "$body" "$run_url")
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${text}" \
+            >/dev/null || true

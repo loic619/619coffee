@@ -1,0 +1,116 @@
+{
+ "generated_at": "2026-08-19T22:45:45Z",
+ "note": "Parked research hypotheses and the data each is waiting on. Maintained by scraper/research_retest_watch.py; alerts fire when a counter crosses its threshold.",
+ "watches": [
+  {
+   "key": "drift_forward",
+   "label": "Intraday-drift rule — forward record",
+   "n": 0,
+   "threshold": 20,
+   "unit": "gated firings since the study",
+   "pct": 0.0,
+   "mature": false,
+   "parked_because": "The harvest condition was discovered in-sample; only forward firings are true OOS.",
+   "action": "Re-read intraday_drift.json: is the forward hit-rate holding near 76%?"
+  },
+  {
+   "key": "cnl_sessions",
+   "label": "Conilon (B3 CNL) late-close factor",
+   "n": 8,
+   "threshold": 300,
+   "unit": "sessions accrued",
+   "pct": 2.7,
+   "mature": false,
+   "parked_because": "B3 exposes no CNL history; the accumulator started 2026-08.",
+   "action": "Run the cnl_after_rc construction in open_direction_factors — the London-side B3 test."
+  },
+  {
+   "key": "rc_last_hour",
+   "label": "London's own last hour (rc_last_1630)",
+   "n": 85,
+   "threshold": 250,
+   "unit": "harvest sessions with the anchor",
+   "pct": 34.0,
+   "mature": false,
+   "parked_because": "The 16:30 anchor was never stored; added to the refresher 2026-08 (which backfilled its window to 2025-09).",
+   "action": "Repeat the pre-hedging drift test on RC's own last hour, not KC's."
+  },
+  {
+   "key": "icf_matched",
+   "label": "B3 arabica after-KC residual",
+   "n": 202,
+   "threshold": 400,
+   "unit": "matched OOS days",
+   "pct": 50.5,
+   "mature": false,
+   "parked_because": "Rejected at the gate (+0.5pp marginal) on 200 matched days.",
+   "action": "Re-run the matched-window gate; specifically the harvest-only cell (r +0.13, t 1.66)."
+  },
+  {
+   "key": "b3_tail",
+   "label": "B3 wrong-way tail (fade candidate)",
+   "n": 22,
+   "threshold": 40,
+   "unit": "sessions at |z| >= 2",
+   "pct": 55.0,
+   "mature": false,
+   "parked_because": "27.3% sign accuracy on 22 days — inverted read only z ~ 1.3.",
+   "action": "Re-test the FADE of strong B3 moves against the bucket's own blind baseline."
+  },
+  {
+   "key": "flow_cot",
+   "label": "Options flow → next-week COT lead",
+   "n": 32,
+   "threshold": 60,
+   "unit": "aligned COT weeks",
+   "pct": 53.3,
+   "mature": false,
+   "parked_because": "r 0.401 (t 2.36) survived its controls but is 1 of 16 tests.",
+   "action": "Re-run the lead partial; bar is t ~ 3, or t ~ 2.5 with a nonzero return transfer."
+  },
+  {
+   "key": "expiry_ledger",
+   "label": "Options expiry ledger",
+   "n": 1,
+   "threshold": 6,
+   "unit": "graded expiries",
+   "pct": 16.7,
+   "mature": false,
+   "parked_because": "Expired boards are unrecoverable upstream; each expiry adds one datapoint.",
+   "action": "Test ITM-overhang vs post-expiry drift across the accumulated expiries."
+  },
+  {
+   "key": "iphm_ledger",
+   "label": "IPHM alert ledger (skew vs alerts)",
+   "n": 1,
+   "threshold": 90,
+   "unit": "days recorded",
+   "pct": 1.1,
+   "mature": false,
+   "parked_because": "The skew-vs-alerts event study rested on one Uganda episode.",
+   "action": "Run the lead/lag event study of RR25 around published alert onsets."
+  },
+  {
+   "key": "vn_physical",
+   "label": "Vietnam physical overnight",
+   "n": 98,
+   "threshold": 300,
+   "unit": "rows accrued",
+   "pct": 32.7,
+   "mature": false,
+   "parked_because": "Timing verified viable; only ~50 days existed in 2026-07.",
+   "action": "Walk-forward the VN fresh-morning change as an open-direction feature."
+  },
+  {
+   "key": "cert_robusta",
+   "label": "Certified robusta stocks as a feature",
+   "n": 295,
+   "threshold": 350,
+   "unit": "days of history",
+   "pct": 84.3,
+   "mature": false,
+   "parked_because": "Only ~13 months existed — exploratory windows too small.",
+   "action": "Re-open the certified-stocks feature battery for the open-direction model."
+  }
+ ]
+}

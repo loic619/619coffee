@@ -14,6 +14,7 @@ import Step5DryPowder from "./Step5DryPowder";
 import Step6CycleLocation from "./Step6CycleLocation";
 import Step7Report from "./Step7Report";
 import Step8Analysis from "./Step8Analysis";
+import Step9OptionsBook from "./Step9OptionsBook";
 import OIHistoryTable from "@/components/futures/OIHistoryTable";
 import PinToReport from "@/components/report/PinToReport";
 import { evaluateSignals, evaluateHistoricalSignals } from "@/lib/cot/signalEngine";
@@ -115,6 +116,9 @@ export default function CotDashboard() {
       <div id="cot-section-5"><Step5DryPowder      data={data} /></div>
       <div id="cot-section-6"><Step6CycleLocation  recent52={recent52} /></div>
       <div id="cot-section-7"><Step7Report         data={data} recent52={recent52} /></div>
+
+      {/* Everything above is futures-only; this is what options adds. */}
+      <Step9OptionsBook />
 
       {/* Signals moved to the end of the report. */}
       <div id="cot-section-8"><Step8Analysis signals={signals} historicalSignals={historicalSignals} /></div>

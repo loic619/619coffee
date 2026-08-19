@@ -1,0 +1,59 @@
+name: "9.8 – CFTC options book (combined vs futures-only COT)"
+
+# Fetches BOTH CFTC disaggregated files for Coffee C — fut_disagg (futures
+# only, what every cohort table on the COT tab uses) and com_disagg (futures
+# AND options, delta-adjusted by the exchange) — and subtracts them, so each
+# cohort's options position becomes visible.
+#
+# Weekly, after CFTC's Friday-evening publication. Both zips carry the whole
+# year, so a missed week self-heals on the next run: the file is rebuilt from
+# scratch every time rather than appended to.
+
+on:
+  schedule:
+    - cron: '30 23 * * 5'   # Fridays 23:30 UTC — after the 15:30 ET COT release
+  workflow_dispatch:
+    inputs:
+      years:
+        description: "Years of history to fetch (each year = 2 zips)"
+        required: false
+        default: "5"
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Fetch CFTC combined + futures-only, diff the options book
+        working-directory: backend
+        run: python -m scraper.sources.cftc_options_book --years "${{ inputs.years || '5' }}"
+
+      - name: Publish the COT-tab payload
+        working-directory: backend
+        run: |
+          python - <<'PY'
+          from scraper.exporters.cot_options_book import export_cot_options_book
+          export_cot_options_book()
+          PY
+
+      - name: Commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/cftc_options_book.json frontend/public/data/cot_options_book.json || true
+          if git diff --cached --quiet; then
+            echo "no change"
+          else
+            git commit -m "data(cot): refresh CFTC options book [skip ci]"
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+            git push || echo "push failed — next run will retry"
+          fi
