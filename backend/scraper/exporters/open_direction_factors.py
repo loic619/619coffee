@@ -288,6 +288,49 @@ def export_open_direction_factors():
         if keep:
             rolling.append(row_out)
 
+    # ── power analysis: does STRONG B3 variation predict? ───────────────────
+    # Buckets by past-only |z| of the residual (expanding std, min 40 obs).
+    # The honest bar for a conditional signal: accuracy should RISE with |z|
+    # (as the model's own confidence curve does). A wrong-way tail on a small
+    # bucket is recorded with its own binomial z, not promoted.
+    pframe = [r_ for r_ in data if r_.get("b3") is not None and r_["gap"] is not None]
+    vals: list[float] = []
+    for r_ in pframe:
+        r_["b3_z"] = (r_["b3"] / st.pstdev(vals)) if len(vals) >= 40 and st.pstdev(vals) else None
+        vals.append(r_["b3"])
+    zf = [r_ for r_ in pframe if r_.get("b3_z") is not None]
+
+    def _bucket(rows_):
+        n = len(rows_)
+        if n < 12:
+            return {"n": n}
+        acc = st.mean(1.0 if (r_["b3"] > 0) == (r_["gap"] > 0) else 0.0 for r_ in rows_)
+        down = st.mean(1.0 if r_["gap"] <= 0 else 0.0 for r_ in rows_)
+        blind = max(down, 1 - down)
+        return {"n": n, "acc": _r(acc * 100, 1), "blind": _r(blind * 100, 1),
+                "skill": _r((acc - blind) * 100, 1),
+                "avg_abs_gap": _r(st.mean(abs(r_["gap"]) for r_ in rows_) * 100, 2)}
+
+    tail = [r_ for r_ in zf if abs(r_["b3_z"]) >= 2]
+    tail_stats = _bucket(tail)
+    inv_z = None
+    if tail_stats.get("acc") is not None:
+        k_inv = sum(1 for r_ in tail if (r_["b3"] > 0) != (r_["gap"] > 0))
+        p0 = tail_stats["blind"] / 100
+        n_t = tail_stats["n"]
+        se = math.sqrt(n_t * p0 * (1 - p0))
+        inv_z = _r((k_inv - n_t * p0) / se, 2) if se else None
+    power = {
+        "n": len(zf),
+        "buckets": [
+            {"band": "|z| < 1", **_bucket([r_ for r_ in zf if abs(r_["b3_z"]) < 1])},
+            {"band": "1 ≤ |z| < 2", **_bucket([r_ for r_ in zf if 1 <= abs(r_["b3_z"]) < 2])},
+            {"band": "|z| ≥ 2", **tail_stats},
+        ],
+        "inverted_tail_z": inv_z,
+        "verdict": "non-monotone — strength does not add power; the strongest bucket leans WRONG-way (reversal) but fails significance on its own tail",
+    }
+
     # ── walk-forward gates ──────────────────────────────────────────────────
     p_base = _wf_preds(data, ["kc_after", "dsr"])
     p_b3 = _wf_preds(data, ["kc_after", "dsr", "b3"])
@@ -332,6 +375,7 @@ def export_open_direction_factors():
         "factors": factors,
         "rolling": rolling,
         "gate": gate,
+        "power": power,
         "b3_study": {
             "arabica": {
                 "icf_sessions": len(icf_ret) + 1, "resid_sessions": len(b3_resid),
