@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList, LineChart, Line } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
+import WorldBalanceSheet from "./WorldBalanceSheet";
 import { COUNTRY_EN } from "./BrazilTab/constants";
 import { COUNTRY_HUB, HUB_COLORS, HUB_ORDER } from "./IndonesiaExports/constants";
 
@@ -135,6 +136,7 @@ export default function TotalExportsTab() {
   const [vnDest, setVnDest]   = useState<VnDest | null>(null);
   const [loaded, setLoaded]   = useState(false);
 
+  const [panel, setPanel]   = useState<"exports" | "balance">("exports");
   const [type, setType]     = useState<CoffeeType>("total");
   const [showPrior, setShowPrior] = useState(true);
   const [destWin, setDestWin] = useState<DestWin>("12M");
@@ -511,6 +513,25 @@ export default function TotalExportsTab() {
 
   return (
     <div className="space-y-4">
+      {/* Panel switch: the exports aggregation vs the world S&D statement. */}
+      <div className="flex gap-1 bg-slate-900 border border-slate-700 rounded-lg p-1 w-fit">
+        {([
+          { id: "exports" as const, label: "Exports" },
+          { id: "balance" as const, label: "Supply & Demand" },
+        ]).map(t => (
+          <button key={t.id} onClick={() => setPanel(t.id)}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              panel === t.id
+                ? "bg-slate-700 text-slate-100"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+            }`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {panel === "balance" ? <WorldBalanceSheet /> : (
+      <>
       {/* ── Headline KPIs ─────────────────────────────────────────────── */}
       <div className={CARD}>
         <div className="flex items-baseline justify-between gap-2 flex-wrap">
@@ -945,6 +966,8 @@ export default function TotalExportsTab() {
             only; no projection applied.
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );
