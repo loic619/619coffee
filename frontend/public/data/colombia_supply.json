@@ -1,10 +1,10 @@
 {
   "country": "colombia",
-  "scraped_at": "2026-08-19T03:28:53.604510Z",
+  "scraped_at": "2026-08-19T07:28:30+00:00",
   "exports": {
     "source": "DANE + FNC (monthly) · USDA PSD (annual)",
-    "last_updated": "2026-06-01",
-    "unit": "thousand 60-kg bags (marketing year)",
+    "last_updated": "2026-06",
+    "unit": "thousand 60-kg bags",
     "monthly": [
       {
         "month": "2024-01",
@@ -216,7 +216,7 @@
       {
         "month": "2026-06",
         "total_t": 47598.1,
-        "total_k_bags": 793.3,
+        "total_k_bags": 1050.0,
         "by_nandina": [
           {
             "code": "0901.11.90.00",
@@ -230,7 +230,9 @@
           }
         ],
         "source_xls": "https://www.dane.gov.co/files/operaciones/EXPORTACIONES/anex-EXPORTACIONES-jun2026.xls",
-        "parser_version": "v2"
+        "parser_version": "v2",
+        "yoy_pct": -2.9,
+        "source_pdf": "https://federaciondecafeteros.org/wp-content/uploads/2026/08/7.-Informe-mensual-Julio-2026-p.pdf"
       }
     ],
     "annual": [
