@@ -63,13 +63,24 @@ function unitSymbol(unit?: string): string {
   return unit?.startsWith("BRL") ? "R$" : "US$";
 }
 
-function MarketCard({ title, doc, color, window: win, overlays }: {
+function MarketCard({ title, doc, color, window: win, overlays, altUnit }: {
   title: string; doc: B3Doc | null; color: string; window: Window;
   overlays?: Overlay[];
+  /** Optional second quoting convention, toggled from the card header. */
+  altUnit?: { label: string; sym: string; suffix: string; factor: number };
 }) {
   const hist = useMemo(() => doc?.history ?? [], [doc]);
-  const sym = unitSymbol(doc?.unit);
   const shown = useMemo(() => (overlays ?? []).filter(o => o.points.length > 0), [overlays]);
+  const [useAlt, setUseAlt] = useState(false);
+
+  // One scalar rescales every number on the card — headline, chart, overlays
+  // and curve table alike. That is what keeps the KC overlay honest: it is
+  // stored converted to US$/saca, so switching to ¢/lb divides it straight
+  // back to the quote New York actually prints, with no second conversion.
+  const alt = useAlt && altUnit ? altUnit : null;
+  const scale = alt ? alt.factor : 1;
+  const sym = alt ? alt.sym : unitSymbol(doc?.unit);
+  const suffix = alt ? alt.suffix : "/saca";
 
   // Union of futures + overlay dates in-window; each row carries whichever
   // series has a value that day so the deep physical history draws even where
@@ -85,15 +96,15 @@ function MarketCard({ title, doc, color, window: win, overlays }: {
       return r;
     };
     for (const e of hist) {
-      if (e.date >= cutoffIso && e.front_price != null) row(e.date).price = e.front_price;
+      if (e.date >= cutoffIso && e.front_price != null) row(e.date).price = e.front_price * scale;
     }
     for (const o of shown) {
       for (const p of o.points) {
-        if (p.date >= cutoffIso) row(p.date)[o.key] = p.value;
+        if (p.date >= cutoffIso) row(p.date)[o.key] = p.value * scale;
       }
     }
     return Array.from(rows.values()).sort((a, b) => a.date.localeCompare(b.date));
-  }, [hist, shown, win]);
+  }, [hist, shown, win, scale]);
 
   const last = hist.length ? hist[hist.length - 1] : null;
   const prev = hist.length > 1 ? hist[hist.length - 2] : null;
@@ -120,18 +131,31 @@ function MarketCard({ title, doc, color, window: win, overlays }: {
         <div>
           <div className="text-slate-200 text-[11px] font-bold">{title}</div>
           <div className="text-[9px] text-slate-500">{doc?.source}{last ? ` · ${last.date}` : ""}</div>
+          {altUnit && (
+            <div className="mt-1 inline-flex overflow-hidden rounded border border-slate-600 text-[9px]">
+              {[false, true].map(v => (
+                <button key={String(v)} onClick={() => setUseAlt(v)}
+                  className={`px-1.5 py-px transition ${useAlt === v
+                    ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:text-slate-200"}`}>
+                  {v ? altUnit.label : `${unitSymbol(doc?.unit)}/saca`}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         {last && (
           <div className="text-right">
             <div className="text-base font-bold font-mono text-slate-100">
-              {sym} {last.front_price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              <span className="text-[9px] text-slate-500 font-normal"> /saca</span>
+              {sym} {last.front_price != null
+                ? (last.front_price * scale).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                : "—"}
+              <span className="text-[9px] text-slate-500 font-normal"> {suffix}</span>
             </div>
             <div className="text-[10px] font-mono">
               <span className="text-slate-400">{last.front_month}</span>
               {chg != null && (
                 <span className={chg >= 0 ? "text-emerald-400" : "text-red-400"}>
-                  {"  "}{chg >= 0 ? "+" : ""}{chg.toFixed(2)}{chgPct != null ? ` (${chgPct >= 0 ? "+" : ""}${chgPct.toFixed(1)}%)` : ""}
+                  {"  "}{chg >= 0 ? "+" : ""}{(chg * scale).toFixed(2)}{chgPct != null ? ` (${chgPct >= 0 ? "+" : ""}${chgPct.toFixed(1)}%)` : ""}
                 </span>
               )}
             </div>
@@ -147,7 +171,7 @@ function MarketCard({ title, doc, color, window: win, overlays }: {
             <YAxis stroke="#64748b" tick={{ fontSize: 8 }} domain={["auto", "auto"]} width={44}
               tickFormatter={(v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 0 })} />
             <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
-              formatter={(v) => typeof v === "number" ? `${sym} ${v.toLocaleString(undefined, { minimumFractionDigits: 2 })}/saca` : "—"} />
+              formatter={(v) => typeof v === "number" ? `${sym} ${v.toLocaleString(undefined, { minimumFractionDigits: 2 })}${suffix}` : "—"} />
             {shown.map(o => (
               <Line key={o.key} type="monotone" dataKey={o.key} name={o.name} stroke={o.color}
                 strokeWidth={1.2} strokeDasharray="4 3" dot={false} connectNulls />
@@ -174,7 +198,7 @@ function MarketCard({ title, doc, color, window: win, overlays }: {
           <thead>
             <tr className="text-slate-500 text-left">
               <th className="font-normal">Contract</th>
-              <th className="font-normal text-right">{sym}/saca</th>
+              <th className="font-normal text-right">{sym}{suffix}</th>
               <th className="font-normal text-right">{showOi ? "OI" : "Δ"}</th>
             </tr>
           </thead>
@@ -182,7 +206,7 @@ function MarketCard({ title, doc, color, window: win, overlays }: {
             {last.contracts.map((c, i) => (
               <tr key={c.symb ?? `${c.month}-${i}`} className="text-slate-300">
                 <td>{c.month}</td>
-                <td className="text-right">{c.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="text-right">{(c.price * scale).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 <td className="text-right text-slate-400">{showOi ? (c.oi ?? "—") : (c.var || "—")}</td>
               </tr>
             ))}
@@ -226,7 +250,9 @@ export default function B3CoffeePanel() {
   // NY KC on the B3 arabica card, restated in US$/saca so both lines share an
   // axis — the spread between them is the Brazil differential.
   const arabicaOverlays = useMemo<Overlay[]>(() => [{
-    key: "kc", name: "NY KC front (US$/saca eq.)", color: "#38bdf8",
+    // Name carries no unit: the card can be toggled to ¢/lb, where this line
+    // is New York's native quote rather than a conversion.
+    key: "kc", name: "NY KC front", color: "#38bdf8",
     points: (ny?.arabica ?? [])
       .filter(p => p.price != null)
       .map(p => ({ date: p.date, value: p.price * LB_PER_SACA / 100 })),
@@ -280,7 +306,8 @@ export default function B3CoffeePanel() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <MarketCard title="B3 Arábica 4/5 (Pregão Regular)" doc={arabica} color="#f59e0b" window={window}
-          overlays={arabicaOverlays} />
+          overlays={arabicaOverlays}
+          altUnit={{ label: "¢/lb", sym: "¢", suffix: "/lb", factor: 100 / LB_PER_SACA }} />
         <MarketCard title="B3 Conilon 7/8 (CNL)"            doc={conilon} color="#34d399" window={window}
           overlays={conilonOverlays} />
       </div>
