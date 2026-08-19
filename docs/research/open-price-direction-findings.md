@@ -48,6 +48,17 @@ UTC firing.
   started 2026-08 and holds single-digit sessions. Per the evidence rule it
   cannot enter; **retest at ~300 sessions** (~late 2027), zero new
   infrastructure. Same pattern as the Vietnam-physical candidate.
+- **Power analysis (2026-08 follow-up)** — "coin flip overall, but does
+  STRONG variation predict?" Bucketed by past-only |z| of the residual
+  (expanding std): |z|<1 skill −8.6pp; 1≤|z|<2 **+1.7pp** (n=60, n.s.);
+  |z|≥2 **27.3% sign accuracy on 22 days** — the strongest B3 moves point
+  the WRONG way (reversal shape). The inverted (fade) read hits ~73% but is
+  binomial z ≈ 1.3 vs the bucket's own blind baseline after a multi-bucket
+  slice — NOT promotable. The honest contrast: a real conditional signal
+  shows accuracy rising with strength (the model's own confidence curve
+  does: 56.5%→63.6%); B3's curve is non-monotone. **Verdict: strength does
+  not rescue the factor; the wrong-way tail is logged as an accumulation
+  flag (re-look as a fade candidate at ~40 tail days).** No model change.
 - **Side-finding from the same battery — the factor panel** (now a nightly
   exporter, `open_direction_factors.json`, rendered in the research card):
   rolling-120 lead correlations of all candidates. Two regime facts:

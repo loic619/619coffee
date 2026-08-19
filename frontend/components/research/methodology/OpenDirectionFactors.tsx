@@ -14,10 +14,12 @@ interface Factor {
   r: number | null; t: number | null; per_year: Record<string, number | null>;
 }
 interface EdgeCell { n: number; span: [string, string]; acc: number; base: number; edge: number }
+interface PowerBucket { band: string; n: number; acc?: number; blind?: number; skill?: number; avg_abs_gap?: number }
 interface Doc {
   generated_at: string; method: Record<string, string | number>;
   factors: Factor[];
   rolling: ({ date: string } & Record<string, number | string>)[];
+  power?: { n: number; buckets: PowerBucket[]; inverted_tail_z: number | null; verdict: string };
   gate: {
     baseline: EdgeCell & { per_year: Record<string, number> };
     b3_univariate: EdgeCell | null;
@@ -219,6 +221,61 @@ export default function OpenDirectionFactors() {
           </p>
         </div>
       </div>
+
+      {d.power && (
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
+          <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+            Power analysis — a coin flip overall, but does STRONG variation predict?
+          </div>
+          <p className="text-[11px] text-slate-400 mb-2 leading-relaxed">
+            The fair follow-up to the rejection: maybe B3 only speaks when it moves <em>hard</em>. Test: bucket the
+            {" "}{d.power.n} sessions by the residual&rsquo;s past-only |z| (expanding std — no look-ahead) and ask
+            whether sign accuracy <em>rises</em> with strength, the way the model&rsquo;s own confidence curve does
+            (56.5% → 63.6% as |p−50| grows). That monotone rise is what a real conditional signal looks like.
+          </p>
+          <table className="w-full text-[11px] mb-2">
+            <thead>
+              <tr className="text-[9px] text-slate-500 uppercase tracking-wider border-b border-slate-700 text-left">
+                <th className="py-1 pr-2">B3 move strength</th><th className="py-1 pr-2 text-right">n</th>
+                <th className="py-1 pr-2 text-right">B3-sign accuracy</th>
+                <th className="py-1 pr-2 text-right">Blind majority</th>
+                <th className="py-1 pr-2 text-right">Skill</th>
+                <th className="py-1 pr-2 text-right">Avg |gap|</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800 font-mono">
+              {d.power.buckets.map(b => (
+                <tr key={b.band}>
+                  <td className="py-1 pr-2 text-slate-300">{b.band}</td>
+                  <td className="py-1 pr-2 text-right">{b.n}</td>
+                  <td className="py-1 pr-2 text-right">{b.acc != null ? `${b.acc}%` : "—"}</td>
+                  <td className="py-1 pr-2 text-right">{b.blind != null ? `${b.blind}%` : "—"}</td>
+                  <td className={`py-1 pr-2 text-right ${b.skill != null && b.skill > 2 ? "text-emerald-400" : b.skill != null && b.skill < -2 ? "text-red-400" : "text-slate-400"}`}>
+                    {b.skill != null ? `${b.skill > 0 ? "+" : ""}${b.skill}pp` : "—"}
+                  </td>
+                  <td className="py-1 pr-2 text-right text-slate-500">{b.avg_abs_gap != null ? `${b.avg_abs_gap}%` : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="text-[11px] text-slate-400 leading-relaxed space-y-1.5">
+            <p>
+              <b className="text-slate-200">No — strength does not rescue the factor.</b> The curve is
+              non-monotone: flat in the middle band, and the strongest bucket (|z| ≥ 2) lands at
+              {" "}<b className="text-red-400">27.3% sign accuracy</b> — the biggest B3 late-window moves have
+              pointed the <em>wrong way</em> for the next open, a reversal shape rather than continuation.
+            </p>
+            <p>
+              <b className="text-slate-200">And the inverted read is not promotable either.</b> Fading the strong
+              B3 move would have hit ~73% on those 22 days, but against the bucket&rsquo;s own blind-majority
+              baseline that is binomial z ≈ {d.power.inverted_tail_z} — after slicing multiple buckets, well below
+              any honest bar. It is logged as an accumulation flag: if the wrong-way tail persists as ICF data
+              accrues (~40 tail days), it earns a re-look as a <em>fade</em> signal. Until then, neither the
+              level, the sign, nor the strength of the B3 late window changes the model.
+            </p>
+          </div>
+        </div>
+      )}
 
       <p className="text-[10px] text-slate-500 italic">
         Same harness as every prior feature decision: expanding walk-forward, standardise-on-past, refit every 5,
