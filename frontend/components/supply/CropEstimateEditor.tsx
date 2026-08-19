@@ -18,7 +18,7 @@
 //
 // Saving dispatches a GitHub workflow that validates + commits the JSON,
 // so edits live in git history and go live after the auto-redeploy (~2 min).
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 interface SourceDef { key: string; label: string; color: string }
 
@@ -88,11 +88,26 @@ const ORIGIN_FILES: Record<string, { file: string; subkey?: string; sources?: So
   costa_rica:  { file: "cr_balance_sheet.json" },
   tanzania:    { file: "tz_balance_sheet.json" },
 };
-const ORIGIN_ORDER = [
-  "brazil", "colombia", "indonesia", "uganda", "vietnam",
-  "honduras", "ethiopia", "india", "peru", "mexico",
-  "guatemala", "nicaragua", "china", "ivory_coast", "costa_rica", "tanzania",
-] as const;
+// By-source view layout: origins grouped the way the trade reads them —
+// Brazil and Colombia stand alone, the six other Latin American arabica
+// origins carry a "MAG 6" subtotal, then Asia, then Africa.
+interface OriginGroup {
+  label: string;
+  origins: string[];
+  /** When set, a subtotal block under the group carrying this label. */
+  subtotal?: string;
+}
+const ORIGIN_GROUPS: OriginGroup[] = [
+  { label: "Brazil",      origins: ["brazil"] },
+  { label: "Colombia",    origins: ["colombia"] },
+  { label: "Other LATAM", origins: ["honduras", "guatemala", "nicaragua", "costa_rica", "mexico", "peru"],
+    subtotal: "MAG 6" },
+  { label: "Asia",        origins: ["vietnam", "indonesia", "india", "china"] },
+  { label: "Africa",      origins: ["uganda", "ethiopia", "ivory_coast", "tanzania"] },
+];
+// Flat order derived from the groups — the fetch/save paths iterate this, so
+// adding an origin to a group is enough to wire it in everywhere.
+const ORIGIN_ORDER = ORIGIN_GROUPS.flatMap(g => g.origins);
 const ORIGIN_LABELS: Record<string, string> = {
   brazil: "Brazil", colombia: "Colombia", indonesia: "Indonesia",
   uganda: "Uganda", vietnam: "Vietnam", honduras: "Honduras",
@@ -100,6 +115,13 @@ const ORIGIN_LABELS: Record<string, string> = {
   guatemala: "Guatemala", nicaragua: "Nicaragua", china: "China",
   ivory_coast: "Ivory Coast", costa_rica: "Costa Rica", tanzania: "Tanzania",
 };
+
+// The three rows every origin / subtotal block renders.
+const LEGS = [
+  { leg: "a" as const, name: "Arabica", cls: "text-amber-400" },
+  { leg: "r" as const, name: "Robusta", cls: "text-emerald-400" },
+  { leg: "t" as const, name: "Total",   cls: "text-slate-300" },
+];
 
 const PW_KEY = "cropEditPw";
 
@@ -441,6 +463,47 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
     return t;
   };
 
+  /** Live Arabica / Robusta / Total sums over a set of origins for one
+   *  season. Reads the same edited cells the inputs render, so subtotals
+   *  and the world totals update as you type rather than only after save.
+   *  An origin with only a Total (no split) contributes to Total alone —
+   *  it is never guessed into one of the legs. */
+  const sumFor = (origins: readonly string[], season: string) => {
+    let a = 0, r = 0, t = 0;
+    for (const o of origins) {
+      const c = cellFor(o, season);
+      const av = parseCell(c.a), rv = parseCell(c.r);
+      if (av !== null && !Number.isNaN(av)) a += av;
+      if (rv !== null && !Number.isNaN(rv)) r += rv;
+      const tv = cellTotal(c);
+      if (tv !== null && !Number.isNaN(tv)) t += tv;
+    }
+    return { a: round2(a), r: round2(r), t: round2(t) };
+  };
+
+  /** A read-only Arabica/Robusta/Total block — used for the MAG 6 subtotal
+   *  and the world totals. */
+  const sumRows = (label: string, origins: readonly string[], tone: string, border: string) =>
+    LEGS.map((row, ri) => (
+      <tr key={`${label}-${row.leg}`}
+        className={ri === 0 ? `border-t-2 ${border}` : "border-t border-slate-700/20"}>
+        <td className={`py-0.5 pr-2 font-bold whitespace-nowrap sticky left-0 bg-slate-800 ${tone}`}>
+          {ri === 0 ? label : ""}
+        </td>
+        <td className={`py-0.5 pr-2 ${row.cls}`}>{row.name}</td>
+        {xSeasons.map(season => {
+          const v = sumFor(origins, season)[row.leg];
+          return (
+            <td key={season} className="px-1 py-0.5 text-center">
+              <span className={`inline-block w-14 text-right pr-1 font-bold ${v > 0 ? tone : "text-slate-700"}`}>
+                {v > 0 ? v.toFixed(1) : "–"}
+              </span>
+            </td>
+          );
+        })}
+      </tr>
+    ));
+
   const saveSource = async () => {
     if (!docs || !pw || xSaving || !selSrcDef) return;
     setXSaving(true); setXStatus(null);
@@ -679,58 +742,64 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
                         </tr>
                       </thead>
                       <tbody>
-                        {ORIGIN_ORDER.flatMap(o => {
-                          const rows = [
-                            { leg: "a" as const, name: "Arabica", cls: "text-amber-400" },
-                            { leg: "r" as const, name: "Robusta", cls: "text-emerald-400" },
-                            { leg: "t" as const, name: "Total",   cls: "text-slate-300" },
-                          ];
-                          return rows.map((row, ri) => (
-                            <tr key={`${o}-${row.leg}`}
-                              className={ri === 0 ? "border-t-2 border-slate-600/70" : "border-t border-slate-700/30"}>
-                              <td className="py-0.5 pr-2 font-bold text-slate-200 whitespace-nowrap sticky left-0 bg-slate-800">
-                                {ri === 0 ? (ORIGIN_LABELS[o] ?? o) : ""}
+                        {ORIGIN_GROUPS.map(g => (
+                          <Fragment key={g.label}>
+                            <tr className="border-t-2 border-slate-500/50">
+                              <td colSpan={2 + xSeasons.length}
+                                className="pt-2 pb-0.5 text-[8px] uppercase tracking-wider font-bold text-slate-500 sticky left-0 bg-slate-800">
+                                {g.label}
                               </td>
-                              <td className={`py-0.5 pr-2 ${row.cls}`}>{row.name}</td>
-                              {xSeasons.map(season => {
-                                const cell = cellFor(o, season);
-                                if (row.leg === "t") {
-                                  const hasSplit = cell.a.trim() !== "" || cell.r.trim() !== "";
-                                  const total = cellTotal(cell);
+                            </tr>
+                            {g.origins.map(o => LEGS.map((row, ri) => (
+                              <tr key={`${o}-${row.leg}`}
+                                className={ri === 0 ? "border-t border-slate-700/60" : "border-t border-slate-700/20"}>
+                                <td className="py-0.5 pr-2 font-bold text-slate-200 whitespace-nowrap sticky left-0 bg-slate-800">
+                                  {ri === 0 ? (ORIGIN_LABELS[o] ?? o) : ""}
+                                </td>
+                                <td className={`py-0.5 pr-2 ${row.cls}`}>{row.name}</td>
+                                {xSeasons.map(season => {
+                                  const cell = cellFor(o, season);
+                                  if (row.leg === "t") {
+                                    const hasSplit = cell.a.trim() !== "" || cell.r.trim() !== "";
+                                    const total = cellTotal(cell);
+                                    return (
+                                      <td key={season} className="px-1 py-0.5 text-center">
+                                        {hasSplit ? (
+                                          <span className="inline-block w-14 text-right pr-1 text-slate-400"
+                                            title="Computed from Arabica + Robusta">
+                                            {total !== null && !Number.isNaN(total) ? total : "–"}
+                                          </span>
+                                        ) : (
+                                          <input
+                                            type="text" inputMode="decimal"
+                                            value={cell.t}
+                                            onChange={e => setCell(o, season, { t: e.target.value })}
+                                            placeholder="—"
+                                            className={inputCls}
+                                          />
+                                        )}
+                                      </td>
+                                    );
+                                  }
                                   return (
                                     <td key={season} className="px-1 py-0.5 text-center">
-                                      {hasSplit ? (
-                                        <span className="inline-block w-14 text-right pr-1 text-slate-400"
-                                          title="Computed from Arabica + Robusta">
-                                          {total !== null && !Number.isNaN(total) ? total : "–"}
-                                        </span>
-                                      ) : (
-                                        <input
-                                          type="text" inputMode="decimal"
-                                          value={cell.t}
-                                          onChange={e => setCell(o, season, { t: e.target.value })}
-                                          placeholder="—"
-                                          className={inputCls}
-                                        />
-                                      )}
+                                      <input
+                                        type="text" inputMode="decimal"
+                                        value={cell[row.leg]}
+                                        onChange={e => setCell(o, season, { [row.leg]: e.target.value })}
+                                        placeholder="—"
+                                        className={inputCls}
+                                      />
                                     </td>
                                   );
-                                }
-                                return (
-                                  <td key={season} className="px-1 py-0.5 text-center">
-                                    <input
-                                      type="text" inputMode="decimal"
-                                      value={cell[row.leg]}
-                                      onChange={e => setCell(o, season, { [row.leg]: e.target.value })}
-                                      placeholder="—"
-                                      className={inputCls}
-                                    />
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          ));
-                        })}
+                                })}
+                              </tr>
+                            )))}
+                            {g.subtotal && sumRows(g.subtotal, g.origins, "text-sky-300", "border-sky-900/60")}
+                          </Fragment>
+                        ))}
+                        {/* Grand totals across every origin above. */}
+                        {sumRows("World", ORIGIN_ORDER, "text-emerald-300", "border-emerald-800/60")}
                       </tbody>
                     </table>
                   </div>
