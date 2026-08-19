@@ -17,8 +17,8 @@ Payload shape (validated strictly — the workflow input is remote data):
       "seasons": [
         {"season": "2025/26", "forecast": true,
          "production": {"usda": 63.0, "conab": 56.5},
-         "production_split": {                       # optional per-source A/R split
-           "usda": {"arabica": 40.0, "robusta": 23.0}
+         "production_split": {                       # optional per-source crop split
+           "usda": {"arabica_washed": 6.0, "arabica_natural": 34.0, "robusta": 23.0}
          }},
         ...
       ],
@@ -28,12 +28,18 @@ Payload shape (validated strictly — the workflow input is remote data):
     }
 
 `production` stays the per-source TOTAL in million bags — everything the
-S&D card renders keeps reading it. `production_split` is advisory
-arabica/robusta detail entered via the editor's "by source" view: a split
-must accompany a total for the same key, and when both legs are present
-they must sum to it (±0.05). A season WITHOUT the field keeps its prior
-split — except entries whose total changed, which are dropped as stale;
-a season WITH the field (even {}) replaces its split wholesale.
+S&D card renders keeps reading it. `production_split` is advisory crop
+detail entered via the editor's "by source" view. Legs:
+
+    arabica_washed · arabica_natural · robusta     (current)
+    arabica                                        (legacy, unsplit)
+
+A split must accompany a total for the same key; it may never exceed that
+total; and once two or more legs are given it must sum to it (±0.05). The
+legacy `arabica` leg and the washed/natural pair describe the same volume,
+so a split carries one form or the other, never both. A season WITHOUT the
+field keeps its prior split — except entries whose total changed, which are
+dropped as stale; a season WITH the field (even {}) replaces it wholesale.
 
 New sources are appended to the seed's `sources` legend — but only when at
 least one season actually carries a value for them, so an accidental add
@@ -79,6 +85,11 @@ SOURCE_KEY_RE = re.compile(r"^[a-z0-9_]{1,20}$")
 COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 MAX_SEASONS = 40
 MAX_SOURCES = 10
+# Crop legs a split may carry. `arabica` is the LEGACY unsplit form, kept
+# so existing seeds stay valid; new edits use the washed/natural pair. A
+# split may use one or the other, never both (see the check below).
+SPLIT_LEGS = ("arabica_washed", "arabica_natural", "arabica", "robusta")
+
 MAX_MBAGS = 200.0  # sanity ceiling, million 60-kg bags (world crop ≈ 175)
 
 
@@ -194,7 +205,7 @@ def main() -> int:
                 if not isinstance(sp, dict):
                     return _fail(f"{label}.{k}: split must be an object")
                 legs: dict[str, float] = {}
-                for leg in ("arabica", "robusta"):
+                for leg in SPLIT_LEGS:
                     v = sp.get(leg)
                     if v is None:
                         continue
@@ -202,10 +213,22 @@ def main() -> int:
                         return _fail(f"{label}.{k}.{leg}: value {v!r} outside (0, {MAX_MBAGS}] M bags")
                     legs[leg] = round(float(v), 2)
                 if not legs:
-                    return _fail(f"{label}.{k}: split needs arabica and/or robusta")
-                if len(legs) == 2 and abs(legs["arabica"] + legs["robusta"] - production[k]) > 0.051:
+                    return _fail(f"{label}.{k}: split needs at least one of {', '.join(SPLIT_LEGS)}")
+                # `arabica` (legacy, unsplit) and the washed/natural pair are
+                # alternative descriptions of the same volume — carrying both
+                # would double-count in any consumer that sums the legs.
+                if "arabica" in legs and ("arabica_washed" in legs or "arabica_natural" in legs):
                     return _fail(
-                        f"{label}.{k}: split {legs['arabica']}+{legs['robusta']} ≠ total {production[k]}")
+                        f"{label}.{k}: use arabica_washed/arabica_natural OR legacy arabica, not both")
+                legs_sum = round(sum(legs.values()), 2)
+                if legs_sum > production[k] + 0.051:
+                    return _fail(
+                        f"{label}.{k}: split {legs_sum} exceeds total {production[k]}")
+                # Two or more legs means the split is meant to be complete —
+                # same rule the 2-leg version enforced, generalised.
+                if len(legs) >= 2 and abs(legs_sum - production[k]) > 0.051:
+                    return _fail(
+                        f"{label}.{k}: split {legs_sum} ≠ total {production[k]}")
                 split_clean[k] = legs
 
         # Optional analyst "Final" override for the displayed production
@@ -277,8 +300,16 @@ def main() -> int:
         for k in sorted(set(ps or {}) | set(ns)):
             if (ps or {}).get(k) != ns.get(k):
                 new = ns.get(k)
-                desc = (f"A {new.get('arabica', '—')} / R {new.get('robusta', '—')}"
-                        if new else "removed")
+                desc = (
+                    " / ".join(
+                        f"{lbl} {new[leg]}"
+                        for leg, lbl in (("arabica_washed", "Aw"),
+                                         ("arabica_natural", "An"),
+                                         ("arabica", "A"),
+                                         ("robusta", "R"))
+                        if new.get(leg) is not None
+                    ) or "—"
+                ) if new else "removed"
                 lines.append(f"  ~ {s['season']}.{k} split: {desc}")
         if prior.get("production_final") != s.get("production_final"):
             lines.append(
