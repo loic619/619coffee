@@ -733,9 +733,12 @@ def export_vietnam_supply() -> None:
 # We add that back pro-rata across the month's destinations. Pro-rata is an
 # assumption, not a measurement: customs publishes no per-destination split for
 # soluble, and instant's destination mix genuinely differs from green bean's.
-# It is applied ONLY to the 5X months (2024-02 onward); the older XLSX series
-# is green-bean-only, and Vietnam's instant capacity was far smaller over that
-# span, so back-applying a flat constant there would invent history.
+#
+# Applied ONLY to the 5X customs months (2024-02 onward). The pre-2024 XLSX
+# backfill is ALREADY on a green-bean-equivalent basis, so uplifting it
+# would double-count. Do not "fix" this by extending the uplift backwards.
+# With the 5X months lifted, the whole series reads on one consistent GBE
+# basis across the 2024-02 boundary.
 #
 # The raw, unadjusted customs rows stay in backend/seed/vn_customs_by_country.json,
 # so the uplift is always reversible/auditable.
@@ -836,7 +839,9 @@ def export_vn_export_by_destination() -> None:
                 "green coffee is missing; it is added back pro-rata across each "
                 "month's destinations. Pro-rata is an assumption — customs "
                 "publishes no per-destination split for soluble. Applied to the "
-                "5X months only; the older green-bean XLSX months are unadjusted. "
+                "5X customs months only — the pre-2024 XLSX backfill is already on "
+                "a green-bean-equivalent basis, so uplifting it would double-count. "
+                "Both halves of the series therefore read on one consistent GBE basis. "
                 "Raw rows remain in backend/seed/vn_customs_by_country.json."
             ),
             "source_boundary": min(five_x_months) if five_x_months else None,
