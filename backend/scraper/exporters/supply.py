@@ -723,6 +723,24 @@ def export_vietnam_supply() -> None:
 
 # XLSX labels → the 5X bulletins' country naming, so YoY comparisons stay
 # continuous across the source boundary in the stitched series below.
+# ── Vietnam green-bean equivalent (GBE) ──────────────────────────────────────
+# The 5X customs bulletin reports coffee exports by PRODUCT weight, so the
+# ~15 kt/month Vietnam ships as instant/soluble coffee is counted once at its
+# own weight. Roughly 2 t of green coffee go into 1 t of instant, so the green
+# coffee actually leaving the country is understated by about one extra tonne
+# per tonne of instant — ≈15 kt/month.
+#
+# We add that back pro-rata across the month's destinations. Pro-rata is an
+# assumption, not a measurement: customs publishes no per-destination split for
+# soluble, and instant's destination mix genuinely differs from green bean's.
+# It is applied ONLY to the 5X months (2024-02 onward); the older XLSX series
+# is green-bean-only, and Vietnam's instant capacity was far smaller over that
+# span, so back-applying a flat constant there would invent history.
+#
+# The raw, unadjusted customs rows stay in backend/seed/vn_customs_by_country.json,
+# so the uplift is always reversible/auditable.
+_VN_GBE_UPLIFT_T_PER_MONTH = 15_000.0
+
 _VN_XLSX_ALIAS = {
     "US":      "United States of America",
     "UK":      "United Kingdom",
@@ -779,6 +797,23 @@ def export_vn_export_by_destination() -> None:
                     canon = _VN_XLSX_ALIAS.get(name, name)
                     countries.setdefault(canon, {})[ym] = round(float(vol), 1)
 
+        # ── Green-bean-equivalent uplift on the 5X months ──────────────────
+        # See _VN_GBE_UPLIFT_T_PER_MONTH. Split pro-rata by each destination's
+        # share of that month's reported total, so the country ranking keeps
+        # its shape and only the level moves.
+        gbe_months: list[str] = []
+        for ym in sorted(five_x_months):
+            month_total = sum(mv[ym] for mv in countries.values() if ym in mv)
+            if month_total <= 0:
+                continue
+            for mv in countries.values():
+                if ym not in mv:
+                    continue
+                mv[ym] = round(
+                    mv[ym] + _VN_GBE_UPLIFT_T_PER_MONTH * (mv[ym] / month_total), 1
+                )
+            gbe_months.append(ym)
+
         all_months = sorted(set(month_keys) | set(months_from_xlsx))
         data = {
             "source": ("Vietnam Customs — 5X '(ta-sb)' preliminary bulletins "
@@ -791,6 +826,19 @@ def export_vn_export_by_destination() -> None:
                               "2x national total); pre-2024 months are the "
                               "green-bean XLSX series, which agrees with the 5X "
                               "within ~0-12% on overlap months."),
+            "basis": "green-bean equivalent",
+            "gbe_uplift_t_per_month": _VN_GBE_UPLIFT_T_PER_MONTH,
+            "gbe_months": gbe_months,
+            "gbe_note": (
+                "Customs reports coffee by product weight, so the ~15 kt/month "
+                "Vietnam ships as instant/soluble is counted once at its own "
+                "weight. At ~2 t green per 1 t instant, roughly 15 kt/month of "
+                "green coffee is missing; it is added back pro-rata across each "
+                "month's destinations. Pro-rata is an assumption — customs "
+                "publishes no per-destination split for soluble. Applied to the "
+                "5X months only; the older green-bean XLSX months are unadjusted. "
+                "Raw rows remain in backend/seed/vn_customs_by_country.json."
+            ),
             "source_boundary": min(five_x_months) if five_x_months else None,
             "months_from_xlsx": months_from_xlsx,
             "months": all_months,
@@ -802,7 +850,8 @@ def export_vn_export_by_destination() -> None:
             lambda d: (True, "ok") if d.get("countries") else (False, "no countries"),
         )
         print(f"  vn_export_by_destination.json → {len(countries)} countries × "
-              f"{len(all_months)} months ({len(months_from_xlsx)} from the XLSX series)")
+              f"{len(all_months)} months ({len(months_from_xlsx)} from the XLSX series; "
+              f"GBE +{_VN_GBE_UPLIFT_T_PER_MONTH:,.0f} t on {len(gbe_months)} 5X months)")
     except Exception as e:
         print(f"  vn_export_by_destination.json → FAILED: {e}")
 

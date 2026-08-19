@@ -17,6 +17,12 @@ interface DestData {
   coverage_note?: string;
   source_boundary?: string | null;  // first 5X month; earlier months are the XLSX series
   months_from_xlsx?: string[];
+  // Green-bean-equivalent uplift: customs reports by product weight, so the
+  // green coffee behind Vietnam's instant/soluble exports is added back.
+  basis?: string;
+  gbe_uplift_t_per_month?: number;
+  gbe_months?: string[];
+  gbe_note?: string;
   months: string[];                                   // sorted "YYYY-MM"
   countries: Record<string, Record<string, number>>;  // country → ym → tonnes
 }
@@ -303,6 +309,17 @@ export default function DestinationChart() {
         Source: {data.source}. {data.coverage_note ?? ""} Preliminary figures;
         months absent from both sources are omitted rather than interpolated.
         {data.source_boundary && ` Months before ${data.source_boundary} are the green-bean XLSX series.`}
+        {data.gbe_uplift_t_per_month ? (
+          <span className="block mt-1 text-amber-700/80">
+            Shown on a <strong>green-bean-equivalent</strong> basis:{" "}
+            {(data.gbe_uplift_t_per_month / 1000).toFixed(0)} kt/month is added across
+            destinations pro-rata on the {data.gbe_months?.length ?? 0} customs months,
+            covering the green coffee behind Vietnam&apos;s instant/soluble exports
+            (~2 t green per 1 t instant, counted once at product weight by customs).
+            Pro-rata is an assumption — customs publishes no per-destination split for
+            soluble.
+          </span>
+        ) : null}
       </div>
     </div>
   );
