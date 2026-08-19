@@ -77,6 +77,7 @@ def _exporters(db):
     from scraper.exporters.cot_cropyear_xray import export_cot_cropyear_xray
     from scraper.exporters.cot_sept_study import export_cot_sept_study
     from scraper.exporters.cot_swap_identity import export_cot_swap_identity
+    from scraper.exporters.intraday_drift import export_intraday_drift
     from scraper.exporters.open_direction_factors import export_open_direction_factors
     from scraper.exporters.options_expiry_study import export_options_expiry_study
     from scraper.exporters.options_flow_cot import export_options_flow_cot
@@ -146,6 +147,7 @@ def _exporters(db):
         ("options_oi_walls",      lambda: export_options_oi_walls()),
         ("options_optionization", lambda: export_options_optionization()),
         ("open_direction_factors", lambda: export_open_direction_factors()),
+        ("intraday_drift",        lambda: export_intraday_drift()),
         ("yield_rainfall",        lambda: export_yield_rainfall()),
         ("conilon_basis",         lambda: export_conilon_basis()),
         ("news",                  lambda: export_news(db)),

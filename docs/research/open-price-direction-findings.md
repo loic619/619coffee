@@ -87,6 +87,26 @@ UTC firing.
     never stored. Added to the daily refresher 2026-08 (and the fetcher /
     backfill anchor set); the RC-side version of H2 activates at ~120
     harvest sessions.
+- **FOLLOW-UP STUDY (2026-08-19): the drift signal on its own horizon.**
+  The H2 finding above was recorded, not used, because it lives on a target
+  this model does not trade. Tested properly (`intraday_drift.py`, research
+  card "The harvest last hour"): a SIGN rule — |z|≥1.5 on the prior KC last
+  hour, harvest months only, trade RC open→close drift in that direction,
+  nothing fitted — returns **75.9% hit, +1.05% mean drift per event
+  (t 4.44), $36.8/t net of costs on n=54**, positive in all five harvest
+  seasons; the same rule off-season earns **+0.05% (t 0.20)**. Survives:
+  gap control (corr −0.055; residualising the gap out makes it STRONGER,
+  +1.16% t 5.05), weekly block bootstrap (95% CI [+0.60, +1.67],
+  P(>0)=100%), random-sign placebo (p≈0), and the decisive one — the same
+  rule with the feature lagged ONE EXTRA SESSION collapses to −0.16%
+  (t −0.59), i.e. the signal is specific to the hour immediately before the
+  session it predicts, not generic harvest momentum. It accrues THROUGH the
+  session (+0.28% first 15 min vs +0.77% after), so it is not an
+  opening-auction artefact; pessimistic entry at 09:15 still yields
+  $29.4/t. **Caveat stated in the card: the harvest condition was
+  DISCOVERED on this same history, so this is confirmation, not
+  out-of-sample.** No model change — different target, different horizon;
+  the card is a study, and its forward record accrues from here.
 - **Side-finding from the same battery — the factor panel** (now a nightly
   exporter, `open_direction_factors.json`, rendered in the research card):
   rolling-120 lead correlations of all candidates. Two regime facts:
