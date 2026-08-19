@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-19T03:14:33.152869Z",
-  "count": 76,
+  "generated_at": "2026-08-19T22:55:40.134701Z",
+  "count": 78,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -195,6 +195,20 @@
       "workflow_run_deps": [],
       "concurrency_group": "capture-kc-at-rc-close",
       "timeout_minutes": 4
+    },
+    {
+      "file": "cftc-options-book.yml",
+      "name": "9.8 \u2013 CFTC options book (combined vs futures-only COT)",
+      "triggers": [
+        "schedule",
+        "workflow_dispatch"
+      ],
+      "crons": [
+        "30 23 * * 5"
+      ],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 15
     },
     {
       "file": "check-live-quotes.yml",
@@ -519,6 +533,20 @@
       "workflow_run_deps": [],
       "concurrency_group": "refresh-intraday-15min",
       "timeout_minutes": 15
+    },
+    {
+      "file": "research-retest-watch.yml",
+      "name": "9.9 \u2013 Research retest watch",
+      "triggers": [
+        "schedule",
+        "workflow_dispatch"
+      ],
+      "crons": [
+        "15 8 * * 1"
+      ],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 6
     },
     {
       "file": "scraper-annual-un-wpp.yml",
@@ -1041,8 +1069,18 @@
         "version": "3.4.2"
       },
       {
+        "file": "cftc-options-book.yml",
+        "name": "9.8 \u2013 CFTC options book (combined vs futures-only COT)",
+        "version": "9.8"
+      },
+      {
         "file": "audit-cftc-markets.yml",
         "name": "9.9 \u2013 Audit CFTC markets",
+        "version": "9.9"
+      },
+      {
+        "file": "research-retest-watch.yml",
+        "name": "9.9 \u2013 Research retest watch",
         "version": "9.9"
       }
     ],
@@ -1060,7 +1098,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 6,
+    "uncovered_workflows_count": 8,
     "stale_curation_count": 2
   }
 }
