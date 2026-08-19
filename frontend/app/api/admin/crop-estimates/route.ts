@@ -57,7 +57,13 @@ interface SeasonIn {
   production_final?: unknown;
 }
 
-type SplitLegs = { arabica?: number; robusta?: number };
+// Crop legs a split may carry. `arabica` is the LEGACY unsplit form kept
+// for existing seeds; new edits use the washed/natural pair, and a split
+// carries one form or the other — never both, or consumers that sum the
+// legs would double-count.
+const SPLIT_LEGS = ["arabica_washed", "arabica_natural", "arabica", "robusta"] as const;
+type SplitLeg = (typeof SPLIT_LEGS)[number];
+type SplitLegs = Partial<Record<SplitLeg, number>>;
 interface SeasonOut {
   season: string;
   forecast: boolean;
@@ -83,7 +89,7 @@ function validateSplit(
     if (!(k in production)) return `${label}.${k}: split without a total`;
     if (!sp || typeof sp !== "object" || Array.isArray(sp)) return `${label}.${k}: split must be an object`;
     const legs: SplitLegs = {};
-    for (const leg of ["arabica", "robusta"] as const) {
+    for (const leg of SPLIT_LEGS) {
       const v = (sp as Record<string, unknown>)[leg];
       if (v === undefined || v === null) continue;
       if (typeof v !== "number" || !Number.isFinite(v) || v <= 0 || v > MAX_MBAGS) {
@@ -91,11 +97,20 @@ function validateSplit(
       }
       legs[leg] = v;
     }
-    if (legs.arabica === undefined && legs.robusta === undefined) {
-      return `${label}.${k}: split needs arabica and/or robusta`;
+    const present = Object.keys(legs) as SplitLeg[];
+    if (present.length === 0) {
+      return `${label}.${k}: split needs at least one of ${SPLIT_LEGS.join(", ")}`;
     }
-    if (legs.arabica !== undefined && legs.robusta !== undefined &&
-        Math.abs(legs.arabica + legs.robusta - production[k]) > 0.051) {
+    if (legs.arabica !== undefined &&
+        (legs.arabica_washed !== undefined || legs.arabica_natural !== undefined)) {
+      return `${label}.${k}: use arabica_washed/arabica_natural OR legacy arabica, not both`;
+    }
+    const sum = present.reduce((a, leg) => a + (legs[leg] ?? 0), 0);
+    if (sum > production[k] + 0.051) {
+      return `${label}.${k}: split exceeds the total`;
+    }
+    // Two or more legs means the split is meant to be complete.
+    if (present.length >= 2 && Math.abs(sum - production[k]) > 0.051) {
       return `${label}.${k}: split does not sum to the total`;
     }
     out[k] = legs;

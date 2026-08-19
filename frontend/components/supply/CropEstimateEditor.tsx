@@ -39,7 +39,12 @@ interface SeedSeason {
   season: string;
   forecast?: boolean;
   production?: Record<string, number>;
-  production_split?: Record<string, { arabica?: number; robusta?: number }>;
+  production_split?: Record<string, {
+    arabica_washed?: number; arabica_natural?: number;
+    /** Legacy unsplit arabica — superseded by the washed/natural pair. */
+    arabica?: number;
+    robusta?: number;
+  }>;
   production_final?: number;
 }
 
@@ -47,7 +52,10 @@ interface SeedSeason {
 interface OriginDoc { seasons: SeedSeason[]; sources: SourceDef[] }
 
 /** Source-view cell: arabica / robusta / total input strings. */
-interface SplitCell { a: string; r: string; t: string }
+/** Source-view cell. Arabica is carried as washed + natural; `a` is the
+ *  LEGACY unsplit arabica, shown only when a seed still uses it so old
+ *  numbers stay visible and editable until they are restated. */
+interface SplitCell { w: string; n: string; a: string; r: string; t: string }
 
 // Colors auto-assigned to admin-added sources, first unused wins. Distinct
 // from the palette the seeds already use (blue/green/amber family).
@@ -118,10 +126,15 @@ const ORIGIN_LABELS: Record<string, string> = {
 
 // The three rows every origin / subtotal block renders.
 const LEGS = [
-  { leg: "a" as const, name: "Arabica", cls: "text-amber-400" },
-  { leg: "r" as const, name: "Robusta", cls: "text-emerald-400" },
-  { leg: "t" as const, name: "Total",   cls: "text-slate-300" },
-];
+  { leg: "w" as const, name: "Arabica washed",  cls: "text-amber-300" },
+  { leg: "n" as const, name: "Arabica natural", cls: "text-orange-400" },
+  { leg: "r" as const, name: "Robusta",         cls: "text-emerald-400" },
+  { leg: "t" as const, name: "Total",           cls: "text-slate-300" },
+] as const;
+/** Legacy unsplit-arabica row, appended only for origins whose seed still
+ *  carries it — so restating into washed/natural is a visible migration
+ *  rather than a silent data loss. */
+const LEGACY_LEG = { leg: "a" as const, name: "Arabica (unsplit)", cls: "text-amber-600" } as const;
 
 const PW_KEY = "cropEditPw";
 
@@ -417,8 +430,10 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
     const t = s?.production?.[selSrc];
     const sp = s?.production_split?.[selSrc];
     return {
-      a: sp?.arabica != null ? String(sp.arabica) : "",
-      r: sp?.robusta != null ? String(sp.robusta) : "",
+      w: sp?.arabica_washed  != null ? String(sp.arabica_washed)  : "",
+      n: sp?.arabica_natural != null ? String(sp.arabica_natural) : "",
+      a: sp?.arabica         != null ? String(sp.arabica)         : "",
+      r: sp?.robusta         != null ? String(sp.robusta)         : "",
       t: t != null ? String(t) : "",
     };
   };
@@ -454,13 +469,32 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
     setSelSrc(key); setXSrcInput(""); setXSrcError(null);
   };
 
-  /** Effective total for a cell: A+R when either leg is set, else T. */
+  /** Effective total for a cell: the sum of whatever crop legs are filled
+   *  (washed + natural + legacy arabica + robusta), else the typed Total. */
   const cellTotal = (c: SplitCell): number | null => {
-    const a = parseCell(c.a), r = parseCell(c.r);
-    if (Number.isNaN(a) || Number.isNaN(r)) return NaN;
-    if (a !== null || r !== null) return round2((a ?? 0) + (r ?? 0));
-    const t = parseCell(c.t);
-    return t;
+    const parts = [parseCell(c.w), parseCell(c.n), parseCell(c.a), parseCell(c.r)];
+    if (parts.some(v => Number.isNaN(v))) return NaN;
+    if (parts.some(v => v !== null)) {
+      return round2(parts.reduce<number>((acc, v) => acc + (v ?? 0), 0));
+    }
+    return parseCell(c.t);
+  };
+
+  /** Rows to render for an origin: the current legs, plus the legacy
+   *  unsplit-arabica row only while that origin still carries a value in
+   *  it for the selected source (so the old number stays visible and
+   *  editable until it is restated as washed/natural). */
+  const legsFor = (o: string): readonly (typeof LEGS[number] | typeof LEGACY_LEG)[] => {
+    const hasLegacy = xSeasons.some(season => cellFor(o, season).a.trim() !== "");
+    if (!hasLegacy) return LEGS;
+    // Keep the legacy line adjacent to the arabica pair, above Robusta.
+    return [LEGS[0], LEGS[1], LEGACY_LEG, LEGS[2], LEGS[3]];
+  };
+
+  /** Total arabica in a cell, however it is expressed. */
+  const cellArabica = (c: SplitCell): number => {
+    const parts = [parseCell(c.w), parseCell(c.n), parseCell(c.a)];
+    return round2(parts.reduce<number>((acc, v) => acc + (v && !Number.isNaN(v) ? v : 0), 0));
   };
 
   /** Live Arabica / Robusta / Total sums over a set of origins for one
@@ -469,22 +503,36 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
    *  An origin with only a Total (no split) contributes to Total alone —
    *  it is never guessed into one of the legs. */
   const sumFor = (origins: readonly string[], season: string) => {
-    let a = 0, r = 0, t = 0;
+    let w = 0, n = 0, a = 0, r = 0, t = 0, ara = 0;
     for (const o of origins) {
       const c = cellFor(o, season);
-      const av = parseCell(c.a), rv = parseCell(c.r);
-      if (av !== null && !Number.isNaN(av)) a += av;
-      if (rv !== null && !Number.isNaN(rv)) r += rv;
+      const add = (raw: string) => {
+        const v = parseCell(raw);
+        return v !== null && !Number.isNaN(v) ? v : 0;
+      };
+      w += add(c.w); n += add(c.n); a += add(c.a); r += add(c.r);
+      ara += cellArabica(c);
       const tv = cellTotal(c);
       if (tv !== null && !Number.isNaN(tv)) t += tv;
     }
-    return { a: round2(a), r: round2(r), t: round2(t) };
+    return {
+      w: round2(w), n: round2(n), a: round2(a), r: round2(r),
+      t: round2(t), arabica: round2(ara),
+    };
   };
 
   /** A read-only Arabica/Robusta/Total block — used for the MAG 6 subtotal
    *  and the world totals. */
+  const SUM_LEGS = [
+    { leg: "w" as const,       name: "Arabica washed",  cls: "text-amber-300" },
+    { leg: "n" as const,       name: "Arabica natural", cls: "text-orange-400" },
+    { leg: "arabica" as const, name: "Arabica (all)",   cls: "text-amber-500" },
+    { leg: "r" as const,       name: "Robusta",         cls: "text-emerald-400" },
+    { leg: "t" as const,       name: "Total",           cls: "text-slate-300" },
+  ] as const;
+
   const sumRows = (label: string, origins: readonly string[], tone: string, border: string) =>
-    LEGS.map((row, ri) => (
+    SUM_LEGS.map((row, ri) => (
       <tr key={`${label}-${row.leg}`}
         className={ri === 0 ? `border-t-2 ${border}` : "border-t border-slate-700/20"}>
         <td className={`py-0.5 pr-2 font-bold whitespace-nowrap sticky left-0 bg-slate-800 ${tone}`}>
@@ -525,14 +573,20 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
           setXSaving(false);
           return;
         }
+        const w = parseCell(cell.w), n = parseCell(cell.n);
         const a = parseCell(cell.a), r = parseCell(cell.r);
         const production = { ...(prior?.production ?? {}) };
         const splitAll = { ...(prior?.production_split ?? {}) };
         if (total !== null) production[selSrc] = total;
         else delete production[selSrc];
-        if (a !== null || r !== null) {
+        // Restating a legacy `arabica` value into washed/natural drops the
+        // legacy leg — the backend rejects a split carrying both forms.
+        const usesPair = w !== null || n !== null;
+        if (w !== null || n !== null || a !== null || r !== null) {
           splitAll[selSrc] = {
-            ...(a !== null ? { arabica: a } : {}),
+            ...(w !== null ? { arabica_washed: w } : {}),
+            ...(n !== null ? { arabica_natural: n } : {}),
+            ...(!usesPair && a !== null ? { arabica: a } : {}),
             ...(r !== null ? { robusta: r } : {}),
           };
         } else {
@@ -750,7 +804,7 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
                                 {g.label}
                               </td>
                             </tr>
-                            {g.origins.map(o => LEGS.map((row, ri) => (
+                            {g.origins.map(o => legsFor(o).map((row, ri) => (
                               <tr key={`${o}-${row.leg}`}
                                 className={ri === 0 ? "border-t border-slate-700/60" : "border-t border-slate-700/20"}>
                                 <td className="py-0.5 pr-2 font-bold text-slate-200 whitespace-nowrap sticky left-0 bg-slate-800">

@@ -1,0 +1,184 @@
+{
+ "crop_year": "2025/26",
+ "unit": "million 60-kg bags",
+ "updated": "2026-08",
+ "note": "World coffee balance sheet. The Supply block's production lines are DERIVED from the per-origin crop estimates (the same seeds the by-source editor writes), so they always agree with the origin tabs. Every other line — carry-in, consumption by hub, transit and carry-out — is analyst-entered here. Demand-side arabica is already stated washed/natural; production shows an 'unsplit' column until each origin is restated in the editor, and the 'Arabica (all)' column keeps the two comparable meanwhile.",
+ "carry_in": [
+  {
+   "key": "origin_stocks",
+   "label": "Origin stocks",
+   "arabica_washed": 3.5,
+   "arabica_natural": 6.0,
+   "robusta": 8.0
+  },
+  {
+   "key": "transit_in",
+   "label": "Afloat / in transit",
+   "arabica_washed": 2.0,
+   "arabica_natural": 3.0,
+   "robusta": 3.5
+  },
+  {
+   "key": "consumer_stocks",
+   "label": "Consumer-market stocks",
+   "arabica_washed": 3.5,
+   "arabica_natural": 5.5,
+   "robusta": 5.0
+  },
+  {
+   "key": "certified",
+   "label": "Exchange-certified stocks",
+   "arabica_washed": 0.8,
+   "arabica_natural": 0.5,
+   "robusta": 1.0
+  }
+ ],
+ "demand_hubs": [
+  {
+   "key": "europe",
+   "label": "Europe",
+   "arabica_washed": 12.0,
+   "arabica_natural": 14.5,
+   "robusta": 24.0
+  },
+  {
+   "key": "north_america",
+   "label": "North America",
+   "arabica_washed": 11.0,
+   "arabica_natural": 12.0,
+   "robusta": 8.5
+  },
+  {
+   "key": "asia_pacific",
+   "label": "Asia-Pacific",
+   "arabica_washed": 5.5,
+   "arabica_natural": 6.5,
+   "robusta": 20.0
+  },
+  {
+   "key": "latam",
+   "label": "Latin America",
+   "arabica_washed": 4.5,
+   "arabica_natural": 9.0,
+   "robusta": 7.5
+  },
+  {
+   "key": "mena_africa",
+   "label": "Middle East & Africa",
+   "arabica_washed": 3.2,
+   "arabica_natural": 3.3,
+   "robusta": 9.0
+  },
+  {
+   "key": "domestic_origin",
+   "label": "Other origin-domestic",
+   "arabica_washed": 2.5,
+   "arabica_natural": 2.0,
+   "robusta": 9.0
+  }
+ ],
+ "carry_out": [
+  {
+   "key": "transit_out",
+   "label": "Afloat / in transit (close)",
+   "arabica_washed": 2.1,
+   "arabica_natural": 3.1,
+   "robusta": 3.6
+  },
+  {
+   "key": "origin_close",
+   "label": "Origin stocks (close)",
+   "arabica_washed": 3.2,
+   "arabica_natural": 5.5,
+   "robusta": 7.2
+  },
+  {
+   "key": "consumer_close",
+   "label": "Consumer-market stocks (close)",
+   "arabica_washed": 3.6,
+   "arabica_natural": 5.8,
+   "robusta": 5.4
+  },
+  {
+   "key": "certified_close",
+   "label": "Exchange-certified (close)",
+   "arabica_washed": 0.9,
+   "arabica_natural": 0.6,
+   "robusta": 1.2
+  }
+ ],
+ "risks": [
+  {
+   "key": "enso_vn",
+   "driver": "El Niño",
+   "origin": "Vietnam",
+   "crop": "robusta",
+   "impact_m_bags": -2.5,
+   "probability": 0.35,
+   "note": "Prolonged Central Highlands dry season Jan–Apr; 2023/24 analogue cut output ~10%."
+  },
+  {
+   "key": "frost_br",
+   "driver": "Frost",
+   "origin": "Brazil",
+   "crop": "arabica_natural",
+   "impact_m_bags": -4.0,
+   "probability": 0.15,
+   "note": "Jun–Aug radiative frost in Sul de Minas / Paraná. Low probability, highest single-event severity."
+  },
+  {
+   "key": "drought_br",
+   "driver": "Drought",
+   "origin": "Brazil",
+   "crop": "arabica_natural",
+   "impact_m_bags": -3.0,
+   "probability": 0.3,
+   "note": "Flowering-window rainfall deficit Sep–Nov; carries into the following crop."
+  },
+  {
+   "key": "lanina_co",
+   "driver": "La Niña",
+   "origin": "Colombia",
+   "crop": "arabica_washed",
+   "impact_m_bags": -1.2,
+   "probability": 0.3,
+   "note": "Excess rain disrupts mitaca flowering and raises roya pressure."
+  },
+  {
+   "key": "rain_id",
+   "driver": "Excess rain",
+   "origin": "Indonesia",
+   "crop": "robusta",
+   "impact_m_bags": -0.8,
+   "probability": 0.25,
+   "note": "Wet harvest in south Sumatra lifts defect rates and delays shipment."
+  },
+  {
+   "key": "area_ug",
+   "driver": "Area expansion",
+   "origin": "Uganda",
+   "crop": "robusta",
+   "impact_m_bags": 0.6,
+   "probability": 0.5,
+   "note": "UCDA replanting programme maturing; upside to the robusta base."
+  },
+  {
+   "key": "yield_br",
+   "driver": "Favourable weather",
+   "origin": "Brazil",
+   "crop": "arabica_natural",
+   "impact_m_bags": 3.5,
+   "probability": 0.3,
+   "note": "On-year biennial cycle with a well-timed flowering — the main upside case."
+  },
+  {
+   "key": "price_vn",
+   "driver": "High prices",
+   "origin": "Vietnam",
+   "crop": "robusta",
+   "impact_m_bags": 1.0,
+   "probability": 0.4,
+   "note": "Sustained farmgate premium pulls held stock to market and lifts input use."
+  }
+ ]
+}
