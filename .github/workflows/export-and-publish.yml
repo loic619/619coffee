@@ -121,7 +121,7 @@ jobs:
       # Per-source Telegram text, fired the moment this data lands (replaces the
       # retired 1.6 morning brief). Runs BEFORE the commit so the state file it
       # writes is committed in the same step. Never fails the scraper.
-      - name: Telegram — prices, origin_prices, week_ahead
+      - name: Telegram — prices, b3, origin_prices, week_ahead
         working-directory: backend
         continue-on-error: true
         env:
@@ -129,6 +129,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           PYTHONPATH=. python -m scraper.topic_notify_daily prices || true
+          PYTHONPATH=. python -m scraper.topic_notify_daily b3 || true
           PYTHONPATH=. python -m scraper.topic_notify_daily origin_prices || true
           PYTHONPATH=. python -m scraper.topic_notify_daily week_ahead || true
 

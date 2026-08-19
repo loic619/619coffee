@@ -303,8 +303,97 @@ def compose_week_ahead(now: dt.datetime) -> str | None:
     return block or None
 
 
+def _b3_line(doc: dict | None, label: str, sym: str) -> str | None:
+    """One B3 market's close: front contract, price and the day's move."""
+    hist = (doc or {}).get("history") or []
+    if not hist:
+        return None
+    last = hist[-1]
+    px = last.get("front_price")
+    if px is None:
+        return None
+    prev = next((e.get("front_price") for e in reversed(hist[:-1])
+                 if e.get("front_price") is not None), None)
+    move = ""
+    if prev:
+        chg = px - prev
+        move = f" {'▲' if chg > 0 else '▼' if chg < 0 else '→'}{chg:+,.2f} ({chg / prev * 100:+.1f}%)"
+    return (f"• {label} {sym} {px:,.2f}/saca"
+            f" ({last.get('front_month', '?')}){move}")
+
+
+def compose_b3(now: dt.datetime) -> str | None:
+    """B3 (Brazil) closing futures — Arábica 4/5 (ICF) and Conilon 7/8 (CNL).
+
+    Domestic settlement against NY/London: the pair says how much of a move is
+    Brazil-specific rather than global. The two files carry different units
+    (arabica US$/saca, conilon R$/saca), so each line states its own.
+    """
+    b = _brief()
+    ara, con = b.load("brazil_b3_arabica.json"), b.load("brazil_b3_conilon.json")
+    lines = [x for x in (_b3_line(ara, "Arábica 4/5 (ICF)", "US$"),
+                         _b3_line(con, "Conilon 7/8 (CNL)", "R$")) if x]
+    if not lines:
+        return None
+    day = _b3_key() or "?"
+    return f"🇧🇷 <b>B3 close — {day}</b>\n" + "\n".join(lines)
+
+
+# ── what counts as "the same report" ─────────────────────────────────────────
+# Fingerprinting the whole message assumes the text only changes when there is
+# genuine news. That does not hold for the market topics: 1.4 re-exports 3-4×
+# a day and acaphe/FX refresh intraday, so a cent of drift produced a fresh
+# fingerprint and the same session's prices went out three times on 2026-08-19
+# (21:11, 02:38, 02:40). These topics are therefore deduped on the IDENTITY of
+# the report — the session or quote day they describe — so a recomputation of
+# an already-sent session stays silent while a genuinely new one still fires.
+
+def _session_key() -> str | None:
+    """Trading session the futures message headlines."""
+    chain = _brief().load("futures_chain.json") or {}
+    return ((chain.get("robusta") or {}).get("pub_date")
+            or (chain.get("arabica") or {}).get("pub_date"))
+
+
+def _origin_quote_key() -> str | None:
+    """Newest farmgate quote date across the origins the message prints."""
+    origins = (_brief().load("origin_prices_history.json") or {}).get("origins") or {}
+    dates = [(o.get("history") or [{}])[-1].get("date") for o in origins.values()]
+    return max((d for d in dates if d), default=None)
+
+
+def _b3_key() -> str | None:
+    b = _brief()
+    dates = [((b.load(f) or {}).get("history") or [{}])[-1].get("date")
+             for f in ("brazil_b3_arabica.json", "brazil_b3_conilon.json")]
+    return max((d for d in dates if d), default=None)
+
+
+DEDUP_KEYS = {
+    "prices":        _session_key,
+    "origin_prices": _origin_quote_key,
+    "b3":            _b3_key,
+}
+
+
+def _dedup_mark(topic: str, text: str) -> str:
+    """The string whose change means "this is a new report". Falls back to the
+    message text, so a topic without a key keeps the old content behaviour."""
+    fn = DEDUP_KEYS.get(topic)
+    if fn:
+        try:
+            key = fn()
+        except Exception as e:  # noqa: BLE001 — never block a send on this
+            print(f"[topic_daily] {topic}: dedup key failed ({e}) — using content")
+            key = None
+        if key:
+            return f"{topic}@{key}"
+    return text
+
+
 TOPICS = {
     "prices":        compose_prices,
+    "b3":            compose_b3,
     "origin_prices": compose_origin_prices,
     "options":       compose_options,
     "certified":     compose_certified,
@@ -345,12 +434,13 @@ def main() -> int:
     if not text:
         print(f"[topic_daily] {topic}: nothing to report")
         return 0
-    if already_sent(topic, text):
-        print(f"[topic_daily] {topic}: unchanged since last send — skipping")
+    mark = _dedup_mark(topic, text)
+    if already_sent(topic, mark):
+        print(f"[topic_daily] {topic}: already reported — skipping")
         return 0
     print(text)
     send(text)
-    mark_sent(topic, text)
+    mark_sent(topic, mark)
     return 0
 
 
