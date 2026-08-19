@@ -26,6 +26,7 @@ import CpiMethodology from "./methodology/CpiMethodology";
 import DifferentialModelNote from "./methodology/DifferentialModelNote";
 import SignalsMethodology from "./methodology/SignalsMethodology";
 import OpenDirectionRecord from "./methodology/OpenDirectionRecord";
+import IntradayDrift from "./IntradayDrift";
 import NewsSentimentMethodology from "./methodology/NewsSentimentMethodology";
 import FuturesMethodology from "./methodology/FuturesMethodology";
 import MacroMethodology from "./methodology/MacroMethodology";
@@ -1804,6 +1805,11 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
           <CollapsibleCard bare tone="sky" updated="2026-07-14" kicker="Signals · track record" title="Open-price-direction — walk-forward record"
             subtitle="Prediction vs. reality, out-of-sample">
             <OpenDirectionRecord />
+          </CollapsibleCard>
+          <CollapsibleCard tone="violet" updated="2026-08-19" kicker="Signals · intraday"
+            title="The harvest last hour — a pre-hedging signal on its own horizon"
+            subtitle="NY's last hour predicts the next session's post-open drift, but only during Brazil harvest: the sign rule, the placebos that could have killed it, and the discovery caveat">
+            <IntradayDrift />
           </CollapsibleCard>
           <NewsSentimentMethodology />
           <FuturesMethodology />
