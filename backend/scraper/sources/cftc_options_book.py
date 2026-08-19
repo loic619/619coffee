@@ -53,7 +53,12 @@ COM_URL = BASE + "/com_disagg_txt_{year}.zip"
 YEARS = 5
 UA = {"User-Agent": "Mozilla/5.0"}
 
-# cohort → (long column, short column) in the disaggregated schema
+# cohort → (long column, short column) in the disaggregated schema.
+# NB: CFTC ships some swap columns with a DOUBLE underscore
+# ("Swap__Positions_Short_All"). Column lookup is therefore normalised
+# (lowercased, repeated underscores collapsed) rather than exact — reading a
+# missing column as 0 silently halves a cohort's net, which is exactly the
+# bug the zero-sum check below now makes impossible to ship.
 COHORTS = {
     "pmpu":  ("Prod_Merc_Positions_Long_All", "Prod_Merc_Positions_Short_All"),
     "swap":  ("Swap_Positions_Long_All", "Swap_Positions_Short_All"),
@@ -63,6 +68,13 @@ COHORTS = {
 }
 OI_COL = "Open_Interest_All"
 DATE_COL = "Report_Date_as_YYYY-MM-DD"
+# Σ(long − short) across all five cohorts is 0 in a zero-sum market. Anything
+# above this is a parsing fault, not rounding.
+ZERO_SUM_TOL = 50
+
+
+def _norm(k: str) -> str:
+    return "_".join(p for p in str(k).lower().split("_") if p)
 
 
 def _int(v) -> int:
@@ -70,6 +82,20 @@ def _int(v) -> int:
         return int(float(str(v).replace(",", "").strip() or 0))
     except (TypeError, ValueError):
         return 0
+
+
+def _col(row: dict, name: str) -> int:
+    """Read a column by NORMALISED name, so single/double-underscore variants
+    both resolve. Raises when absent — a silent 0 is worse than a crash."""
+    want = _norm(name)
+    cache = row.get("__norm__")
+    if cache is None:
+        cache = {_norm(k): k for k in row if k}
+        row["__norm__"] = cache
+    key = cache.get(want)
+    if key is None:
+        raise KeyError(f"CFTC column not found: {name} (normalised {want})")
+    return _int(row[key])
 
 
 def _fetch_year(url: str) -> list[dict]:
@@ -87,23 +113,34 @@ def _fetch_year(url: str) -> list[dict]:
     return rows
 
 
-def _index(rows: list[dict]) -> dict[str, dict]:
-    """{report date → row}. Coffee C appears once per report date; if a year
-    ever carried two coffee markets the first is kept and the count is
-    reported so the ambiguity is visible rather than silent."""
-    out: dict[str, dict] = {}
-    dupes = 0
+def _index(rows: list[dict], tag: str) -> dict[str, dict]:
+    """{report date → Coffee C row}.
+
+    The COMBINED file carries more coffee markets than the futures-only file
+    (e.g. 82 rows/year vs 52), so "first row per date" would silently subtract
+    two DIFFERENT markets. Select the single market name explicitly instead:
+    prefer an exact 'COFFEE C' match, else the market with the most rows —
+    and report what was chosen and what was discarded.
+    """
+    by_market: dict[str, list[dict]] = {}
     for r in rows:
+        by_market.setdefault((r.get("Market_and_Exchange_Names") or "?").strip(), []).append(r)
+
+    preferred = [m for m in by_market if "COFFEE C" in m.upper()]
+    if preferred:
+        market = max(preferred, key=lambda m: len(by_market[m]))
+    else:
+        market = max(by_market, key=lambda m: len(by_market[m]))
+    dropped = {m: len(v) for m, v in by_market.items() if m != market}
+    if dropped:
+        print(f"  [{tag}] using '{market}'; ignored other coffee markets: {dropped}")
+
+    out: dict[str, dict] = {}
+    for r in by_market[market]:
         d = (r.get(DATE_COL) or "").strip()
-        if not d:
-            continue
-        if d in out:
-            dupes += 1
-            continue
-        out[d] = r
-    if dupes:
-        print(f"  note: {dupes} duplicate coffee rows ignored (kept first per date)")
-    return out
+        if d and d not in out:
+            out[d] = r
+    return out, market
 
 
 def run(years: int = YEARS) -> dict:
@@ -122,23 +159,38 @@ def run(years: int = YEARS) -> dict:
     if not fut_rows or not com_rows:
         raise RuntimeError(f"no CFTC rows fetched (ok={fetched} failed={failed})")
 
-    fut, com = _index(fut_rows), _index(com_rows)
+    fut, fut_market = _index(fut_rows, "fut")
+    com, com_market = _index(com_rows, "com")
     weeks = sorted(set(fut) & set(com))
     history = []
+    bad: list[str] = []
     for d in weeks:
         f, c = fut[d], com[d]
         row: dict = {"date": d,
-                     "oi_fut": _int(f.get(OI_COL)), "oi_com": _int(c.get(OI_COL))}
+                     "oi_fut": _col(f, OI_COL), "oi_com": _col(c, OI_COL)}
+        sum_f = sum_c = 0
         for key, (lc, sc) in COHORTS.items():
-            fl, fs = _int(f.get(lc)), _int(f.get(sc))
-            cl, cs = _int(c.get(lc)), _int(c.get(sc))
+            fl, fs = _col(f, lc), _col(f, sc)
+            cl, cs = _col(c, lc), _col(c, sc)
+            sum_f += fl - fs
+            sum_c += cl - cs
             row[key] = {
                 "fut_net": fl - fs, "com_net": cl - cs,
                 # the delta-equivalent options book this cohort holds
                 "opt_net": (cl - cs) - (fl - fs),
                 "opt_long": cl - fl, "opt_short": cs - fs,
             }
+        # Zero-sum identity: every long has a short, so the five cohort nets
+        # must cancel. A residual means a column silently read as 0 (this is
+        # how the double-underscore swap column was caught) or two different
+        # markets being subtracted.
+        if abs(sum_f) > ZERO_SUM_TOL or abs(sum_c) > ZERO_SUM_TOL:
+            bad.append(f"{d}(fut {sum_f:+d}, com {sum_c:+d})")
         history.append(row)
+    if bad:
+        raise RuntimeError(
+            f"cohort nets do not cancel on {len(bad)} week(s) — parsing fault, "
+            f"refusing to publish. First few: {bad[:5]}")
 
     doc = {
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
@@ -147,6 +199,7 @@ def run(years: int = YEARS) -> dict:
         "note": "opt_net = combined net − futures-only net, per cohort: the "
                 "delta-equivalent options position CFTC attributes to that cohort "
                 "and the futures-only feed omits.",
+        "market": {"futures_only": fut_market, "combined": com_market},
         "years_requested": years, "fetched": fetched, "failed": failed,
         "weeks": len(history),
         "history": history,
