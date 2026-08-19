@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import OpenDirectionFactors from "./OpenDirectionFactors";
 
 // ── Prediction vs Reality — the open-direction walk-forward record ──────────
 // Research-tab article fed by open_direction_wf_analysis.json, which the
@@ -219,6 +220,8 @@ export default function OpenDirectionRecord() {
         reconstructed). Methodology: Research → Signals &amp; forecasts §1 · evidence trail:{" "}
         <span className="font-mono not-italic">docs/research/open-price-direction-findings.md</span>.
       </p>
+
+      <OpenDirectionFactors />
     </div>
   );
 }
