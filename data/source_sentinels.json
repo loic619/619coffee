@@ -20,7 +20,7 @@
   "comex": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-18T07:21:40+00:00",
+    "last_probe": "2026-08-19T07:22:57+00:00",
     "overdue_alerted": null,
     "signal": null,
     "verify": null
@@ -28,7 +28,7 @@
   "conab": {
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-18T07:21:40+00:00",
+    "last_probe": "2026-08-19T07:22:57+00:00",
     "overdue_alerted": null,
     "signal": null,
     "verify": null
@@ -62,12 +62,18 @@
     }
   },
   "fnc": {
-    "confirmed": "2026-07",
-    "last_found": null,
-    "last_probe": "2026-08-18T07:21:40+00:00",
+    "confirmed": "2026-08",
+    "last_found": "2026-08-19T07:22:57+00:00",
+    "last_probe": "2026-08-19T07:22:57+00:00",
     "overdue_alerted": null,
-    "signal": "dd2fc0d9a849e90ab7d73f37f5fc6f89cf4f40a659b736c500856467d0ac59be",
-    "verify": null
+    "signal": "bbb796e664d0b142aef8e9d912500368036f5e846342ca4501ca586abaf1abdc",
+    "verify": {
+      "dispatched_at": "2026-08-19T07:22:57+00:00",
+      "expected": "2026-07",
+      "file": "frontend/public/data/colombia_supply.json",
+      "kind": "month_in_file",
+      "status": "pending"
+    }
   },
   "ucda": {
     "confirmed": "2026-08",
