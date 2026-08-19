@@ -112,6 +112,14 @@ def _parse_chg_pct(s: str) -> float | None:
 
 def _parse_vietnam(row14: dict) -> dict:
     raw = row14.get("High", "")
+    # Diagnostic: when the BMT/HCM patterns stop matching (acaphe rewords the
+    # free-text block now and then), log what the row actually carries so the
+    # scheduled runs document the new format instead of failing silently.
+    if raw and "BMT bid" not in raw:
+        print(f"[acaphe] VN row14.High unrecognised: {raw[:300]!r}")
+    elif not raw:
+        print(f"[acaphe] VN row14 empty High; row keys/preview: "
+              f"{ {k: str(v)[:60] for k, v in row14.items()} }")
 
     # Local time: "09:46 21/04 (...)"
     tm = re.match(r"(\d{2}:\d{2}\s+\d{2}/\d{2})", raw)
