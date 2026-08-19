@@ -26,6 +26,38 @@ consistency, significance and calibration checks.
 | harvest / frost / day-of-year seasonality | **DROP (this model)** | All ≤0 marginal, unstable — frequency-mismatched + too few annual cycles. Reserve for the longer-horizon model. |
 | term structure, daily-BRL, index-roll, month-end, weekend | **DROP** | No usable edge on this target. |
 
+## B3 late-close factors (2026-08) — arabica REJECTED at the gate; conilon DATA-STARVED
+Owner hypothesis: B3 São Paulo trades ~2.4h after KC's NY close (arabica ICF)
+and ~3h after London's RC close (conilon CNL); the late window could carry
+Brazil physical / BRL / weather news into the next ICE open. Timing checked
+and VIABLE for both: B3 settles print ~21:00 London, well before the 03:00
+UTC firing.
+
+- **`b3_after_kc` (arabica)** — ICF front daily return RESIDUAL vs the
+  same-day KC settle return (rolling-60 beta; both legs roll-cleaned) = the
+  information B3 printed that KC's close did not contain. On 490 aligned
+  sessions (2023-09→2026-08): lead corr **+0.04 (t 0.8)**, flat every year.
+  Walk-forward: univariate **−0.4pp**; marginal on the MATCHED 200-day OOS
+  window **+0.5pp** (61.0%→61.5%), and of the 31 calls it flipped it won 16
+  (52% — a coin toss). **REJECTED.** Raw (un-residualised) ICF return shows
+  r≈−0.11, but that is just the prior-day reversal shared with `rc_ret_1d`
+  — no B3-specific content. ICF file grows daily; retest trigger ~400
+  matched OOS days (~mid-2027).
+- **`cnl_after_rc` (conilon)** — construction identical vs the RC close.
+  B3 exposes no CNL history; the accumulator (brazil_b3_conilon.json)
+  started 2026-08 and holds single-digit sessions. Per the evidence rule it
+  cannot enter; **retest at ~300 sessions** (~late 2027), zero new
+  infrastructure. Same pattern as the Vietnam-physical candidate.
+- **Side-finding from the same battery — the factor panel** (now a nightly
+  exporter, `open_direction_factors.json`, rendered in the research card):
+  rolling-120 lead correlations of all candidates. Two regime facts:
+  `kc_after` has roughly TRIPLED in strength (per-year r 0.12 in 2022 →
+  0.34 in 2025-26; rolling now ~+0.40), and `rc_ret_1d`'s overnight
+  reversal deepened to r −0.42 in 2026 — yet its matched marginal is
+  +0.4pp: the reversal is REDUNDANT with kc_after, which the model already
+  carries. Correlation strength ≠ marginal value; the panel shows both so
+  the distinction stays visible.
+
 ## Vietnam physical overnight (candidate 1a) — DATA-STARVED, WAIT
 Hypothesis: VN domestic robusta (giacaphe, Dak Lak) moves during Asia hours —
 before London opens — so its fresh-morning change should lead the RC open.
