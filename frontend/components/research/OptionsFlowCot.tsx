@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
-import { H2, P, UL, LI, Code, Highlight, RefTable } from "./methodology/prose";
+import { H2, P, UL, LI, Code, Highlight, RefTable, DataFiles } from "./methodology/prose";
 
 interface Week { t: string; dmm: number; dw: number; dc: number; dp: number; ret: number }
 interface Chan { r: number | null; t: number | null; partial_ret?: number | null; t_partial?: number | null; partial_dmm?: number | null; halves?: (number | null)[] }
@@ -265,6 +265,7 @@ export default function OptionsFlowCot() {
         London for RC) from <Code>cot.json</Code>; Black-76 deltas from stored IVs. All sixteen tests reported;
         statistics and the live nowcast recomputed on every export from <Code>options_flow_cot.json</Code>.
       </P>
+      <DataFiles files={["options_flow_cot.json", "cot.json"]} />
     </div>
   );
 }

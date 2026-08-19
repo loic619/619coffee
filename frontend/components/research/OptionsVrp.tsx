@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
-import { H2, P, UL, LI, Code, Highlight, RefTable } from "./methodology/prose";
+import { H2, P, UL, LI, Code, Highlight, RefTable, DataFiles } from "./methodology/prose";
 
 interface Agg {
   n: number; start?: string; end?: string; mean_iv?: number; mean_rv?: number;
@@ -233,6 +233,7 @@ export default function OptionsVrp() {
         Boards archive (565 sessions, per-strike IV), per-contract settlement archive (5y). {d.method.rv}{" "}
         {d.method.significance} Statistics recomputed on every export from <Code>options_vrp.json</Code>.
       </P>
+      <DataFiles files={["options_vrp.json"]} />
     </div>
   );
 }

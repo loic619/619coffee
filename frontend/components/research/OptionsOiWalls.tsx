@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
-import { H2, P, UL, LI, Code, RefTable } from "./methodology/prose";
+import { H2, P, UL, LI, Code, RefTable, DataFiles } from "./methodology/prose";
 
 interface SideStat { wall_n: number; wall_rate: number | null; light_n: number; light_rate: number | null }
 interface Study {
@@ -255,6 +255,7 @@ export default function OptionsOiWalls() {
         settlements; session-clustered paired inference. All ~18 tested variants reported. Statistics and the
         live wall map recomputed on every export from <Code>options_oi_walls.json</Code>.
       </P>
+      <DataFiles files={["options_oi_walls.json"]} />
     </div>
   );
 }

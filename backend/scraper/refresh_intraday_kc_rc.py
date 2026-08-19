@@ -33,6 +33,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 # Reuse the backfill's contract enumeration, fetch, parse, volume-stitch and
 # settle logic so the refresh and the deep backfill agree bar-for-bar.
 from scraper.backfill_intraday_kc_rc import (  # noqa: E402
+    _T_1630,
     _T_1730,
     _T_1830,
     _T_OPEN,
@@ -97,6 +98,7 @@ def run() -> dict:
             "rc_open_first": (first_rc or {}).get("open"),
             "rc_open_0915":  (first_rc or {}).get("close"),
             "rc_last_1730":  (rd.get(_T_1730) or {}).get("close"),
+            "rc_last_1630":  (rd.get(_T_1630) or {}).get("close"),
             "kc_last_1730":  (kd.get(_T_1730) or {}).get("close"),
             "kc_last_1830":  (kd.get(_T_1830) or {}).get("close"),
             "rc_settle":     _settle("robusta", day, rc_sym),

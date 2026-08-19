@@ -10,6 +10,10 @@ Per London trading day it records:
      archive — distinct from last-traded; used later)     → kc_settle, rc_settle
   4. RC 15 min after open (close of the first 15m bar)    → rc_open_0915
   5. RC open = first trade of the day (open of first bar) → rc_open_first
+  6. at 16:30 London (start of RC's LAST HOUR): last RC   → rc_last_1630
+     (added 2026-08 for the harvest pre-hedging study — the London-side
+     last-hour move rc_last_1730/rc_last_1630 − 1 accrues forward from
+     here; the historical backfill never stored this anchor)
 
 Source
 ======
@@ -63,6 +67,7 @@ _LONDON   = ZoneInfo("Europe/London")
 # London start-times of the bars we read.
 _T_1730 = "17:15"   # bar 17:15→17:30  → close = price at 17:30
 _T_1830 = "18:15"   # bar 18:15→18:30  → close = price at 18:30
+_T_1630 = "16:15"   # bar 16:15→16:30  → close = price at 16:30 (RC last-hour start)
 _T_OPEN = "09:00"   # robusta first bar 09:00→09:15 → open=first trade, close=+15min
 
 
@@ -195,6 +200,7 @@ def run(maxrecords: int = 2000) -> dict:
             "date":          day,
             "kc_last_1730":  (kd.get(_T_1730) or {}).get("close"),
             "rc_last_1730":  (rd.get(_T_1730) or {}).get("close"),
+            "rc_last_1630":  (rd.get(_T_1630) or {}).get("close"),
             "kc_last_1830":  (kd.get(_T_1830) or {}).get("close"),
             "rc_open_first": (first_rc or {}).get("open"),
             "rc_open_0915":  (first_rc or {}).get("close"),

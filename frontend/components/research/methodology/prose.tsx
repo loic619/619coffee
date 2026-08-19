@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 // Shared typography + layout helpers for the Research "methodology paper"
 // components. Dark-theme, mirrors the inline helpers in ResearchView.tsx so the
 // new papers read identically to the existing ones.
@@ -136,6 +136,59 @@ export function RefTable({ head, rows }: { head: string[]; rows: React.ReactNode
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// ── Data files — every research paper exposes the JSON it was computed from ──
+// Static files under frontend/public/data are already served at /data/<name>;
+// this just makes them discoverable and downloadable from the paper itself, so
+// a reader can re-run the analysis independently. Size is fetched lazily via a
+// HEAD request (no payload) and shown once known.
+export function DataFiles({ files, note }: { files: string[]; note?: string }) {
+  const [sizes, setSizes] = useState<Record<string, number | null>>({});
+  // Callers pass an inline array literal, so `files` is a new reference every
+  // render — depend on its CONTENT, or the effect re-runs forever (a HEAD
+  // request storm) since setSizes always stores a fresh object.
+  const key = files.join(",");
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all(key.split(",").map(async f => {
+      try {
+        const r = await fetch(`/data/${f}`, { method: "HEAD" });
+        const len = r.headers.get("content-length");
+        return [f, len ? Number(len) : null] as const;
+      } catch {
+        return [f, null] as const;
+      }
+    })).then(pairs => {
+      if (alive) setSizes(Object.fromEntries(pairs));
+    });
+    return () => { alive = false; };
+  }, [key]);
+
+  const kb = (n: number | null | undefined) =>
+    n == null ? "" : n >= 1_048_576 ? ` · ${(n / 1_048_576).toFixed(1)} MB` : ` · ${Math.max(1, Math.round(n / 1024))} KB`;
+
+  return (
+    <div className="my-4 rounded-lg border border-slate-700 bg-slate-900/60 p-3">
+      <div className="mb-1.5 flex items-baseline gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Data files</span>
+        <span className="text-[10px] text-slate-500">
+          {note ?? "Everything this paper computes from — download and re-run it yourself."}
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {files.map(f => (
+          <a key={f} href={`/data/${f}`} download
+             className="group inline-flex items-center gap-1.5 rounded border border-slate-700 bg-slate-800/60 px-2 py-1 font-mono text-[10px] text-slate-300 hover:border-slate-500 hover:text-white">
+            <span aria-hidden className="text-slate-500 group-hover:text-slate-300">↓</span>
+            {f}
+            <span className="text-slate-500">{kb(sizes[f])}</span>
+          </a>
+        ))}
+      </div>
     </div>
   );
 }

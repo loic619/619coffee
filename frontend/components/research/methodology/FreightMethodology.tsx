@@ -1,5 +1,5 @@
 "use client";
-import { Paper, H2, P, UL, LI, Code, Fml, Highlight, RefTable } from "./prose";
+import { Paper, H2, P, UL, LI, Code, Fml, Highlight, RefTable, DataFiles } from "./prose";
 
 export default function FreightMethodology() {
   return (
@@ -133,6 +133,7 @@ YTD %      = (Σ current YTD − Σ prior-year same-window) / prior × 100`}</Fm
         Seasonality math: <Code>app/freight/seasonal.ts</Code> + <Code>PortActivity.tsx</Code>. All rendered on the{" "}
         <strong>Freight</strong> tab, with the route spread also surfaced in the Macro freight-context panel.
       </P>
+      <DataFiles files={["freight.json"]} />
     </Paper>
   );
 }

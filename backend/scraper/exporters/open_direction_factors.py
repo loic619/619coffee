@@ -331,6 +331,98 @@ def export_open_direction_factors():
         "verdict": "non-monotone — strength does not add power; the strongest bucket leans WRONG-way (reversal) but fails significance on its own tail",
     }
 
+    # ── harvest seasonality + last-hour pre-hedging tests (2026-08) ─────────
+    # Owner hypotheses: (1) the B3 late window is worth more in Brazil harvest;
+    # (2) commercials pre-hedging next-day purchases in the LAST HOUR either
+    # reverse next day (pressure) or start trends (informed flow). Brazil
+    # harvest window here = May–Sep (arabica main + conilon overlap) — distinct
+    # from the model's robusta-origin _HARVEST_W calendar. KC's last hour is
+    # the stored 17:30→18:30-London anchor pair; RC's own last hour needs the
+    # rc_last_1630 anchor, recorded forward from 2026-08 (refresher change).
+    def _in_harvest(d: str) -> bool:
+        return 5 <= int(d[5:7]) <= 9
+
+    sframe = []
+    for i in range(1, len(rows)):
+        a, b = rows[i - 1], rows[i]
+        if a.get("rc_symbol") != b.get("rc_symbol"):
+            continue
+        if not (a.get("rc_last_1730") and b.get("rc_open_first")):
+            continue
+        kc_after_prev = (a["kc_last_1830"] / a["kc_last_1730"] - 1.0
+                         if a.get("kc_last_1730") and a.get("kc_last_1830") else None)
+        kc_day = (b["kc_settle"] / a["kc_settle"] - 1.0
+                  if a.get("kc_symbol") == b.get("kc_symbol") and a.get("kc_settle") and b.get("kc_settle") else None)
+        sframe.append({
+            "date": b["date"], "h": _in_harvest(b["date"]),
+            "gap": b["rc_open_first"] / a["rc_last_1730"] - 1.0,
+            "kc_after": kc_after_prev,
+            "b3": b3_resid.get(a["date"]),
+            "day": (b["rc_last_1730"] / a["rc_last_1730"] - 1.0) if b.get("rc_last_1730") else None,
+            "drift": (b["rc_last_1730"] / b["rc_open_first"] - 1.0) if b.get("rc_last_1730") else None,
+            "kc_day": kc_day,
+        })
+    svals: list[float] = []
+    for r_ in sframe:
+        if r_["kc_after"] is None:
+            r_["kz"] = None
+            continue
+        r_["kz"] = (r_["kc_after"] / st.pstdev(svals)) if len(svals) >= 60 and st.pstdev(svals) else None
+        svals.append(r_["kc_after"])
+
+    def _split_corr(fac_key: str, tgt_key: str) -> dict:
+        out_s = {}
+        for lbl, sel in (("harvest", True), ("off", False)):
+            ps = [(r_[fac_key], r_[tgt_key]) for r_ in sframe
+                  if r_[fac_key] is not None and r_[tgt_key] is not None and r_["h"] == sel]
+            rr = _corr([p[0] for p in ps], [p[1] for p in ps])
+            out_s[lbl] = {"n": len(ps), "r": _r(rr), "t": _r(_t_of(rr, len(ps)), 2)}
+        return out_s
+
+    def _heavy_cont(tgt_key: str, sel: bool) -> dict:
+        ok = [r_ for r_ in sframe if r_["h"] == sel and r_.get("kz") is not None
+              and abs(r_["kz"]) >= 1.5 and r_[tgt_key] is not None]
+        if len(ok) < 12:
+            return {"n": len(ok)}
+        cont = st.mean(1.0 if (r_["kc_after"] > 0) == (r_[tgt_key] > 0) else 0.0 for r_ in ok)
+        return {"n": len(ok), "cont": _r(cont * 100, 1)}
+
+    hv_heavy = [r_ for r_ in sframe if r_["h"] and r_.get("kz") is not None
+                and abs(r_["kz"]) >= 1.5 and r_["drift"] is not None]
+    aligned = (st.mean((1 if r_["kc_after"] > 0 else -1) * r_["drift"] for r_ in hv_heavy)
+               if hv_heavy else None)
+    ch = _heavy_cont("drift", True)
+    co = _heavy_cont("drift", False)
+    z_coin = z_seas = None
+    if ch.get("cont") is not None:
+        p1 = ch["cont"] / 100
+        z_coin = _r((p1 - 0.5) / math.sqrt(0.25 / ch["n"]), 2)
+        if co.get("cont") is not None:
+            p2 = co["cont"] / 100
+            pp_ = (p1 * ch["n"] + p2 * co["n"]) / (ch["n"] + co["n"])
+            z_seas = _r((p1 - p2) / math.sqrt(pp_ * (1 - pp_) * (1 / ch["n"] + 1 / co["n"])), 2)
+    b3_abs = {}
+    for lbl, sel in (("harvest", True), ("off", False)):
+        v = [abs(r_["b3"]) for r_ in sframe if r_["b3"] is not None and r_["h"] == sel]
+        b3_abs[lbl] = _r(st.mean(v) * 100, 3) if v else None
+    seasonality = {
+        "harvest_def": "May–Sep (Brazil arabica main harvest + conilon overlap)",
+        "b3_by_season": _split_corr("b3", "gap"),
+        "b3_abs_move": b3_abs,
+        "last_hour": {tgt: _split_corr("kc_after", tgt) for tgt in ("gap", "day", "drift", "kc_day")},
+        "heavy": {tgt: {"harvest": _heavy_cont(tgt, True), "off": _heavy_cont(tgt, False)}
+                  for tgt in ("gap", "day", "drift")},
+        "heavy_drift_detail": {
+            "up": _r(st.mean(1.0 if r_["drift"] > 0 else 0.0 for r_ in hv_heavy if r_["kc_after"] > 0) * 100, 1)
+            if any(r_["kc_after"] > 0 for r_ in hv_heavy) else None,
+            "dn": _r(st.mean(1.0 if r_["drift"] < 0 else 0.0 for r_ in hv_heavy if r_["kc_after"] < 0) * 100, 1)
+            if any(r_["kc_after"] < 0 for r_ in hv_heavy) else None,
+            "aligned_drift_pct": _r(aligned * 100, 2) if aligned is not None else None,
+            "z_vs_coin": z_coin, "z_vs_offseason": z_seas,
+        },
+        "rc_last_hour_status": "not in stored anchors — rc_last_1630 records forward from 2026-08 (daily refresher); test activates at ~120 harvest sessions",
+    }
+
     # ── walk-forward gates ──────────────────────────────────────────────────
     p_base = _wf_preds(data, ["kc_after", "dsr"])
     p_b3 = _wf_preds(data, ["kc_after", "dsr", "b3"])
@@ -376,6 +468,7 @@ def export_open_direction_factors():
         "rolling": rolling,
         "gate": gate,
         "power": power,
+        "seasonality": seasonality,
         "b3_study": {
             "arabica": {
                 "icf_sessions": len(icf_ret) + 1, "resid_sessions": len(b3_resid),

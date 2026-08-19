@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { cachedFetchStatic } from "@/lib/api";
+import { DataFiles } from "./methodology/prose";
 
 interface XRow {
   date: string; dtr: number; oi: number; oi_all: number; share: number | null;
@@ -303,6 +304,7 @@ export default function CropyearXray() {
           </span></li>
         </ul>
       </div>
+      <DataFiles files={["cropyear_xray.json", "cot.json"]} />
     </div>
   );
 }
