@@ -55,6 +55,59 @@ def _cnl_sessions() -> int | None:
     return len(d.get("history", [])) if d else None
 
 
+def _core_trainable_sessions() -> set[str]:
+    """Sessions the CORE model can train on — the rows an optional feature has
+    to overlap with to be worth anything.
+
+      y                — needs rc_open_first, the PRIOR session's rc_last_1730,
+                         and no contract roll between the two.
+      kc_after_rc_diff — needs the prior session's kc_last_1730 + kc_last_1830.
+
+    Shared by every optional-feature watch below, because the mistake it
+    prevents is shared too: counting a feature's raw captures reads about a
+    third high, and a watch that fires before the gate it watches is worse
+    than no watch (see _cci_trainable_rows for the live instance of this).
+    """
+    intraday = _load(DATA / "intraday_kc_rc_15min.json") or []
+    out: set[str] = set()
+    for prev, cur in zip(intraday, intraday[1:]):
+        if cur.get("rc_symbol") != prev.get("rc_symbol"):
+            continue                                   # roll day → unlabelled
+        if not (cur.get("rc_open_first") and prev.get("rc_last_1730")):
+            continue                                   # no target
+        if not (prev.get("kc_last_1730") and prev.get("kc_last_1830")):
+            continue                                   # no kc_after_rc_diff
+        out.add(cur.get("date"))
+    return out
+
+
+def _b3_trainable_rows() -> int | None:
+    """Rows the model could actually train on with b3_close_gap in the set.
+
+    Same shape as _cci_trainable_rows, and the same correction: the 40-session
+    watch below tracks when the feature becomes TESTABLE, not when it can join.
+    Since #719 every optional feature must also leave _MIN_TRAIN=252 trainable
+    rows, so 40 captures does NOT put b3_close_gap in the deployed model — it
+    needs roughly 384 calendar sessions. The watchdog said "joins the deployed
+    spec automatically at 40 sessions" until 2026-08-20; that was the
+    pre-#719 behaviour and it would have announced an activation ~10% of the
+    way to the real bar.
+
+    Note the shift: the model uses session t−1's gap as pre-open information
+    for session t, so a capture on date D is trainable if D's SUCCESSOR is.
+    """
+    rows = (_load(DATA / "b3_kc_close_snapshots.json") or {}).get("days") or []
+    captured = sorted(r["date"] for r in rows
+                      if r.get("date") and isinstance(r.get("gap"), (int, float)))
+    if not captured:
+        return 0
+    trainable = _core_trainable_sessions()
+    sess = sorted({r.get("date") for r in
+                   (_load(DATA / "intraday_kc_rc_15min.json") or []) if r.get("date")})
+    nxt = {d: sess[i + 1] for i, d in enumerate(sess[:-1])}
+    return sum(1 for d in captured if nxt.get(d) in trainable)
+
+
 def _cci_trainable_rows() -> int | None:
     """Rows the model could ACTUALLY train on with cci_overnight in the set.
 
@@ -76,17 +129,7 @@ def _cci_trainable_rows() -> int | None:
     """
     d = _load(DATA / "fx_intraday_snapshots.json")
     rows = (d or {}).get("days") or []
-    intraday = _load(DATA / "intraday_kc_rc_15min.json") or []
-
-    trainable: set[str] = set()
-    for prev, cur in zip(intraday, intraday[1:]):
-        if cur.get("rc_symbol") != prev.get("rc_symbol"):
-            continue                                   # roll day → unlabelled
-        if not (cur.get("rc_open_first") and prev.get("rc_last_1730")):
-            continue                                   # no target
-        if not (prev.get("kc_last_1730") and prev.get("kc_last_1830")):
-            continue                                   # no kc_after_rc_diff
-        trainable.add(cur.get("date"))
+    trainable = _core_trainable_sessions()
 
     n = 0
     for r in rows:
@@ -205,14 +248,28 @@ WATCHES = [
      "Re-run the marginal at 252 and, unless it has changed character, RETIRE "
      "the feature rather than activating it — the 2026-08 read at n=207 found "
      "nothing, and the encouraging n=51 signal before it was small-sample noise."),
-    ("b3_close_gap", "b3_close_gap — LIVE MODEL activation gate", _b3_close_gap_sessions, 40,
+    ("b3_close_gap", "b3_close_gap — enough captures to TEST", _b3_close_gap_sessions, 40,
      "sessions captured (gap present)",
      "The model's own B3 construction (post-KC-close window, PR #697) ships "
-     "dormant and joins the deployed spec automatically at 40 sessions. "
-     "Accrual restarts 2026-08-20: the at-KC-close capture had never fired — "
-     "GitHub's cron drift landed every run one minute past the guard window.",
-     "Grade it BEFORE it activates: run the walk-forward marginal on b3_close_gap "
-     "vs kc_after+dsr, and update the research card's B3 section with the verdict."),
+     "dormant. 40 captures is its COVERAGE gate — enough to run a first "
+     "walk-forward marginal, NOT enough to join the model (see the trainable-"
+     "rows watch below). Accrual restarts 2026-08-20: the at-KC-close capture "
+     "had never fired — GitHub's cron drift landed every run one minute past "
+     "the guard window.",
+     "Grade it here, long before it can activate: walk-forward marginal of "
+     "b3_close_gap vs kc_after+dsr on matched OOS dates, then update the "
+     "research card's B3 section with the verdict. cci_overnight is the "
+     "cautionary tale — promising at n=51, worthless at n=207."),
+    ("b3_trainable", "b3_close_gap — trainable rows (real activation bar)", _b3_trainable_rows, 252,
+     "labelled sessions carrying the gap",
+     "Since #719 an optional feature must ALSO leave 252 trainable rows, so "
+     "40 captures does not deploy it — roughly 384 calendar sessions do. This "
+     "watch existed as a 40-session 'LIVE MODEL activation gate' until "
+     "2026-08-20, which was the pre-#719 behaviour: it would have announced "
+     "activation at ~10% of the real bar.",
+     "At 252, re-run the marginal on the full sample and decide activate vs "
+     "retire — the coverage-gate test above is the early read, this is the one "
+     "that matters."),
     ("cnl_sessions", "Conilon (B3 CNL) late-close factor", _cnl_sessions, 300,
      "sessions accrued",
      "B3 exposes no CNL history; the accumulator started 2026-08.",
