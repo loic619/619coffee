@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { BarChart, Bar, ComposedChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine, ReferenceArea } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { ceilingK, isDemographicallyDiscounted, demographicFactor, K_BASE, logisticIntensity, MODEL_LIMITS } from "@/lib/demandCeilings";
+import ConsumptionRanking from "./ConsumptionRanking";
+import ConsumptionPace, { adultsFor, MARKET_ISO3 } from "./ConsumptionPace";
+import BrewingMixPanel from "./BrewingMixPanel";
 
 interface AnnualEntry {
   year: string;
@@ -13,6 +16,8 @@ interface AnnualEntry {
 interface GrowthMarket {
   short: string;
   name: string;
+  group?: "producing" | "historical" | "growing";
+  tea_culture?: boolean;
   latest_year: string | null;
   consumption_mt: number | null;
   population: number | null;
@@ -27,17 +32,14 @@ interface CohortCountry {
 
 interface DemandStocks {
   growth_markets?: GrowthMarket[];
+  world_consumption?: { ico_reference?: { world_consumption_mt?: number } } | null;
   populations?: { source: string; last_updated: string };
   age_cohort_18plus?: { countries: Record<string, CohortCountry> };
 }
 
-// Bridge growth_markets' full-name keys → age_cohort_18plus' ISO3 keys so the
-// per-country consumption series can be joined to its drinking-age population.
-const NAME_ISO3: Record<string, string> = {
-  brazil: "bra", china: "chn", vietnam: "vnm", indonesia: "idn",
-  russia: "rus", ethiopia: "eth", korea: "kor", mexico: "mex",
-  turkey: "tur", india: "ind", egypt: "egy", philippines: "phl",
-};
+// Drinking-age population per market comes from ConsumptionPace.adultsFor —
+// it maps all ~50 tracked markets to their UN WPP cohort and sums EU members
+// for the bloc, which the old 12-entry bridge could not do.
 
 const PROJ_END = 2050;
 
@@ -96,13 +98,35 @@ interface MarketSeries {
   projI: Record<number, number>;  // logistic intensity, ly → 2050
 }
 
+// How far back the S-curve reads its growth rate. Seeding from the whole
+// history is what made the old projection run hot: USDA's series carry thin or
+// structurally-zero early years (the US reads 11 kt for 2000 and 0 for 2001),
+// which turned a mature +0.5%/yr market into a +20%/yr one and pushed the 2050
+// aggregate to 15.0 Mt. Fifteen years is a full demand cycle and, on the
+// backtest below, anything from 8 to 20 lands within a few percent of actual —
+// the number is not delicately tuned, but the full history is plainly wrong.
+const SEED_WINDOW = 15;
+
+/** CAGR of intensity over the SEED_WINDOW years ending at `end`, or null. */
+function seedGrowth(inten: Record<number, number>, end: number, win = SEED_WINDOW): number | null {
+  const years = Object.keys(inten).map(Number)
+    .filter(y => y <= end && inten[y] > 0).sort((a, b) => a - b);
+  if (years.length < 3 || !inten[end]) return null;
+  // Earliest year inside the window; falls back to the oldest we have.
+  const start = years.find(y => y >= end - win) ?? years[0];
+  if (start >= end) return null;
+  return Math.pow(inten[end] / inten[start], 1 / (end - start)) - 1;
+}
+
 // Build one market's full projection inputs, or null if it can't be joined.
-function computeSeries(mkt: GrowthMarket, cohort: CohortCountry): MarketSeries | null {
-  const pop: Record<number, number> = {};
-  for (const a of cohort.annual) pop[a.year] = a.pop_18plus;
+function computeSeries(mkt: GrowthMarket, pop: Record<number, number>,
+                       cohort?: CohortCountry): MarketSeries | null {
   const cons: Record<number, number> = {};
   for (const a of mkt.annual) {
-    if (a.consumption_mt != null) cons[Number(a.year)] = a.consumption_mt;
+    // Strictly positive: USDA carries structural zeros in years it had not yet
+    // started publishing a market (the US series reads 0 kt for 2001), and a
+    // zero anywhere in the series makes intensity growth meaningless.
+    if (a.consumption_mt != null && a.consumption_mt > 0) cons[Number(a.year)] = a.consumption_mt;
   }
   const inten: Record<number, number> = {};
   for (const ys of Object.keys(cons)) {
@@ -116,15 +140,16 @@ function computeSeries(mkt: GrowthMarket, cohort: CohortCountry): MarketSeries |
   const i0 = inten[ly];
   if (!overlap.length || i0 == null) return null;
 
-  // Full-window CAGR of intensity — seeds the S-curve's initial growth rate.
+  // Trailing-window CAGR of intensity — seeds the S-curve's growth rate.
   const y0 = overlap[0];
-  const g = Math.pow(inten[ly] / inten[y0], 1 / (ly - y0)) - 1;
+  const g = seedGrowth(inten, ly);
+  if (g == null) return null;
 
   // Live whole-population median age (UN WPP) at the latest actual year. For
   // analog-anchored markets it drives the demographic discount on K; ceilingK
   // falls back to the baked-in 2025 median when the series carries none yet.
   const medianAgeByYear: Record<number, number> = {};
-  for (const a of cohort.annual) if (a.median_age != null) medianAgeByYear[a.year] = a.median_age;
+  for (const a of cohort?.annual ?? []) if (a.median_age != null) medianAgeByYear[a.year] = a.median_age;
   const medianAge = medianAgeByYear[ly];
   const demoDiscounted = isDemographicallyDiscounted(mkt.short);
   const effAge = medianAge ?? K_BASE[mkt.short]?.medianAge ?? 30;
@@ -144,19 +169,62 @@ function computeSeries(mkt: GrowthMarket, cohort: CohortCountry): MarketSeries |
 
 const AGG = "__all__";
 
-function DemandProjection({ markets, cohorts }: {
+// ── Backtest ────────────────────────────────────────────────────────────────
+// "Would this model have called the last H years right?" Refit each market
+// using ONLY data up to ly−H (same logistic, same ceiling), project forward to
+// ly against the actual adult population, then compare with the USDA actual.
+// Population is taken as known — this tests the intensity model, not a
+// demographic forecast, which is what the projection actually leans on.
+interface BacktestRow {
+  short: string; name: string; actualKt: number; predKt: number; errPct: number;
+}
+function backtest(seriesList: MarketSeries[], H: number): {
+  rows: BacktestRow[]; actual: number; pred: number; errPct: number; mape: number;
+} | null {
+  const rows: BacktestRow[] = [];
+  for (const m of seriesList) {
+    const cut = m.ly - H;
+    const iCut = m.inten[cut], pNow = m.pop[m.ly], cNow = m.cons[m.ly];
+    if (iCut == null || !pNow || cNow == null) continue;
+    // Growth rate seeded only from data at or before the cut — same rule the
+    // live projection uses, so the test measures the model that ships.
+    const g = seedGrowth(m.inten, cut);
+    if (g == null) continue;
+    const path = logisticIntensity(iCut, g, m.K, cut, m.ly);
+    const iPred = path[m.ly] ?? iCut;
+    const predKt = iPred * pNow / 1e6;
+    const actualKt = cNow / 1000;
+    if (actualKt <= 0) continue;
+    rows.push({ short: m.short, name: m.name, actualKt, predKt, errPct: (predKt / actualKt - 1) * 100 });
+  }
+  if (rows.length < 3) return null;
+  const actual = rows.reduce((s, r) => s + r.actualKt, 0);
+  const pred = rows.reduce((s, r) => s + r.predKt, 0);
+  const mape = rows.reduce((s, r) => s + Math.abs(r.errPct), 0) / rows.length;
+  return { rows, actual, pred, errPct: (pred / actual - 1) * 100, mape };
+}
+
+function DemandProjection({ markets, cohorts, icoWorldMt }: {
   markets: GrowthMarket[];
   cohorts: Record<string, CohortCountry>;
+  icoWorldMt?: number | null;
 }) {
   // Only markets we can both join (have a cohort) and that carry consumption.
-  const joinable = markets.filter(m => cohorts[NAME_ISO3[m.short] ?? ""]);
+  const adultsByShort = new Map<string, Record<number, number>>();
+  for (const m of markets) {
+    const a = adultsFor(m.short, cohorts as Record<string, { annual: { year: number; pop_18plus: number }[] }>);
+    if (a) adultsByShort.set(m.short, a);
+  }
+  const joinable = markets.filter(m => adultsByShort.has(m.short));
   const [sel, setSel] = useState(joinable[0]?.short ?? "");
   const [metric, setMetric] = useState<"total" | "intensity">("total");
   const [showLimits, setShowLimits] = useState(false);
+  const [showBacktest, setShowBacktest] = useState(false);
+  const [horizon, setHorizon] = useState<5 | 10>(10);
 
   // Every joinable market's series (also summed for the aggregate "top-line").
   const seriesList = joinable
-    .map(m => computeSeries(m, cohorts[NAME_ISO3[m.short]]))
+    .map(m => computeSeries(m, adultsByShort.get(m.short)!, cohorts[MARKET_ISO3[m.short] ?? ""]))
     .filter((s): s is MarketSeries => s != null);
   if (!seriesList.length) return null;
 
@@ -214,6 +282,7 @@ function DemandProjection({ markets, cohorts }: {
     trend2050 = (s.projI[PROJ_END] ?? s.i0) * p2050 / 1e6;
     adultGrowth = s.pop[ly] ? p2050 / s.pop[ly] - 1 : 0;
   }
+  const bt = backtest(seriesList, horizon);
   const unit = isTotal ? "kt" : "kg/adult";
   const limitsForMkt = isAgg ? [] : MODEL_LIMITS.filter(l => l.markets.includes(s.short));
 
@@ -237,6 +306,10 @@ function DemandProjection({ markets, cohorts }: {
           <button onClick={() => setShowLimits(v => !v)}
             className={`text-[9px] px-2 py-0.5 rounded border ${showLimits ? "border-amber-500/60 text-amber-300" : "border-slate-700 text-slate-400 hover:text-slate-200"}`}>
             ⚠ Model limits
+          </button>
+          <button onClick={() => setShowBacktest(v => !v)}
+            className={`text-[9px] px-2 py-0.5 rounded border ${showBacktest ? "border-sky-500/60 text-sky-300" : "border-slate-700 text-slate-400 hover:text-slate-200"}`}>
+            ✓ Backtest
           </button>
           {!isAgg && (
             <div className="flex rounded overflow-hidden border border-slate-700 text-[9px]">
@@ -287,6 +360,60 @@ function DemandProjection({ markets, cohorts }: {
           )}
           <div className="text-[9px] text-slate-500 pt-0.5">
             Full methodology &amp; the per-market K table: Research → Demand modelling.
+          </div>
+        </div>
+      )}
+
+      {showBacktest && bt && (
+        <div className="rounded border border-sky-500/30 bg-sky-500/5 p-2.5 space-y-2">
+          <div className="flex items-baseline justify-between flex-wrap gap-2">
+            <div className="text-[9px] uppercase tracking-wide text-sky-400/90">
+              Backtest — refit on data to {ly - horizon}, project {horizon} yrs, compare with USDA actual {ly}
+            </div>
+            <div className="flex rounded overflow-hidden border border-slate-700 text-[9px]">
+              {([5, 10] as const).map(h => (
+                <button key={h} onClick={() => setHorizon(h)}
+                  className={`px-2 py-0.5 ${horizon === h ? "bg-slate-600 text-white" : "bg-slate-800 text-slate-400 hover:text-slate-200"}`}>{h}y</button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <Stat label={`Actual ${ly}`} value={`${Math.round(bt.actual).toLocaleString()} kt`} sub={`${bt.rows.length} markets`} tone="text-amber-300" />
+            <Stat label="Model said" value={`${Math.round(bt.pred).toLocaleString()} kt`} sub={`from ${ly - horizon}`} />
+            <Stat label="Aggregate error"
+              value={`${bt.errPct >= 0 ? "+" : ""}${bt.errPct.toFixed(1)}%`}
+              sub={Math.abs(bt.errPct) < 10 ? "within ±10%" : "outside ±10%"}
+              tone={Math.abs(bt.errPct) < 10 ? "text-emerald-400" : "text-red-400"} />
+            <Stat label="Mean abs. error" value={`${bt.mape.toFixed(1)}%`} sub="per market" />
+          </div>
+          <div className="max-h-40 overflow-y-auto">
+            <table className="w-full text-[10px]">
+              <thead>
+                <tr className="text-[9px] text-slate-500 uppercase tracking-wide border-b border-slate-700">
+                  <th className="text-left px-1.5 py-1">Market</th>
+                  <th className="text-right px-1.5 py-1">Actual</th>
+                  <th className="text-right px-1.5 py-1">Predicted</th>
+                  <th className="text-right px-1.5 py-1">Error</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...bt.rows].sort((a, b) => Math.abs(b.errPct) - Math.abs(a.errPct)).map(r => (
+                  <tr key={r.short} className="border-b border-slate-800/70">
+                    <td className="px-1.5 py-0.5 text-slate-300">{r.name}</td>
+                    <td className="px-1.5 py-0.5 text-right font-mono text-slate-200">{Math.round(r.actualKt).toLocaleString()}</td>
+                    <td className="px-1.5 py-0.5 text-right font-mono text-slate-400">{Math.round(r.predKt).toLocaleString()}</td>
+                    <td className={`px-1.5 py-0.5 text-right font-mono ${Math.abs(r.errPct) < 10 ? "text-emerald-400" : Math.abs(r.errPct) < 25 ? "text-amber-300" : "text-red-400"}`}>
+                      {r.errPct >= 0 ? "+" : ""}{r.errPct.toFixed(1)}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="text-[9px] text-slate-500 italic">
+            Population is taken as known, so this tests the intensity (per-adult) model rather than a demographic
+            forecast. A market the model over-shoots was assumed to keep climbing toward its ceiling faster than it
+            did; under-shoots are markets that accelerated. Read the 2050 numbers with this error band in mind.
           </div>
         </div>
       )}
@@ -351,7 +478,8 @@ function DemandProjection({ markets, cohorts }: {
       {isAgg ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <Stat label="Markets" value={`${seriesList.length}`} sub="summed" />
-          <Stat label={`Demand ${ly}`} value={`${Math.round(act).toLocaleString()} kt`} sub="actual" tone="text-amber-300" />
+          <Stat label={`Demand ${ly}`} value={`${Math.round(act).toLocaleString()} kt`}
+            sub={icoWorldMt ? `${(act * 1000 / icoWorldMt * 100).toFixed(0)}% of ICO world` : "actual"} tone="text-amber-300" />
           <Stat label="2050 demand · flat" value={`${Math.round(base2050).toLocaleString()} kt`} sub={pct(base2050 / act - 1)} />
           <Stat label="2050 demand · S-curve" value={`${Math.round(trend2050).toLocaleString()} kt`} sub={pct(trend2050 / act - 1)} tone="text-slate-100" />
         </div>
@@ -368,7 +496,10 @@ function DemandProjection({ markets, cohorts }: {
 
       <div className="text-[9px] text-slate-500 italic">
         {isAgg
-          ? <>Top-line = Σ of all {seriesList.length} markets&rsquo; capped projections. Each market bends its per-adult intensity toward its own ceiling K then scales by projected 18+ population; the flat case holds {ly} intensity. Per-market ceilings &amp; logic: Research → Demand modelling.</>
+          ? <>Top-line = Σ of all {seriesList.length} joinable markets&rsquo; capped projections
+              {icoWorldMt ? <> — {Math.round(act).toLocaleString()} kt of the ICO world reference
+              {" "}{Math.round(icoWorldMt / 1000).toLocaleString()} kt ({(act * 1000 / icoWorldMt * 100).toFixed(0)}%);
+              the remainder is markets USDA PSD does not break out.</> : "."} Each market bends its per-adult intensity toward its own ceiling K then scales by projected 18+ population; the flat case holds {ly} intensity. Per-market ceilings &amp; logic: Research → Demand modelling.</>
           : <>Intensity = USDA domestic consumption ÷ UN WPP 18+ population (true {unit} per drinking-age adult, vs {s.perCapitaKg?.toFixed(2) ?? "—"} kg per total head).
               Flat case holds {ly} intensity and scales by projected adults; dotted case bends intensity from the {s.y0}–{ly} growth rate ({(s.g * 100).toFixed(1)}%/yr) toward the saturation ceiling K = {s.K.toFixed(1)} kg/adult via a logistic g·(1−i/K) — see Research → Demand modelling.</>}
       </div>
@@ -399,13 +530,7 @@ export default function GrowthMarketsPanel() {
     );
   }
 
-  // Total + per-capita ranking data (already sorted by consumption desc from backend)
-  const totalRanked = rows.map(r => ({
-    name: r.name,
-    consumption_kt: r.consumption_mt != null ? Math.round(r.consumption_mt / 1000) : null,
-    short: r.short,
-  }));
-
+  // Per-capita ranking data (rows arrive already sorted by consumption desc).
   const perCapRanked = rows
     .filter(r => r.per_capita_kg != null)
     .slice()
@@ -432,15 +557,28 @@ export default function GrowthMarketsPanel() {
     return row;
   });
 
+  // Year-over-year deltas for the same six markets (kt).
+  const trendYoy = trendChart.map((row, i) => {
+    if (i === 0) return null;
+    const prev = trendChart[i - 1];
+    const out: Record<string, number | string | null> = { year: row.year };
+    for (const c of trendCountries) {
+      const a = row[c.short], b = prev[c.short];
+      out[c.short] = typeof a === "number" && typeof b === "number" ? a - b : null;
+    }
+    return out;
+  }).filter((r): r is Record<string, number | string | null> => r != null);
+
   const totalConsumption = rows.reduce((s, r) => s + (r.consumption_mt ?? 0), 0);
 
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-baseline justify-between flex-wrap gap-2">
         <div>
-          <h2 className="text-lg font-bold text-white">Emerging Demand Markets</h2>
+          <h2 className="text-lg font-bold text-white">World Coffee Demand</h2>
           <p className="text-xs text-slate-400">
-            Where coffee demand is actually growing — {rows.length} countries · USDA PSD ÷ World Bank population
+            Every market USDA tracks — {rows.length} countries, mature to emerging to origin ·
+            USDA PSD ÷ World Bank population
           </p>
         </div>
         <div className="text-[10px] font-mono text-slate-400">
@@ -448,48 +586,32 @@ export default function GrowthMarketsPanel() {
         </div>
       </div>
 
-      {/* Ranking pair */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {/* Total consumption */}
-        <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
-          <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
-            Total Domestic Consumption (kt/yr)
-          </div>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={totalRanked} layout="vertical" margin={{ top: 0, right: 12, left: 4, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 9, fill: "#64748b" }} axisLine={false} tickLine={false} tickFormatter={v => `${v}kt`} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: "#cbd5e1" }} axisLine={false} tickLine={false} width={88} />
-                <Tooltip contentStyle={TT_STYLE} formatter={(v: unknown) => [`${Number(v).toLocaleString()} kt/yr`, "Consumption"]} />
-                <Bar dataKey="consumption_kt" radius={[0, 2, 2, 0]}>
-                  {totalRanked.map(r => (
-                    <Bar key={r.short} dataKey="consumption_kt" fill={COUNTRY_COLORS[r.short] ?? "#6366f1"} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+      {/* Grouped ranking — replaces the old chart whose nested <Bar> elements
+          rendered one identical series per country (the "13 same values" bug). */}
+      <ConsumptionRanking markets={rows} />
 
-        {/* Per-capita consumption */}
-        <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
-          <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
-            Per-Capita Consumption (kg/person/yr)
-          </div>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={perCapRanked} layout="vertical" margin={{ top: 0, right: 12, left: 4, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 9, fill: "#64748b" }} axisLine={false} tickLine={false} tickFormatter={v => `${v}kg`} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: "#cbd5e1" }} axisLine={false} tickLine={false} width={88} />
-                <Tooltip contentStyle={TT_STYLE} formatter={(v: unknown) => [`${Number(v).toFixed(2)} kg/person/yr`, "Per-capita"]} />
-                <Bar dataKey="per_capita_kg" fill="#f59e0b" radius={[0, 2, 2, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+      {/* Per-capita ranking */}
+      <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
+        <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
+          Per-Capita Consumption (kg/person/yr)
+        </div>
+        <div style={{ height: Math.max(220, perCapRanked.length * 18 + 30) }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={perCapRanked} layout="vertical" margin={{ top: 0, right: 12, left: 4, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
+              <XAxis type="number" tick={{ fontSize: 9, fill: "#64748b" }} axisLine={false} tickLine={false} tickFormatter={v => `${v}kg`} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: "#cbd5e1" }} axisLine={false} tickLine={false} width={96} interval={0} />
+              <Tooltip contentStyle={TT_STYLE} formatter={(v: unknown) => [`${Number(v).toFixed(2)} kg/person/yr`, "Per-capita"]} />
+              <Bar dataKey="per_capita_kg" fill="#f59e0b" radius={[0, 2, 2, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
+
+      {/* Growth decomposition: demography vs behaviour, and whether it is speeding up */}
+      {data.age_cohort_18plus?.countries && (
+        <ConsumptionPace markets={rows} cohorts={data.age_cohort_18plus.countries} />
+      )}
 
       {/* Trend lines — top 6 */}
       <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
@@ -513,12 +635,43 @@ export default function GrowthMarketsPanel() {
             </ComposedChart>
           </ResponsiveContainer>
         </div>
+
+        {/* Year-over-year change, stacked — the level chart above shows where
+            each market is, this shows what actually moved in a given year. */}
+        <div className="text-[10px] text-slate-400 uppercase tracking-wide mt-3 mb-1">
+          Year-over-year change (kt) — stacked contributions
+        </div>
+        <div className="h-40">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={trendYoy} stackOffset="sign" margin={{ top: 4, right: 12, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+              <XAxis dataKey="year" tick={{ fontSize: 9, fill: "#64748b" }} axisLine={false} tickLine={false} interval={2} />
+              <YAxis tick={{ fontSize: 9, fill: "#64748b" }} axisLine={false} tickLine={false} tickFormatter={v => `${v}kt`} />
+              <ReferenceLine y={0} stroke="#475569" />
+              <Tooltip contentStyle={TT_STYLE} formatter={(v: unknown, name: unknown) => {
+                const country = trendCountries.find(c => c.short === name);
+                return [v == null ? "—" : `${Number(v) >= 0 ? "+" : ""}${Number(v).toLocaleString()} kt`, country?.name ?? String(name)];
+              }} />
+              {trendCountries.map(c => (
+                <Bar key={c.short} dataKey={c.short} stackId="yoy" fill={COUNTRY_COLORS[c.short] ?? "#6366f1"} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="text-[9px] text-slate-500 italic mt-1">
+          Each bar is the sum of the six markets&rsquo; year-on-year changes; a bar near zero with tall
+          opposite-signed segments means the markets offset each other rather than the world standing still.
+        </div>
       </div>
 
       {/* Demand projection — joins consumption with the 18+ cohort */}
       {data.age_cohort_18plus?.countries && (
-        <DemandProjection markets={rows} cohorts={data.age_cohort_18plus.countries} />
+        <DemandProjection markets={rows} cohorts={data.age_cohort_18plus.countries}
+          icoWorldMt={data.world_consumption?.ico_reference?.world_consumption_mt ?? null} />
       )}
+
+      {/* How each market brews — the grams-per-cup lever on import demand */}
+      <BrewingMixPanel markets={rows} />
 
       {/* Detail table */}
       <div className="overflow-x-auto">

@@ -92,8 +92,8 @@ jobs:
           if git status --porcelain backend/seed/vn_customs_by_country.json | grep -q .; then
             git add backend/seed/vn_customs_by_country.json
             git commit -m "data: VN customs 5X/5N coffee-by-country backfill [skip ci]"
-            git pull --rebase origin main
-            git push origin main
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
           else
             echo "No seed changes to commit."
           fi
