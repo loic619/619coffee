@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-20T05:11:09+00:00",
-  "as_of": "2026-08-19",
+  "generated_at": "2026-08-20T21:44:58+00:00",
+  "as_of": "2026-08-20",
   "snapshots": [
     {
       "date": "2025-05-28",
@@ -6037,11 +6037,37 @@
         "NOR": 0,
         "ROT": 0
       }
+    },
+    {
+      "date": "2026-08-20",
+      "cut_off_date": "2026-08-19",
+      "total_lots_certified": 4603,
+      "total_bags_60kg_equivalent": 767167,
+      "non_tend_lots": 2,
+      "suspended_lots": 0,
+      "lots_graded_today": 140,
+      "lots_sold_today": 0,
+      "lots_bought_today": 0,
+      "tenders_today": 0,
+      "by_port_lots": {
+        "ANT": 3165,
+        "LON": 1407,
+        "TRI": 24,
+        "FEL": 6,
+        "BAR": 1,
+        "AMS": 0,
+        "BRE": 0,
+        "HAM": 0,
+        "LEH": 0,
+        "LIV": 0,
+        "NOR": 0,
+        "ROT": 0
+      }
     }
   ],
   "latest_detail": {
     "stock_report": {
-      "cut_off_date": "2026-08-18",
+      "cut_off_date": "2026-08-19",
       "ports": [
         {
           "port_id": "ANT",
@@ -6134,7 +6160,7 @@
         "suspended": 0
       }
     },
-    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260819_103656.csv"
+    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260820_103229.csv"
   },
   "recent_activity": {
     "gradings": [
@@ -9459,6 +9485,51 @@
           "non_tenderable_month": 0,
           "lots_graded_today": 126,
           "lots_graded_month": 528
+        }
+      },
+      {
+        "date": "2026-08-20",
+        "url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/gradings/gradrc_260820-1.txt",
+        "report_date": "2026-08-20",
+        "report_time": "17:12",
+        "panel_date": "2026-08-20",
+        "panel_time": "08:00",
+        "entries": [
+          {
+            "section": "CONTINENTAL LOTS",
+            "origin": "Brazilian Conillon",
+            "port": "ANT",
+            "class": 1,
+            "tenderable": true,
+            "allowance_cts_lb": 0.0,
+            "lots": 47
+          },
+          {
+            "section": "CONTINENTAL LOTS",
+            "origin": "Brazilian Conillon",
+            "port": "ANT",
+            "class": 2,
+            "tenderable": true,
+            "allowance_cts_lb": -30.0,
+            "lots": 88
+          },
+          {
+            "section": "CONTINENTAL LOTS",
+            "origin": "Brazilian Conillon",
+            "port": "ANT",
+            "class": 3,
+            "tenderable": true,
+            "allowance_cts_lb": -60.0,
+            "lots": 5
+          }
+        ],
+        "summary": {
+          "tenderable_today": 140,
+          "tenderable_month": 668,
+          "non_tenderable_today": 0,
+          "non_tenderable_month": 0,
+          "lots_graded_today": 140,
+          "lots_graded_month": 668
         }
       }
     ],
@@ -17127,6 +17198,13 @@
         "queue_lots": 0,
         "forecast_lots": 0,
         "total_pending_lots": 0
+      },
+      {
+        "date": "2026-08-20",
+        "report_date": "2026-08-20",
+        "queue_lots": 0,
+        "forecast_lots": 100,
+        "total_pending_lots": 100
       }
     ],
     "infested_warrants": []
