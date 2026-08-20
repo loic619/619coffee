@@ -209,7 +209,14 @@ def _cci_overnight_series() -> "pd.Series | None":
             EXPORTERS, IMPORTERS, _strength_sign)
         doc = json.loads(_FX_SNAPS.read_text(encoding="utf-8"))
         rows = doc.get("days") or []
-    except Exception:
+    except Exception as e:  # noqa: BLE001 — dormancy is fine, SILENT dormancy is not
+        # fetch_currency_index imports requests/numpy/pandas at module level,
+        # so a missing dependency in the runner disables this feature for
+        # good. Swallowing that silently is indistinguishable from "not enough
+        # data yet" — say which, so a dead feature can't masquerade as a
+        # patient one.
+        print(f"[open_direction] cci_overnight unavailable: {type(e).__name__}: {e}",
+              file=sys.stderr)
         return None
     weights = {t: w * _strength_sign(t) for t, _n, w in EXPORTERS}
     weights.update({t: -w * _strength_sign(t) for t, _n, w in IMPORTERS})
@@ -262,12 +269,39 @@ def active_features(frame: "pd.DataFrame") -> list[str]:
     NEGATIVE marginal every calm year; regime-gating didn't rescue it — see
     the findings doc). It ships as a REGIME TAG instead; the anchor data
     keeps accruing daily so it can be re-evaluated in a future oil-shock
-    regime."""
+    regime.
+
+    TRAINABILITY GATE (2026-08 fix)
+    ==============================
+    A coverage threshold alone is NOT sufficient to admit a young feature.
+    run() trains on `frame.dropna(subset=["y"] + active)` — LISTWISE
+    deletion — so a feature with 55 rows of history does not add a column to
+    1,168 training rows, it CUTS the training set to the ~51 rows where it
+    exists. Observed live: cci_overnight crossed its 40-session coverage gate
+    on 2026-07-29, the training set collapsed 1168 → 51, and run() began
+    returning "Only 51 labelled sessions (need ≥252)" — i.e. the model goes
+    dark the moment an optional feature becomes "available". Even short of
+    that cliff the silent version is worse: 300 rows would train fine and
+    quietly discard 870 rows of history.
+
+    So each optional feature is admitted only if, WITH it, the resulting
+    training set still clears _MIN_TRAIN. Candidates are tested one at a time
+    (most-covered first) so one thin feature cannot block a well-covered one.
+    A feature that fails simply stays dormant and keeps accruing — exactly
+    the intended behaviour, now actually enforced."""
     active = ["kc_after_rc_diff", "days_since_roll"]
-    if "cci_overnight" in frame.columns and frame["cci_overnight"].notna().sum() >= _MIN_CCI_OVERLAP:
-        active.append("cci_overnight")
-    if "b3_close_gap" in frame.columns and frame["b3_close_gap"].notna().sum() >= _MIN_B3_OVERLAP:
-        active.append("b3_close_gap")
+    candidates = [
+        ("cci_overnight", _MIN_CCI_OVERLAP),
+        ("b3_close_gap", _MIN_B3_OVERLAP),
+    ]
+    # Most-covered first: a feature with more history is likelier to survive
+    # the joint dropna, and admitting it first cannot be blocked by a thinner
+    # sibling that would have failed anyway.
+    ready = [(c, frame[c].notna().sum()) for c, gate in candidates
+             if c in frame.columns and frame[c].notna().sum() >= gate]
+    for col, _n in sorted(ready, key=lambda kv: -kv[1]):
+        if len(frame.dropna(subset=["y"] + active + [col])) >= _MIN_TRAIN:
+            active.append(col)
     return active
 
 

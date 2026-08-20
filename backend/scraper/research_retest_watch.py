@@ -55,6 +55,23 @@ def _cnl_sessions() -> int | None:
     return len(d.get("history", [])) if d else None
 
 
+def _cci_trainable_rows() -> int | None:
+    """Labelled sessions that actually carry a usable CCI value. The model
+    trains listwise, so this — not the raw 40-session coverage gate — is what
+    decides when cci_overnight can join without truncating the training set."""
+    d = _load(DATA / "fx_intraday_snapshots.json")
+    rows = (d or {}).get("days") or []
+    sess = {r.get("date") for r in (_load(DATA / "intraday_kc_rc_15min.json") or [])}
+    n = 0
+    for r in rows:
+        pairs = r.get("pairs") or {}
+        used = sum(1 for p in pairs.values()
+                   if (p or {}).get("prev_1730") and (p or {}).get("at_0300"))
+        if used >= 6 and r.get("date") in sess:
+            n += 1
+    return n
+
+
 def _b3_close_gap_sessions() -> int | None:
     """Sessions captured for the MODEL's own B3 feature (b3_close_gap, added
     2026-08). This is the gate that actually flips the live spec — at 40 the
@@ -151,6 +168,12 @@ WATCHES = [
      "gated firings since the study",
      "The harvest condition was discovered in-sample; only forward firings are true OOS.",
      "Re-read intraday_drift.json: is the forward hit-rate holding near 76%?"),
+    ("cci_trainable", "cci_overnight — trainable rows (real activation bar)", _cci_trainable_rows, 252,
+     "labelled sessions carrying CCI",
+     "Cleared its 40-session COVERAGE gate on 2026-07-29 but has far less "
+     "history than the model; admitting it would truncate listwise training.",
+     "At 252 it can finally join without shrinking the train set — re-check its "
+     "walk-forward marginal then, and expect active_features() to admit it."),
     ("b3_close_gap", "b3_close_gap — LIVE MODEL activation gate", _b3_close_gap_sessions, 40,
      "sessions captured (gap present)",
      "The model's own B3 construction (post-KC-close window, PR #697) ships "

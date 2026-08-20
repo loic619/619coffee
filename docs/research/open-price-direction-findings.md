@@ -26,6 +26,35 @@ consistency, significance and calibration checks.
 | harvest / frost / day-of-year seasonality | **DROP (this model)** | All ≤0 marginal, unstable — frequency-mismatched + too few annual cycles. Reserve for the longer-horizon model. |
 | term structure, daily-BRL, index-roll, month-end, weekend | **DROP** | No usable edge on this target. |
 
+## BUG FIXED 2026-08-20 — a thin optional feature took the model DARK
+`run()` trains on `frame.dropna(subset=["y"] + active)` — **listwise**. A
+feature that clears only its COVERAGE gate does not add a column to the
+training set, it **truncates the training set to its own span**.
+
+Live sequence: `cci_overnight` crossed its 40-session coverage gate on
+**2026-07-29** → `active_features()` admitted it → training collapsed
+**1,168 → 51 rows** → below `_MIN_TRAIN` (252) → `run()` returned
+*"Only 51 labelled sessions"* → the log module's `else` branch leaves the
+panel payload untouched, so the Macro tab would serve a frozen prediction
+with no error surfaced anywhere.
+
+**Fix:** `active_features()` now applies a TRAINABILITY gate — a candidate
+joins only if, with it, `dropna(["y"] + active + [candidate])` still clears
+`_MIN_TRAIN`. Candidates are tested most-covered-first so a thin feature
+cannot block a well-covered one. Verified: active set returns to
+`[kc_after_rc_diff, days_since_roll]`, train 1,168, `run()` available and
+reproducing the live payload exactly (edge 0.0448, acted 0.6358).
+Regression test: `test_thin_optional_feature_cannot_destroy_the_training_set`.
+
+Also: `_cci_overnight_series()`'s bare `except` now LOGS the reason. It
+imports `fetch_currency_index` (which pulls numpy/pandas/requests at module
+level), so a missing dependency silently disabled the feature forever and
+looked identical to "not enough data yet".
+
+**Real activation bar for cci_overnight is 252 trainable rows, not 40** —
+tracked in the retest watchdog (`cci_trainable`). The same trap awaited
+`b3_close_gap`; it is now covered by the same gate.
+
 ## `b3_close_gap` (PR #697, 2026-08) — the model's OWN B3 feature, DORMANT
 Not to be confused with the rejected `b3_after_kc` below — **different
 construction, different test.**

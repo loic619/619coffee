@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-20T09:45:24Z",
+ "generated_at": "2026-08-20T10:06:48Z",
  "note": "Parked research hypotheses and the data each is waiting on. Maintained by scraper/research_retest_watch.py; alerts fire when a counter crosses its threshold.",
  "watches": [
   {
@@ -12,6 +12,17 @@
    "mature": false,
    "parked_because": "The harvest condition was discovered in-sample; only forward firings are true OOS.",
    "action": "Re-read intraday_drift.json: is the forward hit-rate holding near 76%?"
+  },
+  {
+   "key": "cci_trainable",
+   "label": "cci_overnight — trainable rows (real activation bar)",
+   "n": 55,
+   "threshold": 252,
+   "unit": "labelled sessions carrying CCI",
+   "pct": 21.8,
+   "mature": false,
+   "parked_because": "Cleared its 40-session COVERAGE gate on 2026-07-29 but has far less history than the model; admitting it would truncate listwise training.",
+   "action": "At 252 it can finally join without shrinking the train set — re-check its walk-forward marginal then, and expect active_features() to admit it."
   },
   {
    "key": "b3_close_gap",
