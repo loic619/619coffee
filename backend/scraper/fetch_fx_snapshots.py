@@ -76,7 +76,12 @@ _CHICAGO = ZoneInfo("America/Chicago")
 _LONDON  = ZoneInfo("Europe/London")
 _UTC     = UTC
 
-_KEEP_DAYS = 500
+# Rows retained. Was 500, which the 2026-08-20 backfill filled exactly — the
+# next run would have started dropping the oldest rows to make room, and once
+# a backfill can no longer reach that far back (the source's own limit moves
+# forward with time) a dropped day is gone for good. 1200 covers the model's
+# whole ~1500-session frame with room to spare at ~700 bytes a row.
+_KEEP_DAYS = 1200
 
 # How stale the prior-session 17:30 anchor may be, in calendar days. See
 # _pair_days — this is what keeps a sparsely-quoted pair from contributing a

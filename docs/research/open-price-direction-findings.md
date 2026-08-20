@@ -93,10 +93,56 @@ terms:
 
 So a 200-session backfill clears the 40-day coverage gate many times over and
 makes the feature *testable* on a sample worth believing (n=51 today is not),
-but does **not** on its own put it in the model. `_BACKFILL_MAXRECORDS` is set
-to 40,000 bars (≈415 sessions at 96/session) to aim past 384; whether Barchart
-retains 15-min forex that far back is the binding constraint, and the 1.16b
-run summary reports what actually came back.
+but does **not** on its own put it in the model.
+
+### Backfill executed 2026-08-20 — and cci_overnight GRADES OUT NULL
+Two runs of workflow 1.16b were needed, and the first one's failure was the
+informative part.
+
+**Run 2 (40,000 bars/pair): added nothing for the liquid pairs.** Not
+retention — a hard **5,000-record cap on the response**. Every one of the
+twelve pairs returned exactly 5,000 rows against a 40,000 ask
+(`data/fx_backfill_source_reach.json`). At 96 bars a session that is ~52
+sessions of a liquid pair, which is precisely where BRL/EUR/JPY stopped. A
+bigger number was never going to work.
+
+**Run 3 (paged): 56 → 317 usable days.** `--backfill` now walks the window
+backwards via a *probed* cut-off parameter (`end`, 8 pages). 2,429 new
+pair-days, coverage from 2025-04-04, and — the number that makes gap-filling
+from this source defensible at all — **677 overlapping pair-days with 0
+mismatches** against the forward capture.
+
+Trainable rows went **51 → 207**. Still short of 252, but finally enough to
+grade the feature honestly:
+
+| test | result |
+|---|---|
+| corr(cci_overnight, y) | **+0.052** (t = 0.75, n = 207) |
+| sign-rule accuracy | **50.2%** vs a 53.1% majority baseline — *worse* |
+| walk-forward accuracy, core | 0.6437 (edge +0.1149, 87 matched OOS days) |
+| walk-forward accuracy, core + cci | **0.6437 — identical** |
+| acted | 66.7% on 30 → 68.8% on 32 (two extra calls; noise) |
+
+**Verdict: no evidence of value.** Note what happened to the earlier read — at
+n=51 the correlation was +0.156 and looked mildly encouraging; with four times
+the data it collapses to +0.052 and the sign rule underperforms a coin
+weighted by the base rate. That is the small-sample mirage this whole
+grade-before-activation discipline exists to catch. The watchdog's action for
+`cci_trainable` now says RETIRE rather than ACTIVATE, pending one confirming
+re-run at 252. (min_train was 120 for this test, below production's 252,
+because the sample does not reach it — a research read, not an activation.)
+
+**Two bugs the backfill exposed, both fixed:**
+- `_cci_trainable_rows()` in the watchdog counted "days with ≥6 pairs that are
+  also RC sessions" and reported **314/252 MATURE** while `active_features()`
+  correctly refused at 207. It ignored listwise deletion — roll days are
+  unlabelled and `kc_after_rc_diff` has holes, which costs about a third of
+  the days. It now replicates the model's own dropna. A watchdog that fires
+  before the gate it watches is worse than no watchdog.
+- `_KEEP_DAYS` was 500 and the backfill filled it *exactly*; the next run
+  would have begun dropping the oldest rows, and a dropped day is
+  unrecoverable once the source's own window has moved past it. Raised to
+  1,200.
 
 ## `b3_close_gap` (PR #697, 2026-08) — the model's OWN B3 feature, DORMANT
 Not to be confused with the rejected `b3_after_kc` below — **different

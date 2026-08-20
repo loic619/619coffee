@@ -56,18 +56,44 @@ def _cnl_sessions() -> int | None:
 
 
 def _cci_trainable_rows() -> int | None:
-    """Labelled sessions that actually carry a usable CCI value. The model
-    trains listwise, so this — not the raw 40-session coverage gate — is what
-    decides when cci_overnight can join without truncating the training set."""
+    """Rows the model could ACTUALLY train on with cci_overnight in the set.
+
+    The model trains listwise on dropna(["y"] + active), so a CCI day only
+    counts if that whole row survives — it must also carry the label and the
+    core features. Counting "days with ≥6 pairs that are also RC sessions"
+    overstates it by about a third, because roll days are unlabelled and
+    kc_after_rc_diff has its own holes.
+
+    That is not hypothetical: the 2026-08-20 backfill took CCI coverage to
+    314 such days and this counter reported 314/252 MATURE, while
+    active_features() correctly refused the feature at 207 trainable rows.
+    A watchdog that fires before the gate it watches is worse than no
+    watchdog, so it now replicates the model's own dropna:
+
+      y                — needs rc_open_first, the PRIOR session's rc_last_1730,
+                         and no contract roll between the two.
+      kc_after_rc_diff — needs the prior session's kc_last_1730 + kc_last_1830.
+    """
     d = _load(DATA / "fx_intraday_snapshots.json")
     rows = (d or {}).get("days") or []
-    sess = {r.get("date") for r in (_load(DATA / "intraday_kc_rc_15min.json") or [])}
+    intraday = _load(DATA / "intraday_kc_rc_15min.json") or []
+
+    trainable: set[str] = set()
+    for prev, cur in zip(intraday, intraday[1:]):
+        if cur.get("rc_symbol") != prev.get("rc_symbol"):
+            continue                                   # roll day → unlabelled
+        if not (cur.get("rc_open_first") and prev.get("rc_last_1730")):
+            continue                                   # no target
+        if not (prev.get("kc_last_1730") and prev.get("kc_last_1830")):
+            continue                                   # no kc_after_rc_diff
+        trainable.add(cur.get("date"))
+
     n = 0
     for r in rows:
         pairs = r.get("pairs") or {}
         used = sum(1 for p in pairs.values()
                    if (p or {}).get("prev_1730") and (p or {}).get("at_0300"))
-        if used >= 6 and r.get("date") in sess:
+        if used >= 6 and r.get("date") in trainable:
             n += 1
     return n
 
@@ -171,9 +197,14 @@ WATCHES = [
     ("cci_trainable", "cci_overnight — trainable rows (real activation bar)", _cci_trainable_rows, 252,
      "labelled sessions carrying CCI",
      "Cleared its 40-session COVERAGE gate on 2026-07-29 but has far less "
-     "history than the model; admitting it would truncate listwise training.",
-     "At 252 it can finally join without shrinking the train set — re-check its "
-     "walk-forward marginal then, and expect active_features() to admit it."),
+     "history than the model; admitting it would truncate listwise training. "
+     "The 2026-08-20 backfill took it 51 → 207 trainable rows and made a real "
+     "test possible — and it came back NULL: corr +0.05 (t 0.75, n 207), sign "
+     "rule 50.2% vs a 53.1% baseline, and zero walk-forward marginal over "
+     "kc_after+dsr on matched OOS dates. Expect this one to be rejected.",
+     "Re-run the marginal at 252 and, unless it has changed character, RETIRE "
+     "the feature rather than activating it — the 2026-08 read at n=207 found "
+     "nothing, and the encouraging n=51 signal before it was small-sample noise."),
     ("b3_close_gap", "b3_close_gap — LIVE MODEL activation gate", _b3_close_gap_sessions, 40,
      "sessions captured (gap present)",
      "The model's own B3 construction (post-KC-close window, PR #697) ships "
