@@ -98,12 +98,35 @@ interface MarketSeries {
   projI: Record<number, number>;  // logistic intensity, ly → 2050
 }
 
+// How far back the S-curve reads its growth rate. Seeding from the whole
+// history is what made the old projection run hot: USDA's series carry thin or
+// structurally-zero early years (the US reads 11 kt for 2000 and 0 for 2001),
+// which turned a mature +0.5%/yr market into a +20%/yr one and pushed the 2050
+// aggregate to 15.0 Mt. Fifteen years is a full demand cycle and, on the
+// backtest below, anything from 8 to 20 lands within a few percent of actual —
+// the number is not delicately tuned, but the full history is plainly wrong.
+const SEED_WINDOW = 15;
+
+/** CAGR of intensity over the SEED_WINDOW years ending at `end`, or null. */
+function seedGrowth(inten: Record<number, number>, end: number, win = SEED_WINDOW): number | null {
+  const years = Object.keys(inten).map(Number)
+    .filter(y => y <= end && inten[y] > 0).sort((a, b) => a - b);
+  if (years.length < 3 || !inten[end]) return null;
+  // Earliest year inside the window; falls back to the oldest we have.
+  const start = years.find(y => y >= end - win) ?? years[0];
+  if (start >= end) return null;
+  return Math.pow(inten[end] / inten[start], 1 / (end - start)) - 1;
+}
+
 // Build one market's full projection inputs, or null if it can't be joined.
 function computeSeries(mkt: GrowthMarket, pop: Record<number, number>,
                        cohort?: CohortCountry): MarketSeries | null {
   const cons: Record<number, number> = {};
   for (const a of mkt.annual) {
-    if (a.consumption_mt != null) cons[Number(a.year)] = a.consumption_mt;
+    // Strictly positive: USDA carries structural zeros in years it had not yet
+    // started publishing a market (the US series reads 0 kt for 2001), and a
+    // zero anywhere in the series makes intensity growth meaningless.
+    if (a.consumption_mt != null && a.consumption_mt > 0) cons[Number(a.year)] = a.consumption_mt;
   }
   const inten: Record<number, number> = {};
   for (const ys of Object.keys(cons)) {
@@ -117,9 +140,10 @@ function computeSeries(mkt: GrowthMarket, pop: Record<number, number>,
   const i0 = inten[ly];
   if (!overlap.length || i0 == null) return null;
 
-  // Full-window CAGR of intensity — seeds the S-curve's initial growth rate.
+  // Trailing-window CAGR of intensity — seeds the S-curve's growth rate.
   const y0 = overlap[0];
-  const g = Math.pow(inten[ly] / inten[y0], 1 / (ly - y0)) - 1;
+  const g = seedGrowth(inten, ly);
+  if (g == null) return null;
 
   // Live whole-population median age (UN WPP) at the latest actual year. For
   // analog-anchored markets it drives the demographic discount on K; ceilingK
@@ -162,12 +186,10 @@ function backtest(seriesList: MarketSeries[], H: number): {
     const cut = m.ly - H;
     const iCut = m.inten[cut], pNow = m.pop[m.ly], cNow = m.cons[m.ly];
     if (iCut == null || !pNow || cNow == null) continue;
-    // Growth rate seeded only from the pre-cut window.
-    const pre = Object.keys(m.inten).map(Number).filter(y => y <= cut).sort((a, b) => a - b);
-    if (pre.length < 3) continue;
-    const y0 = pre[0], i0 = m.inten[y0];
-    if (!i0 || cut <= y0) continue;
-    const g = Math.pow(iCut / i0, 1 / (cut - y0)) - 1;
+    // Growth rate seeded only from data at or before the cut — same rule the
+    // live projection uses, so the test measures the model that ships.
+    const g = seedGrowth(m.inten, cut);
+    if (g == null) continue;
     const path = logisticIntensity(iCut, g, m.K, cut, m.ly);
     const iPred = path[m.ly] ?? iCut;
     const predKt = iPred * pNow / 1e6;

@@ -180,24 +180,19 @@ _GROWTH_MARKETS = [
     ("egypt",        "Egypt",          "markets",   "growing", True),
     ("algeria",      "Algeria",        "markets",   "growing", False),
     ("morocco",      "Morocco",        "markets",   "growing", True),
-    ("tunisia",      "Tunisia",        "markets",   "growing", True),
     ("saudi_arabia", "Saudi Arabia",   "markets",   "growing", False),
-    ("israel",       "Israel",         "markets",   "growing", False),
     ("jordan",       "Jordan",         "markets",   "growing", True),
-    ("lebanon",      "Lebanon",        "markets",   "growing", False),
-    ("sudan",        "Sudan",          "markets",   "growing", True),
+    ("iran",         "Iran",           "markets",   "growing", True),
     ("south_africa", "South Africa",   "markets",   "growing", True),
-    ("nigeria",      "Nigeria",        "markets",   "growing", True),
     ("ukraine",      "Ukraine",        "markets",   "growing", True),
     ("serbia",       "Serbia",         "markets",   "growing", False),
+    ("bosnia",       "Bosnia & Herz.", "markets",   "growing", False),
+    ("armenia",      "Armenia",        "markets",   "growing", False),
     ("kazakhstan",   "Kazakhstan",     "markets",   "growing", True),
     ("thailand",     "Thailand",       "markets",   "growing", True),
     ("malaysia",     "Malaysia",       "markets",   "growing", True),
-    ("singapore",    "Singapore",      "markets",   "growing", True),
     ("taiwan",       "Taiwan",         "markets",   "growing", True),
-    ("sri_lanka",    "Sri Lanka",      "markets",   "growing", True),
-    ("pakistan",     "Pakistan",       "markets",   "growing", True),
-    ("argentina",    "Argentina",      "markets",   "growing", False),
+    ("argentina",    "Argentina",      "markets",   "growing", True),
     ("chile",        "Chile",          "markets",   "growing", False),
 
     ("brazil",       "Brazil",         "producers", "producing", False),
@@ -214,6 +209,11 @@ _GROWTH_MARKETS = [
     ("uganda",       "Uganda",         "producers", "producing", True),
     ("tanzania",     "Tanzania",       "producers", "producing", True),
     ("ivory_coast",  "Côte d'Ivoire",  "producers", "producing", False),
+    # Origins outside the balance-sheet roster, so parsed from the consuming
+    # block — same shape, they just don't feed build_balance_sheets.
+    ("venezuela",    "Venezuela",      "markets",   "producing", False),
+    ("ecuador",      "Ecuador",        "markets",   "producing", False),
+    ("el_salvador",  "El Salvador",    "markets",   "producing", False),
 ]
 
 

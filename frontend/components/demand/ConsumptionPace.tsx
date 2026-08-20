@@ -27,15 +27,17 @@ export const MARKET_ISO3: Record<string, string> = {
   new_zealand: "nzl", switzerland: "che", norway: "nor",
   china: "chn", india: "ind", korea: "kor", russia: "rus", turkey: "tur",
   philippines: "phl", egypt: "egy", algeria: "dza", morocco: "mar",
-  tunisia: "tun", sudan: "sdn", saudi_arabia: "sau", israel: "isr",
-  jordan: "jor", lebanon: "lbn", south_africa: "zaf", nigeria: "nga",
-  ukraine: "ukr", serbia: "srb", kazakhstan: "kaz", thailand: "tha",
-  malaysia: "mys", singapore: "sgp", taiwan: "twn", sri_lanka: "lka",
-  pakistan: "pak", argentina: "arg", chile: "chl",
+  saudi_arabia: "sau", jordan: "jor", iran: "irn", south_africa: "zaf",
+  ukraine: "ukr", serbia: "srb", armenia: "arm", kazakhstan: "kaz",
+  thailand: "tha", malaysia: "mys", taiwan: "twn",
+  argentina: "arg", chile: "chl",
   brazil: "bra", indonesia: "idn", vietnam: "vnm", ethiopia: "eth",
   mexico: "mex", colombia: "col", peru: "per", honduras: "hnd",
   guatemala: "gtm", nicaragua: "nic", costa_rica: "cri", uganda: "uga",
-  tanzania: "tza", ivory_coast: "civ",
+  tanzania: "tza", ivory_coast: "civ", venezuela: "ven", ecuador: "ecu",
+  el_salvador: "slv",
+  // Bosnia ranks by volume but UN WPP carries no 18+ cohort for it here, so it
+  // sits out the pace and projection panels rather than being dropped entirely.
 };
 // The EU bloc has no single cohort row — sum its members.
 const EU_MEMBER_ISO3 = ["deu", "fra", "ita", "esp", "pol", "rou", "nld", "bel", "cze",

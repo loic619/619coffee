@@ -76,37 +76,40 @@ _MARKETS = {
     "turkey":      ("turkey", "turkiye", "türkiye"),
     "philippines": ("philippines",),
     "egypt":       ("egypt",),
-    # Aug 2026: widened to ~30 consuming markets for the revamped Consumption
-    # sub-tab (mature "historical demand" set + tea-culture growth markets).
-    # PSD publishes a full global CSV; this list is purely our filter, and a
-    # country the vintage doesn't carry just logs "no rows" and is skipped.
-    "uk":          ("united kingdom", "united kingdom of great britain"),
-    "canada":      ("canada",),
-    "australia":   ("australia",),
-    "new_zealand": ("new zealand",),
-    "switzerland": ("switzerland",),
-    "norway":      ("norway",),
-    "ukraine":     ("ukraine",),
-    "serbia":      ("serbia",),
-    "kazakhstan":  ("kazakhstan",),
-    "algeria":     ("algeria",),
-    "morocco":     ("morocco",),
-    "tunisia":     ("tunisia",),
-    "sudan":       ("sudan",),
+    # Aug 2026: widened for the revamped Consumption sub-tab. Names below are
+    # PSD's own Country_Name spellings, read straight off the release rather
+    # than guessed — countries USDA does not carry (Tunisia, Israel, Lebanon,
+    # Sudan, Pakistan) or carries at a flat zero (Nigeria, Sri Lanka, Ghana,
+    # Rwanda…) are deliberately absent, since an empty row is worse than no
+    # row. The cut is domestic consumption ≥ ~15 kt/yr; together with the
+    # producer block below that reaches ~10.6 Mt, i.e. effectively all of the
+    # ICO world reference.
+    "uk":           ("united kingdom",),
+    "canada":       ("canada",),
+    "australia":    ("australia",),
+    "new_zealand":  ("new zealand",),
+    "switzerland":  ("switzerland",),
+    "norway":       ("norway",),
+    "ukraine":      ("ukraine",),
+    "serbia":       ("serbia",),
+    "kazakhstan":   ("kazakhstan",),
+    "algeria":      ("algeria",),
+    "morocco":      ("morocco",),
     "saudi_arabia": ("saudi arabia",),
-    "israel":      ("israel",),
-    "jordan":      ("jordan",),
-    "lebanon":     ("lebanon",),
+    "jordan":       ("jordan",),
+    "iran":         ("iran",),
     "south_africa": ("south africa",),
-    "nigeria":     ("nigeria",),
-    "thailand":    ("thailand",),
-    "malaysia":    ("malaysia",),
-    "singapore":   ("singapore",),
-    "taiwan":      ("taiwan",),
-    "argentina":   ("argentina",),
-    "chile":       ("chile",),
-    "sri_lanka":   ("sri lanka",),
-    "pakistan":    ("pakistan",),
+    "thailand":     ("thailand",),
+    "malaysia":     ("malaysia",),
+    "taiwan":       ("taiwan",),
+    "argentina":    ("argentina",),
+    "chile":        ("chile",),
+    "armenia":      ("armenia",),
+    "bosnia":       ("bosnia and herzegovina",),
+    # Origins big enough to rank but outside the balance-sheet roster below.
+    "venezuela":    ("venezuela",),
+    "ecuador":      ("ecuador",),
+    "el_salvador":  ("el salvador",),
 }
 
 # Top producing countries (production/exports/domestic consumption).
