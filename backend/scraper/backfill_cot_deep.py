@@ -60,10 +60,13 @@ _YEARS = range(2011, 2022)           # 2022+ already covered by cot.json ldn
 
 # ── Part 1: ICE COTHist weekly rows ──────────────────────────────────────────
 
+from scraper.sources.macro_cot import _ICE_HEADERS  # noqa: E402 — shared UA
+
 def _year_rows(year: int) -> list[dict]:
     url = f"https://www.ice.com/publicdocs/futures/COTHist{year}.csv"
     try:
-        resp = get_with_backoff(url, timeout=(10, 120))
+        # Browser UA: ICE 403s the default requests agent (see macro_cot).
+        resp = get_with_backoff(url, timeout=(10, 120), headers=_ICE_HEADERS)
         df = pd.read_csv(io.StringIO(resp.content.decode("utf-8-sig")), low_memory=False)
     except Exception as e:
         print(f"[cot_deep] {year}: download/parse failed — {e}")

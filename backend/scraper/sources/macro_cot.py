@@ -428,9 +428,21 @@ def _download_cftc_df(year: int) -> pd.DataFrame:
             return pd.read_csv(f, low_memory=False)
 
 
+# ICE's edge rejects a bare "python-requests/x.y" with 403 Forbidden — the
+# 2026-08-20 COT failure. Every other ICE fetcher in this repo already sends a
+# browser UA for exactly that reason (futures._fetch_ice_robusta_cot,
+# ice_certified_stocks/spa_api, probe_ice_stocks); this one was the outlier.
+# get_with_backoff treats a non-429 4xx as fatal, so the 403 killed the run
+# outright rather than retrying.
+_ICE_HEADERS = {
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
+}
+
+
 def _download_ice_df(year: int) -> pd.DataFrame:
     url = f"https://www.ice.com/publicdocs/futures/COTHist{year}.csv"
-    resp = get_with_backoff(url, timeout=(10, 60))
+    resp = get_with_backoff(url, timeout=(10, 60), headers=_ICE_HEADERS)
     # ICE files may have a UTF-8 BOM on the first column — use utf-8-sig to strip it
     return pd.read_csv(io.StringIO(resp.content.decode("utf-8-sig")), low_memory=False)
 
