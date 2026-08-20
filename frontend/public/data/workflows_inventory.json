@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-20T09:24:01.761152Z",
-  "count": 79,
+  "generated_at": "2026-08-20T11:21:34.441738Z",
+  "count": 80,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -32,13 +32,13 @@
         "workflow_dispatch"
       ],
       "crons": [
-        "33 17 * * 1-5",
-        "33 18 * * 1-5",
+        "25 17 * * 1-5",
+        "25 18 * * 1-5",
         "37 21 * * 1-5"
       ],
       "workflow_run_deps": [],
       "concurrency_group": "b3-kc-close",
-      "timeout_minutes": 10
+      "timeout_minutes": 25
     },
     {
       "file": "backfill-b3-conilon.yml",
@@ -82,6 +82,17 @@
       "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": null,
+      "timeout_minutes": 30
+    },
+    {
+      "file": "backfill-fx-snapshots.yml",
+      "name": "1.16b \u2013 Backfill Intraday FX Snapshots",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": "open-direction",
       "timeout_minutes": 30
     },
     {
