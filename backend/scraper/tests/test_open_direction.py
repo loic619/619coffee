@@ -133,6 +133,41 @@ def test_cci_overnight_respects_overlap_threshold(tmp_path, monkeypatch):
     assert frame["cci_overnight"].notna().sum() >= od._MIN_CCI_OVERLAP
 
 
+def test_thin_optional_feature_cannot_destroy_the_training_set(tmp_path, monkeypatch):
+    """Regression, 2026-08: run() trains on dropna(["y"] + active) — LISTWISE.
+
+    A feature that merely clears its COVERAGE gate but has far less history
+    than the model does not add a column, it truncates the training set to
+    its own span. Live consequence: cci_overnight crossed 40 sessions on
+    2026-07-29, training collapsed 1168 → 51 rows, and run() started
+    returning "Only 51 labelled sessions (need >= 252)" — the model went
+    dark. active_features() must therefore refuse a candidate whose
+    inclusion would leave fewer than _MIN_TRAIN trainable rows.
+    """
+    p, rows = _write_intraday(tmp_path, n=420, roll_at=(100, 200, 300))
+    monkeypatch.setattr(od, "_INTRADAY", p)
+    dates = pd.to_datetime([r["date"] for r in rows])
+
+    # Coverage gate cleared, but the feature only exists on the last handful
+    # of sessions — nowhere near enough to train on.
+    thin = od._MIN_CCI_OVERLAP + 5
+    assert thin < od._MIN_TRAIN, "test presumes the coverage gate is below MIN_TRAIN"
+    monkeypatch.setattr(od, "_FX_SNAPS", _write_snaps(tmp_path, dates[-thin:]))
+    frame = od.build_dataset()
+
+    assert frame["cci_overnight"].notna().sum() >= od._MIN_CCI_OVERLAP  # gate cleared
+    active = od.active_features(frame)
+    assert "cci_overnight" not in active, "thin feature must stay dormant"
+
+    # …and the core model is still trainable, which is the point.
+    assert len(frame.dropna(subset=["y"] + active)) >= od._MIN_TRAIN
+
+    # With enough overlapping history the same feature IS admitted.
+    monkeypatch.setattr(od, "_FX_SNAPS", _write_snaps(tmp_path, dates))
+    frame = od.build_dataset()
+    assert "cci_overnight" in od.active_features(frame)
+
+
 # ── brent_overnight activation + series parse ────────────────────────────────
 
 def _write_brent(tmp_path, dates):
