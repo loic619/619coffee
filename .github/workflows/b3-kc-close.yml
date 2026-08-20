@@ -3,8 +3,14 @@ name: "1.5 – B3 at KC close + final fechamento"
 # Two-phase capture of the B3 arabica 4/5 (ICF) front price
 # (backend/scraper/capture_b3_at_kc_close.py):
 #   kc_close — live price at the ICE Coffee C settle (13:30 ET). Fired at
-#              17:33 AND 18:33 UTC; a New-York wall-clock guard in the script
+#              17:25 AND 18:25 UTC; a New-York wall-clock guard in the script
 #              lets exactly one through per DST season.
+#              The :25 slots are 5 min AHEAD of the settle on purpose. GitHub
+#              runs crons late by 15–25 min routinely, and the script waits
+#              for the settle if it somehow arrives early — so aiming early
+#              and waiting is reliable, while aiming late is not. The original
+#              :33 slots plus a tight 13:28–13:52 NY fence never captured a
+#              single session: every fire drifted to 13:52–13:56 NY.
 #   final    — the session's official fechamento ~30 min after B3's
 #              after-hours closes (18:37 BRT = 21:37 UTC, Brazil has no DST),
 #              storing the post-KC-close gap and refreshing the panel series
@@ -12,8 +18,8 @@ name: "1.5 – B3 at KC close + final fechamento"
 
 on:
   schedule:
-    - cron: '33 17 * * 1-5'    # kc_close (EDT season)
-    - cron: '33 18 * * 1-5'    # kc_close (EST season)
+    - cron: '25 17 * * 1-5'    # kc_close (EDT season)
+    - cron: '25 18 * * 1-5'    # kc_close (EST season)
     - cron: '37 21 * * 1-5'    # final (18:37 BRT)
   workflow_dispatch:
     inputs:
@@ -30,7 +36,7 @@ concurrency:
 jobs:
   capture:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25          # kc_close may wait up to ~11 min for the settle
     permissions:
       contents: write
     steps:
@@ -43,9 +49,13 @@ jobs:
       - name: Resolve phase
         id: phase
         run: |
+          # -ge 21, not = 21: the 21:37 slot drifts, and a fire that slipped
+          # past 22:00 UTC would otherwise be routed to kc_close and skipped
+          # by its NY guard — losing the fechamento for the day. Same class of
+          # bug as the one that cost kc_close every session it ever ran.
           if [ -n "${{ inputs.phase }}" ]; then
             echo "phase=${{ inputs.phase }}" >> "$GITHUB_OUTPUT"
-          elif [ "$(date -u +%H)" = "21" ]; then
+          elif [ "$(date -u +%H)" -ge 21 ]; then
             echo "phase=final" >> "$GITHUB_OUTPUT"
           else
             echo "phase=kc_close" >> "$GITHUB_OUTPUT"

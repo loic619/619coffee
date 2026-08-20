@@ -22,8 +22,11 @@ Two-phase daily capture of the B3 arabica 4/5 (ICF) front price:
 
 Scheduling (workflow b3-kc-close.yml)
 =====================================
-  kc_close: cron 17:33 UTC AND 18:33 UTC Mon–Fri; a New-York wall-clock
-            guard (13:28–13:52 ET) lets exactly one through per DST season.
+  kc_close: cron 17:25 UTC AND 18:25 UTC Mon–Fri; a New-York wall-clock
+            guard (13:20–14:30 ET) lets exactly one through per DST season.
+            The window is deliberately loose: GitHub runs crons late by
+            15–25 min as a matter of course, and a tight fence around the
+            13:30 settle rejects every real fire (it did — see _WINDOW_OPEN).
   final:    cron 21:37 UTC Mon–Fri = 18:37 BRT (Brazil has no DST), ~30 min
             after the after-hours close; a BRT guard skips early fires.
             This run also refreshes brazil_b3_arabica.json, so the futures
@@ -39,6 +42,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -51,6 +55,20 @@ _API = "https://cotacao.b3.com.br/mds/api/v1/DerivativeQuotation/ICF"
 _KEEP = 520                    # ~2y of sessions
 _NY = ZoneInfo("America/New_York")
 _BR = ZoneInfo("America/Sao_Paulo")
+
+# KC settles 13:30 NY. The guard's job is to admit exactly ONE of the two
+# kc_close crons per DST season — NOT to be a tight fence around the settle,
+# which is what it was and why it never fired once. GitHub's scheduler runs
+# crons LATE, routinely by 15–25 minutes: every scheduled fire of the 17:33
+# UTC slot landed at 17:52–17:56 UTC, i.e. 13:52–13:56 NY, and the old
+# 13:28–13:52 fence rejected all of them — the first by a single minute. The
+# window below tolerates the observed drift while still excluding the other
+# season's cron (which drifts to ≥14:50 NY), and a too-early fire waits for
+# the settle instead of being thrown away. `late_min` is stored per row so a
+# capture that drifted far from the settle can be filtered later.
+_KC_SETTLE    = 13 * 60 + 30
+_WINDOW_OPEN  = 13 * 60 + 20
+_WINDOW_CLOSE = 14 * 60 + 30
 
 # Noticiasagricolas curve months are Portuguese ("Setembro/2026"); the API
 # symbol carries the futures month code (ICFU26). Map code → PT month name.
@@ -114,27 +132,46 @@ def _fetch_front_live() -> tuple[str, float] | None:
 def _phase_kc_close() -> int:
     now_ny = datetime.now(_NY)
     hm = now_ny.hour * 60 + now_ny.minute
-    if not (13 * 60 + 28 <= hm <= 13 * 60 + 52):
-        print(f"[b3-kc-close] {now_ny:%H:%M} NY is outside the KC-close window — skip "
+    if not (_WINDOW_OPEN <= hm <= _WINDOW_CLOSE):
+        print(f"[b3-kc-close] {now_ny:%H:%M} NY is outside the KC-close window "
+              f"({_WINDOW_OPEN // 60}:{_WINDOW_OPEN % 60:02d}–"
+              f"{_WINDOW_CLOSE // 60}:{_WINDOW_CLOSE % 60:02d} NY) — skip "
               "(the other cron fire covers this DST season)")
         return 0
     if now_ny.weekday() >= 5:
         print("[b3-kc-close] weekend — skip")
         return 0
+    if hm < _KC_SETTLE:                 # cron fired early — wait for the settle
+        wait = (_KC_SETTLE + 1 - hm) * 60 - now_ny.second
+        print(f"[b3-kc-close] {now_ny:%H:%M} NY is before the KC settle — "
+              f"waiting {wait}s")
+        time.sleep(max(0, wait))
+        now_ny = datetime.now(_NY)
+        hm = now_ny.hour * 60 + now_ny.minute
     got = _fetch_front_live()
     if not got:
         return 0                     # logged above; missing day is acceptable
     symb, px = got
     session = datetime.now(_BR).date().isoformat()
+    late = hm - _KC_SETTLE
     doc = _load()
     if any(r["date"] == session and r.get("at_kc_close") for r in doc["days"]):
         print(f"[b3-kc-close] {session} already captured — keep first")
         return 0
+    row = next((r for r in doc["days"] if r["date"] == session), {"date": session})
     doc["days"] = [r for r in doc["days"] if r["date"] != session]
-    doc["days"].append({"date": session, "symb": symb, "at_kc_close": px,
-                        "captured_at": datetime.now(UTC).isoformat()})
+    # Merge rather than replace: `final` may already have run and stored
+    # b3_final for this session (it does when kc_close is re-dispatched by
+    # hand after the fact), and overwriting it would throw away the leg that
+    # makes the gap computable.
+    row.update({"symb": symb, "at_kc_close": px,
+                "captured_at": datetime.now(UTC).isoformat(),
+                "captured_ny": now_ny.strftime("%H:%M"),
+                "late_min": late})
+    doc["days"].append(row)
     _save(doc)
-    print(f"[b3-kc-close] {session}: {symb} at KC close = US$ {px}")
+    print(f"[b3-kc-close] {session}: {symb} at KC close = US$ {px} "
+          f"(captured {now_ny:%H:%M} NY, {late:+d} min vs the settle)")
     return 0
 
 
