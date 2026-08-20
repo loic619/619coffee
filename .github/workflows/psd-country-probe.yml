@@ -1,0 +1,66 @@
+name: 9.99 – PSD country probe (temporary)
+
+# Throwaway diagnostic: prints every country USDA's coffee PSD carries, with its
+# latest domestic consumption, so the consuming-market filter can be built from
+# the real Country_Name spellings instead of guessed aliases. Delete after use.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests
+      - name: Probe
+        run: |
+          python - <<'PY'
+          import csv, io, zipfile, requests
+          from collections import defaultdict
+
+          URL = "https://apps.fas.usda.gov/psdonline/downloads/psd_coffee_csv.zip"
+          r = requests.get(URL, headers={"User-Agent": "Mozilla/5.0"}, timeout=120)
+          r.raise_for_status()
+          with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
+              name = next(n for n in zf.namelist() if n.lower().endswith(".csv"))
+              text = zf.read(name).decode("utf-8-sig", errors="replace")
+
+          reader = csv.DictReader(io.StringIO(text))
+          print("COLUMNS:", reader.fieldnames)
+
+          cons = defaultdict(dict)   # country -> {year: value}
+          countries = set()
+          attrs = set()
+          for row in reader:
+              c = (row.get("Country_Name") or row.get("Country") or "").strip()
+              countries.add(c)
+              a = (row.get("Attribute_Description") or row.get("Attribute") or "").strip()
+              attrs.add(a)
+              if not a.startswith("Domestic Consumption"):
+                  continue
+              y = (row.get("Market_Year") or row.get("Calendar_Year") or "").strip()
+              v = (row.get("Value") or "").strip().replace(",", "")
+              try:
+                  cons[c][int(y)] = float(v)
+              except ValueError:
+                  pass
+
+          print(f"COUNTRIES ({len(countries)}):")
+          for c in sorted(countries):
+              print("   ", repr(c))
+          print("ATTRIBUTES:", sorted(attrs))
+
+          print("TOP CONSUMERS (latest year, thousand 60kg bags -> kt):")
+          rows = []
+          for c, series in cons.items():
+              if not series:
+                  continue
+              y = max(series)
+              rows.append((series[y], c, y))
+          for v, c, y in sorted(rows, reverse=True):
+              print(f"    {v * 60 / 1000:9.1f} kt  {y}  {c}")
+          PY
