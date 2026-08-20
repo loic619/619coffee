@@ -6,6 +6,9 @@ name: 9.99 – PSD country probe (temporary)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [consumption-revamp]
+    paths: [".github/workflows/psd-country-probe.yml"]
 
 jobs:
   probe:
