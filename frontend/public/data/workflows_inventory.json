@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T09:09:25.238427Z",
+  "generated_at": "2026-08-20T09:24:01.761152Z",
   "count": 79,
   "workflows": [
     {
@@ -455,17 +455,6 @@
     {
       "file": "probe-ice-egress.yml",
       "name": "Z \u2013 Probe: ICE certified-stocks egress (diagnostic)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 10
-    },
-    {
-      "file": "probe-tradespread.yml",
-      "name": "Probe: acaphe tradespread page (temporary)",
       "triggers": [
         "workflow_dispatch"
       ],
@@ -1011,6 +1000,21 @@
       ],
       "concurrency_group": "source-sentinel",
       "timeout_minutes": 10
+    },
+    {
+      "file": "tradespread.yml",
+      "name": "1.7 \u2013 Traded tape (acaphe tradespread)",
+      "triggers": [
+        "schedule",
+        "workflow_dispatch"
+      ],
+      "crons": [
+        "2 18 * * 1-5",
+        "2 19 * * 1-5"
+      ],
+      "workflow_run_deps": [],
+      "concurrency_group": "tradespread",
+      "timeout_minutes": 12
     },
     {
       "file": "ucda-monthly-reports.yml",
