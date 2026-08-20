@@ -64,6 +64,8 @@ from scraper.validate_export import safe_write_json  # noqa: E402
 
 _REPO    = Path(__file__).resolve().parents[2]
 OUT_PATH = _REPO / "frontend" / "public" / "data" / "fx_intraday_snapshots.json"
+# Written by --backfill only: how deep the SOURCE went, per pair.
+REPORT_PATH = _REPO / "data" / "fx_backfill_source_reach.json"
 
 _CHICAGO = ZoneInfo("America/Chicago")
 _LONDON  = ZoneInfo("Europe/London")
@@ -271,6 +273,36 @@ def _update_brent_anchors(bars: list[tuple[datetime, float]]) -> int:
     return len(added)
 
 
+def _write_backfill_report(maxrecords: int, reach: dict, filled: int, kept: int,
+                           mismatched: int, usable: list[str]) -> None:
+    """Commit what the SOURCE was actually willing to serve, per pair.
+
+    A backfill's most valuable output is not the rows it adds, it is the
+    answer to "how far back can this go at all" — and that answer lives only
+    in a run log that expires. Writing it next to the data makes the ceiling
+    auditable, and makes a re-run's improvement (or lack of one) a diff
+    rather than a memory. `bars` vs `maxrecords` is the tell: bars well under
+    the ask means the source ran out of history, not that we asked too
+    politely.
+    """
+    ranked = sorted(reach.items(), key=lambda kv: -kv[1].get("anchor_days", 0))
+    safe_write_json(REPORT_PATH, {
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "note": ("What Barchart's queryminutes actually returned per pair for a "
+                 "--backfill pull. bars << maxrecords means the source is out of "
+                 "history for that symbol; the liquid pairs print 96 bars a "
+                 "session, the thin ones far fewer, so the same record count "
+                 "buys wildly different calendar reach."),
+        "maxrecords_requested": maxrecords,
+        "merge": {"new_pair_days": filled, "confirmed_on_overlap": kept,
+                  "mismatched_on_overlap": mismatched},
+        "usable_days_after": len(usable),
+        "usable_span": [usable[0], usable[-1]] if usable else None,
+        "pairs": dict(ranked),
+    }, ensure_ascii=False, indent=1)
+    print(f"[fx_snaps] source-reach report → {REPORT_PATH.name}")
+
+
 def _agrees(old: dict, new: dict, tol: float = 1e-6) -> bool:
     """Do a stored record and a freshly-pulled one describe the same anchors?"""
     for k in ("prev_1730", "at_0300"):
@@ -315,16 +347,26 @@ def run(maxrecords: int = 2000, backfill: bool = False) -> dict:
 
     per_day: dict[str, dict] = {}
     ok_pairs = 0
+    reach: dict[str, dict] = {}
     for ticker in tickers:
         bars = _parse_bars(raw.get(_BARCHART_FX[ticker], ""))
         if not bars:
             print(f"[fx_snaps] {ticker} ({_BARCHART_FX[ticker]}): no bars — skipped")
+            reach[ticker] = {"bars": 0, "anchor_days": 0}
             continue
         ok_pairs += 1
         l1730, u0300 = _anchors(bars)
         pd_ = _pair_days(l1730, u0300)
         for d, rec in pd_.items():
             per_day.setdefault(d, {})[ticker] = rec
+        reach[ticker] = {
+            "bars": len(bars),
+            "anchor_days": len(pd_),
+            "first_bar": bars[0][0].astimezone(_UTC).strftime("%Y-%m-%d"),
+            "last_bar":  bars[-1][0].astimezone(_UTC).strftime("%Y-%m-%d"),
+            "first_day": min(pd_) if pd_ else None,
+            "last_day":  max(pd_) if pd_ else None,
+        }
         if backfill:
             span = f"{min(pd_)} → {max(pd_)}" if pd_ else "none"
             print(f"[fx_snaps] {ticker:9s} {len(bars):6d} bars · "
@@ -377,6 +419,8 @@ def run(maxrecords: int = 2000, backfill: bool = False) -> dict:
         ensure_ascii=False, indent=1)
 
     usable = [r["date"] for r in days if len(r["pairs"]) >= 6]
+    if backfill:
+        _write_backfill_report(maxrecords, reach, filled, kept, mismatched, usable)
     print(f"[fx_snaps] pairs ok {ok_pairs}/{len(tickers)} · {len(days)} days stored "
           f"({len(usable)} with ≥6-pair coverage) · latest {days[-1]['date']}")
     if usable:

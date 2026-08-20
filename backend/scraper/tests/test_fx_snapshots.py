@@ -110,6 +110,9 @@ def test_backfill_fills_gaps_and_never_overwrites_the_live_record(tmp_path, monk
     """
     out = tmp_path / "fx_intraday_snapshots.json"
     monkeypatch.setattr(fx, "OUT_PATH", out)
+    # backfill also writes the source-reach report — keep synthetic bar counts
+    # out of the committed one (the same trap the open-direction tests hit).
+    monkeypatch.setattr(fx, "REPORT_PATH", tmp_path / "reach.json")
     monkeypatch.setattr(fx, "_BARCHART_FX", {"BRL=X": "^USDBRL", "JPY=X": "^USDJPY"})
     monkeypatch.setattr(fx, "_fetch_barchart_15m",
                         _stub_fetch({"^USDBRL": _synthetic_csv(10, 5.0),
@@ -131,6 +134,14 @@ def test_backfill_fills_gaps_and_never_overwrites_the_live_record(tmp_path, monk
     # …and every hole is filled, including the other pair on that same date
     assert "JPY=X" in saved["2026-01-07"]
     assert len(saved) > 1 and all("BRL=X" in p for p in saved.values())
+
+    # the source-reach report records what Barchart was willing to serve —
+    # this is the output that tells us whether a deeper ask would help at all
+    reach = json.loads((tmp_path / "reach.json").read_text())
+    assert reach["maxrecords_requested"] == 500
+    assert reach["merge"]["mismatched_on_overlap"] == 1
+    assert reach["pairs"]["BRL=X"]["bars"] > 0
+    assert reach["pairs"]["BRL=X"]["first_day"] <= reach["pairs"]["BRL=X"]["last_day"]
 
 
 def test_daily_mode_still_lets_the_newest_fetch_win(tmp_path, monkeypatch):
