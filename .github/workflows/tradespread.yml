@@ -1,0 +1,74 @@
+name: "1.7 – Traded tape (acaphe tradespread)"
+
+# One fetch per trading day, 30 min after the ICE Arabica close (13:30 ET), by
+# which time London robusta has also been shut for an hour — so a single run
+# captures the full tape for BOTH markets.
+#
+# 14:00 New York is 18:00 UTC in EDT and 19:00 UTC in EST; both fire and the
+# New-York wall-clock guard inside fetch_tradespread.py lets exactly one
+# through per season (same pattern as the B3 and KC-at-RC-close captures).
+
+on:
+  schedule:
+    - cron: '2 18 * * 1-5'     # 14:00 ET while EDT
+    - cron: '2 19 * * 1-5'     # 14:00 ET while EST
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Bypass the post-close window guard (manual test)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: tradespread
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install --quiet -r scraper/requirements.txt
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}
+      # ubuntu-latest (noble) has no `libasound2` — only `libasound2t64` — so
+      # `--with-deps` aborts the whole install. Install the OS libs separately
+      # and let the browser install stand on its own.
+      - name: Install Playwright Chromium
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/*microsoft* /etc/apt/sources.list.d/*azure* || true
+          playwright install-deps chromium || sudo apt-get install -y --no-install-recommends libasound2t64 || true
+          playwright install chromium
+      - name: Fetch the tape
+        working-directory: backend
+        env:
+          ACAPHE_USER: ${{ secrets.ACAPHE_USER }}
+          ACAPHE_PASS: ${{ secrets.ACAPHE_PASS }}
+        run: |
+          PYTHONPATH=. python -m scraper.fetch_tradespread \
+            ${{ inputs.force && '--force' || '' }}
+      - name: Commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          [ -f data/tradespread_archive.json ] && git add data/tradespread_archive.json || true
+          [ -f frontend/public/data/tradespread.json ] && git add frontend/public/data/tradespread.json || true
+          if git diff --cached --quiet; then echo "No changes."; else
+            git commit -m "data: traded tape $(date -u +%Y-%m-%d) [skip ci]"
+            for i in 1 2 3 4 5; do
+              git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push && exit 0
+              sleep $((RANDOM % 5 + 3))
+            done
+            echo "::error::push failed"; exit 1
+          fi
