@@ -176,3 +176,22 @@ def test_upsert_bulk_keeps_markets_separate(db, scraper_db):
 def test_upsert_bulk_empty_is_noop(db, scraper_db):
     from scraper.sources.cot_combined import upsert_combined_bulk
     upsert_combined_bulk(db, "ny", {})     # must not raise
+
+
+def test_ldn_filter_survives_ice_name_drift():
+    # ICE's naming is inconsistent across markets, so the LDN filter anchors on
+    # a prefix. Both the canonical name and a drifted suffix must match, and
+    # the futures-only row must still be excluded.
+    for full_name in (
+        "ICE Robusta Coffee Futures and Options - ICE Futures Europe",
+        "ICE Robusta Coffee Futures and Options - ICE Futures Europe ",
+        "ICE Robusta Coffee Futures and Options - ICE Futures Eur",
+    ):
+        df = _cftc_frame([
+            ("ICE Robusta Coffee Futures - ICE Futures Europe", 260811, {"mm_long": 47_408}),
+            (full_name, 260811, {"mm_long": 45_971}),
+        ])
+        out = parse_combined(df, COMBINED_FILTERS["ldn"])
+        assert out, f"no match for {full_name!r}"
+        (_, fields), = out.items()
+        assert fields[("mm", "long")] == 45_971, f"wrong row for {full_name!r}"
