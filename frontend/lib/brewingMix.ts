@@ -175,6 +175,51 @@ export const BREWING: Record<string, BrewingProfile> = {
     confidence: "medium",
     note: "Among the world's most instant-dominant markets (3-in-1 sachets); ~2024.",
   },
+  // Larger markets added with the Aug 2026 ranking expansion. Confidence is
+  // "low" where no national survey was consulted and the split is inferred
+  // from brewing tradition and import composition — shown, not hidden.
+  algeria: {
+    retail: { instant: 0.10, ground: 0.86, wholeBean: 0.03, singleServe: 0.01 },
+    outOfHomeShare: 0.30,
+    confidence: "low",
+    note: "Very high per-capita for the region; finely-ground Turkish-style brewing, little instant. Inferred from import mix.",
+  },
+  saudi_arabia: {
+    retail: { instant: 0.45, ground: 0.40, wholeBean: 0.10, singleServe: 0.05 },
+    outOfHomeShare: 0.40,
+    confidence: "low",
+    note: "Traditional qahwa (lightly-roasted ground) alongside heavy instant; specialty cafés growing fast. No survey consulted.",
+  },
+  ukraine: {
+    retail: { instant: 0.55, ground: 0.28, wholeBean: 0.12, singleServe: 0.05 },
+    outOfHomeShare: 0.25,
+    confidence: "low",
+    note: "Instant-led as in the wider region, with a strong pre-war urban café scene; wartime data is thin.",
+  },
+  thailand: {
+    retail: { instant: 0.70, ground: 0.18, wholeBean: 0.09, singleServe: 0.03 },
+    outOfHomeShare: 0.45,
+    confidence: "low",
+    note: "3-in-1 sachets dominate at home while café chains and street espresso drive an unusually high out-of-home share.",
+  },
+  morocco: {
+    retail: { instant: 0.30, ground: 0.65, wholeBean: 0.03, singleServe: 0.02 },
+    outOfHomeShare: 0.35,
+    confidence: "low",
+    note: "Ground (often spiced) coffee served in cafés against a tea-dominant hot-drink culture. Inferred, not surveyed.",
+  },
+  argentina: {
+    retail: { instant: 0.55, ground: 0.33, wholeBean: 0.08, singleServe: 0.04 },
+    outOfHomeShare: 0.35,
+    confidence: "low",
+    note: "Instant-heavy at home; mate, not tea, is the competing hot drink. Café culture strong in Buenos Aires.",
+  },
+  taiwan: {
+    retail: { instant: 0.35, ground: 0.25, wholeBean: 0.22, singleServe: 0.18 },
+    outOfHomeShare: 0.55,
+    confidence: "low",
+    note: "Convenience-store coffee makes out-of-home unusually dominant; specialty whole-bean well established.",
+  },
 };
 
 /** Weighted green-grams per cup for a profile (retail mix + OOH blend). */
