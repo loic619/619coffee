@@ -102,14 +102,18 @@ export function transformApiData(rows: CotRawRow[]): ProcessedCotRow[] {
     // `*_opt`. Absent for weeks with no combined report and for legacy rows —
     // undefined then, so the gauges can hide the options bar rather than draw
     // a fake zero. Values are delta-adjusted and CAN be negative.
-    const optObj = (m: Record<string, number | null> | undefined): CotMarketPositions | undefined => {
+    const optObj = (m: Record<string, number | null> | undefined): Partial<CotMarketPositions> | undefined => {
       if (!m || m.pmpu_long_opt == null) return undefined;
+      // `?? undefined` (not `?? 0`): a leg the report doesn't carry must stay
+      // ABSENT so the gauge hides its options bar. Zero would read as "this
+      // cohort has no options book", which is a different claim.
+      const v = (k: string) => m[k] ?? undefined;
       return {
-        pmpuLong:    m.pmpu_long_opt   ?? 0,  pmpuShort:   m.pmpu_short_opt  ?? 0,  pmpuSpread:   0,
-        swapLong:    m.swap_long_opt   ?? 0,  swapShort:   m.swap_short_opt  ?? 0,  swapSpread:   m.swap_spread_opt  ?? 0,
-        mmLong:      m.mm_long_opt     ?? 0,  mmShort:     m.mm_short_opt    ?? 0,  mmSpread:     m.mm_spread_opt    ?? 0,
-        otherLong:   m.other_long_opt  ?? 0,  otherShort:  m.other_short_opt ?? 0,  otherSpread:  m.other_spread_opt ?? 0,
-        nonRepLong:  m.nr_long_opt     ?? 0,  nonRepShort: m.nr_short_opt    ?? 0,  nonRepSpread: 0,
+        pmpuLong:    v("pmpu_long_opt"),   pmpuShort:   v("pmpu_short_opt"),
+        swapLong:    v("swap_long_opt"),   swapShort:   v("swap_short_opt"),   swapSpread:   v("swap_spread_opt"),
+        mmLong:      v("mm_long_opt"),     mmShort:     v("mm_short_opt"),     mmSpread:     v("mm_spread_opt"),
+        otherLong:   v("other_long_opt"),  otherShort:  v("other_short_opt"),  otherSpread:  v("other_spread_opt"),
+        nonRepLong:  v("nr_long_opt"),     nonRepShort: v("nr_short_opt"),
       };
     };
     const nyOptObj  = optObj(ny  as unknown as Record<string, number | null>);
