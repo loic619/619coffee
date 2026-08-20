@@ -152,23 +152,77 @@ def _psd_producers(psd_data: dict | None) -> dict | None:
 # source block is whichever of psd_data["markets"] or psd_data["producers"]
 # carries it (the PSD scraper parses both with the same shape).
 _GROWTH_MARKETS = [
-    ("china",       "China",         "markets"),
-    ("india",       "India",         "producers"),
-    ("brazil",      "Brazil",        "producers"),
-    ("indonesia",   "Indonesia",     "producers"),
-    ("vietnam",     "Vietnam",       "producers"),
-    ("russia",      "Russia",        "markets"),
-    ("mexico",      "Mexico",        "producers"),
-    ("turkey",      "Turkey",        "markets"),
-    ("philippines", "Philippines",   "markets"),
-    ("egypt",       "Egypt",         "markets"),
-    ("korea",       "South Korea",   "markets"),
-    ("ethiopia",    "Ethiopia",      "producers"),
+    # (short, display name, PSD block, demand group, tea-culture flag)
+    #
+    # group — how the Consumption sub-tab clusters the ranking:
+    #   "producing"  origin countries whose own domestic demand matters
+    #   "historical" mature demand (Europe, North America, Japan, Oceania)
+    #   "growing"    emerging consumer markets
+    # tea_culture — True where hot-drink culture is tea-dominant (or coffee is
+    #   a recent arrival), so a low per-capita number is a starting point rather
+    #   than a ceiling. Judgement call, documented not measured.
+    ("usa",          "United States",  "markets",   "historical", False),
+    ("eu",           "European Union", "markets",   "historical", False),
+    ("japan",        "Japan",          "markets",   "historical", False),
+    ("uk",           "United Kingdom", "markets",   "historical", True),
+    ("canada",       "Canada",         "markets",   "historical", False),
+    ("australia",    "Australia",      "markets",   "historical", False),
+    ("new_zealand",  "New Zealand",    "markets",   "historical", False),
+    ("switzerland",  "Switzerland",    "markets",   "historical", False),
+    ("norway",       "Norway",         "markets",   "historical", False),
+
+    ("china",        "China",          "markets",   "growing", True),
+    ("india",        "India",          "producers", "growing", True),
+    ("korea",        "South Korea",    "markets",   "growing", True),
+    ("russia",       "Russia",         "markets",   "growing", True),
+    ("turkey",       "Turkey",         "markets",   "growing", True),
+    ("philippines",  "Philippines",    "markets",   "growing", False),
+    ("egypt",        "Egypt",          "markets",   "growing", True),
+    ("algeria",      "Algeria",        "markets",   "growing", False),
+    ("morocco",      "Morocco",        "markets",   "growing", True),
+    ("tunisia",      "Tunisia",        "markets",   "growing", True),
+    ("saudi_arabia", "Saudi Arabia",   "markets",   "growing", False),
+    ("israel",       "Israel",         "markets",   "growing", False),
+    ("jordan",       "Jordan",         "markets",   "growing", True),
+    ("lebanon",      "Lebanon",        "markets",   "growing", False),
+    ("sudan",        "Sudan",          "markets",   "growing", True),
+    ("south_africa", "South Africa",   "markets",   "growing", True),
+    ("nigeria",      "Nigeria",        "markets",   "growing", True),
+    ("ukraine",      "Ukraine",        "markets",   "growing", True),
+    ("serbia",       "Serbia",         "markets",   "growing", False),
+    ("kazakhstan",   "Kazakhstan",     "markets",   "growing", True),
+    ("thailand",     "Thailand",       "markets",   "growing", True),
+    ("malaysia",     "Malaysia",       "markets",   "growing", True),
+    ("singapore",    "Singapore",      "markets",   "growing", True),
+    ("taiwan",       "Taiwan",         "markets",   "growing", True),
+    ("sri_lanka",    "Sri Lanka",      "markets",   "growing", True),
+    ("pakistan",     "Pakistan",       "markets",   "growing", True),
+    ("argentina",    "Argentina",      "markets",   "growing", False),
+    ("chile",        "Chile",          "markets",   "growing", False),
+
+    ("brazil",       "Brazil",         "producers", "producing", False),
+    ("indonesia",    "Indonesia",      "producers", "producing", True),
+    ("vietnam",      "Vietnam",        "producers", "producing", True),
+    ("ethiopia",     "Ethiopia",       "producers", "producing", False),
+    ("mexico",       "Mexico",         "producers", "producing", False),
+    ("colombia",     "Colombia",       "producers", "producing", False),
+    ("peru",         "Peru",           "producers", "producing", False),
+    ("honduras",     "Honduras",       "producers", "producing", False),
+    ("guatemala",    "Guatemala",      "producers", "producing", False),
+    ("nicaragua",    "Nicaragua",      "producers", "producing", False),
+    ("costa_rica",   "Costa Rica",     "producers", "producing", False),
+    ("uganda",       "Uganda",         "producers", "producing", True),
+    ("tanzania",     "Tanzania",       "producers", "producing", True),
+    ("ivory_coast",  "Côte d'Ivoire",  "producers", "producing", False),
 ]
 
 
 def _growth_markets(psd_data: dict | None, pop_data: dict | None) -> list[dict] | None:
-    """Return ranked consumption + per-capita series for the 12 growth markets."""
+    """Ranked consumption + per-capita series for every tracked consuming market.
+
+    Each row carries its demand `group` and a `tea_culture` flag so the
+    Consumption sub-tab can cluster the ranking without duplicating the
+    taxonomy in the frontend."""
     if not psd_data:
         return None
 
@@ -177,7 +231,7 @@ def _growth_markets(psd_data: dict | None, pop_data: dict | None) -> list[dict] 
     pop_countries = (pop_data or {}).get("countries", {}) or {}
 
     out: list[dict] = []
-    for short, name, block in _GROWTH_MARKETS:
+    for short, name, block, group, tea_culture in _GROWTH_MARKETS:
         src = (markets if block == "markets" else producers).get(short)
         if not src or not src.get("latest_consumption_mt"):
             continue
@@ -194,6 +248,8 @@ def _growth_markets(psd_data: dict | None, pop_data: dict | None) -> list[dict] 
         out.append({
             "short":            short,
             "name":             name,
+            "group":            group,          # producing | historical | growing
+            "tea_culture":      tea_culture,
             "latest_year":      src.get("latest_year"),
             "consumption_mt":   consumption_mt,
             "population":       latest_pop,

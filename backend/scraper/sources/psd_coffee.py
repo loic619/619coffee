@@ -76,6 +76,37 @@ _MARKETS = {
     "turkey":      ("turkey", "turkiye", "türkiye"),
     "philippines": ("philippines",),
     "egypt":       ("egypt",),
+    # Aug 2026: widened to ~30 consuming markets for the revamped Consumption
+    # sub-tab (mature "historical demand" set + tea-culture growth markets).
+    # PSD publishes a full global CSV; this list is purely our filter, and a
+    # country the vintage doesn't carry just logs "no rows" and is skipped.
+    "uk":          ("united kingdom", "united kingdom of great britain"),
+    "canada":      ("canada",),
+    "australia":   ("australia",),
+    "new_zealand": ("new zealand",),
+    "switzerland": ("switzerland",),
+    "norway":      ("norway",),
+    "ukraine":     ("ukraine",),
+    "serbia":      ("serbia",),
+    "kazakhstan":  ("kazakhstan",),
+    "algeria":     ("algeria",),
+    "morocco":     ("morocco",),
+    "tunisia":     ("tunisia",),
+    "sudan":       ("sudan",),
+    "saudi_arabia": ("saudi arabia",),
+    "israel":      ("israel",),
+    "jordan":      ("jordan",),
+    "lebanon":     ("lebanon",),
+    "south_africa": ("south africa",),
+    "nigeria":     ("nigeria",),
+    "thailand":    ("thailand",),
+    "malaysia":    ("malaysia",),
+    "singapore":   ("singapore",),
+    "taiwan":      ("taiwan",),
+    "argentina":   ("argentina",),
+    "chile":       ("chile",),
+    "sri_lanka":   ("sri lanka",),
+    "pakistan":    ("pakistan",),
 }
 
 # Top producing countries (production/exports/domestic consumption).
