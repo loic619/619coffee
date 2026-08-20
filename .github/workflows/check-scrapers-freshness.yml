@@ -21,6 +21,14 @@ name: "1.5 – Check Data Pipeline Freshness"
 #              Added 2026-07 after futures_price_history.json froze for a
 #              week that exact way while health.json showed the exporter
 #              fresh every day.
+#
+#   panel:     the open-direction prediction payload served to the Macro tab.
+#              Its runner keeps the last good payload when the model can't
+#              train, which is right for the record but means a dead model
+#              renders as a confident call. Added 2026-08 after exactly that:
+#              the panel served a three-week-old prediction while every other
+#              check above was green, because the SCRIPT ran fine — it was the
+#              MODEL inside it that went dark.
 
 on:
   schedule:
@@ -233,6 +241,45 @@ jobs:
               msg = _check(name, last, limit_h, label_prefix="artifact:")
               if msg: stale.append(msg)
 
+          # 4. Open-direction panel payload (the Macro tab's prediction card).
+          # Its runner writes ONE prediction per session and, when the model
+          # cannot train, deliberately leaves the last good payload in place —
+          # so a frozen panel is byte-for-byte indistinguishable from a healthy
+          # one except for the dates. Two independent tripwires, because they
+          # fail in different ways:
+          #   a) the `stale` marker the runner stamps on the frozen payload —
+          #      fires one run after the model goes dark, and carries the
+          #      reason. Silent for the first day so a single hiccup that the
+          #      next run recovers from doesn't page anyone.
+          #   b) for_session not advancing — fires even when the runner dies
+          #      outright and never gets to stamp anything. for_session is the
+          #      NEXT session, so a Friday run already reads Friday; the
+          #      weekend peak is ~2.3d at this workflow's 07:00 UTC slot.
+          try:
+              with open("frontend/public/data/quant_report.json") as f:
+                  od = (json.load(f).get("open_direction") or {})
+          except FileNotFoundError:
+              stale.append("panel:open_direction: quant_report.json missing"); od = None
+          except Exception as e:
+              stale.append(f"panel:open_direction: unreadable ({e})"); od = None
+          if od is not None:
+              if not od:
+                  stale.append("panel:open_direction: section absent from quant_report.json")
+              elif not od.get("available"):
+                  stale.append(f"panel:open_direction: model unavailable "
+                               f"({od.get('reason') or 'no reason given'})")
+              else:
+                  frozen = od.get("stale") or {}
+                  if frozen:
+                      msg = _check("open_direction frozen", frozen.get("since"), 24,
+                                   label_prefix="panel:")
+                      if msg:
+                          stale.append(f"{msg} — {frozen.get('failed_runs')} failed "
+                                       f"runs: {frozen.get('reason')}")
+                  msg = _check("open_direction for_session", od.get("for_session"), 4 * 24,
+                               label_prefix="panel:")
+                  if msg: stale.append(msg)
+
           if stale:
               msg = "Stale entries in health.json:\n" + "\n".join(f"• {s}" for s in stale)
               print(msg)
@@ -240,7 +287,7 @@ jobs:
                   g.write("stale<<EOF\n" + msg + "\nEOF\n")
               sys.exit(1)
           print(f"All fresh: {len(scrapers)} scrapers, {len(exporters)} exporters, "
-                f"{len(ARTIFACTS)} artifacts.")
+                f"{len(ARTIFACTS)} artifacts, open-direction panel live.")
           PY
 
       - name: Notify Telegram on stale data

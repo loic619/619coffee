@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -181,15 +182,53 @@ def _resolve(history: list[dict], frame: "pd.DataFrame") -> int:
     return resolved
 
 
+def _read_quant_report() -> dict:
+    if not _QUANT.exists():
+        return {}
+    try:
+        return json.loads(_QUANT.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
 def _write_quant_report(payload: dict) -> None:
     """Merge the panel payload into quant_report.json without touching the
     other sections (mirrors run_quant's merge-into-existing pattern)."""
-    existing: dict = {}
-    if _QUANT.exists():
-        try:
-            existing = json.loads(_QUANT.read_text(encoding="utf-8"))
-        except Exception:
-            existing = {}
+    existing = _read_quant_report()
+    existing["open_direction"] = payload
+    safe_write_json(_QUANT, existing, ensure_ascii=False)
+
+
+def _mark_payload_stale(reason: str, today: str) -> None:
+    """The model could not produce a call — stamp the FROZEN panel payload.
+
+    Failing to train is a legitimate state; failing SILENTLY is not. Before
+    2026-08 this branch only printed to the runner log and left
+    quant_report.json["open_direction"] byte-identical, so the Macro tab kept
+    serving a prediction for a session that had already traded and looked
+    perfectly healthy doing it. cci_overnight cleared its coverage gate on
+    2026-07-29, collapsed the training set (fixed in open_direction.py), and
+    the panel showed a stale call for three weeks with nothing anywhere
+    saying so.
+
+    The payload keeps available=true — the numbers in it were real when they
+    were written and the track record still grades them — but it now carries
+    a `stale` block that the panel renders as a banner and the freshness
+    workflow trips on. `since` is set ONCE (first failed run) so its age is
+    the outage length, not the age of the latest attempt.
+    """
+    existing = _read_quant_report()
+    payload = existing.get("open_direction")
+    if not isinstance(payload, dict) or not payload.get("available"):
+        return                      # nothing frozen to flag
+    prev = payload.get("stale") or {}
+    payload["stale"] = {
+        "since":       prev.get("since", today),   # first failed run, never bumped
+        "last_check":  today,
+        "reason":      reason,
+        "frozen_for_session": payload.get("for_session"),
+        "failed_runs": int(prev.get("failed_runs", 0)) + 1,
+    }
     existing["open_direction"] = payload
     safe_write_json(_QUANT, existing, ensure_ascii=False)
 
@@ -223,12 +262,19 @@ def run() -> None:
                                 factors=_payload_factors(payload)))
             added = 1
         payload["track"] = _track_stats(history)
-        _write_quant_report(payload)
+        was_stale = (_read_quant_report().get("open_direction") or {}).get("stale")
+        _write_quant_report(payload)          # fresh payload → stale marker gone
+        if was_stale:
+            print(f"[open_dir_log] panel RECOVERED (was stale since "
+                  f"{was_stale.get('since')}: {was_stale.get('reason')})")
         print(f"[open_dir_log] prediction for {target}: {payload['direction']} "
               f"p_up={payload['prob_up']:.3f} → history + quant_report")
     else:
-        print(f"[open_dir_log] model unavailable: {payload.get('reason')} — "
-              "history resolved only, panel payload left untouched")
+        reason = str(payload.get("reason") or "unknown")
+        today = datetime.now(timezone.utc).date().isoformat()
+        _mark_payload_stale(reason, today)
+        print(f"[open_dir_log] model unavailable: {reason} — history resolved "
+              "only, panel payload FROZEN and flagged stale")
 
     history.sort(key=lambda r: r["date"])
     safe_write_json(_HISTORY, history, indent=1)
