@@ -90,8 +90,11 @@ jobs:
       # Futures-AND-OPTIONS combined COT. The rest of the pipeline is
       # futures-only, so without this the options book is invisible to the
       # cohort numbers; the gauges derive options = combined - futures.
+      # !cancelled() so an unrelated upstream failure earlier in the job (ICE
+      # intermittently 403s the runner, which fails the macro step) doesn't
+      # skip this ingest: its NY half comes from CFTC and is unaffected.
       - name: Run combined (futures+options) COT scraper
-        if: ${{ github.event_name == 'workflow_dispatch' || steps.decide.outputs.due == 'true' }}
+        if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || steps.decide.outputs.due == 'true') }}
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
