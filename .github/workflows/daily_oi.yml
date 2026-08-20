@@ -149,7 +149,7 @@ jobs:
           # "cannot lock ref 'refs/heads/main'", which failed the whole job and
           # fired a false-alarm Telegram alert. Retry rebase-onto-latest + push.
           for attempt in 1 2 3 4 5; do
-            if git pull --rebase --autostash --strategy-option=theirs origin main && git push; then
+            if git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" && git push; then
               echo "Pushed on attempt $attempt."
               exit 0
             fi

@@ -172,7 +172,7 @@ jobs:
               if [ "$CURRENT" = "main" ]; then
                 ok=0
                 for attempt in 1 2 3 4 5; do
-                  if git pull --rebase --autostash --strategy-option=theirs origin main && git push; then ok=1; break; fi
+                  if git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" && git push; then ok=1; break; fi
                   echo "push attempt $attempt failed (concurrent push?); retrying in $((5*attempt))s…"; sleep $((5 * attempt))
                 done
                 [ "$ok" = 1 ] || { echo "push failed after 5 attempts"; exit 1; }

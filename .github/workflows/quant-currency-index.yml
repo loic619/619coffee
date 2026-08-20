@@ -108,7 +108,7 @@ jobs:
           [ -f frontend/public/data/fx_history.json ] && git add frontend/public/data/fx_history.json || true
           git diff --cached --quiet \
             && echo "No CCI changes." \
-            || (git commit -m "data: update CCI + fx_history [skip ci]" && git pull --rebase --autostash --strategy-option=theirs origin main && git push)
+            || (git commit -m "data: update CCI + fx_history [skip ci]" && git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}")
 
       - name: Run Sentiment + Robusta Factor model (3 attempts)
         id: run_quant
@@ -139,7 +139,7 @@ jobs:
           [ -f frontend/public/data/sentiment_history.json ] && git add frontend/public/data/sentiment_history.json || true
           git diff --cached --quiet \
             && echo "No Robusta/sentiment changes." \
-            || (git commit -m "data: update Robusta factors + sentiment history [skip ci]" && git pull --rebase --autostash --strategy-option=theirs origin main && git push)
+            || (git commit -m "data: update Robusta factors + sentiment history [skip ci]" && git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}")
 
       - name: Notify on Robusta-only failure
         # Separate from the workflow failure path below. Robusta failure no
