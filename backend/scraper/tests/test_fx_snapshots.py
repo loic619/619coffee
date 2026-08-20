@@ -8,7 +8,9 @@ offline (the Barchart fetch itself reuses the KC/RC mechanism proven in CI):
   * 03:00-UTC anchor = close of the LATEST bar starting ≤ 02:45 UTC that day —
     unaffected by how late the cron actually fires (later bars never shift it).
 """
+import asyncio
 import json
+import re
 from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -81,23 +83,54 @@ def test_a_stale_prior_anchor_is_not_an_overnight_move():
 
 # ── Backfill merge policy ────────────────────────────────────────────────────
 
-def _synthetic_csv(days: int, rate: float) -> str:
+def _synthetic_bars(days: int, rate: float,
+                    start=datetime(2026, 1, 5, tzinfo=UTC)):   # a Monday
     """`days` consecutive weekdays of 15-min bars covering both anchor times."""
-    lines = []
-    d = datetime(2026, 1, 5, tzinfo=UTC)          # a Monday
+    out = []
     for i in range(days):
-        day = d + timedelta(days=i)
+        day = start + timedelta(days=i)
         if day.weekday() >= 5:
             continue
         for hh, mm in ((2, 30), (2, 45), (3, 0), (17, 15)):
-            lines.append(_csv_line(day.replace(hour=hh, minute=mm),
-                                   rate + i * 0.01 + mm / 10000))
-    return "\n".join(lines)
+            out.append((day.replace(hour=hh, minute=mm),
+                        rate + i * 0.01 + mm / 10000))
+    return out
+
+
+def _csv_of(bars) -> str:
+    return "\n".join(_csv_line(dt, c) for dt, c in bars)
+
+
+def _synthetic_csv(days: int, rate: float) -> str:
+    return _csv_of(_synthetic_bars(days, rate))
 
 
 def _stub_fetch(payload):
-    async def _fake(symbols, maxrecords, chunk=0):
+    """A source that IGNORES any cut-off parameter — i.e. refuses to page."""
+    async def _fake(symbols, maxrecords, chunk=0, extra_qs=None):
         return {s: payload.get(s, "") for s in symbols}
+    return _fake
+
+
+def _stub_paged(history, cap):
+    """A source that honours `&end=YYYYmmddHHMMSS` and caps each response.
+
+    Mirrors what Barchart actually does: a hard record ceiling per response,
+    with a cut-off letting a caller walk backwards through it.
+    """
+    async def _fake(symbols, maxrecords, chunk=0, extra_qs=None):
+        out = {}
+        for s in symbols:
+            bars = history.get(s, [])
+            m = re.search(r"&end=(\d{14})", (extra_qs or {}).get(s, ""))
+            if m:
+                # the module formats the cut-off in Chicago wall time (that is
+                # how queryminutes stamps its rows), so parse it back the same
+                cut = datetime.strptime(m.group(1), "%Y%m%d%H%M%S").replace(
+                    tzinfo=_CHICAGO)
+                bars = [b for b in bars if b[0] < cut]
+            out[s] = _csv_of(bars[-min(maxrecords, cap):])
+        return out
     return _fake
 
 
@@ -168,3 +201,53 @@ def test_agrees_tolerates_float_noise_only():
     assert _agrees(base, {"prev_1730": 5.4321000001, "at_0300": 5.4400000002})
     assert not _agrees(base, {"prev_1730": 5.4321, "at_0300": 5.4405})
     assert not _agrees(base, {"prev_1730": None, "at_0300": 5.44})
+
+
+# ── Paging past the response cap ─────────────────────────────────────────────
+
+def test_backfill_pages_past_the_response_cap(monkeypatch, capsys):
+    """Measured 2026-08-20: queryminutes caps a response at 5,000 records no
+    matter what maxrecords asks for — a 40,000 request returned exactly 5,000
+    for all twelve pairs. At 96 bars a session that is ~52 sessions, which is
+    why the first backfill added no liquid-pair days at all. Depth therefore
+    has to come from walking the window backwards, not from a bigger number.
+    """
+    cap = 40                                   # stand-in for the 5,000 ceiling
+    # 60 calendar days ≈ 43 weekdays × 4 bars = ~172 bars, so ~5 pages at this
+    # cap — deliberately fewer than _MAX_PAGES, so "stopped early" is a real
+    # assertion rather than an artefact of the budget running out.
+    hist = {"^USDBRL": _synthetic_bars(60, 5.0)}
+    monkeypatch.setattr(fx, "_fetch_barchart_15m", _stub_paged(hist, cap))
+
+    acc, param, pages = asyncio.run(
+        fx._deep_bars(["^USDBRL"], maxrecords=cap, target_sessions=400))
+
+    assert param == "end" and pages > 1, "should have discovered a cut-off param"
+    assert len(acc["^USDBRL"]) == len(hist["^USDBRL"]), "should reach the full history"
+    assert acc["^USDBRL"] == sorted(acc["^USDBRL"]), "pages must merge in order"
+    assert len(set(acc["^USDBRL"])) == len(acc["^USDBRL"]), "no duplicated bars"
+    # …and it stops once the window stops moving, rather than burning _MAX_PAGES
+    assert pages < fx._MAX_PAGES
+
+
+def test_backfill_degrades_cleanly_when_the_source_refuses_to_page(monkeypatch, capsys):
+    """If no cut-off parameter works, say so and return the single page — a
+    measured 'this source cannot go deeper', not a silent no-op."""
+    monkeypatch.setattr(fx, "_fetch_barchart_15m",
+                        _stub_fetch({"^USDBRL": _synthetic_csv(30, 5.0)}))
+    acc, param, pages = asyncio.run(
+        fx._deep_bars(["^USDBRL"], maxrecords=5000, target_sessions=400))
+    assert param is None and pages == 1
+    assert acc["^USDBRL"], "the first page is still returned"
+    assert "refuses a cut-off parameter" in capsys.readouterr().out
+
+
+def test_deep_bars_survives_a_pair_with_no_data(monkeypatch):
+    """One dead symbol must not stop the others from paging."""
+    cap = 40
+    hist = {"^USDBRL": _synthetic_bars(60, 5.0), "^USDVND": []}
+    monkeypatch.setattr(fx, "_fetch_barchart_15m", _stub_paged(hist, cap))
+    acc, param, _pages = asyncio.run(
+        fx._deep_bars(["^USDVND", "^USDBRL"], maxrecords=cap, target_sessions=400))
+    assert acc["^USDVND"] == []
+    assert param == "end" and len(acc["^USDBRL"]) == len(hist["^USDBRL"])

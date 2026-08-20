@@ -11,11 +11,16 @@ name: "1.16b – Backfill Intraday FX Snapshots"
 # model needs a 6-pair MAJORITY of the basket per day, so those thin-pair days
 # never counted.
 #
-# This job asks for ~26,000 bars instead (≈200 sessions of a liquid pair)
-# through the SAME fetcher, the SAME Barchart endpoint and the SAME anchor
-# rule. That last point is the whole design: an hourly substitute would anchor
-# at 17:00/18:00 rather than 17:30 and would blend into the forward-captured
-# series with nothing to tell the two apart afterwards.
+# A bigger maxrecords does NOT help: run 2 measured a hard 5,000-record cap on
+# the response — a 40,000 ask returned exactly 5,000 for all twelve pairs,
+# ~52 sessions of a liquid one. So this job PAGES the window backwards
+# instead, through the SAME fetcher, the SAME Barchart endpoint and the SAME
+# anchor rule. That last point is the whole design: an hourly substitute would
+# anchor at 17:00/18:00 rather than 17:30 and would blend into the
+# forward-captured series with nothing to tell the two apart afterwards.
+#
+# The cut-off parameter is PROBED, not assumed (Barchart is undocumented). If
+# none works the job degrades to a single page and the report says so.
 #
 # The merge is gap-fill only — stored values are kept and the fresh pull is
 # used to audit them, with any disagreement printed. Check the run log for the
@@ -25,9 +30,9 @@ on:
   workflow_dispatch:
     inputs:
       maxrecords:
-        description: "15-min bars per pair (96/session: 19200 ≈ 200 sessions, 40000 ≈ 415)"
+        description: "bars per PAGE (the endpoint caps a response at 5000; depth comes from paging)"
         required: false
-        default: "40000"
+        default: "5000"
       commit:
         description: "Commit the updated snapshot file"
         type: boolean

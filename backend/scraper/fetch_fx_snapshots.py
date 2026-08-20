@@ -17,10 +17,14 @@ Two modes, same source and same anchor rule:
             to append yesterday; it is why the file's deep history had only
             the thinly-quoted pairs (^USDPEN prints sparsely enough that 2000
             bars span years).
-  --backfill deep pull, ~26,000 bars/pair ≈ 200 sessions of the liquid pairs.
-            Gap-fill only: stored values are never overwritten, they are
-            AUDITED against the fresh pull and disagreements reported. Run it
-            by dispatching workflow 1.16b.
+  --backfill deep pull. queryminutes caps a response at 5,000 records however
+            many are asked for (MEASURED — a 40,000 ask returned exactly 5,000
+            for all twelve pairs), so depth comes from PAGING the window
+            backwards rather than from a bigger number. Gap-fill only: stored
+            values are never overwritten, they are AUDITED against the fresh
+            pull and disagreements reported. Run it by dispatching workflow
+            1.16b, which commits data/fx_backfill_source_reach.json — what the
+            source actually served, per pair.
 
 Mixing sources here would be silent poison — a yfinance hourly series would
 anchor at 17:00/18:00, not 17:30, and blend indistinguishably with true
@@ -53,8 +57,9 @@ import argparse
 import asyncio
 import json
 import sys
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -90,9 +95,9 @@ _MAX_PREV_GAP_DAYS = 4
 #       model dark). Only ~2/3 of calendar sessions are trainable — roll days
 #       are unlabelled and kc_after_rc_diff has holes — so 252 trainable rows
 #       means roughly 384 calendar sessions of coverage, not 252.
-# 40,000 aims at that second number. Barchart's own retention decides whether
-# it is reachable; asking for more than it holds costs nothing.
-_BACKFILL_MAXRECORDS = 40_000
+# A single response is capped at _RESPONSE_CAP records regardless, so this is
+# per PAGE, not per pull — _deep_bars walks the window backwards to get depth.
+_BACKFILL_MAXRECORDS = 5_000
 _BACKFILL_CHUNK      = 3
 
 # CCI component ticker (fx_history.json orientation) → Barchart forex symbol.
@@ -117,7 +122,8 @@ _BARCHART_FX = {
 
 
 async def _fetch_barchart_15m(symbols: list[str], maxrecords: int,
-                              chunk: int = 0) -> dict[str, str]:
+                              chunk: int = 0,
+                              extra_qs: dict[str, str] | None = None) -> dict[str, str]:
     """{barchart_symbol: raw_csv} — same XSRF-cookie in-page fetch as
     fetch_intraday_kc_rc.py, initialised from a forex chart page.
 
@@ -126,6 +132,9 @@ async def _fetch_barchart_15m(symbols: list[str], maxrecords: int,
     round-trip is fine; a backfill pull is ~1.5 MB PER liquid pair, and holding
     a dozen of those in the page before serialising them over CDP is how you
     turn a slow fetch into an OOM. 0 = no chunking (the daily path, unchanged).
+
+    `extra_qs` appends a per-symbol query fragment — how the backfill walks
+    backwards past the endpoint's 5,000-record ceiling (see _deep_bars).
     """
     from playwright.async_api import async_playwright
     out: dict[str, str] = {}
@@ -144,7 +153,7 @@ async def _fetch_barchart_15m(symbols: list[str], maxrecords: int,
             await pg.wait_for_timeout(3500)
             for batch in batches:
                 out.update(await pg.evaluate(
-                    """async ({syms, maxrec}) => {
+                    """async ({syms, maxrec, extra}) => {
                     function getCookie(n) {
                         const v = document.cookie.match('(^|;) ?' + n + '=([^;]*)(;|$)');
                         return v ? decodeURIComponent(v[2]) : null;
@@ -157,13 +166,15 @@ async def _fetch_barchart_15m(symbols: list[str], maxrecords: int,
                         const url = 'https://www.barchart.com/proxies/timeseries/queryminutes.ashx?symbol='
                             + encodeURIComponent(s)
                             + '&interval=15&maxrecords=' + maxrec
-                            + '&order=asc&volume=contract&contractroll=combined';
+                            + '&order=asc&volume=contract&contractroll=combined'
+                            + (extra[s] || '');
                         try { const r = await fetch(url, h); res[s] = r.ok ? await r.text() : ''; }
                         catch (e) { res[s] = ''; }
                     }
                     return res;
                 }""",
-                    {"syms": batch, "maxrec": maxrecords},
+                    {"syms": batch, "maxrec": maxrecords,
+                     "extra": {s: (extra_qs or {}).get(s, "") for s in batch}},
                 ))
         except Exception as e:  # noqa: BLE001
             print(f"[fx_snaps] Barchart fetch error: {e}", file=sys.stderr)
@@ -171,6 +182,91 @@ async def _fetch_barchart_15m(symbols: list[str], maxrecords: int,
             await ctx.close()
             await browser.close()
     return out or {}
+
+
+# queryminutes.ashx caps a response at 5,000 records — MEASURED, not assumed:
+# a 40,000-record ask returned exactly 5,000 for all twelve pairs
+# (data/fx_backfill_source_reach.json, run 2 of workflow 1.16b). At 96 bars a
+# session that is ~52 sessions for a liquid pair, which is the entire reason
+# the first backfill added no new liquid-pair days. Going deeper therefore
+# means WALKING BACKWARDS, one window at a time.
+#
+# Barchart is not documented publicly, so the cut-off parameter is probed
+# rather than assumed: each candidate is tried once against a real symbol and
+# accepted only if the returned window actually moves older. If none does,
+# the backfill degrades to exactly the single-page behaviour it had before
+# and the report says `paging_param: null` — a measured "this source cannot
+# go deeper", not a silent no-op.
+_RESPONSE_CAP = 5_000
+_PAGE_PROBES = [
+    ("end",     "%Y%m%d%H%M%S"),
+    ("end",     "%Y-%m-%d %H:%M:%S"),
+    ("endDate", "%Y%m%d%H%M%S"),
+    ("endDate", "%Y-%m-%d"),
+    ("maxDate", "%Y%m%d%H%M%S"),
+    ("to",      "%Y%m%d%H%M%S"),
+]
+_MAX_PAGES = 10
+
+
+def _sessions(bars: list) -> int:
+    return len({dt.astimezone(_UTC).date() for dt, _c in bars})
+
+
+async def _probe_paging(symbol: str, earliest: datetime, maxrecords: int):
+    """Find the query parameter that moves the window older. (name, fmt) or None."""
+    for name, fmt in _PAGE_PROBES:
+        qs = f"&{name}={quote(earliest.strftime(fmt))}"
+        raw = await _fetch_barchart_15m([symbol], maxrecords, extra_qs={symbol: qs})
+        bars = _parse_bars(raw.get(symbol, ""))
+        if bars and bars[0][0] < earliest - timedelta(hours=1):
+            print(f"[fx_snaps] paging works via '{name}' ({fmt}) — "
+                  f"{symbol} reached back to {bars[0][0].date()}")
+            return name, fmt
+        print(f"[fx_snaps] paging probe '{name}' ({fmt}): no older data returned")
+    return None
+
+
+async def _deep_bars(symbols: list[str], maxrecords: int, target_sessions: int):
+    """{symbol: bars} pulled as deep as the source allows, plus (param, pages).
+
+    Page 1 is the ordinary request. From there each symbol asks for the window
+    ENDING at its own current earliest bar, so pairs that are already deep
+    enough drop out of later pages instead of re-fetching what we have.
+    """
+    raw = await _fetch_barchart_15m(symbols, maxrecords, chunk=_BACKFILL_CHUNK)
+    acc = {s: _parse_bars(raw.get(s, "")) for s in symbols}
+    seeded = {s: b for s, b in acc.items() if b}
+    if not seeded:
+        return acc, None, 1
+
+    # Probe on the symbol with the most bars — the likeliest to have more.
+    probe_sym = max(seeded, key=lambda s: len(seeded[s]))
+    probe = await _probe_paging(probe_sym, seeded[probe_sym][0][0], maxrecords)
+    if probe is None:
+        print("[fx_snaps] endpoint refuses a cut-off parameter — single page only")
+        return acc, None, 1
+    name, fmt = probe
+
+    pages = 1
+    for page in range(2, _MAX_PAGES + 1):
+        need = [s for s in symbols if acc[s] and _sessions(acc[s]) < target_sessions]
+        if not need:
+            break
+        extra = {s: f"&{name}={quote(acc[s][0][0].strftime(fmt))}" for s in need}
+        raw = await _fetch_barchart_15m(need, maxrecords, chunk=_BACKFILL_CHUNK,
+                                        extra_qs=extra)
+        grew = 0
+        for s in need:
+            older = [b for b in _parse_bars(raw.get(s, "")) if b[0] < acc[s][0][0]]
+            if older:
+                acc[s] = sorted(older + acc[s], key=lambda b: b[0])
+                grew += 1
+        pages = page
+        print(f"[fx_snaps] page {page}: {grew}/{len(need)} pair(s) went deeper")
+        if not grew:                      # the window stopped moving — done
+            break
+    return acc, name, pages
 
 
 def _parse_bars(csv_text: str) -> list[tuple[datetime, float]]:
@@ -274,7 +370,9 @@ def _update_brent_anchors(bars: list[tuple[datetime, float]]) -> int:
 
 
 def _write_backfill_report(maxrecords: int, reach: dict, filled: int, kept: int,
-                           mismatched: int, usable: list[str]) -> None:
+                           mismatched: int, usable: list[str],
+                           paging_param: str | None = None,
+                           pages: int = 1) -> None:
     """Commit what the SOURCE was actually willing to serve, per pair.
 
     A backfill's most valuable output is not the rows it adds, it is the
@@ -294,6 +392,9 @@ def _write_backfill_report(maxrecords: int, reach: dict, filled: int, kept: int,
                  "session, the thin ones far fewer, so the same record count "
                  "buys wildly different calendar reach."),
         "maxrecords_requested": maxrecords,
+        "response_cap": _RESPONSE_CAP,
+        "paging_param": paging_param,      # null = the endpoint refused every
+        "pages_fetched": pages,            #        cut-off parameter probed
         "merge": {"new_pair_days": filled, "confirmed_on_overlap": kept,
                   "mismatched_on_overlap": mismatched},
         "usable_days_after": len(usable),
@@ -333,23 +434,26 @@ def run(maxrecords: int = 2000, backfill: bool = False) -> dict:
     """
     tickers = list(_BARCHART_FX)
     symbols = [_BARCHART_FX[t] for t in tickers]
-    if not backfill:
-        symbols.append(_BRENT_SYMBOL)
-    raw = asyncio.run(_fetch_barchart_15m(
-        symbols, maxrecords, chunk=_BACKFILL_CHUNK if backfill else 0))
-
+    paging_param, pages = None, 1
     if backfill:
+        # Sessions worth aiming for: the trainability gate is 252 rows and
+        # only ~2/3 of calendar sessions are trainable.
+        bars_by_symbol, paging_param, pages = asyncio.run(
+            _deep_bars(symbols, min(maxrecords, _RESPONSE_CAP), target_sessions=400))
         print("[fx_snaps] backfill mode — Brent anchors left alone "
               "(continuous-front bars are roll-contaminated for old dates)")
     else:
-        n_brent = _update_brent_anchors(_parse_bars(raw.get(_BRENT_SYMBOL, "")))
+        symbols.append(_BRENT_SYMBOL)
+        raw = asyncio.run(_fetch_barchart_15m(symbols, maxrecords))
+        bars_by_symbol = {s: _parse_bars(raw.get(s, "")) for s in symbols}
+        n_brent = _update_brent_anchors(bars_by_symbol.get(_BRENT_SYMBOL) or [])
         print(f"[fx_snaps] brent anchors: +{n_brent} new day(s)")
 
     per_day: dict[str, dict] = {}
     ok_pairs = 0
     reach: dict[str, dict] = {}
     for ticker in tickers:
-        bars = _parse_bars(raw.get(_BARCHART_FX[ticker], ""))
+        bars = bars_by_symbol.get(_BARCHART_FX[ticker]) or []
         if not bars:
             print(f"[fx_snaps] {ticker} ({_BARCHART_FX[ticker]}): no bars — skipped")
             reach[ticker] = {"bars": 0, "anchor_days": 0}
@@ -420,7 +524,8 @@ def run(maxrecords: int = 2000, backfill: bool = False) -> dict:
 
     usable = [r["date"] for r in days if len(r["pairs"]) >= 6]
     if backfill:
-        _write_backfill_report(maxrecords, reach, filled, kept, mismatched, usable)
+        _write_backfill_report(maxrecords, reach, filled, kept, mismatched, usable,
+                               paging_param, pages)
     print(f"[fx_snaps] pairs ok {ok_pairs}/{len(tickers)} · {len(days)} days stored "
           f"({len(usable)} with ≥6-pair coverage) · latest {days[-1]['date']}")
     if usable:
