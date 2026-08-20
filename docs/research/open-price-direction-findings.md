@@ -55,6 +55,49 @@ looked identical to "not enough data yet".
 tracked in the retest watchdog (`cci_trainable`). The same trap awaited
 `b3_close_gap`; it is now covered by the same gate.
 
+### Did the fixes improve the backtest? No — they RESTORED it.
+Measured after the fix (2026-08-20), against the live payload:
+
+| | value |
+|---|---|
+| active features | `kc_after_rc_diff`, `days_since_roll` |
+| n_train | 1,168 |
+| n_test (walk-forward OOS) | 916 |
+| accuracy / baseline / **edge** | 57.97% / 53.49% / **+4.48pp** |
+| acted accuracy (outside the ±10pp band) | **63.58%** on 346 calls |
+| abstain rate | 62.2% |
+
+Identical to the pre-outage numbers, and that is the correct outcome: no
+feature was added and no coefficient changed. The fixes restored the model's
+ability to produce a call at all, plus the alerting that would have caught
+the three-week outage on day two. Nothing in #718/#719 could have moved the
+backtest, because none of it touched the fitted model.
+
+The three items that *could* move it are all still pending data, not code:
+`cci_overnight` (51 trainable rows of 252), `b3_close_gap` (0 of 40 — see the
+capture bug below), and `rc_last_1630`. Each is gated to be graded on its own
+walk-forward marginal before it can join.
+
+### What the FX backfill can and cannot buy (arithmetic, 2026-08-20)
+Only ~2/3 of calendar sessions are trainable (roll days are unlabelled and
+`kc_after_rc_diff` has holes), so the two gates sit far apart in calendar
+terms:
+
+| CCI coverage backfilled | core-trainable rows gained |
+|---|---|
+| last 200 sessions | 171 |
+| last 260 sessions | 189 |
+| last 300 sessions | 198 |
+| last 360 sessions | 239 |
+| **last 384 sessions** | **252 — the gate** |
+
+So a 200-session backfill clears the 40-day coverage gate many times over and
+makes the feature *testable* on a sample worth believing (n=51 today is not),
+but does **not** on its own put it in the model. `_BACKFILL_MAXRECORDS` is set
+to 40,000 bars (≈415 sessions at 96/session) to aim past 384; whether Barchart
+retains 15-min forex that far back is the binding constraint, and the 1.16b
+run summary reports what actually came back.
+
 ## `b3_close_gap` (PR #697, 2026-08) — the model's OWN B3 feature, DORMANT
 Not to be confused with the rejected `b3_after_kc` below — **different
 construction, different test.**
@@ -74,6 +117,41 @@ construction, different test.**
   is graded on its own walk-forward evidence BEFORE it activates, rather
   than joining the deployed model ungraded.
 - Status at time of writing: 0/40 sessions with a usable gap captured.
+
+### BUG FIXED 2026-08-20 — the capture had never once fired
+That "0/40" was not slow accumulation. Auditing why the model still showed
+`b3_close_gap` absent a week after PR #697 shipped: the snapshot file held
+only `b3_final` rows and no `at_kc_close`, so the gap was never computable.
+
+The `kc_close` phase fired on cron `'33 17'` UTC behind a **13:28–13:52 NY**
+fence around the 13:30 settle. GitHub runs crons late as a matter of course.
+Every scheduled fire of runs 1–6 landed at **17:52–17:56 UTC = 13:52–13:56
+NY** and every one was rejected — the first by *one minute*:
+
+```
+[b3-kc-close] 13:53 NY is outside the KC-close window — skip
+```
+
+The fence was solving the wrong problem: its only job is to admit exactly one
+of the two DST crons per season, and the other is an hour away, so it can be
+loose. Fixed by moving the crons to `:25` (five minutes AHEAD of the settle —
+drift is one-way late, so aiming early and waiting is reliable while aiming
+late is not), widening the window to **13:20–14:30 NY**, and making an early
+fire WAIT for the settle rather than discard the run. Rows now record
+`captured_ny` / `late_min` so a capture that drifted far from the settle can
+be filtered instead of silently trusted; `kc_close` merges into an existing
+row rather than replacing it, so a hand-dispatched backfill cannot delete the
+day's `b3_final`. Regression test replays the real fire times:
+`scraper/tests/test_b3_kc_close_guard.py`.
+
+The same class of bug in the phase router was fixed alongside: `date -u +%H`
+compared `= 21`, so a `21:37` fechamento slot that drifted past 22:00 would
+have been routed to `kc_close` and skipped. Now `-ge 21`.
+
+**Lesson, third time this month:** a guard tuned to when a job is *scheduled*
+rather than when it *actually runs* fails closed and silently. Both the
+cci_overnight collapse and this one presented as "the feature is patiently
+accumulating".
 
 ## B3 late-close factors (2026-08) — arabica REJECTED at the gate; conilon DATA-STARVED
 Owner hypothesis: B3 São Paulo trades ~2.4h after KC's NY close (arabica ICF)

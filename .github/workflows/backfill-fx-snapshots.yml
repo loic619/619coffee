@@ -25,9 +25,9 @@ on:
   workflow_dispatch:
     inputs:
       maxrecords:
-        description: "15-min bars per pair (26000 ≈ 200 sessions of a liquid pair)"
+        description: "15-min bars per pair (96/session: 19200 ≈ 200 sessions, 40000 ≈ 415)"
         required: false
-        default: "26000"
+        default: "40000"
       commit:
         description: "Commit the updated snapshot file"
         type: boolean

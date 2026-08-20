@@ -76,11 +76,21 @@ _KEEP_DAYS = 500
 # multi-day move labelled "overnight".
 _MAX_PREV_GAP_DAYS = 4
 
-# Backfill pull depth. A liquid pair prints 96 bars a session, so 200 sessions
-# ≈ 19,200 bars; 26,000 leaves room for the 24h-a-day weekday tape and for
-# Barchart returning slightly more than asked. Thin pairs simply reach further
-# back in calendar time for the same record count.
-_BACKFILL_MAXRECORDS = 26_000
+# Backfill pull depth. A liquid pair prints 96 bars a session (24h weekday
+# tape ÷ 15 min), so the record count converts to sessions almost directly.
+#
+# Two thresholds matter downstream, and they are far apart:
+#   40  usable days — cci_overnight's COVERAGE gate. 200 sessions clears this
+#       many times over, and is enough to walk-forward-test the feature on a
+#       sample worth believing (today's n=51 is not).
+#   252 TRAINABLE rows — what active_features() needs before it will admit the
+#       feature at all (the gate added in #719, after a thin feature took the
+#       model dark). Only ~2/3 of calendar sessions are trainable — roll days
+#       are unlabelled and kc_after_rc_diff has holes — so 252 trainable rows
+#       means roughly 384 calendar sessions of coverage, not 252.
+# 40,000 aims at that second number. Barchart's own retention decides whether
+# it is reachable; asking for more than it holds costs nothing.
+_BACKFILL_MAXRECORDS = 40_000
 _BACKFILL_CHUNK      = 3
 
 # CCI component ticker (fx_history.json orientation) → Barchart forex symbol.
