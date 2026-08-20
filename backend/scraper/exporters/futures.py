@@ -356,9 +356,10 @@ def export_oi_fnd_chart(db) -> None:
     print(f"  oi_fnd_chart.json → written:{written} arabica:{len(result['arabica'])} robusta:{len(result['robusta'])} series")
 
 
-# Emit at most this many trailing days — comfortably covers the panel's 2Y max
-# window while keeping the file lean. The archive itself keeps ~5Y.
-_PRICE_HISTORY_MAX_DAYS = 820
+# Emit at most this many trailing days. ~1400 trading days ≈ 5.5 calendar
+# years, so the Industry Pulse 5Y window is fully covered by real daily prices
+# (at 820 the line used to start ~3y in). The archive itself keeps ~5Y.
+_PRICE_HISTORY_MAX_DAYS = 1400
 
 
 def _front_price_series(market_archive: dict) -> list[dict]:
@@ -371,6 +372,15 @@ def _front_price_series(market_archive: dict) -> list[dict]:
     (first-listed) priced contract. Prices are passed through in their native
     unit — arabica in US¢/lb, robusta in USD/MT — matching oi_history so the
     frontend converts them the same way.
+
+    Each row carries the `contract` it was priced from. Rolls are held
+    MONOTONIC — the front never returns to an earlier expiry — because raw
+    max-OI oscillates around a roll (robusta really did go N26→K26→N26 across
+    2026-05-01/05-04), which would otherwise render as spurious contract
+    switches. On a roll day the row also carries `prev_contract`/`prev_price`:
+    the outgoing contract's settle on that same date, so a consumer can close
+    the old price segment where it actually ended instead of leaving it hanging
+    at the previous day.
     """
     rows: list[dict] = []
     last_front: str | None = None
@@ -383,12 +393,25 @@ def _front_price_series(market_archive: dict) -> list[dict]:
         with_oi = {s: v for s, v in priced.items() if v.get("oi")}
         if with_oi:
             front = max(with_oi, key=lambda s: with_oi[s]["oi"] or 0)
-            last_front = front
+            # Monotonic guard: ignore a max-OI candidate that steps BACK to an
+            # earlier expiry while the incumbent is still trading.
+            if (last_front and last_front in priced
+                    and _sym.expiry_key(front) < _sym.expiry_key(last_front)):
+                front = last_front
         elif last_front in priced:
             front = last_front
         else:
             front = next(iter(priced))          # dicts preserve insertion (expiry) order
-        rows.append({"date": d, "price": priced[front]["price"]})
+
+        row = {"date": d, "price": priced[front]["price"], "contract": front}
+        if last_front and front != last_front:
+            outgoing = priced.get(last_front)
+            if outgoing is not None:
+                # Same-day settle of the contract we just rolled out of.
+                row["prev_contract"] = last_front
+                row["prev_price"] = outgoing["price"]
+        last_front = front
+        rows.append(row)
     return rows[-_PRICE_HISTORY_MAX_DAYS:]
 
 

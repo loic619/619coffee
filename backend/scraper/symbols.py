@@ -72,3 +72,24 @@ def month_label(sym: str) -> str:
         return sym
     _, letter, yy = p
     return f"{letter}{yy}"
+
+
+# Delivery-month letter → calendar month. Standard futures month codes.
+_MONTH_OF_LETTER = {
+    "F": 1, "G": 2, "H": 3, "J": 4, "K": 5, "M": 6,
+    "N": 7, "Q": 8, "U": 9, "V": 10, "X": 11, "Z": 12,
+}
+
+
+def expiry_key(sym: str) -> int:
+    """Sortable expiry rank: 'RCU26' → 202609. Unparseable symbols sort last.
+
+    Lets consumers order contracts by delivery date instead of alphabetically
+    (which would put Z before others), and lets the front-month roll be held
+    monotonic — max-OI alone oscillates between two contracts around a roll.
+    """
+    p = parse(sym)
+    if not p:
+        return 999999
+    _, letter, yy = p
+    return (2000 + int(yy)) * 100 + _MONTH_OF_LETTER.get(letter, 0)
