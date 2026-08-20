@@ -62,6 +62,7 @@ _YEARS = range(2011, 2022)           # 2022+ already covered by cot.json ldn
 
 from scraper.sources.macro_cot import _ICE_HEADERS  # noqa: E402 — shared UA
 
+
 def _year_rows(year: int) -> list[dict]:
     url = f"https://www.ice.com/publicdocs/futures/COTHist{year}.csv"
     try:

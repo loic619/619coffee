@@ -55,9 +55,16 @@ from scraper.utils.http import get_with_backoff
 # Market names of the COMBINED report, per market. The futures-only names the
 # rest of the pipeline uses live in COMMODITY_SPECS; these are their
 # futures-and-options twins in the very same files.
+# LDN is a PREFIX, not the full row name: ICE's naming is inconsistent across
+# markets (the coverage audit found "ICE White Sugar Futures and Options- ICE
+# Futures Europe" — no space before the dash), so anchoring on the stable head
+# of the string survives that drift. _match_market_rows falls back to
+# startswith, and this prefix cannot collide with the futures-only row
+# ("ICE Robusta Coffee Futures - ICE Futures Europe") because that one has
+# " - ICE" where this has " and Options".
 COMBINED_FILTERS = {
     "ny":  "COFFEE C - ICE FUTURES U.S.",
-    "ldn": "ICE Robusta Coffee Futures and Options - ICE Futures Europe",
+    "ldn": "ICE Robusta Coffee Futures and Options - ICE Futures",
 }
 
 # (category, side) → source column. Mirrors cot_schema._CATEGORIES_WITH_SPREAD:
