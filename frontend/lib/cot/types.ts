@@ -52,8 +52,8 @@ export interface ProcessedCotRow {
    *  Undefined when no combined report covers the week — the gauges then hide
    *  the options bar instead of drawing a misleading zero. Delta-adjusted, so
    *  legs can be NEGATIVE (a delta-short call book). */
-  nyOpt?: CotMarketPositions;
-  ldnOpt?: CotMarketPositions;
+  nyOpt?: Partial<CotMarketPositions>;
+  ldnOpt?: Partial<CotMarketPositions>;
   /** Forward-filled raw API sub-objects — only present in real data, not in mock.
    *  Numeric subset only; the string-typed `price_contract_*` fields live on
    *  this row's top-level `priceContractNY`/`priceContractLDN` instead. */
