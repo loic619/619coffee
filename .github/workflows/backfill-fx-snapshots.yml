@@ -1,0 +1,96 @@
+name: "1.16b – Backfill Intraday FX Snapshots"
+
+# Manual, on-demand deep pull of the 17:30-London / 03:00-UTC FX anchors that
+# feed the open-direction model's cci_overnight feature.
+#
+# Why a separate workflow: the daily 1.16 step asks Barchart for ~2000 15-min
+# bars per pair, which for a liquid pair is about three weeks. That is all the
+# daily append needs, and it is why the snapshot file's deep history contains
+# only the thinly-quoted pairs — ^USDPEN prints sparsely enough that 2000 bars
+# reach 2022, while ^USDBRL's 96-a-session tape does not clear a month. The
+# model needs a 6-pair MAJORITY of the basket per day, so those thin-pair days
+# never counted.
+#
+# This job asks for ~26,000 bars instead (≈200 sessions of a liquid pair)
+# through the SAME fetcher, the SAME Barchart endpoint and the SAME anchor
+# rule. That last point is the whole design: an hourly substitute would anchor
+# at 17:00/18:00 rather than 17:30 and would blend into the forward-captured
+# series with nothing to tell the two apart afterwards.
+#
+# The merge is gap-fill only — stored values are kept and the fresh pull is
+# used to audit them, with any disagreement printed. Check the run log for the
+# agreement rate before trusting the result.
+
+on:
+  workflow_dispatch:
+    inputs:
+      maxrecords:
+        description: "15-min bars per pair (26000 ≈ 200 sessions of a liquid pair)"
+        required: false
+        default: "26000"
+      commit:
+        description: "Commit the updated snapshot file"
+        type: boolean
+        required: false
+        default: true
+
+concurrency:
+  group: open-direction        # shares 1.16's lane — same file, never both at once
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install playwright
+
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}
+
+      - name: Install Playwright browser
+        run: sudo rm -f /etc/apt/sources.list.d/*microsoft* /etc/apt/sources.list.d/*azure* || true; playwright install chromium --with-deps || playwright install chromium
+
+      - name: Backfill FX snapshots
+        working-directory: backend
+        run: python -m scraper.fetch_fx_snapshots --backfill --maxrecords ${{ inputs.maxrecords }}
+
+      # Coverage is the point of the exercise, so state it outright rather than
+      # leaving it to be inferred from a diff: how many sessions now clear the
+      # model's 6-pair majority, and over what span.
+      - name: Report coverage
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          d = json.load(open("frontend/public/data/fx_intraday_snapshots.json"))
+          days = d["days"]
+          usable = [r["date"] for r in days if len(r.get("pairs") or {}) >= 6]
+          print("## FX snapshot coverage\n")
+          print(f"- rows stored: **{len(days)}** ({days[0]['date']} → {days[-1]['date']})")
+          print(f"- usable (≥6 pairs): **{len(usable)}**"
+                + (f" ({usable[0]} → {usable[-1]})" if usable else ""))
+          print(f"- model activates cci_overnight at 40 usable days and can TRAIN on it at 252\n")
+          print("| pairs on a row | rows |\n|---|---|")
+          import collections
+          for n, c in sorted(collections.Counter(len(r.get("pairs") or {}) for r in days).items()):
+              print(f"| {n} | {c} |")
+          PY
+
+      - name: Commit updated snapshots
+        if: ${{ inputs.commit }}
+        uses: ./.github/actions/commit-data
+        with:
+          files: frontend/public/data/fx_intraday_snapshots.json
+          message: "data: backfill intraday FX snapshots [skip ci]"
