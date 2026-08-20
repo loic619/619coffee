@@ -177,7 +177,9 @@ WATCHES = [
     ("b3_close_gap", "b3_close_gap — LIVE MODEL activation gate", _b3_close_gap_sessions, 40,
      "sessions captured (gap present)",
      "The model's own B3 construction (post-KC-close window, PR #697) ships "
-     "dormant and joins the deployed spec automatically at 40 sessions.",
+     "dormant and joins the deployed spec automatically at 40 sessions. "
+     "Accrual restarts 2026-08-20: the at-KC-close capture had never fired — "
+     "GitHub's cron drift landed every run one minute past the guard window.",
      "Grade it BEFORE it activates: run the walk-forward marginal on b3_close_gap "
      "vs kc_after+dsr, and update the research card's B3 section with the verdict."),
     ("cnl_sessions", "Conilon (B3 CNL) late-close factor", _cnl_sessions, 300,

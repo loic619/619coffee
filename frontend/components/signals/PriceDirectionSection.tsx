@@ -33,9 +33,21 @@ interface Regime {
   oil_shock?:      boolean;
 }
 
+// Written by open_direction_log.py onto the FROZEN payload when the model
+// cannot train. The runner keeps the last good call (the record still grades
+// it) but the panel must not present it as today's view — see the banner.
+interface StaleMark {
+  since:                string;   // first failed run, never bumped → outage length
+  last_check?:          string;
+  reason?:              string;
+  frozen_for_session?:  string;
+  failed_runs?:         number;
+}
+
 interface OpenDirection {
   available:     boolean;
   reason?:       string;
+  stale?:        StaleMark | null;
   as_of?:        string;        // last session whose data fed the model
   for_session?:  string;        // the session being predicted
   direction?:    "Bullish" | "Bearish" | "Abstain";
@@ -89,6 +101,13 @@ export default function PriceDirectionSection() {
 
   const loading = data === null;
   const unavailable = data !== null && !data.available;
+  const stale = data?.available ? (data.stale ?? null) : null;
+  const staleDays = (() => {
+    if (!stale?.since) return null;
+    const t = Date.parse(`${stale.since}T00:00:00Z`);
+    if (Number.isNaN(t)) return null;
+    return Math.max(0, Math.floor((Date.now() - t) / 86_400_000));
+  })();
 
   // ── Waterfall geometry (in MARGIN / log-odds units — the only space where
   // logistic SHAP is exactly additive). Bars walk from base_margin to
@@ -137,11 +156,49 @@ export default function PriceDirectionSection() {
           Robusta · Overnight Gap (open vs prior 17:30 close) · fires pre-open 03:00 UTC
         </span>
         {data?.available && (
-          <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded ml-auto">
-            LIVE · predicts {data.for_session ?? data.as_of}
-          </span>
+          stale ? (
+            <span className="text-[10px] font-semibold text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded ml-auto">
+              STALE · frozen on {stale.frozen_for_session ?? data.for_session ?? data.as_of}
+            </span>
+          ) : (
+            <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded ml-auto">
+              LIVE · predicts {data.for_session ?? data.as_of}
+            </span>
+          )
         )}
       </div>
+
+      {/* ── Freeze banner ──────────────────────────────────────────────
+          The runner keeps the last good payload when the model cannot
+          train, so without this the card reads as a confident call for a
+          session that already traded. It happened: cci_overnight cleared
+          its coverage gate on 2026-07-29, collapsed the training set, and
+          this panel served the same prediction for three weeks. Every
+          number below is real — it is just not about today. */}
+      {stale && (
+        <div className="rounded-lg border border-amber-700/60 bg-amber-950/40 px-3 py-2 space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">
+              ⚠ Prediction frozen
+            </span>
+            <span className="text-[11px] text-amber-200/90">
+              The model has not produced a new call
+              {staleDays != null && ` for ${staleDays} day${staleDays === 1 ? "" : "s"}`}
+              {stale.since && ` (since ${stale.since}`}
+              {stale.since && stale.failed_runs != null && `, ${stale.failed_runs} failed run${stale.failed_runs === 1 ? "" : "s"}`}
+              {stale.since && ")"}.
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-300">
+            Everything below is the last successful run — a call for{" "}
+            <span className="font-semibold text-slate-100">{stale.frozen_for_session ?? data?.for_session}</span>,
+            not for the next session. Do not trade it.
+          </p>
+          {stale.reason && (
+            <p className="text-[10px] text-slate-400 font-mono break-words">{stale.reason}</p>
+          )}
+        </div>
+      )}
 
       {/* Regime tags — decision support, not model inputs. NY-shock is the
           measured 88%-hit-rate setup; confidence is less trustworthy in

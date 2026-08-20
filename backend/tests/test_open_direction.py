@@ -239,6 +239,45 @@ def test_wf_analysis_export(synthetic_env, tmp_path, monkeypatch):
     assert sum(b["n"] for b in doc["buckets"]["realized"]) == n
 
 
+def test_frozen_panel_payload_is_flagged_stale(synthetic_env, monkeypatch):
+    """Regression, 2026-08: a dark model froze the Macro panel SILENTLY.
+
+    open_direction_log deliberately keeps the last good payload when the
+    model can't train — the record still grades that call, so deleting it
+    would be worse. But the panel then renders a dead prediction as a live
+    one, which is exactly what happened for three weeks. The frozen payload
+    must carry a `stale` marker: `since` pinned to the FIRST failure (its
+    age is the outage length) and `failed_runs` counting attempts.
+    """
+    odl.run()
+    q = json.loads(synthetic_env["quant"].read_text())
+    good = q["open_direction"]
+    assert good["available"] and "stale" not in good
+
+    # model goes dark; the runner still runs
+    real_run = od.run
+    monkeypatch.setattr(od, "run", lambda: {"available": False, "reason": "boom"})
+    odl.run()
+    frozen = json.loads(synthetic_env["quant"].read_text())["open_direction"]
+    assert frozen["for_session"] == good["for_session"]      # payload untouched…
+    assert frozen["prob_up"] == good["prob_up"]
+    st = frozen["stale"]                                     # …but flagged
+    assert st["reason"] == "boom" and st["failed_runs"] == 1
+    assert st["frozen_for_session"] == good["for_session"]
+    first_since = st["since"]
+
+    # a second failed run ages the outage rather than resetting it
+    odl.run()
+    st2 = json.loads(synthetic_env["quant"].read_text())["open_direction"]["stale"]
+    assert st2["since"] == first_since and st2["failed_runs"] == 2
+
+    # recovery clears the marker (restore only od.run — undo() would also
+    # revert the fixture's path redirection and write into public/data)
+    monkeypatch.setattr(od, "run", real_run)
+    odl.run()
+    assert "stale" not in json.loads(synthetic_env["quant"].read_text())["open_direction"]
+
+
 def test_track_stats_cold_streak():
     def live(d, hit):
         return {"date": d, "source": "live", "status": "resolved",
