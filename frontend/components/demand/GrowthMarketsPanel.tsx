@@ -575,9 +575,10 @@ export default function GrowthMarketsPanel() {
     <div className="p-4 space-y-4">
       <div className="flex items-baseline justify-between flex-wrap gap-2">
         <div>
-          <h2 className="text-lg font-bold text-white">Emerging Demand Markets</h2>
+          <h2 className="text-lg font-bold text-white">World Coffee Demand</h2>
           <p className="text-xs text-slate-400">
-            Where coffee demand is actually growing — {rows.length} countries · USDA PSD ÷ World Bank population
+            Every market USDA tracks — {rows.length} countries, mature to emerging to origin ·
+            USDA PSD ÷ World Bank population
           </p>
         </div>
         <div className="text-[10px] font-mono text-slate-400">
