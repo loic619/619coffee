@@ -6,6 +6,7 @@ import OIFndChart from "@/components/futures/OIFndChart";
 import OriginPricesPanel from "@/components/macro/OriginPricesPanel";
 import B3CoffeePanel from "@/components/futures/B3CoffeePanel";
 import OptionsOIPanel from "@/components/futures/OptionsOIPanel";
+import TradedTapePanel from "@/components/futures/TradedTapePanel";
 import PageHeader from "@/components/PageHeader";
 import { fmtNum as fmt } from "@/lib/formatters";
 import { FOBBING_USD, MONTHLY_CARRY_USD } from "@/lib/originCosts";
@@ -1044,6 +1045,12 @@ function FuturesPageInner() {
 
           {/* B3 (Brazil) coffee futures — domestic-exchange arabica (ICF) and
               conilon (CNL) curves below the international picture. */}
+          {/* Traded tape — per-session order flow from acaphe's tick tape:
+              lifted vs hit lots, VWAPs, and calendar-spread sizing. */}
+          <div className="border-t border-slate-800 pt-4 mt-4">
+            <TradedTapePanel />
+          </div>
+
           <div className="border-t border-slate-800 pt-4 mt-4">
             <B3CoffeePanel />
           </div>
