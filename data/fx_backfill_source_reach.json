@@ -1,0 +1,113 @@
+{
+ "generated_at": "2026-08-20T11:48:51.750361Z",
+ "note": "What Barchart's queryminutes actually returned per pair for a --backfill pull. bars << maxrecords means the source is out of history for that symbol; the liquid pairs print 96 bars a session, the thin ones far fewer, so the same record count buys wildly different calendar reach.",
+ "maxrecords_requested": 40000,
+ "merge": {
+  "new_pair_days": 0,
+  "confirmed_on_overlap": 646,
+  "mismatched_on_overlap": 0
+ },
+ "usable_days_after": 56,
+ "usable_span": [
+  "2026-06-04",
+  "2026-08-20"
+ ],
+ "pairs": {
+  "COP=X": {
+   "bars": 5000,
+   "anchor_days": 129,
+   "first_bar": "2026-02-12",
+   "last_bar": "2026-08-20",
+   "first_day": "2026-02-13",
+   "last_day": "2026-08-20"
+  },
+  "CNY=X": {
+   "bars": 5000,
+   "anchor_days": 58,
+   "first_bar": "2024-10-24",
+   "last_bar": "2026-08-19",
+   "first_day": "2024-10-28",
+   "last_day": "2026-05-15"
+  },
+  "BRL=X": {
+   "bars": 5000,
+   "anchor_days": 55,
+   "first_bar": "2026-06-03",
+   "last_bar": "2026-08-20",
+   "first_day": "2026-06-05",
+   "last_day": "2026-08-20"
+  },
+  "IDR=X": {
+   "bars": 5000,
+   "anchor_days": 54,
+   "first_bar": "2026-06-05",
+   "last_bar": "2026-08-20",
+   "first_day": "2026-06-08",
+   "last_day": "2026-08-20"
+  },
+  "KRW=X": {
+   "bars": 5000,
+   "anchor_days": 53,
+   "first_bar": "2026-06-08",
+   "last_bar": "2026-08-20",
+   "first_day": "2026-06-09",
+   "last_day": "2026-08-20"
+  },
+  "JPY=X": {
+   "bars": 5000,
+   "anchor_days": 52,
+   "first_bar": "2026-06-09",
+   "last_bar": "2026-08-20",
+   "first_day": "2026-06-10",
+   "last_day": "2026-08-20"
+  },
+  "CHF=X": {
+   "bars": 5000,
+   "anchor_days": 52,
+   "first_bar": "2026-06-09",
+   "last_bar": "2026-08-20",
+   "first_day": "2026-06-10",
+   "last_day": "2026-08-20"
+  },
+  "EURUSD=X": {
+   "bars": 5000,
+   "anchor_days": 51,
+   "first_bar": "2026-06-09",
+   "last_bar": "2026-08-20",
+   "first_day": "2026-06-11",
+   "last_day": "2026-08-20"
+  },
+  "CAD=X": {
+   "bars": 5000,
+   "anchor_days": 51,
+   "first_bar": "2026-06-09",
+   "last_bar": "2026-08-20",
+   "first_day": "2026-06-11",
+   "last_day": "2026-08-20"
+  },
+  "GBP=X": {
+   "bars": 5000,
+   "anchor_days": 51,
+   "first_bar": "2026-06-09",
+   "last_bar": "2026-08-20",
+   "first_day": "2026-06-11",
+   "last_day": "2026-08-20"
+  },
+  "VND=X": {
+   "bars": 5000,
+   "anchor_days": 20,
+   "first_bar": "2025-10-22",
+   "last_bar": "2026-08-20",
+   "first_day": "2025-12-31",
+   "last_day": "2026-07-14"
+  },
+  "PEN=X": {
+   "bars": 5000,
+   "anchor_days": 20,
+   "first_bar": "2019-09-18",
+   "last_bar": "2026-08-20",
+   "first_day": "2019-10-01",
+   "last_day": "2026-03-27"
+  }
+ }
+}
