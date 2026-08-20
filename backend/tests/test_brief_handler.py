@@ -355,3 +355,37 @@ def test_spec_line_reads_the_right_market_and_bails_without_cot(monkeypatch):
     assert brief._fnd_spec_line("robusta", date(2026, 5, 29)) is None
     _spec_stub(monkeypatch, doc, [{"date": "x", "ldn": {"mm_long": 1, "mm_short": 1}}])
     assert brief._fnd_spec_line("robusta", date(2026, 5, 29)) is None
+
+
+# ── Decertified stocks ───────────────────────────────────────────────────────
+
+def test_decert_line_is_always_rendered(monkeypatch):
+    """A missing line read as 'this exchange isn't tracked' rather than
+    'nothing was decertified' — which is how New York looked while London
+    showed a figure on the same message."""
+    same = {"ANT": 100, "HOU": 50}
+    assert brief._decert_line(same, same, "bags") == "· Decertified: none"
+    # No prior snapshot to compare against is still an explicit answer.
+    assert brief._decert_line(None, same, "bags") == "· Decertified: none"
+
+
+def test_decert_sums_every_port_that_fell(monkeypatch):
+    """Quoting only the largest port understated it badly: on 2026-08-18 four
+    arabica ports fell for 2,126 bags while the biggest single one was 750."""
+    prev = {"NOLA": 1000, "HOU": 600, "NY": 500, "ANT": 400, "MIAMI": 10}
+    cur  = {"NOLA": 250,  "HOU": 75,  "NY": 6,   "ANT": 43,  "MIAMI": 10}
+    assert brief._port_decreases(prev, cur) == [
+        ("NOLA", 750), ("HOU", 525), ("NY", 494), ("ANT", 357)]
+    line = brief._decert_line(prev, cur, "bags")
+    assert line == "· Decertified: 2,126 bags across 4 ports (most NOLA 750)"
+
+
+def test_decert_keeps_the_simple_wording_for_a_single_port():
+    line = brief._decert_line({"LON": 120, "ANT": 50}, {"LON": 103, "ANT": 50}, "lots")
+    assert line == "· Decertified: 17 lots in LON"
+
+
+def test_decert_ignores_ports_that_gained():
+    """A port taking delivery must not net off another port's decertification."""
+    line = brief._decert_line({"ANT": 100, "HOU": 100}, {"ANT": 40, "HOU": 900}, "bags")
+    assert line == "· Decertified: 60 bags in ANT"

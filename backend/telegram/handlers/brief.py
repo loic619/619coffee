@@ -793,17 +793,38 @@ def _arabica_origin_top(snapshot: dict, n: int = 3) -> list[str]:
     return [name for name, _ in pairs[:n] if _]
 
 
-def _largest_negative_port(prev_by_port: dict, cur_by_port: dict) -> tuple[str | None, int]:
-    """Port with the biggest day-over-day drop in stock. Returns (port_id,
-    decrease_magnitude). Used for the "decertified in [port]" attribution
-    when the snapshot itself doesn't expose per-port decertification."""
+def _port_decreases(prev_by_port: dict, cur_by_port: dict) -> list[tuple[str, int]]:
+    """Every port that lost stock day-over-day, largest drop first.
+
+    Neither exchange publishes decertification directly, so it is inferred
+    from per-port stock falling. Reading only the single largest port
+    understates it badly: on 42 of the last 59 arabica sessions MORE THAN ONE
+    port dropped (2026-08-18: NOLA -750, but -2,126 across four ports), so
+    the caller sums these rather than quoting the biggest.
+    """
     if not prev_by_port or not cur_by_port:
-        return None, 0
-    deltas = [(p, (cur_by_port.get(p) or 0) - (prev_by_port.get(p) or 0)) for p in cur_by_port]
-    deltas.sort(key=lambda x: x[1])  # most-negative first
-    if deltas and deltas[0][1] < 0:
-        return deltas[0][0], -deltas[0][1]
-    return None, 0
+        return []
+    drops = [(p, (prev_by_port.get(p) or 0) - (cur_by_port.get(p) or 0)) for p in cur_by_port]
+    return sorted([(p, d) for p, d in drops if d > 0], key=lambda t: -t[1])
+
+
+def _decert_line(prev_by_port: dict | None, cur_by_port: dict | None, unit: str) -> str:
+    """The decertified line, ALWAYS rendered.
+
+    Omitting it on a quiet day made "nothing was decertified" look identical
+    to "this exchange isn't tracked" — which is exactly how it read when New
+    York was silent while London showed a figure. An explicit "none" answers
+    the question instead of leaving it open.
+    """
+    drops = _port_decreases(prev_by_port or {}, cur_by_port or {})
+    if not drops:
+        return "· Decertified: none"
+    total = sum(d for _, d in drops)
+    top_port, top_mag = drops[0]
+    if len(drops) == 1:
+        return f"· Decertified: {total:,} {unit} in {top_port}"
+    return (f"· Decertified: {total:,} {unit} across {len(drops)} ports "
+            f"(most {top_port} {top_mag:,})")
 
 
 def _cert_arabica_section(doc: dict | None) -> str:
@@ -837,9 +858,7 @@ def _cert_arabica_section(doc: dict | None) -> str:
     else:
         lines.append(f"· Stocks: {total:,} bags")
 
-    port, mag = _largest_negative_port(prev.get("by_port") if prev else {}, cur.get("by_port") or {})
-    if port and mag > 0:
-        lines.append(f"· Decertified: {mag:,} bags in {port}")
+    lines.append(_decert_line(prev.get("by_port") if prev else {}, cur.get("by_port"), "bags"))
     return "\n".join(lines)
 
 
@@ -864,9 +883,7 @@ def _cert_robusta_section(doc: dict | None) -> str:
         lines.append(f"· Stocks: {total:,} lots ({_sign(delta, ',d')})")
     else:
         lines.append(f"· Stocks: {total:,} lots")
-    port, mag = _largest_negative_port(prev.get("by_port_lots") if prev else {}, cur.get("by_port_lots") or {})
-    if port and mag > 0:
-        lines.append(f"· Decertified: {mag:,} lots in {port}")
+    lines.append(_decert_line(prev.get("by_port_lots") if prev else {}, cur.get("by_port_lots"), "lots"))
     return "\n".join(lines)
 
 
