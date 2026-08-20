@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T22:30:59.164726Z",
+  "generated_at": "2026-08-20T03:29:03.181430Z",
   "method": {
     "expiry_rules": "KC: 2nd Friday of the month preceding the contract month (ICE US ch.8). RC/RM: 3rd Wednesday (ICE Europe spec).",
     "oi_dating": "contract_prices_archive stores OI one key-day late; the series is re-dated back one session and the jump window is [E-1, E+2].",
@@ -24,8 +24,8 @@
           "oi_before": 42931,
           "oi_jump": -25447,
           "oi_jump_pct": -59.27,
-          "typical_daily_doi": 3734,
-          "jump_vs_typical": 6.8,
+          "typical_daily_doi": 4159.0,
+          "jump_vs_typical": 6.1,
           "price_at_expiry": 182.75,
           "contract": "KCU21"
         },
@@ -520,8 +520,8 @@
           "oi_before": 20914,
           "oi_jump": -9396,
           "oi_jump_pct": -44.93,
-          "typical_daily_doi": 1625.0,
-          "jump_vs_typical": 5.8,
+          "typical_daily_doi": 1565,
+          "jump_vs_typical": 6.0,
           "price_at_expiry": 1861.0,
           "contract": "RCU21"
         },
@@ -6146,11 +6146,11 @@
           "put_oi": 77825.0,
           "itm_call_oi": 20473.0,
           "itm_put_oi": 87.0,
-          "fut_oi": null,
+          "fut_oi": 93239,
           "future": 332.45,
           "atm_iv": 0.4445,
           "itm_pct": 17.2,
-          "itm_vs_fut_pct": null
+          "itm_vs_fut_pct": 22.05
         },
         {
           "date": "2026-08-19",
@@ -6160,8 +6160,8 @@
           "itm_call_oi": null,
           "itm_put_oi": null,
           "fut_oi": null,
-          "future": 325.2,
-          "atm_iv": 0.4498,
+          "future": 328.2,
+          "atm_iv": 0.45,
           "itm_pct": null,
           "itm_vs_fut_pct": null
         }
@@ -7169,11 +7169,11 @@
         "put_oi": 77825.0,
         "itm_call_oi": 20473.0,
         "itm_put_oi": 87.0,
-        "fut_oi": null,
+        "fut_oi": 93239,
         "future": 332.45,
         "atm_iv": 0.4445,
         "itm_pct": 17.2,
-        "itm_vs_fut_pct": null
+        "itm_vs_fut_pct": 22.05
       }
     },
     "robusta": {
@@ -11867,11 +11867,11 @@
           "put_oi": 16908.0,
           "itm_call_oi": 1534.0,
           "itm_put_oi": 1.0,
-          "fut_oi": null,
+          "fut_oi": 50586,
           "future": 3739,
           "atm_iv": 0.3669,
           "itm_pct": 5.58,
-          "itm_vs_fut_pct": null
+          "itm_vs_fut_pct": 3.03
         },
         {
           "date": "2026-08-19",
@@ -11881,8 +11881,8 @@
           "itm_call_oi": null,
           "itm_put_oi": null,
           "fut_oi": null,
-          "future": 3707,
-          "atm_iv": 0.3677,
+          "future": 3728,
+          "atm_iv": 0.3586,
           "itm_pct": null,
           "itm_vs_fut_pct": null
         }
@@ -12787,11 +12787,11 @@
         "put_oi": 16908.0,
         "itm_call_oi": 1534.0,
         "itm_put_oi": 1.0,
-        "fut_oi": null,
+        "fut_oi": 50586,
         "future": 3739,
         "atm_iv": 0.3669,
         "itm_pct": 5.58,
-        "itm_vs_fut_pct": null
+        "itm_vs_fut_pct": 3.03
       }
     }
   },

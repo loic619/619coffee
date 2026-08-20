@@ -212,26 +212,15 @@
       "text": "KC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
     },
     {
-      "id": "CS1",
-      "name": "Backwardation Incentive",
+      "id": "CS4",
+      "name": "Contango Relief",
       "category": "CS",
       "categoryLabel": "Curve Structure",
       "market": "LDN",
       "severity": "info",
-      "score": 1,
+      "score": 0,
       "magnitude": "large",
-      "text": "RC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
-    },
-    {
-      "id": "CS6",
-      "name": "Inversion Easing",
-      "category": "CS",
-      "categoryLabel": "Curve Structure",
-      "market": "LDN",
-      "severity": "warn",
-      "score": -1,
-      "magnitude": "large",
-      "text": "RC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
+      "text": "RC in contango while roasters add coverage — forward prices cheaper than spot, incentivizes forward buying. Normal and sustainable."
     },
     {
       "id": "SP3",
@@ -2649,26 +2638,15 @@
           "text": "KC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
-          "id": "CS1",
-          "name": "Backwardation Incentive",
+          "id": "CS4",
+          "name": "Contango Relief",
           "category": "CS",
           "categoryLabel": "Curve Structure",
           "market": "LDN",
           "severity": "info",
-          "score": 1,
+          "score": 0,
           "magnitude": "large",
-          "text": "RC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
-        },
-        {
-          "id": "CS6",
-          "name": "Inversion Easing",
-          "category": "CS",
-          "categoryLabel": "Curve Structure",
-          "market": "LDN",
-          "severity": "warn",
-          "score": -1,
-          "magnitude": "large",
-          "text": "RC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
+          "text": "RC in contango while roasters add coverage — forward prices cheaper than spot, incentivizes forward buying. Normal and sustainable."
         },
         {
           "id": "SP3",
@@ -2699,5 +2677,5 @@
       "priceLDN": 3777
     }
   ],
-  "generatedAt": "2026-08-20T02:49:59.565Z"
+  "generatedAt": "2026-08-20T03:29:20.906Z"
 }

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T03:29:01.013854+00:00",
+  "generated_at": "2026-08-20T03:28:54.769012+00:00",
   "meta": {
     "adders_usd": 58.0,
     "container_mt": 21.6,
@@ -32,7 +32,7 @@
     "vietnam": {
       "name": "Vietnam Robusta FAQ G2",
       "market": "RC",
-      "fobbing_usd": 103.7,
+      "fobbing_usd": 103.5,
       "fobbing_fixed": 55.0,
       "fobbing_pct": 1.29,
       "fobbing_model": 4,
@@ -9312,13 +9312,25 @@
           "differential": 139.2,
           "parity_gap": -429.1,
           "tenderable": false
+        },
+        {
+          "date": "2026-08-20",
+          "farmgate_usd": 3758.3,
+          "fobbing": 103.5,
+          "at_port": 3861.8,
+          "freight": 231.9,
+          "tendering": 4151.6,
+          "rc": 3728.0,
+          "differential": 133.8,
+          "parity_gap": -423.6,
+          "tenderable": false
         }
       ]
     },
     "brazil_conilon": {
       "name": "Brazil Conilon T7",
       "market": "RC",
-      "fobbing_usd": 251.1,
+      "fobbing_usd": 252.5,
       "fobbing_fixed": 62.5,
       "fobbing_pct": 5.83,
       "fobbing_model": 4,
@@ -19138,13 +19150,25 @@
           "differential": -253.5,
           "parity_gap": 61.0,
           "tenderable": true
+        },
+        {
+          "date": "2026-08-19",
+          "farmgate_usd": 3259.5,
+          "fobbing": 252.5,
+          "at_port": 3512.0,
+          "freight": 134.5,
+          "tendering": 3704.5,
+          "rc": 3728.0,
+          "differential": -216.0,
+          "parity_gap": 23.5,
+          "tenderable": true
         }
       ]
     },
     "uganda": {
       "name": "Uganda Robusta S15",
       "market": "RC",
-      "fobbing_usd": 271.4,
+      "fobbing_usd": 274.5,
       "fobbing_fixed": 142.5,
       "fobbing_pct": 3.31,
       "fobbing_model": 4,
@@ -20323,6 +20347,18 @@
           "rc": 3739.0,
           "differential": 426.4,
           "parity_gap": -646.7,
+          "tenderable": false
+        },
+        {
+          "date": "2026-08-20",
+          "farmgate_usd": 3988.8,
+          "fobbing": 274.5,
+          "at_port": 4263.3,
+          "freight": 162.3,
+          "tendering": 4483.7,
+          "rc": 3728.0,
+          "differential": 535.3,
+          "parity_gap": -755.7,
           "tenderable": false
         }
       ]

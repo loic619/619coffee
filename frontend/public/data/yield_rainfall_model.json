@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T03:29:13.269614+00:00",
+  "generated_at": "2026-08-20T03:29:14.442412+00:00",
   "meta": {
     "x_axis": "crop-year rainfall total (mm), production-weighted across growing regions",
     "y_axis": "yield as % of normal \u2014 theory: potential vs max; scatter: production vs log-linear trend (=100)",
@@ -432,11 +432,11 @@
       "theory_fit_corr_biennial_adj": null,
       "current_year_live": {
         "year": 2026,
-        "rain_mm_to_date": 1150.0,
+        "rain_mm_to_date": 1175.0,
         "months_observed": 10,
-        "projected_end": 1578.0,
-        "projected_potential_pct": 88.0,
-        "in_optimal_band": false
+        "projected_end": 1602.0,
+        "projected_potential_pct": 90.0,
+        "in_optimal_band": true
       }
     },
     "robusta_indonesia": {
