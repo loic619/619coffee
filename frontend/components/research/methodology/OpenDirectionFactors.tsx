@@ -30,8 +30,16 @@ interface Seasonality {
   };
   rc_last_hour_status: string;
 }
+interface LiveModel {
+  active_features: string[]; n_features: number | null;
+  edge: number | null; acted_accuracy: number | null;
+  cci_available: boolean | null;
+  b3_close_gap_sessions: number; b3_close_gap_gate: number;
+  note: string;
+}
 interface Doc {
   generated_at: string; method: Record<string, string | number>;
+  live_model?: LiveModel;
   factors: Factor[];
   rolling: ({ date: string } & Record<string, number | string>)[];
   power?: { n: number; buckets: PowerBucket[]; inverted_tail_z: number | null; verdict: string };
@@ -92,6 +100,30 @@ export default function OpenDirectionFactors() {
         <h3 className="text-sm font-bold text-white">Every candidate&rsquo;s correlation with the next open — through time</h3>
         <span className="text-[10px] text-slate-500">incl. the B3 late-close study (2026-08) · recomputed nightly</span>
       </div>
+
+      {d.live_model && (
+        <div className="rounded-lg border border-indigo-800/50 bg-indigo-950/20 p-3">
+          <div className="mb-1 text-[10px] uppercase tracking-wide text-indigo-300">
+            What the live model is running right now
+          </div>
+          <p className="text-[11px] leading-relaxed text-slate-300">
+            <b>{d.live_model.n_features} active feature{d.live_model.n_features === 1 ? "" : "s"}</b>:{" "}
+            <span className="font-mono text-slate-200">{d.live_model.active_features.join(", ") || "—"}</span>
+            {" "}— read straight from the 03:00 job&rsquo;s own payload, so this panel cannot drift from the
+            deployed spec. Everything below is <em>candidate</em> research measured against that model, not a
+            description of it.
+            {d.live_model.b3_close_gap_sessions < d.live_model.b3_close_gap_gate && (
+              <> The model also carries a dormant <span className="font-mono">b3_close_gap</span> feature
+                ({d.live_model.b3_close_gap_sessions}/{d.live_model.b3_close_gap_gate} sessions captured) that
+                activates on its own once the gate clears.</>
+            )}
+            {d.live_model.cci_available === false && (
+              <> <span className="font-mono">cci_overnight</span> is also present in the spec but currently
+                reports unavailable.</>
+            )}
+          </p>
+        </div>
+      )}
 
       <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
         <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">
@@ -169,6 +201,18 @@ export default function OpenDirectionFactors() {
         <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
           The B3 late-close study — tested at the standing walk-forward gate
         </div>
+        {d.live_model && (
+          <p className="mb-2 rounded border border-amber-800/50 bg-amber-950/20 p-2 text-[11px] leading-relaxed text-slate-300">
+            <b className="text-amber-300">Read this before the verdict.</b> This study tests one B3 construction —
+            B3&rsquo;s <em>whole day</em> residualised against KC&rsquo;s whole day. The live model carries a
+            {" "}<em>different</em> one, <span className="font-mono">b3_close_gap</span>: only the move from
+            B3&rsquo;s price <em>at the KC close</em> to its official fechamento, from a purpose-built two-phase
+            capture. That is the narrower, cleaner window this study could not isolate from daily front prices —
+            so <b className="text-slate-200">the rejection below does not test it</b>, and it is accruing toward
+            its own activation gate ({d.live_model.b3_close_gap_sessions}/{d.live_model.b3_close_gap_gate}
+            {" "}sessions) where it will be judged on its own walk-forward evidence.
+          </p>
+        )}
         <p className="text-[11px] text-slate-400 mb-2 leading-relaxed">
           <b className="text-slate-200">Hypothesis</b>: B3 São Paulo keeps trading ~2.4h after KC&rsquo;s close
           (arabica ICF) and ~3h after London&rsquo;s (conilon CNL); that late window could carry Brazil

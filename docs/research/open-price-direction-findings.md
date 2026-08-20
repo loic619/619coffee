@@ -26,6 +26,26 @@ consistency, significance and calibration checks.
 | harvest / frost / day-of-year seasonality | **DROP (this model)** | All ≤0 marginal, unstable — frequency-mismatched + too few annual cycles. Reserve for the longer-horizon model. |
 | term structure, daily-BRL, index-roll, month-end, weekend | **DROP** | No usable edge on this target. |
 
+## `b3_close_gap` (PR #697, 2026-08) — the model's OWN B3 feature, DORMANT
+Not to be confused with the rejected `b3_after_kc` below — **different
+construction, different test.**
+- **`b3_close_gap`** (in the model, dormant): B3 arabica's move from its
+  price **at the KC close** to its **official fechamento**, from the
+  two-phase capture (`capture_b3_at_kc_close.py` →
+  `b3_kc_close_snapshots.json`). Isolates only the window after New York
+  settles. Ships dormant behind `_MIN_B3_OVERLAP = 40` sessions and joins
+  `active_features()` automatically once the gate clears — forward-only
+  accumulation, same pattern as `cci_overnight`.
+- **`b3_after_kc`** (rejected, below): B3's **whole day** residualised
+  against KC's whole day (rolling-60 beta), reconstructed from daily front
+  prices. Necessarily mixes the full session's co-movement and BRL noise.
+- **Consequence: the rejection below does NOT test the live feature.** The
+  research card states this explicitly above its verdict. The retest
+  watchdog tracks the 40-session gate (`b3_close_gap` entry) so the feature
+  is graded on its own walk-forward evidence BEFORE it activates, rather
+  than joining the deployed model ungraded.
+- Status at time of writing: 0/40 sessions with a usable gap captured.
+
 ## B3 late-close factors (2026-08) — arabica REJECTED at the gate; conilon DATA-STARVED
 Owner hypothesis: B3 São Paulo trades ~2.4h after KC's NY close (arabica ICF)
 and ~3h after London's RC close (conilon CNL); the late window could carry
