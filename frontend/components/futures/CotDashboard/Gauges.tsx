@@ -23,7 +23,16 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
     min52: number; max52: number; // 52-week range (solid band inside it)
     pct: number;                  // current position within the 5y range
     isSpread?: boolean;
+    /** Options book for this cohort+side (combined - futures). Undefined when
+     *  no combined report covers the latest week. Delta-adjusted, so it can be
+     *  NEGATIVE — a delta-short call book offsetting the futures leg. */
+    opt?: number;
+    /** |options| as a share of the cohort's FUTURES NET (long - short), the
+     *  number shown beside the options bar. Undefined when net is ~0. */
+    optPctOfNet?: number;
   };
+
+  const optKey = (market: Mkt): "nyOpt" | "ldnOpt" => (market === "ny" ? "nyOpt" : "ldnOpt");
 
   const mkRow = (market: Mkt, label: string, cat: string, field: PositionField, isSpread?: boolean): GRData => {
     const vals5 = hist5y.map(d => d[market]?.[field] ?? 0);
@@ -31,10 +40,25 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
     const min5 = Math.min(...vals5), max5 = Math.max(...vals5);
     const cv = curr[market]?.[field] ?? 0;
     const pv = prev?.[market]?.[field] ?? cv;
+
+    // Options book for the same cohort+side, and its size relative to the
+    // cohort's FUTURES NET. Net (not the single leg) is the reference the
+    // desk cares about: "how big is the options book against the position
+    // this cohort actually carries".
+    const opt = curr[optKey(market)]?.[field];
+    const futs = curr[market];
+    const netField: PositionField = field.endsWith("Short")
+      ? (field.replace("Short", "Long") as PositionField) : field;
+    const shortField: PositionField = netField.replace("Long", "Short") as PositionField;
+    const net = isSpread ? 0 : (futs?.[netField] ?? 0) - (futs?.[shortField] ?? 0);
+    const optPctOfNet = opt != null && Math.abs(net) > 1e-9
+      ? (opt / Math.abs(net)) * 100 : undefined;
+
     return {
       label, color: HM_CAT_COLORS[cat] ?? "#64748b", curr: cv, prev: pv,
       min5, max5, min52: Math.min(...vals52), max52: Math.max(...vals52),
       pct: max5 > min5 ? (cv - min5) / (max5 - min5) * 100 : 50, isSpread,
+      opt, optPctOfNet,
     };
   };
 
@@ -71,6 +95,14 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
     Math.max(1, ...[...rows.longRows, ...rows.shortRows, ...rows.spreadRows].map(r => r.max5 - r.min5));
   const MIN_TRACK_PCT = 8;
 
+  // Options bars share ONE scale per market column so their lengths are
+  // comparable with each other; they're drawn from a centre zero so a negative
+  // (delta-short) book visibly extends the opposite way.
+  const maxOptOf = (rows: ReturnType<typeof marketRows>) =>
+    Math.max(1, ...[...rows.longRows, ...rows.shortRows, ...rows.spreadRows]
+      .map(r => Math.abs(r.opt ?? 0)));
+  const COLOR_OPT = "#c084fc";        // violet — distinct from every cohort colour
+
   const pctColor = (pct: number) => {
     if (pct >= 80) return "#ef4444";
     if (pct >= 60) return "#f97316";
@@ -84,7 +116,7 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
     ...[...ldn.longRows, ...ldn.shortRows].map(r => ({ ...r, mkt: "LDN" })),
   ].filter(r => r.pct >= 80 || r.pct <= 20);
 
-  const renderGauge = (r: GRData, maxSpan: number) => {
+  const renderGauge = (r: GRData, maxSpan: number, maxOpt: number) => {
     const span5 = r.max5 - r.min5;
     const trackPct = Math.max(MIN_TRACK_PCT, (span5 / maxSpan) * 100);
     const pos = (v: number) => span5 > 0 ? Math.max(0, Math.min(100, (v - r.min5) / span5 * 100)) : 50;
@@ -125,6 +157,30 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
             <span style={{ fontSize: 8, color: "#334155" }}>{fmtLot(r.max5)}</span>
           </div>
         </div>
+        {/* Options book — second bar directly under the futures one, drawn
+            from a centre zero so a delta-SHORT book extends left while a long
+            one extends right. The % beside it is the options size against the
+            cohort's futures NET. */}
+        {r.opt != null && (
+          <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+            <div style={{ position: "relative", height: 5, width: "62%", background: "#111827", borderRadius: 3 }}
+              title={`Options book (combined − futures): ${fmtLot(r.opt)}`}>
+              <div style={{ position: "absolute", left: "50%", top: -1, width: 1, height: 7, background: "#334155" }} />
+              <div style={{
+                position: "absolute", top: 0, height: "100%", background: COLOR_OPT, borderRadius: 2,
+                width: `${Math.min(50, (Math.abs(r.opt) / maxOpt) * 50)}%`,
+                left: r.opt >= 0 ? "50%" : undefined,
+                right: r.opt < 0 ? "50%" : undefined,
+              }} />
+            </div>
+            <span style={{ fontSize: 8, color: "#64748b", whiteSpace: "nowrap" }}>
+              opt {fmtLot(r.opt)}
+              {r.optPctOfNet != null && (
+                <span style={{ color: COLOR_OPT }}> · {r.optPctOfNet >= 0 ? "+" : ""}{r.optPctOfNet.toFixed(0)}% of net</span>
+              )}
+            </span>
+          </div>
+        )}
       </div>
     );
   };
@@ -135,16 +191,17 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
 
   const marketColumn = (title: string, rows: ReturnType<typeof marketRows>) => {
     const maxSpan = maxSpanOf(rows);
+    const maxOpt = maxOptOf(rows);
     return (
       <div style={{ minWidth: 0 }}>
         <div className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2 pb-1.5 border-b border-slate-800 truncate">{title}</div>
         {subHead("Longs")}
-        {rows.longRows.map(r => renderGauge(r, maxSpan))}
+        {rows.longRows.map(r => renderGauge(r, maxSpan, maxOpt))}
         {subHead("Shorts")}
-        {rows.shortRows.map(r => renderGauge(r, maxSpan))}
+        {rows.shortRows.map(r => renderGauge(r, maxSpan, maxOpt))}
         <div style={{ borderTop: "1px dashed #334155", marginTop: 8, paddingTop: 6 }}>
           {subHead("Spreading positions")}
-          {rows.spreadRows.map(r => renderGauge(r, maxSpan))}
+          {rows.spreadRows.map(r => renderGauge(r, maxSpan, maxOpt))}
         </div>
       </div>
     );
@@ -153,7 +210,7 @@ export default function CotGauges({ data }: { data: ProcessedCotRow[] }) {
   return (
     <>
       <SectionHeader icon="Sliders" title="Positioning Gauges"
-        subtitle="Faded blue = 5-year range · solid blue band = 52-week range · blue tick = previous week · dot = current week (green = added vs last week, red = reduced). Bar length ∝ range size within each market. Percentile is within the 5-year range." />
+        subtitle="Futures bar: faded blue = 5-year range · solid blue band = 52-week range · blue tick = previous week · dot = current week (green = added, red = reduced); length ∝ range size. Violet bar under it = the OPTIONS book for the same cohort (futures+options COMBINED report − futures), drawn from a centre zero so a delta-short book extends left — with its size as a % of the cohort's futures net." />
       {extremes.length > 0 && (
         <div className="bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 mb-4 flex flex-wrap gap-3">
           <span className="text-[10px] text-slate-500 font-semibold self-center uppercase tracking-wider">Extremes (5y):</span>

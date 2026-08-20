@@ -227,3 +227,43 @@ class PhysicalPrice(Base):
         UniqueConstraint("symbol", "price_date", name="uq_physical_price_symbol_date"),
         Index("ix_physical_prices_symbol_date", "symbol", "price_date"),
     )
+
+
+class CotCombinedPosition(Base):
+    """Futures-AND-OPTIONS combined COT positions, narrow form.
+
+    The regular COT feed this project ingests is futures-ONLY (CFTC
+    fut_disagg for NY; the "ICE Robusta Coffee Futures" rows for LDN), so the
+    options book is invisible to those cohort numbers. This table stores the
+    COMBINED report — CFTC com_disagg for NY, the "ICE Robusta Coffee Futures
+    and Options" rows for LDN — from which the options book is derived:
+
+        options(cat, side) = combined(cat, side) - futures(cat, side)
+
+    Combined figures are delta-adjusted futures-equivalents, so an options leg
+    can legitimately come out NEGATIVE (a delta-short call book reduces a
+    cohort's combined long below its futures long). Consumers must handle the
+    sign rather than clamp it.
+
+    Only the all-crop split is stored: the positioning gauges that consume it
+    read all-crop, and the combined report's crop breakdown isn't needed.
+    Shape mirrors CotPosition so the two can be zipped by (date, market,
+    category, side).
+    """
+    __tablename__ = "cot_combined_position"
+
+    id:       Mapped[int]  = mapped_column(primary_key=True)
+    date:     Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    market:   Mapped[str]  = mapped_column(String(3), nullable=False)   # "ny" | "ldn"
+    category: Mapped[str]  = mapped_column(String(8), nullable=False)   # pmpu | swap | mm | other | nr
+    side:     Mapped[str]  = mapped_column(String(8), nullable=False)   # long | short | spread
+
+    oi:       Mapped[int | None] = mapped_column(Integer)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("date", "market", "category", "side",
+                         name="uq_cot_comb_date_market_cat_side"),
+        Index("ix_cot_comb_date_market", "date", "market"),
+    )

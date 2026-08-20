@@ -98,6 +98,23 @@ export function transformApiData(rows: CotRawRow[]): ProcessedCotRow[] {
       nonRepLong:  ldn.nr_long    ?? 0,  nonRepShort: ldn.nr_short    ?? 0,  nonRepSpread: 0,
     };
 
+    // Options book per cohort (combined - futures), emitted by the exporter as
+    // `*_opt`. Absent for weeks with no combined report and for legacy rows —
+    // undefined then, so the gauges can hide the options bar rather than draw
+    // a fake zero. Values are delta-adjusted and CAN be negative.
+    const optObj = (m: Record<string, number | null> | undefined): CotMarketPositions | undefined => {
+      if (!m || m.pmpu_long_opt == null) return undefined;
+      return {
+        pmpuLong:    m.pmpu_long_opt   ?? 0,  pmpuShort:   m.pmpu_short_opt  ?? 0,  pmpuSpread:   0,
+        swapLong:    m.swap_long_opt   ?? 0,  swapShort:   m.swap_short_opt  ?? 0,  swapSpread:   m.swap_spread_opt  ?? 0,
+        mmLong:      m.mm_long_opt     ?? 0,  mmShort:     m.mm_short_opt    ?? 0,  mmSpread:     m.mm_spread_opt    ?? 0,
+        otherLong:   m.other_long_opt  ?? 0,  otherShort:  m.other_short_opt ?? 0,  otherSpread:  m.other_spread_opt ?? 0,
+        nonRepLong:  m.nr_long_opt     ?? 0,  nonRepShort: m.nr_short_opt    ?? 0,  nonRepSpread: 0,
+      };
+    };
+    const nyOptObj  = optObj(ny  as unknown as Record<string, number | null>);
+    const ldnOptObj = optObj(ldn as unknown as Record<string, number | null>);
+
     // tradersNY/LDN: lowercase keys used by Tab 5 dpCats loop as m.tr["nonrep"]
     const tradersNY: CotTradersGroup = {
       pmpu:   ny.t_pmpu_long  ?? 0,
@@ -156,6 +173,7 @@ export function transformApiData(rows: CotRawRow[]): ProcessedCotRow[] {
       spreadingTotal, outrightTotal,
       weeklyNominalFlow, weeklyMarginFlow, cumulativeNominal, cumulativeMargin,
       ny: nyObj, ldn: ldnObj,
+      nyOpt: nyOptObj, ldnOpt: ldnOptObj,
       // Preserve forward-filled raw sub-objects for buildMarketMetrics
       // (structure, exch_oi, t_mm_short). String-typed contract fields are
       // hoisted to priceContract{NY,LDN} above, so this cast to the numeric
