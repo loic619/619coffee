@@ -45,6 +45,8 @@ from datetime import UTC, datetime
 from scraper.exporters.base import OUT_DIR, ROOT
 
 INTRADAY = OUT_DIR / "intraday_kc_rc_15min.json"
+QUANT = OUT_DIR / "quant_report.json"
+B3_SNAPS = OUT_DIR / "b3_kc_close_snapshots.json"
 ICF = OUT_DIR / "brazil_b3_arabica.json"
 CNL = OUT_DIR / "brazil_b3_conilon.json"
 FX_SNAPS = OUT_DIR / "fx_intraday_snapshots.json"
@@ -243,18 +245,49 @@ def export_open_direction_factors():
                 used += 1
         if r_.get("date") and used >= 6:
             cci[r_["date"]] = delta
-    for r_ in data:
+    # b3_close_gap — the model's OWN B3 construction (added 2026-08, PR #697):
+    # B3's move from its price at the KC close to its official fechamento, i.e.
+    # only the window after New York settles. Distinct from this study's
+    # `b3` residual, which used B3's WHOLE day minus KC's whole day.
+    b3_gap = {}
+    for r_ in (_load(B3_SNAPS).get("days") or []):
+        if r_.get("date") and isinstance(r_.get("gap"), (int, float)):
+            b3_gap[r_["date"]] = r_["gap"]
+    for i, r_ in enumerate(data):
         r_["brent"] = brent.get(r_["date"])
         r_["cci"] = cci.get(r_["date"])
+        # knowable the evening before the session it predicts → shift(1)
+        r_["b3_close_gap"] = b3_gap.get(data[i - 1]["date"]) if i else None
 
     # ── factor battery: full-window + per-year lead correlations ────────────
+    # Status is READ FROM THE LIVE MODEL, never asserted here: quant_report's
+    # model block is written by the 03:00 job and is the authority on which
+    # features actually carry a coefficient. A hardcoded "IN MODEL" label
+    # silently lies the moment the model's spec or a coverage gate changes.
+    live_model = (_load(QUANT).get("open_direction") or {}).get("model") or {}
+    active_live = list(live_model.get("active_features") or [])
+    # exporter key → the model's own feature name (None = not a model feature)
+    MODEL_NAME = {
+        "kc_after": "kc_after_rc_diff", "dsr": "days_since_roll",
+        "cci": "cci_overnight", "brent": None, "rc_ret": None,
+        "b3": None, "b3_close_gap": "b3_close_gap",
+    }
+
+    def _status(key: str, fallback: str) -> str:
+        name = MODEL_NAME.get(key)
+        if name and name in active_live:
+            return "ACTIVE IN MODEL"
+        return fallback
+
     FACTORS = [
-        ("kc_after", "NY after RC-close move", "IN MODEL"),
-        ("dsr", "Roll-cycle position", "IN MODEL (cyclical — linear r understates)"),
-        ("cci", "CCI overnight move", "IN MODEL (forward-validating)"),
+        ("kc_after", "NY after RC-close move", _status("kc_after", "not in the live model")),
+        ("dsr", "Roll-cycle position", _status("dsr", "not in the live model")),
+        ("cci", "CCI overnight move", _status("cci", "candidate — dormant until its coverage gate clears")),
         ("brent", "Brent overnight move", "REGIME TAG (2022-only coefficient)"),
         ("rc_ret", "RC prior-day return", "DROPPED 2026-07 — re-examined here"),
-        ("b3", "B3 arabica after-KC residual", "NEW CANDIDATE (this study)"),
+        ("b3", "B3 arabica after-KC residual (whole day)", "REJECTED at the gate — this study"),
+        ("b3_close_gap", "B3 post-KC-close gap (narrow window)",
+         _status("b3_close_gap", "candidate — accruing toward its activation gate")),
     ]
     factors = []
     for key, label, status in FACTORS:
@@ -463,6 +496,18 @@ def export_open_direction_factors():
             "b3_construction": f"ICF front daily return residual vs same-day KC settle return (rolling-{BETA_WIN} beta), both legs roll-cleaned; knowable ~21:00 London",
             "wf": f"expanding window, standardise-on-past, refit every {WF_STEP}, min-train {MIN_TRAIN}, rolling-{MIN_TRAIN} majority baseline; marginals on matched OOS dates",
             "rolling_window": ROLL_WIN,
+        },
+        "live_model": {
+            "active_features": active_live,
+            "n_features": live_model.get("n_features"),
+            "edge": _r(live_model.get("edge"), 4),
+            "acted_accuracy": _r(live_model.get("acted_accuracy"), 4),
+            "cci_available": live_model.get("cci_available"),
+            "b3_close_gap_sessions": len(b3_gap),
+            "b3_close_gap_gate": 40,
+            "note": "read from quant_report.json['open_direction']['model'] — the "
+                    "03:00 job's own output, so this panel cannot drift from the "
+                    "live spec",
         },
         "factors": factors,
         "rolling": rolling,

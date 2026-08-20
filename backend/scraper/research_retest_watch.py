@@ -55,6 +55,16 @@ def _cnl_sessions() -> int | None:
     return len(d.get("history", [])) if d else None
 
 
+def _b3_close_gap_sessions() -> int | None:
+    """Sessions captured for the MODEL's own B3 feature (b3_close_gap, added
+    2026-08). This is the gate that actually flips the live spec — at 40 the
+    feature joins the deployed model automatically, so it matters more than
+    any research threshold here."""
+    d = _load(DATA / "b3_kc_close_snapshots.json")
+    rows = (d or {}).get("days") or []
+    return sum(1 for r in rows if isinstance(r.get("gap"), (int, float)))
+
+
 def _icf_matched_oos() -> int | None:
     d = _load(DATA / "open_direction_factors.json")
     if not d:
@@ -141,6 +151,12 @@ WATCHES = [
      "gated firings since the study",
      "The harvest condition was discovered in-sample; only forward firings are true OOS.",
      "Re-read intraday_drift.json: is the forward hit-rate holding near 76%?"),
+    ("b3_close_gap", "b3_close_gap — LIVE MODEL activation gate", _b3_close_gap_sessions, 40,
+     "sessions captured (gap present)",
+     "The model's own B3 construction (post-KC-close window, PR #697) ships "
+     "dormant and joins the deployed spec automatically at 40 sessions.",
+     "Grade it BEFORE it activates: run the walk-forward marginal on b3_close_gap "
+     "vs kc_after+dsr, and update the research card's B3 section with the verdict."),
     ("cnl_sessions", "Conilon (B3 CNL) late-close factor", _cnl_sessions, 300,
      "sessions accrued",
      "B3 exposes no CNL history; the accumulator started 2026-08.",
