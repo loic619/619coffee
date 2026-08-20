@@ -1,24 +1,91 @@
 {
- "generated_at": "2026-08-20T11:48:51.750361Z",
+ "generated_at": "2026-08-20T11:58:29.151786Z",
  "note": "What Barchart's queryminutes actually returned per pair for a --backfill pull. bars << maxrecords means the source is out of history for that symbol; the liquid pairs print 96 bars a session, the thin ones far fewer, so the same record count buys wildly different calendar reach.",
- "maxrecords_requested": 40000,
+ "maxrecords_requested": 5000,
+ "response_cap": 5000,
+ "paging_param": "end",
+ "pages_fetched": 8,
  "merge": {
-  "new_pair_days": 0,
-  "confirmed_on_overlap": 646,
+  "new_pair_days": 2429,
+  "confirmed_on_overlap": 677,
   "mismatched_on_overlap": 0
  },
- "usable_days_after": 56,
+ "usable_days_after": 317,
  "usable_span": [
-  "2026-06-04",
+  "2025-04-04",
   "2026-08-20"
  ],
  "pairs": {
-  "COP=X": {
-   "bars": 5000,
-   "anchor_days": 129,
-   "first_bar": "2026-02-12",
+  "IDR=X": {
+   "bars": 35000,
+   "anchor_days": 410,
+   "first_bar": "2025-01-16",
    "last_bar": "2026-08-20",
-   "first_day": "2026-02-13",
+   "first_day": "2025-01-20",
+   "last_day": "2026-08-20"
+  },
+  "BRL=X": {
+   "bars": 35000,
+   "anchor_days": 383,
+   "first_bar": "2025-02-25",
+   "last_bar": "2026-08-20",
+   "first_day": "2025-02-26",
+   "last_day": "2026-08-20"
+  },
+  "JPY=X": {
+   "bars": 35000,
+   "anchor_days": 364,
+   "first_bar": "2025-03-25",
+   "last_bar": "2026-08-20",
+   "first_day": "2025-03-26",
+   "last_day": "2026-08-20"
+  },
+  "EURUSD=X": {
+   "bars": 35000,
+   "anchor_days": 363,
+   "first_bar": "2025-03-26",
+   "last_bar": "2026-08-20",
+   "first_day": "2025-03-27",
+   "last_day": "2026-08-20"
+  },
+  "KRW=X": {
+   "bars": 30000,
+   "anchor_days": 327,
+   "first_bar": "2025-05-16",
+   "last_bar": "2026-08-20",
+   "first_day": "2025-05-19",
+   "last_day": "2026-08-20"
+  },
+  "CHF=X": {
+   "bars": 30000,
+   "anchor_days": 313,
+   "first_bar": "2025-06-05",
+   "last_bar": "2026-08-20",
+   "first_day": "2025-06-06",
+   "last_day": "2026-08-20"
+  },
+  "CAD=X": {
+   "bars": 30000,
+   "anchor_days": 310,
+   "first_bar": "2025-06-09",
+   "last_bar": "2026-08-20",
+   "first_day": "2025-06-11",
+   "last_day": "2026-08-20"
+  },
+  "GBP=X": {
+   "bars": 30000,
+   "anchor_days": 310,
+   "first_bar": "2025-06-09",
+   "last_bar": "2026-08-20",
+   "first_day": "2025-06-11",
+   "last_day": "2026-08-20"
+  },
+  "COP=X": {
+   "bars": 15000,
+   "anchor_days": 204,
+   "first_bar": "2024-09-05",
+   "last_bar": "2026-08-20",
+   "first_day": "2024-09-12",
    "last_day": "2026-08-20"
   },
   "CNY=X": {
@@ -29,76 +96,12 @@
    "first_day": "2024-10-28",
    "last_day": "2026-05-15"
   },
-  "BRL=X": {
-   "bars": 5000,
-   "anchor_days": 55,
-   "first_bar": "2026-06-03",
-   "last_bar": "2026-08-20",
-   "first_day": "2026-06-05",
-   "last_day": "2026-08-20"
-  },
-  "IDR=X": {
-   "bars": 5000,
-   "anchor_days": 54,
-   "first_bar": "2026-06-05",
-   "last_bar": "2026-08-20",
-   "first_day": "2026-06-08",
-   "last_day": "2026-08-20"
-  },
-  "KRW=X": {
-   "bars": 5000,
-   "anchor_days": 53,
-   "first_bar": "2026-06-08",
-   "last_bar": "2026-08-20",
-   "first_day": "2026-06-09",
-   "last_day": "2026-08-20"
-  },
-  "JPY=X": {
-   "bars": 5000,
-   "anchor_days": 52,
-   "first_bar": "2026-06-09",
-   "last_bar": "2026-08-20",
-   "first_day": "2026-06-10",
-   "last_day": "2026-08-20"
-  },
-  "CHF=X": {
-   "bars": 5000,
-   "anchor_days": 52,
-   "first_bar": "2026-06-09",
-   "last_bar": "2026-08-20",
-   "first_day": "2026-06-10",
-   "last_day": "2026-08-20"
-  },
-  "EURUSD=X": {
-   "bars": 5000,
-   "anchor_days": 51,
-   "first_bar": "2026-06-09",
-   "last_bar": "2026-08-20",
-   "first_day": "2026-06-11",
-   "last_day": "2026-08-20"
-  },
-  "CAD=X": {
-   "bars": 5000,
-   "anchor_days": 51,
-   "first_bar": "2026-06-09",
-   "last_bar": "2026-08-20",
-   "first_day": "2026-06-11",
-   "last_day": "2026-08-20"
-  },
-  "GBP=X": {
-   "bars": 5000,
-   "anchor_days": 51,
-   "first_bar": "2026-06-09",
-   "last_bar": "2026-08-20",
-   "first_day": "2026-06-11",
-   "last_day": "2026-08-20"
-  },
   "VND=X": {
-   "bars": 5000,
-   "anchor_days": 20,
-   "first_bar": "2025-10-22",
+   "bars": 10000,
+   "anchor_days": 44,
+   "first_bar": "2024-09-19",
    "last_bar": "2026-08-20",
-   "first_day": "2025-12-31",
+   "first_day": "2024-10-31",
    "last_day": "2026-07-14"
   },
   "PEN=X": {
