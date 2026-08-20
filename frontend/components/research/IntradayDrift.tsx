@@ -28,6 +28,7 @@ interface Doc {
     placebo_random_signs: { p: number; pct95: number };
     placebo_lagged_feature: Cell_;
     pessimistic_entry_usd: number;
+    direction_split?: { up_n: number; up_cont: number | null; dn_n: number; dn_cont: number | null };
   };
   live: { date: string; kc_last_hour_pct: number; z: number; in_harvest: boolean; armed: boolean; direction: string | null } | null;
   trades: { date: string; z: number; pnl_pct: number; usd: number }[];
@@ -169,9 +170,14 @@ export default function IntradayDrift() {
         The reading that fits every number: during harvest, commercials hedging the next day&rsquo;s physical
         purchases push size through NY&rsquo;s last hour, after London has closed. That flow is
         {" "}<strong>information, not pressure</strong> — the drift <em>continues</em> in its direction rather than
-        reversing, and it continues <em>through the session</em> rather than snapping back at the open. Heavy selling
-        is the sharper half (the factor panel measured {""}75% continuation vs 63% for buying), consistent with the
-        hedger&rsquo;s natural direction. Off-season, when there is no crop to pre-hedge, the same hour carries no
+        reversing, and it continues <em>through the session</em> rather than snapping back at the open.
+        {rb.direction_split && (
+          <> Heavy <em>selling</em> is the sharper half —{" "}
+            <strong>{rb.direction_split.dn_cont}% continuation</strong> on {rb.direction_split.dn_n} down-hours vs
+            {" "}{rb.direction_split.up_cont}% on {rb.direction_split.up_n} up-hours — consistent with the
+            hedger&rsquo;s natural direction.</>
+        )}
+        {" "}Off-season, when there is no crop to pre-hedge, the same hour carries no
         information at all — which is precisely the control the hypothesis needs.
       </P>
 

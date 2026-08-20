@@ -68,7 +68,9 @@ export default function OptionsVrp() {
         on this data, is different. Over {ka.all.n?.toLocaleString()} contract-sessions of arabica the premium is
         {" "}<strong>{pt(ka.all.mean_vrp)} vol points — statistically zero</strong> (IV {ka.all.mean_iv} vs realized
         {" "}{ka.all.mean_rv}, positive on only {ka.all.share_positive}% of days); robusta shows a modest
-        {" "}<strong>{pt(kr.all.mean_vrp)}-point lean</strong> that also fails significance. The one
+        {" "}<strong>{pt(kr.all.mean_vrp)}-point lean</strong> that
+        {" "}{Math.abs(kr.all.t_blocks ?? 0) >= 2 ? "now clears the block t-bar and is worth re-reading below"
+          : "also fails significance"}. The one
         <em> life-matched</em> datapoint we hold — {kr.life_matched?.contract} over its whole
         {" "}{kr.life_matched?.sessions}-session life — priced vol at {kr.life_matched?.mean_iv} against
         {" "}{kr.life_matched?.rv} realized: <strong>almost exactly fair</strong>. Coffee IV has been an honest

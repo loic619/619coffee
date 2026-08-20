@@ -71,6 +71,10 @@ export default function OptionsOiWalls() {
 
   const ka = d.markets.arabica.study, kr = d.markets.robusta.study;
   const kaD = ka.directional, krD = kr.directional;
+  // How many markets clear |t| >= 2 on their own RIGHT NOW. The per-market
+  // t-stats sit near the bar and cross it as sessions accrue, so the claim
+  // about significance is computed, never asserted in prose.
+  const nAtBar = [kaD.t, krD.t].filter(t => t != null && Math.abs(t) >= 2).length;
 
   return (
     <div className="max-w-3xl">
@@ -116,10 +120,14 @@ export default function OptionsOiWalls() {
         ["Pooled (Stouffer)", `z ≈ ${d.pooled_z_directional}`, "—"],
       ]} />
       <UL>
-        <LI><strong>Both markets, same sign, independently at the naive bar</strong> — and the halves agree in
+        <LI><strong>Both markets, same sign{nAtBar === 2 ? ", and both independently at the naive bar" : ""}</strong>
+          {nAtBar < 2 && <> — {nAtBar === 1 ? "one clears the naive |t| ≥ 2 bar on its own, the other does not" :
+            "neither clears |t| ≥ 2 on its own"} as the sample updates</>} — and the halves agree in
           both ({pp(kaD.halves[0])}/{pp(kaD.halves[1])} KC, {pp(krD.halves[0])}/{pp(krD.halves[1])} RC). Two
-          independent replications of a pre-specified hypothesis pool to z ≈ {d.pooled_z_directional}, which
-          survives even the sweep-adjusted reading.</LI>
+          independent replications of a pre-specified hypothesis pool to
+          {" "}<strong>z ≈ {d.pooled_z_directional}</strong>, which is what carries the finding — the
+          per-market t-stats sit near the bar and drift across it as weeks accrue, so the pooled figure and the
+          consistent sign, not either market alone, are the evidence.</LI>
         <LI><strong>Support has been the stronger side in KC</strong>: put walls below settled through on
           {" "}{pc(kaD.sides.put_below.wall_rate)} of strike-observations vs {pc(kaD.sides.put_below.light_rate)}
           {" "}for light strikes; call walls above {pc(kaD.sides.call_above.wall_rate)} vs

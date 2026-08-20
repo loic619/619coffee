@@ -197,6 +197,17 @@ def export_intraday_drift():
             continue
         lagged.append((1 if frame[i - 1]["ka"] > 0 else -1) * f["drift"] * 100)
 
+    # Continuation split by the direction of the last hour. A pre-hedging
+    # story predicts the SELLING side is sharper (that is the hedger's
+    # direction); published so the card never hardcodes it.
+    def _cont(rows_):
+        return _r(st.mean(1.0 if (f["ka"] > 0) == (f["drift"] > 0) else 0.0 for f in rows_) * 100, 1) if rows_ else None
+
+    up_rows = [f for f in sel if f["ka"] > 0]
+    dn_rows = [f for f in sel if f["ka"] < 0]
+    direction_split = {"up_n": len(up_rows), "up_cont": _cont(up_rows),
+                       "dn_n": len(dn_rows), "dn_cont": _cont(dn_rows)}
+
     gross_usd = st.mean(_signed(f) / 100 * f["px"] for f in sel)
     pess_usd = st.mean((1 if f["ka"] > 0 else -1) * f["after15"] * f["px"]
                        for f in sel if f["after15"] is not None)
@@ -241,6 +252,7 @@ def export_intraday_drift():
             "placebo_random_signs": {"p": _r(p_placebo, 4), "pct95": _r(placebo[int(0.95 * len(placebo))])},
             "placebo_lagged_feature": _cell(lagged),
             "pessimistic_entry_usd": _r(pess_usd, 1),
+            "direction_split": direction_split,
         },
         "live": live,
         "trades": [{"date": f["date"], "z": _r(f["z"], 2), "pnl_pct": _r(_signed(f)),

@@ -82,6 +82,9 @@ export default function OptionsFlowCot() {
 
   const ka = d.markets.arabica, kr = d.markets.robusta;
   const leadKC = ka.stats.lead.dw;
+  // Computed, not asserted: these t-stats update weekly and can cross the bar.
+  const maxPartialT = Math.max(...(["arabica", "robusta"] as const).flatMap(k =>
+    Object.values(d.markets[k].stats.same_week).map(c => Math.abs(c.t_partial ?? 0))));
 
   return (
     <div className="max-w-3xl">
@@ -175,7 +178,9 @@ export default function OptionsFlowCot() {
           ]))
       } />
       <P>
-        Partialling the week&rsquo;s return out, no channel in either market clears t = 2. The best case — RC call
+        Partialling the week&rsquo;s return out, {maxPartialT >= 2
+          ? `the strongest channel now reaches |t| ${maxPartialT.toFixed(2)} — re-read against the sweep below`
+          : "no channel in either market clears t = 2"}. The best case — RC call
         flow at partial {kr.stats.same_week.dc.partial_ret} (t {kr.stats.same_week.dc.t_partial}) — would add about
         four points of R² if taken at face value, and it does not survive the sweep accounting below. On the
         evidence so far, once you know the week&rsquo;s price you know what options flow would have told you.

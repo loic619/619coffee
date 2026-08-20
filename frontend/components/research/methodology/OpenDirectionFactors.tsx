@@ -78,6 +78,9 @@ export default function OpenDirectionFactors() {
   if (!d) return <div className="bg-slate-900 rounded-lg h-32 animate-pulse" />;
 
   const g = d.gate;
+  // the |z| >= 2 bucket, read from the data — never hardcoded: it recomputes
+  // nightly as sessions accrue toward the fade-candidate retest threshold
+  const tail = d.power?.buckets.find(b => b.band.replace(/\s/g, "") === "|z|≥2");
   const b3m = g.b3_matched;
 
   return (
@@ -278,12 +281,13 @@ export default function OpenDirectionFactors() {
             <p>
               <b className="text-slate-200">No — strength does not rescue the factor.</b> The curve is
               non-monotone: flat in the middle band, and the strongest bucket (|z| ≥ 2) lands at
-              {" "}<b className="text-red-400">27.3% sign accuracy</b> — the biggest B3 late-window moves have
+              {" "}<b className="text-red-400">{tail?.acc}% sign accuracy</b> — the biggest B3 late-window moves have
               pointed the <em>wrong way</em> for the next open, a reversal shape rather than continuation.
             </p>
             <p>
               <b className="text-slate-200">And the inverted read is not promotable either.</b> Fading the strong
-              B3 move would have hit ~73% on those 22 days, but against the bucket&rsquo;s own blind-majority
+              B3 move would have hit {tail?.acc != null ? `~${(100 - tail.acc).toFixed(0)}%` : "—"} on those
+              {" "}{tail?.n} days, but against the bucket&rsquo;s own blind-majority
               baseline that is binomial z ≈ {d.power.inverted_tail_z} — after slicing multiple buckets, well below
               any honest bar. It is logged as an accumulation flag: if the wrong-way tail persists as ICF data
               accrues (~40 tail days), it earns a re-look as a <em>fade</em> signal. Until then, neither the
