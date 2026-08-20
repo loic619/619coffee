@@ -1,8 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
+import type { TooltipContentProps } from "recharts/types/component/Tooltip";
+import { cachedFetchStatic } from "@/lib/api";
+import { buildPriceSegments, SEG_KEYS, type PriceDay, type SegmentRow } from "@/lib/cot/priceSegments";
 import type { ProcessedCotRow } from "@/lib/cot/types";
 import { CHART_STYLE } from "./constants";
 import SectionHeader from "./SectionHeader";
@@ -26,10 +29,19 @@ const WINDOW_OPTIONS: { label: string; weeks: number }[] = [
   { label: "5Y",  weeks: 260 },
 ];
 
+type PriceHistory = { arabica?: PriceDay[]; robusta?: PriceDay[] };
+
 export default function Step4IndustryPulse({ data }: { data: ProcessedCotRow[] }) {
   // Default to 1Y to match the previous behaviour; user can expand to 3Y / 5Y.
   const [windowWeeks, setWindowWeeks] = useState<number>(52);
+  const [prices, setPrices] = useState<PriceHistory | null>(null);
   const windowed = data.slice(-windowWeeks);
+
+  useEffect(() => {
+    cachedFetchStatic<PriceHistory>("/data/futures_price_history.json")
+      .then(setPrices)
+      .catch(() => setPrices({}));   // price line degrades to empty; PMPU still renders
+  }, []);
 
   // Hide contract-switch labels in multi-year views — 20+ labels overlap
   // unreadably. Lines still show; labels only render in the 1Y view.
@@ -40,106 +52,129 @@ export default function Step4IndustryPulse({ data }: { data: ProcessedCotRow[] }
   const mkChart = (market: "ny" | "ldn") => {
     const longKey:  MtKey = market === "ny" ? "pmpuLongMT_NY"  : "pmpuLongMT_LDN";
     const shortKey: MtKey = market === "ny" ? "pmpuShortMT_NY" : "pmpuShortMT_LDN";
-    const priceKey: "priceNY" | "priceLDN" = market === "ny" ? "priceNY" : "priceLDN";
-    const contractKey: "priceContractNY" | "priceContractLDN" =
-      market === "ny" ? "priceContractNY" : "priceContractLDN";
-    const prices   = windowed.map(d => d[priceKey]).filter(v => v > 0);
-    const priceDomain: [number, number] = prices.length
-      ? [Math.floor(Math.min(...prices) / 100) * 100, Math.ceil(Math.max(...prices) / 100) * 100]
-      : [0, 500];
+    const priceDays = (market === "ny" ? prices?.arabica : prices?.robusta) ?? [];
 
-    // Detect week-to-week contract switches. Each switch becomes a small
-    // blue circle on the price line at that week, so the reader sees
-    // exactly when the price track jumped to a different underlying
-    // contract (the max-OI rule rolls liquidity as the front goes into FND).
-    //
-    // The `prev && curr` truthy guard is load-bearing: it ensures the first
-    // legacy → first-max-OI transition (null → "KCH6" etc.) is NOT marked
-    // as a contract switch. Don't simplify to `prev !== curr`.
-    const switchByDate = new Map<string, { from: string; to: string }>();
-    for (let i = 1; i < windowed.length; i++) {
-      const prev = windowed[i - 1][contractKey];
-      const curr = windowed[i][contractKey];
-      if (prev && curr && prev !== curr) {
-        switchByDate.set(windowed[i].date, { from: prev, to: curr });
-      }
-    }
+    // ── Daily x-axis ─────────────────────────────────────────────────────────
+    // Rows are TRADING DAYS (~5/week) so the price line shows real daily
+    // detail. PMPU stays weekly: its values land only on COT dates and the
+    // lines bridge the intervening days via connectNulls, so the positioning
+    // curves keep exactly the shape they had on the old weekly axis.
+    const windowStart = windowed[0]?.date ?? "";
+    const dayRows = priceDays.filter(p => p.date >= windowStart);
+    const cotByDate = new Map(windowed.map(w => [w.date, w]));
+    // Union: every trading day, plus any COT date the price feed lacks (market
+    // holiday) so no weekly point is silently dropped.
+    const allDates = Array.from(new Set([
+      ...dayRows.map(p => p.date),
+      ...windowed.map(w => w.date),
+    ])).sort();
+    // Segment the daily price by contract (pure + unit-tested), then merge the
+    // weekly PMPU values onto their COT dates.
+    const segRows = buildPriceSegments(allDates, dayRows);
+    const rows = segRows.map(r => {
+      const cot = cotByDate.get(r.date);
+      return cot ? { ...r, [longKey]: cot[longKey], [shortKey]: cot[shortKey] } : r;
+    });
+
+    const priceVals = dayRows.map(p => p.price).filter(v => v > 0);
+    const priceDomain: [number, number] = priceVals.length
+      ? [Math.floor(Math.min(...priceVals) / 100) * 100, Math.ceil(Math.max(...priceVals) / 100) * 100]
+      : [0, 500];
     const mtVals = windowed.flatMap(d => [d[longKey], d[shortKey]]).filter(v => v > 0);
     const mtDomain: [number, number] = mtVals.length
       ? [Math.floor(Math.min(...mtVals) / 1000) * 1000, Math.ceil(Math.max(...mtVals) / 1000) * 1000]
       : [0, 100000];
+
     const deltaData = windowed.slice(1).map((d, i) => {
       const dl  = d[longKey]  - windowed[i][longKey];
       const ds  = d[shortKey] - windowed[i][shortKey];
       const efp = market === "ny" ? d.efpMT : 0;
       return { date: d.date, deltaLong: dl, deltaShort: ds, efpMT: efp };
     });
+
+    // Blue circle (+ label in the 1Y view) at the first point of each new
+    // contract, drawn only by the <Line> that actually owns that segment.
+    const rollDot = (ownKey: string, props: { cx?: number; cy?: number; payload?: SegmentRow }) => {
+      const p = props.payload;
+      if (!p || p.rollKey !== ownKey || props.cx == null || props.cy == null) {
+        // Recharts requires a ReactElement return; render an empty group.
+        return <g key={`empty-${p?.date ?? "x"}`} />;
+      }
+      return (
+        <g key={`sw-${p.date}`}>
+          <circle cx={props.cx} cy={props.cy} r={4} fill={COLOR_SWITCH} stroke="#0f172a" strokeWidth={1.5}>
+            <title>{`New contract: ${p.rollTo} (${p.date})`}</title>
+          </circle>
+          {showSwitchLabels && (
+            <text x={props.cx} y={props.cy - 9} fill={COLOR_SWITCH} fontSize={9} textAnchor="middle">
+              → {p.rollTo}
+            </text>
+          )}
+        </g>
+      );
+    };
+
+    // Custom tooltip: the daily axis means most rows have no PMPU values, and
+    // one of the two price keys is always null — the default tooltip would
+    // list those as blanks. Show only what this day actually has.
+    const tip = (props: TooltipContentProps<ValueType, NameType>) => {
+      if (!props.active || !props.payload?.length) return null;
+      const row = props.payload[0]?.payload as SegmentRow | undefined;
+      const entries = props.payload.filter(e => e.value != null && e.value !== "");
+      if (!entries.length) return null;
+      const seen = new Set<string>();
+      return (
+        <div style={{ background: CHART_STYLE.backgroundColor, border: `1px solid ${CHART_STYLE.borderColor}`, padding: "6px 9px", borderRadius: 4, fontSize: 11 }}>
+          <p style={{ color: "#94a3b8", margin: "0 0 3px" }}>{String(props.label)}</p>
+          {entries.map((e, i) => {
+            const isPrice = (SEG_KEYS as readonly string[]).includes(String(e.dataKey));
+            const name = isPrice ? "Price" : String(e.name);
+            if (seen.has(name)) return null;
+            seen.add(name);
+            return (
+              <p key={i} style={{ color: e.color, margin: "1px 0" }}>
+                {name}
+                {isPrice && row?.rollTo ? ` (${row.rollTo})` : ""}
+                : {isPrice ? Number(e.value).toFixed(2) : `${(Number(e.value) / 1000).toFixed(1)}k MT`}
+              </p>
+            );
+          })}
+        </div>
+      );
+    };
+
     return (
       <div>
         {/* Panel A — levels (lines, no Area fill) */}
         <div className="bg-slate-900 border border-slate-800 p-2 rounded-xl h-[300px] mb-3">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={windowed} margin={{ top: 8, right: 6, bottom: 4, left: 4 }}>
+            <ComposedChart data={rows} margin={{ top: 8, right: 6, bottom: 4, left: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
               <XAxis dataKey="date" stroke="#475569" fontSize={10}
+                interval="preserveStartEnd" minTickGap={38}
                 tickFormatter={v => windowWeeks > 52 ? v.slice(0, 7) : v.slice(5)} />
               {/* Tight axis widths (no rotated "MT" title — the section is titled
                   "Metric Tons" and ticks carry the k suffix) so the plot isn't
                   boxed in by left+right gutters. */}
               <YAxis yAxisId="left" stroke="#475569" fontSize={10} tickFormatter={mtFmt} domain={mtDomain} width={34} />
               <YAxis yAxisId="right" orientation="right" stroke="#475569" fontSize={10} domain={priceDomain} width={36} />
-              <Tooltip contentStyle={CHART_STYLE} formatter={((v, name) => [
-                name === "Price" ? Number(v).toFixed(0) : `${(Number(v) / 1000).toFixed(1)}k MT`, name as NameType,
-              ]) satisfies Formatter<ValueType, NameType>} />
+              <Tooltip content={tip} />
               <Legend wrapperStyle={{ fontSize: 10 }} />
-              <Line yAxisId="left"  type="monotone" dataKey={longKey}  name="Industry Long (roasters)"  stroke={COLOR_LONG}  strokeWidth={2} dot={false} />
-              <Line yAxisId="left"  type="monotone" dataKey={shortKey} name="Industry Short (farmers)"  stroke={COLOR_SHORT} strokeWidth={2} dot={false} />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey={priceKey}
-                name="Price"
-                stroke={COLOR_PRICE}
-                strokeWidth={2}
-                // Custom dot: blue circle only on weeks where the underlying
-                // contract changed. Every other point renders nothing (the
-                // function returns an invisible 0×0 element so recharts is happy).
-                dot={(props: { cx?: number; cy?: number; payload?: { date?: string } }) => {
-                  const sw = props.payload?.date ? switchByDate.get(props.payload.date) : undefined;
-                  if (!sw || props.cx == null || props.cy == null) {
-                    // Recharts requires a ReactElement return; render an empty
-                    // group rather than null to satisfy the type contract.
-                    return <g key={`empty-${props.payload?.date ?? "x"}`} />;
-                  }
-                  return (
-                    <g key={`sw-${props.payload?.date}`}>
-                      <circle
-                        cx={props.cx}
-                        cy={props.cy}
-                        r={5}
-                        fill={COLOR_SWITCH}
-                        stroke="#0f172a"
-                        strokeWidth={1.5}
-                      >
-                        <title>{`Contract switch: ${sw.from} → ${sw.to}`}</title>
-                      </circle>
-                      {showSwitchLabels && (
-                        <text
-                          x={props.cx}
-                          y={props.cy - 10}
-                          fill={COLOR_SWITCH}
-                          fontSize={9}
-                          textAnchor="middle"
-                        >
-                          → {sw.to}
-                        </text>
-                      )}
-                    </g>
-                  );
-                }}
-                // activeDot keeps the hover-highlight behaviour intact.
-                activeDot={{ r: 5, fill: COLOR_PRICE }}
-              />
+              {/* connectNulls bridges the non-COT days so the weekly
+                  positioning curves keep their original shape. */}
+              <Line yAxisId="left" type="monotone" dataKey={longKey} name="Industry Long (roasters)"
+                stroke={COLOR_LONG} strokeWidth={2} dot={false} connectNulls isAnimationActive={false} />
+              <Line yAxisId="left" type="monotone" dataKey={shortKey} name="Industry Short (farmers)"
+                stroke={COLOR_SHORT} strokeWidth={2} dot={false} connectNulls isAnimationActive={false} />
+              {/* Two alternating price lines = one visual series that breaks at
+                  every roll. Only the first carries the legend entry. */}
+              {SEG_KEYS.map((k, i) => (
+                <Line key={k} yAxisId="right" type="monotone" dataKey={k}
+                  name="Price" legendType={i === 0 ? "line" : "none"}
+                  stroke={COLOR_PRICE} strokeWidth={2}
+                  dot={props => rollDot(k, props)} activeDot={{ r: 4, fill: COLOR_PRICE }}
+                  isAnimationActive={false} />
+              ))}
             </ComposedChart>
           </ResponsiveContainer>
         </div>
@@ -167,7 +202,7 @@ export default function Step4IndustryPulse({ data }: { data: ProcessedCotRow[] }
   return (
     <div id="cot-section-4">
       <SectionHeader icon="Factory" title="Industry Pulse (Metric Tons)"
-        subtitle="PMPU Gross Long (roasters, green) & Short (farmers, brown) vs Price. Blue circles on the price line mark weeks where the underlying contract changed. Bottom: weekly position changes (NY includes EFP physical delivery)." />
+        subtitle="PMPU Gross Long (roasters, green) & Short (farmers, brown), weekly, vs the DAILY front-month price. Each contract is its own price segment: on a roll day the outgoing contract ends at its settle and the incoming one starts at its own price, so the gap is the roll spread — not a move. Blue circle marks the new contract. Bottom: weekly position changes (NY includes EFP physical delivery)." />
 
       {/* Time-window selector */}
       <div className="flex items-center gap-1 mb-3 px-1">
