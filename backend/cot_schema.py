@@ -61,7 +61,8 @@ def _market_extra_field_names() -> list[str]:
 
 
 def serialize_cot_row(row: Any, *, positions: Any = None,
-                      include_crop_split: bool = False) -> dict[str, Any]:
+                      include_crop_split: bool = False,
+                      combined: Any = None) -> dict[str, Any]:
     """
     Build the JSON-shaped dict for a CotWeekly row.
 
@@ -79,6 +80,15 @@ def serialize_cot_row(row: Any, *, positions: Any = None,
 
     Set `include_crop_split=True` to include the NY-only old/other crop
     fields (used by the static export but not the API).
+
+    `combined` is an optional dict keyed by ``(category, side)`` holding the
+    futures-AND-OPTIONS combined position for this market-week. When given,
+    ``{cat}_{side}_opt`` fields are emitted as combined - futures: the OPTIONS
+    book on its own. Those values are delta-adjusted, so a leg can be negative
+    (a delta-short call book pulls a cohort's combined long below its futures
+    long) — consumers must keep the sign. Omitted entirely when `combined` is
+    None or lacks the key, so weeks with no combined report stay absent rather
+    than reading as a zero-sized options book.
     """
     out: dict[str, Any] = {"oi_total": getattr(row, "oi_total", None)}
 
@@ -109,6 +119,15 @@ def serialize_cot_row(row: Any, *, positions: Any = None,
             for cat, sides in _CATEGORIES_WITH_SPREAD:
                 for side in sides:
                     out[f"{cat}_{side}{suffix}"] = _pos_value(crop_label, cat, side, "oi")
+    # Options book (combined - futures), all-crop. Absent when unavailable.
+    if combined is not None:
+        for cat, sides in _CATEGORIES_WITH_SPREAD:
+            for side in sides:
+                comb = combined.get((cat, side))
+                fut = out.get(f"{cat}_{side}")
+                if comb is None or fut is None:
+                    continue
+                out[f"{cat}_{side}_opt"] = comb - fut
     # Market extras (always from row)
     for name in _market_extra_field_names():
         out[name] = getattr(row, name, None)
@@ -218,3 +237,8 @@ def position_rows_from_fields(fields: dict[str, Any]) -> list[dict[str, Any]]:
 # Note: an earlier helper (cot_weekly_to_position_rows) was used by the
 # one-shot backfill in PR B. Now that the wide position columns are dropped
 # from cot_weekly, that helper would always return [] — removed.
+
+
+def combined_dict(rows: Any) -> dict[tuple[str, str], Any]:
+    """Index CotCombinedPosition ORM rows by (category, side) → oi."""
+    return {(r.category, r.side): r.oi for r in rows}

@@ -23,6 +23,14 @@ on:
           overwritten. Leave empty for a normal run (8-week window).
         required: false
         default: ''
+      combined_years:
+        description: >-
+          Backfill the futures+options COMBINED report for the trailing N
+          calendar years (e.g. 5). The positioning gauges draw options bars
+          against a 5-year range, so a forward-only ingest leaves them
+          range-less. Leave empty for the normal current-year ingest.
+        required: false
+        default: ''
 
 jobs:
   scrape:
@@ -78,6 +86,17 @@ jobs:
             python -m scraper.run_cot_coffee && break
             [ $attempt -lt 3 ] && echo "Attempt $attempt failed, retrying in 5m..." && sleep 300 || exit 1
           done
+
+      # Futures-AND-OPTIONS combined COT. The rest of the pipeline is
+      # futures-only, so without this the options book is invisible to the
+      # cohort numbers; the gauges derive options = combined - futures.
+      - name: Run combined (futures+options) COT scraper
+        if: ${{ github.event_name == 'workflow_dispatch' || steps.decide.outputs.due == 'true' }}
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          COT_COMBINED_YEARS: ${{ inputs.combined_years }}
+        run: python -m scraper.run_cot_combined
 
       # Set cot_weekly prices + contract labels from the per-contract archive
       # (true max-OI). Replaces the standalone Tuesday price fetch (old 2.1):

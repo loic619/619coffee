@@ -284,6 +284,19 @@ def create_cot_position_table():
     print("[db] cot_position table created/verified")
 
 
+def create_cot_combined_table():
+    """Create cot_combined_position if it doesn't exist.
+
+    Holds the futures-AND-OPTIONS combined COT report; the options book the
+    positioning gauges draw is combined - futures, derived at export time.
+    """
+    from database import Base
+    from models import CotCombinedPosition
+    engine = _get_engine()
+    Base.metadata.create_all(engine, tables=[CotCombinedPosition.__table__])
+    print("[db] cot_combined_position table created/verified")
+
+
 def upsert_physical_price(db, *, symbol: str, price: float, currency: str,
                           unit: str, source: str, price_date) -> None:
     from models import PhysicalPrice

@@ -5,6 +5,7 @@ from cot_schema import serialize_cot_row
 from models import (
     CommodityCot,
     CommodityPrice,
+    CotCombinedPosition,
     CotPosition,
     CotWeekly,
 )
@@ -36,6 +37,16 @@ def export_cot(db) -> None:
     for p in pos_rows:
         positions_by_week.setdefault((p.date, p.market), {})[(p.crop, p.category, p.side)] = p
 
+    # Futures-AND-OPTIONS combined book, same bulk-load shape. serialize_cot_row
+    # turns it into the `*_opt` fields (combined - futures) the positioning
+    # gauges draw. Missing weeks simply omit those fields.
+    combined_by_week: dict[tuple, dict] = {}
+    try:
+        for c in db.query(CotCombinedPosition).all():
+            combined_by_week.setdefault((c.date, c.market), {})[(c.category, c.side)] = c.oi
+    except Exception as e:   # table absent on a DB that hasn't run the scraper yet
+        print(f"  cot.json: combined positions unavailable ({e})")
+
     merged: dict = {}
     for row in rows:
         d = row.date.isoformat()
@@ -46,6 +57,7 @@ def export_cot(db) -> None:
         # that the CotDashboard frontend expects in cot.json.
         merged[d][row.market] = serialize_cot_row(
             row, positions=positions, include_crop_split=True,
+            combined=combined_by_week.get((row.date, row.market)),
         )
     result = sorted(merged.values(), key=lambda x: x["date"])
 
