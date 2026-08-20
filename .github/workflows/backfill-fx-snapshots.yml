@@ -92,5 +92,7 @@ jobs:
         if: ${{ inputs.commit }}
         uses: ./.github/actions/commit-data
         with:
-          files: frontend/public/data/fx_intraday_snapshots.json
+          files: |
+            frontend/public/data/fx_intraday_snapshots.json
+            data/fx_backfill_source_reach.json
           message: "data: backfill intraday FX snapshots [skip ci]"
