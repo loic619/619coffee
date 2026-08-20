@@ -129,3 +129,50 @@ def test_options_sign_is_preserved(comb, fut, expected):
     out = serialize_cot_row(row, positions={("all", "mm", "long"): (fut, None)},
                             combined={("mm", "long"): comb})
     assert out["mm_long_opt"] == expected
+
+
+# ── bulk upsert (sqlite via conftest fixtures) ───────────────────────────────
+
+def test_upsert_bulk_inserts_updates_and_is_idempotent(db, scraper_db):
+    from datetime import date as _date
+
+    from models import CotCombinedPosition
+    from scraper.db import create_cot_combined_table
+    from scraper.sources.cot_combined import upsert_combined_bulk
+    create_cot_combined_table()
+
+    d1, d2 = _date(2026, 8, 4), _date(2026, 8, 11)
+    upsert_combined_bulk(db, "ny", {
+        d1: {("mm", "long"): 100, ("mm", "short"): 50},
+        d2: {("mm", "long"): 110, ("mm", "short"): 55},
+    })
+    rows = db.query(CotCombinedPosition).filter_by(market="ny").all()
+    assert len(rows) == 4
+
+    # Re-running with one changed value updates in place — no duplicate rows.
+    upsert_combined_bulk(db, "ny", {d2: {("mm", "long"): 999, ("mm", "short"): 55}})
+    rows = db.query(CotCombinedPosition).filter_by(market="ny").all()
+    assert len(rows) == 4
+    changed = db.query(CotCombinedPosition).filter_by(
+        market="ny", date=d2, category="mm", side="long").one()
+    assert changed.oi == 999
+
+
+def test_upsert_bulk_keeps_markets_separate(db, scraper_db):
+    from datetime import date as _date
+
+    from models import CotCombinedPosition
+    from scraper.db import create_cot_combined_table
+    from scraper.sources.cot_combined import upsert_combined_bulk
+    create_cot_combined_table()
+
+    d = _date(2026, 8, 11)
+    upsert_combined_bulk(db, "ny",  {d: {("mm", "long"): 1}})
+    upsert_combined_bulk(db, "ldn", {d: {("mm", "long"): 2}})
+    assert db.query(CotCombinedPosition).filter_by(market="ny").one().oi == 1
+    assert db.query(CotCombinedPosition).filter_by(market="ldn").one().oi == 2
+
+
+def test_upsert_bulk_empty_is_noop(db, scraper_db):
+    from scraper.sources.cot_combined import upsert_combined_bulk
+    upsert_combined_bulk(db, "ny", {})     # must not raise

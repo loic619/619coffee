@@ -120,18 +120,41 @@ def parse_combined(df: pd.DataFrame, market_filter: str,
 
 def upsert_combined(db, market: str, report_date, fields: dict) -> None:
     """Insert/update one market-week of combined positions (narrow rows)."""
+    upsert_combined_bulk(db, market, {report_date: fields})
+
+
+def upsert_combined_bulk(db, market: str, by_date: dict) -> None:
+    """Insert/update MANY market-weeks in one round trip per market.
+
+    A per-(week, category, side) SELECT+commit is ~13 queries a week: a 5-year
+    backfill is then ~3.4k round trips per market against a remote Postgres,
+    which blew past the workflow's job timeout. Read every existing row for
+    these dates once, diff in memory, and commit a single transaction.
+    """
     from models import CotCombinedPosition
+    if not by_date:
+        return
+    dates = list(by_date)
     try:
-        for (category, side), oi in fields.items():
-            existing = (db.query(CotCombinedPosition)
-                          .filter_by(date=report_date, market=market,
-                                     category=category, side=side)
-                          .first())
-            if existing:
-                existing.oi = oi
-            else:
-                db.add(CotCombinedPosition(date=report_date, market=market,
-                                           category=category, side=side, oi=oi))
+        existing = {
+            (r.date, r.category, r.side): r
+            for r in db.query(CotCombinedPosition)
+                       .filter(CotCombinedPosition.market == market,
+                               CotCombinedPosition.date.in_(dates))
+        }
+        new_rows = []
+        for report_date, fields in by_date.items():
+            for (category, side), oi in fields.items():
+                row = existing.get((report_date, category, side))
+                if row is not None:
+                    if row.oi != oi:
+                        row.oi = oi
+                else:
+                    new_rows.append(CotCombinedPosition(
+                        date=report_date, market=market,
+                        category=category, side=side, oi=oi))
+        if new_rows:
+            db.bulk_save_objects(new_rows)
         db.commit()
     except Exception:
         db.rollback()
@@ -155,8 +178,7 @@ def fetch_and_upsert(db, *, years: list[int], ice_df: pd.DataFrame | None = None
         try:
             cftc = download_cftc_combined_df(year)
             by_date = parse_combined(cftc, COMBINED_FILTERS["ny"], weeks_back)
-            for d, fields in by_date.items():
-                upsert_combined(db, "ny", d, fields)
+            upsert_combined_bulk(db, "ny", by_date)
             written += len(by_date)
             print(f"[cot_combined] ny {year}: {len(by_date)} weeks", file=sys.stderr)
         except Exception as e:
@@ -167,8 +189,7 @@ def fetch_and_upsert(db, *, years: list[int], ice_df: pd.DataFrame | None = None
             from scraper.sources.macro_cot import _download_ice_df
             df = ice_df if ice_df is not None else _download_ice_df(year)
             by_date = parse_combined(df, COMBINED_FILTERS["ldn"], weeks_back)
-            for d, fields in by_date.items():
-                upsert_combined(db, "ldn", d, fields)
+            upsert_combined_bulk(db, "ldn", by_date)
             written += len(by_date)
             print(f"[cot_combined] ldn {year}: {len(by_date)} weeks", file=sys.stderr)
         except Exception as e:
