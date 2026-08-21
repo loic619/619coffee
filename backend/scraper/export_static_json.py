@@ -87,6 +87,7 @@ def _exporters(db):
     from scraper.exporters.options_optionization import export_options_optionization
     from scraper.exporters.options_skew import export_options_skew
     from scraper.exporters.options_vrp import export_options_vrp
+    from scraper.exporters.publish_model_inputs import export_model_inputs
     from scraper.exporters.tender_parity import export_tender_parity
     from scraper.exporters.yield_rainfall import export_yield_rainfall
     from scraper.sources.brazil_arabica_fisico import export_brazil_arabica_fisico
@@ -149,6 +150,7 @@ def _exporters(db):
         ("options_oi_walls",      lambda: export_options_oi_walls()),
         ("options_optionization", lambda: export_options_optionization()),
         ("open_direction_factors", lambda: export_open_direction_factors()),
+        ("model_inputs",          lambda: export_model_inputs()),
         ("intraday_drift",        lambda: export_intraday_drift()),
         ("yield_rainfall",        lambda: export_yield_rainfall()),
         ("conilon_basis",         lambda: export_conilon_basis()),

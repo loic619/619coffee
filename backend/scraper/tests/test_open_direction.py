@@ -134,15 +134,19 @@ def test_cci_overnight_respects_overlap_threshold(tmp_path, monkeypatch):
 
 
 def test_thin_optional_feature_cannot_destroy_the_training_set(tmp_path, monkeypatch):
-    """Regression, 2026-08: run() trains on dropna(["y"] + active) — LISTWISE.
+    """Latent bug, fixed 2026-08: run() trains on dropna(["y"] + active)
+    — LISTWISE.
 
     A feature that merely clears its COVERAGE gate but has far less history
     than the model does not add a column, it truncates the training set to
-    its own span. Live consequence: cci_overnight crossed 40 sessions on
-    2026-07-29, training collapsed 1168 → 51 rows, and run() started
-    returning "Only 51 labelled sessions (need >= 252)" — the model went
-    dark. active_features() must therefore refuse a candidate whose
-    inclusion would leave fewer than _MIN_TRAIN trainable rows.
+    its own span: 1168 → ~51 rows, below _MIN_TRAIN, so run() returns
+    "Only 51 labelled sessions (need >= 252)" and the model goes dark.
+
+    This never fired in production — cci_overnight was independently
+    unavailable there (fetch_currency_index needs `requests`, absent from
+    the 1.16 runner), so the column never reached the frame. Fixing that
+    dependency without this gate is what would trigger it, which is why the
+    test guards the gate rather than the incident.
     """
     p, rows = _write_intraday(tmp_path, n=420, roll_at=(100, 200, 300))
     monkeypatch.setattr(od, "_INTRADAY", p)
@@ -276,3 +280,54 @@ def test_absent_brent_file_reports_missing(tmp_path, monkeypatch):
     assert regime["brent_status"] == "missing"
     assert regime["brent_last_date"] is None
     assert regime["brent_stale_sessions"] is None
+
+# ── feature_status: dormancy must state its own cause ────────────────────────
+
+def test_feature_status_distinguishes_absent_from_accruing(tmp_path, monkeypatch):
+    """Audit finding, 2026-08-21: cci_overnight had been dormant in production
+    since it shipped because _cci_overnight_series imports fetch_currency_index
+    → `requests`, which the 1.16 runner does not install. The column never
+    reached the frame. From outside, "the dependency is missing" and "still
+    accruing, be patient" were indistinguishable — and the watchdog, counting
+    rows locally where requests IS installed, reported healthy progress toward
+    a gate the live model could never reach.
+
+    `absent` is therefore its own state, and must never read as patience.
+    """
+    p, rows = _write_intraday(tmp_path, n=420, roll_at=(100, 200, 300))
+    monkeypatch.setattr(od, "_INTRADAY", p)
+    dates = pd.to_datetime([r["date"] for r in rows])
+
+    # 1. no source at all → absent (the production case)
+    monkeypatch.setattr(od, "_FX_SNAPS", tmp_path / "nope.json")
+    st = {f["name"]: f for f in od.feature_status(od.build_dataset())}
+    assert st["cci_overnight"]["state"] == "absent"
+    assert st["cci_overnight"]["coverage"] == 0
+    assert "NOT a data-accrual wait" in st["cci_overnight"]["reason"]
+
+    # 2. present but under the coverage gate → accruing
+    monkeypatch.setattr(od, "_FX_SNAPS",
+                        _write_snaps(tmp_path, dates[: od._MIN_CCI_OVERLAP - 5]))
+    st = {f["name"]: f for f in od.feature_status(od.build_dataset())}
+    assert st["cci_overnight"]["state"] == "accruing"
+    assert st["cci_overnight"]["coverage"] < od._MIN_CCI_OVERLAP
+
+    # 3. coverage cleared but too thin to train on → held (the #719 case)
+    monkeypatch.setattr(od, "_FX_SNAPS",
+                        _write_snaps(tmp_path, dates[-(od._MIN_CCI_OVERLAP + 5):]))
+    frame = od.build_dataset()
+    st = {f["name"]: f for f in od.feature_status(frame)}
+    assert st["cci_overnight"]["state"] == "held"
+    assert st["cci_overnight"]["coverage"] >= od._MIN_CCI_OVERLAP
+    assert st["cci_overnight"]["trainable_rows"] < od._MIN_TRAIN
+    assert "cci_overnight" not in od.active_features(frame)
+
+    # 4. fully covered → active, and the payload agrees with active_features()
+    monkeypatch.setattr(od, "_FX_SNAPS", _write_snaps(tmp_path, dates))
+    frame = od.build_dataset()
+    st = {f["name"]: f for f in od.feature_status(frame)}
+    assert st["cci_overnight"]["state"] == "active"
+    assert "cci_overnight" in od.active_features(frame)
+    # every state reported is one the model can actually be in
+    assert {f["state"] for f in od.feature_status(frame)} <= {
+        "absent", "accruing", "held", "active"}

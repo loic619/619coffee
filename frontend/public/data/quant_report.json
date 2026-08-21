@@ -839,10 +839,10 @@
     "available": true,
     "as_of": "2026-08-20",
     "for_session": "2026-08-21",
-    "scraped_at": "2026-08-21T03:57:47.573220Z",
+    "scraped_at": "2026-08-21T08:29:54.737828Z",
     "direction": "Bearish",
     "base_margin": -0.14219929099306297,
-    "final_margin": -0.74211939877865,
+    "final_margin": -0.7421193987786499,
     "base_prob": 0.46450995971315,
     "final_prob": 0.3225408635635668,
     "prob_up": 0.3225408635635668,
@@ -854,7 +854,10 @@
       "harvest_weight": 0,
       "harvest_active": false,
       "brent_overnight_pct": null,
-      "oil_shock": false
+      "brent_status": "stale",
+      "brent_last_date": "2026-07-03",
+      "brent_stale_sessions": 35,
+      "oil_shock": null
     },
     "expected_gap_pct": -0.165,
     "expected_gap_usd_mt": -6.1,
@@ -866,7 +869,7 @@
         "raw_fmt": "-0.55%",
         "z": -1.35,
         "usd_per_ton": -20.3,
-        "phi": -0.5583326928102086,
+        "phi": -0.5583326928102085,
         "detail": {
           "text": "KC at RC close (17:30 London) 330.10¢/lb → KC close (18:30) 328.30¢/lb = -39.7 $/t on arabica; -0.55% mapped on robusta ≈ -20.3 $/t"
         }
@@ -878,7 +881,7 @@
         "raw_fmt": "day 14",
         "z": -0.23,
         "usd_per_ton": null,
-        "phi": -0.041587414975378476,
+        "phi": -0.04158741497537847,
         "detail": {
           "text": "day 14 of the bi-monthly front-contract cycle — gaps historically tilt down mid-cycle (~day 10), up late-cycle"
         }
@@ -895,6 +898,26 @@
         "kc_after_rc_diff",
         "days_since_roll"
       ],
+      "feature_status": [
+        {
+          "name": "cci_overnight",
+          "state": "held",
+          "reason": "coverage cleared (315 sessions) but only 208/252 trainable rows — admitting it would truncate the training set",
+          "coverage": 315,
+          "coverage_gate": 40,
+          "trainable_rows": 208,
+          "trainable_gate": 252
+        },
+        {
+          "name": "b3_close_gap",
+          "state": "accruing",
+          "reason": "coverage 0/40 sessions",
+          "coverage": 0,
+          "coverage_gate": 40,
+          "trainable_rows": 0,
+          "trainable_gate": 252
+        }
+      ],
       "n_features": 2,
       "n_train": 1169,
       "test_accuracy": 0.5801526717557252,
@@ -904,6 +927,16 @@
       "acted_n": 347,
       "abstain_rate": 0.6215921483097055,
       "eval_method": "walk_forward",
+      "eval_spec": {
+        "min_train": 252,
+        "refit_step": 5,
+        "embargo": 1,
+        "l2": 1.0,
+        "abstain_band": 0.1,
+        "standardise": "training rows only, recomputed at each refit",
+        "baseline": "majority class of the expanding training window",
+        "intercept": "unpenalised"
+      },
       "n_test": 917,
       "mag_mae_pct": 0.29863099649467884,
       "mag_baseline_mae_pct": 0.3065341305762418,

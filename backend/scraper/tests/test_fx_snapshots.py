@@ -185,7 +185,7 @@ def test_daily_mode_still_lets_the_newest_fetch_win(tmp_path, monkeypatch):
     monkeypatch.setattr(fx, "_BARCHART_FX", {"BRL=X": "^USDBRL"})
     monkeypatch.setattr(fx, "_fetch_barchart_15m",
                         _stub_fetch({"^USDBRL": _synthetic_csv(10, 5.0)}))
-    monkeypatch.setattr(fx, "_update_brent_anchors", lambda bars: 0)
+    monkeypatch.setattr(fx, "_update_brent_anchors", lambda bars, symbol=None: 0)
     out.write_text(json.dumps({"days": [
         {"date": "2026-01-07", "pairs": {"BRL=X": {"prev_1730": 1.0, "at_0300": 2.0}}},
     ]}), encoding="utf-8")
@@ -251,3 +251,51 @@ def test_deep_bars_survives_a_pair_with_no_data(monkeypatch):
         fx._deep_bars(["^USDVND", "^USDBRL"], maxrecords=cap, target_sessions=400))
     assert acc["^USDVND"] == []
     assert param == "end" and len(acc["^USDBRL"]) == len(hist["^USDBRL"])
+
+
+# ── Brent front-contract fallback ────────────────────────────────────────────
+
+def test_brent_front_candidates_roll_across_the_year():
+    """Barchart contract codes: CB + month letter + 2-digit year, every month."""
+    assert fx.brent_front_candidates(datetime(2026, 8, 21, tzinfo=UTC), 4) == [
+        "CBQ26", "CBU26", "CBV26", "CBX26"]          # Aug, Sep, Oct, Nov
+    assert fx.brent_front_candidates(datetime(2026, 11, 2, tzinfo=UTC), 4) == [
+        "CBX26", "CBZ26", "CBF27", "CBG27"]          # rolls into next year
+
+
+def test_brent_falls_back_when_the_continuous_symbol_dies():
+    """Regression, 2026-07-03 → 2026-08-21: CB*1 stopped returning bars and
+    the anchors froze for seven weeks with every run green, because
+    _update_brent_anchors returns 0 for a dead symbol and for a quiet day
+    alike. The front contract is the path backfill_brent_intraday already
+    proves, so use it rather than trusting one continuous symbol."""
+    bars_q = _synthetic_bars(10, 80.0)
+    bars_u = _synthetic_bars(4, 81.0)               # further out → fewer bars
+    sym, bars = fx._brent_pick({fx._BRENT_SYMBOL: [], "CBQ26": bars_q,
+                                "CBU26": bars_u})
+    assert sym == "CBQ26" and bars == bars_q, "front = most bars"
+
+    # the continuous symbol still WINS when it works — no gratuitous switching
+    cont = _synthetic_bars(2, 79.0)
+    sym, bars = fx._brent_pick({fx._BRENT_SYMBOL: cont, "CBQ26": bars_q})
+    assert sym == fx._BRENT_SYMBOL and bars == cont
+
+    # everything dead → report the continuous symbol with nothing, so the
+    # caller can say "NO bars from any symbol" instead of silently adding 0
+    sym, bars = fx._brent_pick({fx._BRENT_SYMBOL: [], "CBQ26": []})
+    assert sym == fx._BRENT_SYMBOL and bars == []
+
+
+def test_brent_rows_record_which_contract_they_came_from(tmp_path, monkeypatch):
+    """A fallback row must be auditable — otherwise a continuous-symbol row and
+    a front-contract row are indistinguishable after the fact."""
+    out = tmp_path / "brent.json"
+    monkeypatch.setattr(fx, "_BRENT_OUT", out)
+    n = fx._update_brent_anchors(_synthetic_bars(10, 80.0), symbol="CBQ26")
+    assert n > 0
+    rows = json.loads(out.read_text())["days"]
+    assert {r["symbol"] for r in rows} == {"CBQ26"}
+    assert all(r.get("prev_1730") and r.get("at_0300") for r in rows)
+
+    # re-running adds nothing and leaves the file alone (gap-fill only)
+    assert fx._update_brent_anchors(_synthetic_bars(10, 80.0), symbol="CBQ26") == 0

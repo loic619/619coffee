@@ -175,11 +175,12 @@ export default function PriceDirectionSection() {
 
       {/* ── Freeze banner ──────────────────────────────────────────────
           The runner keeps the last good payload when the model cannot
-          train, so without this the card reads as a confident call for a
-          session that already traded. It happened: cci_overnight cleared
-          its coverage gate on 2026-07-29, collapsed the training set, and
-          this panel served the same prediction for three weeks. Every
-          number below is real — it is just not about today. */}
+          train, so without this the card would read as a confident call for
+          a session that already traded. No such freeze has happened (the
+          2026-08-21 audit verified for_session advancing every trading day),
+          but the state is reachable and invisible by construction — hence
+          the banner. Every number below is real when it shows; it is just
+          not about today. */}
       {stale && (
         <div className="rounded-lg border border-amber-700/60 bg-amber-950/40 px-3 py-2 space-y-1">
           <div className="flex items-center gap-2 flex-wrap">

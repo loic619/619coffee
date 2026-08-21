@@ -245,7 +245,7 @@ def test_frozen_panel_payload_is_flagged_stale(synthetic_env, monkeypatch):
     open_direction_log deliberately keeps the last good payload when the
     model can't train — the record still grades that call, so deleting it
     would be worse. But the panel then renders a dead prediction as a live
-    one, which is exactly what happened for three weeks. The frozen payload
+    one, indistinguishable from a healthy card. The frozen payload
     must carry a `stale` marker: `since` pinned to the FIRST failure (its
     age is the outage length) and `failed_runs` counting attempts.
     """

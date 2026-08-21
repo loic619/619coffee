@@ -342,14 +342,41 @@ def _pair_days(l1730: dict, u0300: dict,
 
 _BRENT_SYMBOL = "CB*1"      # Barchart continuous front Brent
 _BRENT_OUT    = _REPO / "data" / "brent_intraday_anchors.json"
+_BRENT_MONTHS = "FGHJKMNQUVXZ"   # Brent lists every month
 
 
-def _update_brent_anchors(bars: list[tuple[datetime, float]]) -> int:
-    """Append NEW days' Brent anchors from the continuous-front bars.
+def brent_front_candidates(today: datetime, n: int = 4) -> list[str]:
+    """The next `n` listed Brent contracts, Barchart style (CB + month + YY).
+
+    The daily appender used to rely solely on the continuous symbol `CB*1`,
+    and when that stopped returning bars on 2026-07-03 the anchors froze for
+    seven weeks without a single failed run — `_update_brent_anchors` returns
+    0 both when the symbol is dead and when there is simply nothing new, so
+    the log said "+0 new day(s)" either way.
+
+    backfill_brent_intraday.py never had this problem because it addresses
+    contracts explicitly and picks the front by traded volume. These are the
+    fallback symbols; Brent trades ~2 months ahead, so a handful from the
+    current month covers the front comfortably.
+    """
+    out, y, m = [], today.year, today.month
+    for _ in range(n):
+        out.append(f"CB{_BRENT_MONTHS[m - 1]}{y % 100:02d}")
+        m += 1
+        if m > 12:
+            m, y = 1, y + 1
+    return out
+
+
+def _update_brent_anchors(bars: list[tuple[datetime, float]],
+                          symbol: str = _BRENT_SYMBOL) -> int:
+    """Append NEW days' Brent anchors.
 
     The backfilled per-contract rows (backfill_brent_intraday.py) are higher
     quality (roll-immune) and are never overwritten — this only fills dates the
-    file doesn't have yet, keeping the brent_overnight feature current daily."""
+    file doesn't have yet, keeping the brent_overnight feature current daily.
+    `symbol` is recorded per row so a fallback contract is auditable later.
+    """
     if not bars:
         # A silent no-op and a dead symbol looked identical here, which is how
         # the anchor file sat frozen from 2026-07-03 without anyone noticing.
@@ -366,17 +393,33 @@ def _update_brent_anchors(bars: list[tuple[datetime, float]]) -> int:
         except Exception:
             existing = []
     have = {r["date"] for r in existing}
-    added = [{"date": d, "symbol": _BRENT_SYMBOL, **rec}
+    added = [{"date": d, "symbol": symbol, **rec}
              for d, rec in fresh.items() if d not in have]
     if not added:
         return 0
     days = sorted(existing + added, key=lambda r: r["date"])
     safe_write_json(_BRENT_OUT, {
         "scraped_at": datetime.utcnow().isoformat() + "Z",
-        "source": "backfill (per-contract) + daily continuous-front appends",
+        "source": "backfill (per-contract) + daily front-contract appends",
         "days": days,
     }, ensure_ascii=False, indent=1)
     return len(added)
+
+
+def _brent_pick(by_symbol: dict[str, list]) -> tuple[str, list]:
+    """(symbol, bars) — the continuous symbol if it returned anything, else
+    the candidate contract with the most bars (the front dominates volume)."""
+    cont = by_symbol.get(_BRENT_SYMBOL) or []
+    if cont:
+        return _BRENT_SYMBOL, cont
+    fallbacks = {s: b for s, b in by_symbol.items() if s != _BRENT_SYMBOL and b}
+    if not fallbacks:
+        return _BRENT_SYMBOL, []
+    best = max(fallbacks, key=lambda s: len(fallbacks[s]))
+    print(f"[fx_snaps] brent: '{_BRENT_SYMBOL}' returned NO bars — "
+          f"falling back to front contract {best} ({len(fallbacks[best])} bars)",
+          file=sys.stderr)
+    return best, fallbacks[best]
 
 
 def _write_backfill_report(maxrecords: int, reach: dict, filled: int, kept: int,
@@ -453,11 +496,22 @@ def run(maxrecords: int = 2000, backfill: bool = False) -> dict:
         print("[fx_snaps] backfill mode — Brent anchors left alone "
               "(continuous-front bars are roll-contaminated for old dates)")
     else:
-        symbols.append(_BRENT_SYMBOL)
-        raw = asyncio.run(_fetch_barchart_15m(symbols, maxrecords))
-        bars_by_symbol = {s: _parse_bars(raw.get(s, "")) for s in symbols}
-        n_brent = _update_brent_anchors(bars_by_symbol.get(_BRENT_SYMBOL) or [])
-        print(f"[fx_snaps] brent anchors: +{n_brent} new day(s)")
+        brent_syms = [_BRENT_SYMBOL, *brent_front_candidates(datetime.now(_UTC))]
+        raw = asyncio.run(_fetch_barchart_15m(symbols + brent_syms, maxrecords))
+        bars_by_symbol = {s: _parse_bars(raw.get(s, ""))
+                          for s in symbols + brent_syms}
+        b_sym, b_bars = _brent_pick({s: bars_by_symbol.get(s) or []
+                                     for s in brent_syms})
+        n_brent = _update_brent_anchors(b_bars, symbol=b_sym)
+        if not b_bars:
+            # Distinguish a dead symbol from a quiet day. Conflating the two is
+            # what let the anchors freeze from 2026-07-03 to 2026-08-21 with
+            # every run green — see brent_front_candidates.
+            print("[fx_snaps] brent: NO bars from any symbol "
+                  f"({', '.join(brent_syms)}) — anchors NOT advancing",
+                  file=sys.stderr)
+        else:
+            print(f"[fx_snaps] brent anchors ({b_sym}): +{n_brent} new day(s)")
 
     per_day: dict[str, dict] = {}
     ok_pairs = 0

@@ -10,6 +10,69 @@ import {
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { DataFiles } from "./prose";
 
+/* ── Reproduction spec ───────────────────────────────────────────────────
+   Downloading the inputs is not the same as being able to rebuild the model:
+   the walk-forward numbers only land on the published values if you also use
+   the same min_train, refit cadence, embargo, L2 and standardisation rule.
+   Those live in open_direction.py, so they are READ from the payload it
+   writes rather than restated here — a restated constant drifts the first
+   time either copy is edited, and a reproduction that lands on a different
+   number than the panel is worse than none. */
+interface EvalSpec {
+  min_train: number; refit_step: number; embargo: number; l2: number;
+  abstain_band: number; standardise: string; baseline: string; intercept: string;
+}
+
+function ReproSpec() {
+  const [spec, setSpec] = useState<EvalSpec | null>(null);
+  const [target, setTarget] = useState<{ definition?: string } | null>(null);
+  const [feats, setFeats] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch("/data/quant_report.json")
+      .then(r => (r.ok ? r.json() : null))
+      .then(j => {
+        const od = j?.open_direction;
+        setSpec(od?.model?.eval_spec ?? null);
+        setTarget(od?.target ?? null);
+        setFeats(od?.model?.active_features ?? []);
+      })
+      .catch(() => setSpec(null));
+  }, []);
+
+  if (!spec) return null;
+  const rows: [string, string][] = [
+    ["target", target?.definition ?? "—"],
+    ["features", feats.join(", ") || "—"],
+    ["model", `logistic regression, L2 = ${spec.l2}, intercept ${spec.intercept}`],
+    ["training", `expanding window, min ${spec.min_train} rows, refit every ${spec.refit_step}`],
+    ["standardisation", spec.standardise],
+    ["embargo", `${spec.embargo} session between train and test`],
+    ["baseline", spec.baseline],
+    ["abstain band", `|P(up) − 0.5| < ${spec.abstain_band}`],
+  ];
+  return (
+    <div className="my-4 rounded-lg border border-slate-700 bg-slate-900/60 p-3">
+      <div className="mb-1.5 flex items-baseline gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Reproduction spec</span>
+        <span className="text-[10px] text-slate-500">
+          Read live from the model&rsquo;s own payload — rebuild with these and you land on the published numbers.
+        </span>
+      </div>
+      <table className="w-full text-[10px]">
+        <tbody>
+          {rows.map(([k, v]) => (
+            <tr key={k} className="align-top">
+              <td className="w-32 py-0.5 pr-3 font-mono text-slate-500">{k}</td>
+              <td className="py-0.5 text-slate-300">{v}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 interface Factor {
   key: string; label: string; status: string; n: number;
   r: number | null; t: number | null; per_year: Record<string, number | null>;
@@ -442,9 +505,22 @@ export default function OpenDirectionFactors() {
         <span className="font-mono not-italic">docs/research/open-price-direction-findings.md</span>.
       </p>
 
-      <DataFiles files={["open_direction_factors.json", "open_direction_wf_analysis.json",
-                         "open_direction_history.json", "intraday_kc_rc_15min.json",
-                         "brazil_b3_arabica.json"]} />
+      {/* The COMPLETE input set, audited 2026-08-21 against what
+          open_direction.py actually opens. Three model inputs were missing
+          here (fx snapshots, B3 captures, the payload itself) and Brent was
+          not downloadable at all — it lives in the repo-root data/ directory,
+          which Next.js does not serve, so the link would have 404'd and a
+          rebuild would silently miss the oil_shock input. An exporter now
+          mirrors it into the served tree. */}
+      <DataFiles
+        note="Every file the live model opens, plus the research outputs — enough to rebuild it and reproduce the numbers below."
+        files={["intraday_kc_rc_15min.json", "fx_intraday_snapshots.json",
+                "brent_intraday_anchors.json", "b3_kc_close_snapshots.json",
+                "open_direction_history.json", "quant_report.json",
+                "open_direction_wf_analysis.json", "open_direction_factors.json",
+                "brazil_b3_arabica.json"]} />
+
+      <ReproSpec />
     </div>
   );
 }
