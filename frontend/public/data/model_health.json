@@ -1,0 +1,136 @@
+{
+ "generated_at": "2026-08-21T06:36:34+00:00",
+ "counts": {
+  "CRIT": 1,
+  "WARN": 0,
+  "INFO": 11
+ },
+ "findings": [
+  {
+   "grade": "CRIT",
+   "check": "input freshness",
+   "message": "brent_intraday_anchors: FROZEN \u2014 last 2026-07-03, 35 sessions stale",
+   "input": "brent_intraday_anchors",
+   "last": "2026-07-03",
+   "stale_sessions": 35
+  },
+  {
+   "grade": "INFO",
+   "check": "SHAP identity",
+   "message": "exact \u2014 residual 0.0e+00",
+   "residual": 0.0
+  },
+  {
+   "grade": "INFO",
+   "check": "active factors",
+   "message": "in the model: kc_after_rc_diff, days_since_roll (1169 trainable rows)",
+   "features": [
+    "kc_after_rc_diff",
+    "days_since_roll"
+   ],
+   "n_train": 1169
+  },
+  {
+   "grade": "INFO",
+   "check": "band tuning",
+   "message": "band \u00b10.15 scores 71.5% on 179 calls vs 63.7% now",
+   "curve": [
+    {
+     "band": 0.06,
+     "acted_n": 557,
+     "acted_accuracy": 0.6014362657091562,
+     "coverage": 0.6074154852780806
+    },
+    {
+     "band": 0.08,
+     "acted_n": 433,
+     "acted_accuracy": 0.6304849884526559,
+     "coverage": 0.4721919302071974
+    },
+    {
+     "band": 0.1,
+     "acted_n": 347,
+     "acted_accuracy": 0.6368876080691642,
+     "coverage": 0.37840785169029445
+    },
+    {
+     "band": 0.12,
+     "acted_n": 273,
+     "acted_accuracy": 0.6776556776556777,
+     "coverage": 0.29770992366412213
+    },
+    {
+     "band": 0.15,
+     "acted_n": 179,
+     "acted_accuracy": 0.7150837988826816,
+     "coverage": 0.19520174482006544
+    }
+   ]
+  },
+  {
+   "grade": "INFO",
+   "check": "dormant factor",
+   "message": "brent_overnight: held out by design (regime tag, not a coefficient)",
+   "feature": "brent_overnight",
+   "coverage": 1476
+  },
+  {
+   "grade": "INFO",
+   "check": "dormant factor",
+   "message": "cci_overnight: coverage 315, joint-trainable 208, joint-trainable rows gate binds (208/252), ETA ~9w",
+   "feature": "cci_overnight",
+   "coverage": 315,
+   "joint": 208,
+   "eta": "~9w"
+  },
+  {
+   "grade": "INFO",
+   "check": "dormant factor",
+   "message": "b3_close_gap: coverage 0, joint-trainable 0, coverage gate binds (0/40), ETA unknown",
+   "feature": "b3_close_gap",
+   "coverage": 0,
+   "joint": 0,
+   "eta": "unknown"
+  },
+  {
+   "grade": "INFO",
+   "check": "input freshness",
+   "message": "intraday_kc_rc_15min: fresh (2026-08-20)",
+   "input": "intraday_kc_rc_15min",
+   "last": "2026-08-20",
+   "stale_sessions": 1
+  },
+  {
+   "grade": "INFO",
+   "check": "input freshness",
+   "message": "fx_intraday_snapshots: fresh (2026-08-21)",
+   "input": "fx_intraday_snapshots",
+   "last": "2026-08-21",
+   "stale_sessions": 0
+  },
+  {
+   "grade": "INFO",
+   "check": "input freshness",
+   "message": "b3_kc_close_snapshots: fresh (2026-08-20)",
+   "input": "b3_kc_close_snapshots",
+   "last": "2026-08-20",
+   "stale_sessions": 1
+  },
+  {
+   "grade": "INFO",
+   "check": "track record",
+   "message": "live acted 78.9% on 19 calls (0 abstained)",
+   "hit_rate": 0.7894736842105263,
+   "n": 19
+  },
+  {
+   "grade": "INFO",
+   "check": "walk-forward",
+   "message": "acted 63.7% on 347 calls (37.8% coverage) at band \u00b10.1",
+   "band": 0.1,
+   "acted_n": 347,
+   "acted_accuracy": 0.6368876080691642,
+   "coverage": 0.37840785169029445
+  }
+ ]
+}

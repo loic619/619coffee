@@ -1,0 +1,79 @@
+name: "1.17 – Open-Direction Model Health"
+
+# 1.16 answers "what is the call?". This answers the two questions underneath
+# it: is every declared factor still reaching the model with live data, and is
+# the model still earning the edge its spec claims?
+#
+# READ-ONLY by design: it writes model_health.json and sends a message. It
+# never touches open_direction_history.json or quant_report.json — an auditor
+# that can edit the record is not an auditor.
+
+on:
+  workflow_run:
+    workflows: ["1.16 – Open-Direction Prediction Log"]
+    types: [completed]
+  schedule:
+    # 03:31 UTC weekdays — after 1.16's 03:07 start with room for a slow
+    # Playwright install, and off the :00 mark that GH Actions skips.
+    - cron: '31 3 * * 1-5'
+  workflow_dispatch:
+
+concurrency:
+  group: model-health
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    # Runs even when 1.16 FAILED — that is itself a finding. But a 1.16 that
+    # was itself kicked off by a push must not cascade, or every merge to
+    # backend/scraper/** triggers an audit.
+    if: >-
+      ${{ github.event_name != 'workflow_run'
+          || github.event.workflow_run.event != 'push' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      # ref: main — a workflow_run checks out the SHA that triggered the PARENT
+      # run, not the commit 1.16 just pushed. Without this the audit reads a
+      # payload one commit stale and reports a false panel-age CRIT.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # No Playwright — this reads committed files only.
+      - name: Install dependencies
+        run: pip install numpy pandas requests
+
+      - name: Audit the open-direction model
+        working-directory: backend
+        env:
+          TELEGRAM_MODEL_BOT_TOKEN: ${{ secrets.TELEGRAM_MODEL_BOT_TOKEN }}
+          TELEGRAM_MODEL_CHAT_ID: ${{ secrets.TELEGRAM_MODEL_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: PYTHONPATH=. python -m scraper.quant_model.model_health
+
+      # Only the audit's own artifact is staged — never the model's record.
+      - name: Commit the audit if changed
+        uses: ./.github/actions/commit-data
+        with:
+          files: |
+            frontend/public/data/model_health.json
+          message: "data: open-direction model health [skip ci]"
+
+      - name: Notify on failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=🚨 ${{ github.workflow }} failed — $(date -u +'%Y-%m-%d %H:%M UTC') — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
