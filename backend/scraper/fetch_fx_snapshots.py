@@ -351,6 +351,11 @@ def _update_brent_anchors(bars: list[tuple[datetime, float]]) -> int:
     quality (roll-immune) and are never overwritten — this only fills dates the
     file doesn't have yet, keeping the brent_overnight feature current daily."""
     if not bars:
+        # A silent no-op and a dead symbol looked identical here, which is how
+        # the anchor file sat frozen from 2026-07-03 without anyone noticing.
+        print(f"[fx_snaps] WARNING: no bars for {_BRENT_SYMBOL} — brent anchors "
+              "NOT updated. If this repeats, the Barchart symbol has changed.",
+              file=sys.stderr)
         return 0
     l1730, u0300 = _anchors(bars)
     fresh = _pair_days(l1730, u0300)

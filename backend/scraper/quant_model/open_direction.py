@@ -509,6 +509,20 @@ def run(db=None) -> dict:
     brent_series = _brent_overnight_series()
     brent_val = (brent_series.get(for_session)
                  if brent_series is not None else None)
+    # A dead feed and a calm tape must not share a value. Publishing
+    # oil_shock=False for a frozen anchor file read as "oil is quiet" for 35
+    # sessions after the Barchart symbol stopped returning bars (2026-07-03).
+    # None is falsy in JS, so existing truthiness checks are unaffected.
+    brent_last = (brent_series.index[-1]
+                  if brent_series is not None and len(brent_series) else None)
+    brent_stale = (int(np.busday_count(brent_last.date(), for_session.date()))
+                   if brent_last is not None else None)
+    if brent_val is not None:
+        brent_status = "ok"
+    elif brent_last is None:
+        brent_status = "missing"
+    else:
+        brent_status = "stale"
     regime = {
         "ny_shock":        bool(ny_shock),          # 88% hit-rate setup (n=42)
         "vol_regime":      ("high" if vol_pctile is not None and vol_pctile > 0.5 else "low")
@@ -518,8 +532,18 @@ def run(db=None) -> dict:
         "harvest_active":  harvest_w >= 0.30,
         "brent_overnight_pct": (round(float(brent_val) * 100, 2)
                                 if brent_val is not None else None),
-        "oil_shock":       bool(brent_val is not None and abs(brent_val) >= 0.015),
+        "brent_status":    brent_status,            # ok | stale | missing
+        "brent_last_date": (brent_last.strftime("%Y-%m-%d")
+                            if brent_last is not None else None),
+        "brent_stale_sessions": brent_stale,
+        # None = unknown, not calm.
+        "oil_shock":       (bool(abs(brent_val) >= 0.015)
+                            if brent_val is not None else None),
     }
+    if brent_status != "ok":
+        print(f"[open_direction] brent regime tag {brent_status}: last anchor "
+              f"{regime['brent_last_date']} ({brent_stale} sessions) — "
+              "oil_shock reported as unknown, not false", file=sys.stderr)
 
     # ── $/t ruler + per-feature detail ───────────────────────────────────────
     rc_px = float(last_row.get("rc_last_1730") or 0) or None   # USD/MT

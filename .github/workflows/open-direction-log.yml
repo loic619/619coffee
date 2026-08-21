@@ -89,6 +89,37 @@ jobs:
             data/topic_notify_state.json
           message: "data: open-direction prediction log [skip ci]"
 
+      # AFTER the commit, BEFORE the notify. The pre-open call is time-critical
+      # and must still publish when an input feed is dead, so this turns a
+      # silent freeze into a red run rather than blocking the prediction. The
+      # existing if:failure() notify below then pings Telegram for free.
+      # Raise BRENT_MAX_STALE_SESSIONS during a known upstream outage rather
+      # than deleting the step.
+      - name: Assert Brent anchors are fresh
+        env:
+          BRENT_MAX_STALE_SESSIONS: '5'
+        run: |
+          python - <<'PY'
+          import json, os, sys, datetime
+          import numpy as np
+          limit = int(os.environ["BRENT_MAX_STALE_SESSIONS"])
+          days = json.load(open("data/brent_intraday_anchors.json")).get("days") or []
+          if not days:
+              sys.exit("brent_intraday_anchors.json has no rows")
+          last = max(r["date"] for r in days)
+          stale = int(np.busday_count(
+              datetime.date.fromisoformat(last), datetime.datetime.utcnow().date()))
+          print(f"brent anchors: last {last}, {stale} sessions stale (limit {limit})")
+          if stale > limit:
+              # Workflow commands are read off STDOUT, so print the annotation
+              # and exit non-zero separately rather than via sys.exit(str).
+              print(f"::error::brent_intraday_anchors.json FROZEN — last row {last}, "
+                    f"{stale} trading sessions stale. The oil_shock regime tag is "
+                    f"publishing 'unknown'. Check whether Barchart symbol CB*1 "
+                    f"still returns bars in scraper/fetch_fx_snapshots.py.")
+              sys.exit(1)
+          PY
+
       - name: Notify on failure
         if: failure()
         env:

@@ -30,7 +30,12 @@ interface Regime {
   harvest_weight?: number;
   harvest_active?: boolean;
   brent_overnight_pct?: number | null;
-  oil_shock?:      boolean;
+  // null = the anchor feed could not tell us, which is NOT the same as a calm
+  // tape. The payload published `false` for 35 sessions after the feed froze.
+  oil_shock?:      boolean | null;
+  brent_status?:   "ok" | "stale" | "missing" | null;
+  brent_last_date?: string | null;
+  brent_stale_sessions?: number | null;
 }
 
 // Written by open_direction_log.py onto the FROZEN payload when the model
@@ -227,6 +232,19 @@ export default function PriceDirectionSection() {
           {data.regime.oil_shock && data.regime.brent_overnight_pct != null && (
             <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950/50 border border-amber-700/50 text-amber-300">
               🛢 Brent {data.regime.brent_overnight_pct > 0 ? "+" : ""}{data.regime.brent_overnight_pct.toFixed(1)}% overnight — oil-shock context
+            </span>
+          )}
+          {/* Unknown ≠ calm: without this the absence of an oil-shock chip
+              reads as "oil is quiet" even when the feed is dead. */}
+          {data.regime.brent_status && data.regime.brent_status !== "ok" && (
+            <span
+              title={data.regime.brent_last_date
+                ? `Last Brent anchor ${data.regime.brent_last_date}`
+                : "No Brent anchor file"}
+              className="text-[10px] px-2 py-0.5 rounded bg-slate-800 border border-slate-600 text-slate-400"
+            >
+              🛢 Brent unavailable{data.regime.brent_stale_sessions != null
+                ? ` — ${data.regime.brent_stale_sessions} sessions stale` : ""}
             </span>
           )}
         </div>

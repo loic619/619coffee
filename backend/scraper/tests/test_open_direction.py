@@ -170,7 +170,19 @@ def test_thin_optional_feature_cannot_destroy_the_training_set(tmp_path, monkeyp
 
 # ── brent_overnight activation + series parse ────────────────────────────────
 
-def _write_brent(tmp_path, dates):
+def _write_brent(tmp_path, dates, include_next=True):
+    """Anchor file for the given sessions.
+
+    include_next also writes the NEXT business day — the session run() actually
+    predicts. Without it brent_series.get(for_session) is None and every
+    assertion lands on the missing-data path instead of the case under test;
+    that is precisely how test_brent_is_context_not_coefficient passed for
+    months while never exercising its own comment.
+    """
+    dates = list(dates)
+    if include_next and dates:
+        dates = dates + [pd.Timestamp(
+            np.busday_offset(dates[-1].date(), 1, roll="forward"))]
     days = [{"date": d.strftime("%Y-%m-%d"), "symbol": "CBQ25",
              "prev_1730": 80.0, "at_0300": 80.4} for d in dates]
     p = tmp_path / "brent_intraday_anchors.json"
@@ -196,6 +208,10 @@ def test_brent_is_context_not_coefficient(tmp_path, monkeypatch):
     assert out["available"]
     assert "brent_overnight" not in out["model"]["active_features"]
     assert "oil_shock" in out["regime"]                          # rides as a tag
+    # Now genuinely on the "ok" path: an anchor EXISTS for the predicted
+    # session, so this asserts the threshold rather than the absence of data.
+    assert out["regime"]["brent_status"] == "ok"
+    assert out["regime"]["brent_overnight_pct"] == 0.5
     assert out["regime"]["oil_shock"] is False                   # +0.5% < 1.5% flag
 
 
@@ -226,3 +242,37 @@ def test_walk_forward_abstain_accounting():
     assert 0.0 <= wf["abstain_rate"] <= 1.0
     assert wf["acted_n"] == round((1 - wf["abstain_rate"]) * wf["n"])
     assert abs(wf["edge"] - (wf["accuracy"] - wf["baseline"])) < 1e-12
+
+
+def test_stale_brent_reports_unknown_not_calm(tmp_path, monkeypatch):
+    """The 2026-07 regression, pinned: anchors stopping well before the
+    predicted session must read as UNKNOWN. Publishing False there told the
+    Macro panel "oil is calm" for 35 sessions while the feed was dead."""
+    p, rows = _write_intraday(tmp_path, n=320, roll_at=(100, 200, 300))
+    monkeypatch.setattr(od, "_INTRADAY", p)
+    monkeypatch.setattr(od, "_FX_SNAPS", tmp_path / "absent.json")
+    dates = pd.to_datetime([r["date"] for r in rows])
+    # Freeze the feed 30 sessions before the end — no anchor for for_session.
+    monkeypatch.setattr(od, "_BRENT",
+                        _write_brent(tmp_path, dates[:-30], include_next=False))
+
+    out = od.run()
+    regime = out["regime"]
+    assert regime["oil_shock"] is None            # NOT False
+    assert regime["brent_status"] == "stale"
+    assert regime["brent_overnight_pct"] is None
+    assert regime["brent_last_date"] == dates[-31].strftime("%Y-%m-%d")
+    assert regime["brent_stale_sessions"] >= 20
+
+
+def test_absent_brent_file_reports_missing(tmp_path, monkeypatch):
+    p, _rows = _write_intraday(tmp_path, n=320, roll_at=(100, 200, 300))
+    monkeypatch.setattr(od, "_INTRADAY", p)
+    monkeypatch.setattr(od, "_FX_SNAPS", tmp_path / "absent.json")
+    monkeypatch.setattr(od, "_BRENT", tmp_path / "no_such_brent.json")
+
+    regime = od.run()["regime"]
+    assert regime["oil_shock"] is None
+    assert regime["brent_status"] == "missing"
+    assert regime["brent_last_date"] is None
+    assert regime["brent_stale_sessions"] is None
