@@ -26,17 +26,32 @@ consistency, significance and calibration checks.
 | harvest / frost / day-of-year seasonality | **DROP (this model)** | All ≤0 marginal, unstable — frequency-mismatched + too few annual cycles. Reserve for the longer-horizon model. |
 | term structure, daily-BRL, index-roll, month-end, weekend | **DROP** | No usable edge on this target. |
 
-## BUG FIXED 2026-08-20 — a thin optional feature took the model DARK
+## BUG FIXED 2026-08-20 — a thin optional feature COULD take the model dark
+> **Corrected 2026-08-21.** This section first claimed the model *did* go
+> dark for three weeks from 2026-07-29. **It did not.** Git history of
+> `quant_report.json` shows `available: true` and `for_session` advancing
+> every single trading day across that window, with `n_train` incrementing
+> 1,159 → 1,168 and `active_features` reading
+> `[kc_after_rc_diff, days_since_roll]` throughout. The outage was inferred
+> from the code path, never verified against the record. The bug below is
+> real and the fix is correct; the incident narrative was not. See the
+> audit section for why it never fired.
+
 `run()` trains on `frame.dropna(subset=["y"] + active)` — **listwise**. A
 feature that clears only its COVERAGE gate does not add a column to the
 training set, it **truncates the training set to its own span**.
 
-Live sequence: `cci_overnight` crossed its 40-session coverage gate on
-**2026-07-29** → `active_features()` admitted it → training collapsed
-**1,168 → 51 rows** → below `_MIN_TRAIN` (252) → `run()` returned
+The latent sequence: once `cci_overnight` clears its 40-session coverage
+gate, `active_features()` (pre-fix) admits it → training collapses
+**1,168 → ~51 rows** → below `_MIN_TRAIN` (252) → `run()` returns
 *"Only 51 labelled sessions"* → the log module's `else` branch leaves the
 panel payload untouched, so the Macro tab would serve a frozen prediction
 with no error surfaced anywhere.
+
+It never fired **only because the feature was already dead for an unrelated
+reason** (the missing-dependency finding below) — the column never reached
+the frame at all, so there was nothing to truncate. Fixing that dependency
+without this gate in place is precisely what would have triggered it.
 
 **Fix:** `active_features()` now applies a TRAINABILITY gate — a candidate
 joins only if, with it, `dropna(["y"] + active + [candidate])` still clears
@@ -67,11 +82,12 @@ Measured after the fix (2026-08-20), against the live payload:
 | acted accuracy (outside the ±10pp band) | **63.58%** on 346 calls |
 | abstain rate | 62.2% |
 
-Identical to the pre-outage numbers, and that is the correct outcome: no
-feature was added and no coefficient changed. The fixes restored the model's
-ability to produce a call at all, plus the alerting that would have caught
-the three-week outage on day two. Nothing in #718/#719 could have moved the
-backtest, because none of it touched the fitted model.
+Unchanged, and that is the correct outcome: no feature was added and no
+coefficient changed. Nothing in #718/#719 could have moved the backtest,
+because none of it touched the fitted model. (These are not "restored"
+numbers — per the correction above, the model had been producing them all
+along. What #719 added is the gate that stops a thin feature truncating the
+training set, plus alerting for a freeze if one ever happens.)
 
 The three items that *could* move it are all still pending data, not code:
 `cci_overnight` (51 trainable rows of 252), `b3_close_gap` (0 of 40 — see the

@@ -25,10 +25,11 @@ name: "1.5 – Check Data Pipeline Freshness"
 #   panel:     the open-direction prediction payload served to the Macro tab.
 #              Its runner keeps the last good payload when the model can't
 #              train, which is right for the record but means a dead model
-#              renders as a confident call. Added 2026-08 after exactly that:
-#              the panel served a three-week-old prediction while every other
-#              check above was green, because the SCRIPT ran fine — it was the
-#              MODEL inside it that went dark.
+#              would render as a confident call, with every check above green
+#              because the SCRIPT ran fine. Added 2026-08. No freeze has
+#              actually occurred — the 2026-08-21 audit verified for_session
+#              advancing every trading day — but nothing else here can see
+#              inside the payload, so nothing else could tell.
 
 on:
   schedule:
@@ -191,6 +192,16 @@ jobs:
               # outside frontend/public), which is exactly why it hid.
               "data/brent_intraday_anchors.json":
                   (5 * 24, lambda d: d["days"][-1]["date"] if d.get("days") else None),
+              # The open-direction model's ONLY real input: it carries the
+              # target (rc_open_first vs the prior rc_last_1730) and the sole
+              # market feature (kc_after_rc_diff). The 2026-08-21 audit found
+              # nothing watching it — no ARTIFACTS entry, and no health.json
+              # scraper key covers it either. If it froze, the model would keep
+              # training on a stale frame and serving confident calls; only
+              # for_session drifting would eventually give it away. 5 days
+              # covers Fri→Wed with a Monday holiday.
+              "frontend/public/data/intraday_kc_rc_15min.json":
+                  (5 * 24, lambda d: d[-1]["date"] if d else None),
           }
 
           def _parse_ts(ts):

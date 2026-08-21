@@ -277,12 +277,19 @@ def active_features(frame: "pd.DataFrame") -> list[str]:
     run() trains on `frame.dropna(subset=["y"] + active)` — LISTWISE
     deletion — so a feature with 55 rows of history does not add a column to
     1,168 training rows, it CUTS the training set to the ~51 rows where it
-    exists. Observed live: cci_overnight crossed its 40-session coverage gate
-    on 2026-07-29, the training set collapsed 1168 → 51, and run() began
-    returning "Only 51 labelled sessions (need ≥252)" — i.e. the model goes
-    dark the moment an optional feature becomes "available". Even short of
-    that cliff the silent version is worse: 300 rows would train fine and
-    quietly discard 870 rows of history.
+    exists — below _MIN_TRAIN, so run() would return "Only 51 labelled
+    sessions (need ≥252)" and the model would go dark the moment an optional
+    feature became "available". Even short of that cliff the silent version
+    is worse: 300 rows would train fine and quietly discard 870 of history.
+
+    This has NOT happened live. cci_overnight cleared its coverage gate
+    around 2026-07-29 but never entered the frame at all, because
+    _cci_overnight_series() needs fetch_currency_index, which imports
+    `requests` — absent from the 1.16 runner. Verified against git history of
+    quant_report.json: active_features stayed [kc_after_rc_diff,
+    days_since_roll] and n_train advanced 1,159 → 1,168 across that window.
+    Add the dependency without this gate in place and the cliff is exactly
+    what you get, which is why the gate lands first.
 
     So each optional feature is admitted only if, WITH it, the resulting
     training set still clears _MIN_TRAIN. Candidates are tested one at a time
@@ -303,6 +310,50 @@ def active_features(frame: "pd.DataFrame") -> list[str]:
         if len(frame.dropna(subset=["y"] + active + [col])) >= _MIN_TRAIN:
             active.append(col)
     return active
+
+
+def feature_status(frame: "pd.DataFrame") -> list[dict]:
+    """Why every optional feature is on or off — as DATA, not a log line.
+
+    The 2026-08-21 audit found cci_overnight had been dormant in production
+    since it shipped, for a reason nobody had diagnosed: _cci_overnight_series
+    imports fetch_currency_index, which imports `requests`, which the 1.16
+    runner does not install. The column simply never reached the frame. From
+    outside, "the dependency is missing" and "still accruing data, be patient"
+    looked identical — the watchdog counted rows locally (where requests IS
+    installed) and reported healthy progress toward a gate the live model
+    could never reach.
+
+    So each candidate reports its state and the REASON, and the payload
+    carries it. `absent` is the one that must never be mistaken for patience:
+    it means the series builder returned nothing at all.
+    """
+    active = set(active_features(frame))
+    out = []
+    for col, gate in (("cci_overnight", _MIN_CCI_OVERLAP),
+                      ("b3_close_gap", _MIN_B3_OVERLAP)):
+        if col not in frame.columns:
+            state, reason, n, trainable = "absent", (
+                "series unavailable — the builder returned nothing (missing "
+                "dependency or unreadable source), NOT a data-accrual wait"
+            ), 0, 0
+        else:
+            n = int(frame[col].notna().sum())
+            trainable = int(len(frame.dropna(subset=["y", "kc_after_rc_diff",
+                                                     "days_since_roll", col])))
+            if col in active:
+                state, reason = "active", "coverage and trainability gates both cleared"
+            elif n < gate:
+                state, reason = "accruing", f"coverage {n}/{gate} sessions"
+            else:
+                state, reason = "held", (
+                    f"coverage cleared ({n} sessions) but only {trainable}/"
+                    f"{_MIN_TRAIN} trainable rows — admitting it would truncate "
+                    "the training set")
+        out.append({"name": col, "state": state, "reason": reason,
+                    "coverage": n, "coverage_gate": gate,
+                    "trainable_rows": trainable, "trainable_gate": _MIN_TRAIN})
+    return out
 
 
 # ── logistic (numpy IRLS + L2, intercept unpenalised) ────────────────────────
@@ -624,6 +675,7 @@ def run(db=None) -> dict:
         "model": {
             "kind":              "logistic_regression_l2",
             "active_features":   active,
+            "feature_status":    feature_status(frame),
             "n_features":        len(active),
             "n_train":           int(len(y)),
             "test_accuracy":     wf["accuracy"] if wf else None,

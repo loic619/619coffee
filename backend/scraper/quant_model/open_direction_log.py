@@ -204,12 +204,13 @@ def _mark_payload_stale(reason: str, today: str) -> None:
 
     Failing to train is a legitimate state; failing SILENTLY is not. Before
     2026-08 this branch only printed to the runner log and left
-    quant_report.json["open_direction"] byte-identical, so the Macro tab kept
-    serving a prediction for a session that had already traded and looked
-    perfectly healthy doing it. cci_overnight cleared its coverage gate on
-    2026-07-29, collapsed the training set (fixed in open_direction.py), and
-    the panel showed a stale call for three weeks with nothing anywhere
-    saying so.
+    quant_report.json["open_direction"] byte-identical, so a dead model would
+    render as a confident call for a session that had already traded, and
+    look perfectly healthy doing it. No such freeze has actually occurred —
+    the 2026-08-21 audit checked git history and found for_session advancing
+    every trading day — but the branch is reachable (see the trainability
+    gate in open_direction.active_features), and a freeze nobody can see is
+    the one failure this panel must never have.
 
     The payload keeps available=true — the numbers in it were real when they
     were written and the track record still grades them — but it now carries
