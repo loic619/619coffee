@@ -1,234 +1,234 @@
 {
   "currency_index": {
-    "scraped_at": "2026-08-20T21:54:03.721819+00:00",
-    "index_value": 105.910558,
-    "daily_delta_i": -0.001593,
-    "daily_delta_pct": -0.159281,
-    "zscore": 0.564017,
-    "zscore_mean": 104.658727,
-    "zscore_std": 2.219493,
+    "scraped_at": "2026-08-21T21:49:59.346142+00:00",
+    "index_value": 105.233071,
+    "daily_delta_i": -0.002186,
+    "daily_delta_pct": -0.218667,
+    "zscore": 0.453606,
+    "zscore_mean": 104.235512,
+    "zscore_std": 2.199177,
     "currencies": [
       {
         "ticker": "BRL=X",
         "name": "Brazilian Real",
         "type": "export",
         "weight": 0.513,
-        "daily_chg": 0.499346,
-        "contribution": 0.002562
+        "daily_chg": -0.320311,
+        "contribution": -0.001643
       },
       {
         "ticker": "VND=X",
         "name": "Vietnamese Dong",
         "type": "export",
         "weight": 0.262,
-        "daily_chg": 0.303365,
-        "contribution": 0.000795
+        "daily_chg": 0.318406,
+        "contribution": 0.000834
       },
       {
         "ticker": "COP=X",
         "name": "Colombian Peso",
         "type": "export",
         "weight": 0.128,
-        "daily_chg": 2.587703,
-        "contribution": 0.003312
+        "daily_chg": -0.590834,
+        "contribution": -0.000756
       },
       {
         "ticker": "IDR=X",
         "name": "Indonesian Rupiah",
         "type": "export",
         "weight": 0.051,
-        "daily_chg": 0.240698,
-        "contribution": 0.000123
+        "daily_chg": 0.323653,
+        "contribution": 0.000165
       },
       {
         "ticker": "PEN=X",
         "name": "Peruvian Sol",
         "type": "export",
         "weight": 0.047,
-        "daily_chg": 0.519811,
-        "contribution": 0.000244
+        "daily_chg": -0.066035,
+        "contribution": -3.1e-05
       },
       {
         "ticker": "EURUSD=X",
         "name": "Euro",
         "type": "import",
         "weight": 0.673,
-        "daily_chg": 0.894629,
-        "contribution": -0.006021
+        "daily_chg": 0.079094,
+        "contribution": -0.000532
       },
       {
         "ticker": "JPY=X",
         "name": "Japanese Yen",
         "type": "import",
         "weight": 0.095,
-        "daily_chg": 0.738567,
-        "contribution": -0.000702
+        "daily_chg": -0.379094,
+        "contribution": 0.00036
       },
       {
         "ticker": "CHF=X",
         "name": "Swiss Franc",
         "type": "import",
         "weight": 0.052,
-        "daily_chg": 1.553124,
-        "contribution": -0.000808
+        "daily_chg": -0.07408,
+        "contribution": 3.9e-05
       },
       {
         "ticker": "CNY=X",
         "name": "Chinese Yuan",
         "type": "import",
         "weight": 0.052,
-        "daily_chg": 0.2579,
-        "contribution": -0.000134
+        "daily_chg": 0.049287,
+        "contribution": -2.6e-05
       },
       {
         "ticker": "CAD=X",
         "name": "Canadian Dollar",
         "type": "import",
         "weight": 0.046,
-        "daily_chg": 0.501973,
-        "contribution": -0.000231
+        "daily_chg": 0.213795,
+        "contribution": -9.8e-05
       },
       {
         "ticker": "KRW=X",
         "name": "South Korean Won",
         "type": "import",
         "weight": 0.045,
-        "daily_chg": 1.246682,
-        "contribution": -0.000561
+        "daily_chg": 0.862309,
+        "contribution": -0.000388
       },
       {
         "ticker": "GBP=X",
         "name": "British Pound",
         "type": "import",
         "weight": 0.038,
-        "daily_chg": 0.45385,
-        "contribution": -0.000172
+        "daily_chg": 0.288931,
+        "contribution": -0.00011
       }
     ],
     "history": [
       {
-        "date": "2026-07-21",
-        "value": 108.089364
-      },
-      {
         "date": "2026-07-22",
-        "value": 108.535636
+        "value": 108.077687
       },
       {
         "date": "2026-07-23",
-        "value": 108.572966
+        "value": 108.114859
       },
       {
         "date": "2026-07-24",
-        "value": 108.655777
+        "value": 108.197321
       },
       {
         "date": "2026-07-25",
-        "value": 108.798989
+        "value": 108.339928
       },
       {
         "date": "2026-07-26",
-        "value": 108.801483
+        "value": 108.342412
       },
       {
         "date": "2026-07-27",
-        "value": 108.553358
+        "value": 108.095334
       },
       {
         "date": "2026-07-28",
-        "value": 108.302544
+        "value": 107.845578
       },
       {
         "date": "2026-07-29",
-        "value": 108.063888
+        "value": 107.60793
       },
       {
         "date": "2026-07-30",
-        "value": 107.78709
+        "value": 107.332299
       },
       {
         "date": "2026-07-31",
-        "value": 108.023319
+        "value": 107.567531
       },
       {
         "date": "2026-08-01",
-        "value": 107.550489
+        "value": 107.096696
       },
       {
         "date": "2026-08-02",
-        "value": 107.508049
+        "value": 107.054436
       },
       {
         "date": "2026-08-03",
-        "value": 107.471978
+        "value": 107.018517
       },
       {
         "date": "2026-08-04",
-        "value": 107.08773
+        "value": 106.635891
       },
       {
         "date": "2026-08-05",
-        "value": 106.576551
+        "value": 106.126868
       },
       {
         "date": "2026-08-06",
-        "value": 106.685923
+        "value": 106.235779
       },
       {
         "date": "2026-08-07",
-        "value": 107.17181
+        "value": 106.719616
       },
       {
         "date": "2026-08-08",
-        "value": 107.314933
+        "value": 106.862135
       },
       {
         "date": "2026-08-09",
-        "value": 107.16591
+        "value": 106.71374
       },
       {
         "date": "2026-08-10",
-        "value": 107.398905
+        "value": 106.945752
       },
       {
         "date": "2026-08-11",
-        "value": 107.374587
+        "value": 106.921537
       },
       {
         "date": "2026-08-12",
-        "value": 106.79877
+        "value": 106.348149
       },
       {
         "date": "2026-08-13",
-        "value": 106.728549
+        "value": 106.278224
       },
       {
         "date": "2026-08-14",
-        "value": 106.644784
+        "value": 106.194813
       },
       {
         "date": "2026-08-15",
-        "value": 105.916857
+        "value": 105.469957
       },
       {
         "date": "2026-08-16",
-        "value": 106.037239
+        "value": 105.589832
       },
       {
         "date": "2026-08-17",
-        "value": 105.914622
+        "value": 105.467731
       },
       {
         "date": "2026-08-18",
-        "value": 106.079523
+        "value": 105.631937
       },
       {
         "date": "2026-08-20",
-        "value": 105.910558
+        "value": 105.463685
+      },
+      {
+        "date": "2026-08-21",
+        "value": 105.233071
       }
     ]
   },
-  "scraped_at": "2026-08-20T21:54:40.158032Z",
+  "scraped_at": "2026-08-21T21:49:59.346142+00:00",
   "sentiment": {
     "available": true,
     "scraped_at": "2026-08-20T21:54:39.109610Z",
@@ -241,8 +241,8 @@
     "total": 24,
     "items": [
       {
-        "headline": "Café: Arábica fecha em alta na Bolsa de NY nesta 5ª (17), atento a oferta restrita",
-        "source": "Notícias Agrícolas",
+        "headline": "Caf\u00e9: Ar\u00e1bica fecha em alta na Bolsa de NY nesta 5\u00aa (17), atento a oferta restrita",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
         "confidence": 90.0,
         "tags": [
@@ -260,8 +260,8 @@
         ]
       },
       {
-        "headline": "Produção de café da Colômbia cai 23% em julho por efeitos climáticos",
-        "source": "Notícias Agrícolas",
+        "headline": "Produ\u00e7\u00e3o de caf\u00e9 da Col\u00f4mbia cai 23% em julho por efeitos clim\u00e1ticos",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
         "confidence": 95.0,
         "tags": [
@@ -279,8 +279,8 @@
         ]
       },
       {
-        "headline": "Hedgepoint mantém projeção de safra de café do Brasil em recorde",
-        "source": "Notícias Agrícolas",
+        "headline": "Hedgepoint mant\u00e9m proje\u00e7\u00e3o de safra de caf\u00e9 do Brasil em recorde",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bearish",
         "confidence": 90.0,
         "tags": [
@@ -289,8 +289,8 @@
         ]
       },
       {
-        "headline": "Café realiza lucros nesta 4ª feira (19) e fecha com perdas de mais de 1% na Bolsa de NY",
-        "source": "Notícias Agrícolas",
+        "headline": "Caf\u00e9 realiza lucros nesta 4\u00aa feira (19) e fecha com perdas de mais de 1% na Bolsa de NY",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bearish",
         "confidence": 75.0,
         "tags": [
@@ -299,8 +299,8 @@
         ]
       },
       {
-        "headline": "Colheita de café da Cooxupé alcança 81,1%",
-        "source": "Notícias Agrícolas",
+        "headline": "Colheita de caf\u00e9 da Cooxup\u00e9 alcan\u00e7a 81,1%",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
         "confidence": 65.0,
         "tags": [
@@ -318,8 +318,8 @@
         ]
       },
       {
-        "headline": "Café/Cepea: Embarques começam firmes, mas atraso da colheita limita oferta",
-        "source": "Notícias Agrícolas",
+        "headline": "Caf\u00e9/Cepea: Embarques come\u00e7am firmes, mas atraso da colheita limita oferta",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
         "confidence": 85.0,
         "tags": [
@@ -328,8 +328,8 @@
         ]
       },
       {
-        "headline": "Café dispara em NY e fecha 3ª feira com mais de 4% de alta; estoques ajustados e clima no BR",
-        "source": "Notícias Agrícolas",
+        "headline": "Caf\u00e9 dispara em NY e fecha 3\u00aa feira com mais de 4% de alta; estoques ajustados e clima no BR",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
         "confidence": 95.0,
         "tags": [
@@ -347,8 +347,8 @@
         ]
       },
       {
-        "headline": "Café tem 3ª feira (18) de estabilidade em Nova Iorque, mas de olho nos fundamentos",
-        "source": "Notícias Agrícolas",
+        "headline": "Caf\u00e9 tem 3\u00aa feira (18) de estabilidade em Nova Iorque, mas de olho nos fundamentos",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
         "confidence": 80.0,
         "tags": [
@@ -357,8 +357,8 @@
         ]
       },
       {
-        "headline": "Exportação de café do Brasil avança 48,5% no início de agosto, milho recua 32%, diz Secex",
-        "source": "Notícias Agrícolas",
+        "headline": "Exporta\u00e7\u00e3o de caf\u00e9 do Brasil avan\u00e7a 48,5% no in\u00edcio de agosto, milho recua 32%, diz Secex",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bearish",
         "confidence": 70.0,
         "tags": [
@@ -367,8 +367,8 @@
         ]
       },
       {
-        "headline": "Café tem nova sessão de altas nesta 2ª feira (17) nas bolsas de Nova York e Londres",
-        "source": "Notícias Agrícolas",
+        "headline": "Caf\u00e9 tem nova sess\u00e3o de altas nesta 2\u00aa feira (17) nas bolsas de Nova York e Londres",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
         "confidence": 85.0,
         "tags": [
@@ -395,7 +395,7 @@
         ]
       },
       {
-        "headline": "Hot Coffees Comin’ In Hot!",
+        "headline": "Hot Coffees Comin\u2019 In Hot!",
         "source": "Sprudge",
         "sentiment": "Neutral",
         "confidence": 95.0,
@@ -413,8 +413,8 @@
         ]
       },
       {
-        "headline": "Retomada do fluxo de café da Colômbia pode levar semanas",
-        "source": "Notícias Agrícolas",
+        "headline": "Retomada do fluxo de caf\u00e9 da Col\u00f4mbia pode levar semanas",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
         "confidence": 90.0,
         "tags": [
@@ -423,7 +423,7 @@
         ]
       },
       {
-        "headline": "Peru’s Specialty Coffee Sector Enters A New Era, Says New Harvest Guide",
+        "headline": "Peru\u2019s Specialty Coffee Sector Enters A New Era, Says New Harvest Guide",
         "source": "Sprudge",
         "sentiment": "Neutral",
         "confidence": 70.0,
@@ -432,8 +432,8 @@
         ]
       },
       {
-        "headline": "Café ganha força em NY com incertezas sobre a oferta, mas fecha com estabilidade a 6ª feira",
-        "source": "Notícias Agrícolas",
+        "headline": "Caf\u00e9 ganha for\u00e7a em NY com incertezas sobre a oferta, mas fecha com estabilidade a 6\u00aa feira",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
         "confidence": 80.0,
         "tags": [
@@ -452,7 +452,7 @@
       },
       {
         "headline": "Projeto Corredores Arborizados amplia iniciativas em cafeicultura regenerativa da Expocacer",
-        "source": "Notícias Agrícolas",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
         "confidence": 90.0,
         "tags": [
@@ -695,7 +695,7 @@
             "ret": 6.01
           }
         ],
-        "label": "KC · NY Arabica"
+        "label": "KC \u00b7 NY Arabica"
       },
       "robusta": {
         "n": 25,
@@ -831,7 +831,7 @@
             "ret": -1.87
           }
         ],
-        "label": "RC · London Robusta"
+        "label": "RC \u00b7 London Robusta"
       }
     }
   },
@@ -871,7 +871,7 @@
         "usd_per_ton": -20.3,
         "phi": -0.5583326928102085,
         "detail": {
-          "text": "KC at RC close (17:30 London) 330.10¢/lb → KC close (18:30) 328.30¢/lb = -39.7 $/t on arabica; -0.55% mapped on robusta ≈ -20.3 $/t"
+          "text": "KC at RC close (17:30 London) 330.10\u00a2/lb \u2192 KC close (18:30) 328.30\u00a2/lb = -39.7 $/t on arabica; -0.55% mapped on robusta \u2248 -20.3 $/t"
         }
       },
       {
@@ -883,13 +883,13 @@
         "usd_per_ton": null,
         "phi": -0.04158741497537847,
         "detail": {
-          "text": "day 14 of the bi-monthly front-contract cycle — gaps historically tilt down mid-cycle (~day 10), up late-cycle"
+          "text": "day 14 of the bi-monthly front-contract cycle \u2014 gaps historically tilt down mid-cycle (~day 10), up late-cycle"
         }
       }
     ],
     "target": {
       "kind": "overnight_gap",
-      "definition": "RC first-bar open ÷ prior 17:30-London close − 1; roll days excluded",
+      "definition": "RC first-bar open \u00f7 prior 17:30-London close \u2212 1; roll days excluded",
       "abstain_band": 0.1
     },
     "model": {
@@ -902,7 +902,7 @@
         {
           "name": "cci_overnight",
           "state": "held",
-          "reason": "coverage cleared (315 sessions) but only 208/252 trainable rows — admitting it would truncate the training set",
+          "reason": "coverage cleared (315 sessions) but only 208/252 trainable rows \u2014 admitting it would truncate the training set",
           "coverage": 315,
           "coverage_gate": 40,
           "trainable_rows": 208,
