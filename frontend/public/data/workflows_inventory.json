@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-21T06:32:17.306448Z",
-  "count": 80,
+  "generated_at": "2026-08-21T06:37:08.286247Z",
+  "count": 81,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -375,6 +375,23 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 3
+    },
+    {
+      "file": "model-health.yml",
+      "name": "1.17 \u2013 Open-Direction Model Health",
+      "triggers": [
+        "schedule",
+        "workflow_dispatch",
+        "workflow_run"
+      ],
+      "crons": [
+        "31 3 * * 1-5"
+      ],
+      "workflow_run_deps": [
+        "1.16 \u2013 Open-Direction Prediction Log"
+      ],
+      "concurrency_group": "model-health",
+      "timeout_minutes": 15
     },
     {
       "file": "open-direction-log.yml",
