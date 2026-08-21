@@ -198,3 +198,33 @@ def test_b3_survives_one_board_missing(monkeypatch):
     assert "Conilon" in txt and "Arábica" not in txt
     _stub(monkeypatch, {})
     assert t.compose_b3(dt.datetime.now(dt.UTC)) is None
+
+
+def test_clock_relative_staleness_tag_does_not_count_as_news(state):
+    """The certified text re-sent on 2026-08-21 with byte-identical figures:
+    the only diff was London gaining '(2d old)' as the clock passed midnight
+    UTC. A relative age is not a data change, so it must not mint a new mark."""
+    before = ("🪤 <b>Certified stocks</b>\n<b>New York</b>: 2026-08-20\n"
+              "· Stocks: 228,378 bags (-836)\n\n<b>London</b>: 2026-08-19\n"
+              "· Stocks: 4,603 lots (0)")
+    after = before.replace("<b>London</b>: 2026-08-19",
+                           "<b>London</b>: 2026-08-19 <i>(2d old)</i>")
+    assert t._dedup_mark("certified", before) == t._dedup_mark("certified", after)
+
+    t.mark_sent("certified", t._dedup_mark("certified", before))
+    assert t.already_sent("certified", t._dedup_mark("certified", after)) is True
+
+    # A real move still gets through.
+    moved = after.replace("4,603 lots (0)", "4,700 lots (+97)")
+    assert t.already_sent("certified", t._dedup_mark("certified", moved)) is False
+
+
+def test_stale_tag_stripping_leaves_the_sent_message_untouched(monkeypatch, state):
+    """Only the dedup MARK is normalised — the reader still sees the age."""
+    text = "🪤 x\n<b>London</b>: 2026-08-19 <i>(3d old)</i>"
+    sent = []
+    monkeypatch.setattr(t, "send", lambda s: sent.append(s))
+    monkeypatch.setitem(t.TOPICS, "certified", lambda _now: text)
+    monkeypatch.setattr(sys, "argv", ["x", "certified"])
+    assert t.main() == 0
+    assert sent == [text] and "(3d old)" in sent[0]

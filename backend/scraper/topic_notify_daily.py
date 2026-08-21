@@ -25,6 +25,7 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -399,9 +400,21 @@ DEDUP_KEYS = {
 }
 
 
+# Text that moves with the CLOCK rather than with the data. The brief's
+# staleness tag (" (2d old)") is measured against today, so an unchanged
+# report renders differently either side of midnight UTC — and fingerprinting
+# the raw text reads that as news. It re-sent the certified stocks message on
+# 2026-08-21 with byte-identical figures: the only diff was London gaining
+# "(2d old)". Stripped from the dedup MARK only; the message the reader
+# receives still carries the tag. Covers certified and brazil_daily, the two
+# composers that embed it.
+_VOLATILE_RE = re.compile(r"\s*<i>\(\d+d old\)</i>")
+
+
 def _dedup_mark(topic: str, text: str) -> str:
     """The string whose change means "this is a new report". Falls back to the
-    message text, so a topic without a key keeps the old content behaviour."""
+    message text with clock-relative decorations normalised out, so a topic
+    without an explicit key still re-sends only on real changes."""
     fn = DEDUP_KEYS.get(topic)
     if fn:
         try:
@@ -411,7 +424,7 @@ def _dedup_mark(topic: str, text: str) -> str:
             key = None
         if key:
             return f"{topic}@{key}"
-    return text
+    return _VOLATILE_RE.sub("", text)
 
 
 TOPICS = {
