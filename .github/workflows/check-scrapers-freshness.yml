@@ -181,6 +181,16 @@ jobs:
               # kill the futures snapshot) — this check surfaces a quiet death.
               "frontend/public/data/options_oi.json":
                   (6 * 24, lambda d: d["history"][-1]["date"] if d.get("history") else None),
+              # Brent anchors feed the open-direction panel's oil_shock regime
+              # tag. Appended by the 1.16 FX step, which is continue-on-error
+              # AND returns 0 both when the symbol is dead and when there is
+              # nothing new — so the anchors froze on 2026-07-03 and nothing
+              # anywhere said so for seven weeks. The panel simply stopped
+              # showing an oil-shock chip, which is indistinguishable from a
+              # calm oil tape. Nothing else here covers data/ (this file is
+              # outside frontend/public), which is exactly why it hid.
+              "data/brent_intraday_anchors.json":
+                  (5 * 24, lambda d: d["days"][-1]["date"] if d.get("days") else None),
           }
 
           def _parse_ts(ts):
