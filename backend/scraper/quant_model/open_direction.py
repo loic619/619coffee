@@ -685,6 +685,21 @@ def run(db=None) -> dict:
             "acted_n":           wf["acted_n"] if wf else None,
             "abstain_rate":      wf["abstain_rate"] if wf else None,
             "eval_method":       "walk_forward",
+            # Everything needed to REPRODUCE the numbers above from the
+            # published input files. Emitted rather than documented because a
+            # documented constant drifts from the code the first time either
+            # is edited, and a reproduction that lands on a different number
+            # than the panel is worse than no reproduction at all.
+            "eval_spec": {
+                "min_train":     _MIN_TRAIN,
+                "refit_step":    _WF_STEP,
+                "embargo":       _WF_EMBARGO,
+                "l2":            1.0,
+                "abstain_band":  _ABSTAIN_BAND,
+                "standardise":   "training rows only, recomputed at each refit",
+                "baseline":      "majority class of the expanding training window",
+                "intercept":     "unpenalised",
+            },
             "n_test":            wf["n"] if wf else 0,
             "mag_mae_pct":          wf_mag["mae_pct"] if wf_mag else None,
             "mag_baseline_mae_pct": wf_mag["baseline_mae_pct"] if wf_mag else None,
