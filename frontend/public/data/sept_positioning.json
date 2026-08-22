@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T03:34:59.317433+00:00",
+  "generated_at": "2026-08-22T03:24:40.031074+00:00",
   "market": "KC Coffee C (ICE Futures U.S.) \u2014 CFTC disaggregated futures-only, old-crop bucket",
   "current_year": 2026,
   "meta": {
@@ -6457,6 +6457,29 @@
           "mm_net": 6381,
           "comm_net": -2587,
           "share": 0.205
+        },
+        {
+          "date": "2026-08-18",
+          "oi": 6131,
+          "oi_all": 163299,
+          "comm_l": 5114,
+          "comm_s": 3126,
+          "swap_l": 60,
+          "swap_s": 747,
+          "swap_sp": 33,
+          "mm_l": 170,
+          "mm_s": 312,
+          "mm_sp": 0,
+          "oth_l": 402,
+          "oth_s": 733,
+          "oth_sp": 52,
+          "nr_l": 300,
+          "nr_s": 1128,
+          "dtf": 3,
+          "phase": "pure",
+          "mm_net": -142,
+          "comm_net": 1988,
+          "share": 0.0375
         }
       ]
     }
@@ -6486,11 +6509,11 @@
         "top_third_mean": 27.7
       },
       "oi_rem_0": {
-        "n": 20,
-        "pearson": -0.157,
-        "spearman": -0.214,
-        "bottom_third_mean": 7.0,
-        "top_third_mean": 5.2
+        "n": 21,
+        "pearson": -0.155,
+        "spearman": -0.186,
+        "bottom_third_mean": 6.9,
+        "top_third_mean": 5.3
       }
     },
     "comm_flip_cert": {
@@ -6821,7 +6844,7 @@
         "oi_30": 62303,
         "dtf_30": 31,
         "oi_rem_7": 34.0,
-        "oi_rem_0": null,
+        "oi_rem_0": 5.8,
         "comm_net_7": -2587,
         "comm_flip": false,
         "mm_net_30_z": 1.12

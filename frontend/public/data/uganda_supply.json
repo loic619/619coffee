@@ -1,6 +1,6 @@
 {
   "country": "uganda",
-  "scraped_at": "2026-08-21T03:34:54.257921+00:00",
+  "scraped_at": "2026-08-22T03:24:34.887933+00:00",
   "exports": {
     "source": "UCDA Monthly Reports",
     "last_updated": "2026-06",
@@ -796,17 +796,17 @@
     }
   },
   "ucda_price": {
-    "usd_cwt": 180.93,
-    "as_of": "2026-08-21",
+    "usd_cwt": 180.35,
+    "as_of": "2026-08-22",
     "grade": "Screen 15",
     "grades": {
-      "Screen 15": 180.93,
-      "Wugar": 325.45,
-      "Drugar": 306.45
+      "Screen 15": 180.35,
+      "Wugar": 322.3,
+      "Drugar": 303.3
     }
   },
   "weather": {
-    "scraped_at": "2026-08-21T02:44:19.707956Z",
+    "scraped_at": "2026-08-22T02:28:37.660151Z",
     "regions": [
       {
         "name": "Greater Masaka",
@@ -844,18 +844,18 @@
         "name": "Mt Elgon",
         "drought": "MED",
         "csi_30d": 1.0,
-        "csi_60d": 0.794,
+        "csi_60d": 0.7,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH",
-        "rain_mtd_mm": 111.0,
-        "rain_hist_min": 224.3,
-        "rain_hist_max": 493.2
+        "rain_mtd_mm": 122.5,
+        "rain_hist_min": 236.6,
+        "rain_hist_max": 538.1
       },
       {
         "name": "West Nile",
-        "drought": "MED",
-        "csi_30d": 0.14,
-        "csi_60d": 0.07,
+        "drought": "NONE",
+        "csi_30d": 0.094,
+        "csi_60d": 0.046,
         "csi_30d_level": "LOW",
         "csi_60d_level": "LOW"
       },
@@ -872,6 +872,9 @@
       {
         "region": "Greater Masaka",
         "days": [
+          "-",
+          "-",
+          "-",
           "M",
           "M",
           "M",
@@ -935,19 +938,15 @@
           "M",
           "M",
           "M",
-          "M",
-          "M",
-          "L",
           "M"
         ]
       },
       {
         "region": "Central",
         "days": [
-          "M",
-          "M",
-          "M",
-          "M",
+          "-",
+          "-",
+          "-",
           "M",
           "M",
           "M",
@@ -990,6 +989,7 @@
           "L",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1016,9 +1016,9 @@
       {
         "region": "Western",
         "days": [
-          "M",
-          "M",
-          "M",
+          "-",
+          "-",
+          "-",
           "M",
           "M",
           "M",
@@ -1088,10 +1088,9 @@
       {
         "region": "Busoga",
         "days": [
-          "M",
-          "M",
-          "M",
-          "M",
+          "-",
+          "-",
+          "-",
           "M",
           "M",
           "M",
@@ -1131,6 +1130,7 @@
           "M",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1160,10 +1160,9 @@
       {
         "region": "Mt Elgon",
         "days": [
-          "M",
-          "M",
-          "M",
-          "M",
+          "-",
+          "-",
+          "-",
           "M",
           "L",
           "M",
@@ -1224,7 +1223,8 @@
           "L",
           "L",
           "L",
-          "-",
+          "L",
+          "L",
           "-",
           "L"
         ]
@@ -1232,7 +1232,6 @@
       {
         "region": "West Nile",
         "days": [
-          "M",
           "-",
           "-",
           "-",
@@ -1250,6 +1249,7 @@
           "L",
           "M",
           "M",
+          "-",
           "-",
           "-",
           "-",
@@ -1304,10 +1304,9 @@
       {
         "region": "Rwenzori",
         "days": [
-          "M",
-          "M",
-          "M",
-          "M",
+          "-",
+          "-",
+          "-",
           "M",
           "M",
           "M",
@@ -1368,7 +1367,8 @@
           "M",
           "M",
           "M",
-          "L",
+          "M",
+          "M",
           "M",
           "M"
         ]
@@ -1504,7 +1504,7 @@
       }
     ],
     "historical_stat": "Neutral ENSO: near-average Uganda coffee output expected",
-    "last_updated": "2026-08-21"
+    "last_updated": "2026-08-22"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Feb",

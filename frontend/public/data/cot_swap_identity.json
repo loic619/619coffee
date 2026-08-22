@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T03:35:06.536038Z",
+  "generated_at": "2026-08-22T03:24:47.290863Z",
   "method": {
     "comovement": "Pearson on weekly CHANGES in lots; partials strip ΔOI, which the report's adding-up constraint (Σ long = Σ short = OI) would otherwise impose on every cohort pair.",
     "price_response": "corr(Δposition, same-week % return of the front contract). Hedgers lean against the move, speculators with it.",
@@ -11,55 +11,55 @@
     "ny": {
       "cohorts": {
         "pmpu_long": {
-          "share_oi_pct": 24.77,
-          "mean_lots": 53647.0,
-          "price_response_r": -0.423,
-          "price_response_t": -7.53,
+          "share_oi_pct": 24.76,
+          "mean_lots": 53547.0,
+          "price_response_r": -0.425,
+          "price_response_t": -7.6,
           "significant": true,
-          "ar1": 0.967,
-          "weekly_turnover_pct": 6.29
+          "ar1": 0.968,
+          "weekly_turnover_pct": 6.31
         },
         "pmpu_short": {
-          "share_oi_pct": 46.56,
-          "mean_lots": 101669.0,
-          "price_response_r": 0.371,
-          "price_response_t": 6.43,
+          "share_oi_pct": 46.51,
+          "mean_lots": 101392.0,
+          "price_response_r": 0.369,
+          "price_response_t": 6.41,
           "significant": true,
-          "ar1": 0.988,
+          "ar1": 0.989,
           "weekly_turnover_pct": 3.07
         },
         "swap_long": {
           "share_oi_pct": 15.83,
-          "mean_lots": 34349.0,
-          "price_response_r": 0.091,
-          "price_response_t": 1.48,
+          "mean_lots": 34291.0,
+          "price_response_r": 0.092,
+          "price_response_t": 1.49,
           "significant": false,
           "ar1": 0.994,
-          "weekly_turnover_pct": 2.15
+          "weekly_turnover_pct": 2.16
         },
         "swap_short": {
-          "share_oi_pct": 12.21,
-          "mean_lots": 26160.0,
-          "price_response_r": 0.0,
-          "price_response_t": 0.0,
+          "share_oi_pct": 12.18,
+          "mean_lots": 26089.0,
+          "price_response_r": 0.021,
+          "price_response_t": 0.35,
           "significant": false,
-          "ar1": 0.983,
-          "weekly_turnover_pct": 4.56
+          "ar1": 0.984,
+          "weekly_turnover_pct": 4.55
         },
         "mm_long": {
-          "share_oi_pct": 22.67,
-          "mean_lots": 47562.0,
-          "price_response_r": 0.512,
-          "price_response_t": 9.61,
+          "share_oi_pct": 22.68,
+          "mean_lots": 47504.0,
+          "price_response_r": 0.51,
+          "price_response_t": 9.57,
           "significant": true,
-          "ar1": 0.968,
-          "weekly_turnover_pct": 5.37
+          "ar1": 0.967,
+          "weekly_turnover_pct": 5.36
         },
         "mm_short": {
           "share_oi_pct": 7.65,
-          "mean_lots": 16085.0,
-          "price_response_r": -0.475,
-          "price_response_t": -8.71,
+          "mean_lots": 16081.0,
+          "price_response_r": -0.474,
+          "price_response_t": -8.69,
           "significant": true,
           "ar1": 0.963,
           "weekly_turnover_pct": 12.93
@@ -67,19 +67,19 @@
       },
       "legs": {
         "long": {
-          "vs_pmpu_1w": -0.049,
-          "vs_mm_1w": -0.029,
-          "vs_pmpu_1w_t": -0.86,
-          "vs_mm_1w_t": -0.51,
-          "vs_pmpu_1w_partial": -0.075,
-          "vs_mm_1w_partial": -0.031,
-          "vs_pmpu_4w_partial": -0.14,
+          "vs_pmpu_1w": -0.05,
+          "vs_mm_1w": -0.028,
+          "vs_pmpu_1w_t": -0.88,
+          "vs_mm_1w_t": -0.5,
+          "vs_pmpu_1w_partial": -0.076,
+          "vs_mm_1w_partial": -0.03,
+          "vs_pmpu_4w_partial": -0.141,
           "vs_mm_4w_partial": -0.013,
           "leadlag": [
             {
               "k": 0,
-              "pmpu": -0.049,
-              "mm": -0.029
+              "pmpu": -0.05,
+              "mm": -0.028
             },
             {
               "k": 1,
@@ -88,50 +88,45 @@
             },
             {
               "k": 2,
-              "pmpu": -0.032,
-              "mm": 0.038
+              "pmpu": -0.031,
+              "mm": 0.037
             }
           ],
           "price_response_first_half": 0.031,
-          "price_response_second_half": 0.169
+          "price_response_second_half": 0.17
         },
         "short": {
-          "vs_pmpu_1w": -0.013,
+          "vs_pmpu_1w": -0.068,
           "vs_mm_1w": -0.02,
-          "vs_pmpu_1w_t": -0.22,
+          "vs_pmpu_1w_t": -1.2,
           "vs_mm_1w_t": -0.36,
-          "vs_pmpu_1w_partial": -0.161,
-          "vs_mm_1w_partial": -0.095,
-          "vs_pmpu_4w_partial": -0.189,
-          "vs_mm_4w_partial": -0.096,
+          "vs_pmpu_1w_partial": -0.198,
+          "vs_mm_1w_partial": -0.081,
+          "vs_pmpu_4w_partial": -0.183,
+          "vs_mm_4w_partial": -0.095,
           "leadlag": [
             {
               "k": 0,
-              "pmpu": -0.013,
+              "pmpu": -0.068,
               "mm": -0.02
             },
             {
               "k": 1,
-              "pmpu": -0.037,
-              "mm": 0.01
+              "pmpu": 0.001,
+              "mm": 0.005
             },
             {
               "k": 2,
-              "pmpu": 0.006,
-              "mm": -0.021
+              "pmpu": 0.022,
+              "mm": -0.009
             }
           ],
           "price_response_first_half": 0.036,
-          "price_response_second_half": -0.015
+          "price_response_second_half": 0.015
         }
       },
       "rolling": {
         "comovement_long": [
-          {
-            "date": "2021-09-07",
-            "vs_pmpu": -0.07,
-            "vs_mm": -0.123
-          },
           {
             "date": "2021-09-14",
             "vs_pmpu": -0.078,
@@ -1416,6 +1411,11 @@
             "date": "2026-08-11",
             "vs_pmpu": -0.346,
             "vs_mm": 0.009
+          },
+          {
+            "date": "2026-08-18",
+            "vs_pmpu": -0.383,
+            "vs_mm": -0.007
           }
         ],
         "price_response_long": [
@@ -2684,14 +2684,15 @@
             "pmpu": -0.346,
             "swap": 0.278,
             "mm": 0.53
+          },
+          {
+            "date": "2026-08-18",
+            "pmpu": -0.434,
+            "swap": 0.227,
+            "mm": 0.525
           }
         ],
         "comovement_short": [
-          {
-            "date": "2021-09-07",
-            "vs_pmpu": 0.023,
-            "vs_mm": -0.034
-          },
           {
             "date": "2021-09-14",
             "vs_pmpu": 0.033,
@@ -3974,8 +3975,13 @@
           },
           {
             "date": "2026-08-11",
-            "vs_pmpu": 0.031,
-            "vs_mm": 0.03
+            "vs_pmpu": -0.18,
+            "vs_mm": 0.031
+          },
+          {
+            "date": "2026-08-18",
+            "vs_pmpu": -0.191,
+            "vs_mm": 0.033
           }
         ],
         "price_response_short": [
@@ -5242,77 +5248,83 @@
           {
             "date": "2026-08-11",
             "pmpu": 0.401,
-            "swap": -0.008,
+            "swap": -0.054,
             "mm": -0.519
+          },
+          {
+            "date": "2026-08-18",
+            "pmpu": 0.376,
+            "swap": -0.007,
+            "mm": -0.538
           }
         ]
       },
       "price_window": {
         "start": "2021-08-10",
-        "end": "2026-08-11",
-        "weeks": 262
+        "end": "2026-08-18",
+        "weeks": 263
       },
       "label": "New York — KC arabica",
       "contract": "ICE US Coffee C",
       "weeks": 310,
-      "start": "2020-09-08",
-      "end": "2026-08-11"
+      "start": "2020-09-15",
+      "end": "2026-08-18"
     },
     "ldn": {
       "cohorts": {
         "pmpu_long": {
-          "share_oi_pct": 37.69,
-          "mean_lots": 36788.0,
-          "price_response_r": -0.217,
-          "price_response_t": -3.59,
+          "share_oi_pct": 37.63,
+          "mean_lots": 36710.0,
+          "price_response_r": -0.218,
+          "price_response_t": -3.61,
           "significant": true,
-          "ar1": 0.944,
-          "weekly_turnover_pct": 8.52
+          "ar1": 0.942,
+          "weekly_turnover_pct": 8.55
         },
         "pmpu_short": {
-          "share_oi_pct": 57.88,
-          "mean_lots": 57379.0,
+          "share_oi_pct": 57.85,
+          "mean_lots": 57329.0,
           "price_response_r": 0.396,
-          "price_response_t": 6.95,
+          "price_response_t": 6.97,
           "significant": true,
           "ar1": 0.965,
-          "weekly_turnover_pct": 5.84
+          "weekly_turnover_pct": 5.85
         },
         "swap_long": {
-          "share_oi_pct": 4.79,
-          "mean_lots": 5032.0,
+          "share_oi_pct": 4.76,
+          "mean_lots": 5001.0,
           "price_response_r": 0.075,
           "price_response_t": 1.22,
           "significant": false,
-          "ar1": 0.979,
-          "weekly_turnover_pct": 9.37
+          "ar1": 0.978,
+          "weekly_turnover_pct": 9.42
         },
         "swap_short": {
-          "share_oi_pct": 9.14,
-          "mean_lots": 8656.0,
-          "price_response_r": 0.097,
-          "price_response_t": 1.57,
+          "share_oi_pct": 9.13,
+          "mean_lots": 8644.0,
+          "price_response_r": 0.098,
+          "price_response_t": 1.59,
           "significant": false,
-          "ar1": 0.901,
-          "weekly_turnover_pct": 10.32
+          "ar1": 0.9,
+          "weekly_turnover_pct": 10.36
         },
         "mm_long": {
-          "share_oi_pct": 30.36,
-          "mean_lots": 29304.0,
-          "price_response_r": 0.483,
-          "price_response_t": 8.89,
+          "share_oi_pct": 30.42,
+          "mean_lots": 29361.0,
+          "price_response_r": 0.481,
+          "price_response_t": 8.86,
           "significant": true,
-          "ar1": 0.961,
-          "weekly_turnover_pct": 8.24
+          "ar1": 0.959,
+          "weekly_turnover_pct": 8.29
         },
         "mm_short": {
-          "share_oi_pct": 9.63,
-          "mean_lots": 9047.0,
+          "share_oi_pct": 9.64,
+          "mean_lots": 9054.0,
           "price_response_r": -0.398,
-          "price_response_t": -6.99,
+          "price_response_t": -7.01,
           "significant": true,
-          "ar1": 0.935,
-          "weekly_turnover_pct": 16.68
+          "ar1": 0.934,
+          "weekly_turnover_pct": 16.67
         }
       },
       "legs": {
@@ -5320,10 +5332,10 @@
           "vs_pmpu_1w": 0.2,
           "vs_mm_1w": 0.033,
           "vs_pmpu_1w_t": 3.57,
-          "vs_mm_1w_t": 0.58,
-          "vs_pmpu_1w_partial": -0.078,
-          "vs_mm_1w_partial": -0.084,
-          "vs_pmpu_4w_partial": -0.122,
+          "vs_mm_1w_t": 0.59,
+          "vs_pmpu_1w_partial": -0.075,
+          "vs_mm_1w_partial": -0.087,
+          "vs_pmpu_4w_partial": -0.124,
           "vs_mm_4w_partial": -0.063,
           "leadlag": [
             {
@@ -5333,37 +5345,37 @@
             },
             {
               "k": 1,
-              "pmpu": 0.023,
+              "pmpu": 0.022,
               "mm": 0.001
             },
             {
               "k": 2,
-              "pmpu": 0.023,
+              "pmpu": 0.022,
               "mm": 0.001
             }
           ],
           "price_response_first_half": 0.268,
-          "price_response_second_half": -0.026
+          "price_response_second_half": -0.025
         },
         "short": {
-          "vs_pmpu_1w": -0.065,
+          "vs_pmpu_1w": -0.063,
           "vs_mm_1w": 0.097,
-          "vs_pmpu_1w_t": -1.15,
-          "vs_mm_1w_t": 1.71,
+          "vs_pmpu_1w_t": -1.11,
+          "vs_mm_1w_t": 1.7,
           "vs_pmpu_1w_partial": -0.406,
-          "vs_mm_1w_partial": 0.046,
-          "vs_pmpu_4w_partial": -0.304,
+          "vs_mm_1w_partial": 0.045,
+          "vs_pmpu_4w_partial": -0.305,
           "vs_mm_4w_partial": 0.036,
           "leadlag": [
             {
               "k": 0,
-              "pmpu": -0.065,
+              "pmpu": -0.063,
               "mm": 0.097
             },
             {
               "k": 1,
-              "pmpu": 0.005,
-              "mm": -0.014
+              "pmpu": 0.006,
+              "mm": -0.015
             },
             {
               "k": 2,
@@ -5372,16 +5384,11 @@
             }
           ],
           "price_response_first_half": 0.093,
-          "price_response_second_half": 0.118
+          "price_response_second_half": 0.119
         }
       },
       "rolling": {
         "comovement_long": [
-          {
-            "date": "2021-09-07",
-            "vs_pmpu": 0.622,
-            "vs_mm": -0.586
-          },
           {
             "date": "2021-09-14",
             "vs_pmpu": 0.595,
@@ -6666,6 +6673,11 @@
             "date": "2026-08-11",
             "vs_pmpu": 0.509,
             "vs_mm": -0.462
+          },
+          {
+            "date": "2026-08-18",
+            "vs_pmpu": 0.492,
+            "vs_mm": -0.44
           }
         ],
         "price_response_long": [
@@ -7934,14 +7946,15 @@
             "pmpu": -0.491,
             "swap": -0.385,
             "mm": 0.591
+          },
+          {
+            "date": "2026-08-18",
+            "pmpu": -0.556,
+            "swap": -0.467,
+            "mm": 0.545
           }
         ],
         "comovement_short": [
-          {
-            "date": "2021-09-07",
-            "vs_pmpu": -0.615,
-            "vs_mm": 0.33
-          },
           {
             "date": "2021-09-14",
             "vs_pmpu": -0.618,
@@ -9226,6 +9239,11 @@
             "date": "2026-08-11",
             "vs_pmpu": 0.261,
             "vs_mm": 0.034
+          },
+          {
+            "date": "2026-08-18",
+            "vs_pmpu": 0.276,
+            "vs_mm": 0.029
           }
         ],
         "price_response_short": [
@@ -10494,19 +10512,25 @@
             "pmpu": 0.348,
             "swap": 0.154,
             "mm": -0.39
+          },
+          {
+            "date": "2026-08-18",
+            "pmpu": 0.376,
+            "swap": 0.177,
+            "mm": -0.411
           }
         ]
       },
       "price_window": {
         "start": "2021-08-10",
-        "end": "2026-08-11",
-        "weeks": 262
+        "end": "2026-08-18",
+        "weeks": 263
       },
       "label": "London — RC robusta",
       "contract": "ICE Europe Robusta",
       "weeks": 310,
-      "start": "2020-09-08",
-      "end": "2026-08-11"
+      "start": "2020-09-15",
+      "end": "2026-08-18"
     }
   }
 }

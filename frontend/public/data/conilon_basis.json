@@ -1,10 +1,10 @@
 {
   "unit": "BRL/saca_60kg",
-  "updated": "2026-08-21T03:35:18.805623Z",
+  "updated": "2026-08-22T03:24:59.997406Z",
   "window": {
     "start": "2022-06-01",
-    "end": "2026-08-20",
-    "sessions": 1052
+    "end": "2026-08-21",
+    "sessions": 1053
   },
   "legs": [
     {
@@ -49,16 +49,15 @@
     }
   ],
   "latest": {
-    "date": "2026-08-20",
-    "cccv": 1016.0,
-    "co7": 1020.0,
-    "co8": 1010.0,
-    "cepea": 1066.15,
-    "cnl": 1050.37,
-    "g_cepea": 4.936,
-    "g_co7": 0.394,
-    "g_cnl": 4.592,
-    "cnl_date": "2026-08-21"
+    "date": "2026-08-21",
+    "cccv": 1008.0,
+    "co7": 1000.0,
+    "cepea": 1051.93,
+    "cnl": 1053.79,
+    "g_cepea": 4.358,
+    "g_co7": -0.794,
+    "g_cnl": 4.203,
+    "cnl_date": "2026-08-22"
   },
   "pairs": [
     {
@@ -67,16 +66,16 @@
       "base": "cccv",
       "label": "CEPEA indicator vs Vitória T7/8",
       "driver": "grade (tipo 6 vs 7/8) + deal-average vs reference quote",
-      "n": 1047,
+      "n": 1048,
       "start": "2022-06-01",
-      "end": "2026-08-20",
+      "end": "2026-08-21",
       "mean": 42.55,
-      "sd": 17.1,
+      "sd": 17.09,
       "min": -0.8,
       "p5": 21.6,
       "p25": 28.28,
-      "median": 39.56,
-      "p75": 55.12,
+      "median": 39.59,
+      "p75": 55.11,
       "p95": 72.37,
       "max": 143.14,
       "mean_pct": 4.33,
@@ -131,8 +130,8 @@
           "mean_pct": 4.08
         },
         "2026": {
-          "mean": 54.72,
-          "mean_pct": 5.63
+          "mean": 54.65,
+          "mean_pct": 5.62
         }
       },
       "by_month_pct": [
@@ -200,13 +199,13 @@
       "base": "cccv",
       "label": "Cooabriel T7 vs Vitória T7/8",
       "driver": "interior co-op bid vs port trade reference",
-      "n": 1029,
+      "n": 1030,
       "start": "2022-06-01",
-      "end": "2026-08-20",
-      "mean": 0.21,
-      "sd": 21.37,
+      "end": "2026-08-21",
+      "mean": 0.2,
+      "sd": 21.36,
       "min": -211.0,
-      "p5": -26.6,
+      "p5": -26.55,
       "p25": -7.0,
       "median": 0.0,
       "p75": 10.0,
@@ -219,19 +218,19 @@
       "median_pct": 0.0,
       "p95_pct": 2.79,
       "max_pct": 8.38,
-      "cv_brl": 100.866,
-      "cv_pct": 22.842,
-      "fixed": 8.45,
-      "advalorem_pct": -0.811,
+      "cv_brl": 104.767,
+      "cv_pct": 23.099,
+      "fixed": 8.44,
+      "advalorem_pct": -0.81,
       "r2": 0.021,
       "fit_at": [
         {
           "base": 700,
-          "gap": 2.78
+          "gap": 2.77
         },
         {
           "base": 1000,
-          "gap": 0.35
+          "gap": 0.34
         },
         {
           "base": 1500,
@@ -239,10 +238,10 @@
         },
         {
           "base": 2000,
-          "gap": -7.76
+          "gap": -7.77
         }
       ],
-      "share_positive": 50.0,
+      "share_positive": 49.9,
       "momentum_corr": -0.47,
       "ar1": 0.733,
       "half_life_sessions": 2.2,
@@ -264,7 +263,7 @@
           "mean_pct": 0.74
         },
         "2026": {
-          "mean": 1.22,
+          "mean": 1.16,
           "mean_pct": 0.16
         }
       },
@@ -276,7 +275,7 @@
         0.59,
         0.89,
         0.67,
-        0.21,
+        0.2,
         0.3,
         -0.02,
         -1.1,
@@ -466,17 +465,17 @@
       "base": "co7",
       "label": "CEPEA indicator vs Cooabriel T7",
       "driver": "the two quotes a producer actually compares",
-      "n": 1025,
+      "n": 1026,
       "start": "2022-06-01",
-      "end": "2026-08-20",
-      "mean": 42.42,
-      "sd": 24.87,
+      "end": "2026-08-21",
+      "mean": 42.43,
+      "sd": 24.86,
       "min": -1.66,
-      "p5": 16.76,
+      "p5": 16.77,
       "p25": 28.06,
       "median": 37.25,
       "p75": 52.56,
-      "p95": 78.32,
+      "p95": 78.31,
       "max": 284.02,
       "mean_pct": 4.29,
       "sd_pct": 1.79,
@@ -487,25 +486,25 @@
       "max_pct": 18.93,
       "cv_brl": 0.586,
       "cv_pct": 0.417,
-      "fixed": 8.76,
+      "fixed": 8.78,
       "advalorem_pct": 3.311,
       "r2": 0.261,
       "fit_at": [
         {
           "base": 700,
-          "gap": 31.94
+          "gap": 31.95
         },
         {
           "base": 1000,
-          "gap": 41.87
+          "gap": 41.88
         },
         {
           "base": 1500,
-          "gap": 58.43
+          "gap": 58.44
         },
         {
           "base": 2000,
-          "gap": 74.98
+          "gap": 74.99
         }
       ],
       "share_positive": 99.8,
@@ -530,7 +529,7 @@
           "mean_pct": 3.33
         },
         "2026": {
-          "mean": 53.61,
+          "mean": 53.6,
           "mean_pct": 5.48
         }
       },
@@ -542,7 +541,7 @@
         4.38,
         3.74,
         3.73,
-        4.02,
+        4.03,
         3.72,
         3.77,
         5.72,
@@ -732,7 +731,7 @@
       "base": "cccv",
       "label": "B3 CNL front vs Vitória T7/8",
       "driver": "futures basis: carry, warehousing, delivery frictions",
-      "n": 7,
+      "n": 8,
       "insufficient": true
     },
     {
@@ -741,7 +740,7 @@
       "base": "cepea",
       "label": "B3 CNL front vs CEPEA",
       "driver": "futures vs the deal-weighted indicator",
-      "n": 7,
+      "n": 8,
       "insufficient": true
     }
   ],
@@ -803,21 +802,21 @@
       "advalorem_share_pct": 5.83,
       "previous_flat_usd_mt": 200.0,
       "previous_quality_line": "$55-65 flat",
-      "live_usd_mt": 254.0
+      "live_usd_mt": 250.0
     },
     "base_usd_mt": {
-      "latest": 3283.0,
-      "latest_date": "2026-08-20",
+      "latest": 3208.0,
+      "latest_date": "2026-08-21",
       "mean": 3184.0
     },
     "booked_as_pct_of_base": {
-      "latest": 6.09,
+      "latest": 6.23,
       "min": 3.45,
       "max": 12.28
     },
     "measured_usd_mt": {
       "grade_uplift_mean": 135.0,
-      "grade_uplift_latest": 161.0,
+      "grade_uplift_latest": 141.0,
       "grade_uplift_p5": 71.0,
       "grade_uplift_p95": 219.0,
       "coop_grade_step": 32.0,
@@ -876,15 +875,15 @@
   },
   "staleness": {
     "cccv": {
-      "n": 1052,
+      "n": 1053,
       "unchanged_pct": 7.3,
       "mean_abs_change": 11.55,
       "max_abs_change": 185.0
     },
     "co7": {
-      "n": 1030,
+      "n": 1031,
       "unchanged_pct": 47.6,
-      "mean_abs_change": 9.56,
+      "mean_abs_change": 9.57,
       "max_abs_change": 160.0
     },
     "co8": {
@@ -894,15 +893,15 @@
       "max_abs_change": 160.0
     },
     "cepea": {
-      "n": 1048,
-      "unchanged_pct": 1.1,
+      "n": 1049,
+      "unchanged_pct": 1.0,
       "mean_abs_change": 12.87,
       "max_abs_change": 131.95
     },
     "cnl": {
-      "n": 10,
-      "unchanged_pct": 11.1,
-      "mean_abs_change": 9.31,
+      "n": 11,
+      "unchanged_pct": 10.0,
+      "mean_abs_change": 8.73,
       "max_abs_change": 21.9
     }
   },
@@ -10325,7 +10324,17 @@
     },
     {
       "date": "2026-08-21",
-      "cnl": 1050.37
+      "cccv": 1008.0,
+      "co7": 1000.0,
+      "cepea": 1051.93,
+      "cnl": 1050.37,
+      "g_cepea": 4.358,
+      "g_co7": -0.794,
+      "g_cnl": 4.203
+    },
+    {
+      "date": "2026-08-22",
+      "cnl": 1053.79
     }
   ],
   "sources": [

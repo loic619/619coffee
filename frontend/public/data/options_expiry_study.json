@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T03:35:07.597810Z",
+  "generated_at": "2026-08-22T03:24:48.370931Z",
   "method": {
     "expiry_rules": "KC: 2nd Friday of the month preceding the contract month (ICE US ch.8). RC/RM: 3rd Wednesday (ICE Europe spec).",
     "oi_dating": "contract_prices_archive stores OI one key-day late; the series is re-dated back one session and the jump window is [E-1, E+2].",
@@ -1095,19 +1095,6 @@
       "contract": "KCZ26",
       "expiry_rule": "2026-11-13",
       "countdown": [
-        {
-          "date": "2025-01-31",
-          "dte": 651,
-          "call_oi": 0,
-          "put_oi": 0,
-          "itm_call_oi": 0,
-          "itm_put_oi": 0,
-          "fut_oi": 1126,
-          "future": 262,
-          "atm_iv": 0.3253,
-          "itm_pct": null,
-          "itm_vs_fut_pct": 0.0
-        },
         {
           "date": "2025-02-03",
           "dte": 648,
@@ -6155,24 +6142,31 @@
         {
           "date": "2026-08-20",
           "dte": 85,
+          "call_oi": 41986.0,
+          "put_oi": 82467.0,
+          "itm_call_oi": 18893.0,
+          "itm_put_oi": 354.0,
+          "fut_oi": 90779,
+          "future": 329.3,
+          "atm_iv": 0.4453,
+          "itm_pct": 15.47,
+          "itm_vs_fut_pct": 21.2
+        },
+        {
+          "date": "2026-08-21",
+          "dte": 84,
           "call_oi": null,
           "put_oi": null,
           "itm_call_oi": null,
           "itm_put_oi": null,
           "fut_oi": null,
-          "future": 329.3,
-          "atm_iv": 0.4453,
+          "future": 322.65,
+          "atm_iv": 0.4389,
           "itm_pct": null,
           "itm_vs_fut_pct": null
         }
       ],
       "max_pain_series": [
-        {
-          "date": "2026-03-05",
-          "max_pain": 315.0,
-          "future": 273.85,
-          "dist_pct": -13.06
-        },
         {
           "date": "2026-03-06",
           "max_pain": 315.0,
@@ -6862,6 +6856,12 @@
           "max_pain": 300.0,
           "future": 328.2,
           "dist_pct": 9.4
+        },
+        {
+          "date": "2026-08-20",
+          "max_pain": 300.0,
+          "future": 329.3,
+          "dist_pct": 9.77
         }
       ],
       "ladder": [
@@ -6873,7 +6873,7 @@
         {
           "strike": 250.0,
           "call_oi": 364.0,
-          "put_oi": 7740.0
+          "put_oi": 7693.0
         },
         {
           "strike": 252.5,
@@ -6893,7 +6893,7 @@
         {
           "strike": 260.0,
           "call_oi": 636.0,
-          "put_oi": 5209.0
+          "put_oi": 6258.0
         },
         {
           "strike": 262.5,
@@ -6913,7 +6913,7 @@
         {
           "strike": 270.0,
           "call_oi": 180.0,
-          "put_oi": 1802.0
+          "put_oi": 1801.0
         },
         {
           "strike": 272.5,
@@ -6923,7 +6923,7 @@
         {
           "strike": 275.0,
           "call_oi": 557.0,
-          "put_oi": 867.0
+          "put_oi": 821.0
         },
         {
           "strike": 277.5,
@@ -6953,7 +6953,7 @@
         {
           "strike": 290.0,
           "call_oi": 1324.0,
-          "put_oi": 2097.0
+          "put_oi": 2262.0
         },
         {
           "strike": 292.5,
@@ -6963,7 +6963,7 @@
         {
           "strike": 295.0,
           "call_oi": 642.0,
-          "put_oi": 1026.0
+          "put_oi": 1025.0
         },
         {
           "strike": 297.5,
@@ -6973,7 +6973,7 @@
         {
           "strike": 300.0,
           "call_oi": 5698.0,
-          "put_oi": 4095.0
+          "put_oi": 4094.0
         },
         {
           "strike": 302.5,
@@ -7008,12 +7008,12 @@
         {
           "strike": 317.5,
           "call_oi": 11.0,
-          "put_oi": 8.0
+          "put_oi": 15.0
         },
         {
           "strike": 320.0,
           "call_oi": 1983.0,
-          "put_oi": 693.0
+          "put_oi": 747.0
         },
         {
           "strike": 322.5,
@@ -7032,7 +7032,7 @@
         },
         {
           "strike": 330.0,
-          "call_oi": 766.0,
+          "call_oi": 1005.0,
           "put_oi": 256.0
         },
         {
@@ -7042,7 +7042,7 @@
         },
         {
           "strike": 335.0,
-          "call_oi": 482.0,
+          "call_oi": 638.0,
           "put_oi": 40.0
         },
         {
@@ -7052,7 +7052,7 @@
         },
         {
           "strike": 340.0,
-          "call_oi": 1416.0,
+          "call_oi": 1417.0,
           "put_oi": 10.0
         },
         {
@@ -7072,7 +7072,7 @@
         },
         {
           "strike": 350.0,
-          "call_oi": 2115.0,
+          "call_oi": 1866.0,
           "put_oi": 0
         },
         {
@@ -7092,7 +7092,7 @@
         },
         {
           "strike": 360.0,
-          "call_oi": 1561.0,
+          "call_oi": 1591.0,
           "put_oi": 0
         },
         {
@@ -7132,17 +7132,17 @@
         },
         {
           "strike": 380.0,
-          "call_oi": 2161.0,
+          "call_oi": 2162.0,
           "put_oi": 1.0
         },
         {
           "strike": 385.0,
-          "call_oi": 229.0,
+          "call_oi": 247.0,
           "put_oi": 0
         },
         {
           "strike": 390.0,
-          "call_oi": 1776.0,
+          "call_oi": 1780.0,
           "put_oi": 0
         },
         {
@@ -7152,28 +7152,28 @@
         },
         {
           "strike": 400.0,
-          "call_oi": 3864.0,
+          "call_oi": 3860.0,
           "put_oi": 0
         },
         {
           "strike": 410.0,
-          "call_oi": 97.0,
+          "call_oi": 95.0,
           "put_oi": 0
         }
       ],
-      "ladder_date": "2026-08-19",
+      "ladder_date": "2026-08-20",
       "now": {
-        "date": "2026-08-19",
-        "dte": 86,
-        "call_oi": 41772.0,
-        "put_oi": 79917.0,
-        "itm_call_oi": 18901.0,
+        "date": "2026-08-20",
+        "dte": 85,
+        "call_oi": 41986.0,
+        "put_oi": 82467.0,
+        "itm_call_oi": 18893.0,
         "itm_put_oi": 354.0,
-        "fut_oi": 91871,
-        "future": 328.2,
-        "atm_iv": 0.45,
-        "itm_pct": 15.82,
-        "itm_vs_fut_pct": 20.96
+        "fut_oi": 90779,
+        "future": 329.3,
+        "atm_iv": 0.4453,
+        "itm_pct": 15.47,
+        "itm_vs_fut_pct": 21.2
       }
     },
     "robusta": {
@@ -11889,24 +11889,31 @@
         {
           "date": "2026-08-20",
           "dte": 62,
+          "call_oi": 10978.0,
+          "put_oi": 16923.0,
+          "itm_call_oi": 1534.0,
+          "itm_put_oi": 1.0,
+          "fut_oi": 54917,
+          "future": 3726,
+          "atm_iv": 0.35,
+          "itm_pct": 5.5,
+          "itm_vs_fut_pct": 2.8
+        },
+        {
+          "date": "2026-08-21",
+          "dte": 61,
           "call_oi": null,
           "put_oi": null,
           "itm_call_oi": null,
           "itm_put_oi": null,
           "fut_oi": null,
-          "future": 3726,
-          "atm_iv": 0.35,
+          "future": 3618,
+          "atm_iv": 0.3431,
           "itm_pct": null,
           "itm_vs_fut_pct": null
         }
       ],
       "max_pain_series": [
-        {
-          "date": "2026-03-05",
-          "max_pain": 4000.0,
-          "future": 3509,
-          "dist_pct": -12.28
-        },
         {
           "date": "2026-03-06",
           "max_pain": 4000.0,
@@ -12608,6 +12615,12 @@
           "max_pain": 3675.0,
           "future": 3728,
           "dist_pct": 1.44
+        },
+        {
+          "date": "2026-08-20",
+          "max_pain": 3675.0,
+          "future": 3726,
+          "dist_pct": 1.39
         }
       ],
       "ladder": [
@@ -12743,12 +12756,17 @@
         },
         {
           "strike": 3900.0,
-          "call_oi": 265.0,
+          "call_oi": 465.0,
           "put_oi": 0
         },
         {
           "strike": 4000.0,
           "call_oi": 3968.0,
+          "put_oi": 0
+        },
+        {
+          "strike": 4100.0,
+          "call_oi": 8.0,
           "put_oi": 0
         },
         {
@@ -12797,19 +12815,19 @@
           "put_oi": 0
         }
       ],
-      "ladder_date": "2026-08-19",
+      "ladder_date": "2026-08-20",
       "now": {
-        "date": "2026-08-19",
-        "dte": 63,
-        "call_oi": 10770.0,
+        "date": "2026-08-20",
+        "dte": 62,
+        "call_oi": 10978.0,
         "put_oi": 16923.0,
         "itm_call_oi": 1534.0,
         "itm_put_oi": 1.0,
-        "fut_oi": 53160,
-        "future": 3728,
-        "atm_iv": 0.3586,
-        "itm_pct": 5.54,
-        "itm_vs_fut_pct": 2.89
+        "fut_oi": 54917,
+        "future": 3726,
+        "atm_iv": 0.35,
+        "itm_pct": 5.5,
+        "itm_vs_fut_pct": 2.8
       }
     }
   },
