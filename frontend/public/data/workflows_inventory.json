@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-21T08:33:05.304828Z",
-  "count": 81,
+  "generated_at": "2026-08-23T13:45:52.688919Z",
+  "count": 82,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -50,6 +50,17 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 45
+    },
+    {
+      "file": "backfill-brent-intraday.yml",
+      "name": "1.16c \u2013 Backfill Brent Intraday Anchors",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": "open-direction",
+      "timeout_minutes": 30
     },
     {
       "file": "backfill-cepea-conilon.yml",
