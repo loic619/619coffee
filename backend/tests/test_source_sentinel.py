@@ -304,3 +304,66 @@ def test_topic_dedup_key_is_persisted(tmp_path, monkeypatch):
     # Second run, same report → silent.
     ss.run(dt.date(2026, 8, 12), dry=False)
     assert len(sent) == 1
+
+
+# ── FNC: the probe must key on bulletins, not on every PDF the site links ────
+#
+# Sample of what the 2026-08-19 run actually saw on the two FNC landing
+# pages: monthly bulletins mixed with a DAILY price sheet, the statutes and
+# the ethics code. The old href_re hashed all of them, so a change to any one
+# of the non-bulletins fired a dispatch for a release that did not exist.
+_FNC = next(s for s in ss.SOURCES if s["key"] == "fnc")
+_FNC_UP = "https://federaciondecafeteros.org/wp-content/uploads"
+_FNC_BULLETINS = [
+    f"{_FNC_UP}/2026/07/Informe-Expos-Junio-2026.pdf",
+    f"{_FNC_UP}/2026/03/12.-Informe-mensual-Diciembre-p.pdf",
+    f"{_FNC_UP}/2026/03/Informe-Expos-Enero.pdf",
+]
+_FNC_NOISE = [
+    f"{_FNC_UP}/2026/03/precio_cafe.pdf",
+    f"{_FNC_UP}/2026/05/ESTATUTOS-APROBADOS-FEDERACION-NACIONAL-DE-CAFETEROS.pdf",
+    f"{_FNC_UP}/2025/11/Codigo-de-Etica_Digital2024.pdf",
+    f"{_FNC_UP}/2025/10/Reporte-Mensual_Enero_FEPCafe-1.pdf",
+]
+
+
+def _fnc_page(urls):
+    return "<html>" + "".join(f'<a href="{u}">x</a>' for u in urls) + "</html>"
+
+
+def _fnc_hash(monkeypatch, urls, prev=None):
+    _stub_get(monkeypatch, {"listing": _FakeResp(_fnc_page(urls))})
+    return ss.probe_link_hash(["listing"], _FNC["href_re"], prev)
+
+
+def test_fnc_probe_matches_bulletins_and_ignores_the_rest():
+    import re
+    hits = set(re.findall(_FNC["href_re"], _fnc_page(_FNC_BULLETINS + _FNC_NOISE)))
+    assert hits == set(_FNC_BULLETINS)
+
+
+def test_fnc_probe_ignores_a_non_bulletin_pdf_appearing(monkeypatch):
+    """The 2026-08-19 false positive: the daily price sheet moved, the hash
+    flipped, the Colombia scraper was dispatched — and the newest bulletin on
+    the site was still June's."""
+    _, baseline = _fnc_hash(monkeypatch, _FNC_BULLETINS + _FNC_NOISE)
+    noise_moved = _FNC_NOISE[1:] + [f"{_FNC_UP}/2026/08/precio_cafe.pdf"]
+    found, signal = _fnc_hash(monkeypatch, _FNC_BULLETINS + noise_moved, baseline)
+    assert found is False and signal == baseline
+
+
+def test_fnc_probe_fires_when_a_real_bulletin_lands(monkeypatch):
+    _, baseline = _fnc_hash(monkeypatch, _FNC_BULLETINS + _FNC_NOISE)
+    july = f"{_FNC_UP}/2026/08/Informe-Expos-Julio-2026.pdf"
+    found, signal = _fnc_hash(monkeypatch, _FNC_BULLETINS + [july] + _FNC_NOISE, baseline)
+    assert found is True and signal != baseline
+
+
+def test_blind_link_hash_is_reported_not_swallowed(monkeypatch):
+    """A pattern that stops matching looks exactly like a quiet source. The
+    probe must hand the caller something to alert on."""
+    blind: list[str] = []
+    _stub_get(monkeypatch, {"listing": _FakeResp("<p>redesigned, no pdfs</p>")})
+    found, signal = ss.probe_link_hash(["listing"], _FNC["href_re"], "old", None, blind)
+    assert found is False and signal == "old"
+    assert blind and "blind" in blind[0]

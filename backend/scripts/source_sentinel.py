@@ -146,10 +146,18 @@ def probe_lastmod(url: str, prev_signal: str | None) -> tuple[bool, str | None]:
 
 
 def probe_link_hash(pages: list[str], href_re: str, prev_signal: str | None,
-                    headers: dict | None = None) -> tuple[bool, str | None]:
+                    headers: dict | None = None,
+                    blind: list[str] | None = None) -> tuple[bool, str | None]:
     """Hash the sorted set of matching hrefs across listing pages. A GET
     failure on one page keeps the other pages' links (partial hash would
-    false-positive, so any page failure aborts this probe run instead)."""
+    false-positive, so any page failure aborts this probe run instead).
+
+    `blind` collects a message when href_re matched nothing — the caller
+    turns that into a Telegram alert. Without it a pattern that stops
+    matching (site redesign, or a filter tightened one notch too far) is
+    indistinguishable from "the source published nothing", and the only
+    signal left is the 21-day overdue alarm.
+    """
     links: set[str] = set()
     for page in pages:
         try:
@@ -165,6 +173,9 @@ def probe_link_hash(pages: list[str], href_re: str, prev_signal: str | None,
         # Silent-failure guard: a site redesign that breaks href_re otherwise
         # looks identical to "nothing published" forever.
         print(f"    link_hash: href_re matched NOTHING across {len(pages)} page(s)")
+        if blind is not None:
+            blind.append(f"the listing pattern matched no links across "
+                         f"{len(pages)} page(s) — the probe is blind")
         return False, prev_signal
     sig = hashlib.sha256("\n".join(sorted(links)).encode()).hexdigest()
     changed = prev_signal is not None and sig != prev_signal
@@ -294,7 +305,20 @@ SOURCES: list[dict] = [
             "https://federaciondecafeteros.org/wp/informe-mensual-de-cifras/",
             "https://federaciondecafeteros.org/informemensualdeexporaciones/",
         ],
-        "href_re": r'href="([^"]+\.pdf)"',
+        # Bulletin PDFs only — /uploads/YYYY/MM/…Informe-{mensual,expos}-….pdf,
+        # mirroring the scraper's own _BULLETIN_FILENAME_RE.
+        #
+        # The old pattern hashed every <a href="*.pdf"> on the two landing
+        # pages, which also carry the DAILY precio_cafe.pdf sheet, the
+        # statutes, the ethics code and the FEPCafé report. Any unrelated site
+        # edit then looked like a release. That is exactly what fired on
+        # 2026-08-19: the hash flipped, the Colombia scraper was dispatched and
+        # ran clean, but the newest bulletin on the site was still
+        # /2026/07/Informe-Expos-Junio-2026.pdf — no July bulletin existed — so
+        # the ingestion check alarmed three days later over a release that was
+        # never published.
+        "href_re": (r'(?i)href="([^"]*/(?:wp-content|app)/uploads/\d{4}/\d{2}/'
+                    r'[^"]*informe[-_](?:mensual|expos)[-_][^"]*\.pdf)"'),
         "workflows": ["scraper-monthly-colombia.yml"],
         "verify": {"kind": "month_in_file", "file": "frontend/public/data/colombia_supply.json", "lag": 1},
     },
@@ -551,6 +575,7 @@ def run(today: dt.date, dry: bool, verify_only: bool = False) -> int:
             continue
 
         prev_signal = None if baseline else st.get("signal")
+        blind: list[str] = []
         if src["kind"] == "head_month":
             found, signal = probe_head_month(src["urls"](today))
         elif src["kind"] == "lastmod":
@@ -560,12 +585,21 @@ def run(today: dt.date, dry: bool, verify_only: bool = False) -> int:
                                              src["data_file"], src.get("headers"))
         else:
             found, signal = probe_link_hash(src["pages"], src["href_re"], prev_signal,
-                                            src.get("headers"))
+                                            src.get("headers"), blind)
 
         entry = {"confirmed": confirmed, "signal": signal if signal is not None else prev_signal,
                  "last_probe": now_iso, "last_found": (st or {}).get("last_found"),
                  "verify": (st or {}).get("verify"),
-                 "overdue_alerted": (st or {}).get("overdue_alerted")}
+                 "overdue_alerted": (st or {}).get("overdue_alerted"),
+                 "blind_alerted": (st or {}).get("blind_alerted")}
+
+        # A pattern that matches nothing can never detect a release, and looks
+        # exactly like a quiet source. Say so the same day rather than waiting
+        # three weeks for the overdue alarm. Once per month, like that alarm.
+        if blind and entry["blind_alerted"] != expected:
+            entry["blind_alerted"] = expected
+            alerts.append(f"{src['label']}: {blind[0]}")
+            print(f"[{key}] BLIND probe — alerting")
 
         if baseline and not (src.get("absolute") and found):
             # First run: record the world as-is, never dispatch. head_month
