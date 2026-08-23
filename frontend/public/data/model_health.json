@@ -1,19 +1,11 @@
 {
- "generated_at": "2026-08-23T13:28:01+00:00",
+ "generated_at": "2026-08-23T13:43:25+00:00",
  "counts": {
-  "CRIT": 1,
+  "CRIT": 0,
   "WARN": 0,
-  "INFO": 11
+  "INFO": 12
  },
  "findings": [
-  {
-   "grade": "CRIT",
-   "check": "input freshness",
-   "message": "brent_intraday_anchors: FROZEN \u2014 last 2026-07-03, 36 sessions stale",
-   "input": "brent_intraday_anchors",
-   "last": "2026-07-03",
-   "stale_sessions": 36
-  },
   {
    "grade": "INFO",
    "check": "SHAP identity",
@@ -72,7 +64,7 @@
    "check": "dormant factor",
    "message": "brent_overnight: held out by design (regime tag, not a coefficient)",
    "feature": "brent_overnight",
-   "coverage": 1476
+   "coverage": 1498
   },
   {
    "grade": "INFO",
@@ -115,6 +107,14 @@
    "input": "b3_kc_close_snapshots",
    "last": "2026-08-21",
    "stale_sessions": 1
+  },
+  {
+   "grade": "INFO",
+   "check": "input freshness",
+   "message": "brent_intraday_anchors: fresh (2026-08-23)",
+   "input": "brent_intraday_anchors",
+   "last": "2026-08-23",
+   "stale_sessions": 0
   },
   {
    "grade": "INFO",
