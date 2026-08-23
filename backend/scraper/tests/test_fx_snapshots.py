@@ -270,10 +270,10 @@ def test_brent_falls_back_when_the_continuous_symbol_dies():
     alike. The front contract is the path backfill_brent_intraday already
     proves, so use it rather than trusting one continuous symbol."""
     bars_q = _synthetic_bars(10, 80.0)
-    bars_u = _synthetic_bars(4, 81.0)               # further out → fewer bars
+    bars_u = _synthetic_bars(4, 81.0)
     sym, bars = fx._brent_pick({fx._BRENT_SYMBOL: [], "CBQ26": bars_q,
                                 "CBU26": bars_u})
-    assert sym == "CBQ26" and bars == bars_q, "front = most bars"
+    assert sym == "CBQ26" and bars == bars_q, "same start, more bars → reaches further"
 
     # the continuous symbol still WINS when it works — no gratuitous switching
     cont = _synthetic_bars(2, 79.0)
@@ -284,6 +284,26 @@ def test_brent_falls_back_when_the_continuous_symbol_dies():
     # caller can say "NO bars from any symbol" instead of silently adding 0
     sym, bars = fx._brent_pick({fx._BRENT_SYMBOL: [], "CBQ26": []})
     assert sym == fx._BRENT_SYMBOL and bars == []
+
+
+def test_brent_fallback_ignores_an_expired_contract_with_a_long_history():
+    """Regression, 2026-08-23: the fallback fired and still added nothing.
+
+    Brent lists every month and expires two months before delivery, so on
+    2026-08-23 the August contract (CBQ26) had been dead since end-June — yet
+    it still served a full 2000-bar window of its own history and beat the
+    live October contract on bar count. Every one of those bars predated the
+    frozen 2026-07-03 anchor, so the run logged "falling back to CBQ26 (2000
+    bars)" followed by "+0 new day(s)". Picking by recency, not by volume of
+    stale data, is what makes the fallback actually a fallback.
+    """
+    expired = _synthetic_bars(40, 68.0, start=datetime(2026, 5, 4, tzinfo=UTC))
+    live    = _synthetic_bars(10, 71.0, start=datetime(2026, 8, 10, tzinfo=UTC))
+    assert len(expired) > len(live)                  # the trap: more bars
+    sym, bars = fx._brent_pick({fx._BRENT_SYMBOL: [],
+                                "CBQ26": expired, "CBU26": [],
+                                "CBV26": live, "CBX26": []})
+    assert sym == "CBV26" and bars == live
 
 
 def test_brent_rows_record_which_contract_they_came_from(tmp_path, monkeypatch):

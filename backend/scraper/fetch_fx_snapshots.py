@@ -408,17 +408,38 @@ def _update_brent_anchors(bars: list[tuple[datetime, float]],
 
 def _brent_pick(by_symbol: dict[str, list]) -> tuple[str, list]:
     """(symbol, bars) — the continuous symbol if it returned anything, else
-    the candidate contract with the most bars (the front dominates volume)."""
+    the candidate contract whose bars reach FURTHEST FORWARD IN TIME.
+
+    Not the one with the most bars. Brent lists every month and expires two
+    months before delivery, so several candidates are already dead by the time
+    we ask, and a dead contract still serves a full `maxrecords` window of its
+    own history. On 2026-08-23 that is exactly what happened: CB*1 returned
+    nothing, CBQ26 (August, expired end of June) returned 2000 bars, won the
+    count comparison against the live October contract — every one of those
+    bars predating the frozen 2026-07-03 anchor — and the run reported
+    "+0 new day(s)" while looking like the fallback had worked.
+
+    Recency decides; bar count only breaks ties between contracts that both
+    trade up to the same moment. A day-to-day roll between contracts is
+    harmless here: the anchors feed brent_overnight, a move measured BETWEEN
+    two anchors of the same session, so a level shift across sessions never
+    enters the feature.
+    """
     cont = by_symbol.get(_BRENT_SYMBOL) or []
     if cont:
         return _BRENT_SYMBOL, cont
     fallbacks = {s: b for s, b in by_symbol.items() if s != _BRENT_SYMBOL and b}
     if not fallbacks:
         return _BRENT_SYMBOL, []
-    best = max(fallbacks, key=lambda s: len(fallbacks[s]))
+    # max() over the bar timestamps rather than bars[-1] — the CSV arrives in
+    # ascending order today, but the pick must not silently invert if that
+    # ever changes.
+    def _last(sym: str) -> datetime:
+        return max(b[0] for b in fallbacks[sym])
+    best = max(fallbacks, key=lambda s: (_last(s), len(fallbacks[s])))
     print(f"[fx_snaps] brent: '{_BRENT_SYMBOL}' returned NO bars — "
-          f"falling back to front contract {best} ({len(fallbacks[best])} bars)",
-          file=sys.stderr)
+          f"falling back to {best} ({len(fallbacks[best])} bars, "
+          f"last {_last(best):%Y-%m-%d %H:%M})", file=sys.stderr)
     return best, fallbacks[best]
 
 
