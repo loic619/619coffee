@@ -39,7 +39,6 @@ import sys
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 
 from scraper.quant_model import open_direction as od
 
@@ -484,13 +483,48 @@ def send(text: str) -> bool:
         return False
 
 
+def _loud_signature(report: dict | None) -> list[list[str]] | None:
+    """Identity of what the audit is complaining about: the (grade, check)
+    pairs at CRIT/WARN, ignoring the message body.
+
+    Ignoring the body is deliberate — "36 sessions stale" becoming "37" is the
+    same finding, and keying on it would re-notify every single day until the
+    problem was fixed. Escalation is already covered by the daily freshness
+    alarm and by 1.16 going red.
+    """
+    if not report:
+        return None
+    return sorted([f["grade"], f["check"]] for f in report.get("findings", [])
+                  if f["grade"] in ("CRIT", "WARN"))
+
+
 def main() -> int:
+    # Read the previous audit BEFORE overwriting it — it is the dedup state,
+    # so 1.17 needs no state file of its own (and adds no second writer to the
+    # shared topic_notify_state.json).
+    try:
+        previous = json.loads(_OUT.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        previous = None
+
     report = build_report()
     _OUT.parent.mkdir(parents=True, exist_ok=True)
     _OUT.write_text(json.dumps(report, indent=1, sort_keys=False) + "\n", encoding="utf-8")
     text = compose(report)
     print(text)
     print(f"\n[model_health] {report['counts']} → {_OUT}")
+
+    # 1.17 fires on workflow_run after EVERY 1.16 *and* on its own weekday
+    # cron, so a normal weekday triggered it twice ~24 min apart — and compose()
+    # returns text even for a clean bill of health, so the same message went out
+    # twice a day, every day. Dedup on the findings rather than de-duplicating
+    # the triggers: the cron is the safety net for a 1.16 that never starts
+    # (queue-cancelled, as in #649), and that net is worth keeping.
+    signature = _loud_signature(report)
+    if signature == _loud_signature(previous):
+        print(f"[model_health] same findings as the last audit ({len(signature)} "
+              "loud) — not re-sending")
+        return 0
     send(text)
     return 0
 

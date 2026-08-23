@@ -231,3 +231,68 @@ def test_a_broken_dataset_is_a_finding_not_a_crash(monkeypatch, tmp_path):
     report = mh.build_report()
     assert any(f["check"] == "dataset" and f["grade"] == "CRIT"
                for f in report["findings"])
+
+
+# ── The audit must not become a daily nag ────────────────────────────────────
+
+def _report(*loud):
+    findings = [{"grade": g, "check": c, "message": m} for g, c, m in loud]
+    findings.append({"grade": "INFO", "check": "noise", "message": "ignored"})
+    return {"generated_at": "2026-08-23T03:31:00Z",
+            "counts": {"CRIT": sum(1 for g, _, _ in loud if g == "CRIT"),
+                       "WARN": sum(1 for g, _, _ in loud if g == "WARN"),
+                       "INFO": 1},
+            "findings": findings}
+
+
+def test_the_signature_is_the_problem_not_its_magnitude():
+    """1.17 fires on workflow_run after every 1.16 AND on its own weekday
+    cron, and compose() returns text even when nothing is wrong — so the same
+    message went out twice a day, every day."""
+    a = _report(("CRIT", "input:brent", "36 sessions stale"))
+    b = _report(("CRIT", "input:brent", "37 sessions stale"))
+    assert mh._loud_signature(a) == mh._loud_signature(b), \
+        "a worsening count is the same finding — re-notifying daily is the nag"
+
+    # a NEW problem is a new message
+    c = _report(("CRIT", "input:brent", "37 sessions stale"),
+                ("WARN", "band", "abstain band mistuned"))
+    assert mh._loud_signature(c) != mh._loud_signature(a)
+
+    # order of findings must not matter
+    d = _report(("WARN", "band", "abstain band mistuned"),
+                ("CRIT", "input:brent", "36 sessions stale"))
+    assert mh._loud_signature(d) == mh._loud_signature(c)
+
+    # clean → clean is silent; clean after dirty is the all-clear, and speaks
+    clean = _report()
+    assert mh._loud_signature(clean) == mh._loud_signature(_report())
+    assert mh._loud_signature(clean) != mh._loud_signature(a)
+
+    # INFO alone never reaches the phone
+    assert mh._loud_signature(clean) == []
+    # no previous audit at all → nothing to compare against, so it sends
+    assert mh._loud_signature(None) is None
+    assert mh._loud_signature(None) != mh._loud_signature(clean)
+
+
+def test_a_repeat_audit_writes_the_file_but_sends_nothing(tmp_path, monkeypatch):
+    out = tmp_path / "model_health.json"
+    report = _report(("CRIT", "input:brent", "36 sessions stale"))
+    monkeypatch.setattr(mh, "_OUT", out)
+    monkeypatch.setattr(mh, "build_report", lambda: report)
+    sent = []
+    monkeypatch.setattr(mh, "send", lambda text: sent.append(text) or True)
+
+    assert mh.main() == 0                      # first run — nothing to compare
+    assert len(sent) == 1 and out.exists()
+
+    assert mh.main() == 0                      # the cron, 24 minutes later
+    assert len(sent) == 1, "same findings must not send a second message"
+
+    # the artifact is still refreshed on the silent run
+    assert json.loads(out.read_text())["counts"]["CRIT"] == 1
+
+    monkeypatch.setattr(mh, "build_report", lambda: _report())   # resolved
+    assert mh.main() == 0
+    assert len(sent) == 2, "the all-clear is news"
