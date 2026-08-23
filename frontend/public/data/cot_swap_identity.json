@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-22T03:24:47.290863Z",
+  "generated_at": "2026-08-23T03:34:36.520321Z",
   "method": {
     "comovement": "Pearson on weekly CHANGES in lots; partials strip ΔOI, which the report's adding-up constraint (Σ long = Σ short = OI) would otherwise impose on every cohort pair.",
     "price_response": "corr(Δposition, same-week % return of the front contract). Hedgers lean against the move, speculators with it.",
