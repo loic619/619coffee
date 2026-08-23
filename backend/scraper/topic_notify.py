@@ -22,6 +22,7 @@ Stdlib + requests only — safe from any workflow and from the sentinel.
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import json
 import re
 import sys
@@ -594,8 +595,25 @@ def latest_cot_key() -> str | None:
 
 
 def latest_freight_key() -> str | None:
+    """Identity of the freight report: the RATES, not the file's `updated`
+    stamp.
+
+    The scraper runs Friday and Sunday and re-stamps `updated` on both, even
+    when nothing moved. On 2026-08-21 it advanced 08-16 → 08-21 with every
+    rate byte-identical, so a timestamp key sent a second message for the same
+    week's numbers; Sunday then genuinely moved them and sent again. Keying on
+    the rates gives one message per actual change — which is once a week in a
+    normal week, and correctly twice if the index really does move twice.
+    """
     d = _load(DATA / "freight.json")
-    return d.get("updated") if isinstance(d, dict) else None
+    if not isinstance(d, dict):
+        return None
+    routes = d.get("routes") or []
+    if not routes:
+        return d.get("updated")          # nothing to hash — fall back
+    payload = ";".join(f"{r.get('from')}>{r.get('to')}={r.get('rate')}"
+                       for r in routes)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
 # ── Send + CLI ───────────────────────────────────────────────────────────────

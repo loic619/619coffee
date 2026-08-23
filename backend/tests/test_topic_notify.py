@@ -214,9 +214,25 @@ def test_ecf_digest_totals_and_split(tmp_path, monkeypatch):
 def test_dedup_keys_read_latest(tmp_path, monkeypatch):
     monkeypatch.setattr(tn, "DATA", tmp_path)
     (tmp_path / "cot.json").write_text(json.dumps([{"date": "2026-08-04"}]))
-    (tmp_path / "freight.json").write_text(json.dumps({"updated": "2026-08-07"}))
+    (tmp_path / "freight.json").write_text(json.dumps({
+        "updated": "2026-08-07",
+        "routes": [{"from": "Santos", "to": "NY", "rate": 4115}],
+    }))
     assert tn.latest_cot_key() == "2026-08-04"
-    assert tn.latest_freight_key() == "2026-08-07"
+    # Freight keys on the RATES, not `updated`: the scraper re-stamps that on
+    # both its Fri and Sun runs even when nothing moved.
+    first = tn.latest_freight_key()
+    assert first and first != "2026-08-07"
+    (tmp_path / "freight.json").write_text(json.dumps({
+        "updated": "2026-08-09",                       # newer stamp…
+        "routes": [{"from": "Santos", "to": "NY", "rate": 4115}],
+    }))
+    assert tn.latest_freight_key() == first            # …same rate → same key
+    (tmp_path / "freight.json").write_text(json.dumps({
+        "updated": "2026-08-09",
+        "routes": [{"from": "Santos", "to": "NY", "rate": 4200}],
+    }))
+    assert tn.latest_freight_key() != first            # rate moved → new key
 
 
 # ── Origin list length: cover most of the total, not an arbitrary top-3 ──────
