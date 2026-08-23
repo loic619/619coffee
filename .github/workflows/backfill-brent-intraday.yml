@@ -1,0 +1,110 @@
+name: "1.16c – Backfill Brent Intraday Anchors"
+
+# Manual, on-demand deep pull of the 17:30-London / 03:00-UTC Brent anchors
+# that feed the open-direction model's brent_overnight feature.
+#
+# backfill_brent_intraday.py has always named this workflow in its docstring,
+# but the file did not exist — so the only way to run the deep pull was from a
+# workstation, and a gap in the daily series had no route back. The 2026-07-03
+# → 2026-08-21 freeze left exactly that: the daily append's ~2000-bar window
+# recovered back to 2026-07-23 the moment the front-contract pick was fixed,
+# and 13 sessions before that stayed missing because no scheduled job can
+# reach them.
+#
+# Why the daily job cannot do this: 1.16 asks for one window of the CURRENT
+# front contract. This addresses every CB contract individually — expired ones
+# still serve their bars — and picks each day's front by traded volume, taking
+# BOTH anchors from that same contract, which is what makes the deep rows
+# roll-immune.
+#
+# The merge is backfill-wins on overlap (roll-immune rows are the better
+# measurement), so re-running is safe and idempotent.
+
+on:
+  workflow_dispatch:
+    inputs:
+      from_year:
+        description: "First contract year to fetch"
+        required: false
+        default: "2026"
+      to_year:
+        description: "Last contract year to fetch"
+        required: false
+        default: "2027"
+      maxrecords:
+        description: "bars per contract request"
+        required: false
+        default: "6000"
+      commit:
+        description: "Commit the updated anchor file"
+        type: boolean
+        required: false
+        default: true
+
+concurrency:
+  group: open-direction        # shares 1.16's lane — same file, never both at once
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install playwright
+
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}
+
+      - name: Install Playwright browser
+        run: sudo rm -f /etc/apt/sources.list.d/*microsoft* /etc/apt/sources.list.d/*azure* || true; playwright install chromium --with-deps || playwright install chromium
+
+      - name: Backfill Brent anchors
+        working-directory: backend
+        run: |
+          python -m scraper.backfill_brent_intraday \
+            --from-year ${{ inputs.from_year }} \
+            --to-year ${{ inputs.to_year }} \
+            --maxrecords ${{ inputs.maxrecords }}
+
+      # Gaps are the reason this job exists, so name them instead of leaving
+      # them to be inferred from a row count that only ever goes up.
+      - name: Report coverage
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, datetime as dt
+          days = json.load(open("data/brent_intraday_anchors.json"))["days"]
+          have = {r["date"] for r in days}
+          lo, hi = min(have), max(have)
+          d, missing = dt.date.fromisoformat(lo), []
+          end = dt.date.fromisoformat(hi)
+          while d <= end:
+              if d.weekday() < 5 and d.isoformat() not in have:
+                  missing.append(d.isoformat())
+              d += dt.timedelta(days=1)
+          print("## Brent anchor coverage\n")
+          print(f"- rows stored: **{len(days)}** ({lo} → {hi})")
+          print(f"- weekday sessions missing in that span: **{len(missing)}**")
+          if missing:
+              print("\nMost recent gaps (holidays are expected here):\n")
+              print("```\n" + "\n".join(missing[-40:]) + "\n```")
+          PY
+
+      - name: Commit updated anchors
+        if: ${{ inputs.commit }}
+        uses: ./.github/actions/commit-data
+        with:
+          files: |
+            data/brent_intraday_anchors.json
+          message: "data: backfill Brent intraday anchors [skip ci]"
