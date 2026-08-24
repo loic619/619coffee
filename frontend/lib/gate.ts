@@ -23,14 +23,29 @@ export function tierForPassword(pw: string): Tier | null {
   return table[pw] ?? null;
 }
 
-// Signing secret. Overridable via GATE_SECRET; the fallback is derived from
-// the password set, so forging a tier cookie requires knowing a password —
-// at which point you could simply log in.
+// Signing secret. MUST come from GATE_SECRET in production.
+//
+// The old fallback derived the secret from the tier passwords. Those passwords
+// ship in this file as in-repo defaults, so the fallback secret was public —
+// anyone who could read the repo could compute a valid `tid` and mint
+// themselves an admin cookie. That is the whole gate defeated by reading one
+// file. There is no safe default for a signing key: a signed cookie is only
+// as trustworthy as the secret being unknown to the visitor.
+//
+// So: require GATE_SECRET. In production its absence is fatal (callers below
+// treat a thrown secret() as "deny / cannot issue"), which fails CLOSED — the
+// site still serves /welcome, but nobody is admitted until the env is set,
+// rather than silently admitting everyone on a guessable key. A fixed dev
+// value keeps local runs and tests working without any env.
+const DEV_SECRET = "dev-only-insecure-gate-secret-not-for-production";
+
 function secret(): string {
-  return (
-    process.env.GATE_SECRET ??
-    `${process.env.GATE_PW_ADMIN ?? "saigonbia"}|${process.env.GATE_PW_USER ?? "kombucha"}|${process.env.GATE_PW_BASIC ?? "cocacola"}|coffee-gate-v1`
-  );
+  const s = process.env.GATE_SECRET;
+  if (s) return s;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("GATE_SECRET is not set — refusing to sign/verify tiers with a default key");
+  }
+  return DEV_SECRET;
 }
 
 async function hmacHex(msg: string): Promise<string> {
@@ -53,7 +68,14 @@ export async function verifyTier(cookieValue: string | undefined): Promise<Tier 
   const tier = cookieValue.slice(0, dot);
   const sig = cookieValue.slice(dot + 1);
   if (tier !== "admin" && tier !== "user" && tier !== "basic") return null;
-  const expect = await hmacHex(tier);
+  // A missing secret() throws in production — treat that as "cannot verify,
+  // therefore not authenticated" rather than letting it fault the middleware.
+  let expect: string;
+  try {
+    expect = await hmacHex(tier);
+  } catch {
+    return null;
+  }
   if (sig.length !== expect.length) return null;
   let diff = 0;
   for (let i = 0; i < expect.length; i++) diff |= sig.charCodeAt(i) ^ expect.charCodeAt(i);

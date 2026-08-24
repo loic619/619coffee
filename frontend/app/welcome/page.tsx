@@ -14,6 +14,7 @@ export default function WelcomePage({
   const err = Array.isArray(searchParams.err) ? searchParams.err[0] : searchParams.err;
   const errMsg =
     err === "2" ? "That access code isn't right — check it and try again."
+    : err === "3" ? "Sign-in is temporarily unavailable — please try again shortly."
     : err ? "Please enter your first name and surname."
     : null;
 

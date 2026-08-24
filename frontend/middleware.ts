@@ -93,10 +93,32 @@ export async function middleware(request: NextRequest) {
   const isGateRoute = pathname === "/welcome" || pathname.startsWith("/api/identify");
   const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
 
+  // Data and API surface. These are the URLs the audit hit anonymously: the
+  // committed /data/*.json files (served straight off the CDN) and the /api/*
+  // routes. They carry the actual product, and until now the gate ignored them
+  // entirely — it only guarded page NAVIGATIONS, so a direct fetch walked right
+  // past it. Everything here requires a valid tier, except the login endpoint
+  // itself (/api/identify, already folded into isGateRoute).
+  const isProtectedData =
+    pathname.startsWith("/data/") ||
+    (pathname.startsWith("/api/") && !isGateRoute);
+
   // Who is this? `cid` (name) + `tid` (HMAC-signed tier) are set by
   // /api/identify. An invalid/absent/forged tid reads as no tier.
   const name = (request.cookies.get("cid")?.value ?? "").trim();
   const tier = GATE_ENABLED ? await verifyTier(request.cookies.get(TIER_COOKIE)?.value) : "admin";
+
+  // ── Data/API gate ──────────────────────────────────────────────────────────
+  // Answer these as data (401), never a redirect: they are fetched by scripts,
+  // and a 200-with-login-HTML would be worse than an honest 401. The app's own
+  // requests are same-origin and carry the cookie, so a logged-in visitor is
+  // unaffected; an anonymous one gets nothing.
+  if (GATE_ENABLED && isProtectedData && !tier) {
+    return new NextResponse(
+      JSON.stringify({ error: "unauthorized", hint: "sign in at /welcome" }),
+      { status: 401, headers: { "content-type": "application/json", "cache-control": "no-store" } },
+    );
+  }
 
   // ── Login gate ───────────────────────────────────────────────────────────
   // Redirect any un-identified real page navigation to /welcome. Data/asset
