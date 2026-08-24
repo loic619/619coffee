@@ -1,15 +1,27 @@
 """The kc_close capture window, pinned against real GitHub cron drift.
 
-Regression, 2026-08: the b3_close_gap feature accumulated exactly ZERO
-sessions in its first week live, and the file showed only the `final` leg. The
-cause was not the B3 API — it was the guard. kc_close fired on cron '33 17'
-(EDT) with a 13:28–13:52 NY fence around the 13:30 settle, and GitHub runs
-crons late as a matter of course: every scheduled fire landed at 17:52–17:56
-UTC, i.e. 13:52–13:56 NY. The first missed by ONE minute.
+Regression, 2026-08 (first): the b3_close_gap feature accumulated exactly ZERO
+sessions in its first week live. The cause was not the B3 API — it was the
+guard. kc_close fired on cron '33 17' (EDT) with a 13:28–13:52 NY fence around
+the 13:30 settle, and GitHub runs crons late as a matter of course: every fire
+landed at 13:52–13:56 NY. The first missed by ONE minute.
 
-The guard's actual job is to admit exactly one of the two DST crons per
-season, so it can afford to be loose. These cases are the observed fire times
-from runs 1–6 of workflow 1.5 plus the boundaries either side.
+Regression, 2026-08 (second): with the fence loosened the captures landed, but
+23 min LATE on both sessions, because drift only ever runs one way. The gap
+measures B3's move AFTER New York shuts, so a late start silently discards
+most of the window it exists to measure.
+
+The shape that works is fire-early-and-wait: crons at :55 (16:55 UTC EDT /
+17:55 UTC EST) put the fire at 12:55 NY, ~35 min before the settle, so even a
+25-min drift lands early and the script sleeps to 13:31. That moves ALL the
+drift headroom to the left of the settle, which in turn lets the window close
+at 13:50 — and it must, because the two crons are an hour apart and the other
+season's fire now lands at 13:55 NY.
+
+Properties pinned here:
+  1. every plausible arrival of the RIGHT cron is accepted, in both seasons;
+  2. the OTHER season's cron is rejected, drift included;
+  3. the window brackets the settle, with the headroom on the early side.
 """
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -34,37 +46,47 @@ def _accepted(utc_hh: int, utc_mm: int, month: int = 8) -> bool:
     return _WINDOW_OPEN <= hm <= _WINDOW_CLOSE
 
 
+# EDT: the live cron is 16:55 UTC = 12:55 NY. Drift pushes it later; every
+# one of these still has to land, because the script waits out the remainder.
 @pytest.mark.parametrize("hh,mm", [
-    (17, 25),   # the cron slot itself, no drift
-    (17, 33),   # the OLD slot, no drift — used to be the only accepted case
-    (17, 52),   # observed: run 4
-    (17, 56),   # observed: run 1 — rejected by the old fence
-    (18, 15),   # 25 min of drift on top of a late-ish start
+    (16, 55),   # the slot itself, no drift
+    (17, 5),    # 10 min
+    (17, 15),   # 20 min — the routine case
+    (17, 20),   # 25 min — the worst drift observed on this repo
+    (17, 45),   # 50 min, well past the settle but still inside the window
 ])
-def test_edt_season_accepts_every_observed_fire(hh, mm):
+def test_edt_season_accepts_every_plausible_fire(hh, mm):
     assert _accepted(hh, mm), f"{hh}:{mm:02d} UTC would be dropped in EDT"
 
 
+# EST: the same clock times, one hour later in UTC (17:55 UTC = 12:55 NY).
 @pytest.mark.parametrize("hh,mm", [
-    (18, 25), (18, 33), (18, 52), (18, 56), (19, 15),
+    (17, 55), (18, 5), (18, 15), (18, 20), (18, 45),
 ])
 def test_est_season_accepts_the_same_drift(hh, mm):
     assert _accepted(hh, mm, month=1), f"{hh}:{mm:02d} UTC would be dropped in EST"
 
 
-def test_the_other_seasons_cron_is_still_excluded():
-    """Both crons fire every weekday; only one may capture. In EDT the 18:25
-    slot lands at 14:25 NY and its drift pushes it later still — outside the
-    window. In EST the 17:25 slot lands at 12:25 NY, before it opens."""
-    assert not _accepted(18, 52)            # EDT: 14:52 NY
-    assert not _accepted(19, 8)             # EDT: 15:08 NY (observed run 2/5)
-    assert not _accepted(17, 25, month=1)   # EST: 12:25 NY
-    assert not _accepted(17, 50, month=1)   # EST: 12:50 NY, 25 min of drift
+def test_the_other_seasons_cron_is_excluded():
+    """Both crons fire every weekday; only one may capture. In EDT the 17:55
+    slot lands at 13:55 NY — past the close — and drift only pushes it further
+    out. In EST the 16:55 slot lands at 11:55 NY, before the window opens.
+
+    This is what the 14:30 close broke when the crons moved to :55: 13:55 NY
+    sat inside it, so BOTH seasons' crons were admitted in EDT.
+    """
+    assert not _accepted(17, 55)            # EDT: 13:55 NY, wrong season
+    assert not _accepted(18, 20)            # EDT: 14:20 NY, wrong season + drift
+    assert not _accepted(16, 55, month=1)   # EST: 11:55 NY, wrong season
+    assert not _accepted(17, 20, month=1)   # EST: 12:20 NY, wrong season + drift
 
 
-def test_window_brackets_the_settle_on_both_sides():
-    """Opening before the settle is what makes the early-fire wait possible;
-    the script sleeps to 13:31 rather than discarding the run."""
+def test_window_brackets_the_settle_with_headroom_on_the_early_side():
+    """Opening well before the settle is what makes the wait possible: the
+    script sleeps to 13:31 rather than capturing late. The closing side needs
+    only enough room for a fire that drifted past the settle — too much, and
+    the other season's cron gets in (see the test above)."""
     assert _WINDOW_OPEN < _KC_SETTLE < _WINDOW_CLOSE
-    assert _KC_SETTLE - _WINDOW_OPEN >= 5      # room to wait, not to miss
-    assert _WINDOW_CLOSE - _KC_SETTLE >= 30    # room for GitHub's real drift
+    assert _KC_SETTLE - _WINDOW_OPEN >= 30      # room to absorb drift, then wait
+    assert 15 <= _WINDOW_CLOSE - _KC_SETTLE     # a late fire still counts…
+    assert _WINDOW_CLOSE < 13 * 60 + 55         # …but never the wrong season's

@@ -23,7 +23,7 @@ Two-phase daily capture of the B3 arabica 4/5 (ICF) front price:
 Scheduling (workflow b3-kc-close.yml)
 =====================================
   kc_close: cron 16:55 UTC AND 17:55 UTC Mon–Fri = 12:55 New York, ~35 min
-            BEFORE the settle; a New-York guard (12:45–14:30 ET) lets exactly
+            BEFORE the settle; a New-York guard (12:45–13:50 ET) lets exactly
             one through per DST season and the script then waits for 13:30.
             Aiming early and waiting is the only reliable shape here: GitHub
             runs crons late by 15–25 min as a matter of course, so aiming AT
@@ -75,9 +75,16 @@ _BR = ZoneInfo("America/Sao_Paulo")
 # and the wait below pins the snapshot to 13:31 NY. That matters: the gap is
 # meant to measure B3's move AFTER New York shuts, and starting it 23 min
 # late was silently discarding most of B3's remaining regular session.
+#
+# The drift headroom therefore moved to the LEFT of the settle (45 min of it),
+# which lets the window close much earlier — and it must: with both crons now
+# an hour apart at :55, the other season's fire lands at 13:55 NY, and a
+# 14:30 close would have admitted it too. 13:50 keeps "exactly one cron per
+# season" true, and also refuses a capture so late it would measure almost
+# none of the B3 window it exists to measure.
 _KC_SETTLE    = 13 * 60 + 30
 _WINDOW_OPEN  = 12 * 60 + 45
-_WINDOW_CLOSE = 14 * 60 + 30
+_WINDOW_CLOSE = 13 * 60 + 50
 
 # Noticiasagricolas curve months are Portuguese ("Setembro/2026"); the API
 # symbol carries the futures month code (ICFU26). Map code → PT month name.
