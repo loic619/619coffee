@@ -8,7 +8,7 @@ name: "3.4.2 – On-demand · Apply crop-estimate edit (admin UI)"
 # WITHOUT [skip ci] so Vercel's git integration redeploys and the edit is
 # live for everyone (~2 min end-to-end).
 #
-# Companion of 3.4 (refresh-balance-sheets), which machine-syncs only the
+# Companion of 3.11 (refresh-balance-sheets), which machine-syncs only the
 # USDA column twice a year — this path is how the hand-curated columns
 # (CONAB / FNC / GAEKI / UCDA / MARD / ICO) get updated without editing
 # JSON in git by hand.

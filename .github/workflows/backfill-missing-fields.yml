@@ -1,4 +1,4 @@
-name: "0.6 – One-shot — Backfill missing weather-history fields (Open-Meteo archive)"
+name: "0.4 – One-shot — Backfill missing weather-history fields (Open-Meteo archive)"
 
 # Generalization of the original "backfill ET₀" workflow. The daily fetcher
 # (1.10) sometimes stores `None` for a field because Open-Meteo's *forecast*
