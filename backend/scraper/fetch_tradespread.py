@@ -139,12 +139,34 @@ def _hms(t: str) -> int:
     return h * 3600 + m * 60 + s
 
 
+def _elapsed(ticks: list) -> list[int]:
+    """Seconds since the session's first tick, monotonic ACROSS MIDNIGHT.
+
+    Arabica runs 15:15 VN to 00:30 VN the next day, so raw wall-clock seconds
+    wrap: a 00:30 tick reads as 1,800s, i.e. "earlier" than the 15:15 open.
+    Comparing those directly made open15 select the session's CLOSE for every
+    arabica contract. Ticks are already chronological, so a drop in wall-clock
+    time means a day boundary was crossed — add 24h from there on."""
+    out, day = [], 0
+    prev = None
+    for t in ticks:
+        v = _hms(t[0])
+        if prev is not None and v < prev:
+            day += 86400
+        prev = v
+        out.append(v + day)
+    base = out[0] if out else 0
+    return [v - base for v in out]
+
+
 def _summarise(block: dict) -> dict:
     """Tick-rule flow stats for one contract's tape."""
     ticks = block["ticks"]
     first_t, first_px = ticks[0][0], ticks[0][1]
-    cutoff = _hms(first_t) + OPEN_WINDOW_MIN * 60
-    open15 = next((t for t in reversed(ticks) if _hms(t[0]) <= cutoff), ticks[0])
+    el = _elapsed(ticks)
+    cutoff = OPEN_WINDOW_MIN * 60
+    idx = max((i for i, e in enumerate(el) if e <= cutoff), default=0)
+    open15 = ticks[idx]
 
     up_n = dn_n = 0
     up_lots = dn_lots = flat_lots = 0

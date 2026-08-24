@@ -1,11 +1,10 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Bar, CartesianGrid, Cell, ComposedChart, Legend, Line, ReferenceLine,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Bar, CartesianGrid, Cell, ComposedChart, Legend, Line, ReferenceLine, Tooltip, XAxis, YAxis,
 } from "recharts";
 
-import ChartFocus from "@/components/ChartFocus";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { fmtDateLabel } from "@/lib/formatters";
 
 // tradespread.json — one row per trading session, built from acaphe's traded
@@ -133,8 +132,8 @@ function MarketTape({ mkt, row, history }: { mkt: Mkt; row: TapeRow; history: Ta
         <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
           Lots lifted vs hit · by contract
         </div>
-        <ChartFocus height="h-44" title={`${mkt} · lots lifted vs hit`}>
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-44">
+          <ResponsiveContainer focusTitle={`${mkt} · lots lifted vs hit`} width="100%" height="100%">
             <ComposedChart data={flow} margin={{ top: 5, right: 8, left: -12, bottom: 0 }}>
               <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
               <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 9 }} />
@@ -148,7 +147,7 @@ function MarketTape({ mkt, row, history }: { mkt: Mkt; row: TapeRow; history: Ta
               <Bar dataKey="hit" name="Hit (seller)" fill="#f87171" fillOpacity={0.85} />
             </ComposedChart>
           </ResponsiveContainer>
-        </ChartFocus>
+        </div>
       </div>
 
       {/* Pressure history */}
@@ -156,13 +155,13 @@ function MarketTape({ mkt, row, history }: { mkt: Mkt; row: TapeRow; history: Ta
         <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
           Buy pressure · {front?.label ?? "front"} — daily
         </div>
-        <ChartFocus height="h-44" title={`${front?.label ?? mkt} · daily buy pressure`}>
+        <div className="h-44">
           {trend.filter(t => t.pressure != null).length < 2 ? (
             <div className="text-[11px] text-slate-500 italic pt-8 text-center">
               Accumulating — one point per session from the daily tape.
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer focusTitle={`${front?.label ?? mkt} · daily buy pressure`} width="100%" height="100%">
               <ComposedChart data={trend} margin={{ top: 5, right: 8, left: -12, bottom: 0 }}>
                 <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
                 <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={26}
@@ -182,7 +181,7 @@ function MarketTape({ mkt, row, history }: { mkt: Mkt; row: TapeRow; history: Ta
               </ComposedChart>
             </ResponsiveContainer>
           )}
-        </ChartFocus>
+        </div>
       </div>
 
       {/* Spread volume, inferred from same-second prints on both legs */}
