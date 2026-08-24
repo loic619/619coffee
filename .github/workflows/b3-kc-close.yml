@@ -18,8 +18,8 @@ name: "1.5 – B3 at KC close + final fechamento"
 
 on:
   schedule:
-    - cron: '25 17 * * 1-5'    # kc_close (EDT season)
-    - cron: '25 18 * * 1-5'    # kc_close (EST season)
+    - cron: '55 16 * * 1-5'    # kc_close (EDT season) — 12:55 NY, waits for 13:30
+    - cron: '55 17 * * 1-5'    # kc_close (EST season) — 12:55 NY, waits for 13:30
     - cron: '37 21 * * 1-5'    # final (18:37 BRT)
   workflow_dispatch:
     inputs:
@@ -36,7 +36,7 @@ concurrency:
 jobs:
   capture:
     runs-on: ubuntu-latest
-    timeout-minutes: 25          # kc_close may wait up to ~11 min for the settle
+    timeout-minutes: 55          # kc_close may wait up to ~46 min for the settle
     permissions:
       contents: write
     steps:

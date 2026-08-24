@@ -22,11 +22,13 @@ Two-phase daily capture of the B3 arabica 4/5 (ICF) front price:
 
 Scheduling (workflow b3-kc-close.yml)
 =====================================
-  kc_close: cron 17:25 UTC AND 18:25 UTC Mon–Fri; a New-York wall-clock
-            guard (13:20–14:30 ET) lets exactly one through per DST season.
-            The window is deliberately loose: GitHub runs crons late by
-            15–25 min as a matter of course, and a tight fence around the
-            13:30 settle rejects every real fire (it did — see _WINDOW_OPEN).
+  kc_close: cron 16:55 UTC AND 17:55 UTC Mon–Fri = 12:55 New York, ~35 min
+            BEFORE the settle; a New-York guard (12:45–14:30 ET) lets exactly
+            one through per DST season and the script then waits for 13:30.
+            Aiming early and waiting is the only reliable shape here: GitHub
+            runs crons late by 15–25 min as a matter of course, so aiming AT
+            the settle captures late every time (it did — 13:53 NY, 23 min
+            past, on both of the first two sessions).
   final:    cron 21:37 UTC Mon–Fri = 18:37 BRT (Brazil has no DST), ~30 min
             after the after-hours close; a BRT guard skips early fires.
             This run also refreshes brazil_b3_arabica.json, so the futures
@@ -66,8 +68,15 @@ _BR = ZoneInfo("America/Sao_Paulo")
 # season's cron (which drifts to ≥14:50 NY), and a too-early fire waits for
 # the settle instead of being thrown away. `late_min` is stored per row so a
 # capture that drifted far from the settle can be filtered later.
+#
+# 2026-08-24: aiming AT the settle still captured 23 min late (13:53 NY) on
+# both sessions, because drift only ever runs one way. The crons now fire at
+# 12:55 NY — ~35 min early — so even a 25-min drift lands BEFORE the settle
+# and the wait below pins the snapshot to 13:31 NY. That matters: the gap is
+# meant to measure B3's move AFTER New York shuts, and starting it 23 min
+# late was silently discarding most of B3's remaining regular session.
 _KC_SETTLE    = 13 * 60 + 30
-_WINDOW_OPEN  = 13 * 60 + 20
+_WINDOW_OPEN  = 12 * 60 + 45
 _WINDOW_CLOSE = 14 * 60 + 30
 
 # Noticiasagricolas curve months are Portuguese ("Setembro/2026"); the API
