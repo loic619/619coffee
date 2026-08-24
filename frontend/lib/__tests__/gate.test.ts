@@ -89,4 +89,27 @@ describe("password → tier", () => {
     expect(tierForPassword("wrong")).toBeNull();
     expect(tierForPassword("")).toBeNull();
   });
+
+  it("the burned in-repo passwords no longer work anywhere", () => {
+    // These three shipped as defaults while the repo was public.
+    for (const env of [{}, { NODE_ENV: "production" }]) {
+      Object.assign(process.env, env);
+      delete process.env.GATE_PW_ADMIN;
+      delete process.env.GATE_PW_USER;
+      delete process.env.GATE_PW_BASIC;
+      for (const pw of ["saigonbia", "kombucha", "cocacola"]) {
+        expect(tierForPassword(pw)).toBeNull();
+      }
+    }
+  });
+
+  it("in production, a tier with no env password has no working password", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    delete process.env.GATE_PW_ADMIN;
+    delete process.env.GATE_PW_USER;
+    delete process.env.GATE_PW_BASIC;
+    for (const pw of ["dev-admin", "dev-user", "dev-basic", "", "anything"]) {
+      expect(tierForPassword(pw)).toBeNull();
+    }
+  });
 });

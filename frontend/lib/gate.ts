@@ -2,25 +2,41 @@
 // HMAC-signed tier cookie. Used by the edge middleware (verification + ACL),
 // /api/identify (login), and TabNav (cosmetic tab filtering).
 //
-// Tiers (one shared password each — set in the Vercel env to override the
-// in-repo defaults; NOTE the repo is public, so treat the defaults as
-// "colleague-gate", not real secrets, and rotate via env when needed):
+// Tiers (one shared password each, from the env):
 //   admin (GATE_PW_ADMIN)  — everything, incl. the /admin tracking dashboard
 //   user  (GATE_PW_USER)   — everything except tracking, research, data-map
 //   basic (GATE_PW_BASIC)  — supply, demand, futures, freight only
+//
+// The passwords used to carry in-repo defaults ("colleague-gate" era). The repo
+// was public, so those three strings were world-readable for as long as it was
+// — and an unset env var meant the published value still logged you in. They
+// are gone: in production a tier with no env password simply has no password
+// that works. The dev defaults below are deliberately obvious and only ever
+// apply outside production, so a local checkout still runs with zero setup.
 
 export type Tier = "admin" | "user" | "basic";
 
 export const TIER_COOKIE = "tid";        // httpOnly, HMAC-signed "tier.sig"
 export const TIER_VIEW_COOKIE = "tierv"; // client-readable, cosmetic only (TabNav)
 
+const DEV_PASSWORDS: Record<Tier, string> = {
+  admin: "dev-admin",
+  user: "dev-user",
+  basic: "dev-basic",
+};
+
 export function tierForPassword(pw: string): Tier | null {
-  const table: Record<string, Tier> = {
-    [process.env.GATE_PW_ADMIN ?? "saigonbia"]: "admin",
-    [process.env.GATE_PW_USER ?? "kombucha"]: "user",
-    [process.env.GATE_PW_BASIC ?? "cocacola"]: "basic",
-  };
-  return table[pw] ?? null;
+  if (!pw) return null;
+  const isProd = process.env.NODE_ENV === "production";
+  const configured: [Tier, string | undefined][] = [
+    ["admin", process.env.GATE_PW_ADMIN ?? (isProd ? undefined : DEV_PASSWORDS.admin)],
+    ["user", process.env.GATE_PW_USER ?? (isProd ? undefined : DEV_PASSWORDS.user)],
+    ["basic", process.env.GATE_PW_BASIC ?? (isProd ? undefined : DEV_PASSWORDS.basic)],
+  ];
+  for (const [tier, expected] of configured) {
+    if (expected && pw === expected) return tier;
+  }
+  return null;
 }
 
 // Signing secret. MUST come from GATE_SECRET in production.
