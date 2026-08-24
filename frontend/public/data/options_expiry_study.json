@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-23T03:34:37.609785Z",
+  "generated_at": "2026-08-24T03:37:32.947081Z",
   "method": {
     "expiry_rules": "KC: 2nd Friday of the month preceding the contract month (ICE US ch.8). RC/RM: 3rd Wednesday (ICE Europe spec).",
     "oi_dating": "contract_prices_archive stores OI one key-day late; the series is re-dated back one session and the jump window is [E-1, E+2].",
@@ -24,8 +24,8 @@
           "oi_before": 42931,
           "oi_jump": -25447,
           "oi_jump_pct": -59.27,
-          "typical_daily_doi": 4584,
-          "jump_vs_typical": 5.6,
+          "typical_daily_doi": 4948.0,
+          "jump_vs_typical": 5.1,
           "price_at_expiry": 182.75,
           "contract": "KCU21"
         },
@@ -520,8 +520,8 @@
           "oi_before": 20914,
           "oi_jump": -9396,
           "oi_jump_pct": -44.93,
-          "typical_daily_doi": 1536.0,
-          "jump_vs_typical": 6.1,
+          "typical_daily_doi": 1507,
+          "jump_vs_typical": 6.2,
           "price_at_expiry": 1861.0,
           "contract": "RCU21"
         },
@@ -6161,7 +6161,7 @@
           "itm_put_oi": null,
           "fut_oi": null,
           "future": 322.65,
-          "atm_iv": 0.4389,
+          "atm_iv": 0.4469,
           "itm_pct": null,
           "itm_vs_fut_pct": null
         }
@@ -11908,7 +11908,7 @@
           "itm_put_oi": null,
           "fut_oi": null,
           "future": 3618,
-          "atm_iv": 0.3431,
+          "atm_iv": 0.3519,
           "itm_pct": null,
           "itm_vs_fut_pct": null
         }
