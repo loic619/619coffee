@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T11:30:22.709738Z",
+  "generated_at": "2026-08-24T18:28:12.984500Z",
   "count": 82,
   "workflows": [
     {
@@ -389,7 +389,7 @@
     },
     {
       "file": "model-health.yml",
-      "name": "1.17 \u2013 Open-Direction Model Health",
+      "name": "1.18 \u2013 Open-Direction Model Health",
       "triggers": [
         "schedule",
         "workflow_dispatch",
@@ -963,7 +963,7 @@
     },
     {
       "file": "scraper-sucafina.yml",
-      "name": "1.17 \u2013 Sucafina Origin Reports (weekly)",
+      "name": "1.19 \u2013 Sucafina Origin Reports (weekly)",
       "triggers": [
         "schedule",
         "workflow_dispatch"
@@ -1103,6 +1103,16 @@
         "version": "0.11"
       },
       {
+        "file": "model-health.yml",
+        "name": "1.18 \u2013 Open-Direction Model Health",
+        "version": "1.18"
+      },
+      {
+        "file": "scraper-sucafina.yml",
+        "name": "1.19 \u2013 Sucafina Origin Reports (weekly)",
+        "version": "1.19"
+      },
+      {
         "file": "fetch-intraday-kc-rc.yml",
         "name": "1.96 \u2013 Fetch Intraday KC/RC 15min (Barchart)",
         "version": "1.96"
@@ -1152,7 +1162,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 8,
+    "uncovered_workflows_count": 10,
     "stale_curation_count": 2
   }
 }
