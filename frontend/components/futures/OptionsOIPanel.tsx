@@ -1,11 +1,10 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ComposedChart, Area, Bar, Cell, LabelList, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  CartesianGrid, ReferenceLine, Legend,
+  ComposedChart, Area, Bar, Cell, LabelList, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, Legend,
 } from "recharts";
 
-import ChartFocus from "@/components/ChartFocus";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { fmtDateLabel } from "@/lib/formatters";
 
 // options_oi.json — daily Barchart boards for the nearest live KC/RM option
@@ -457,7 +456,7 @@ function MarketReport({ mkt, doc, shist, sections }: {
                 )}
               </div>
             )}
-            <ChartFocus height="h-64" title={`${snap.underlying} · per-strike board`}>
+            <div className="h-64">
               {board.length === 0 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   {boardMode === "chg"
@@ -467,7 +466,7 @@ function MarketReport({ mkt, doc, shist, sections }: {
                       : "No open interest on this board."}
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer focusTitle={`${snap.underlying} · per-strike board`} width="100%" height="100%">
                   <ComposedChart data={board} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
                     <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
                     <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
@@ -514,7 +513,7 @@ function MarketReport({ mkt, doc, shist, sections }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </ChartFocus>
+            </div>
           </div>
 
           {/* Session ΔOI movers — the flows behind the board */}
@@ -557,13 +556,13 @@ function MarketReport({ mkt, doc, shist, sections }: {
             <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
               Put / Call OI ratio · {snap.underlying} — daily
             </div>
-            <ChartFocus height="h-48" title={`${snap.underlying} · put/call OI ratio — daily`}>
+            <div className="h-48">
               {countdown.filter(c => c.pcRatio != null).length < 2 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   Accumulating — one point per archived session.
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer focusTitle={`${snap.underlying} · put/call OI ratio — daily`} width="100%" height="100%">
                   <ComposedChart data={countdown} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
                     <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
                     <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={26}
@@ -580,7 +579,7 @@ function MarketReport({ mkt, doc, shist, sections }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </ChartFocus>
+            </div>
           </div>
           </>)}
 
@@ -592,13 +591,13 @@ function MarketReport({ mkt, doc, shist, sections }: {
             <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
               Gamma exposure by strike · Δ-lots per 1pt move · line = future
             </div>
-            <ChartFocus height="h-48" title={`${snap.underlying} · gamma exposure by strike`}>
+            <div className="h-48">
               {greekProfiles.gex.length === 0 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   Needs live board greeks (delta/gamma from Barchart or Black-76).
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer focusTitle={`${snap.underlying} · gamma exposure by strike`} width="100%" height="100%">
                   <ComposedChart data={greekProfiles.gex} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
                     <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
                     <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
@@ -622,7 +621,7 @@ function MarketReport({ mkt, doc, shist, sections }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </ChartFocus>
+            </div>
           </div>
 
           {/* Net delta profile */}
@@ -630,13 +629,13 @@ function MarketReport({ mkt, doc, shist, sections }: {
             <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
               Net delta by strike · futures-equiv lots (holder side) · line = future
             </div>
-            <ChartFocus height="h-48" title={`${snap.underlying} · net delta by strike`}>
+            <div className="h-48">
               {greekProfiles.dex.length === 0 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   Needs live board greeks (delta from Barchart or Black-76).
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer focusTitle={`${snap.underlying} · net delta by strike`} width="100%" height="100%">
                   <ComposedChart data={greekProfiles.dex} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
                     <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
                     <XAxis dataKey="strike" stroke="#64748b" tick={{ fontSize: 8 }}
@@ -660,7 +659,7 @@ function MarketReport({ mkt, doc, shist, sections }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </ChartFocus>
+            </div>
           </div>
           </>)}
 
@@ -674,7 +673,7 @@ function MarketReport({ mkt, doc, shist, sections }: {
               ITM OI vs {snap.underlying} future OI · last {COUNTDOWN_WINDOW} sessions to expiry
               {last?.dte != null ? ` · ${Math.round(last.dte)}d left` : ""}
             </div>
-            <ChartFocus height="h-56" title={`${snap.underlying} · ITM OI vs future OI into expiry`}>
+            <div className="h-56">
               {countdownWindow.length < 2 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   {last?.day != null && last.day < -COUNTDOWN_WINDOW
@@ -683,7 +682,7 @@ function MarketReport({ mkt, doc, shist, sections }: {
                     : "Accumulating — one point per session from the daily snapshot."}
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer focusTitle={`${snap.underlying} · ITM OI vs future OI into expiry`} width="100%" height="100%">
                   <ComposedChart data={countdownWindow} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
                     <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
                     <XAxis dataKey="day" type="number" domain={[-COUNTDOWN_WINDOW, 0]}
@@ -708,7 +707,7 @@ function MarketReport({ mkt, doc, shist, sections }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </ChartFocus>
+            </div>
           </div>
           </>)}
 
@@ -722,13 +721,13 @@ function MarketReport({ mkt, doc, shist, sections }: {
             <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
               ATM implied vol · {snap.underlying} — daily, from the boards archive
             </div>
-            <ChartFocus height="h-48" title={`${snap.underlying} · ATM implied vol — daily`}>
+            <div className="h-48">
               {countdown.filter(c => c.atmIv != null).length < 2 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   Accumulating — ATM IV is recorded with each archived session.
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer focusTitle={`${snap.underlying} · ATM implied vol — daily`} width="100%" height="100%">
                   <ComposedChart data={countdown} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
                     <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
                     {/* keyed by full ISO date: MM/DD labels repeat across
@@ -753,7 +752,7 @@ function MarketReport({ mkt, doc, shist, sections }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </ChartFocus>
+            </div>
           </div>
 
           {/* IV term structure — ATM IV across the listed expiries */}
@@ -761,13 +760,13 @@ function MarketReport({ mkt, doc, shist, sections }: {
             <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
               IV term structure · ATM vol per expiry
             </div>
-            <ChartFocus height="h-48" title={`${mkt} · IV term structure`}>
+            <div className="h-48">
               {term.length < 2 ? (
                 <div className="text-[11px] text-slate-500 italic pt-8 text-center">
                   Needs ATM IV on at least two listed expiries.
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer focusTitle={`${mkt} · IV term structure`} width="100%" height="100%">
                   <ComposedChart data={term} margin={{ top: 14, right: 16, left: -6, bottom: 0 }}>
                     <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
                     <XAxis dataKey="dte" type="number" domain={[0, "dataMax"]}
@@ -788,7 +787,7 @@ function MarketReport({ mkt, doc, shist, sections }: {
                   </ComposedChart>
                 </ResponsiveContainer>
               )}
-            </ChartFocus>
+            </div>
           </div>
           </>)}
         </>
