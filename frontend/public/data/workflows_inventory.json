@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T18:28:12.984500Z",
+  "generated_at": "2026-08-24T18:56:04.941437Z",
   "count": 82,
   "workflows": [
     {
@@ -26,7 +26,7 @@
     },
     {
       "file": "b3-kc-close.yml",
-      "name": "1.5 \u2013 B3 at KC close + final fechamento",
+      "name": "1.6 \u2013 B3 at KC close + final fechamento",
       "triggers": [
         "schedule",
         "workflow_dispatch"
@@ -86,7 +86,7 @@
     },
     {
       "file": "backfill-enso-thermocline.yml",
-      "name": "0.9 \u2013 Backfill \u2014 ENSO thermocline archive (TAO/TRITON 150m, multi-year)",
+      "name": "0.13 \u2013 Backfill \u2014 ENSO thermocline archive (TAO/TRITON 150m, multi-year)",
       "triggers": [
         "workflow_dispatch"
       ],
@@ -108,7 +108,7 @@
     },
     {
       "file": "backfill-missing-fields.yml",
-      "name": "0.6 \u2013 One-shot \u2014 Backfill missing weather-history fields (Open-Meteo archive)",
+      "name": "0.4 \u2013 One-shot \u2014 Backfill missing weather-history fields (Open-Meteo archive)",
       "triggers": [
         "workflow_dispatch"
       ],
@@ -141,7 +141,7 @@
     },
     {
       "file": "bps-indonesia-exim.yml",
-      "name": "0.9 \u2013 BPS Indonesia coffee exports (monthly)",
+      "name": "0.14 \u2013 BPS Indonesia coffee exports (monthly)",
       "triggers": [
         "workflow_dispatch"
       ],
@@ -152,7 +152,7 @@
     },
     {
       "file": "brazil-export-forecast.yml",
-      "name": "1.8 \u2013 Brazil Export Forecast (SSOT projection)",
+      "name": "1.21 \u2013 Brazil Export Forecast (SSOT projection)",
       "triggers": [
         "schedule",
         "workflow_dispatch"
@@ -206,7 +206,7 @@
     },
     {
       "file": "capture-kc-at-rc-close.yml",
-      "name": "0.2 \u2013 Capture KC at RC Close",
+      "name": "0.3 \u2013 Capture KC at RC Close",
       "triggers": [
         "schedule",
         "workflow_dispatch"
@@ -273,7 +273,7 @@
     },
     {
       "file": "ci-frontend.yml",
-      "name": "9.2 \u2013 CI Frontend",
+      "name": "9.4 \u2013 CI Frontend",
       "triggers": [
         "pull_request",
         "push",
@@ -349,7 +349,7 @@
     },
     {
       "file": "frost-backtest.yml",
-      "name": "0.9 \u2013 Frost model backtest (recent real data / historic events)",
+      "name": "0.15 \u2013 Frost model backtest (recent real data / historic events)",
       "triggers": [
         "schedule",
         "workflow_dispatch"
@@ -547,7 +547,7 @@
     },
     {
       "file": "refresh-balance-sheets.yml",
-      "name": "3.4 \u2013 Semi-annual \u00b7 Multi-source balance sheets (BR/CO/ID/UG)",
+      "name": "3.11 \u2013 Semi-annual \u00b7 Multi-source balance sheets (BR/CO/ID/UG)",
       "triggers": [
         "schedule",
         "workflow_dispatch"
@@ -575,7 +575,7 @@
     },
     {
       "file": "research-retest-watch.yml",
-      "name": "9.9 \u2013 Research retest watch",
+      "name": "9.10 \u2013 Research retest watch",
       "triggers": [
         "schedule",
         "workflow_dispatch"
@@ -740,7 +740,7 @@
     },
     {
       "file": "scraper-enso-thermocline.yml",
-      "name": "0.9 \u2013 Daily \u2014 ENSO thermocline (TAO/TRITON 150m \u00b7 ERDDAP via CF proxy)",
+      "name": "0.16 \u2013 Daily \u2014 ENSO thermocline (TAO/TRITON 150m \u00b7 ERDDAP via CF proxy)",
       "triggers": [
         "schedule",
         "workflow_dispatch"
@@ -935,7 +935,7 @@
     },
     {
       "file": "scraper-slow-data.yml",
-      "name": "1.11 \u2013 Monthly Slow-Data Scraper (USDA PSD)",
+      "name": "1.22 \u2013 Monthly Slow-Data Scraper (USDA PSD)",
       "triggers": [
         "schedule",
         "workflow_dispatch"
@@ -992,7 +992,7 @@
     },
     {
       "file": "scraper-vn-water-levels.yml",
-      "name": "0.8 \u2013 VN River Flow (NCHMF daily bulletin)",
+      "name": "0.12 \u2013 VN River Flow (NCHMF daily bulletin)",
       "triggers": [
         "schedule",
         "workflow_dispatch"
@@ -1042,7 +1042,7 @@
     },
     {
       "file": "tradespread.yml",
-      "name": "1.7 \u2013 Traded tape (acaphe tradespread)",
+      "name": "1.20 \u2013 Traded tape (acaphe tradespread)",
       "triggers": [
         "schedule",
         "workflow_dispatch"
@@ -1103,14 +1103,39 @@
         "version": "0.11"
       },
       {
+        "file": "backfill-enso-thermocline.yml",
+        "name": "0.13 \u2013 Backfill \u2014 ENSO thermocline archive (TAO/TRITON 150m, multi-year)",
+        "version": "0.13"
+      },
+      {
+        "file": "frost-backtest.yml",
+        "name": "0.15 \u2013 Frost model backtest (recent real data / historic events)",
+        "version": "0.15"
+      },
+      {
+        "file": "scraper-enso-thermocline.yml",
+        "name": "0.16 \u2013 Daily \u2014 ENSO thermocline (TAO/TRITON 150m \u00b7 ERDDAP via CF proxy)",
+        "version": "0.16"
+      },
+      {
+        "file": "source-sentinel.yml",
+        "name": "1.17 \u2013 Source Sentinel (monthly supply releases)",
+        "version": "1.17"
+      },
+      {
         "file": "model-health.yml",
         "name": "1.18 \u2013 Open-Direction Model Health",
         "version": "1.18"
       },
       {
-        "file": "scraper-sucafina.yml",
-        "name": "1.19 \u2013 Sucafina Origin Reports (weekly)",
-        "version": "1.19"
+        "file": "tradespread.yml",
+        "name": "1.20 \u2013 Traded tape (acaphe tradespread)",
+        "version": "1.20"
+      },
+      {
+        "file": "b3-kc-close.yml",
+        "name": "1.6 \u2013 B3 at KC close + final fechamento",
+        "version": "1.6"
       },
       {
         "file": "fetch-intraday-kc-rc.yml",
@@ -1133,6 +1158,16 @@
         "version": "3.4.2"
       },
       {
+        "file": "research-retest-watch.yml",
+        "name": "9.10 \u2013 Research retest watch",
+        "version": "9.10"
+      },
+      {
+        "file": "ci-frontend.yml",
+        "name": "9.4 \u2013 CI Frontend",
+        "version": "9.4"
+      },
+      {
         "file": "cftc-options-book.yml",
         "name": "9.8 \u2013 CFTC options book (combined vs futures-only COT)",
         "version": "9.8"
@@ -1141,17 +1176,9 @@
         "file": "audit-cftc-markets.yml",
         "name": "9.9 \u2013 Audit CFTC markets",
         "version": "9.9"
-      },
-      {
-        "file": "research-retest-watch.yml",
-        "name": "9.9 \u2013 Research retest watch",
-        "version": "9.9"
       }
     ],
-    "stale_curation": [
-      "0.3",
-      "0.4"
-    ],
+    "stale_curation": [],
     "non_workflow_entries": [
       "Per-source Telegram alerts",
       "Acaphe poll",
@@ -1162,7 +1189,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 10,
-    "stale_curation_count": 2
+    "uncovered_workflows_count": 16,
+    "stale_curation_count": 0
   }
 }
