@@ -82,6 +82,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const tier = tierForPassword(password);
   if (!tier) return bounce("2");            // wrong / missing password
 
+  // Sign the tier cookie BEFORE recording anything. If GATE_SECRET is missing
+  // in production, signTier throws — bounce with a config error rather than
+  // 500, and never admit the visitor on an unsigned/guessable cookie.
+  let signed: string;
+  try {
+    signed = await signTier(tier);
+  } catch {
+    return bounce("3");                     // server misconfigured (no GATE_SECRET)
+  }
+
   await recordIdentity(clientIp(req), full, tier);
 
   // Land on the requested page if this tier may see it, else its home tab.
@@ -89,7 +99,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const res = NextResponse.redirect(new URL(dest, req.url), 303);
   const base = { sameSite: "lax" as const, secure: process.env.NODE_ENV === "production", path: "/", maxAge: COOKIE_MAX_AGE };
   res.cookies.set("cid", full, { ...base, httpOnly: true });
-  res.cookies.set(TIER_COOKIE, await signTier(tier), { ...base, httpOnly: true });
+  res.cookies.set(TIER_COOKIE, signed, { ...base, httpOnly: true });
   res.cookies.set(TIER_VIEW_COOKIE, tier, { ...base, httpOnly: false }); // cosmetic (TabNav)
   return res;
 }
