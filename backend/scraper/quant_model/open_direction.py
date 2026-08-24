@@ -68,6 +68,7 @@ _INTRADAY  = _ROOT / "frontend" / "public" / "data" / "intraday_kc_rc_15min.json
 _FX_SNAPS  = _ROOT / "frontend" / "public" / "data" / "fx_intraday_snapshots.json"
 _BRENT     = _ROOT / "data" / "brent_intraday_anchors.json"
 _B3_SNAPS  = _ROOT / "frontend" / "public" / "data" / "b3_kc_close_snapshots.json"
+_TAPE      = _ROOT / "frontend" / "public" / "data" / "tradespread.json"
 
 _KC_TO_USD_PER_MT = 22.0462   # KC ¢/lb → USD/MT
 
@@ -82,6 +83,7 @@ _ABSTAIN_BAND    = 0.10       # |prob_up − 0.5| below this → Undefined
 _MIN_TRAIN       = 252        # ≥ ~1y of labelled sessions before predicting
 _MIN_CCI_OVERLAP = 40         # days of FX snapshots before cci_overnight joins
 _MIN_B3_OVERLAP  = 40         # sessions of B3 gap captures before b3_close_gap joins
+_MIN_TAPE_OVERLAP = 40        # sessions of acaphe tape before its features join
 _WF_STEP         = 5          # walk-forward refit cadence (matches the ablation)
 _WF_EMBARGO      = 1          # single-session labels don't overlap; 1 day guard
 
@@ -163,6 +165,13 @@ def build_dataset() -> "pd.DataFrame | None":
     brent = _brent_overnight_series()
     if brent is not None:
         out["brent_overnight"] = brent.reindex(out.index)
+    tape = _tape_series()
+    if tape is not None:
+        t_ret, t_press = tape
+        if len(t_ret):
+            out["tape_open15_ret"] = t_ret.reindex(out.index).shift(1)
+        if len(t_press):
+            out["tape_pressure"] = t_press.reindex(out.index).shift(1)
     b3 = _b3_close_gap_series()
     if b3 is not None:
         # gap of session t-1 is the pre-open information for session t
@@ -259,6 +268,42 @@ def _b3_close_gap_series() -> "pd.Series | None":
     return pd.Series({pd.Timestamp(d): v for d, v in out.items()}).sort_index()
 
 
+def _tape_series() -> "tuple[pd.Series, pd.Series] | None":
+    """(opening 15-min return, buy pressure) per session for the most-traded
+    robusta contract, from acaphe's traded tape (fetch_tradespread.py).
+
+    open15_ret = open15 / first_tick − 1: how the session's first 15 minutes
+    went. pressure = (lifted − hit lots) / total, the tick-rule order-flow
+    balance. Both describe a session that is OVER, so shift(1) in the frame
+    makes them pre-open information for the NEXT session — the same discipline
+    every other candidate here follows. (rc_open15_ret is separately a GRADING
+    outcome; this is the prior session's, never the one being predicted.)"""
+    if not _TAPE.exists():
+        return None
+    try:
+        rows = json.loads(_TAPE.read_text(encoding="utf-8")).get("history") or []
+    except Exception:
+        return None
+    rets, press = {}, {}
+    for r in rows:
+        d = r.get("date")
+        legs = [c for c in (r.get("contracts") or {}).values()
+                if c.get("market") == "robusta" and c.get("total_volume")]
+        if not d or not legs:
+            continue
+        c = max(legs, key=lambda x: x["total_volume"])   # the active contract
+        first = (c.get("first_tick") or {}).get("price")
+        o15 = (c.get("open15") or {}).get("price")
+        if first and o15:
+            rets[pd.Timestamp(d)] = o15 / first - 1.0
+        if c.get("pressure") is not None:
+            press[pd.Timestamp(d)] = float(c["pressure"])
+    if not rets and not press:
+        return None
+    return (pd.Series(rets).sort_index() if rets else pd.Series(dtype=float),
+            pd.Series(press).sort_index() if press else pd.Series(dtype=float))
+
+
 def active_features(frame: "pd.DataFrame") -> list[str]:
     """The model's feature set for a given dataset — single source of truth,
     shared by run() and the log module's seed so they can never diverge.
@@ -300,6 +345,8 @@ def active_features(frame: "pd.DataFrame") -> list[str]:
     candidates = [
         ("cci_overnight", _MIN_CCI_OVERLAP),
         ("b3_close_gap", _MIN_B3_OVERLAP),
+        ("tape_open15_ret", _MIN_TAPE_OVERLAP),
+        ("tape_pressure", _MIN_TAPE_OVERLAP),
     ]
     # Most-covered first: a feature with more history is likelier to survive
     # the joint dropna, and admitting it first cannot be blocked by a thinner
@@ -331,7 +378,9 @@ def feature_status(frame: "pd.DataFrame") -> list[dict]:
     active = set(active_features(frame))
     out = []
     for col, gate in (("cci_overnight", _MIN_CCI_OVERLAP),
-                      ("b3_close_gap", _MIN_B3_OVERLAP)):
+                      ("b3_close_gap", _MIN_B3_OVERLAP),
+                      ("tape_open15_ret", _MIN_TAPE_OVERLAP),
+                      ("tape_pressure", _MIN_TAPE_OVERLAP)):
         if col not in frame.columns:
             state, reason, n, trainable = "absent", (
                 "series unavailable — the builder returned nothing (missing "
@@ -521,6 +570,17 @@ def run(db=None) -> dict:
             # feature by imputing the training mean (z = 0 ⇒ φ = 0).
             v = float(mu[active.index("cci_overnight")])
         live_vals["cci_overnight"] = float(v)
+    for key in ("tape_open15_ret", "tape_pressure"):
+        if key in active:
+            tape = _tape_series()
+            ser = None
+            if tape is not None:
+                ser = tape[0] if key == "tape_open15_ret" else tape[1]
+            # the tape of the LAST TRADED session is the pre-open information
+            v = ser.get(last_date) if ser is not None and len(ser) else None
+            if v is None:
+                v = float(mu[active.index(key)])
+            live_vals[key] = float(v)
     if "b3_close_gap" in active:
         b3 = _b3_close_gap_series()
         # the gap computed on the LAST traded session is the pre-open info
@@ -639,6 +699,18 @@ def run(db=None) -> dict:
         elif key == "cci_overnight":
             item["detail"] = {
                 "text": "Coffee Currency Index move 17:30 London → 03:00 UTC (intraday FX snapshots)"
+            }
+        elif key == "tape_open15_ret":
+            item["detail"] = {
+                "text": ("Robusta's move over the first 15 minutes of the PRIOR "
+                         "session, from acaphe's traded tape (open tick → the "
+                         "print 15 min later)")
+            }
+        elif key == "tape_pressure":
+            item["detail"] = {
+                "text": ("Prior session's tick-rule order-flow balance on the "
+                         "active robusta contract: (lots lifted − lots hit) / "
+                         "total; +100% all buyer-initiated, −100% all seller-initiated")
             }
         elif key == "b3_close_gap":
             item["detail"] = {
