@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T04:14:15.669949Z",
+  "generated_at": "2026-08-24T11:30:22.709738Z",
   "count": 82,
   "workflows": [
     {
@@ -32,13 +32,13 @@
         "workflow_dispatch"
       ],
       "crons": [
-        "25 17 * * 1-5",
-        "25 18 * * 1-5",
+        "55 16 * * 1-5",
+        "55 17 * * 1-5",
         "37 21 * * 1-5"
       ],
       "workflow_run_deps": [],
       "concurrency_group": "b3-kc-close",
-      "timeout_minutes": 25
+      "timeout_minutes": 55
     },
     {
       "file": "backfill-b3-conilon.yml",
