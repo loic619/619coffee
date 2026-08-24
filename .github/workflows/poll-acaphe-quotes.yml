@@ -45,7 +45,15 @@ on:
     # Futures fields are simply absent/stale on these early ticks; that is
     # harmless — the poller writes whatever the payload contains and the
     # 08-19 block remains the source of truth for RC/KC.
-    - cron: '7,22,37,52 1-4 * * 1-5'
+    # WIDENED 2026-08-24: the window was 01:00-04:00 UTC (08:00-11:52 ICT) and
+    # the VN panel still went 9 days stale (Aug 15-24). Two reasons: acaphe
+    # intermittently serves the stub 'acaphe()' in that field instead of the
+    # block, and this workflow's cron gets throttled (documented twice above),
+    # so a narrow window can miss every publishing minute of the day. 00:00-
+    # 07:59 UTC = 07:00-14:59 ICT covers the whole Vietnamese morning and early
+    # afternoon while staying entirely BEFORE the 08:00 UTC London open, which
+    # keeps the VN_ONLY semantics below honest (futures genuinely off-session).
+    - cron: '7,27,47 0-7 * * 1-5'
   workflow_dispatch:
 
 # If a previous run is still in progress when the next cron tick fires,
@@ -61,6 +69,8 @@ concurrency:
 jobs:
   poll:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     # 8 (was 4): the job-level timeout clock starts when the job is ASSIGNED,
     # and on 2026-08-06 a runner-starved tick burned 3+ min in queue/setup and
     # was killed before polling. cancel-in-progress still guarantees the
@@ -117,10 +127,28 @@ jobs:
           DATABASE_URL:             ${{ secrets.DATABASE_URL }}
           ACAPHE_USER:              ${{ secrets.ACAPHE_USER }}
           ACAPHE_PASS:              ${{ secrets.ACAPHE_PASS }}
-          # The 01:00-04:00 UTC block chases the Vietnamese morning only. At that
+          # The 00:00-08:00 UTC block chases the Vietnamese day only. At that
           # hour London and New York are shut, so the futures half of the payload
           # is off-session: persist the VN snapshot but leave `live_quotes` alone.
           # github.event.schedule is the literal cron string that fired, and is
           # empty for workflow_dispatch (a manual run stays full-fidelity).
-          ACAPHE_VN_ONLY: ${{ github.event.schedule == '7,22,37,52 1-4 * * 1-5' }}
+          ACAPHE_VN_ONLY: ${{ github.event.schedule == '7,27,47 0-7 * * 1-5' }}
         run: python -m scraper.acaphe_poller --once
+
+      # vietnam_last.json is the panel's fallback when Redis is empty, but no
+      # step ever committed it — so it sat frozen at 2026-04-24 while only the
+      # Redis key moved. Persist it whenever the VN block was actually parsed.
+      - name: Commit the Vietnam snapshot
+        if: steps.gate.outputs.skip == 'false'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data/vietnam_last.json 2>/dev/null || true
+          if git diff --cached --quiet; then echo "VN snapshot unchanged."; else
+            git commit -m "data: vietnam physical snapshot [skip ci]"
+            for i in 1 2 3; do
+              git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push && exit 0
+              sleep $((RANDOM % 5 + 3))
+            done
+            echo "::warning::VN snapshot push failed (Redis still updated)"
+          fi
