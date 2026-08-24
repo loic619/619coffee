@@ -623,7 +623,7 @@ const ROWS: FlowMetadata[] = [
     resiliency: { onMissing: "panel shows UNAVAILABLE; history rows stay pending until resolvable" },
   },
   {
-    wf: "1.17 Sucafina Reports", output: "sucafina_reports.json", component: "OriginReportsPanel", visual: "News · Weekly notes from origin",
+    wf: "1.19 Sucafina Reports", output: "sucafina_reports.json", component: "OriginReportsPanel", visual: "News · Weekly notes from origin",
     cadence: { recurrence: "Thu 06:23 UTC weekly (Sat backstop)", trigger: "cron" },
     transport: { provider: "sucafina.com (Playwright) + Kontent CDN", method: "date links → PDF → pdfplumber → per-origin sections" },
     storage: { target: "sucafina_reports.json", footprint: "last 30 weeks", units: "per-origin market notes" },
@@ -942,7 +942,7 @@ const ROWS: FlowMetadata[] = [
     runtime: { duration: "~10s" },
   },
   {
-    wf: "0.8 VN River Flow", output: "vn_river_flow.json", component: "VnWaterLevels (VietnamTab)", visual: "Supply · Vietnam · water-level + dam alerts",
+    wf: "0.12 VN River Flow", output: "vn_river_flow.json", component: "VnWaterLevels (VietnamTab)", visual: "Supply · Vietnam · water-level + dam alerts",
     cadence: { recurrence: "10:00 UTC daily (after 08:00 UTC NCHMF publish)", trigger: "cron" },
     transport: { provider: "NCHMF Vietnam Hydromet", method: "daily bulletin scrape" },
     storage: { target: "vn_river_flow.json (rolling)" },
@@ -963,7 +963,7 @@ const ROWS: FlowMetadata[] = [
     resiliency: { onMissing: "daily 1.10 fetch accumulates new actuals on top of the seed" },
   },
   {
-    wf: "0.9 BPS Indonesia exim", output: "indonesia_exports.json", component: "IndonesiaTab export panels", visual: "Supply · Indonesia · BPS exports",
+    wf: "0.14 BPS Indonesia exim", output: "indonesia_exports.json", component: "IndonesiaTab export panels", visual: "Supply · Indonesia · BPS exports",
     cadence: { recurrence: "workflow_dispatch only (cron commented out pending Xvfb proof)", trigger: "manual" },
     transport: { provider: "Indonesia BPS exim portal", method: "headless browser scrape" },
     storage: { target: "indonesia_exports.json" },
@@ -985,7 +985,7 @@ const ROWS: FlowMetadata[] = [
 
   // ── 1.x — Daily + ops layer ──────────────────────────────────────────────
   {
-    wf: "1.8 Brazil export forecast", output: "brazil_export_projection.json", component: "BrazilTab forecast block", visual: "Supply · Brazil · SSOT export projection",
+    wf: "1.21 Brazil export forecast", output: "brazil_export_projection.json", component: "BrazilTab forecast block", visual: "Supply · Brazil · SSOT export projection",
     cadence: { recurrence: "18:00 UTC daily", trigger: "cron" },
     transport: { method: "compute over the historical Cecafé monthlies (local, no network)" },
     storage: { target: "brazil_export_projection.json" },
@@ -1025,7 +1025,7 @@ const ROWS: FlowMetadata[] = [
     resiliency: { onMissing: "keep last good index + per-port files" },
   },
   {
-    wf: "1.11 Slow-data scraper", output: "Postgres PSD tables → psd_coffee.json (in 1.4 export)", component: "Demand · PSD-derived widgets", visual: "Demand · USDA PSD monthly (consumption / production)",
+    wf: "1.22 Slow-data scraper", output: "Postgres PSD tables → psd_coffee.json (in 1.4 export)", component: "Demand · PSD-derived widgets", visual: "Demand · USDA PSD monthly (consumption / production)",
     cadence: { recurrence: "12th of each month 03:00 UTC", trigger: "cron" },
     transport: { provider: "USDA PSD", method: "Direct fetch + parse" },
     storage: { target: "psd_coffee.json slice" },
@@ -1053,7 +1053,7 @@ const ROWS: FlowMetadata[] = [
     storage: { target: "ecf_stocks.json", footprint: "bi-monthly; debug dumps retained 14d" },
   },
   {
-    wf: "3.4 Balance sheets", output: "frontend/public/data/balance_sheets/", component: "SupplyDemandBalance (per origin)", visual: "Supply · per-origin S/D balance sheets",
+    wf: "3.11 Balance sheets", output: "frontend/public/data/balance_sheets/", component: "SupplyDemandBalance (per origin)", visual: "Supply · per-origin S/D balance sheets",
     cadence: { recurrence: "06:00 UTC on 20 Jun + 20 Dec (semi-annual)", trigger: "cron" },
     transport: { method: "multi-source synthesis (BR / CO / ID / UG)" },
     storage: { target: "balance_sheets/{origin}.json" },
