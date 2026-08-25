@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-25T08:31:54.001973Z",
-  "count": 84,
+  "generated_at": "2026-08-25T08:39:02.308404Z",
+  "count": 83,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -478,17 +478,6 @@
       "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": null,
-      "timeout_minutes": 10
-    },
-    {
-      "file": "probe-cci-inputs.yml",
-      "name": "Z \u2013 Probe: CCI inputs (diagnostic)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": "probe-cci-inputs",
       "timeout_minutes": 10
     },
     {
