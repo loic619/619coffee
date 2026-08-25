@@ -51,7 +51,19 @@ OUT_PATH = ROOT / "frontend" / "public" / "data" / "workflow_activity.json"
 
 WINDOW_DAYS = 7
 PER_PAGE = 100
-MAX_PAGES = 20          # 2,000 runs — far above a normal week
+# Runs are collected PER WORKFLOW, not from the repo-wide listing. That
+# listing is capped at 1,000 results however you paginate it, and this repo
+# burns through 1,000 runs in about five days — so the repo-wide call
+# silently truncated the oldest days of the window and reported them as
+# zero-activity. A file whose whole purpose is "what actually ran" cannot
+# quietly under-report, and the failure looked exactly like the real thing
+# it exists to detect: a workflow that stopped firing.
+#
+# Per workflow the ceiling is nowhere near binding — the busiest job here
+# runs ~300 times a week — and the window is enforced against each run's own
+# timestamp, so correctness no longer depends on the API's `created` filter
+# behaving.
+MAX_PAGES = 10          # 1,000 runs for a single workflow in one week
 
 
 def _api(url: str, token: str) -> dict:
@@ -77,18 +89,59 @@ def main() -> int:
     days = [(since + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(WINDOW_DAYS + 1)]
     day_idx = {d: i for i, d in enumerate(days)}
 
-    runs: list[dict] = []
+    # 1 — every workflow the repo declares, including ones that never fired.
+    workflows: list[dict] = []
     for page in range(1, MAX_PAGES + 1):
-        url = (f"https://api.github.com/repos/{repo}/actions/runs"
-               f"?per_page={PER_PAGE}&page={page}&created=%3E%3D{since.strftime('%Y-%m-%d')}")
+        url = (f"https://api.github.com/repos/{repo}/actions/workflows"
+               f"?per_page={PER_PAGE}&page={page}")
         try:
-            batch = _api(url, token).get("workflow_runs") or []
+            batch = _api(url, token).get("workflows") or []
         except urllib.error.HTTPError as e:
-            print(f"[activity] API error page {page}: {e}", file=sys.stderr)
+            print(f"[activity] workflow list error page {page}: {e}", file=sys.stderr)
             return 1
-        runs.extend(batch)
+        workflows.extend(batch)
         if len(batch) < PER_PAGE:
             break
+
+    # 2 — each workflow's runs inside the window. `created` narrows the
+    # request; the window is re-checked per run below, so an ignored filter
+    # costs bandwidth, not accuracy.
+    runs: list[dict] = []
+    capped: list[str] = []
+    for wf in workflows:
+        wf_id = wf.get("id")
+        if wf_id is None:
+            continue
+        for page in range(1, MAX_PAGES + 1):
+            url = (f"https://api.github.com/repos/{repo}/actions/workflows/{wf_id}/runs"
+                   f"?per_page={PER_PAGE}&page={page}"
+                   f"&created=%3E%3D{since.strftime('%Y-%m-%d')}")
+            try:
+                batch = _api(url, token).get("workflow_runs") or []
+            except urllib.error.HTTPError as e:
+                print(f"[activity] runs error {wf.get('name')} page {page}: {e}", file=sys.stderr)
+                return 1
+            runs.extend(batch)
+            if len(batch) < PER_PAGE:
+                break
+        else:
+            # Ran out of pages with a full last batch — say so in the file
+            # rather than shipping a quiet undercount.
+            capped.append(wf.get("name") or str(wf_id))
+    if capped:
+        print(f"[activity] page cap hit for: {', '.join(capped)}", file=sys.stderr)
+
+    # The per-workflow endpoint can return the same run twice across pages
+    # when a run lands mid-pagination.
+    seen: set[int] = set()
+    deduped = []
+    for r in runs:
+        rid = r.get("id")
+        if rid in seen:
+            continue
+        seen.add(rid)
+        deduped.append(r)
+    runs = deduped
 
     agg: dict[str, dict] = {}
     totals = defaultdict(int)
@@ -147,6 +200,9 @@ def main() -> int:
     payload = {
         "generated_at": now.isoformat(),
         "window_days": WINDOW_DAYS,
+        # Non-empty means a workflow exceeded the page cap and its counts
+        # are a floor, not a total.
+        "capped_workflows": capped,
         "since": since.isoformat(),
         "repo": repo,
         "totals": {k: totals[k] for k in ("runs", "success", "failure", "cancelled", "other")},
