@@ -81,3 +81,69 @@ def test_spreads_are_basis_points_and_signed_the_conventional_way():
     assert _spread(ys, "2y", "10y") == 68.0      # positive = upward sloping
     assert _spread(ys, "3m", "10y") == 13.0
     assert _spread(ys, "2y", "missing") is None  # never guess a leg
+
+
+# ── incremental fetch ────────────────────────────────────────────────────────
+# Fetching both years every run cost 37.4 s, 41.6% of the whole static export.
+# The prior year is now pulled only to top up a short series, which puts the
+# published history on the critical path: if the merge drops it, the chart
+# silently shortens instead of failing.
+
+def _stub_years(monkeypatch, by_year):
+    calls = []
+
+    def fake(y):
+        calls.append(y)
+        return by_year.get(y, [])
+
+    from scraper.sources import treasury_yields as ty
+    monkeypatch.setattr(ty, "_fetch_year", fake)
+    return calls
+
+
+def _rows(n, start_day=1, year=2026):
+    return [{"date": f"{year}-01-{d:02d}", "yields": {"2y": 3.5, "10y": 4.2}}
+            for d in range(start_day, start_day + n)]
+
+
+def test_a_long_existing_series_needs_only_the_current_year(monkeypatch):
+    from scraper.sources import treasury_yields as ty
+    calls = _stub_years(monkeypatch, {2026: _rows(5, 20)})
+    out = ty.fetch_curve(existing=_rows(300))
+    assert len(calls) == 1, f"expected one fetch, got years {calls}"
+    assert len(out["history"]) >= 300
+
+
+def test_a_cold_start_pulls_the_prior_year_too(monkeypatch):
+    from scraper.sources import treasury_yields as ty
+    calls = _stub_years(monkeypatch, {2026: _rows(10), 2025: _rows(200, year=2025)})
+    out = ty.fetch_curve(existing=None)
+    assert len(calls) == 2, "a short series must be topped up"
+    assert len(out["history"]) == 210
+
+
+def test_existing_history_is_never_dropped(monkeypatch):
+    """The whole point of passing it in — losing it silently shortens the chart."""
+    from scraper.sources import treasury_yields as ty
+    _stub_years(monkeypatch, {2026: _rows(3, 20)})
+    old = _rows(300)
+    out = ty.fetch_curve(existing=old)
+    kept = {r["date"] for r in out["history"]}
+    assert {r["date"] for r in old} <= kept
+
+
+def test_a_refetched_session_supersedes_the_carried_one(monkeypatch):
+    """Treasury revises same-day prints; the fresh value must win."""
+    from scraper.sources import treasury_yields as ty
+    stale = [{"date": "2026-01-05", "yields": {"10y": 1.11}}] + _rows(300, 10)
+    fresh = [{"date": "2026-01-05", "yields": {"10y": 4.44}}]
+    _stub_years(monkeypatch, {2026: fresh})
+    out = ty.fetch_curve(existing=stale)
+    got = next(r for r in out["history"] if r["date"] == "2026-01-05")
+    assert got["yields"]["10y"] == 4.44
+
+
+def test_a_dead_feed_with_no_history_returns_none(monkeypatch):
+    from scraper.sources import treasury_yields as ty
+    _stub_years(monkeypatch, {})
+    assert ty.fetch_curve(existing=None) is None

@@ -170,9 +170,22 @@ def export_treasury_yields() -> None:
     Standalone (no `db`): the curve is fetched live rather than staged through
     the database, same shape as the brazil_b3_* exporters.
     """
+    import json as _json
+
     from scraper.sources.treasury_yields import fetch_curve
     path = OUT_DIR / "treasury_yields.json"
-    curve = fetch_curve()
+
+    # Carry the published history forward so the fetch only needs the current
+    # year. Missing/corrupt file just means a cold start — two requests instead
+    # of one, never a wrong series.
+    existing: list[dict] = []
+    if path.exists():
+        try:
+            existing = _json.loads(path.read_text(encoding="utf-8")).get("history") or []
+        except Exception as e:  # noqa: BLE001
+            print(f"  treasury_yields.json → unreadable ({type(e).__name__}), refetching in full")
+
+    curve = fetch_curve(existing)
     if not curve:
         print("  treasury_yields.json → no curve returned — keeping previous file")
         return
