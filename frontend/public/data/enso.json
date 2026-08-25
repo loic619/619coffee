@@ -1,9 +1,17 @@
 {
-  "phase": "neutral",
+  "phase": "el-nino",
+  "phase_status": "emerging",
+  "official_phase": "neutral",
+  "phase_basis": "ONI past +0.5 for 2 months, NOAA rule not yet met",
   "intensity": "Moderate",
   "oni": 1.39,
-  "peak_month": "Nov-25",
-  "forecast_direction": "Neutral · No strong signal for 2026",
+  "nino34": {
+    "week_ending": "2026-08-19",
+    "sst_anomaly": 2.6,
+    "phase": "el-nino"
+  },
+  "peak_month": "Jun-26",
+  "forecast_direction": null,
   "oni_history": [
     {
       "month": "Jan-25",
@@ -82,7 +90,7 @@
     }
   ],
   "oni_forecast": [],
-  "historical_stat": "Neutral ENSO: near-average Brazil arabica output expected",
+  "historical_stat": null,
   "analogs": [
     {
       "year": 1997,
@@ -426,366 +434,402 @@
         "country": "Brazil",
         "lat": -21.55,
         "lon": -45.43,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Cerrado",
         "country": "Brazil",
         "lat": -18.95,
         "lon": -46.99,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Espírito Santo",
         "country": "Brazil",
         "lat": -20.0,
         "lon": -40.8,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Excess rain (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Paraná",
         "country": "Brazil",
         "lat": -23.31,
         "lon": -50.62,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Frost risk (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Huila",
         "country": "Colombia",
         "lat": 1.85,
         "lon": -76.05,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Antioquia",
         "country": "Colombia",
         "lat": 6.25,
         "lon": -75.56,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Cauca",
         "country": "Colombia",
         "lat": 2.44,
         "lon": -76.61,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Caldas",
         "country": "Colombia",
         "lat": 5.07,
         "lon": -75.52,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Nariño",
         "country": "Colombia",
         "lat": 1.21,
         "lon": -77.28,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "El Paraíso",
         "country": "Honduras",
         "lat": 13.99,
         "lon": -86.57,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Copán",
         "country": "Honduras",
         "lat": 14.83,
         "lon": -88.87,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Santa Bárbara",
         "country": "Honduras",
         "lat": 14.92,
         "lon": -88.24,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Montecillos",
         "country": "Honduras",
         "lat": 14.16,
         "lon": -88.02,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Agalta",
         "country": "Honduras",
         "lat": 14.68,
         "lon": -86.22,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Lampung",
         "country": "Indonesia",
         "lat": -5.0,
         "lon": 104.8,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Gayo",
         "country": "Indonesia",
         "lat": 4.62,
         "lon": 96.85,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Java",
         "country": "Indonesia",
         "lat": -7.91,
         "lon": 113.82,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Toraja",
         "country": "Indonesia",
         "lat": -2.97,
         "lon": 119.9,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Flores",
         "country": "Indonesia",
         "lat": -8.79,
         "lon": 120.98,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Greater Masaka",
         "country": "Uganda",
         "lat": -0.33,
         "lon": 31.73,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought / heat (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Central",
         "country": "Uganda",
         "lat": 0.4,
         "lon": 32.04,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought / heat (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Western",
         "country": "Uganda",
         "lat": -0.59,
         "lon": 30.19,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought / heat (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Busoga",
         "country": "Uganda",
         "lat": 0.61,
         "lon": 33.47,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought / heat (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Mt Elgon",
         "country": "Uganda",
         "lat": 1.39,
         "lon": 34.45,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought / heat (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "West Nile",
         "country": "Uganda",
         "lat": 2.52,
         "lon": 30.9,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought / heat (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Rwenzori",
         "country": "Uganda",
         "lat": 0.66,
         "lon": 30.27,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought / heat (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Sidama/Yirgacheffe",
         "country": "Ethiopia",
         "lat": 6.16,
         "lon": 38.2,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Jimma",
         "country": "Ethiopia",
         "lat": 7.67,
         "lon": 36.83,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Limu",
         "country": "Ethiopia",
         "lat": 8.06,
         "lon": 36.8,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Kaffa",
         "country": "Ethiopia",
         "lat": 7.27,
         "lon": 36.23,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Harrar",
         "country": "Ethiopia",
         "lat": 9.31,
         "lon": 42.12,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Dak Lak",
         "country": "Vietnam",
         "lat": 12.67,
         "lon": 108.05,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (Robusta) (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Lam Dong",
         "country": "Vietnam",
         "lat": 11.94,
         "lon": 108.44,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (Robusta) (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Dak Nong",
         "country": "Vietnam",
         "lat": 12.0,
         "lon": 107.69,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (Robusta) (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Gia Lai",
         "country": "Vietnam",
         "lat": 13.98,
         "lon": 108.0,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (Robusta) (developing)",
+        "severity": 1,
+        "status": "emerging"
       },
       {
         "region": "Kon Tum",
         "country": "Vietnam",
         "lat": 14.35,
         "lon": 108.0,
-        "level": "low",
-        "color": "#16a34a",
-        "driver": "Near-normal",
-        "severity": 0
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Drought (Robusta) (developing)",
+        "severity": 1,
+        "status": "emerging"
       }
     ],
     "summary": {
       "high": 0,
-      "moderate": 0,
-      "low": 36
+      "moderate": 36,
+      "low": 0
     }
   },
   "last_updated": "2026-08-24"

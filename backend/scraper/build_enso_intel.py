@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from scraper.enso import classify_enso, current_event_peak
 from scraper.enso_analogs import aligned_series, find_analogs
 from scraper.enso_risk import build_risk_pins, risk_summary
 from scraper.validate_export import safe_write_json
@@ -46,21 +47,39 @@ def _current_window_from_short(oni_history: list[dict]) -> list[dict]:
 def build() -> dict:
     fe = _load_json(OUT_DIR / "farmer_economics.json") or {}
     enso = fe.get("enso") or {}
-    phase = enso.get("phase", "neutral")
-    intensity = enso.get("intensity", "Weak")
     oni_history = enso.get("oni_history") or []
 
-    pins = build_risk_pins(phase, intensity)
+    # Classify here rather than trusting the copy in farmer_economics.json, and
+    # feed in the weekly Niño 3.4 series the pipeline already scrapes. That
+    # series LEADS the ONI, and ignoring it is how the map came to show 36 green
+    # pins while Niño 3.4 sat at +2.6 °C.
+    indices = _load_json(OUT_DIR / "enso_indices.json") or {}
+    nino34 = (indices.get("nino34") or {}).get("weekly") or None
+    c = classify_enso(oni_history, nino34_weekly=nino34)
+    phase, intensity, status = c["phase"], c["intensity"], c["status"]
+
+    pins = build_risk_pins(phase, intensity, status)
+
+    # The prose in farmer_economics.json was written against ITS phase. If this
+    # classification disagrees, drop the prose rather than ship a sentence that
+    # contradicts the map beside it — two files disagreeing about ENSO is the
+    # bug this rewrite exists to close.
+    agrees = enso.get("phase") == phase
+    nino34_latest = (indices.get("nino34") or {}).get("latest")
 
     out: dict = {
         "phase": phase,
+        "phase_status": status,
+        "official_phase": c["official_phase"],
+        "phase_basis": c["basis"],
         "intensity": intensity,
-        "oni": enso.get("oni"),
-        "peak_month": enso.get("peak_month"),
-        "forecast_direction": enso.get("forecast_direction"),
+        "oni": c["oni"],
+        "nino34": nino34_latest,
+        "peak_month": current_event_peak(oni_history, phase),
+        "forecast_direction": enso.get("forecast_direction") if agrees else None,
         "oni_history": oni_history,
         "oni_forecast": enso.get("oni_forecast") or [],
-        "historical_stat": enso.get("historical_stat"),
+        "historical_stat": enso.get("historical_stat") if agrees else None,
         "analogs": [],
         "oni_history_long": [],
         "current_window": _current_window_from_short(oni_history),
@@ -86,8 +105,11 @@ def export_enso_intel() -> None:
     safe_write_json(OUT_DIR / "enso.json", data, ensure_ascii=False)
     pins = data["risk"]["pins"]
     safe_write_json(OUT_DIR / "enso_risk_pins.json", pins, ensure_ascii=False)
-    print(f"  enso.json → phase={data['phase']} analogs={len(data['analogs'])} "
-          f"risk_pins={len(pins)} forecast_seasons={len(data['oni_forecast'])}")
+    summary = data["risk"]["summary"]
+    print(f"  enso.json → phase={data['phase']} ({data['phase_status']}) "
+          f"oni={data['oni']} analogs={len(data['analogs'])} "
+          f"risk_pins={len(pins)} [{summary['high']} high / {summary['moderate']} moderate "
+          f"/ {summary['low']} low] forecast_seasons={len(data['oni_forecast'])}")
 
 
 if __name__ == "__main__":

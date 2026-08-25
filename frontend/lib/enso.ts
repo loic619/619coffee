@@ -44,10 +44,25 @@ export interface EnsoRiskPin {
   color: string;
   driver: string;
   severity: number;
+  /** Present only while the event is developing but not NOAA-confirmed. Such
+   *  pins are capped at amber — see backend/scraper/enso_risk.py. */
+  status?: "emerging";
 }
 
 export interface EnsoData {
   phase: string;
+  /** How much the phase is to be trusted: "official" once NOAA's five-season
+   *  rule is met, "emerging" while the ocean has clearly turned but the rule
+   *  has not, "neutral" otherwise. NOAA's rule confirms an event four to five
+   *  months after onset, which is longer than a flowering window — so the map
+   *  reads the observed state and flags the confidence rather than waiting. */
+  phase_status?: "official" | "emerging" | "neutral";
+  /** What NOAA's rule alone would say — kept so the tab can show both. */
+  official_phase?: string;
+  /** One line explaining which test fired. */
+  phase_basis?: string;
+  /** Latest weekly Niño 3.4 SST anomaly; leads the ONI. */
+  nino34?: { week_ending?: string; sst_anomaly?: number; phase?: string } | null;
   intensity: string;
   oni: number | null;
   peak_month: string | null;

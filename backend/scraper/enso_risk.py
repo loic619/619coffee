@@ -67,10 +67,20 @@ _EFFECTS: dict[str, dict[str, dict[str, tuple[str, int]]]] = {
 _LEVEL_COLOR = {"high": "#dc2626", "moderate": "#f59e0b", "low": "#16a34a"}
 
 
-def _effective_severity(base: int, intensity: str) -> int:
-    """A Strong/Extreme phase escalates an at-risk region; benign stays benign."""
+def _effective_severity(base: int, intensity: str, status: str = "official") -> int:
+    """A Strong/Extreme phase escalates an at-risk region; benign stays benign.
+
+    `status` is the confidence in the phase itself (see scraper.enso). While an
+    event is only "emerging" — the ocean has clearly turned but NOAA's
+    five-season rule has not yet been met — risk is capped at amber. Being
+    early then costs a warning colour instead of a false red, which is the
+    trade this map should be making: the alternative, waiting for
+    confirmation, leaves every region green through the flowering window.
+    """
     if base <= 0:
         return 0
+    if status == "emerging":
+        return min(base, 1)
     if intensity in ("Strong", "Extreme"):
         return base + 1
     return base
@@ -84,19 +94,28 @@ def _level(sev: int) -> str:
     return "low"
 
 
-def risk_for_region(origin: str, region: str, phase: str, intensity: str) -> dict:
-    """{level, color, driver, severity} for one region under the given ENSO state."""
+def risk_for_region(origin: str, region: str, phase: str, intensity: str,
+                    status: str = "official") -> dict:
+    """{level, color, driver, severity, status} for one region under the given
+    ENSO state."""
     eff = _EFFECTS.get(origin, {}).get(region, {})
     if phase == "neutral" or phase not in eff:
         driver, base = "Near-normal", 0
     else:
         driver, base = eff[phase]
-    sev = _effective_severity(base, intensity)
+    sev = _effective_severity(base, intensity, status)
     level = _level(sev)
-    return {"level": level, "color": _LEVEL_COLOR[level], "driver": driver, "severity": sev}
+    out = {"level": level, "color": _LEVEL_COLOR[level], "driver": driver, "severity": sev}
+    # Carry the confidence onto the pin so the map can say "developing" rather
+    # than presenting an unconfirmed event with the same weight as a confirmed
+    # one. Only meaningful where there is actually a risk to qualify.
+    if status == "emerging" and base > 0:
+        out["status"] = "emerging"
+        out["driver"] = f"{driver} (developing)"
+    return out
 
 
-def build_risk_pins(phase: str, intensity: str) -> list[dict]:
+def build_risk_pins(phase: str, intensity: str, status: str = "official") -> list[dict]:
     """Risk pin per growing region: name, country, lat/lon (from ORIGINS), risk."""
     pins: list[dict] = []
     for origin, regions in ORIGINS.items():
@@ -106,7 +125,7 @@ def build_risk_pins(phase: str, intensity: str) -> list[dict]:
             name = reg["name"]
             if name not in effects:
                 continue
-            risk = risk_for_region(origin, name, phase, intensity)
+            risk = risk_for_region(origin, name, phase, intensity, status)
             pins.append({
                 "region": name,
                 "country": country,

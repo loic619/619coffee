@@ -55,3 +55,36 @@ def test_effects_table_only_active_phase_keys():
     for origin, regions in _EFFECTS.items():
         for region, eff in regions.items():
             assert set(eff).issubset({"el-nino", "la-nina"}), (origin, region)
+
+
+def test_emerging_is_amber_never_red():
+    """An unconfirmed event should warn, not scream. Sul de Minas drought is a
+    severity-2 (red) driver under a confirmed El Niño; while the event is only
+    emerging it must cap at amber however strong the anomaly reads."""
+    for intensity in ("Weak", "Moderate", "Strong", "Extreme"):
+        r = risk_for_region("brazil", "Sul de Minas", "el-nino", intensity,
+                            status="emerging")
+        assert r["level"] == "moderate", intensity
+        assert r["status"] == "emerging"
+        assert "developing" in r["driver"]
+
+
+def test_emerging_still_beats_the_old_all_green():
+    """The regression this whole change exists to prevent: an emerging El Niño
+    must not paint every growing region green."""
+    pins = build_risk_pins("el-nino", "Moderate", status="emerging")
+    assert any(p["level"] != "low" for p in pins)
+    assert all(p["level"] != "high" for p in pins)
+
+
+def test_benign_region_stays_green_while_emerging():
+    # Sul de Minas is favourable in La Niña (sev 0) — no status qualifier.
+    r = risk_for_region("brazil", "Sul de Minas", "la-nina", "Strong", status="emerging")
+    assert r["level"] == "low"
+    assert "status" not in r
+
+
+def test_official_event_still_reaches_red():
+    r = risk_for_region("brazil", "Sul de Minas", "el-nino", "Strong", status="official")
+    assert r["level"] == "high"
+    assert "status" not in r

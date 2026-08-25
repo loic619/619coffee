@@ -36,12 +36,35 @@ function PhaseSummary({ data }: { data: EnsoData }) {
         <div className="flex items-center gap-3">
           <span className="inline-block w-3.5 h-3.5 rounded-full" style={{ background: meta.color }} />
           <div>
-            <div className="text-lg font-bold text-white">
+            <div className="text-lg font-bold text-white flex items-center gap-2 flex-wrap">
               {phaseLabel(data.phase)} <span className="text-slate-400 font-normal">· {data.intensity}</span>
+              {data.phase_status === "emerging" && (
+                // NOAA confirms an event four to five months after onset —
+                // longer than a flowering window. The map reads the observed
+                // state and says plainly that it is running ahead of the
+                // official call, rather than reporting "neutral" at +1.39.
+                <span
+                  title={data.phase_basis ?? undefined}
+                  className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border border-amber-600/60 bg-amber-950/40 text-amber-300"
+                >
+                  Developing · not yet NOAA-confirmed
+                </span>
+              )}
             </div>
             <div className="text-xs text-slate-400">
               Current ONI <span className="font-mono text-slate-200">{data.oni ?? "—"}</span>
               {data.peak_month ? ` · peak ${data.peak_month}` : ""}
+              {data.nino34?.sst_anomaly != null && (
+                <>
+                  {" · Niño 3.4 "}
+                  <span className="font-mono text-slate-200">
+                    {data.nino34.sst_anomaly > 0 ? "+" : ""}{data.nino34.sst_anomaly.toFixed(1)}°C
+                  </span>
+                  {data.nino34.week_ending ? (
+                    <span className="text-slate-500"> (wk {data.nino34.week_ending})</span>
+                  ) : null}
+                </>
+              )}
             </div>
           </div>
         </div>

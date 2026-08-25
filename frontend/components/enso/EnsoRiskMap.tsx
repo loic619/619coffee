@@ -178,11 +178,23 @@ export default function EnsoRiskMap({ pins }: { pins: EnsoRiskPin[] }) {
       return next;
     });
 
+  const developing = pins.filter((p) => p.status === "emerging").length;
+
   return (
     <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
       <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
         <div className="text-[10px] text-slate-400 uppercase tracking-wide">
           Crop-risk map · click a region for the ENSO driver
+          {developing > 0 && (
+            // Derived from the pins themselves rather than plumbed in, so the
+            // map cannot disagree with what it is drawing.
+            <span
+              className="ml-2 normal-case text-amber-400/90"
+              title="NOAA confirms an ENSO event four to five months after onset. These pins read the observed ocean state and are capped at amber until the event is confirmed."
+            >
+              · {developing} region{developing === 1 ? "" : "s"} on a developing event (capped at amber)
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1.5 text-[10px]">
           {LEVELS.map((lvl) => {
