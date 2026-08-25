@@ -46,7 +46,9 @@ import EnsoModelMethodology from "./methodology/EnsoModelMethodology";
 import DemandDataMethodology from "./methodology/DemandDataMethodology";
 import DeliveryProcessMethodology from "./methodology/DeliveryProcessMethodology";
 import { AlwaysOpen, ResearchCard, type Tone } from "./methodology/prose";
-import { ARTICLES, CAT_LABEL } from "@/lib/research/catalog";
+import { ARTICLES, CAT_LABEL, type Article } from "@/lib/research/catalog";
+import { applyOverrides, type Override, type OverrideMap } from "@/lib/research/overrides";
+import EditPanel from "./EditPanel";
 import FactorMap, { FactorMapLegend } from "./factor-map/FactorMap";
 import { BY_ID } from "./factor-map/nodes";
 import { nodesForArticle } from "./factor-map/articleNodes";
@@ -1828,6 +1830,32 @@ const BODY: Record<string, React.ReactNode> = {
    as its figure, over the same node table, so adding a factor to the model
    makes it appear here automatically — there is no second copy to update. */
 
+/** The client-readable tier cookie decides whether the edit affordance is
+ *  even drawn. It is cosmetic only — the API verifies the SIGNED cookie, so a
+ *  forged `tierv` buys a disabled-looking form and a 403. */
+function useIsAdmin() {
+  const [admin, setAdmin] = useState(false);
+  useEffect(() => {
+    setAdmin(document.cookie.split("; ").some(c => c === "tierv=admin"));
+  }, []);
+  return admin;
+}
+
+/** The editor's note, above the article. Plain text by design — rendered as
+ *  paragraphs, never as HTML, so a note can never inject markup into the page. */
+function EditorNote({ text }: { text: string }) {
+  return (
+    <div className="mb-3 rounded-lg border-l-2 border-amber-600 bg-amber-950/20 px-3 py-2">
+      <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-amber-400">
+        Editor&rsquo;s note
+      </div>
+      {text.split("\n").filter(Boolean).map((para, i) => (
+        <p key={i} className="text-xs leading-relaxed text-slate-300">{para}</p>
+      ))}
+    </div>
+  );
+}
+
 function ArticleBody({ id }: { id: string }) {
   const body = BODY[id];
   if (!body) {
@@ -1840,20 +1868,22 @@ function ArticleBody({ id }: { id: string }) {
   return <>{body}</>;
 }
 
-function ListView({ sel, setSel, cat, setCat }: {
+function ListView({ sel, setSel, cat, setCat, list: all, editing, onEdit }: {
   sel: string; setSel: (id: string) => void;
   cat: Cat | "all"; setCat: (c: Cat | "all") => void;
+  list: (Article & { note?: string })[];
+  editing: boolean; onEdit?: () => void;
 }) {
   const [q, setQ] = useState("");
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return ARTICLES.filter(a => {
+    return all.filter(a => {
       if (cat !== "all" && a.cat !== cat) return false;
       if (!needle) return true;
       return `${a.title} ${a.subtitle ?? ""} ${a.kicker ?? ""}`.toLowerCase().includes(needle);
     });
-  }, [q, cat]);
-  const current = ARTICLES.find(a => a.id === sel) ?? ARTICLES[0];
+  }, [q, cat, all]);
+  const current = all.find(a => a.id === sel) ?? all[0];
 
   return (
     <div className="grid gap-3 lg:grid-cols-[minmax(250px,320px)_1fr]">
@@ -1866,7 +1896,7 @@ function ListView({ sel, setSel, cat, setCat }: {
               className={`rounded px-2 py-0.5 text-[10px] transition-colors ${
                 cat === c ? "border border-slate-700 bg-slate-800 text-amber-400"
                           : "border border-transparent text-slate-500 hover:text-slate-300"}`}>
-              {c === "all" ? `All ${ARTICLES.length}` : CAT_LABEL[c as Cat]}
+              {c === "all" ? `All ${all.length}` : CAT_LABEL[c as Cat]}
             </button>
           ))}
         </div>
@@ -1882,26 +1912,39 @@ function ListView({ sel, setSel, cat, setCat }: {
         </div>
       </div>
       <div className="min-w-0">
-        {/* the index IS the summary here, so the article opens expanded */}
-        <AlwaysOpen.Provider value>{current && <ArticleBody id={current.id} />}</AlwaysOpen.Provider>
+        {current && (
+          <>
+            {onEdit && !editing && (
+              <button onClick={onEdit}
+                className="mb-2 rounded border border-slate-700 px-2 py-0.5 text-[10px] text-slate-400 hover:text-amber-400">
+                ✎ edit this article
+              </button>
+            )}
+            {current.note && <EditorNote text={current.note} />}
+            {/* the index IS the summary here, so the article opens expanded */}
+            <AlwaysOpen.Provider value><ArticleBody id={current.id} /></AlwaysOpen.Provider>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
-function MapView({ sel, setSel }: { sel: string; setSel: (id: string) => void }) {
+function MapView({ sel, setSel, list: all }: {
+  sel: string; setSel: (id: string) => void; list: (Article & { note?: string })[];
+}) {
   const [onlyBadged, setOnlyBadged] = useState(false);
   const [q, setQ] = useState("");
   const [node, setNode] = useState<string | null>(null);
 
   const byNode = useMemo(() => {
-    const m = new Map<string, typeof ARTICLES>();
-    for (const a of ARTICLES) for (const n of nodesForArticle(a)) {
+    const m = new Map<string, (Article & { note?: string })[]>();
+    for (const a of all) for (const n of nodesForArticle(a)) {
       if (!m.has(n)) m.set(n, []);
       m.get(n)!.push(a);
     }
     return m;
-  }, []);
+  }, [all]);
   const badges = useMemo(() => {
     const m = new Map<string, number>();
     byNode.forEach((v, k) => m.set(k, v.length));
@@ -1911,16 +1954,16 @@ function MapView({ sel, setSel }: { sel: string; setSel: (id: string) => void })
   const lit = useMemo(() => {
     if (!needle) return null;
     const s = new Set<string>();
-    for (const a of ARTICLES) {
+    for (const a of all) {
       if (`${a.title} ${a.subtitle ?? ""} ${a.kicker ?? ""}`.toLowerCase().includes(needle))
         for (const n of nodesForArticle(a)) s.add(n);
     }
     return s;
-  }, [needle]);
+  }, [needle, all]);
 
   const nodeArticles = node ? byNode.get(node) ?? [] : [];
   const nodeMeta = node ? BY_ID.get(node) : null;
-  const current = ARTICLES.find(a => a.id === sel);
+  const current = all.find(a => a.id === sel);
 
   return (
     <div className="space-y-3">
@@ -1969,6 +2012,7 @@ function MapView({ sel, setSel }: { sel: string; setSel: (id: string) => void })
 
       {current && (
         <div className="min-w-0">
+          {current.note && <EditorNote text={current.note} />}
           <AlwaysOpen.Provider value><ArticleBody id={current.id} /></AlwaysOpen.Provider>
         </div>
       )}
@@ -1988,6 +2032,30 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
   // place instead of resetting to the top of the catalogue.
   const [sel, setSel] = useState<string>(
     () => ARTICLES.find(a => a.cat === (initialTab ?? "quant"))?.id ?? ARTICLES[0].id);
+
+  const [overrides, setOverrides] = useState<OverrideMap>({});
+  const isAdmin = useIsAdmin();
+  const [editing, setEditing] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/research/overrides")
+      .then(r => (r.ok ? r.json() : null))
+      .then(j => { if (alive && j?.overrides) setOverrides(j.overrides); })
+      .catch(() => { /* the source catalogue is a fine fallback */ });
+    return () => { alive = false; };
+  }, []);
+
+  // What every surface reads: source values with any override laid on top.
+  const list = useMemo(() => applyOverrides(ARTICLES, overrides), [overrides]);
+  const sourceArticle = ARTICLES.find(a => a.id === sel);
+
+  function afterSave(id: string, ov: Override | null) {
+    setOverrides(prev => {
+      const next = { ...prev };
+      if (ov) next[id] = ov; else delete next[id];
+      return next;
+    });
+  }
 
   useEffect(() => {
     if (initialTab && initialTab !== cat) setCat(initialTab);
@@ -2021,9 +2089,15 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
         </span>
       </div>
 
+      {isAdmin && editing && sourceArticle && (
+        <EditPanel article={sourceArticle} override={overrides[sel]}
+          onSaved={afterSave} onClose={() => setEditing(false)} />
+      )}
+
       {view === "list"
-        ? <ListView sel={sel} setSel={setSel} cat={cat} setCat={pickCat} />
-        : <MapView sel={sel} setSel={setSel} />}
+        ? <ListView sel={sel} setSel={setSel} cat={cat} setCat={pickCat} list={list}
+                    editing={editing} onEdit={isAdmin ? () => setEditing(true) : undefined} />
+        : <MapView sel={sel} setSel={setSel} list={list} />}
     </>
   );
 }
