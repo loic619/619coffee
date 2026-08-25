@@ -146,8 +146,10 @@ def probe_treasury() -> None:
     print("=" * 70)
     print("3. Stooq — US Treasury yield symbols")
     print("=" * 70)
-    cands = ["10usy.b", "2usy.b", "5usy.b", "30usy.b", "3musy.b", "1usy.b",
-             "7usy.b", "20usy.b", "6musy.b"]
+    # Round 1 (all nine ".b" forms) returned Stooq's HTML shell, not CSV — that
+    # symbol family does not exist there. Round 2 tries the other plausible
+    # Stooq spellings plus the two official Treasury endpoints.
+    cands = ["10usy", "10usy.c", "tnx.us", "^tnx", "10ustreas"]
     for sym in cands:
         url = f"https://stooq.com/q/d/l/?s={sym}&i=d"
         try:
@@ -169,6 +171,24 @@ def probe_treasury() -> None:
                   f"{lines[1].split(',')[0]} -> {cols[0]}  last close = {cols[4]}")
         except Exception as e:
             print(f"   {sym:9s} FAILED {type(e).__name__}: {str(e)[:60]}")
+
+    # Official Treasury endpoints — no key, no rate limit, authoritative.
+    print("\n  official Treasury endpoints:")
+    others = {
+        "home.treasury XML": ("https://home.treasury.gov/resource-center/data-chart-center/"
+                              "interest-rates/pages/xml?data=daily_treasury_yield_curve"
+                              "&field_tdr_date_value=2026"),
+        "fiscaldata avg-rates": ("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/"
+                                 "v2/accounting/od/avg_interest_rates?sort=-record_date"
+                                 "&page%5Bsize%5D=3"),
+    }
+    for name, u in others.items():
+        try:
+            r = requests.get(u, headers=UA, timeout=30)
+            body = r.text.strip()
+            print(f"   {name:22s} HTTP {r.status_code}  {len(r.content):>9,}b  {body[:150]!r}")
+        except Exception as e:
+            print(f"   {name:22s} FAILED {type(e).__name__}: {str(e)[:70]}")
 
 
 if __name__ == "__main__":

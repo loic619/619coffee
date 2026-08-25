@@ -13,7 +13,6 @@ Pure diagnostic — no DB, no commits. Run via the "Probe: Acaphe" workflow.
 from __future__ import annotations
 
 import asyncio
-import json
 import re
 import sys
 import time
