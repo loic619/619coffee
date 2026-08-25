@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-25T03:30:34.866557Z",
+  "generated_at": "2026-08-25T09:31:12.508252Z",
   "method": {
     "gamma": "Black-76 from each board's stored per-strike IV, settlement and DTE; gamma = phi(d1)/(F*sigma*sqrt(T)).",
     "convention": "Naive dealer-side GEX: dealers long calls, short puts — net = gamma_c*OI_c − gamma_p*OI_p per strike. A convention, not an observation.",
