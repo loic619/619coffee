@@ -52,6 +52,7 @@ import EditPanel from "./EditPanel";
 import FactorMap, { FactorMapLegend } from "./factor-map/FactorMap";
 import { BY_ID } from "./factor-map/nodes";
 import { nodesForArticle } from "./factor-map/articleNodes";
+import HondurasProfile from "./origins/HondurasProfile";
 
 // Top-level research categories. Each groups several articles/tools, which render
 // stacked as collapsible cards on the category page.
@@ -1800,6 +1801,7 @@ const BODY: Record<string, React.ReactNode> = {
   "drought-risk-how-the-spi-spei-vhi-stack-works": <DroughtRiskMethodology />,
   "theoretical-yield-vs-rainfall-theory-29-harvests-and": <YieldRainfall />,
   "frost-risk-why-radiative-frost-is-the-trade-that-mat": <FrostRiskMethodology />,
+  "honduras-origin-country-profile": <HondurasProfile />,
   "origin-logistics-the-fobbing-cost-model": <OriginLogistics />,
   "destination-in-store-cost": <DestinationInstore />,
   "freight-port-activity-how-the-numbers-are-built": <FreightMethodology />,
