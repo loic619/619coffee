@@ -1,12 +1,20 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { LDN_PARAMS, NY_PARAMS } from "@/lib/cot/intraweekModel";
 import { FOBBING_MODEL, fobbingUsdMt } from "@/lib/originCosts";
 import { cachedFetchStatic } from "@/lib/api";
 import CotBacktestReport from "@/components/futures/CotBacktestReport";
-import AgronomyArticles from "./AgronomyArticles";
-import DemandArticles from "./DemandArticles";
+// The container shells still render the full set where that is the right
+// read; the per-article children are imported too so a single article can be
+// opened on its own from the index.
+import Article1 from "./agronomy/Article1";
+import Article2 from "./agronomy/Article2";
+import Article3 from "./agronomy/Article3";
+import Article4 from "./agronomy/Article4";
+import Article5 from "./agronomy/Article5";
+import LogisticModel from "./demand/LogisticModel";
+import SaturationLimits from "./demand/SaturationLimits";
+import MarketCeilings from "./demand/MarketCeilings";
 import EnsoExplainer from "./EnsoExplainer";
 import CertifiedStocksParity from "./CertifiedStocksParity";
 import ConilonBasis from "./ConilonBasis";
@@ -36,7 +44,11 @@ import FreightMethodology from "./methodology/FreightMethodology";
 import EnsoModelMethodology from "./methodology/EnsoModelMethodology";
 import DemandDataMethodology from "./methodology/DemandDataMethodology";
 import DeliveryProcessMethodology from "./methodology/DeliveryProcessMethodology";
-import { ResearchCard, type Tone } from "./methodology/prose";
+import { AlwaysOpen, ResearchCard, type Tone } from "./methodology/prose";
+import { ARTICLES, CAT_LABEL } from "@/lib/research/catalog";
+import FactorMap, { FactorMapLegend } from "./factor-map/FactorMap";
+import { BY_ID } from "./factor-map/nodes";
+import { nodesForArticle } from "./factor-map/articleNodes";
 
 // Top-level research categories. Each groups several articles/tools, which render
 // stacked as collapsible cards on the category page.
@@ -1754,159 +1766,236 @@ in & out (transit) = decerted bags whose cohort was graded in-window`}</Fml>
   );
 }
 
-export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
-  const router = useRouter();
-  const [cat, setCat] = useState<Cat>(initialTab ?? "quant");
+// catalogue id → the component that renders that article's body.
+// Generated alongside lib/research/catalog.ts: every id in the catalogue
+// has exactly one entry, and the container shells (AgronomyArticles,
+// DemandArticles) are unpacked to their per-article children so an
+// article can be opened on its own rather than with its four siblings.
+const BODY: Record<string, React.ReactNode> = {
+  "are-swap-dealers-commercials-or-speculators": <CotSwapIdentity />,
+  "intraweek-cot-nowcast-methodology": <IntraweekMethodology />,
+  "cot-backtest-report": <CotBacktestReport />,
+  "september-x-ray-kc-september-positioning-via-the-old": <SeptemberXray />,
+  "crop-year-x-ray-the-same-trick-across-seven-cftc-mar": <CropyearXray />,
+  "signals-forecasts-the-four-models-behind-the-tab": <SignalsMethodology />,
+  "open-price-direction-walk-forward-record": <OpenDirectionRecord />,
+  "the-harvest-last-hour-a-pre-hedging-signal-on-its-ow": <IntradayDrift />,
+  "news-sentiment-turning-headlines-into-a-coffee-signa": <NewsSentimentMethodology />,
+  "futures-analytics-contract-math-roll-dynamics-the-pr": <FuturesMethodology />,
+  "macro-fx-the-currency-index-and-cross-commodity-posi": <MacroMethodology />,
+  "cpi-decoded-us-cpi-vs-eurozone-hicp": <CpiMethodology />,
+  "supply-modelling-production-estimates-balance-sheets": <SupplyMethodology />,
+  "farmer-economics-cost-of-production-break-even-crop-": <FarmerMethodology />,
+  "fertilizer-why-it-s-a-coffee-signal": <FertilizerMethodology />,
+  "when-does-rain-become-a-supply-shock": <Article1 />,
+  "which-clones-ship-when-and-how-much": <Article2 />,
+  "what-does-a-kilo-of-robusta-actually-cost-to-grow": <Article3 />,
+  "how-fragile-is-vietnamese-supply-long-term": <Article4 />,
+  "npk-urea-and-map-why-agronomists-and-traders-speak-d": <Article5 />,
+  "enso-el-ni-o-interactive-explainer": <EnsoExplainer />,
+  "the-enso-risk-model-from-oni-to-per-origin-coffee-ri": <EnsoModelMethodology />,
+  "drought-risk-how-the-spi-spei-vhi-stack-works": <DroughtRiskMethodology />,
+  "theoretical-yield-vs-rainfall-theory-29-harvests-and": <YieldRainfall />,
+  "frost-risk-why-radiative-frost-is-the-trade-that-mat": <FrostRiskMethodology />,
+  "origin-logistics-the-fobbing-cost-model": <OriginLogistics />,
+  "destination-in-store-cost": <DestinationInstore />,
+  "freight-port-activity-how-the-numbers-are-built": <FreightMethodology />,
+  "the-differential-model-a-research-note": <DifferentialModelNote />,
+  "certified-stocks-cohort-flow-methodology": <CertifiedStocksMethodology />,
+  "options-expiry-and-the-itm-overhang": <OptionsExpiryStudy />,
+  "the-gamma-map-where-hedging-stabilises-and-where-it-": <OptionsGammaMap />,
+  "the-variance-risk-premium-what-implied-costs-vs-what": <OptionsVrp />,
+  "the-25-delta-risk-reversal-what-the-wings-say-about-": <OptionsSkew />,
+  "options-flow-as-a-faster-cot-tested-swept-and-mostly": <OptionsFlowCot />,
+  "oi-walls-where-the-strike-matrix-defends-a-level": <OptionsOiWalls />,
+  "the-optionization-ratio-coffee-s-risk-is-moving-into": <OptionsOptionization />,
+  "the-conilon-reference-stack-cooabriel-cepea-vit-ria-": <ConilonBasis />,
+  "tender-parity-tool": <CertifiedStocksParity />,
+  "contract-rules": <ContractRules />,
+  "robusta-delivery-the-ice-tender-settlement-process": <DeliveryProcessMethodology />,
+  "beyond-the-hockey-stick-an-s-curve-model-for-emergin": <LogisticModel />,
+  "k-table-for-our-12-markets-proposed-ceilings-the-log": <SaturationLimits />,
+  "the-ceiling-k-the-retail-multiplier-and-where-the-an": <MarketCeilings />,
+  "demand-data-indices-the-reconciliation-and-concentra": <DemandDataMethodology />,
+};
 
-  useEffect(() => {
-    if (initialTab && initialTab !== cat) setCat(initialTab);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialTab]);
+/* ── The two views ────────────────────────────────────────────────────────
+   LIST — a searchable index on the left, the article beside it, so you never
+   lose your place while reading.
+   MAP  — the differential-model factor map, with each node carrying the
+   research that bears on it. Same <FactorMap /> the Differential note renders
+   as its figure, over the same node table, so adding a factor to the model
+   makes it appear here automatically — there is no second copy to update. */
 
-  function handleCat(id: Cat) {
-    setCat(id);
-    router.push(`/research/${id}`, { scroll: false });
+function ArticleBody({ id }: { id: string }) {
+  const body = BODY[id];
+  if (!body) {
+    return (
+      <div className="rounded border border-slate-800 px-3 py-6 text-center text-xs text-slate-600">
+        No body registered for <span className="font-mono">{id}</span>.
+      </div>
+    );
   }
+  return <>{body}</>;
+}
+
+function ListView({ sel, setSel }: { sel: string; setSel: (id: string) => void }) {
+  const [q, setQ] = useState("");
+  const [cat, setCat] = useState<Cat | "all">("all");
+  const list = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    return ARTICLES.filter(a => {
+      if (cat !== "all" && a.cat !== cat) return false;
+      if (!needle) return true;
+      return `${a.title} ${a.subtitle ?? ""} ${a.kicker ?? ""}`.toLowerCase().includes(needle);
+    });
+  }, [q, cat]);
+  const current = ARTICLES.find(a => a.id === sel) ?? ARTICLES[0];
+
+  return (
+    <div className="grid gap-3 lg:grid-cols-[minmax(250px,320px)_1fr]">
+      <div className="lg:sticky lg:top-2 lg:self-start">
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search research…"
+          className="mb-2 w-full rounded border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-slate-200 placeholder:text-slate-600 focus:border-slate-500 focus:outline-none" />
+        <div className="mb-2 flex flex-wrap gap-1">
+          {(["all", ...CATS.map(c => c.id)] as (Cat | "all")[]).map(c => (
+            <button key={c} onClick={() => setCat(c)}
+              className={`rounded px-2 py-0.5 text-[10px] transition-colors ${
+                cat === c ? "border border-slate-700 bg-slate-800 text-amber-400"
+                          : "border border-transparent text-slate-500 hover:text-slate-300"}`}>
+              {c === "all" ? `All ${ARTICLES.length}` : CAT_LABEL[c as Cat]}
+            </button>
+          ))}
+        </div>
+        <div className="max-h-[70vh] divide-y divide-slate-800 overflow-y-auto rounded-lg border border-slate-800">
+          {list.map(a => (
+            <button key={a.id} onClick={() => setSel(a.id)}
+              className={`flex w-full items-baseline gap-2 px-3 py-1.5 text-left hover:bg-slate-900/60 ${
+                sel === a.id ? "bg-slate-800/70" : ""}`}>
+              <span className="truncate text-xs text-slate-200">{a.title}</span>
+            </button>
+          ))}
+          {!list.length && <div className="px-3 py-6 text-center text-xs text-slate-600">No match.</div>}
+        </div>
+      </div>
+      <div className="min-w-0">
+        {/* the index IS the summary here, so the article opens expanded */}
+        <AlwaysOpen.Provider value>{current && <ArticleBody id={current.id} />}</AlwaysOpen.Provider>
+      </div>
+    </div>
+  );
+}
+
+function MapView({ sel, setSel }: { sel: string; setSel: (id: string) => void }) {
+  const [onlyBadged, setOnlyBadged] = useState(false);
+  const [q, setQ] = useState("");
+  const [node, setNode] = useState<string | null>(null);
+
+  const byNode = useMemo(() => {
+    const m = new Map<string, typeof ARTICLES>();
+    for (const a of ARTICLES) for (const n of nodesForArticle(a)) {
+      if (!m.has(n)) m.set(n, []);
+      m.get(n)!.push(a);
+    }
+    return m;
+  }, []);
+  const badges = useMemo(() => {
+    const m = new Map<string, number>();
+    byNode.forEach((v, k) => m.set(k, v.length));
+    return m;
+  }, [byNode]);
+  const needle = q.trim().toLowerCase();
+  const lit = useMemo(() => {
+    if (!needle) return null;
+    const s = new Set<string>();
+    for (const a of ARTICLES) {
+      if (`${a.title} ${a.subtitle ?? ""} ${a.kicker ?? ""}`.toLowerCase().includes(needle))
+        for (const n of nodesForArticle(a)) s.add(n);
+    }
+    return s;
+  }, [needle]);
+
+  const nodeArticles = node ? byNode.get(node) ?? [] : [];
+  const nodeMeta = node ? BY_ID.get(node) : null;
+  const current = ARTICLES.find(a => a.id === sel);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search — matching nodes stay lit…"
+          className="w-64 rounded border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-slate-200 placeholder:text-slate-600 focus:border-slate-500 focus:outline-none" />
+        <button onClick={() => setOnlyBadged(v => !v)}
+          className={`rounded border px-2 py-1 text-[10px] ${onlyBadged
+            ? "border-slate-600 bg-slate-800 text-amber-400" : "border-slate-700 text-slate-400"}`}>
+          {onlyBadged ? `Only the ${byNode.size} nodes with research` : "Full map"}
+        </button>
+        <div className="ml-auto"><FactorMapLegend /></div>
+      </div>
+
+      <div className="overflow-x-auto rounded-lg border border-slate-800 bg-slate-900/40">
+        <FactorMap badges={badges} onlyBadged={onlyBadged} lit={lit}
+          selected={node} onSelect={id => setNode(n => (n === id ? null : id))} />
+      </div>
+
+      {nodeMeta && (
+        <div className="rounded-lg border border-slate-800 p-3">
+          <div className="flex items-baseline gap-2">
+            <span className="text-sm font-bold text-white">{nodeMeta.t}</span>
+            <span className="text-[10px] text-slate-500">
+              {nodeArticles.length} article{nodeArticles.length === 1 ? "" : "s"} bear on this node
+            </span>
+          </div>
+          <div className="mt-2 divide-y divide-slate-800">
+            {nodeArticles.map(a => (
+              <button key={a.id} onClick={() => setSel(a.id)}
+                className={`flex w-full items-baseline gap-2 py-1 text-left hover:bg-slate-900/60 ${
+                  sel === a.id ? "text-amber-400" : ""}`}>
+                <span className="truncate text-xs text-slate-200">{a.title}</span>
+                <span className="ml-auto shrink-0 font-mono text-[10px] text-slate-600">{a.kicker}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {current && (
+        <div className="min-w-0">
+          <AlwaysOpen.Provider value><ArticleBody id={current.id} /></AlwaysOpen.Provider>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
+  const [view, setView] = useState<"list" | "map">("list");
+  // One selection shared by both views, so flipping between them keeps your
+  // place instead of resetting to the top of the catalogue.
+  const [sel, setSel] = useState<string>(
+    () => ARTICLES.find(a => a.cat === (initialTab ?? "quant"))?.id ?? ARTICLES[0].id);
 
   return (
     <>
-      <div className="flex items-center gap-1 flex-wrap mb-4">
-        {CATS.map(c => (
-          <button key={c.id} onClick={() => handleCat(c.id)}
-            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-              cat === c.id ? "bg-slate-800 text-amber-400 border border-slate-700" : "text-slate-500 hover:text-slate-300 border border-transparent"
-            }`}>
-            {c.label}
-          </button>
-        ))}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="flex rounded border border-slate-700 p-0.5">
+          {([["list", "List"], ["map", "Factor map"]] as const).map(([id, label]) => (
+            <button key={id} onClick={() => setView(id)}
+              className={`rounded px-3 py-1 text-xs transition-colors ${
+                view === id ? "bg-slate-800 text-amber-400" : "text-slate-500 hover:text-slate-300"}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <span className="text-[10px] text-slate-500">
+          {view === "list"
+            ? "index left, article beside it"
+            : "browse the model — each node carries the research that bears on it"}
+        </span>
       </div>
 
-      {cat === "quant" && (
-        <div className="space-y-4">
-          <CollapsibleCard tone="amber" updated="2026-08-14" kicker="COT · cohort identity"
-            title="Are swap dealers commercials or speculators?"
-            subtitle="Three behavioural tests on the disaggregated COT — both contracts, long and short legs kept separate">
-            <CotSwapIdentity />
-          </CollapsibleCard>
-          <IntraweekMethodology />
-          <CollapsibleCard bare tone="amber" updated="2026-07-14" kicker="COT · positioning" title="COT backtest report"
-            subtitle="Walk-forward backtest of the intraweek positioning model">
-            <CotBacktestReport />
-          </CollapsibleCard>
-          <CollapsibleCard bare tone="amber" updated="2026-07-22" kicker="COT · single-contract X-ray" title="September X-ray — KC September positioning via the old-crop bucket"
-            subtitle="Once July trades out, the CFTC 'old crop' split shows the September contract's exact cohort positioning — compared against past Septembers">
-            <SeptemberXray />
-          </CollapsibleCard>
-          <CollapsibleCard bare tone="amber" updated="2026-07-22" kicker="COT · cross-commodity" title="Crop-year X-ray — the same trick across seven CFTC markets"
-            subtitle="Cocoa, sugar, cotton, wheat, corn and soybeans carry the same old-crop split — single-contract positioning on each market's own crop calendar">
-            <CropyearXray />
-          </CollapsibleCard>
-          <SignalsMethodology />
-          <CollapsibleCard bare tone="sky" updated="2026-07-14" kicker="Signals · track record" title="Open-price-direction — walk-forward record"
-            subtitle="Prediction vs. reality, out-of-sample">
-            <OpenDirectionRecord />
-          </CollapsibleCard>
-          <CollapsibleCard tone="violet" updated="2026-08-19" kicker="Signals · intraday"
-            title="The harvest last hour — a pre-hedging signal on its own horizon"
-            subtitle="NY's last hour predicts the next session's post-open drift, but only during Brazil harvest: the sign rule, the placebos that could have killed it, and the discovery caveat">
-            <IntradayDrift />
-          </CollapsibleCard>
-          <NewsSentimentMethodology />
-          <FuturesMethodology />
-          <MacroMethodology />
-          <CpiMethodology />
-        </div>
-      )}
-      {cat === "supply" && (
-        <div className="space-y-4">
-          <SupplyMethodology />
-          <FarmerMethodology />
-          <FertilizerMethodology />
-          <AgronomyArticles />
-          <CollapsibleCard bare tone="cyan" updated="2026-07-14" kicker="Weather · ENSO" title="ENSO / El Niño — interactive explainer"
-            subtitle="Ocean–atmosphere simulation of the El Niño / La Niña cycle">
-            <EnsoExplainer />
-          </CollapsibleCard>
-          <EnsoModelMethodology />
-          <DroughtRiskMethodology />
-          <CollapsibleCard bare tone="cyan" updated="2026-07-30" kicker="Weather · yield model" title="Theoretical yield vs rainfall — theory, 29 harvests, and the live year"
-            subtitle="Literature-calibrated rain→yield curves (WCR/Embrapa/Cenicafé) overlaid with USDA production reality per origin, plus the running crop-year projection">
-            <YieldRainfall />
-          </CollapsibleCard>
-          <FrostRiskMethodology />
-        </div>
-      )}
-      {cat === "logistics" && (
-        <div className="space-y-4">
-          <CollapsibleCard bare tone="emerald" updated="2026-08-12" kicker="Logistics · origin" title="Origin logistics — the FOBbing cost model"
-            subtitle="Farm-to-vessel cost stack by origin — fixed block + ad-valorem share, repriced daily">
-            <OriginLogistics />
-          </CollapsibleCard>
-          <CollapsibleCard bare tone="sky" updated="2026-07-14" kicker="Logistics · destination" title="Destination in-store cost"
-            subtitle="CIF → in-store cost & financing, live in USD off today's FAQ price and EUR/USD">
-            <DestinationInstore />
-          </CollapsibleCard>
-          <FreightMethodology />
-        </div>
-      )}
-      {cat === "exchange" && (
-        <div className="space-y-4">
-          <DifferentialModelNote />
-          <CertifiedStocksMethodology />
-          <CollapsibleCard tone="indigo" updated="2026-08-16" kicker="Options · expiry mechanics"
-            title="Options expiry and the ITM overhang"
-            subtitle="55 expiries of history, the live countdown with the full board, and the ledger that turns each expiry into a datapoint">
-            <OptionsExpiryStudy />
-          </CollapsibleCard>
-          <CollapsibleCard tone="indigo" updated="2026-08-16" kicker="Options · dealer gamma"
-            title="The gamma map — where hedging stabilises, and where it amplifies"
-            subtitle="Net dealer gamma by price level from every board's IV and OI: the flip point, the walls, and the vol-regime test">
-            <OptionsGammaMap />
-          </CollapsibleCard>
-          <CollapsibleCard tone="indigo" updated="2026-08-17" kicker="Options · volatility"
-            title="The variance risk premium — what implied costs vs what realized delivers"
-            subtitle="ATM implied vs subsequent realized vol on every tracked board: no systematic premium in coffee, and where today's spread sits in the distribution">
-            <OptionsVrp />
-          </CollapsibleCard>
-          <CollapsibleCard tone="indigo" updated="2026-08-17" kicker="Options · skew"
-            title="The 25-delta risk reversal — what the wings say about weather"
-            subtitle="Coffee's call-side skew reconstructed from every stored board: the frost calendar it trades on, the Uganda drought it tracked, and the alert ledger it feeds">
-            <OptionsSkew />
-          </CollapsibleCard>
-          <CollapsibleCard tone="indigo" updated="2026-08-17" kicker="Options · positioning"
-            title="Options flow as a faster COT — tested, swept, and mostly declined"
-            subtitle="Daily option OI against the weekly managed-money print: the price baseline that explains most of it, the sixteen-test sweep, and the live price-implied nowcast">
-            <OptionsFlowCot />
-          </CollapsibleCard>
-          <CollapsibleCard tone="indigo" updated="2026-08-17" kicker="Options · OI walls"
-            title="OI walls — where the strike matrix defends a level"
-            subtitle="Call walls above, put walls below: the crossing test that holds in both markets, the falsification family that localises it, and the live map">
-            <OptionsOiWalls />
-          </CollapsibleCard>
-          <CollapsibleCard tone="indigo" updated="2026-08-17" kicker="Options · market structure"
-            title="The optionization ratio — coffee's risk is moving into the options book"
-            subtitle="KC crossed parity this year: more option OI than futures OI on the front complex — and a delta-equivalent book our futures-only COT feed cannot see">
-            <OptionsOptionization />
-          </CollapsibleCard>
-          <CollapsibleCard tone="teal" updated="2026-08-12" kicker="Basis · conilon references"
-            title="The conilon reference stack — Cooabriel, CEPEA, Vitória and the B3 future"
-            subtitle="Four prices for the same coffee: what separates them, how much is fixed cost vs percentage of the price, and how wide the gap runs">
-            <ConilonBasis />
-          </CollapsibleCard>
-          <CollapsibleCard bare tone="sky" updated="2026-07-15" kicker="Exchange · tender parity" title="Tender-parity tool"
-            subtitle="Cost-stack vs the exchange, origin gradings, and the parity→inflow study">
-            <CertifiedStocksParity />
-          </CollapsibleCard>
-          <ContractRules />
-          <DeliveryProcessMethodology />
-        </div>
-      )}
-      {cat === "demand" && (
-        <div className="space-y-4">
-          <DemandArticles />
-          <DemandDataMethodology />
-        </div>
-      )}
+      {view === "list"
+        ? <ListView sel={sel} setSel={setSel} />
+        : <MapView sel={sel} setSel={setSel} />}
     </>
   );
 }

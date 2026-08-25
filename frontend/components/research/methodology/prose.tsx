@@ -1,5 +1,16 @@
 "use client";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+
+/** Force every card inside to render expanded.
+ *
+ * The cards collapse by default because the old research tab stacked 45 of
+ * them down one page — you needed the summaries to find anything. The two-pane
+ * view inverts that: the index on the left IS the summary list, so the article
+ * beside it arriving collapsed means every read costs a second click on a
+ * "Read more" you already answered by selecting it. The view wraps its right
+ * pane in this provider; the standalone stacked usages are untouched. */
+export const AlwaysOpen = createContext(false);
+
 // Shared typography + layout helpers for the Research "methodology paper"
 // components. Dark-theme, mirrors the inline helpers in ResearchView.tsx so the
 // new papers read identically to the existing ones.
@@ -67,7 +78,9 @@ export function ResearchCard({ tone = "amber", kicker, title, subtitle, updated,
   tone?: Tone; kicker: string; title: string; subtitle?: string; updated?: string;
   defaultOpen?: boolean; bare?: boolean; children: React.ReactNode;
 }) {
+  const forceOpen = useContext(AlwaysOpen);
   const [open, setOpen] = useState(defaultOpen);
+  const isOpen = forceOpen || open;
   const t = TONES[tone];
   const header = (
     <button onClick={() => setOpen(o => !o)}
@@ -79,7 +92,7 @@ export function ResearchCard({ tone = "amber", kicker, title, subtitle, updated,
       </div>
       <div className="shrink-0 text-right mt-0.5">
         <span className="block text-[11px] text-amber-400/80 group-hover:text-amber-400 whitespace-nowrap">
-          {open ? "▲ Less" : "▼ Read more"}
+          {isOpen ? "▲ Less" : "▼ Read more"}
         </span>
         {updated && <span className="block text-[9px] text-slate-600 mt-1 whitespace-nowrap">updated {updated}</span>}
       </div>
@@ -90,14 +103,14 @@ export function ResearchCard({ tone = "amber", kicker, title, subtitle, updated,
     return (
       <div>
         <div className={`bg-slate-900 border border-slate-800 border-l-2 ${t.border} rounded-xl`}>{header}</div>
-        {open && <div className="mt-3">{children}</div>}
+        {isOpen && <div className="mt-3">{children}</div>}
       </div>
     );
   }
   return (
     <div className={`bg-slate-900 border border-slate-800 border-l-2 ${t.border} rounded-xl`}>
       {header}
-      {open && <div className="px-4 pb-4 sm:px-5 sm:pb-5"><div className="max-w-3xl">{children}</div></div>}
+      {isOpen && <div className="px-4 pb-4 sm:px-5 sm:pb-5"><div className="max-w-3xl">{children}</div></div>}
     </div>
   );
 }
