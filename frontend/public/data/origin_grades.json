@@ -1,0 +1,490 @@
+{
+ "unit": "share of the origin's leg",
+ "updated": "2026-08",
+ "note": "Quality ladders under each processing leg, in each origin's own grade vocabulary — SHG/HG/Standard for Honduras, G1/G2/G3 for Vietnam, fine cup/GC/Rio for Brazil. Nothing is harmonised across origins, so a grade row is only ever summed within its own origin. Values are SHARES of the leg, never absolute bags: production is derived from the crop estimates, so a share keeps the grade rows re-summing to the leg exactly and stops them drifting when an estimate moves. The ladders are real trade grades; the shares are starting conventions — edit them in the balance sheet's grade editor. An origin with no ladder for a leg shows that leg as a single ungraded row.",
+ "origins": {
+  "brazil": {
+   "arabica_natural": [
+    {
+     "key": "fine_cup",
+     "label": "Fine cup",
+     "share": 0.4
+    },
+    {
+     "key": "good_cup",
+     "label": "Good cup (GC)",
+     "share": 0.45
+    },
+    {
+     "key": "rio",
+     "label": "Rio / Riado",
+     "share": 0.15
+    }
+   ],
+   "robusta": [
+    {
+     "key": "conilon_67",
+     "label": "Conilon type 6/7",
+     "share": 0.3
+    },
+    {
+     "key": "conilon_78",
+     "label": "Conilon type 7/8",
+     "share": 0.5
+    },
+    {
+     "key": "conilon_low",
+     "label": "Type 8 & below",
+     "share": 0.2
+    }
+   ]
+  },
+  "colombia": {
+   "arabica_washed": [
+    {
+     "key": "supremo",
+     "label": "Supremo (scr 17/18)",
+     "share": 0.3
+    },
+    {
+     "key": "excelso_ep",
+     "label": "Excelso EP",
+     "share": 0.55
+    },
+    {
+     "key": "ugq",
+     "label": "UGQ / Pasilla",
+     "share": 0.15
+    }
+   ]
+  },
+  "honduras": {
+   "arabica_washed": [
+    {
+     "key": "shg",
+     "label": "SHG",
+     "share": 0.55
+    },
+    {
+     "key": "hg",
+     "label": "HG",
+     "share": 0.3
+    },
+    {
+     "key": "standard",
+     "label": "Standard",
+     "share": 0.15
+    }
+   ]
+  },
+  "guatemala": {
+   "arabica_washed": [
+    {
+     "key": "shb",
+     "label": "SHB",
+     "share": 0.5
+    },
+    {
+     "key": "hb",
+     "label": "HB",
+     "share": 0.3
+    },
+    {
+     "key": "epw",
+     "label": "EPW & below",
+     "share": 0.2
+    }
+   ],
+   "robusta": [
+    {
+     "key": "g1",
+     "label": "Grade 1",
+     "share": 0.4
+    },
+    {
+     "key": "std",
+     "label": "Standard",
+     "share": 0.6
+    }
+   ]
+  },
+  "nicaragua": {
+   "arabica_washed": [
+    {
+     "key": "shg",
+     "label": "SHG",
+     "share": 0.5
+    },
+    {
+     "key": "hg",
+     "label": "HG",
+     "share": 0.3
+    },
+    {
+     "key": "standard",
+     "label": "Standard",
+     "share": 0.2
+    }
+   ],
+   "robusta": [
+    {
+     "key": "g1",
+     "label": "Grade 1",
+     "share": 0.4
+    },
+    {
+     "key": "std",
+     "label": "Standard",
+     "share": 0.6
+    }
+   ]
+  },
+  "costa_rica": {
+   "arabica_washed": [
+    {
+     "key": "shb",
+     "label": "SHB",
+     "share": 0.55
+    },
+    {
+     "key": "ghb",
+     "label": "GHB",
+     "share": 0.3
+    },
+    {
+     "key": "hb",
+     "label": "HB & below",
+     "share": 0.15
+    }
+   ]
+  },
+  "mexico": {
+   "arabica_washed": [
+    {
+     "key": "altura",
+     "label": "Altura HG",
+     "share": 0.4
+    },
+    {
+     "key": "prime",
+     "label": "Prime washed",
+     "share": 0.35
+    },
+    {
+     "key": "standard",
+     "label": "Standard",
+     "share": 0.25
+    }
+   ],
+   "robusta": [
+    {
+     "key": "g1",
+     "label": "Grade 1",
+     "share": 0.35
+    },
+    {
+     "key": "std",
+     "label": "Standard",
+     "share": 0.65
+    }
+   ]
+  },
+  "peru": {
+   "arabica_washed": [
+    {
+     "key": "g1",
+     "label": "Grade 1 (MCM)",
+     "share": 0.45
+    },
+    {
+     "key": "g2",
+     "label": "Grade 2",
+     "share": 0.4
+    },
+    {
+     "key": "g3",
+     "label": "Grade 3 & below",
+     "share": 0.15
+    }
+   ]
+  },
+  "vietnam": {
+   "arabica_washed": [
+    {
+     "key": "g1",
+     "label": "Arabica washed G1",
+     "share": 0.55
+    },
+    {
+     "key": "g2",
+     "label": "Arabica washed G2",
+     "share": 0.45
+    }
+   ],
+   "robusta": [
+    {
+     "key": "g1",
+     "label": "G1 (scr 18/16)",
+     "share": 0.2
+    },
+    {
+     "key": "g2",
+     "label": "G2 (scr 13)",
+     "share": 0.65
+    },
+    {
+     "key": "g3",
+     "label": "G3 & below",
+     "share": 0.15
+    }
+   ]
+  },
+  "indonesia": {
+   "arabica_washed": [
+    {
+     "key": "g1",
+     "label": "Grade 1",
+     "share": 0.4
+    },
+    {
+     "key": "g2",
+     "label": "Grade 2",
+     "share": 0.4
+    },
+    {
+     "key": "g3",
+     "label": "Grade 3 & below",
+     "share": 0.2
+    }
+   ],
+   "robusta": [
+    {
+     "key": "eks",
+     "label": "EK Special",
+     "share": 0.25
+    },
+    {
+     "key": "ek1",
+     "label": "EK1 (grade 4)",
+     "share": 0.55
+    },
+    {
+     "key": "low",
+     "label": "Grade 5 & below",
+     "share": 0.2
+    }
+   ]
+  },
+  "india": {
+   "arabica_washed": [
+    {
+     "key": "plant_a",
+     "label": "Plantation A",
+     "share": 0.35
+    },
+    {
+     "key": "plant_b",
+     "label": "Plantation B",
+     "share": 0.4
+    },
+    {
+     "key": "plant_c",
+     "label": "Plantation C & below",
+     "share": 0.25
+    }
+   ],
+   "arabica_natural": [
+    {
+     "key": "cherry_ab",
+     "label": "Cherry AB",
+     "share": 0.4
+    },
+    {
+     "key": "cherry_pb",
+     "label": "Cherry PB",
+     "share": 0.25
+    },
+    {
+     "key": "cherry_c",
+     "label": "Cherry C & below",
+     "share": 0.35
+    }
+   ],
+   "robusta": [
+    {
+     "key": "parch_ab",
+     "label": "Parchment AB",
+     "share": 0.25
+    },
+    {
+     "key": "cherry_ab",
+     "label": "Cherry AB",
+     "share": 0.5
+    },
+    {
+     "key": "cherry_c",
+     "label": "Cherry C & below",
+     "share": 0.25
+    }
+   ]
+  },
+  "china": {
+   "arabica_washed": [
+    {
+     "key": "grade_a",
+     "label": "Yunnan Grade A",
+     "share": 0.3
+    },
+    {
+     "key": "grade_b",
+     "label": "Grade B",
+     "share": 0.45
+    },
+    {
+     "key": "commercial",
+     "label": "Commercial",
+     "share": 0.25
+    }
+   ]
+  },
+  "uganda": {
+   "arabica_washed": [
+    {
+     "key": "bugisu_aa",
+     "label": "Bugisu AA",
+     "share": 0.3
+    },
+    {
+     "key": "bugisu_a",
+     "label": "Bugisu A",
+     "share": 0.4
+    },
+    {
+     "key": "bugisu_b",
+     "label": "Bugisu B & below",
+     "share": 0.3
+    }
+   ],
+   "arabica_natural": [
+    {
+     "key": "drugar_15",
+     "label": "Drugar scr 15+",
+     "share": 0.35
+    },
+    {
+     "key": "drugar_12",
+     "label": "Drugar scr 12",
+     "share": 0.4
+    },
+    {
+     "key": "bhp",
+     "label": "BHP",
+     "share": 0.25
+    }
+   ],
+   "robusta": [
+    {
+     "key": "scr18",
+     "label": "Screen 18",
+     "share": 0.2
+    },
+    {
+     "key": "scr15",
+     "label": "Screen 15",
+     "share": 0.45
+    },
+    {
+     "key": "scr12",
+     "label": "Screen 12 / BHP",
+     "share": 0.35
+    }
+   ]
+  },
+  "ethiopia": {
+   "arabica_washed": [
+    {
+     "key": "g1",
+     "label": "Grade 1",
+     "share": 0.25
+    },
+    {
+     "key": "g2",
+     "label": "Grade 2",
+     "share": 0.45
+    },
+    {
+     "key": "g34",
+     "label": "Grade 3-4",
+     "share": 0.3
+    }
+   ],
+   "arabica_natural": [
+    {
+     "key": "g12",
+     "label": "Grade 1-2",
+     "share": 0.2
+    },
+    {
+     "key": "g34",
+     "label": "Grade 3-4",
+     "share": 0.5
+    },
+    {
+     "key": "g5",
+     "label": "Grade 5 & below",
+     "share": 0.3
+    }
+   ]
+  },
+  "ivory_coast": {
+   "robusta": [
+    {
+     "key": "g1",
+     "label": "Grade 1",
+     "share": 0.2
+    },
+    {
+     "key": "g2",
+     "label": "Grade 2",
+     "share": 0.55
+    },
+    {
+     "key": "g3",
+     "label": "Grade 3 & below",
+     "share": 0.25
+    }
+   ]
+  },
+  "tanzania": {
+   "arabica_washed": [
+    {
+     "key": "aa",
+     "label": "AA",
+     "share": 0.3
+    },
+    {
+     "key": "ab",
+     "label": "AB",
+     "share": 0.4
+    },
+    {
+     "key": "pb",
+     "label": "PB & below",
+     "share": 0.3
+    }
+   ],
+   "robusta": [
+    {
+     "key": "faq",
+     "label": "FAQ",
+     "share": 0.6
+    },
+    {
+     "key": "ug",
+     "label": "UG",
+     "share": 0.4
+    }
+   ]
+  }
+ }
+}

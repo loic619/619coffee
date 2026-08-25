@@ -1,0 +1,251 @@
+{
+ "unit": "share of the hub's leg",
+ "updated": "2026-08",
+ "note": "Consumption depth for the demand block: each hub's leg total splits by the form the coffee is actually sold in. Retail carries seven formats; the coffee shop is the out-of-home channel. Values are SHARES of the hub's leg, so the segment rows always re-sum to the hub and a change to a hub total flows straight through. A hub with no entry here falls back to default_mix. These are starting conventions from how each market drinks, not measured shares — edit them in the balance sheet's segment editor.",
+ "channels": [
+  {
+   "key": "retail",
+   "label": "Retail"
+  },
+  {
+   "key": "coffee_shop",
+   "label": "Coffee shop"
+  }
+ ],
+ "segments": [
+  {
+   "key": "ground",
+   "channel": "retail",
+   "label": "Ground"
+  },
+  {
+   "key": "beans",
+   "channel": "retail",
+   "label": "Beans"
+  },
+  {
+   "key": "soft_pads",
+   "channel": "retail",
+   "label": "Soft pads"
+  },
+  {
+   "key": "capsules",
+   "channel": "retail",
+   "label": "Capsules"
+  },
+  {
+   "key": "drinks",
+   "channel": "retail",
+   "label": "Drinks (RTD)"
+  },
+  {
+   "key": "instant_pure",
+   "channel": "retail",
+   "label": "Instant pure"
+  },
+  {
+   "key": "instant_mixes",
+   "channel": "retail",
+   "label": "Instant mixes"
+  },
+  {
+   "key": "out_of_home",
+   "channel": "coffee_shop",
+   "label": "Coffee shop"
+  }
+ ],
+ "default_mix": {
+  "arabica_washed": {
+   "ground": 0.22,
+   "beans": 0.16,
+   "soft_pads": 0.03,
+   "capsules": 0.16,
+   "drinks": 0.04,
+   "instant_pure": 0.05,
+   "instant_mixes": 0.03,
+   "out_of_home": 0.31
+  },
+  "arabica_natural": {
+   "ground": 0.28,
+   "beans": 0.12,
+   "soft_pads": 0.04,
+   "capsules": 0.12,
+   "drinks": 0.05,
+   "instant_pure": 0.08,
+   "instant_mixes": 0.06,
+   "out_of_home": 0.25
+  },
+  "robusta": {
+   "ground": 0.22,
+   "beans": 0.05,
+   "soft_pads": 0.02,
+   "capsules": 0.05,
+   "drinks": 0.05,
+   "instant_pure": 0.26,
+   "instant_mixes": 0.22,
+   "out_of_home": 0.13
+  }
+ },
+ "hub_mix": {
+  "europe": {
+   "arabica_washed": {
+    "ground": 0.24,
+    "beans": 0.18,
+    "soft_pads": 0.05,
+    "capsules": 0.22,
+    "drinks": 0.03,
+    "instant_pure": 0.04,
+    "instant_mixes": 0.02,
+    "out_of_home": 0.22
+   },
+   "arabica_natural": {
+    "ground": 0.3,
+    "beans": 0.14,
+    "soft_pads": 0.06,
+    "capsules": 0.16,
+    "drinks": 0.03,
+    "instant_pure": 0.06,
+    "instant_mixes": 0.03,
+    "out_of_home": 0.22
+   },
+   "robusta": {
+    "ground": 0.3,
+    "beans": 0.06,
+    "soft_pads": 0.04,
+    "capsules": 0.08,
+    "drinks": 0.03,
+    "instant_pure": 0.2,
+    "instant_mixes": 0.12,
+    "out_of_home": 0.17
+   }
+  },
+  "north_america": {
+   "arabica_washed": {
+    "ground": 0.22,
+    "beans": 0.16,
+    "soft_pads": 0.02,
+    "capsules": 0.2,
+    "drinks": 0.06,
+    "instant_pure": 0.03,
+    "instant_mixes": 0.02,
+    "out_of_home": 0.29
+   },
+   "arabica_natural": {
+    "ground": 0.26,
+    "beans": 0.12,
+    "soft_pads": 0.02,
+    "capsules": 0.16,
+    "drinks": 0.08,
+    "instant_pure": 0.05,
+    "instant_mixes": 0.03,
+    "out_of_home": 0.28
+   },
+   "robusta": {
+    "ground": 0.2,
+    "beans": 0.04,
+    "soft_pads": 0.01,
+    "capsules": 0.06,
+    "drinks": 0.1,
+    "instant_pure": 0.22,
+    "instant_mixes": 0.17,
+    "out_of_home": 0.2
+   }
+  },
+  "asia_pacific": {
+   "arabica_washed": {
+    "ground": 0.14,
+    "beans": 0.12,
+    "soft_pads": 0.01,
+    "capsules": 0.08,
+    "drinks": 0.08,
+    "instant_pure": 0.12,
+    "instant_mixes": 0.15,
+    "out_of_home": 0.3
+   },
+   "arabica_natural": {
+    "ground": 0.16,
+    "beans": 0.08,
+    "soft_pads": 0.01,
+    "capsules": 0.06,
+    "drinks": 0.1,
+    "instant_pure": 0.14,
+    "instant_mixes": 0.2,
+    "out_of_home": 0.25
+   },
+   "robusta": {
+    "ground": 0.1,
+    "beans": 0.03,
+    "soft_pads": 0.01,
+    "capsules": 0.02,
+    "drinks": 0.08,
+    "instant_pure": 0.28,
+    "instant_mixes": 0.36,
+    "out_of_home": 0.12
+   }
+  },
+  "latam": {
+   "arabica_washed": {
+    "ground": 0.45,
+    "beans": 0.08,
+    "soft_pads": 0.01,
+    "capsules": 0.06,
+    "drinks": 0.02,
+    "instant_pure": 0.08,
+    "instant_mixes": 0.05,
+    "out_of_home": 0.25
+   },
+   "arabica_natural": {
+    "ground": 0.52,
+    "beans": 0.06,
+    "soft_pads": 0.01,
+    "capsules": 0.04,
+    "drinks": 0.02,
+    "instant_pure": 0.1,
+    "instant_mixes": 0.05,
+    "out_of_home": 0.2
+   },
+   "robusta": {
+    "ground": 0.4,
+    "beans": 0.03,
+    "soft_pads": 0.01,
+    "capsules": 0.02,
+    "drinks": 0.03,
+    "instant_pure": 0.25,
+    "instant_mixes": 0.14,
+    "out_of_home": 0.12
+   }
+  },
+  "domestic_origin": {
+   "arabica_washed": {
+    "ground": 0.38,
+    "beans": 0.07,
+    "soft_pads": 0.01,
+    "capsules": 0.03,
+    "drinks": 0.03,
+    "instant_pure": 0.16,
+    "instant_mixes": 0.14,
+    "out_of_home": 0.18
+   },
+   "arabica_natural": {
+    "ground": 0.42,
+    "beans": 0.05,
+    "soft_pads": 0.01,
+    "capsules": 0.02,
+    "drinks": 0.03,
+    "instant_pure": 0.18,
+    "instant_mixes": 0.14,
+    "out_of_home": 0.15
+   },
+   "robusta": {
+    "ground": 0.3,
+    "beans": 0.02,
+    "soft_pads": 0.01,
+    "capsules": 0.01,
+    "drinks": 0.04,
+    "instant_pure": 0.27,
+    "instant_mixes": 0.25,
+    "out_of_home": 0.1
+   }
+  }
+ }
+}

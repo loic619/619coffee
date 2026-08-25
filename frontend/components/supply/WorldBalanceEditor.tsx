@@ -13,11 +13,12 @@
 // Same write path as the crop estimates: the password is checked server-side
 // (/api/admin/world-balance), which dispatches a workflow that re-validates,
 // commits and redeploys. Nothing is written from the browser.
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
-  LEGS, LEG_LABEL, LEG_TONE, LINE_BLOCKS,
+  LEGS, LEG_LABEL, LEG_TONE, LINE_BLOCKS, ORIGIN_LABELS,
   addLegs, arabicaAll, emptyLegs, fmt, legTotal, r1,
-  type Leg, type LineBlock, type Line, type Risk, type WorldBalanceDoc,
+  type DemandSegmentsDoc, type GradeRow, type Leg, type LineBlock, type Line,
+  type OriginGradesDoc, type Risk, type WorldBalanceDoc,
 } from "@/lib/worldBalance";
 
 /** Values are held as strings while editing so a partial entry like "6."
@@ -28,6 +29,23 @@ interface EditRisk {
   key: string; driver: string; origin: string; crop: Leg;
   impact: string; probability: string; note: string; isNew?: boolean;
 }
+
+/** Depth-3 edit state. Shares are entered and shown as PERCENT — an analyst
+ *  reasons in "SHG is 55% of the washed crop", not in 0.55 — and converted
+ *  back to shares only at save. */
+interface GradeEdit { key: string; label: string; pct: string; isNew?: boolean }
+type GradeState = Record<string, Partial<Record<Leg, GradeEdit[]>>>;
+/** scope ("default" or a hub key) → leg → segment key → percent text. */
+type SegState = Record<string, Partial<Record<Leg, Record<string, string>>>>;
+
+/** The legs a grade ladder can hang off. The legacy unsplit leg is included
+ *  only when an origin still carries one, so restating stays visible. */
+const GRADE_LEGS: Leg[] = ["arabica_washed", "arabica_natural", "robusta"];
+
+const pctOf = (share: number) => String(Math.round(share * 1000) / 10);
+const shareOf = (pct: string) => Math.round((Number(pct) / 100) * 1e4) / 1e4;
+const pctSum = (vals: string[]) =>
+  Math.round(vals.reduce((a, v) => a + (Number(v) || 0), 0) * 10) / 10;
 
 // Shared with the crop-estimate editor: one unlock covers both, since it is
 // one password checked by one server-side comparison.
@@ -83,7 +101,8 @@ export default function WorldBalanceEditor({
   onSaved?: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [view, setView] = useState<"lines" | "risks">("lines");
+  const [view, setView] = useState<"lines" | "risks" | "depth">("lines");
+  const [depthTab, setDepthTab] = useState<"grades" | "segments">("grades");
   const [pw, setPw] = useState<string | null>(null);
   const [pwInput, setPwInput] = useState("");
   const [pwError, setPwError] = useState<string | null>(null);
@@ -93,6 +112,17 @@ export default function WorldBalanceEditor({
   const [blocks, setBlocks] = useState<Record<LineBlock, EditLine[]> | null>(null);
   const [risks, setRisks] = useState<EditRisk[] | null>(null);
   const [loadError, setLoadError] = useState(false);
+
+  // Depth level 3 — loaded lazily with the statement, absent files are
+  // non-fatal (the tab just says there is nothing filed yet).
+  const [gradesDoc, setGradesDoc] = useState<OriginGradesDoc | null>(null);
+  const [segsDoc, setSegsDoc]     = useState<DemandSegmentsDoc | null>(null);
+  const [gradeState, setGradeState] = useState<GradeState>({});
+  const [segState, setSegState]     = useState<SegState>({});
+  const [gradesDirty, setGradesDirty] = useState(false);
+  const [segDirty, setSegDirty] = useState<Set<string>>(new Set());
+  const [selOrigin, setSelOrigin] = useState("brazil");
+  const [selLeg, setSelLeg] = useState<Leg>("robusta");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -123,6 +153,48 @@ export default function WorldBalanceEditor({
         setRisks((doc.risks ?? []).map(toEditRisk));
       })
       .catch(() => { if (!cancelled) setLoadError(true); });
+
+    fetch(`/data/origin_grades.json?t=${Date.now()}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then((g: OriginGradesDoc | null) => {
+        if (cancelled || !g) return;
+        setGradesDoc(g);
+        const st: GradeState = {};
+        for (const [o, legs] of Object.entries(g.origins ?? {})) {
+          st[o] = {};
+          for (const [leg, ladder] of Object.entries(legs)) {
+            st[o][leg as Leg] = (ladder as GradeRow[]).map(x => ({
+              key: x.key, label: x.label, pct: pctOf(x.share),
+            }));
+          }
+        }
+        setGradeState(st);
+      })
+      .catch(() => { /* no ladders filed — the tab says so */ });
+
+    fetch(`/data/demand_segments.json?t=${Date.now()}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then((d: DemandSegmentsDoc | null) => {
+        if (cancelled || !d) return;
+        setSegsDoc(d);
+        const st: SegState = { default: {} };
+        const fill = (scope: string, mix: Record<string, Record<string, number>>) => {
+          st[scope] = {};
+          for (const leg of LEGS) {
+            const m = mix?.[leg];
+            if (!m) continue;
+            st[scope][leg] = Object.fromEntries(
+              d.segments.map(sg => [sg.key, pctOf(m[sg.key] ?? 0)]));
+          }
+        };
+        fill("default", (d.default_mix ?? {}) as Record<string, Record<string, number>>);
+        for (const [hub, mix] of Object.entries(d.hub_mix ?? {})) {
+          fill(hub, mix as Record<string, Record<string, number>>);
+        }
+        setSegState(st);
+      })
+      .catch(() => { /* no mixes filed — the tab says so */ });
+
     return () => { cancelled = true; };
   }, [open, pw, blocks]);
 
@@ -130,6 +202,8 @@ export default function WorldBalanceEditor({
     if (saving) return;
     setOpen(false); setView("lines");
     setBlocks(null); setRisks(null); setLoadError(false);
+    setGradesDoc(null); setSegsDoc(null); setGradeState({}); setSegState({});
+    setGradesDirty(false); setSegDirty(new Set()); setDepthTab("grades");
     setSaved(false); setSaveError(null); setPwInput(""); setPwError(null);
   };
 
@@ -176,6 +250,32 @@ export default function WorldBalanceEditor({
       impact: "", probability: "", note: "", isNew: true,
     }]);
   const dropRisk = (i: number) => setRisks(rs => rs && rs.filter((_, j) => j !== i));
+
+  // ── Grade ladders ───────────────────────────────────────────────────────
+  const ladder = (o: string, leg: Leg): GradeEdit[] => gradeState[o]?.[leg] ?? [];
+  const setLadder = (o: string, leg: Leg, rows: GradeEdit[]) => {
+    setGradesDirty(true);
+    setGradeState(st => ({ ...st, [o]: { ...(st[o] ?? {}), [leg]: rows } }));
+  };
+  const setGrade = (o: string, leg: Leg, i: number, patch: Partial<GradeEdit>) =>
+    setLadder(o, leg, ladder(o, leg).map((g, j) => (j === i ? { ...g, ...patch } : g)));
+  const addGrade = (o: string, leg: Leg) =>
+    setLadder(o, leg, [...ladder(o, leg), { key: "", label: "", pct: "", isNew: true }]);
+  const dropGrade = (o: string, leg: Leg, i: number) =>
+    setLadder(o, leg, ladder(o, leg).filter((_, j) => j !== i));
+
+  // ── Consumption mix ─────────────────────────────────────────────────────
+  /** A hub with no override reads the default, so the grid always shows a
+   *  full column; typing in it is what turns the default into an override. */
+  const segPct = (scope: string, leg: Leg, seg: string): string =>
+    segState[scope]?.[leg]?.[seg] ?? segState.default?.[leg]?.[seg] ?? "";
+  const setSegPct = (scope: string, leg: Leg, seg: string, v: string) => {
+    setSegDirty(prev => new Set(prev).add(scope));
+    setSegState(st => {
+      const legMix = { ...(st[scope]?.[leg] ?? st.default?.[leg] ?? {}), [seg]: v };
+      return { ...st, [scope]: { ...(st[scope] ?? {}), [leg]: legMix } };
+    });
+  };
 
   // ── Live totals ─────────────────────────────────────────────────────────
   const blockTotal = (ls: EditLine[]) =>
@@ -259,6 +359,77 @@ export default function WorldBalanceEditor({
     }
     body.risks = rOut;
 
+    // ── Depth level 3 ──────────────────────────────────────────────────
+    // Only sent when actually touched: re-sending an untouched block would
+    // let a display rounding turn into a spurious commit.
+    if (gradesDirty) {
+      const out: Record<string, Record<string, { key: string; label: string; share: number }[]>> = {};
+      for (const [o, legs] of Object.entries(gradeState)) {
+        const cleaned: Record<string, { key: string; label: string; share: number }[]> = {};
+        for (const leg of LEGS) {
+          const rows = legs[leg];
+          if (!rows?.length) continue;
+          const taken = new Set(rows.filter(g => !g.isNew).map(g => g.key));
+          const built: { key: string; label: string; share: number }[] = [];
+          for (const g of rows) {
+            const label = g.label.trim();
+            if (!label) { setSaveError(`${ORIGIN_LABELS[o] ?? o} · ${LEG_LABEL[leg]}: every grade needs a name.`); return; }
+            const pct = Number(g.pct);
+            if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
+              setSaveError(`${ORIGIN_LABELS[o] ?? o} · ${label}: share must be 0–100%.`); return;
+            }
+            built.push({
+              key: g.isNew ? slug(label, taken, `g${built.length + 1}`) : g.key,
+              label, share: shareOf(g.pct),
+            });
+          }
+          const tot = pctSum(rows.map(g => g.pct));
+          if (Math.abs(tot - 100) > 0.5) {
+            setSaveError(`${ORIGIN_LABELS[o] ?? o} · ${LEG_LABEL[leg]}: grades total ${tot}%, must total 100%.`);
+            return;
+          }
+          cleaned[leg] = built;
+        }
+        if (Object.keys(cleaned).length) out[o] = cleaned;
+      }
+      body.origin_grades = out;
+    }
+
+    if (segDirty.size && segsDoc) {
+      const buildMix = (scope: string) => {
+        const mix: Record<string, Record<string, number>> = {};
+        for (const leg of LEGS) {
+          const vals = segsDoc.segments.map(sg => segPct(scope, leg, sg.key));
+          if (vals.every(v => v.trim() === "")) continue;
+          const tot = pctSum(vals);
+          if (Math.abs(tot - 100) > 0.5) {
+            throw new Error(`${scope === "default" ? "Default" : scope} · ${LEG_LABEL[leg]}: mix totals ${tot}%, must total 100%.`);
+          }
+          mix[leg] = Object.fromEntries(
+            segsDoc.segments.map((sg, i) => [sg.key, shareOf(vals[i])]));
+        }
+        return mix;
+      };
+      try {
+        const seg: Record<string, unknown> = {};
+        if (segDirty.has("default")) seg.default_mix = buildMix("default");
+        // Every hub that already had an override keeps one, plus any the
+        // analyst just diverged from the default.
+        const hubs = new Set([
+          ...Object.keys(segsDoc.hub_mix ?? {}),
+          ...Array.from(segDirty).filter(k => k !== "default"),
+        ]);
+        if (hubs.size) {
+          seg.hub_mix = Object.fromEntries(Array.from(hubs).map(h => [h, buildMix(h)]));
+        }
+        body.demand_segments = seg;
+        body.segment_keys = segsDoc.segments.map(sg => sg.key);
+      } catch (e) {
+        setSaveError(e instanceof Error ? e.message : "Bad consumption mix.");
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const res = await fetch("/api/admin/world-balance", {
@@ -326,15 +497,17 @@ export default function WorldBalanceEditor({
               <div className="flex items-center gap-2">
                 {pw && blocks && (
                   <div className="inline-flex rounded border border-slate-700 overflow-hidden">
-                    {(["lines", "risks"] as const).map(v => (
+                    {([
+                      ["lines", "Balance lines", "Carry-in, consumption by hub, carry-out"],
+                      ["depth", "Grades & segments", "Quality ladders per origin; the consumption mix per hub"],
+                      ["risks", "Risk & Opps", "Risk & opportunity register"],
+                    ] as const).map(([v, label, tip]) => (
                       <button key={v} onClick={() => setView(v)}
                         className={`text-[9px] px-2 py-0.5 transition-colors ${
                           view === v ? "bg-slate-700 text-slate-100" : "text-slate-500 hover:text-slate-300"
                         }`}
-                        title={v === "lines"
-                          ? "Carry-in, consumption by hub, carry-out"
-                          : "Risk & opportunity register"}>
-                        {v === "lines" ? "Balance lines" : "Risk & Opps"}
+                        title={tip}>
+                        {label}
                       </button>
                     ))}
                   </div>
@@ -475,6 +648,193 @@ export default function WorldBalanceEditor({
                   drop it from the line; the <span className="text-amber-700/80">Ar. unsplit</span> column
                   disappears once nothing uses it.
                 </div>
+
+                <Footer saving={saving} error={saveError} onCancel={close} onSave={save} />
+              </div>
+            ) : view === "depth" ? (
+              <div className="space-y-3">
+                <div className="inline-flex rounded border border-slate-700 overflow-hidden">
+                  {([
+                    ["grades", "Quality grades", "Each origin's own ladder — SHG/HG/Standard, G1/G2/G3, fine cup/GC/Rio"],
+                    ["segments", "Consumption mix", "How each hub's leg splits across retail formats and the coffee shop"],
+                  ] as const).map(([k, label, tip]) => (
+                    <button key={k} onClick={() => setDepthTab(k)} title={tip}
+                      className={`text-[9px] px-2 py-0.5 transition-colors ${
+                        depthTab === k ? "bg-slate-700 text-slate-100" : "text-slate-500 hover:text-slate-300"
+                      }`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {depthTab === "grades" ? (
+                  !gradesDoc ? (
+                    <div className="text-[10px] text-slate-500">
+                      No grade ladders filed yet (origin_grades.json).
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-[9px] text-slate-400">
+                        <span>Origin</span>
+                        <select value={selOrigin} onChange={e => setSelOrigin(e.target.value)}
+                          className={`${textCls} text-[10px]`}>
+                          {Object.keys(ORIGIN_LABELS).map(o => (
+                            <option key={o} value={o}>{ORIGIN_LABELS[o]}</option>
+                          ))}
+                        </select>
+                        <span className="text-slate-600">
+                          · grade names are this origin&apos;s own — nothing is harmonised across origins
+                        </span>
+                      </div>
+
+                      {GRADE_LEGS.concat(
+                        ladder(selOrigin, "arabica").length ? ["arabica" as Leg] : [],
+                      ).map(leg => {
+                        const rows = ladder(selOrigin, leg);
+                        const total = pctSum(rows.map(g => g.pct));
+                        const off = rows.length > 0 && Math.abs(total - 100) > 0.5;
+                        return (
+                          <div key={leg} className="space-y-1">
+                            <div className="flex items-baseline justify-between">
+                              <div className={`text-[9px] uppercase tracking-wide font-bold ${LEG_TONE[leg]}`}>
+                                {LEG_LABEL[leg]}
+                              </div>
+                              {rows.length > 0 && (
+                                <div className={`text-[9px] font-mono ${off ? "text-red-400" : "text-slate-500"}`}>
+                                  {total}%
+                                </div>
+                              )}
+                            </div>
+                            {rows.length === 0 ? (
+                              <div className="text-[9px] text-slate-600">
+                                No ladder — this leg shows as one ungraded row in the statement.
+                              </div>
+                            ) : (
+                              <table className="w-full text-[10px]">
+                                <tbody>
+                                  {rows.map((g, i) => (
+                                    <tr key={g.key || `new_${i}`} className="border-t border-slate-800/60">
+                                      <td className="py-1 pr-2">
+                                        <input value={g.label}
+                                          onChange={e => setGrade(selOrigin, leg, i, { label: e.target.value })}
+                                          className={`${textCls} w-40`} placeholder="Grade name" />
+                                      </td>
+                                      <td className="py-1 px-1 text-right w-20">
+                                        <input value={g.pct}
+                                          onChange={e => setGrade(selOrigin, leg, i, { pct: e.target.value })}
+                                          className={numCls} placeholder="%" />
+                                      </td>
+                                      <td className="py-1 pl-1 w-6 text-right">
+                                        <button onClick={() => dropGrade(selOrigin, leg, i)} title="Remove grade"
+                                          className="text-[10px] text-slate-600 hover:text-red-400 transition-colors">✕</button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            )}
+                            <button onClick={() => addGrade(selOrigin, leg)}
+                              className="text-[9px] px-2 py-0.5 rounded border border-slate-700 text-slate-500 hover:text-slate-200 hover:border-slate-500 transition-colors">
+                              + grade
+                            </button>
+                          </div>
+                        );
+                      })}
+
+                      <div className="text-[8px] text-slate-600 leading-relaxed">
+                        Grades are shares of the leg, not bags: production is derived from the crop
+                        estimates, so a share keeps the grade rows re-summing to the leg exactly and
+                        stops them drifting when an estimate moves. Each leg must total 100%.
+                      </div>
+                    </div>
+                  )
+                ) : !segsDoc ? (
+                  <div className="text-[10px] text-slate-500">
+                    No consumption mix filed yet (demand_segments.json).
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="inline-flex rounded border border-slate-700 overflow-hidden">
+                        {GRADE_LEGS.map(l => (
+                          <button key={l} onClick={() => setSelLeg(l)}
+                            className={`text-[9px] px-2 py-0.5 transition-colors ${
+                              selLeg === l ? `bg-slate-700 ${LEG_TONE[l]}` : "text-slate-500 hover:text-slate-300"
+                            }`}>
+                            {LEG_LABEL[l]}
+                          </button>
+                        ))}
+                      </div>
+                      <span className="text-[9px] text-slate-600">
+                        · a hub with no mix of its own reads the default until you type in it
+                      </span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-[10px]">
+                        <thead>
+                          <tr className="text-slate-500">
+                            <th className="text-left py-1 pr-2 font-medium">Format</th>
+                            {["default", ...(blocks?.demand_hubs ?? []).map(h => h.key)].map(scope => (
+                              <th key={scope} className="text-right py-1 px-1 font-medium whitespace-nowrap">
+                                {scope === "default"
+                                  ? "Default"
+                                  : (blocks?.demand_hubs ?? []).find(h => h.key === scope)?.label ?? scope}
+                                {scope !== "default" && !segState[scope] && (
+                                  <span className="ml-1 text-slate-700">(def)</span>
+                                )}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {segsDoc.channels.map(ch => (
+                            <Fragment key={ch.key}>
+                              <tr>
+                                <td colSpan={2 + (blocks?.demand_hubs?.length ?? 0)}
+                                  className="pt-2 pb-0.5 text-[8px] uppercase tracking-wider font-bold text-slate-500">
+                                  {ch.label}
+                                </td>
+                              </tr>
+                              {segsDoc.segments.filter(sg => sg.channel === ch.key).map(sg => (
+                                <tr key={sg.key} className="border-t border-slate-800/60">
+                                  <td className="py-1 pr-2 text-slate-400 whitespace-nowrap">{sg.label}</td>
+                                  {["default", ...(blocks?.demand_hubs ?? []).map(h => h.key)].map(scope => (
+                                    <td key={scope} className="py-1 px-1 text-right">
+                                      <input value={segPct(scope, selLeg, sg.key)}
+                                        onChange={e => setSegPct(scope, selLeg, sg.key, e.target.value)}
+                                        className={`${numCls} w-12`} placeholder="%" />
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </Fragment>
+                          ))}
+                          <tr className="border-t border-slate-600">
+                            <td className="py-1 pr-2 font-bold text-slate-300">Total</td>
+                            {["default", ...(blocks?.demand_hubs ?? []).map(h => h.key)].map(scope => {
+                              const t = pctSum(segsDoc.segments.map(sg => segPct(scope, selLeg, sg.key)));
+                              return (
+                                <td key={scope}
+                                  className={`py-1 px-1 text-right font-mono font-bold ${
+                                    Math.abs(t - 100) > 0.5 ? "text-red-400" : "text-slate-400"}`}>
+                                  {t}%
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="text-[8px] text-slate-600 leading-relaxed">
+                      Shares of each hub&apos;s leg, so the segment rows always re-sum to the hub and a
+                      change to a hub total flows straight through. Every column must total 100%.
+                      Typing into a hub that reads <span className="text-slate-500">(def)</span> gives
+                      it a mix of its own.
+                    </div>
+                  </div>
+                )}
 
                 <Footer saving={saving} error={saveError} onCancel={close} onSave={save} />
               </div>

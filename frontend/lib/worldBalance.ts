@@ -65,3 +65,61 @@ export const legTotal = (l: Record<Leg, number>) => LEGS.reduce((s, k) => s + l[
  *  statement comparable while some origins are still unsplit. */
 export const arabicaAll = (l: Record<Leg, number>) =>
   l.arabica_washed + l.arabica_natural + l.arabica;
+
+// ── Depth level 3: quality grades (supply) and consumption segments (demand) ──
+//
+// The two sides of the statement gain depth in different currencies, on
+// purpose. Supply breaks down into the grades that actually trade, in each
+// origin's own vocabulary — Honduras sells SHG, Vietnam sells G2, Brazil
+// sells GC, and those names do not map onto one another, so a grade row is
+// only ever summed inside its own origin. Demand breaks down into the form
+// the coffee is sold in, which IS comparable across hubs.
+//
+// Both are stored as SHARES of the parent leg rather than absolute bags:
+// production is derived from the crop estimates and hub totals are entered,
+// so a share keeps the detail re-summing to their parent exactly and stops
+// them drifting when the parent moves.
+
+export interface GradeRow { key: string; label: string; share: number }
+export interface OriginGradesDoc {
+  unit: string; updated: string; note?: string;
+  origins: Record<string, Partial<Record<Leg, GradeRow[]>>>;
+}
+
+export interface SegmentDef { key: string; channel: string; label: string }
+export interface ChannelDef { key: string; label: string }
+/** leg → segment key → share of that leg. */
+export type SegMix = Partial<Record<Leg, Record<string, number>>>;
+export interface DemandSegmentsDoc {
+  unit: string; updated: string; note?: string;
+  channels: ChannelDef[]; segments: SegmentDef[];
+  default_mix: SegMix; hub_mix: Record<string, SegMix>;
+}
+
+/** Split `total` across `shares` at one decimal, largest-remainder, so the
+ *  parts sum to the rounded parent EXACTLY. Without this a reader can add up
+ *  a column of rounded children and find they miss the subtotal by 0.1 —
+ *  which reads as a bug in a statement whose whole job is to add up. */
+export function allocate(total: number, shares: number[]): number[] {
+  const tenths = Math.round(total * 10);
+  if (tenths <= 0 || !shares.length) return shares.map(() => 0);
+  const raw = shares.map(s => s * tenths);
+  const base = raw.map(v => Math.floor(v));
+  let rem = tenths - base.reduce((a, b) => a + b, 0);
+  const byRemainder = raw
+    .map((v, i) => ({ frac: v - Math.floor(v), i }))
+    .sort((a, b) => b.frac - a.frac);
+  for (let k = 0; k < byRemainder.length && rem > 0; k++, rem--) base[byRemainder[k].i]++;
+  return base.map(v => v / 10);
+}
+
+/** Display names for the origins carried in the world view. Shared by the
+ *  statement's grade rows and the editor's origin picker so a rename lands
+ *  in one place. */
+export const ORIGIN_LABELS: Record<string, string> = {
+  brazil: "Brazil", colombia: "Colombia", honduras: "Honduras",
+  guatemala: "Guatemala", nicaragua: "Nicaragua", costa_rica: "Costa Rica",
+  mexico: "Mexico", peru: "Peru", vietnam: "Vietnam", indonesia: "Indonesia",
+  india: "India", china: "China", uganda: "Uganda", ethiopia: "Ethiopia",
+  ivory_coast: "Ivory Coast", tanzania: "Tanzania",
+};

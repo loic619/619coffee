@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """apply_world_balance_edit.py — apply an admin-UI edit to the world balance
-sheet (frontend/public/data/world_balance_sheet.json).
+sheet and its two depth files.
+
+Writes, all from one payload so one password check covers the whole
+statement:
+    frontend/public/data/world_balance_sheet.json  — the statement itself
+    frontend/public/data/origin_grades.json        — quality ladders per origin
+    frontend/public/data/demand_segments.json      — consumption mix per hub
 
 Only the analyst-entered blocks are writable here: carry-in, consumption by
 hub, carry-out and the risk register. PRODUCTION IS NOT — the balance sheet
@@ -21,8 +27,20 @@ Payload (validated strictly — the workflow input is remote data):
       "carry_out":    [ …same shape… ],
       "risks": [{"key":"enso_vn","driver":"El Niño","origin":"Vietnam",
                  "crop":"robusta","impact_m_bags":-2.5,"probability":0.35,
-                 "note":"…"}]
+                 "note":"…"}],
+
+      # Depth level 3. Both are SHARES of the parent leg, never bags, so the
+      # detail always re-sums to its parent and cannot drift when the parent
+      # moves. Each leg's shares must total 1.
+      "origin_grades":   {"honduras": {"arabica_washed":
+                            [{"key":"shg","label":"SHG","share":0.55}, …]}},
+      "demand_segments": {"default_mix": {"robusta": {"instant_pure":0.26, …}},
+                          "hub_mix": {"europe": {"robusta": {…}}}}
     }
+
+The segment TAXONOMY (which formats exist) is structural and not writable
+here — only the mix across it. Grade ladders are fully writable: the whole
+point of per-origin vocabulary is that the analyst names the grades.
 
 A block that is absent is left as-is; a block that is present replaces its
 predecessor wholesale, so deleting a line works.
@@ -45,7 +63,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT_PATH = ROOT / "frontend" / "public" / "data" / "world_balance_sheet.json"
+DATA = ROOT / "frontend" / "public" / "data"
+OUT_PATH = DATA / "world_balance_sheet.json"
+GRADES_PATH = DATA / "origin_grades.json"
+SEGMENTS_PATH = DATA / "demand_segments.json"
 
 LEGS = ("arabica_washed", "arabica_natural", "arabica", "robusta")
 LINE_BLOCKS = ("carry_in", "demand_hubs", "carry_out")
@@ -56,6 +77,9 @@ MAX_LINES = 24
 MAX_RISKS = 40
 MAX_MBAGS = 400.0        # world-scale lines, not per-origin
 MAX_IMPACT = 50.0
+MAX_ORIGINS = 32
+MAX_GRADES = 8           # a ladder longer than this is a price list, not a grade split
+SHARE_TOL = 0.005        # a leg's shares must total 1 within half a point
 
 
 def _fail(msg: str) -> int:
@@ -135,6 +159,118 @@ def _clean_risks(raw):
     return out
 
 
+def _clean_shares(raw, label: str, keys: list[str] | None):
+    """{key: share} → validated dict. Shares must total 1: a mix that does not
+    is an entry slip, and silently renormalising it would hide the slip."""
+    if not isinstance(raw, dict):
+        return f"{label}: must be an object of key → share"
+    out = {}
+    for k, v in raw.items():
+        if not isinstance(k, str) or not KEY_RE.match(k):
+            return f"{label}: bad key {k!r}"
+        if keys is not None and k not in keys:
+            return f"{label}.{k}: not a declared segment"
+        s = _num(v, 0.0, 1.0)
+        if s is None:
+            return f"{label}.{k}: share must be 0-1"
+        out[k] = round(s, 4)
+    if not out:
+        return f"{label}: empty"
+    tot = sum(out.values())
+    if abs(tot - 1.0) > SHARE_TOL:
+        return f"{label}: shares total {tot:.3f}, must total 1"
+    return out
+
+
+def _clean_grades(raw):
+    """{origin: {leg: [{key,label,share}]}} — the per-origin quality ladders."""
+    if not isinstance(raw, dict) or len(raw) > MAX_ORIGINS:
+        return f"origin_grades: must be an object of at most {MAX_ORIGINS} origins"
+    out = {}
+    for origin, legs in raw.items():
+        if not isinstance(origin, str) or not KEY_RE.match(origin):
+            return f"origin_grades: bad origin key {origin!r}"
+        if not isinstance(legs, dict):
+            return f"origin_grades.{origin}: must be an object of leg → ladder"
+        cleaned = {}
+        for leg, ladder in legs.items():
+            if leg not in LEGS:
+                return f"origin_grades.{origin}: unknown leg {leg!r}"
+            if not isinstance(ladder, list) or not ladder or len(ladder) > MAX_GRADES:
+                return f"origin_grades.{origin}.{leg}: 1-{MAX_GRADES} grades"
+            seen, rows, total = set(), [], 0.0
+            for g in ladder:
+                if not isinstance(g, dict):
+                    return f"origin_grades.{origin}.{leg}: each grade must be an object"
+                key, lbl = g.get("key"), g.get("label")
+                if not isinstance(key, str) or not KEY_RE.match(key):
+                    return f"origin_grades.{origin}.{leg}: bad grade key {key!r}"
+                if key in seen:
+                    return f"origin_grades.{origin}.{leg}: duplicate grade {key!r}"
+                seen.add(key)
+                if not isinstance(lbl, str) or not (1 <= len(lbl.strip()) <= 32):
+                    return f"origin_grades.{origin}.{leg}.{key}: label must be 1-32 chars"
+                share = _num(g.get("share"), 0.0, 1.0)
+                if share is None:
+                    return f"origin_grades.{origin}.{leg}.{key}: share must be 0-1"
+                total += share
+                rows.append({"key": key, "label": lbl.strip(), "share": round(share, 4)})
+            if abs(total - 1.0) > SHARE_TOL:
+                return (f"origin_grades.{origin}.{leg}: shares total {total:.3f}, "
+                        "must total 1")
+            cleaned[leg] = rows
+        if cleaned:
+            out[origin] = cleaned
+    return out
+
+
+def _clean_segments(raw, declared: list[str]):
+    """{default_mix, hub_mix} — the consumption mix. The segment taxonomy
+    itself is structural and stays where it is."""
+    if not isinstance(raw, dict):
+        return "demand_segments: must be an object"
+    out = {}
+    if "default_mix" in raw:
+        res = _mix(raw["default_mix"], "demand_segments.default_mix", declared)
+        if isinstance(res, str):
+            return res
+        out["default_mix"] = res
+    if "hub_mix" in raw:
+        hubs = raw["hub_mix"]
+        if not isinstance(hubs, dict) or len(hubs) > MAX_LINES:
+            return f"demand_segments.hub_mix: at most {MAX_LINES} hubs"
+        cleaned = {}
+        for hub, mix in hubs.items():
+            if not isinstance(hub, str) or not KEY_RE.match(hub):
+                return f"demand_segments.hub_mix: bad hub key {hub!r}"
+            res = _mix(mix, f"demand_segments.hub_mix.{hub}", declared)
+            if isinstance(res, str):
+                return res
+            cleaned[hub] = res
+        out["hub_mix"] = cleaned
+    return out
+
+
+def _mix(raw, label: str, declared: list[str]):
+    """{leg: {segment: share}} for one hub (or the default)."""
+    if not isinstance(raw, dict):
+        return f"{label}: must be an object of leg → mix"
+    out = {}
+    for leg, shares in raw.items():
+        if leg not in LEGS:
+            return f"{label}: unknown leg {leg!r}"
+        res = _clean_shares(shares, f"{label}.{leg}", declared)
+        if isinstance(res, str):
+            return res
+        out[leg] = res
+    return out
+
+
+def _write(path: Path, doc: dict, updated: str) -> None:
+    doc["updated"] = updated
+    path.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--payload", required=True)
@@ -185,6 +321,49 @@ def main() -> int:
         lines.append(f"  ~ crop_year: {doc.get('crop_year')} → {crop_year}")
     new_doc["crop_year"] = crop_year
 
+    # Everything above touched the statement; anything below touches only a
+    # depth file. Tracked separately so editing a grade share does not bump
+    # the statement's own updated stamp and leave a diff that says nothing.
+    stmt_changed = bool(lines)
+
+    # ── Depth files ────────────────────────────────────────────────────
+    depth_writes: list[tuple[Path, dict]] = []
+    if "origin_grades" in payload:
+        res = _clean_grades(payload["origin_grades"])
+        if isinstance(res, str):
+            return _fail(res)
+        try:
+            gdoc = json.loads(GRADES_PATH.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as e:
+            return _fail(f"{GRADES_PATH.name} unreadable: {e}")
+        prior = gdoc.get("origins") or {}
+        if res != prior:
+            # Name the origins that moved — "28 → 28 ladders" is true and
+            # useless when the edit was a share, which it usually is.
+            moved = sorted(set(prior) | set(res))
+            moved = [o for o in moved if prior.get(o) != res.get(o)]
+            lines.append(f"  ~ origin_grades: {', '.join(moved) or 'reordered'}")
+            gdoc["origins"] = res
+            depth_writes.append((GRADES_PATH, gdoc))
+
+    if "demand_segments" in payload:
+        try:
+            sdoc = json.loads(SEGMENTS_PATH.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as e:
+            return _fail(f"{SEGMENTS_PATH.name} unreadable: {e}")
+        declared = [s.get("key") for s in (sdoc.get("segments") or [])]
+        res = _clean_segments(payload["demand_segments"], declared)
+        if isinstance(res, str):
+            return _fail(res)
+        changed_seg = False
+        for block in ("default_mix", "hub_mix"):
+            if block in res and res[block] != sdoc.get(block):
+                sdoc[block] = res[block]
+                changed_seg = True
+                lines.append(f"  ~ demand_segments.{block}")
+        if changed_seg:
+            depth_writes.append((SEGMENTS_PATH, sdoc))
+
     out = os.environ.get("GITHUB_OUTPUT")
     if not lines:
         print("[world-balance] no-op: payload matches the file — nothing to write")
@@ -192,9 +371,11 @@ def main() -> int:
             Path(out).open("a").write("changed=false\n")
         return 0
 
-    new_doc["updated"] = updated
-    OUT_PATH.write_text(json.dumps(new_doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"[world-balance] {OUT_PATH.name} (updated: {updated}):")
+    if stmt_changed:
+        _write(OUT_PATH, new_doc, updated)
+    for path, d in depth_writes:
+        _write(path, d, updated)
+    print(f"[world-balance] updated {updated}:")
     print("\n".join(lines))
     if out:
         Path(out).open("a").write("changed=true\n")

@@ -126,7 +126,37 @@ mode = "forecast" when a GAIN row exists, else "proxy" (latest realised row)`}</
         North America, naturals-skewed in Latin America where Brazilian domestic demand dominates.
       </P>
 
-      <H2>8 · World-consumption coverage</H2>
+      <H2>8 · Depth level 3 — grades on supply, formats on demand</H2>
+      <P>
+        Under each processing leg the statement carries a third level, collapsible from the sheet header
+        (<strong>Ungroup all</strong> / <strong>Group all</strong>) or row by row. The two sides break down in
+        different currencies on purpose.
+      </P>
+      <P>
+        <strong>Supply — quality grades, in each origin&rsquo;s own vocabulary.</strong> Honduras sells SHG, HG and
+        Standard; Vietnam sells G1, G2 and G3; Brazil sells fine cup, GC and Rio. Those ladders do not map onto one
+        another, so nothing is harmonised and a grade row is only ever summed inside its own origin. An origin with no
+        ladder filed for a leg shows that leg as one honest <Code>ungraded</Code> row rather than being dropped.
+        Ladders live in <Code>origin_grades.json</Code>.
+      </P>
+      <P>
+        <strong>Demand — the form the coffee is sold in.</strong> Each hub&rsquo;s leg splits across retail (ground,
+        beans, soft pads, capsules, RTD drinks, instant pure, instant mixes) and the coffee shop. Unlike grades this
+        <em> is</em> comparable across hubs, and it is where the legs diverge most: robusta carries the instant
+        categories almost entirely, washed arabica concentrates in whole bean, capsules and out-of-home. Mixes live in
+        <Code>demand_segments.json</Code>, with a global default and per-hub overrides where a market genuinely
+        departs from it.
+      </P>
+      <P>
+        Both levels are stored as <strong>shares of the parent leg, never bags</strong>. Production is derived and hub
+        totals are entered, so a share keeps the detail re-summing to its parent and stops it drifting when the parent
+        moves. Rounding to one decimal is done with a largest-remainder allocator, so a reader can add a column of
+        children and land on the subtotal exactly rather than 0.1 away from it. Both are editable behind the same
+        password as the rest of the sheet, under <strong>Grades &amp; segments</strong>, and every ladder and every
+        column must total 100% before a save is accepted.
+      </P>
+
+      <H2>9 · World-consumption coverage</H2>
       <P>
         A coverage gauge sums tracked consumption across all PSD markets and compares it to a manually-maintained ICO
         global reference: <Code>tracked_vs_ICO% = tracked / ICO × 100</Code> (currently the model captures ~80% of world
