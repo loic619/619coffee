@@ -32,6 +32,12 @@ on:
 # backup cron into a no-op queued behind the 01:07 run when both fire — vs
 # cancel-in-progress: true which would kill the running primary and restart
 # from zero, wasting its progress.
+# The idempotency guard reads this workflow's own run history (actions:read).
+# The job only checks out and scrapes — nothing here writes to the repo.
+permissions:
+  contents: read
+  actions: read
+
 concurrency:
   group: scraper-daily
   cancel-in-progress: false
@@ -71,11 +77,19 @@ jobs:
           # cron finds no success today and self-heals (hours late, but runs).
           today=$(date -u +%Y-%m-%d)
           export today THIS_RUN
-          prior=$(curl -sf -H "Authorization: Bearer $GH_TOKEN" \
+          # Fails OPEN, like the redeploy guard: this only decides whether a
+          # BACKUP cron is redundant. If the lookup can't answer, running the
+          # scrape again is harmless, whereas skipping it means no data that
+          # day — and this cron is the safety net for the external trigger.
+          prior=$(curl -s --max-time 20 -H "Authorization: Bearer $GH_TOKEN" \
             "https://api.github.com/repos/$REPO/actions/workflows/scraper-daily.yml/runs?status=success&per_page=30" \
             | python3 -c "
           import json, sys, os
-          d = json.load(sys.stdin)
+          try:
+              d = json.load(sys.stdin)
+          except Exception as e:
+              print('dedup lookup failed: ' + type(e).__name__, file=sys.stderr)
+              sys.exit(0)
           today    = os.environ['today']
           this_run = os.environ['THIS_RUN']
           for r in d.get('workflow_runs', []):
@@ -83,7 +97,7 @@ jobs:
                   continue
               if r.get('updated_at', '').startswith(today):
                   print(r['id']); break
-          ")
+          " || true)
           if [ -n "$prior" ]; then
             echo "Today already had a successful run ($prior) — skipping backup."
             echo "skip=true" >> "$GITHUB_OUTPUT"

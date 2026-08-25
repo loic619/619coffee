@@ -13,6 +13,13 @@ name: "1.8 – Check Live Quotes Freshness"
 # would fire ~80 false-positive Telegram alerts per week (every weeknight
 # 02:15-09:15 UTC + every weekend Sat 02:15 through Mon 09:15).
 
+# The rescue path dispatches poll-acaphe-quotes, which needs actions:write.
+# It is guarded by `if curl -sf`, so losing the scope degraded it SILENTLY:
+# the check kept passing while the rescue never fired.
+permissions:
+  contents: read
+  actions: write
+
 on:
   schedule:
     - cron: '15 9-20 * * 1-5'   # Mon-Fri, 09:15-20:15 UTC, hourly at :15

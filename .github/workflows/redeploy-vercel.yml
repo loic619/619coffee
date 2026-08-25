@@ -43,6 +43,14 @@ on:
     workflows: ["1.4 – Export and Publish Static JSON", "1.13 – ICE Certified Stocks (arabica + robusta)"]
     types: [completed]
 
+# The guard reads this workflow's own run history, which needs actions:read.
+# Without it the API answers 403, and since the repo default stopped granting
+# that scope on 24 Aug the guard was blocked outright. Declaring it here makes
+# the workflow independent of whatever the repo-wide default happens to be.
+permissions:
+  contents: read
+  actions: read
+
 concurrency:
   group: vercel-redeploy
   cancel-in-progress: false
