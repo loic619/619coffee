@@ -12,6 +12,7 @@
 import { useMemo, useState } from "react";
 import { ARTICLES, CAT_LABEL, type Article, type Cat } from "@/lib/research/catalog";
 import { LayoutMatrix, LayoutGraph } from "./AltViews";
+import { LayoutFactorMap } from "./FactorMapView";
 
 const TONE_DOT: Record<string, string> = {
   amber: "bg-amber-400", sky: "bg-sky-400", violet: "bg-violet-400",
@@ -179,6 +180,7 @@ const TABS = [
   { id: "current", label: "D · Today",          note: "for comparison",                   el: <LayoutCurrent /> },
   { id: "matrix",  label: "E · Quadrant matrix", note: "stale-vs-fresh × applied-vs-reference", el: <LayoutMatrix /> },
   { id: "graph",   label: "F · Node graph",     note: "clustered by topic",               el: <LayoutGraph /> },
+  { id: "factor",  label: "G · Factor map",     note: "the differential model as the index", el: <LayoutFactorMap /> },
 ];
 
 export default function LayoutPreview() {

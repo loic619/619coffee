@@ -1,6 +1,7 @@
 "use client";
 import { Paper, H2, H, P, UL, LI, Code, Fml, Highlight, RefTable, DataFiles } from "./prose";
 import { FactorMapFigure, CorridorFigure } from "./DifferentialModelFigures";
+import FactorMap, { FactorMapLegend } from "../factor-map/FactorMap";
 
 export default function DifferentialModelNote() {
   return (
@@ -46,6 +47,29 @@ F      nearby futures reference          (RC for robusta, KC for arabica)`}</Fml
         physical S&amp;D, exchange economics) which resolve into the differential. Reading it as an economist
         rather than as a diagram, the three intermediate nodes play <em>different mathematical roles</em>:
       </P>
+      {/* The map itself. Until 2026-08 this note described a chart it never
+          showed: the only figure was the four-cluster-box abstraction below,
+          which summarises the map rather than being it. This is the real one —
+          every factor at its own position, the diamond intact — and it is the
+          SAME component the research index renders with per-node badges, so
+          the two cannot drift. */}
+      <figure className="my-4">
+        <div className="mb-1.5 flex flex-wrap items-baseline gap-2">
+          <figcaption className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            Fig. 1 — the factor map
+          </figcaption>
+          <span className="text-[10px] text-slate-500">
+            every factor, at its position in the model; the diamond resolves futures price, physical
+            supply &amp; demand and exchange economics into the differential
+          </span>
+          <span className="ml-auto"><FactorMapLegend /></span>
+        </div>
+        <div className="overflow-x-auto rounded-lg border border-slate-700 bg-slate-900/40">
+          <FactorMap />
+        </div>
+      </figure>
+      {/* Kept as Fig. 1b: the boxed summary is still the better read for the
+          four-cluster argument the prose makes next. */}
       <FactorMapFigure />
       <UL>
         <LI><strong>Exchange economics defines the walls.</strong> If <Code>D</Code> falls below the tenderable
