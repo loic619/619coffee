@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { LDN_PARAMS, NY_PARAMS } from "@/lib/cot/intraweekModel";
 import { FOBBING_MODEL, fobbingUsdMt } from "@/lib/originCosts";
 import { cachedFetchStatic } from "@/lib/api";
@@ -1839,9 +1840,11 @@ function ArticleBody({ id }: { id: string }) {
   return <>{body}</>;
 }
 
-function ListView({ sel, setSel }: { sel: string; setSel: (id: string) => void }) {
+function ListView({ sel, setSel, cat, setCat }: {
+  sel: string; setSel: (id: string) => void;
+  cat: Cat | "all"; setCat: (c: Cat | "all") => void;
+}) {
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState<Cat | "all">("all");
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return ARTICLES.filter(a => {
@@ -1932,10 +1935,16 @@ function MapView({ sel, setSel }: { sel: string; setSel: (id: string) => void })
         <div className="ml-auto"><FactorMapLegend /></div>
       </div>
 
+      {/* The map is 1380 units wide and does not usefully shrink — the labels
+          are already at 8.5px. Below ~1100px it scrolls, so say so rather than
+          letting the exchange-economics half look like it does not exist. */}
       <div className="overflow-x-auto rounded-lg border border-slate-800 bg-slate-900/40">
         <FactorMap badges={badges} onlyBadged={onlyBadged} lit={lit}
           selected={node} onSelect={id => setNode(n => (n === id ? null : id))} />
       </div>
+      <p className="text-[10px] text-slate-600 xl:hidden">
+        ← scroll sideways for the exchange-economics side of the map
+      </p>
 
       {nodeMeta && (
         <div className="rounded-lg border border-slate-800 p-3">
@@ -1968,11 +1977,30 @@ function MapView({ sel, setSel }: { sel: string; setSel: (id: string) => void })
 }
 
 export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
+  const router = useRouter();
   const [view, setView] = useState<"list" | "map">("list");
+  // The five /research/<cat> routes still mean something: they preselect the
+  // category filter. Without this the tab bar became decorative — every route
+  // rendered the same unfiltered list of 45 and only differed in which article
+  // happened to be open.
+  const [cat, setCat] = useState<Cat | "all">(initialTab ?? "quant");
   // One selection shared by both views, so flipping between them keeps your
   // place instead of resetting to the top of the catalogue.
   const [sel, setSel] = useState<string>(
     () => ARTICLES.find(a => a.cat === (initialTab ?? "quant"))?.id ?? ARTICLES[0].id);
+
+  useEffect(() => {
+    if (initialTab && initialTab !== cat) setCat(initialTab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialTab]);
+
+  // Picking a category rewrites the path so the view stays deep-linkable and
+  // the browser Back button keeps working; "all" has no route of its own, so
+  // it simply leaves the URL where it is.
+  function pickCat(c: Cat | "all") {
+    setCat(c);
+    if (c !== "all") router.push(`/research/${c}`, { scroll: false });
+  }
 
   return (
     <>
@@ -1994,7 +2022,7 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
       </div>
 
       {view === "list"
-        ? <ListView sel={sel} setSel={setSel} />
+        ? <ListView sel={sel} setSel={setSel} cat={cat} setCat={pickCat} />
         : <MapView sel={sel} setSel={setSel} />}
     </>
   );
