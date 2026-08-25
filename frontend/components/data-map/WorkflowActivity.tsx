@@ -38,6 +38,10 @@ interface ActivityPayload {
   totals: { runs: number; success: number; failure: number; cancelled: number; other: number };
   days: string[];
   workflows: ActivityWorkflow[];
+  /** Workflows whose run list hit the collector's page cap — their counts
+   *  are a floor, not a total. Normally empty; if it is not, the panel says
+   *  so rather than letting an undercount read as a quiet week. */
+  capped_workflows?: string[];
 }
 interface InventoryLite {
   workflows: { file: string; name: string; crons: string[] }[];
@@ -97,9 +101,17 @@ export default function WorkflowActivity() {
 
   const t = data.totals;
   const failRate = t.runs ? (t.failure / t.runs) * 100 : 0;
+  const capped = data.capped_workflows ?? [];
 
   return (
     <div className="space-y-3">
+      {capped.length > 0 && (
+        <div className="text-[10px] text-amber-400 border border-amber-900/60 bg-amber-950/30 rounded px-2 py-1">
+          Undercount: {capped.join(", ")} exceeded the collector&apos;s page cap, so the counts
+          below are a floor for {capped.length === 1 ? "it" : "them"}, not a total.
+        </div>
+      )}
+
       {/* Totals + filters */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex gap-4 flex-wrap text-[11px]">
