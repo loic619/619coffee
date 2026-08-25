@@ -47,7 +47,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
+      # Job-level permissions REPLACE the top-level block rather than merging
+      # with it, so actions:read has to be repeated here or the idempotency
+      # guard's API call gets a 403 — which is exactly what the top-level
+      # declaration alone failed to fix.
       contents: read
+      actions: read
 
     steps:
       - uses: actions/checkout@v4
