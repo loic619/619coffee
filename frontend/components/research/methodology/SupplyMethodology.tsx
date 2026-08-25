@@ -103,7 +103,60 @@ mode = "forecast" when a GAIN row exists, else "proxy" (latest realised row)`}</
         consumption — is carried alongside the numbers.
       </P>
 
-      <H2>7 · World-consumption coverage</H2>
+      <H2>7 · Arabica by processing — washed vs natural</H2>
+      <P>
+        The world balance sheet states arabica in two legs because the trade prices them separately. Almost no source
+        publishes that breakdown — Marex, ECOM, Sopex and USDA all give a country total — so the split is an
+        <strong> analyst overlay</strong>, applied per origin from how the crop is actually processed and recorded in each
+        seed&rsquo;s <Code>arabica_split_basis</Code> field so the reasoning travels with the number:
+      </P>
+      <P>
+        <strong>100% natural</strong> — Brazil (dry and pulped-natural; priced as naturals).{" "}
+        <strong>100% washed</strong> — Colombia, the MAG 6 (Honduras, Guatemala, Nicaragua, Costa Rica, Mexico, Peru),
+        Indonesia (giling basah / semi-washed), Vietnam, China and Tanzania.{" "}
+        <strong>Mixed</strong> — Ethiopia 30/70 washed/natural (Yirgacheffe and Limu against the Harrar, Sidama and Guji
+        naturals), India 50/50 (Plantation vs Cherry), Uganda 65/35 (Bugisu washed against West Nile drugar, weighted by
+        the arabica belts in the weather model). Ivory Coast is robusta only.
+      </P>
+      <P>
+        Two guard-rails: the two legs are forced to sum to the original arabica figure, so restating can never move an
+        origin&rsquo;s headline production; and the migration only ever touches a leg still filed as unsplit, so a real
+        published breakdown or a hand edit in the ✎ editor is never overwritten by a convention. On the demand side,
+        each consumption hub keeps its arabica total and carries a washed share reflecting that market — washed-skewed in
+        North America, naturals-skewed in Latin America where Brazilian domestic demand dominates.
+      </P>
+
+      <H2>8 · Depth level 3 — grades on supply, formats on demand</H2>
+      <P>
+        Under each processing leg the statement carries a third level, collapsible from the sheet header
+        (<strong>Ungroup all</strong> / <strong>Group all</strong>) or row by row. The two sides break down in
+        different currencies on purpose.
+      </P>
+      <P>
+        <strong>Supply — quality grades, in each origin&rsquo;s own vocabulary.</strong> Honduras sells SHG, HG and
+        Standard; Vietnam sells G1, G2 and G3; Brazil sells fine cup, GC and Rio. Those ladders do not map onto one
+        another, so nothing is harmonised and a grade row is only ever summed inside its own origin. An origin with no
+        ladder filed for a leg shows that leg as one honest <Code>ungraded</Code> row rather than being dropped.
+        Ladders live in <Code>origin_grades.json</Code>.
+      </P>
+      <P>
+        <strong>Demand — the form the coffee is sold in.</strong> Each hub&rsquo;s leg splits across retail (ground,
+        beans, soft pads, capsules, RTD drinks, instant pure, instant mixes) and the coffee shop. Unlike grades this
+        <em> is</em> comparable across hubs, and it is where the legs diverge most: robusta carries the instant
+        categories almost entirely, washed arabica concentrates in whole bean, capsules and out-of-home. Mixes live in
+        <Code>demand_segments.json</Code>, with a global default and per-hub overrides where a market genuinely
+        departs from it.
+      </P>
+      <P>
+        Both levels are stored as <strong>shares of the parent leg, never bags</strong>. Production is derived and hub
+        totals are entered, so a share keeps the detail re-summing to its parent and stops it drifting when the parent
+        moves. Rounding to one decimal is done with a largest-remainder allocator, so a reader can add a column of
+        children and land on the subtotal exactly rather than 0.1 away from it. Both are editable behind the same
+        password as the rest of the sheet, under <strong>Grades &amp; segments</strong>, and every ladder and every
+        column must total 100% before a save is accepted.
+      </P>
+
+      <H2>9 · World-consumption coverage</H2>
       <P>
         A coverage gauge sums tracked consumption across all PSD markets and compares it to a manually-maintained ICO
         global reference: <Code>tracked_vs_ICO% = tracked / ICO × 100</Code> (currently the model captures ~80% of world
@@ -118,7 +171,12 @@ mode = "forecast" when a GAIN row exists, else "proxy" (latest realised row)`}</
         <Code>br_balance_sheet.json</Code> / <Code>co_balance_sheet.json</Code> (refreshed by
         <Code>build_balance_sheets.py</Code>). CECAFE: <Code>fetch_cecafe.py</Code>. PSD/GAIN:
         <Code>sources/psd_coffee.py</Code> + <Code>usda_gain_pdf.py</Code> → <Code>demand_stocks.json</Code>. StoneX:
-        <Code>components/supply/ethiopia/stonexSurvey.ts</Code>. Rendered across the <strong>Supply</strong> tab&rsquo;s
+        <Code>components/supply/ethiopia/stonexSurvey.ts</Code> (its crop-survey numbers are also filed into
+        <Code>et_balance_sheet.json</Code> so the world aggregation sees the field survey, not only the desk
+        estimates). Processing split: <Code>backend/scripts/split_arabica_processing.py</Code>. World statement:
+        <Code>components/supply/WorldBalanceSheet.tsx</Code> + <Code>world_balance_sheet.json</Code>, edited through
+        <Code>WorldBalanceEditor.tsx</Code> → <Code>apply_world_balance_edit.py</Code>. Rendered across the
+        <strong>Supply</strong> tab&rsquo;s
         per-origin sub-tabs.
       </P>
     </Paper>

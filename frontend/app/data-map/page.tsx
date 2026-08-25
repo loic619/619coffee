@@ -3,6 +3,7 @@ import { useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import Mermaid from "@/components/Mermaid";
 import DataDownloads from "@/components/data-map/DataDownloads";
+import WorkflowActivity from "@/components/data-map/WorkflowActivity";
 import { useFetchJson } from "@/lib/useFetchJson";
 
 // Shared class definitions appended to every per-tab diagram. `vis` (the tab's
@@ -650,7 +651,7 @@ const ROWS: FlowMetadata[] = [
     runtime: { duration: "~3s" },
   },
   {
-    wf: "1.3b Slow-data", output: "demand_stocks.json", component: "StocksPanel", visual: "Demand · Stocks (ICE cert + PSD)",
+    wf: "1.22 Slow-data", output: "demand_stocks.json", component: "StocksPanel", visual: "Demand · Stocks (ICE cert + PSD)",
     cadence: { recurrence: "03:00 UTC on the 1st of each month", trigger: "cron" },
     transport: { provider: "ECF + USDA PSD + AJCA + UCDA", method: "various per-source scrapers" },
     storage: { target: "demand_stocks.json (composite)" },
@@ -799,7 +800,7 @@ const ROWS: FlowMetadata[] = [
     resiliency: { onMissing: "coverage guard refuses to publish when any source feed missing — readers see last good cohort instead of a half-built one" },
   },
   {
-    wf: "0.3 SPI baseline (one-shot)", output: "spi_30yr_baselines.json", component: "fetch_origin_weather + WeatherCharts",
+    wf: "retired · SPI baseline (one-shot)", output: "spi_30yr_baselines.json", component: "fetch_origin_weather + WeatherCharts",
     visual: "Supply · Weather · Drought Indices (SPI-1 / SPI-3)",
     cadence: { recurrence: "one-shot (workflow_dispatch)", trigger: "manual" },
     transport: { provider: "Open-Meteo ERA5 archive (1991-2020 baseline)", method: "Direct API GET per province" },
@@ -807,7 +808,7 @@ const ROWS: FlowMetadata[] = [
     runtime: { duration: "~10 min full backfill across all provinces" },
   },
   {
-    wf: "0.4 SPEI baseline (one-shot)", output: "spei_30yr_baselines.json", component: "fetch_origin_weather + WeatherCharts",
+    wf: "retired · SPEI baseline (one-shot)", output: "spei_30yr_baselines.json", component: "fetch_origin_weather + WeatherCharts",
     visual: "Supply · Weather · Drought Indices (SPEI = D vs 30y, D = P − ET₀)",
     cadence: { recurrence: "one-shot (workflow_dispatch)", trigger: "manual" },
     transport: { provider: "Open-Meteo ERA5 (precip + et0_fao_evapotranspiration)", method: "Direct API GET" },
@@ -863,14 +864,14 @@ const ROWS: FlowMetadata[] = [
     runtime: { duration: "~2 min per Saturday run" },
   },
   {
-    wf: "0.6 backfill_missing_fields (one-shot)", output: "weather_history/*.json (rain + et0 + tmean heal)", component: "(internal: unblocks SPEI emit when forecast endpoint truncates et0/rain)",
+    wf: "0.4 backfill_missing_fields (one-shot)", output: "weather_history/*.json (rain + et0 + tmean heal)", component: "(internal: unblocks SPEI emit when forecast endpoint truncates et0/rain)",
     visual: "—",
     cadence: { recurrence: "one-shot (workflow_dispatch)", trigger: "manual" },
     transport: { provider: "Open-Meteo ERA5 archive", method: "Direct API GET — re-fetches days where forecast endpoint dropped et0/rain/tmean" },
     storage: { target: "weather_history/*.json fields healed in place" },
   },
   {
-    wf: "0.7 backfill_history_gap (one-shot)", output: "weather_history/*.json (2025 gap fill)", component: "(internal: unblocks SPEI-3 by making seed↔history contiguous)",
+    wf: "retired · backfill_history_gap (one-shot)", output: "weather_history/*.json (2025 gap fill)", component: "(internal: unblocks SPEI-3 by making seed↔history contiguous)",
     visual: "—",
     cadence: { recurrence: "one-shot (workflow_dispatch)", trigger: "manual" },
     transport: { provider: "Open-Meteo ERA5 archive", method: "Direct API GET window: seed_end → today" },
@@ -949,14 +950,14 @@ const ROWS: FlowMetadata[] = [
     resiliency: { onMissing: "keep last good JSON" },
   },
   {
-    wf: "0.8 UCDA monthly backfill", output: "uganda_monthly.json", component: "Uganda monthly report panels (when wired)", visual: "Supply · Uganda · monthly PDF backfill (one-shot)",
+    wf: "3.3.6 UCDA monthly reports", output: "uganda_monthly.json", component: "Uganda monthly report panels (when wired)", visual: "Supply · Uganda · monthly PDF backfill (one-shot)",
     cadence: { recurrence: "manual workflow_dispatch only", trigger: "manual" },
     transport: { provider: "UCDA monthly PDF index", method: "patchright stealth + pdfplumber extract", bypass: "Cloudflare bypass via patchright (GH IPs blocked)" },
     storage: { target: "uganda_monthly.json (~80 PDFs back to ~2018)", footprint: "~few hundred KB" },
     resiliency: { onMissing: "set +e + rc capture → commits only on rc=0; retry 3× preserves the contract" },
   },
   {
-    wf: "0.9 30Y weather backfill", output: "backend/seed/weather_history/{origin}.json", component: "WeatherCharts climatology bands", visual: "Supply · weather · 30-year baseline + bands (one-shot)",
+    wf: "retired · 30Y weather backfill (one-shot)", output: "backend/seed/weather_history/{origin}.json", component: "WeatherCharts climatology bands", visual: "Supply · weather · 30-year baseline + bands (one-shot)",
     cadence: { recurrence: "manual workflow_dispatch only", trigger: "manual" },
     transport: { provider: "Open-Meteo archive API", method: "per-origin batch fetch 1995-2024" },
     storage: { target: "backend/seed/weather_history/{origin}.json", footprint: "~MBs per origin seed" },
@@ -969,7 +970,7 @@ const ROWS: FlowMetadata[] = [
     storage: { target: "indonesia_exports.json" },
   },
   {
-    wf: "0.10 VHI backfill", output: "backend/seed/vhi_history.json", component: "(seeds the weekly 0.5 VHI fetch)", visual: "Supply · weather · VHI long-form history (one-shot)",
+    wf: "retired · VHI backfill (one-shot)", output: "backend/seed/vhi_history.json", component: "(seeds the weekly 0.5 VHI fetch)", visual: "Supply · weather · VHI long-form history (one-shot)",
     cadence: { recurrence: "manual workflow_dispatch only", trigger: "manual" },
     transport: { provider: "NOAA STAR VHI text endpoint", method: "Direct GET" },
     storage: { target: "backend/seed/vhi_history.json" },
@@ -1495,6 +1496,10 @@ export default function DataMapPage() {
 
         <Card title="Per-workflow → exact dashboard visual">
           <WorkflowTable />
+        </Card>
+
+        <Card title="Workflow activity — what actually ran, last 7 days">
+          <WorkflowActivity />
         </Card>
 
         <Card title="Live workflow inventory — auto-generated from YAML">

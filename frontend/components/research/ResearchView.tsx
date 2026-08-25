@@ -723,12 +723,12 @@ function OriginLogistics() {
           <CostRow label="Cargo insurance" cost="0.61" note="In-transit policy" />
           <CostRow label="LoLo (port handling)" cost="2.43" note="Load on / Load off at berth" />
           <CostRow label="Dunnage & securing" cost="0.71" note="Container stuffing materials" />
-          <CostRow label="Fumigation" cost="1.25" note="MARD-mandated phytosanitary fumigation" />
+          <CostRow label="Fumigation" cost="1.25" note="MAE-mandated phytosanitary fumigation" />
           <CostRow label="Quality inspection" cost="1.23" note="Weight + quality certificate" />
           <CostRow label="Forwarder service fee" cost="0.50" note="Freight-forwarding agent" />
           <CostRow label="Customs declaration" cost="0.38" note="Customs brokerage" />
           <CostRow label="Bill of Lading" cost="0.18" note="Shipping document issuance" />
-          <CostRow label="Phytosanitary certificate" cost="0.07" note="MARD phytosanitary cert" />
+          <CostRow label="Phytosanitary certificate" cost="0.07" note="MAE phytosanitary cert" />
           <CostRow label="THC (terminal handling)" cost="5.87" note="Cat Lai terminal handling charge" />
           <CostRow label="Port infrastructure fee" cost="0.48" note="Vietnam port authority" />
           <CostRow label="Container seal" cost="0.38" note="Security seal" />

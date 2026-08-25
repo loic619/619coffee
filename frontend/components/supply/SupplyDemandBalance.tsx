@@ -29,7 +29,7 @@ export interface SDForecast {
 
 /** Multi-source enrichment (option-in): when the calling tab has a richer
  *  per-source production estimate (e.g. Vietnam's vn_farmer_economics
- *  carries USDA + MARD + ICO numbers), pass it here to:
+ *  carries USDA + MAE + ICO numbers), pass it here to:
  *    • show production as `avg (min–max)` in the table for matching crops,
  *    • render an error bar on the production line over the same crops,
  *    • append any season the USDA backbone doesn't carry (typically the

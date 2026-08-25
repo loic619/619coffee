@@ -29,7 +29,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.3
+          "arabica_washed": 1.3
         }
       }
     },
@@ -42,7 +42,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.4
+          "arabica_washed": 1.4
         }
       }
     },
@@ -55,7 +55,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.5
+          "arabica_washed": 1.5
         }
       }
     },
@@ -68,7 +68,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.5
+          "arabica_washed": 1.5
         }
       }
     },
@@ -81,7 +81,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.6
+          "arabica_washed": 1.6
         }
       }
     },
@@ -94,9 +94,10 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.6
+          "arabica_washed": 1.6
         }
       }
     }
-  ]
+  ],
+  "arabica_split_basis": "washed 100% / natural 0% \u2014 Yunnan arabica is washed. Analyst convention applied to sources that publish only an arabica total; a source's own breakdown, or a hand edit in the crop-estimate editor, wins over it."
 }

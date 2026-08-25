@@ -371,8 +371,8 @@
         },
         "production_split": {
           "marex": {
-            "arabica": 1.1,
-            "robusta": 29.9
+            "robusta": 29.9,
+            "arabica_washed": 1.1
           }
         }
       },
@@ -387,8 +387,8 @@
         },
         "production_split": {
           "marex": {
-            "arabica": 1.1,
-            "robusta": 28.2
+            "robusta": 28.2,
+            "arabica_washed": 1.1
           }
         },
         "exports_ico": 25.0,
@@ -405,8 +405,8 @@
         },
         "production_split": {
           "marex": {
-            "arabica": 1.1,
-            "robusta": 26.8
+            "robusta": 26.8,
+            "arabica_washed": 1.1
           }
         },
         "exports_ico": 21.5,
@@ -424,8 +424,8 @@
         },
         "production_split": {
           "marex": {
-            "arabica": 1.2,
-            "robusta": 26.5
+            "robusta": 26.5,
+            "arabica_washed": 1.2
           }
         },
         "exports_ico": 27.0,
@@ -443,12 +443,12 @@
         },
         "production_split": {
           "marex": {
-            "arabica": 1.3,
-            "robusta": 30.8
+            "robusta": 30.8,
+            "arabica_washed": 1.3
           },
           "ecom": {
-            "arabica": 1.5,
-            "robusta": 34.6
+            "robusta": 34.6,
+            "arabica_washed": 1.5
           }
         },
         "exports_ico": 25.5,
@@ -465,12 +465,12 @@
         "production_final": 29.5,
         "production_split": {
           "marex": {
-            "arabica": 1.2,
-            "robusta": 30.0
+            "robusta": 30.0,
+            "arabica_washed": 1.2
           },
           "ecom": {
-            "arabica": 2.0,
-            "robusta": 34.0
+            "robusta": 34.0,
+            "arabica_washed": 2.0
           }
         }
       }
@@ -483,7 +483,7 @@
       },
       {
         "key": "mard",
-        "label": "MARD",
+        "label": "MAE",
         "color": "#10b981"
       },
       {
@@ -501,6 +501,7 @@
         "label": "ECOM",
         "color": "#f472b6"
       }
-    ]
+    ],
+    "arabica_split_basis": "washed 100% / natural 0% \u2014 The Son La / Dien Bien arabica crop is washed. Analyst convention applied to sources that publish only an arabica total; a source's own breakdown, or a hand edit in the crop-estimate editor, wins over it."
   }
 }

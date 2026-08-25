@@ -1,0 +1,74 @@
+name: "0.17 – Refresh Workflow Activity (7-day run record)"
+
+# Records what Actions actually RAN over the last 7 days into
+# frontend/public/data/workflow_activity.json, for the Data Platform Map's
+# activity panel.
+#
+# The inventory job (0.2) reads the YAML and describes what is DECLARED.
+# This one reads the API and describes what EXECUTED. The gap between the
+# two is where this project's silent failures have always lived: a cron
+# that never fires, a job that fires far more than expected, a run that
+# succeeds while its data sits still. Neither file alone shows that.
+#
+# Daily at 06:10 UTC — after the overnight scrapers and the export, so the
+# record covers a complete cycle. GITHUB_TOKEN carries actions:read by
+# default; no extra secret.
+
+on:
+  schedule:
+    - cron: '10 6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: build-workflow-activity
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Collect 7-day run record
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python backend/scripts/build_workflow_activity.py
+
+      - name: Commit if changed
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data/workflow_activity.json
+          if git diff --cached --quiet; then
+            echo "No activity change."
+            exit 0
+          fi
+          git commit -m "data: refresh workflow activity [skip ci]"
+          ok=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" \
+               && git push origin "HEAD:${GITHUB_REF_NAME}"; then ok=1; break; fi
+            echo "push attempt $attempt failed; retrying in $((5*attempt))s…"; sleep $((5 * attempt))
+          done
+          [ "$ok" = 1 ] || { echo "push failed after 5 attempts"; exit 1; }
+
+      - name: Notify on failure or cancellation
+        if: failure() || cancelled()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=🚨 ${{ github.workflow }} ${{ job.status }} — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true

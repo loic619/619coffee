@@ -11,7 +11,7 @@ import WeatherAnalogs from "@/components/supply/WeatherAnalogs";
 import SupplyDemandBalance from "@/components/supply/SupplyDemandBalance";
 import { buildRealizedExportsOverlay } from "@/lib/sdRealizedExports";
 
-// Vietnam's multi-source production estimates (USDA / MARD / ICO) ship in
+// Vietnam's multi-source production estimates (USDA / MAE / ICO) ship in
 // vn_farmer_economics.json under `balance_sheet`. We keep just the season
 // rows here so SupplyDemandBalance gets fed via its multiSource prop.
 interface VnSeasonRow {
@@ -29,7 +29,7 @@ interface VnBalanceSheet {
   seasons: VnSeasonRow[];
   /** Materialized by the admin crop-estimate editor's first new-source
    *  edit; absent on the legacy seed (legend falls back to the hardcoded
-   *  USDA/MARD/ICO below). */
+   *  USDA/MAE/ICO below). */
   sources?: { key: string; label: string; color: string }[];
 }
 
@@ -162,7 +162,8 @@ export default function VietnamTab() {
           multiSource={vnBalanceSheet ? {
             sources: vnBalanceSheet.sources ?? [
               { key: "usda", label: "USDA", color: "#3b82f6" },
-              { key: "mard", label: "MARD", color: "#10b981" },
+              // MAE since the 2025 merger — key unchanged, see the seed.
+              { key: "mard", label: "MAE", color: "#10b981" },
               { key: "ico",  label: "ICO",  color: "#f59e0b" },
             ],
             // Consumption deliberately omitted: the equation strip now pulls

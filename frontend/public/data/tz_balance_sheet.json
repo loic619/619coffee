@@ -29,8 +29,8 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 0.6,
-          "robusta": 0.5
+          "robusta": 0.5,
+          "arabica_washed": 0.6
         }
       }
     },
@@ -43,8 +43,8 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 0.7,
-          "robusta": 0.5
+          "robusta": 0.5,
+          "arabica_washed": 0.7
         }
       }
     },
@@ -57,8 +57,8 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 0.8,
-          "robusta": 0.6
+          "robusta": 0.6,
+          "arabica_washed": 0.8
         }
       }
     },
@@ -71,8 +71,8 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 0.8,
-          "robusta": 0.6
+          "robusta": 0.6,
+          "arabica_washed": 0.8
         }
       }
     },
@@ -85,8 +85,8 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 0.8,
-          "robusta": 0.6
+          "robusta": 0.6,
+          "arabica_washed": 0.8
         }
       }
     },
@@ -99,10 +99,11 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 0.8,
-          "robusta": 0.6
+          "robusta": 0.6,
+          "arabica_washed": 0.8
         }
       }
     }
-  ]
+  ],
+  "arabica_split_basis": "washed 100% / natural 0% \u2014 Northern (Kilimanjaro/Arusha) and southern (Mbeya) arabica is washed; Kagera's crop is robusta. Analyst convention applied to sources that publish only an arabica total; a source's own breakdown, or a hand edit in the crop-estimate editor, wins over it."
 }

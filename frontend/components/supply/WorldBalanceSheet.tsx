@@ -1,7 +1,17 @@
 "use client";
 // World coffee balance sheet — an accounting-style statement of where the
-// crop comes from and where it goes, in million 60-kg bags, split three
-// ways (arabica washed / arabica natural / robusta).
+// crop comes from and where it goes, in million 60-kg bags.
+//
+// Three levels of depth, all collapsible:
+//   · Columns — Arabica as one column, or ungrouped into washed / natural
+//     (plus the legacy unsplit leg while anything still uses it) with
+//     "Arabica (all)" carrying the subtotal.
+//   · Rows, supply — region group → origin → that origin's quality grades,
+//     in the origin's OWN vocabulary (Honduras SHG/HG/Standard, Vietnam
+//     G1/G2/G3, Brazil fine cup/GC/Rio). Nothing is harmonised across
+//     origins, so a grade row is only ever summed inside its own origin.
+//   · Rows, demand — hub → channel → the form it is sold in (retail ground,
+//     beans, pads, capsules, RTD, instant pure, instant mixes; coffee shop).
 //
 // Two kinds of line, deliberately:
 //   · Production is DERIVED from the same per-origin crop-estimate seeds
@@ -11,43 +21,17 @@
 //     has no upstream feed, so it lives in world_balance_sheet.json and is
 //     editable in place (admin password, same write path as crop estimates).
 //
-// The statement balances by construction: Total supply − Total demand is
-// shown as the residual, which is the number an analyst actually reads.
+// Grades and segments are stored as shares of their parent leg and split
+// with a largest-remainder allocator, so a reader can add a column of
+// children and land on the subtotal exactly.
 import { useEffect, useMemo, useState } from "react";
-
-// `arabica` is the LEGACY unsplit leg. It gets its own column rather than
-// being folded into natural: most origins still carry it, and guessing a
-// process for them would be wrong in both directions (Colombia and the MAG
-// 6 are washed, Brazil is largely natural). The column hides itself once
-// every origin has been restated as washed/natural in the editor.
-const LEGS = ["arabica_washed", "arabica_natural", "arabica", "robusta"] as const;
-type Leg = (typeof LEGS)[number];
-const LEG_LABEL: Record<Leg, string> = {
-  arabica_washed: "Ar. washed",
-  arabica_natural: "Ar. natural",
-  arabica: "Ar. unsplit",
-  robusta: "Robusta",
-};
-const LEG_TONE: Record<Leg, string> = {
-  arabica_washed: "text-amber-300",
-  arabica_natural: "text-orange-400",
-  arabica: "text-amber-600",
-  robusta: "text-emerald-400",
-};
-
-type Legs = Partial<Record<Leg, number>>;
-interface Line {
-  key: string; label: string;
-  arabica_washed?: number; arabica_natural?: number; arabica?: number; robusta?: number;
-}
-interface Risk {
-  key: string; driver: string; origin: string; crop: string;
-  impact_m_bags: number; probability: number; note?: string;
-}
-export interface WorldBalanceDoc {
-  crop_year: string; unit: string; updated: string; note?: string;
-  carry_in: Line[]; demand_hubs: Line[]; carry_out: Line[]; risks: Risk[];
-}
+import WorldBalanceEditor from "./WorldBalanceEditor";
+import {
+  LEGS, LEG_LABEL, LEG_TONE, allocate,
+  addLegs, arabicaAll, emptyLegs, fmt, legTotal, r1,
+  type DemandSegmentsDoc, type GradeRow, type Leg, type Legs, type Line,
+  type OriginGradesDoc, type Risk, type WorldBalanceDoc,
+} from "@/lib/worldBalance";
 
 interface SeedSeason {
   season: string;
@@ -82,30 +66,134 @@ const GROUPS: { label: string; origins: string[] }[] = [
   { label: "Africa",      origins: ["uganda", "ethiopia", "ivory_coast", "tanzania"] },
 ];
 
-const r1 = (v: number) => Math.round(v * 10) / 10;
-const fmt = (v: number) => (Math.abs(v) < 0.05 ? "–" : v.toFixed(1));
-const emptyLegs = (): Record<Leg, number> =>
-  ({ arabica_washed: 0, arabica_natural: 0, arabica: 0, robusta: 0 });
-const addLegs = (a: Record<Leg, number>, b: Legs) => {
-  for (const l of LEGS) a[l] += b[l] ?? 0;
-  return a;
-};
-const legTotal = (l: Record<Leg, number>) => LEGS.reduce((s, k) => s + l[k], 0);
+/** One line of the statement. A row with children is collapsible; its own
+ *  numbers are the parent total, never the sum of what is rendered below it,
+ *  so collapsing never changes what the statement says. */
+interface StmtRow {
+  key: string;
+  label: string;
+  legs: Record<Leg, number>;
+  children?: StmtRow[];
+  tone?: string;
+  title?: string;
+  /** Subtotal / total line — heavier rule and bold figures. */
+  bold?: boolean;
+  /** Tints a grade row with the leg it belongs to. */
+  leg?: Leg;
+}
 
-export default function WorldBalanceSheet({
-  cropYear, onEdit,
-}: { cropYear?: string; onEdit?: () => void }) {
+interface ColDef {
+  key: string; label: string; tone: string;
+  value: (l: Record<Leg, number>) => number;
+}
+
+const legOnly = (leg: Leg, v: number): Record<Leg, number> => {
+  const l = emptyLegs();
+  l[leg] = v;
+  return l;
+};
+
+/** An origin's grades, in its own vocabulary. Legs with volume but no ladder
+ *  get one honest "ungraded" row rather than being silently dropped. */
+function gradeChildren(
+  origin: string,
+  legs: Record<Leg, number>,
+  ladders: Partial<Record<Leg, GradeRow[]>> | undefined,
+): StmtRow[] {
+  const out: StmtRow[] = [];
+  for (const leg of LEGS) {
+    const v = legs[leg];
+    if (!v) continue;
+    const ladder = ladders?.[leg];
+    if (!ladder?.length) {
+      out.push({
+        key: `${origin}:${leg}:ungraded`, leg,
+        label: `${LEG_LABEL[leg]} — ungraded`,
+        legs: legOnly(leg, v),
+        title: "No grade ladder filed for this origin and leg yet",
+      });
+      continue;
+    }
+    const parts = allocate(v, ladder.map(g => g.share));
+    ladder.forEach((g, i) => out.push({
+      key: `${origin}:${leg}:${g.key}`, leg,
+      label: g.label,
+      legs: legOnly(leg, parts[i]),
+      title: `${LEG_LABEL[leg]} · ${Math.round(g.share * 100)}% of the leg`,
+    }));
+  }
+  return out;
+}
+
+/** A hub's consumption by the form it is sold in, grouped by channel. */
+function segmentChildren(
+  hubKey: string, legs: Record<Leg, number>, sd: DemandSegmentsDoc,
+): StmtRow[] {
+  const mix = sd.hub_mix?.[hubKey] ?? sd.default_mix;
+  const perSeg: Record<string, Record<Leg, number>> = {};
+  for (const s of sd.segments) perSeg[s.key] = emptyLegs();
+
+  for (const leg of LEGS) {
+    const v = legs[leg];
+    if (!v) continue;
+    const m = mix?.[leg] ?? sd.default_mix?.[leg];
+    const shares = sd.segments.map(s => m?.[s.key] ?? 0);
+    const tot = shares.reduce((a, b) => a + b, 0);
+    // Renormalise rather than trust the file: a mix that does not quite sum
+    // to 1 should stretch to the hub total, not leak volume out of the row.
+    const parts = allocate(v, tot > 0 ? shares.map(s => s / tot) : shares);
+    sd.segments.forEach((s, i) => { perSeg[s.key][leg] = parts[i]; });
+  }
+
+  return sd.channels.map(ch => {
+    const kids = sd.segments.filter(s => s.channel === ch.key).map(s => ({
+      key: `${hubKey}:seg:${s.key}`, label: s.label, legs: perSeg[s.key],
+    }));
+    const total = kids.reduce((acc, k) => addLegs(acc, k.legs), emptyLegs());
+    // A one-segment channel (the coffee shop) is its own line — no expander
+    // that reveals a single identical row.
+    return kids.length === 1
+      ? { key: `${hubKey}:ch:${ch.key}`, label: ch.label, legs: total }
+      : { key: `${hubKey}:ch:${ch.key}`, label: ch.label, legs: total, children: kids };
+  });
+}
+
+function collectKeys(rows: StmtRow[], into: string[] = []): string[] {
+  for (const r of rows) {
+    if (r.children?.length) { into.push(r.key); collectKeys(r.children, into); }
+  }
+  return into;
+}
+
+export default function WorldBalanceSheet({ cropYear }: { cropYear?: string }) {
+  /** Bumped by the editor after a successful save so the statement re-reads
+   *  the file — the commit lands ~2 min later, so this is a nudge for the
+   *  next visit rather than an instant refresh. */
+  const [reload, setReload] = useState(0);
   const [doc, setDoc]   = useState<WorldBalanceDoc | null>(null);
   const [prod, setProd] = useState<Record<string, Record<Leg, number>> | null>(null);
+  const [grades, setGrades] = useState<OriginGradesDoc | null>(null);
+  const [segs, setSegs]     = useState<DemandSegmentsDoc | null>(null);
   const [unsplitOrigins, setUnsplitOrigins] = useState<string[]>([]);
   const [failed, setFailed] = useState(false);
+  const [arabicaSplit, setArabicaSplit] = useState(true);
+  const [open, setOpen] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    fetch("/data/world_balance_sheet.json")
+    fetch(`/data/world_balance_sheet.json?t=${reload}`)
       .then(r => (r.ok ? r.json() : null))
       .then((d: WorldBalanceDoc | null) => d ? setDoc(d) : setFailed(true))
       .catch(() => setFailed(true));
-  }, []);
+  }, [reload]);
+
+  // The depth-3 files are optional: without them the statement still reads
+  // exactly as before, just with nothing to expand into.
+  useEffect(() => {
+    fetch(`/data/origin_grades.json?t=${reload}`)
+      .then(r => (r.ok ? r.json() : null)).then(setGrades).catch(() => {});
+    fetch(`/data/demand_segments.json?t=${reload}`)
+      .then(r => (r.ok ? r.json() : null)).then(setSegs).catch(() => {});
+  }, [reload]);
 
   const season = cropYear ?? doc?.crop_year;
 
@@ -136,6 +224,7 @@ export default function WorldBalanceSheet({
           }
           legs.arabica_washed  = acc.arabica_washed  / splits.length;
           legs.arabica_natural = acc.arabica_natural / splits.length;
+          legs.arabica         = acc.arabica         / splits.length;
           legs.robusta         = acc.robusta         / splits.length;
         }
         // Scale the split to the headline figure so the origin's world-view
@@ -146,9 +235,7 @@ export default function WorldBalanceSheet({
         const splitTotal = legTotal(legs);
         if (splitTotal > 0 && headline > 0) {
           const k = headline / splitTotal;
-          legs.arabica_washed  = r1(legs.arabica_washed  * k);
-          legs.arabica_natural = r1(legs.arabica_natural * k);
-          legs.robusta         = r1(legs.robusta         * k);
+          for (const l of LEGS) legs[l] = r1(legs[l] * k);
         }
         return [o, legs, usedLegacy] as const;
       } catch { return [o, null, false] as const; }
@@ -181,6 +268,55 @@ export default function WorldBalanceSheet({
     return { production, carryIn, demand, carryOut, supply, totalDemand, residual };
   }, [prod, doc]);
 
+  // ── Statement rows ────────────────────────────────────────────────────
+  const supplyRows = useMemo<StmtRow[]>(() => {
+    if (!doc || !prod) return [];
+    const rows: StmtRow[] = (doc.carry_in ?? []).map(l => ({
+      key: `ci:${l.key}`, label: l.label, legs: addLegs(emptyLegs(), l), tone: "text-slate-400",
+    }));
+    rows.push({ key: "ci:total", label: "Carry-in stocks", legs: sums.carryIn, bold: true });
+    for (const g of GROUPS) {
+      const kids = g.origins
+        .filter(o => prod[o] && legTotal(prod[o]) > 0)
+        .map(o => ({
+          key: `pr:${o}`, label: ORIGIN_FILES[o].label, legs: prod[o], tone: "text-slate-400",
+          children: gradeChildren(o, prod[o], grades?.origins?.[o]),
+        }));
+      const legs = kids.reduce((acc, k) => addLegs(acc, k.legs), emptyLegs());
+      rows.push({
+        key: `pr:g:${g.label}`, label: g.label, legs, tone: "text-slate-400",
+        title: g.origins.map(o => ORIGIN_FILES[o].label).join(", "),
+        // Brazil and Colombia are their own group — expanding to a single
+        // identical row would be noise, so they go straight to grades.
+        children: kids.length === 1 ? kids[0].children : kids,
+      });
+    }
+    rows.push({ key: "pr:total", label: "Total production", legs: sums.production, bold: true });
+    rows.push({ key: "supply:total", label: "TOTAL SUPPLY", legs: sums.supply, bold: true, tone: "text-emerald-300" });
+    return rows;
+  }, [doc, prod, grades, sums]);
+
+  const demandRows = useMemo<StmtRow[]>(() => {
+    if (!doc) return [];
+    const rows: StmtRow[] = (doc.demand_hubs ?? []).map(l => {
+      const legs = addLegs(emptyLegs(), l);
+      return {
+        key: `dh:${l.key}`, label: l.label, legs, tone: "text-slate-400",
+        children: segs ? segmentChildren(l.key, legs, segs) : undefined,
+      };
+    });
+    rows.push({ key: "dh:total", label: "Total consumption", legs: sums.demand, bold: true });
+    for (const l of doc.carry_out ?? []) {
+      rows.push({ key: `co:${l.key}`, label: l.label, legs: addLegs(emptyLegs(), l), tone: "text-slate-400" });
+    }
+    rows.push({ key: "co:total", label: "Total carry-out", legs: sums.carryOut, bold: true });
+    rows.push({ key: "demand:total", label: "TOTAL DEMAND", legs: sums.totalDemand, bold: true, tone: "text-red-300" });
+    return rows;
+  }, [doc, segs, sums]);
+
+  const allKeys = useMemo(
+    () => collectKeys([...supplyRows, ...demandRows]), [supplyRows, demandRows]);
+
   if (failed) {
     return (
       <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 text-[10px] text-slate-500">
@@ -188,52 +324,80 @@ export default function WorldBalanceSheet({
       </div>
     );
   }
-  // Columns actually shown: drop the legacy arabica column once every
-  // origin (and every hand-entered line) has been restated.
-  const legacyInUse =
-    Object.values(prod ?? {}).some(l => (l.arabica ?? 0) > 0) ||
-    [...(doc?.carry_in ?? []), ...(doc?.demand_hubs ?? []), ...(doc?.carry_out ?? [])]
-      .some(l => (l.arabica ?? 0) > 0);
-  const cols: readonly Leg[] = legacyInUse ? LEGS : LEGS.filter(l => l !== "arabica");
-  /** Arabica however it is currently expressed — the column that keeps the
-   *  statement comparable while some origins are still unsplit. */
-  const arabicaAll = (l: Record<Leg, number>) =>
-    l.arabica_washed + l.arabica_natural + l.arabica;
-
   if (!doc || !prod) {
     return <div className="text-xs text-slate-500 animate-pulse py-8 text-center">Loading balance sheet…</div>;
   }
 
+  // The legacy arabica column shows itself only while something still uses it.
+  const legacyInUse =
+    Object.values(prod).some(l => (l.arabica ?? 0) > 0) ||
+    [...(doc.carry_in ?? []), ...(doc.demand_hubs ?? []), ...(doc.carry_out ?? [])]
+      .some(l => (l.arabica ?? 0) > 0);
+
+  const arabicaCol: ColDef = {
+    key: "arabica_all", label: arabicaSplit ? "Arabica (all)" : "Arabica",
+    tone: "text-amber-500", value: arabicaAll,
+  };
+  const robustaCol: ColDef = {
+    key: "robusta", label: LEG_LABEL.robusta, tone: LEG_TONE.robusta, value: l => l.robusta,
+  };
+  const cols: ColDef[] = arabicaSplit
+    ? [
+        { key: "arabica_washed", label: LEG_LABEL.arabica_washed, tone: LEG_TONE.arabica_washed, value: l => l.arabica_washed },
+        { key: "arabica_natural", label: LEG_LABEL.arabica_natural, tone: LEG_TONE.arabica_natural, value: l => l.arabica_natural },
+        ...(legacyInUse
+          ? [{ key: "arabica", label: LEG_LABEL.arabica, tone: LEG_TONE.arabica, value: (l: Record<Leg, number>) => l.arabica }]
+          : []),
+        arabicaCol, robustaCol,
+      ]
+    : [arabicaCol, robustaCol];
+  const span = cols.length + 2;
+
+  const toggle = (k: string) => setOpen(prev => {
+    const next = new Set(prev);
+    if (next.has(k)) next.delete(k); else next.add(k);
+    return next;
+  });
+
   const CARD = "bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3";
   const th = "text-right py-1 px-2 font-medium";
+  const chip = "text-[9px] px-2 py-0.5 transition-colors";
 
-  /** One statement row: label + three legs + total. */
-  const Row = ({ label, legs, tone = "text-slate-300", bold, indent, title }: {
-    label: string; legs: Record<Leg, number> | Legs;
-    tone?: string; bold?: boolean; indent?: boolean; title?: string;
-  }) => {
-    const full = addLegs(emptyLegs(), legs);
-    const tot = legTotal(full);
-    return (
-      <tr className={bold ? "border-t border-slate-600" : "border-t border-slate-800/60"} title={title}>
-        <td className={`py-1 pr-2 ${indent ? "pl-4" : ""} ${bold ? "font-bold" : ""} ${tone} whitespace-nowrap`}>
-          {label}
-        </td>
-        {cols.filter(l => l !== "robusta").map(l => (
-          <td key={l} className={`py-1 px-2 text-right font-mono ${bold ? "font-bold" : ""} ${tone}`}>
-            {fmt(full[l])}
+  const renderRows = (rows: StmtRow[], depth = 0): React.ReactNode[] =>
+    rows.flatMap(r => {
+      const kids = r.children ?? [];
+      const isOpen = open.has(r.key);
+      const tone = r.tone ?? (r.leg ? LEG_TONE[r.leg] : "text-slate-300");
+      const node = (
+        <tr key={r.key}
+          className={r.bold ? "border-t border-slate-600" : "border-t border-slate-800/60"}
+          title={r.title}>
+          <td className={`py-1 pr-2 ${r.bold ? "font-bold" : ""} ${tone} whitespace-nowrap`}
+            style={{ paddingLeft: depth * 12 }}>
+            {kids.length > 0 ? (
+              <button onClick={() => toggle(r.key)}
+                aria-expanded={isOpen}
+                className="mr-1 text-slate-600 hover:text-slate-300 transition-colors"
+                title={isOpen ? "Group" : "Ungroup"}>
+                {isOpen ? "▾" : "▸"}
+              </button>
+            ) : depth > 0 ? <span className="mr-1 inline-block w-[9px]" /> : null}
+            {r.label}
           </td>
-        ))}
-        <td className={`py-1 px-2 text-right font-mono ${bold ? "font-bold" : ""} text-amber-500`}>
-          {fmt(arabicaAll(full))}
-        </td>
-        <td className={`py-1 px-2 text-right font-mono ${bold ? "font-bold" : ""} ${tone}`}>
-          {fmt(full.robusta)}
-        </td>
-        <td className={`py-1 pl-2 text-right font-mono font-bold ${tone}`}>{fmt(tot)}</td>
-      </tr>
-    );
-  };
+          {cols.map(c => (
+            <td key={c.key}
+              className={`py-1 px-2 text-right font-mono ${r.bold ? "font-bold" : ""} ${
+                c.key === "arabica_all" && !r.bold ? "text-amber-500/90" : tone}`}>
+              {fmt(c.value(r.legs))}
+            </td>
+          ))}
+          <td className={`py-1 pl-2 text-right font-mono font-bold ${tone}`}>{fmt(legTotal(r.legs))}</td>
+        </tr>
+      );
+      return isOpen && kids.length
+        ? [node, ...renderRows(kids, depth + 1)]
+        : [node];
+    });
 
   return (
     <div className="space-y-4">
@@ -246,14 +410,32 @@ export default function WorldBalanceSheet({
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[8px] text-slate-600">updated {doc.updated}</span>
-            {onEdit && (
-              <button onClick={onEdit}
-                title="Edit the analyst-entered lines (stocks, demand, transit)"
-                className="text-[9px] px-1.5 py-0.5 rounded border border-slate-700 text-slate-500 hover:text-slate-200 hover:border-slate-500 transition-colors">
-                ✎
+            <div className="inline-flex rounded border border-slate-700 overflow-hidden">
+              <button onClick={() => setArabicaSplit(false)}
+                className={`${chip} ${!arabicaSplit ? "bg-slate-700 text-slate-100" : "text-slate-500 hover:text-slate-300"}`}
+                title="Arabica as one column">
+                Arabica grouped
               </button>
-            )}
+              <button onClick={() => setArabicaSplit(true)}
+                className={`${chip} ${arabicaSplit ? "bg-slate-700 text-slate-100" : "text-slate-500 hover:text-slate-300"}`}
+                title="Washed and natural as separate columns, with Arabica (all) as the subtotal">
+                Washed / natural
+              </button>
+            </div>
+            <div className="inline-flex rounded border border-slate-700 overflow-hidden">
+              <button onClick={() => setOpen(new Set(allKeys))}
+                className={`${chip} text-slate-500 hover:text-slate-200`}
+                title="Ungroup every row down to grades and segments">
+                Ungroup all
+              </button>
+              <button onClick={() => setOpen(new Set())}
+                className={`${chip} text-slate-500 hover:text-slate-200`}
+                title="Collapse back to the summary statement">
+                Group all
+              </button>
+            </div>
+            <span className="text-[8px] text-slate-600">updated {doc.updated}</span>
+            <WorldBalanceEditor production={sums.production} onSaved={() => setReload(n => n + 1)} />
           </div>
         </div>
 
@@ -262,86 +444,44 @@ export default function WorldBalanceSheet({
             <thead>
               <tr className="text-slate-500">
                 <th className="text-left py-1 pr-2 font-medium">Line</th>
-                {cols.filter(l => l !== "robusta").map(l => (
-                  <th key={l} className={`${th} ${LEG_TONE[l]}`}>{LEG_LABEL[l]}</th>
-                ))}
-                <th className={`${th} text-amber-500`}>Arabica (all)</th>
-                <th className={`${th} ${LEG_TONE.robusta}`}>{LEG_LABEL.robusta}</th>
+                {cols.map(c => <th key={c.key} className={`${th} ${c.tone}`}>{c.label}</th>)}
                 <th className={th}>Total</th>
               </tr>
             </thead>
             <tbody>
-              {/* ── SUPPLY ─────────────────────────────────────────── */}
               <tr className="border-t-2 border-slate-500/50">
-                <td colSpan={cols.length + 3} className="pt-2 pb-0.5 text-[8px] uppercase tracking-wider font-bold text-emerald-500">
+                <td colSpan={span} className="pt-2 pb-0.5 text-[8px] uppercase tracking-wider font-bold text-emerald-500">
                   Supply
                 </td>
               </tr>
-              {doc.carry_in.map(l => (
-                <Row key={l.key} label={l.label} legs={l} indent tone="text-slate-400" />
-              ))}
-              <Row label="Carry-in stocks" legs={sums.carryIn} bold tone="text-slate-300" />
+              {renderRows(supplyRows)}
 
-              <tr><td colSpan={cols.length + 3} className="pt-1.5 pb-0.5 pl-1 text-[8px] uppercase tracking-wider text-slate-600">
-                Production (derived from crop estimates)
-              </td></tr>
-              {GROUPS.map(g => {
-                const groupLegs = g.origins.reduce(
-                  (acc, o) => addLegs(acc, prod[o] ?? {}), emptyLegs());
-                return (
-                  <Row key={g.label} label={g.label} legs={groupLegs} indent tone="text-slate-400"
-                    title={g.origins.map(o => ORIGIN_FILES[o].label).join(", ")} />
-                );
-              })}
-              <Row label="Total production" legs={sums.production} bold tone="text-slate-300" />
-              <Row label="TOTAL SUPPLY" legs={sums.supply} bold tone="text-emerald-300" />
-
-              {/* ── DEMAND ─────────────────────────────────────────── */}
               <tr className="border-t-2 border-slate-500/50">
-                <td colSpan={cols.length + 3} className="pt-3 pb-0.5 text-[8px] uppercase tracking-wider font-bold text-red-400">
+                <td colSpan={span} className="pt-3 pb-0.5 text-[8px] uppercase tracking-wider font-bold text-red-400">
                   Demand
                 </td>
               </tr>
-              {doc.demand_hubs.map(l => (
-                <Row key={l.key} label={l.label} legs={l} indent tone="text-slate-400" />
-              ))}
-              <Row label="Total consumption" legs={sums.demand} bold tone="text-slate-300" />
+              {renderRows(demandRows)}
 
-              <tr><td colSpan={cols.length + 3} className="pt-1.5 pb-0.5 pl-1 text-[8px] uppercase tracking-wider text-slate-600">
-                Carry-out
-              </td></tr>
-              {doc.carry_out.map(l => (
-                <Row key={l.key} label={l.label} legs={l} indent tone="text-slate-400" />
-              ))}
-              <Row label="Total carry-out" legs={sums.carryOut} bold tone="text-slate-300" />
-              <Row label="TOTAL DEMAND" legs={sums.totalDemand} bold tone="text-red-300" />
-
-              {/* ── BALANCE ────────────────────────────────────────── */}
               <tr className="border-t-2 border-slate-500">
                 <td className="py-1.5 pr-2 font-bold text-slate-200">Balance (supply − demand)</td>
-                {cols.filter(l => l !== "robusta").map(l => (
+                {cols.map(c => {
                   // While any production is still unsplit, a per-process
                   // residual compares a washed/natural demand line against a
                   // supply line that has no process — structurally
                   // meaningless. Suppress it and let Arabica (all) carry the
                   // balance until the restating is done.
-                  <td key={l} className={`py-1.5 px-2 text-right font-mono font-bold ${
-                    legacyInUse ? "text-slate-700"
-                      : sums.residual[l] >= 0 ? "text-emerald-400" : "text-red-400"}`}
-                    title={legacyInUse
-                      ? "Not comparable while some production is unsplit — see Arabica (all)"
-                      : undefined}>
-                    {legacyInUse ? "–" : `${sums.residual[l] >= 0 ? "+" : ""}${fmt(sums.residual[l])}`}
-                  </td>
-                ))}
-                <td className={`py-1.5 px-2 text-right font-mono font-bold ${
-                  arabicaAll(sums.residual) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                  {arabicaAll(sums.residual) >= 0 ? "+" : ""}{fmt(arabicaAll(sums.residual))}
-                </td>
-                <td className={`py-1.5 px-2 text-right font-mono font-bold ${
-                  sums.residual.robusta >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                  {sums.residual.robusta >= 0 ? "+" : ""}{fmt(sums.residual.robusta)}
-                </td>
+                  const dead = legacyInUse && (c.key === "arabica_washed" || c.key === "arabica_natural");
+                  const v = c.value(sums.residual);
+                  return (
+                    <td key={c.key}
+                      className={`py-1.5 px-2 text-right font-mono font-bold ${
+                        dead ? "text-slate-700" : v >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                      title={dead ? "Not comparable while some production is unsplit — see Arabica (all)" : undefined}>
+                      {dead ? "–" : `${v >= 0 ? "+" : ""}${fmt(v)}`}
+                    </td>
+                  );
+                })}
                 <td className={`py-1.5 pl-2 text-right font-mono font-bold ${
                   legTotal(sums.residual) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                   {legTotal(sums.residual) >= 0 ? "+" : ""}{fmt(legTotal(sums.residual))}
@@ -363,6 +503,13 @@ export default function WorldBalanceSheet({
             span both ({unsplitOrigins.join(", ")}). Split them in the editor&apos;s by-source
             view and the column disappears.</>
           )}
+          {" "}Arabica is stated by processing. Where a source publishes only a country
+          total, the washed/natural cut comes from that origin&apos;s processing convention,
+          recorded in the seed&apos;s <span className="text-slate-500">arabica_split_basis</span> —
+          a source&apos;s own breakdown, or a hand edit, always wins over it.
+          {" "}Ungrouping an origin shows its grades in its own vocabulary and ungrouping a hub
+          shows the form the coffee is sold in; both are shares of the line above them, so a
+          column of children always adds back to its parent exactly.
           {" "}A non-zero balance is the statement&apos;s residual: it is not forced to zero,
           so it reads as the gap your assumptions imply.
         </div>

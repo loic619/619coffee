@@ -91,7 +91,10 @@ MANUAL_SOURCE_REFS = {
         ("ICO",  "https://www.ico.org/coffee-market-report — Coffee Market Report (monthly)"),
     ],
     "vietnam": [
-        ("MARD", "https://www.mard.gov.vn — Bộ Nông nghiệp / monthly statistics"),
+        # MARD merged with the environment ministry in 2025 → Ministry of
+        # Agriculture and Environment. The seed key stays `mard` so the
+        # numbers already attributed to it keep their history.
+        ("MAE", "https://www.mard.gov.vn — Bộ Nông nghiệp và Môi trường (ex-MARD) / monthly statistics"),
         ("ICO",  "https://www.ico.org/coffee-market-report — Coffee Market Report (monthly)"),
     ],
 }

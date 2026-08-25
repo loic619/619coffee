@@ -34,7 +34,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 11.7
+          "arabica_washed": 11.7
         }
       }
     },
@@ -47,7 +47,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 10.6
+          "arabica_washed": 10.6
         }
       }
     },
@@ -60,7 +60,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 12.8
+          "arabica_washed": 12.8
         }
       }
     },
@@ -73,7 +73,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 13.9
+          "arabica_washed": 13.9
         }
       }
     },
@@ -87,7 +87,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 13.1
+          "arabica_washed": 13.1
         }
       }
     },
@@ -101,9 +101,10 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 13.5
+          "arabica_washed": 13.5
         }
       }
     }
-  ]
+  ],
+  "arabica_split_basis": "washed 100% / natural 0% \u2014 Fully washed \u2014 the reference for the washed arabica complex. Analyst convention applied to sources that publish only an arabica total; a source's own breakdown, or a hand edit in the crop-estimate editor, wins over it."
 }

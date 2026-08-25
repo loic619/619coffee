@@ -44,8 +44,8 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 32.0,
-          "robusta": 21.6
+          "robusta": 21.6,
+          "arabica_natural": 32.0
         }
       }
     },
@@ -60,8 +60,8 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 35.5,
-          "robusta": 24.0
+          "robusta": 24.0,
+          "arabica_natural": 35.5
         }
       }
     },
@@ -76,8 +76,8 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 44.8,
-          "robusta": 23.4
+          "robusta": 23.4,
+          "arabica_natural": 44.8
         }
       }
     },
@@ -94,8 +94,8 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 43.5,
-          "robusta": 22.0
+          "robusta": 22.0,
+          "arabica_natural": 43.5
         }
       }
     },
@@ -111,12 +111,12 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 38.5,
-          "robusta": 25.8
+          "robusta": 25.8,
+          "arabica_natural": 38.5
         },
         "ecom": {
-          "arabica": 36.5,
-          "robusta": 26.5
+          "robusta": 26.5,
+          "arabica_natural": 36.5
         }
       }
     },
@@ -132,18 +132,19 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 50.5,
-          "robusta": 25.5
+          "robusta": 25.5,
+          "arabica_natural": 50.5
         },
         "ecom": {
-          "arabica": 48.0,
-          "robusta": 27.8
+          "robusta": 27.8,
+          "arabica_natural": 48.0
         },
         "sopex": {
-          "arabica": 48.8,
-          "robusta": 26.5
+          "robusta": 26.5,
+          "arabica_natural": 48.8
         }
       }
     }
-  ]
+  ],
+  "arabica_split_basis": "washed 0% / natural 100% \u2014 Brazilian arabica is dry-processed (natural and pulped-natural); the trade prices the whole crop as naturals. Analyst convention applied to sources that publish only an arabica total; a source's own breakdown, or a hand edit in the crop-estimate editor, wins over it."
 }

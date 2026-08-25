@@ -34,7 +34,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 4.2
+          "arabica_washed": 4.2
         }
       }
     },
@@ -47,7 +47,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 3.6
+          "arabica_washed": 3.6
         }
       }
     },
@@ -60,7 +60,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 4.0
+          "arabica_washed": 4.0
         }
       }
     },
@@ -73,7 +73,7 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 3.7
+          "arabica_washed": 3.7
         }
       }
     },
@@ -87,10 +87,10 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 4.0
+          "arabica_washed": 4.0
         },
         "sopex": {
-          "arabica": 4.3
+          "arabica_washed": 4.3
         }
       }
     },
@@ -104,12 +104,13 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 4.2
+          "arabica_washed": 4.2
         },
         "sopex": {
-          "arabica": 4.1
+          "arabica_washed": 4.1
         }
       }
     }
-  ]
+  ],
+  "arabica_split_basis": "washed 100% / natural 0% \u2014 Other milds \u2014 washed. Analyst convention applied to sources that publish only an arabica total; a source's own breakdown, or a hand edit in the crop-estimate editor, wins over it."
 }
