@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-24T18:56:04.941437Z",
-  "count": 82,
+  "generated_at": "2026-08-25T03:50:21.150900Z",
+  "count": 81,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -203,20 +203,6 @@
       "workflow_run_deps": [],
       "concurrency_group": "build-workflow-inventory",
       "timeout_minutes": 5
-    },
-    {
-      "file": "capture-kc-at-rc-close.yml",
-      "name": "0.3 \u2013 Capture KC at RC Close",
-      "triggers": [
-        "schedule",
-        "workflow_dispatch"
-      ],
-      "crons": [
-        "0,15,30,45 16,17 * * 1-5"
-      ],
-      "workflow_run_deps": [],
-      "concurrency_group": "capture-kc-at-rc-close",
-      "timeout_minutes": 4
     },
     {
       "file": "cftc-options-book.yml",
@@ -1048,8 +1034,7 @@
         "workflow_dispatch"
       ],
       "crons": [
-        "2 18 * * 1-5",
-        "2 19 * * 1-5"
+        "50 18 * * 1-5"
       ],
       "workflow_run_deps": [],
       "concurrency_group": "tradespread",
@@ -1178,7 +1163,9 @@
         "version": "9.9"
       }
     ],
-    "stale_curation": [],
+    "stale_curation": [
+      "0.3"
+    ],
     "non_workflow_entries": [
       "Per-source Telegram alerts",
       "Acaphe poll",
@@ -1190,6 +1177,6 @@
       "various / manual"
     ],
     "uncovered_workflows_count": 16,
-    "stale_curation_count": 0
+    "stale_curation_count": 1
   }
 }
