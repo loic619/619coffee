@@ -10,11 +10,13 @@
 // Palette: categorical slots validated with the dataviz validator against this
 // app's surface (#0f172a) — lightness band, chroma floor, CVD separation,
 // normal-vision floor and contrast all pass.
+import { useEffect, useState } from "react";
 import {
   Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { Paper, H2, P, UL, LI, Code, Highlight, RefTable } from "../methodology/prose";
+import { loadHondurasLive, type HondurasLive } from "./hondurasLive";
 
 const C = { blue: "#3987e5", green: "#199e70", gold: "#c98500", rose: "#d55181", orange: "#d95926" };
 const tip = { background: "#0f172a", border: "1px solid #334155", borderRadius: 8, fontSize: 11 };
@@ -88,8 +90,365 @@ const TRUST_SUM = TRUST.reduce((s, t) => s + t.usd, 0);
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 const pct = (n: number, d = 1) => `${n.toFixed(d)}%`;
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** Dossier production keyed by PSD's row label (the season's START year), so
+ *  the two series line up on one axis without either being re-stamped. */
+const SD_BY_START: Record<number, { prod: number; exp: number; end: number }> = {};
+SD.forEach(r => { SD_BY_START[Number(r.y.slice(0, 4))] = { prod: r.prod, exp: r.exp, end: r.end }; });
+
+function Legend({ items }: { items: [string, string][] }) {
+  return (
+    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+      {items.map(([l, c]) => (
+        <span key={l} className="flex items-center gap-1.5 text-[10px] text-slate-400">
+          <span className="h-2 w-2 rounded-sm" style={{ background: c }} />{l}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function Figure({ title, note, height, children }: {
+  title: string; note?: string; height: number; children: React.ReactElement;
+}) {
+  return (
+    <div className="my-4 rounded-lg border border-slate-800 bg-slate-900/40 p-3">
+      <div className="mb-1 text-[10px] uppercase tracking-wide text-slate-400">{title}</div>
+      {note && <div className="mb-2 text-[10px] text-slate-500">{note}</div>}
+      <div style={{ height }}>
+        <ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+/** §§11–14. Split out because it is the only part of the page that depends on
+ *  a network read: the dossier renders whether or not the live series load. */
+function VintageCheck({ live }: { live: HondurasLive | null | false }) {
+  if (live === false) {
+    return (
+      <>
+        <H2>11 · The vintage check</H2>
+        <P className="text-slate-400">
+          The live series could not be loaded, so the 2021 dossier above stands unchecked against them.
+          Nothing here is stale — it is simply unverified this session.
+        </P>
+      </>
+    );
+  }
+  if (!live) {
+    return (
+      <>
+        <H2>11 · The vintage check</H2>
+        <P className="text-slate-500">Reading the app&rsquo;s live series…</P>
+      </>
+    );
+  }
+
+  const psd = live.psd;
+  const overlap = psd.filter(r => SD_BY_START[r.y] != null);
+  const forward = psd.filter(r => SD_BY_START[r.y] == null);
+  // How far apart the two sources sit on the years they both cover. Signed and
+  // averaged, so a consistent level gap is distinguishable from noise.
+  const prodGap = overlap.length
+    ? overlap.reduce((s, r) => s + (r.prod - SD_BY_START[r.y].prod) / SD_BY_START[r.y].prod, 0) / overlap.length * 100
+    : NaN;
+  const expGap = overlap.length
+    ? overlap.reduce((s, r) => s + (r.exp - SD_BY_START[r.y].exp) / SD_BY_START[r.y].exp, 0) / overlap.length * 100
+    : NaN;
+  const stockRatio = overlap.length
+    ? overlap.reduce((s, r) => s + SD_BY_START[r.y].end, 0) / overlap.reduce((s, r) => s + r.end, 0)
+    : NaN;
+  const chart = psd.map(r => ({
+    y: r.y, label: `${r.y}-${String(r.y + 1).slice(2)}`,
+    psd: Math.round(r.prod), dossier: SD_BY_START[r.y]?.prod ?? null,
+  }));
+  const worstResid = psd.reduce((a, r) => (Math.abs(r.resid) > Math.abs(a.resid) ? r : a), psd[0]);
+
+  const shg = live.conventional.find(g => g.grade === "SHG");
+  const hg = live.conventional.find(g => g.grade === "HG");
+  const shgC = live.certified.find(g => g.grade === "SHG");
+  const euPorts = live.portShare.filter(p => ["Antwerp", "Hamburg", "Bremen"].indexOf(p.port) >= 0);
+  const euOffers = euPorts.reduce((s, p) => s + p.n, 0);
+
+  const bestLag = live.cortesLag.length
+    ? live.cortesLag.reduce((a, b) => (b.r > a.r ? b : a))
+    : null;
+  const seasonHolds = live.cortesYears.filter(y => y.springX > 1 && y.autumnX < 1).length;
+
+  const appNames = live.appRegions.map(r => r.name);
+  const shared = REGIONS.filter(r => appNames.indexOf(r.name) >= 0).map(r => r.name);
+  const dossierOnly = REGIONS.filter(r => appNames.indexOf(r.name) < 0).map(r => r.name);
+  const appOnly = appNames.filter(n => REGIONS.every(r => r.name !== n));
+
+  return (
+    <>
+      <H2>11 · The vintage check — the dossier against USDA</H2>
+      <P>
+        The dossier stops at 2020-21. The app carries USDA PSD for Honduras back to 1960 and forward to{" "}
+        <Code>{psd[psd.length - 1].y}-{String(psd[psd.length - 1].y + 1).slice(2)}</Code>, which both extends
+        the series and — more usefully — gives the dossier an independent second opinion on the years it
+        does cover. On the {overlap.length} overlapping years USDA runs{" "}
+        <strong>{prodGap.toFixed(1)}%</strong> against the dossier on production and{" "}
+        <strong>{expGap.toFixed(1)}%</strong> on exports: a consistent level difference, not noise, and small
+        enough that the two are recognisably describing the same country.
+      </P>
+      <Figure
+        title="Production — the dossier vs USDA PSD, thousand 60-kg bags"
+        note="Both series on one scale. USDA continues past the point where the dossier stops."
+        height={230}
+      >
+        <ComposedChart data={chart} margin={{ top: 6, right: 12, bottom: 4, left: 0 }}>
+          <CartesianGrid stroke="#1e293b" vertical={false} />
+          <XAxis dataKey="label" tick={{ fontSize: 8, fill: "#64748b" }} minTickGap={4} />
+          <YAxis tick={{ fontSize: 9, fill: "#64748b" }} width={48}
+            tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
+          <Tooltip contentStyle={tip} formatter={(v, n) => [v == null ? "—" : fmt(Number(v)), String(n)]} />
+          <Bar dataKey="psd" name="USDA PSD" fill={C.blue} radius={[3, 3, 0, 0]} />
+          <Line dataKey="dossier" name="2021 dossier" stroke={C.gold} strokeWidth={2} dot={{ r: 2 }}
+            connectNulls={false} />
+        </ComposedChart>
+      </Figure>
+      <Legend items={[["USDA PSD", C.blue], ["2021 dossier", C.gold]]} />
+
+      <Highlight>
+        <strong>Where they genuinely disagree: stocks.</strong> Across the overlapping years the dossier
+        carries ending stocks averaging <strong>{stockRatio.toFixed(1)}×</strong> USDA&rsquo;s. This is not a
+        level offset of a few percent like production — it is two different pictures of the same origin. The
+        dossier shows a large, growing carry-out; USDA shows an origin that ships nearly everything it grows
+        and holds almost nothing. The §10 paragraph about cover has been qualified accordingly. Note the two
+        are not measuring quite the same thing either: the app tracks PSD&rsquo;s <em>bean</em> attributes,
+        so soluble and roast-and-ground flows sit outside the balance — visible as a residual of up to{" "}
+        {fmt(Math.round(Math.abs(worstResid.resid)))}k bags in {worstResid.y}-
+        {String(worstResid.y + 1).slice(2)}, against dossier rows that closed to zero exactly.
+      </Highlight>
+
+      <P>
+        Forward of the dossier, USDA has Honduras oscillating in a{" "}
+        <strong>{(Math.min(...forward.map(r => r.prod)) / 1000).toFixed(1)}–
+        {(Math.max(...forward.map(r => r.prod)) / 1000).toFixed(1)}m bag</strong> band — no return to the
+        2016-17 peak the dossier recorded, and a flatter series than the 2010s.
+      </P>
+      <RefTable
+        head={["Crop year", "Initial", "Production", "Domestic", "Exports", "Ending"]}
+        rows={forward.map(r => [
+          `${r.y}-${String(r.y + 1).slice(2)}`,
+          fmt(Math.round(r.init)), fmt(Math.round(r.prod)), fmt(Math.round(r.dom)),
+          fmt(Math.round(r.exp)),
+          <span key={r.y} className="font-semibold text-slate-200">{fmt(Math.round(r.end))}</span>,
+        ])}
+      />
+      <P className="text-slate-400">
+        USDA FAS PSD, thousand 60-kg bags, read live from the app&rsquo;s own copy.
+      </P>
+
+      {live.estimates.length > 0 && (
+        <>
+          <P>
+            The crop-estimate board carries a second forecaster alongside USDA, which is the more honest way
+            to read a forward number — where they part company is the uncertainty:
+          </P>
+          <RefTable
+            head={["Season", "USDA", "Marex", "Spread", ""]}
+            rows={live.estimates.map(e => [
+              e.season,
+              e.usda == null ? "—" : `${e.usda.toFixed(1)}m`,
+              e.marex == null ? "—" : `${e.marex.toFixed(1)}m`,
+              e.usda != null && e.marex != null
+                ? <span key={e.season} className={Math.abs(e.usda - e.marex) >= 0.5 ? "font-semibold text-amber-400" : "text-slate-400"}>
+                    {(e.usda - e.marex >= 0 ? "+" : "") + (e.usda - e.marex).toFixed(1)}m
+                  </span>
+                : "—",
+              e.forecast ? "forecast" : "actual",
+            ])}
+          />
+        </>
+      )}
+
+      <H2>12 · The altitude ladder, priced</H2>
+      <P>
+        §2 argued that Honduras trades as a differentiated origin because the mass of the crop sits in the
+        two upper altitude bands. The physical offer sheet lets that be checked with money rather than
+        asserted: of <strong>{live.offersTotal}</strong> live Honduran offers,{" "}
+        {live.offersQuoted} quote a differential to the board, and they sort into exactly the
+        dossier&rsquo;s ladder.
+      </P>
+      <RefTable
+        head={["Grade", "Conventional", "n", "Certified", "n"]}
+        rows={["SHG", "HG", "Stocklot"].map(g => {
+          const c = live.conventional.find(x => x.grade === g);
+          const k = live.certified.find(x => x.grade === g);
+          const cell = (s: typeof c) => s
+            ? <span className="font-semibold text-slate-200">{(s.median >= 0 ? "+" : "") + s.median.toFixed(0)}¢</span>
+            : "—";
+          return [
+            <strong key={g}>{g}</strong>,
+            <span key={`${g}c`}>{cell(c)}</span>, c ? String(c.n) : "—",
+            <span key={`${g}k`}>{cell(k)}</span>, k ? String(k.n) : "—",
+          ];
+        })}
+      />
+      <P>
+        {shg && hg && (
+          <>
+            The altitude step is worth <strong>{(shg.median - hg.median).toFixed(0)}¢</strong> on
+            conventional coffee — SHG at {shg.median >= 0 ? "+" : ""}{shg.median.toFixed(0)}¢ against HG at{" "}
+            {hg.median >= 0 ? "+" : ""}{hg.median.toFixed(0)}¢.{" "}
+          </>
+        )}
+        {shg && shgC && (
+          <>
+            Certification is worth more again: <strong>{(shgC.median - shg.median).toFixed(0)}¢</strong> on
+            top of SHG. {" "}
+          </>
+        )}
+        Stocklots price at a discount, which is what a stocklot is. Small samples per cell — read these as
+        the shape of the ladder, not as a fixing.
+      </P>
+      <P>
+        The destination split checks out too, from an angle the dossier never intended. Of the{" "}
+        {live.offersTotal} offers, <strong>{euOffers}</strong> sit in Antwerp, Hamburg or Bremen — the
+        physical market quotes Honduras where the dossier says it ships it (§9: 71% Europe, Germany and
+        Belgium 25% each). Antwerp alone carries{" "}
+        {live.portShare[0] && `${live.portShare[0].n} of them`}.
+      </P>
+
+      <H2>13 · The calendar, checked at the port</H2>
+      <P>
+        §4 takes the harvest pace from the dossier. Puerto Cortés — the port §9 names as the origin&rsquo;s
+        strategic dependency — reports daily container movements in the app, which makes the calendar
+        testable rather than merely stated.
+      </P>
+      {live.cortes.length === 12 && bestLag ? (
+        <>
+          <Figure
+            title="Puerto Cortés container exports by calendar month — 100 = the average month"
+            note={`All containerised exports, not coffee alone. ${Math.min(...live.cortes.map(r => r.n))}–${Math.max(...live.cortes.map(r => r.n))} observations per month.`}
+            height={190}
+          >
+            <BarChart data={live.cortes.map(r => ({ ...r, name: MONTHS[r.m - 1] }))}
+              margin={{ top: 4, right: 12, bottom: 4, left: 0 }}>
+              <CartesianGrid stroke="#1e293b" vertical={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 9, fill: "#64748b" }} interval={0} />
+              <YAxis tick={{ fontSize: 9, fill: "#64748b" }} width={40} />
+              <Tooltip contentStyle={tip}
+                formatter={(v) => [Number(v ?? 0).toFixed(0), "index"]} />
+              <Bar dataKey="index" radius={[4, 4, 0, 0]}>
+                {live.cortes.map(r => (
+                  <Cell key={r.m} fill={r.index >= 100 ? C.green : C.blue} />
+                ))}
+              </Bar>
+            </BarChart>
+          </Figure>
+          <Legend items={[["above an average month", C.green], ["below", C.blue]]} />
+          <P>
+            The port does not peak when the crop is picked. It peaks about a quarter later. Correlating the
+            monthly index against the dossier&rsquo;s harvest shares at each lag:
+          </P>
+          <RefTable
+            head={["Harvest lagged by", "Correlation with port exports"]}
+            rows={live.cortesLag.map(l => [
+              `${l.lag} month${l.lag === 1 ? "" : "s"}`,
+              <span key={l.lag} className={l.lag === bestLag.lag ? "font-semibold text-slate-200" : "text-slate-400"}>
+                r = {l.r >= 0 ? "+" : ""}{l.r.toFixed(3)}{l.lag === bestLag.lag ? "  ← peak" : ""}
+              </span>,
+            ])}
+          />
+          <P>
+            <strong>r = {bestLag.r >= 0 ? "+" : ""}{bestLag.r.toFixed(3)} at {bestLag.lag} months.</strong>{" "}
+            The lag is read off where the correlation peaks, not assumed. Read plainly: cherry picked in
+            December leaves Cortés in a box around March. That is the origin&rsquo;s pipeline delay, and it
+            is the gap between a weather event at harvest and the shipment it eventually shows up in.
+          </P>
+          <P>
+            One pooled correlation can be carried by a single season, so the per-year version matters more
+            than the r. It holds in <strong>{seasonHolds} of {live.cortesYears.length}</strong> complete
+            years:
+          </P>
+          <RefTable
+            head={["Year", "Mar–Apr vs average", "Oct–Nov vs average", "Ratio"]}
+            rows={live.cortesYears.map(y => [
+              String(y.year), `${y.springX.toFixed(2)}×`, `${y.autumnX.toFixed(2)}×`,
+              <span key={y.year} className="font-semibold text-slate-200">
+                {(y.springX / y.autumnX).toFixed(2)}×
+              </span>,
+            ])}
+          />
+          <P className="text-slate-400">
+            The caveat that matters: Cortés handles all of Honduras&rsquo; containerised trade, not only
+            coffee, so this is corroboration and not proof. It is suggestive because the swing is large for
+            an all-cargo series and because it lands where a coffee explanation predicts.
+          </P>
+        </>
+      ) : (
+        <P className="text-slate-400">Port series unavailable — the calendar stands unchecked.</P>
+      )}
+
+      <H2>14 · Six regions, or five? The two schemes do not match</H2>
+      <P>
+        §3 reproduces the dossier&rsquo;s census by department. The app tracks Honduras by IHCAFE growing
+        region, weighted on 2024 departmental output, and the two lists overlap only partly — which is worth
+        knowing before any figure is carried from one to the other.
+      </P>
+      <RefTable
+        head={["", "Regions"]}
+        rows={[
+          [<strong key="a">In both</strong>, shared.length ? shared.join(" · ") : "—"],
+          [<strong key="b">Dossier only</strong>, dossierOnly.length ? dossierOnly.join(" · ") : "—"],
+          [<strong key="c">App only</strong>, appOnly.length ? appOnly.join(" · ") : "—"],
+        ]}
+      />
+      <P>
+        Montecillos and Agalta are IHCAFE denomination names rather than departments, which is the tell: the
+        dossier tabulated an administrative cut and this profile originally described it as a denomination
+        cut. §3 has been corrected. The practical consequence is that a per-region yield from §3 cannot be
+        joined to a per-region weather or vegetation reading without deciding what to do about the three
+        names that only exist on one side.
+      </P>
+      {live.vhi.length > 0 && (
+        <>
+          <P>
+            Where the crop stands as this renders — NOAA vegetation health, the app&rsquo;s own weekly read,
+            worst region first:
+          </P>
+          <RefTable
+            head={["Region", "Week", "VHI", "State", "In the dossier?"]}
+            rows={live.vhi.map(v => [
+              <strong key={v.region}>{v.region}</strong>, v.week,
+              <span key={`${v.region}v`} className="font-semibold text-slate-200">{v.vhi.toFixed(1)}</span>,
+              <span key={`${v.region}s`} className={
+                v.severity === "stress" ? "text-amber-400" : "text-slate-400"}>{v.severity}</span>,
+              REGIONS.some(r => r.name === v.region) ? "yes" : "no — app-only region",
+            ])}
+          />
+          <P className="text-slate-400">
+            VHI below 40 is conventionally read as vegetative stress. Note which name heads the table —
+            El Paraíso, the worst reading, and the region §3 already identified as the largest by area and
+            the weakest by yield. One weekly reading is not a trend, and this is a live value that will
+            differ by the time you read it.
+          </P>
+        </>
+      )}
+      <P className="text-[10px] text-slate-500">
+        Live as of — USDA / crop estimates {live.asOf.psd ?? "—"} · offer sheet {live.asOf.spot ?? "—"} ·
+        Puerto Cortés through {live.asOf.port ?? "—"} · VHI {live.asOf.vhi ?? "—"}.
+      </P>
+    </>
+  );
+}
 
 export default function HondurasProfile() {
+  // null = still loading, false = failed. The dossier renders either way.
+  const [live, setLive] = useState<HondurasLive | null | false>(null);
+  useEffect(() => {
+    let alive = true;
+    loadHondurasLive()
+      .then(d => { if (alive) setLive(d); })
+      .catch(() => { if (alive) setLive(false); });
+    return () => { alive = false; };
+  }, []);
+
   const regionRows = REGIONS.map(r => ({ ...r, yield: r.qq / r.mz }))
     .sort((a, b) => b.yield - a.yield);
   const bagsFromRegions = T_QQ * QQ_ORO_KG / 60 / 1e6;
@@ -168,8 +527,10 @@ export default function HondurasProfile() {
 
       <H2>3 · The six regions</H2>
       <P>
-        IHCAFE divides the country into six denominations of origin. The striking number is not the size
-        ranking but the <strong>yield spread</strong>: Ocotepeque returns{" "}
+        The dossier&rsquo;s census is cut by <strong>department</strong> — Copán, Santa Bárbara, Ocotepeque,
+        Lempira, Comayagua and El Paraíso are all administrative departments of Honduras, not IHCAFE&rsquo;s
+        growing regions, and §14 shows where the two schemes part company. The striking number is not the
+        size ranking but the <strong>yield spread</strong>: Ocotepeque returns{" "}
         <strong>{(regionRows[0].yield / regionRows[regionRows.length - 1].yield).toFixed(2)}×</strong> what
         El Paraíso does per manzana, on holdings of a broadly similar kind. El Paraíso is simultaneously the
         largest region by area and the weakest by yield — a productivity gap, not a land-scarcity one.
@@ -425,10 +786,14 @@ export default function HondurasProfile() {
         one worth closing.
       </P>
       <P>
-        The quieter story is stocks. Ending stocks went from {SD[0].end}k to{" "}
+        The quieter story is stocks — and it is the one claim in this profile that a second source refuses
+        to support. On the dossier&rsquo;s own numbers ending stocks went from {SD[0].end}k to{" "}
         <strong>{fmt(last.end)}k</strong> — {(last.end / SD[0].end).toFixed(1)}× — reaching{" "}
-        {pct(100 * last.end / (last.exp + last.dom))} of annual offtake in {last.y}. An origin that once
-        carried three weeks of cover now carries roughly two months.
+        {pct(100 * last.end / (last.exp + last.dom))} of annual offtake in {last.y}, which would take the
+        origin from about three weeks of cover to roughly two months. <strong>USDA disagrees outright</strong>,
+        carrying Honduran ending stocks at a small fraction of that and roughly flat. §11 puts the two series
+        side by side; until that is settled, treat the stock build as the dossier&rsquo;s reading and not as
+        an established fact about the origin.
       </P>
       <div className="my-4 rounded-lg border border-slate-800 bg-slate-900/40 p-3">
         <div className="mb-1 text-[10px] uppercase tracking-wide text-slate-400">
@@ -471,10 +836,13 @@ export default function HondurasProfile() {
         {SD_BALANCED ? "all 11 years, checked" : "NOT all years — see §11"}.
       </P>
 
-      <H2>11 · What did not reconcile</H2>
+      <VintageCheck live={live} />
+
+      <H2>15 · What did not reconcile</H2>
       <P>
-        Five items. None is fatal to the picture, and all are stated rather than patched, because a profile
-        that quietly corrects its source cannot be audited against it later.
+        Five items <em>within the dossier</em>. None is fatal to the picture, and all are stated rather than
+        patched, because a profile that quietly corrects its source cannot be audited against it later. The
+        disagreements between the dossier and outside sources are separate, and live in §11.
       </P>
       <RefTable
         head={["#", "Item", "What the source says", "What checking shows"]}
@@ -492,23 +860,28 @@ export default function HondurasProfile() {
         ]}
       />
 
-      <H2>12 · Open questions</H2>
+      <H2>16 · Open questions</H2>
       <UL>
+        <LI><strong>Ending stocks</strong> — the dossier and USDA describe different origins (§11). One of
+          them is wrong by roughly 4×, and nothing in either source says which.</LI>
+        <LI><strong>The exporter league</strong> — still the one block with no live counterpart. Nothing in
+          the app carries per-house export volumes, so the 2021 ranking stands unrefreshed and is the
+          highest-value remaining gap.</LI>
         <LI><strong>Intercropping</strong> — no data in the source. Shade and companion cropping bear
           directly on climate resilience and on how a farmer&rsquo;s income responds to a price shock.</LI>
-        <LI><strong>Leaf rust</strong> — flagged unverified. Given 2012–13, the highest-value gap here.</LI>
+        <LI><strong>Leaf rust</strong> — flagged unverified. Given 2012–13, still worth closing.</LI>
         <LI><strong>Trust recoverability</strong> — is the US$9.00 genuinely refundable in practice? It
           decides whether the levy is US$4.25 or US$13.25 per quintal.</LI>
         <LI><strong>Fiscal incentives</strong> — the source raises the question and does not answer it.</LI>
-        <LI><strong>Vintage refresh</strong> — the S&amp;D series stops at 2020-21. Recent crop years,
-          current differentials and the exporter league are the obvious next update.</LI>
       </UL>
 
       <P className="text-[10px] text-slate-500">
-        Source: 2021 origin dossier (IHCAFE regional census, exporter league, destination split, 11-year
-        balance) plus the IHCAFE <em>Ruta del Café</em> regional maps. Every derived figure on this page is
-        computed from the tabulated source data at render time rather than transcribed, so a correction to
-        the tables propagates through the prose.
+        Sources: the 2021 origin dossier (IHCAFE regional census, exporter league, destination split, 11-year
+        balance) plus the IHCAFE <em>Ruta del Café</em> regional maps, frozen as constants because a
+        historical document should not drift. Everything in §§11–14 is read live from the app&rsquo;s own
+        nightly data — USDA PSD, the crop-estimate board, the physical offer sheet, Puerto Cortés port calls
+        and NOAA VHI — so the vintage check ages with the data rather than with this page. Every derived
+        figure is computed at render time rather than transcribed.
       </P>
     </Paper>
   );
