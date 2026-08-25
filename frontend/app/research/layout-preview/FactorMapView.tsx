@@ -13,43 +13,11 @@ import { useMemo, useState } from "react";
 import { ARTICLES, type Article } from "@/lib/research/catalog";
 import FactorMap, { FactorMapLegend } from "@/components/research/factor-map/FactorMap";
 import { BY_ID } from "@/components/research/factor-map/nodes";
+import { nodesForArticle } from "@/components/research/factor-map/articleNodes";
 
-/* ── article → node ───────────────────────────────────────────────────────
-   Rule-based: the kicker's topic prefix picks the nodes an article bears on,
-   with explicit pins where the topic is too coarse. Deliberately not curated
-   yet — curating 45 articles by hand is only worth doing once the view earns
-   its place, and a rule-based first pass is enough to judge that. */
-const TOPIC_NODES: Record<string, string[]> = {
-  "COT":              ["pos_analysis", "id_counter", "funds_motiv"],
-  "Signals":          ["futures", "pos_analysis"],
-  "Options":          ["opt_curve", "nondir", "pos_likely"],
-  "Futures":          ["structure", "futures"],
-  "Macro":            ["macro", "ecy_icy", "purch_power"],
-  "Weather":          ["weather", "tree_yield", "early_dry"],
-  "Agronomy":         ["tree_yield", "tree_density", "conversion"],
-  "Fertilizer":       ["fertilizer", "cost_prod"],
-  "Supply":           ["supply", "crop"],
-  "Farmer economics": ["cost_prod", "farm_price", "farm_finance"],
-  "Logistics":        ["logistic", "warehouse", "afloat"],
-  "Freight":          ["logistic", "afloat"],
-  "Exchange":         ["stocks_vol", "motiv_grade", "tender_par"],
-  "Contract rules":   ["new_rule", "pos_limit", "motiv_grade"],
-  "Basis":            ["differential", "prem_disc"],
-  "Differential":     ["differential"],
-  "Demand":           ["demand", "consumption", "cup_capita"],
-};
-const PINS: Record<string, string[]> = {
-  "the-optionization-ratio-coffee-s-risk-is-moving-into": ["oi_repart", "opt_curve"],
-  "oi-walls-where-the-strike-matrix-defends-a-level":     ["oi_repart", "pos_limit"],
-  "tender-parity-tool":                                   ["tender_par", "differential"],
-  "the-conilon-reference-stack-cooabriel-cepea-vit-ria-a": ["differential", "origin_stock"],
-};
-
-function nodesFor(a: Article): string[] {
-  if (PINS[a.id]) return PINS[a.id];
-  const topic = (a.kicker ?? "").split("·")[0].trim();
-  return TOPIC_NODES[topic] ?? [];
-}
+// The article→node mapping is shared with the live research view —
+// components/research/factor-map/articleNodes.ts. One definition, so a
+// pin added there shows up in both without a second edit.
 
 export function LayoutFactorMap() {
   const [onlyBadged, setOnlyBadged] = useState(false);
@@ -58,7 +26,7 @@ export function LayoutFactorMap() {
 
   const byNode = useMemo(() => {
     const m = new Map<string, Article[]>();
-    for (const a of ARTICLES) for (const n of nodesFor(a)) {
+    for (const a of ARTICLES) for (const n of nodesForArticle(a)) {
       if (!m.has(n)) m.set(n, []);
       m.get(n)!.push(a);
     }
@@ -76,14 +44,14 @@ export function LayoutFactorMap() {
     const s = new Set<string>();
     for (const a of ARTICLES) {
       if (`${a.title} ${a.subtitle ?? ""} ${a.kicker ?? ""}`.toLowerCase().includes(needle))
-        for (const n of nodesFor(a)) s.add(n);
+        for (const n of nodesForArticle(a)) s.add(n);
     }
     return s;
   }, [needle]);
 
   const selArticles = sel ? byNode.get(sel) ?? [] : [];
   const selNode = sel ? BY_ID.get(sel) : null;
-  const unmapped = ARTICLES.filter(a => !nodesFor(a).length).length;
+  const unmapped = ARTICLES.filter(a => !nodesForArticle(a).length).length;
 
   return (
     <div>
