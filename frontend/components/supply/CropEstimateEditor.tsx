@@ -633,7 +633,12 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
       try {
         const res = await postSave(p.body);
         if (res.ok) {
-          status[p.origin] = "✓ committed";
+          // "queued", not "committed": all we know is that GitHub accepted
+          // the dispatch. The run still validates, commits and redeploys —
+          // and a failure or cancellation alerts on Telegram rather than
+          // here, so claiming success at this point would be a lie the UI
+          // has no way to take back.
+          status[p.origin] = "✓ queued";
         } else if (res.status === 401) {
           setPw(null);
           try { sessionStorage.removeItem(PW_KEY); } catch { /* fine */ }
@@ -727,7 +732,7 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
               /* ── By source: every origin × season for one source ─────── */
               xDone ? (
                 <div className="space-y-3">
-                  <div className="text-[10px] text-emerald-400 font-semibold">✓ Saved.</div>
+                  <div className="text-[10px] text-emerald-400 font-semibold">✓ Submitted.</div>
                   <div className="text-[9px] text-slate-400 leading-relaxed space-y-0.5">
                     {Object.entries(xStatus ?? {}).map(([o, st]) => (
                       <div key={o}>{ORIGIN_LABELS[o] ?? o}: {st}</div>
@@ -735,7 +740,10 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
                   </div>
                   <div className="text-[9px] text-slate-400 leading-relaxed">
                     One commit per origin is being pushed and redeployed — live for
-                    everyone in ~2 minutes.
+                    everyone in ~2 minutes. Reload the page then and check the numbers
+                    landed: this screen confirms the edits were accepted for processing,
+                    not that they are committed. Anything that fails or is cancelled
+                    raises a Telegram alert.
                   </div>
                   <div className="flex justify-end">
                     <button onClick={close} className="text-[10px] px-3 py-1 rounded bg-slate-700 text-slate-200 hover:bg-slate-600 transition-colors">
@@ -899,10 +907,12 @@ export default function CropEstimateEditor({ origin }: { origin: string }) {
               )
             ) : saved ? (
               <div className="space-y-3">
-                <div className="text-[10px] text-emerald-400 font-semibold">✓ Saved.</div>
+                <div className="text-[10px] text-emerald-400 font-semibold">✓ Submitted.</div>
                 <div className="text-[9px] text-slate-400 leading-relaxed">
                   The edit is being committed to the repo and redeployed — live for
-                  everyone in ~2 minutes. Refresh the page then to see the new numbers.
+                  everyone in ~2 minutes. Refresh the page then and check the number
+                  landed: this confirms the edit was accepted for processing, not that
+                  it is committed. A failure raises a Telegram alert.
                 </div>
                 <div className="flex justify-end">
                   <button onClick={close} className="text-[10px] px-3 py-1 rounded bg-slate-700 text-slate-200 hover:bg-slate-600 transition-colors">
