@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-25T09:28:00.013017Z",
+  "generated_at": "2026-08-25T09:33:16.707546Z",
   "count": 83,
   "workflows": [
     {
@@ -10,7 +10,7 @@
       ],
       "crons": [],
       "workflow_run_deps": [],
-      "concurrency_group": "crop-estimate-edit",
+      "concurrency_group": "crop-estimate-edit-${{ inputs.origin }}",
       "timeout_minutes": 10
     },
     {
