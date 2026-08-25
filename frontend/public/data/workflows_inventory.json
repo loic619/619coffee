@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-25T03:50:21.150900Z",
-  "count": 81,
+  "generated_at": "2026-08-25T08:15:30.059851Z",
+  "count": 84,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -11,6 +11,17 @@
       "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": "crop-estimate-edit",
+      "timeout_minutes": 10
+    },
+    {
+      "file": "apply-world-balance-edit.yml",
+      "name": "3.4.3 \u2013 On-demand \u00b7 Apply world balance-sheet edit (admin UI)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": "world-balance-edit",
       "timeout_minutes": 10
     },
     {
@@ -191,6 +202,20 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 15
+    },
+    {
+      "file": "build-workflow-activity.yml",
+      "name": "0.17 \u2013 Refresh Workflow Activity (7-day run record)",
+      "triggers": [
+        "schedule",
+        "workflow_dispatch"
+      ],
+      "crons": [
+        "10 6 * * *"
+      ],
+      "workflow_run_deps": [],
+      "concurrency_group": "build-workflow-activity",
+      "timeout_minutes": 10
     },
     {
       "file": "build-workflow-inventory.yml",
@@ -453,6 +478,17 @@
       "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": null,
+      "timeout_minutes": 10
+    },
+    {
+      "file": "probe-cci-inputs.yml",
+      "name": "0.9 \u2013 Probe CCI inputs (diagnostic)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": "probe-cci-inputs",
       "timeout_minutes": 10
     },
     {
@@ -1103,6 +1139,36 @@
         "version": "0.16"
       },
       {
+        "file": "build-workflow-activity.yml",
+        "name": "0.17 \u2013 Refresh Workflow Activity (7-day run record)",
+        "version": "0.17"
+      },
+      {
+        "file": "build-oni-history.yml",
+        "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
+        "version": "0.6"
+      },
+      {
+        "file": "scraper-enso-indices.yml",
+        "name": "0.7 \u2013 Weekly \u2014 ENSO indices (Ni\u00f1o 3.4 SST + SOI \u00b7 NOAA CPC)",
+        "version": "0.7"
+      },
+      {
+        "file": "scraper-enso-subsurface.yml",
+        "name": "0.8 \u2013 Weekly \u2014 ENSO subsurface (WWV \u00b7 NOAA PMEL)",
+        "version": "0.8"
+      },
+      {
+        "file": "probe-cci-inputs.yml",
+        "name": "0.9 \u2013 Probe CCI inputs (diagnostic)",
+        "version": "0.9"
+      },
+      {
+        "file": "vn-customs-by-country.yml",
+        "name": "0.9 \u2013 VN Customs by-country (5X/5N) probe / backfill",
+        "version": "0.9"
+      },
+      {
         "file": "source-sentinel.yml",
         "name": "1.17 \u2013 Source Sentinel (monthly supply releases)",
         "version": "1.17"
@@ -1133,14 +1199,14 @@
         "version": "1.98"
       },
       {
-        "file": "ucda-monthly-reports.yml",
-        "name": "3.3.6 \u2013 Monthly Scraper \u00b7 UCDA Uganda monthly reports (by-destination)",
-        "version": "3.3.6"
-      },
-      {
         "file": "apply-crop-estimate-edit.yml",
         "name": "3.4.2 \u2013 On-demand \u00b7 Apply crop-estimate edit (admin UI)",
         "version": "3.4.2"
+      },
+      {
+        "file": "apply-world-balance-edit.yml",
+        "name": "3.4.3 \u2013 On-demand \u00b7 Apply world balance-sheet edit (admin UI)",
+        "version": "3.4.3"
       },
       {
         "file": "research-retest-watch.yml",
@@ -1163,20 +1229,18 @@
         "version": "9.9"
       }
     ],
-    "stale_curation": [
-      "0.3"
-    ],
+    "stale_curation": [],
     "non_workflow_entries": [
       "Per-source Telegram alerts",
       "Acaphe poll",
-      "1.3b Slow-data",
+      "various / manual",
       "various / manual",
       "various / manual",
       "various / manual",
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 16,
-    "stale_curation_count": 1
+    "uncovered_workflows_count": 22,
+    "stale_curation_count": 0
   }
 }
