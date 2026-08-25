@@ -29,8 +29,9 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.4,
-          "robusta": 5.1
+          "robusta": 5.1,
+          "arabica_washed": 0.7,
+          "arabica_natural": 0.7
         }
       }
     },
@@ -43,8 +44,9 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.4,
-          "robusta": 4.4
+          "robusta": 4.4,
+          "arabica_washed": 0.7,
+          "arabica_natural": 0.7
         }
       }
     },
@@ -57,8 +59,9 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.4,
-          "robusta": 4.7
+          "robusta": 4.7,
+          "arabica_washed": 0.7,
+          "arabica_natural": 0.7
         }
       }
     },
@@ -71,8 +74,9 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.4,
-          "robusta": 4.5
+          "robusta": 4.5,
+          "arabica_washed": 0.7,
+          "arabica_natural": 0.7
         }
       }
     },
@@ -85,8 +89,9 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.5,
-          "robusta": 4.8
+          "robusta": 4.8,
+          "arabica_washed": 0.8,
+          "arabica_natural": 0.7
         }
       }
     },
@@ -99,10 +104,12 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.5,
-          "robusta": 4.8
+          "robusta": 4.8,
+          "arabica_washed": 0.8,
+          "arabica_natural": 0.7
         }
       }
     }
-  ]
+  ],
+  "arabica_split_basis": "washed 50% / natural 50% \u2014 Indian arabica splits between Plantation (washed) and Cherry (natural), historically close to half and half. Analyst convention applied to sources that publish only an arabica total; a source's own breakdown, or a hand edit in the crop-estimate editor, wins over it."
 }

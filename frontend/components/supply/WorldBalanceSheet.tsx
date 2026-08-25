@@ -316,6 +316,10 @@ export default function WorldBalanceSheet({ cropYear }: { cropYear?: string }) {
             span both ({unsplitOrigins.join(", ")}). Split them in the editor&apos;s by-source
             view and the column disappears.</>
           )}
+          {" "}Arabica is stated by processing. Where a source publishes only a country
+          total, the washed/natural cut comes from that origin&apos;s processing convention,
+          recorded in the seed&apos;s <span className="text-slate-500">arabica_split_basis</span> —
+          a source&apos;s own breakdown, or a hand edit, always wins over it.
           {" "}A non-zero balance is the statement&apos;s residual: it is not forced to zero,
           so it reads as the gap your assumptions imply.
         </div>

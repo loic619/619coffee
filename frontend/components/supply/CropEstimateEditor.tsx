@@ -77,7 +77,9 @@ const ORIGIN_FILES: Record<string, { file: string; subkey?: string; sources?: So
     subkey: "balance_sheet",
     sources: [
       { key: "usda", label: "USDA", color: "#3b82f6" },
-      { key: "mard", label: "MARD", color: "#10b981" },
+      // MAE since the 2025 ministry merger; the key stays `mard` so the
+      // estimates already filed under it keep their history.
+      { key: "mard", label: "MAE", color: "#10b981" },
       { key: "ico",  label: "ICO",  color: "#f59e0b" },
     ],
   },

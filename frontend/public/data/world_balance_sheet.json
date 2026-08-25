@@ -2,7 +2,7 @@
  "crop_year": "2025/26",
  "unit": "million 60-kg bags",
  "updated": "2026-08",
- "note": "World coffee balance sheet. The Supply block's production lines are DERIVED from the per-origin crop estimates (the same seeds the by-source editor writes), so they always agree with the origin tabs. Every other line — carry-in, consumption by hub, transit and carry-out — is analyst-entered here. Demand-side arabica is already stated washed/natural; production shows an 'unsplit' column until each origin is restated in the editor, and the 'Arabica (all)' column keeps the two comparable meanwhile.",
+ "note": "World coffee balance sheet. The Supply block's production lines are DERIVED from the per-origin crop estimates (the same seeds the crop-estimate editor writes), so the world view cannot disagree with an origin tab. Arabica is stated by processing: origins whose sources publish only a country total are split by an origin processing convention recorded in each seed's arabica_split_basis (backend/scripts/split_arabica_processing.py). Consumption is entered by hub as a total with a washed share reflecting that market's profile — washed-skewed in North America, naturals-skewed in Latin America where Brazilian domestic demand dominates. Carry-in, consumption, carry-out and the risk register are analyst-entered and editable from the sheet's edit button; production is not.",
  "carry_in": [
   {
    "key": "origin_stocks",
@@ -37,29 +37,29 @@
   {
    "key": "europe",
    "label": "Europe",
-   "arabica_washed": 12.0,
-   "arabica_natural": 14.5,
+   "arabica_washed": 13.2,
+   "arabica_natural": 13.3,
    "robusta": 24.0
   },
   {
    "key": "north_america",
    "label": "North America",
-   "arabica_washed": 11.0,
-   "arabica_natural": 12.0,
+   "arabica_washed": 12.6,
+   "arabica_natural": 10.4,
    "robusta": 8.5
   },
   {
    "key": "asia_pacific",
    "label": "Asia-Pacific",
-   "arabica_washed": 5.5,
-   "arabica_natural": 6.5,
+   "arabica_washed": 5.4,
+   "arabica_natural": 6.6,
    "robusta": 20.0
   },
   {
    "key": "latam",
    "label": "Latin America",
-   "arabica_washed": 4.5,
-   "arabica_natural": 9.0,
+   "arabica_washed": 4.7,
+   "arabica_natural": 8.8,
    "robusta": 7.5
   },
   {

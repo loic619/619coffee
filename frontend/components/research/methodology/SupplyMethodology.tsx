@@ -103,7 +103,30 @@ mode = "forecast" when a GAIN row exists, else "proxy" (latest realised row)`}</
         consumption — is carried alongside the numbers.
       </P>
 
-      <H2>7 · World-consumption coverage</H2>
+      <H2>7 · Arabica by processing — washed vs natural</H2>
+      <P>
+        The world balance sheet states arabica in two legs because the trade prices them separately. Almost no source
+        publishes that breakdown — Marex, ECOM, Sopex and USDA all give a country total — so the split is an
+        <strong> analyst overlay</strong>, applied per origin from how the crop is actually processed and recorded in each
+        seed&rsquo;s <Code>arabica_split_basis</Code> field so the reasoning travels with the number:
+      </P>
+      <P>
+        <strong>100% natural</strong> — Brazil (dry and pulped-natural; priced as naturals).{" "}
+        <strong>100% washed</strong> — Colombia, the MAG 6 (Honduras, Guatemala, Nicaragua, Costa Rica, Mexico, Peru),
+        Indonesia (giling basah / semi-washed), Vietnam, China and Tanzania.{" "}
+        <strong>Mixed</strong> — Ethiopia 30/70 washed/natural (Yirgacheffe and Limu against the Harrar, Sidama and Guji
+        naturals), India 50/50 (Plantation vs Cherry), Uganda 65/35 (Bugisu washed against West Nile drugar, weighted by
+        the arabica belts in the weather model). Ivory Coast is robusta only.
+      </P>
+      <P>
+        Two guard-rails: the two legs are forced to sum to the original arabica figure, so restating can never move an
+        origin&rsquo;s headline production; and the migration only ever touches a leg still filed as unsplit, so a real
+        published breakdown or a hand edit in the ✎ editor is never overwritten by a convention. On the demand side,
+        each consumption hub keeps its arabica total and carries a washed share reflecting that market — washed-skewed in
+        North America, naturals-skewed in Latin America where Brazilian domestic demand dominates.
+      </P>
+
+      <H2>8 · World-consumption coverage</H2>
       <P>
         A coverage gauge sums tracked consumption across all PSD markets and compares it to a manually-maintained ICO
         global reference: <Code>tracked_vs_ICO% = tracked / ICO × 100</Code> (currently the model captures ~80% of world
@@ -118,7 +141,12 @@ mode = "forecast" when a GAIN row exists, else "proxy" (latest realised row)`}</
         <Code>br_balance_sheet.json</Code> / <Code>co_balance_sheet.json</Code> (refreshed by
         <Code>build_balance_sheets.py</Code>). CECAFE: <Code>fetch_cecafe.py</Code>. PSD/GAIN:
         <Code>sources/psd_coffee.py</Code> + <Code>usda_gain_pdf.py</Code> → <Code>demand_stocks.json</Code>. StoneX:
-        <Code>components/supply/ethiopia/stonexSurvey.ts</Code>. Rendered across the <strong>Supply</strong> tab&rsquo;s
+        <Code>components/supply/ethiopia/stonexSurvey.ts</Code> (its crop-survey numbers are also filed into
+        <Code>et_balance_sheet.json</Code> so the world aggregation sees the field survey, not only the desk
+        estimates). Processing split: <Code>backend/scripts/split_arabica_processing.py</Code>. World statement:
+        <Code>components/supply/WorldBalanceSheet.tsx</Code> + <Code>world_balance_sheet.json</Code>, edited through
+        <Code>WorldBalanceEditor.tsx</Code> → <Code>apply_world_balance_edit.py</Code>. Rendered across the
+        <strong>Supply</strong> tab&rsquo;s
         per-origin sub-tabs.
       </P>
     </Paper>

@@ -44,7 +44,7 @@ dropped as stale; a season WITH the field (even {}) replaces it wholesale.
 New sources are appended to the seed's `sources` legend — but only when at
 least one season actually carries a value for them, so an accidental add
 never litters the legend. Vietnam's nested seed historically had no
-`sources` array (the tab hardcoded USDA/MARD/ICO); the first new-source
+`sources` array (the tab hardcoded USDA/MAE/ICO); the first new-source
 edit materializes it with the canonical three plus the addition, and the
 tab prefers the file's array when present.
 
@@ -74,7 +74,9 @@ from scraper.validate_export import safe_write_json
 FALLBACK_SOURCES = {
     "vietnam": [
         {"key": "usda", "label": "USDA", "color": "#3b82f6"},
-        {"key": "mard", "label": "MARD", "color": "#10b981"},
+        # Relabelled MAE in 2025 (MARD merged with the environment
+        # ministry); the key stays `mard` so existing seeds keep matching.
+        {"key": "mard", "label": "MAE", "color": "#10b981"},
         {"key": "ico",  "label": "ICO",  "color": "#f59e0b"},
     ],
 }

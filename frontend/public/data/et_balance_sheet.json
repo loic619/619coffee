@@ -1,6 +1,6 @@
 {
   "unit": "million 60-kg bags",
-  "note": "Ethiopia production estimates for the global S&D aggregation. USDA = USDA FAS PSD via demand_stocks.json (auto-synced by build_balance_sheets); ICO and any additional sources are hand-curated through the admin crop-estimate editor.",
+  "note": "Ethiopia production estimates for the global S&D aggregation. USDA = USDA FAS PSD via demand_stocks.json (auto-synced by build_balance_sheets); StoneX = the Ethiopia Coffee Crop Survey rendered on the Ethiopia tab (components/supply/ethiopia/stonexSurvey.ts), filed here so the world balance sheet sees the field survey rather than only the desk estimates; ICO and any additional sources are hand-curated through the admin crop-estimate editor.",
   "updated": "2026-08",
   "sources": [
     {
@@ -17,6 +17,11 @@
       "key": "marex",
       "label": "Marex",
       "color": "#a78bfa"
+    },
+    {
+      "key": "stonex",
+      "label": "StoneX",
+      "color": "#e879f9"
     }
   ],
   "seasons": [
@@ -25,11 +30,17 @@
       "forecast": false,
       "production": {
         "marex": 6.8,
-        "usda": 8.2
+        "usda": 8.2,
+        "stonex": 7.8
       },
       "production_split": {
         "marex": {
-          "arabica": 6.8
+          "arabica_washed": 2.0,
+          "arabica_natural": 4.8
+        },
+        "stonex": {
+          "arabica_washed": 2.3,
+          "arabica_natural": 5.5
         }
       }
     },
@@ -38,11 +49,17 @@
       "forecast": false,
       "production": {
         "usda": 7.3,
-        "marex": 6.9
+        "marex": 6.9,
+        "stonex": 7.0
       },
       "production_split": {
         "marex": {
-          "arabica": 6.9
+          "arabica_washed": 2.1,
+          "arabica_natural": 4.8
+        },
+        "stonex": {
+          "arabica_washed": 2.1,
+          "arabica_natural": 4.9
         }
       }
     },
@@ -51,11 +68,17 @@
       "forecast": false,
       "production": {
         "usda": 9.1,
-        "marex": 7.4
+        "marex": 7.4,
+        "stonex": 7.1
       },
       "production_split": {
         "marex": {
-          "arabica": 7.4
+          "arabica_washed": 2.2,
+          "arabica_natural": 5.2
+        },
+        "stonex": {
+          "arabica_washed": 2.1,
+          "arabica_natural": 5.0
         }
       }
     },
@@ -64,11 +87,17 @@
       "forecast": false,
       "production": {
         "usda": 11.5,
-        "marex": 7.8
+        "marex": 7.8,
+        "stonex": 7.8
       },
       "production_split": {
         "marex": {
-          "arabica": 7.8
+          "arabica_washed": 2.3,
+          "arabica_natural": 5.5
+        },
+        "stonex": {
+          "arabica_washed": 2.3,
+          "arabica_natural": 5.5
         }
       }
     },
@@ -77,11 +106,17 @@
       "forecast": true,
       "production": {
         "usda": 11.6,
-        "marex": 7.6
+        "marex": 7.6,
+        "stonex": 7.7
       },
       "production_split": {
         "marex": {
-          "arabica": 7.6
+          "arabica_washed": 2.3,
+          "arabica_natural": 5.3
+        },
+        "stonex": {
+          "arabica_washed": 2.3,
+          "arabica_natural": 5.4
         }
       }
     },
@@ -90,13 +125,20 @@
       "forecast": true,
       "production": {
         "marex": 7.9,
-        "usda": 12.1
+        "usda": 12.1,
+        "stonex": 7.6
       },
       "production_split": {
         "marex": {
-          "arabica": 7.9
+          "arabica_washed": 2.4,
+          "arabica_natural": 5.5
+        },
+        "stonex": {
+          "arabica_washed": 2.3,
+          "arabica_natural": 5.3
         }
       }
     }
-  ]
+  ],
+  "arabica_split_basis": "washed 30% / natural 70% \u2014 Sun-dried naturals dominate (Harrar, Sidama, Guji); the washed share is Yirgacheffe/Limu and the ECX washed grades \u2014 conventionally about a third. Analyst convention applied to sources that publish only an arabica total; a source's own breakdown, or a hand edit in the crop-estimate editor, wins over it."
 }

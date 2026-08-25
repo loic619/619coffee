@@ -34,8 +34,9 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 0.9,
-          "robusta": 4.8
+          "robusta": 4.8,
+          "arabica_washed": 0.6,
+          "arabica_natural": 0.3
         }
       }
     },
@@ -50,8 +51,9 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.0,
-          "robusta": 5.4
+          "robusta": 5.4,
+          "arabica_washed": 0.6,
+          "arabica_natural": 0.4
         }
       }
     },
@@ -66,8 +68,9 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 0.8,
-          "robusta": 5.6
+          "robusta": 5.6,
+          "arabica_washed": 0.5,
+          "arabica_natural": 0.3
         }
       }
     },
@@ -81,8 +84,9 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 0.9,
-          "robusta": 5.9
+          "robusta": 5.9,
+          "arabica_washed": 0.6,
+          "arabica_natural": 0.3
         }
       }
     },
@@ -95,8 +99,9 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 0.9,
-          "robusta": 5.7
+          "robusta": 5.7,
+          "arabica_washed": 0.6,
+          "arabica_natural": 0.3
         }
       }
     },
@@ -109,10 +114,12 @@
       },
       "production_split": {
         "marex": {
-          "arabica": 1.0,
-          "robusta": 6.4
+          "robusta": 6.4,
+          "arabica_washed": 0.6,
+          "arabica_natural": 0.4
         }
       }
     }
-  ]
+  ],
+  "arabica_split_basis": "washed 65% / natural 35% \u2014 Mt Elgon (Bugisu) is washed; West Nile drugar is natural. The share follows the arabica belt weights in the Uganda weather model (Mt Elgon 38 kt washed vs West Nile 16 kt natural, Rwenzori 12 kt mixed). Analyst convention applied to sources that publish only an arabica total; a source's own breakdown, or a hand edit in the crop-estimate editor, wins over it."
 }
