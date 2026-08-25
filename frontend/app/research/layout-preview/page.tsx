@@ -11,6 +11,7 @@
 // reading. Delete this route once the layout is picked.
 import { useMemo, useState } from "react";
 import { ARTICLES, CAT_LABEL, type Article, type Cat } from "@/lib/research/catalog";
+import { LayoutMatrix, LayoutGraph } from "./AltViews";
 
 const TONE_DOT: Record<string, string> = {
   amber: "bg-amber-400", sky: "bg-sky-400", violet: "bg-violet-400",
@@ -176,6 +177,8 @@ const TABS = [
   { id: "twopane", label: "B · Two-pane",       note: "index stays put while you read",   el: <LayoutTwoPane /> },
   { id: "grid",    label: "C · Card grid",      note: "tiles, 3–4 across",                el: <LayoutGrid /> },
   { id: "current", label: "D · Today",          note: "for comparison",                   el: <LayoutCurrent /> },
+  { id: "matrix",  label: "E · Quadrant matrix", note: "stale-vs-fresh × applied-vs-reference", el: <LayoutMatrix /> },
+  { id: "graph",   label: "F · Node graph",     note: "clustered by topic",               el: <LayoutGraph /> },
 ];
 
 export default function LayoutPreview() {
