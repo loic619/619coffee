@@ -1,17 +1,24 @@
 name: "1.20 – Traded tape (acaphe tradespread)"
 
-# One fetch per trading day, 30 min after the ICE Arabica close (13:30 ET), by
-# which time London robusta has also been shut for an hour — so a single run
-# captures the full tape for BOTH markets.
+# ONE fetch per trading day, after both markets have settled — the single
+# source for everything acaphe knows about the session.
 #
-# 14:00 New York is 18:00 UTC in EDT and 19:00 UTC in EST; both fire and the
-# New-York wall-clock guard inside fetch_tradespread.py lets exactly one
-# through per season (same pattern as the B3 and KC-at-RC-close captures).
+# 18:50 UTC is past the ICE Arabica settle (13:30 ET = 17:30 UTC in EDT, 18:30
+# UTC in EST) in BOTH seasons, with enough margin for the exchange to post the
+# settlement (~15 min after the bell). London robusta shut an hour earlier
+# still. So one cron replaces the old two — the wall-clock guard inside
+# fetch_tradespread.py just needs a window wide enough to admit either season,
+# not to pick between two fires.
+#
+# This run also absorbed workflow 0.2 (Capture KC at RC Close), which polled a
+# live Redis snapshot 8× a weekday to catch KC's price at the 17:30 London bell.
+# The tape carries every print with a timestamp, so that instant is read back
+# from it here — one run instead of eight, for every contract rather than just
+# the front. 0.2 is retired; see its file for the details.
 
 on:
   schedule:
-    - cron: '2 18 * * 1-5'     # 14:00 ET while EDT
-    - cron: '2 19 * * 1-5'     # 14:00 ET while EST
+    - cron: '50 18 * * 1-5'    # 14:50 ET (EDT) / 13:50 ET (EST)
   workflow_dispatch:
     inputs:
       force:

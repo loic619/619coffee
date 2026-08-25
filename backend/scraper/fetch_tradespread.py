@@ -56,6 +56,7 @@ ARCHIVE = ROOT / "data" / "tradespread_archive.json"
 OUT = ROOT / "frontend" / "public" / "data" / "tradespread.json"
 BASE = "https://acaphe.com/"
 VN = ZoneInfo("Asia/Ho_Chi_Minh")
+LONDON = ZoneInfo("Europe/London")
 KEEP_DAYS = 400
 OPEN_WINDOW_MIN = 15          # "price 15 min after the open"
 
@@ -159,13 +160,39 @@ def _elapsed(ticks: list) -> list[int]:
     return [v - base for v in out]
 
 
-def _summarise(block: dict) -> dict:
+def _at_or_before(ticks: list, secs: list[int], target: int) -> list | None:
+    """The last tick at or before `target` (session seconds), or None."""
+    hit = None
+    for t, s in zip(ticks, secs):
+        if s <= target:
+            hit = t
+        else:
+            break
+    return hit
+
+
+def _rc_close_secs(session: str, base: int) -> int:
+    """Session-seconds of 17:30 London on `session`, on the tape's VN clock.
+
+    Both conversions matter. London's 17:30 lands at 23:30 VN under BST and
+    00:30 VN under GMT — i.e. the SAME market event sits on either side of
+    midnight depending on the season — so the target is derived with zoneinfo
+    rather than a fixed offset, then unwrapped onto the session clock the same
+    way the ticks are.
+    """
+    d = datetime.fromisoformat(session).replace(tzinfo=LONDON)
+    vn = d.replace(hour=17, minute=30, second=0).astimezone(VN)
+    hms = vn.hour * 3600 + vn.minute * 60 + vn.second
+    return hms if hms >= base else hms + 86400
+
+
+def _summarise(block: dict, session: str) -> dict:
     """Tick-rule flow stats for one contract's tape."""
     ticks = block["ticks"]
+    secs = _elapsed(ticks)
     first_t, first_px = ticks[0][0], ticks[0][1]
-    el = _elapsed(ticks)
     cutoff = OPEN_WINDOW_MIN * 60
-    idx = max((i for i, e in enumerate(el) if e <= cutoff), default=0)
+    idx = max((i for i, e in enumerate(secs) if e <= cutoff), default=0)
     open15 = ticks[idx]
 
     up_n = dn_n = 0
@@ -191,6 +218,16 @@ def _summarise(block: dict) -> dict:
             dn_pv += px * lots
         else:
             flat_lots += lots           # before the first directional print
+    # Price at the London robusta close (17:30 London), read off this contract's
+    # own tape. For an ARABICA contract this is the `kc_at_rc_close` the
+    # open-direction model wants: NY keeps trading for an hour after London
+    # shuts, and that NY-only move leads robusta's next open. Workflow 0.2 used
+    # to poll a live Redis snapshot 8× a day to catch this one instant; the tape
+    # already carries every print with a timestamp, so one end-of-day fetch
+    # reconstructs it exactly — and for every contract, not just the front.
+    base = _hms(ticks[0][0])
+    rc_close = _at_or_before(ticks, secs, _rc_close_secs(session, base) - base)
+
     total = ticks[-1][2]
     return {
         "label": block["label"],
@@ -198,6 +235,8 @@ def _summarise(block: dict) -> dict:
         "total_volume": total,
         "first_tick": {"time": first_t, "price": first_px},
         "open15": {"time": open15[0], "price": open15[1]},
+        "at_rc_close": ({"time": rc_close[0], "price": rc_close[1]}
+                        if rc_close else None),
         "last": {"time": ticks[-1][0], "price": ticks[-1][1]},
         "up_trades": up_n, "down_trades": dn_n,
         "up_volume": up_lots, "down_volume": dn_lots,
@@ -207,6 +246,32 @@ def _summarise(block: dict) -> dict:
         "pressure": (round((up_lots - dn_lots) / total, 4)
                      if total else None),   # +1 all lifted, −1 all hit
     }
+
+
+def _attach_settle(summary: dict, quote: dict | None) -> None:
+    """Add the board's settle/prev to a tape summary, plus close − settle.
+
+    close_vs_settle is the requested model variable: the gap between the last
+    TRADE and the official SETTLEMENT. It is not noise — the settle is a
+    committee/VWAP construct, so a wide gap says the closing print was unrepre-
+    sentative of where the exchange thinks the market actually is, which is
+    exactly the kind of thing that reverts on the next open.
+
+    Nothing is invented when the board is unreachable: the fields go None and
+    the tape stats stand on their own.
+    """
+    last_trade = (summary.get("last") or {}).get("price")
+    settle = (quote or {}).get("last")
+    prev = (quote or {}).get("prev")
+    summary["settle"] = settle
+    summary["prev_settle"] = prev
+    summary["open_board"] = (quote or {}).get("open")
+    summary["oi"] = (quote or {}).get("oi")
+    summary["board_volume"] = (quote or {}).get("vol")
+    summary["close_vs_settle"] = (
+        round(last_trade - settle, 4)
+        if last_trade is not None and settle is not None else None
+    )
 
 
 def _spread_volume(a: dict, b: dict) -> dict:
@@ -242,10 +307,52 @@ def _load(path: Path, empty: dict) -> dict:
         return dict(empty)
 
 
+def _fetch_quotes(cookies: dict) -> dict:
+    """{contract label → quote row} from iquote.php — the board, not the tape.
+
+    The tape is traded prints only, so it can never carry a SETTLEMENT: the
+    exchange posts that ~15 min after the bell and it is frequently not the last
+    trade. iquote.php does carry it. Two fields, deliberately both kept:
+
+        last  — after the settle is posted this is the settlement price, but
+                between the bell and the post it is still the last trade.
+        prev  — the PREVIOUS session's settlement, and unambiguous. acaphe's own
+                `change` is exactly last − prev, which is what identifies it.
+
+    So today's `last` is the settle we want, and tomorrow's `prev` confirms it.
+    Storing both lets the pair be reconciled after the fact instead of trusting
+    a single reading taken minutes after the post.
+    """
+    from scraper.acaphe_poller import API_URL, transform
+    ts = int(datetime.now(UTC).timestamp() * 1000)
+    r = requests.get(f"{API_URL}{ts}", cookies=cookies, headers=HEADERS, timeout=25)
+    r.raise_for_status()
+    q = transform(r.json())
+    rows: dict[str, dict] = {}
+    for market in ("robusta", "arabica"):
+        for e in q.get(market) or []:
+            rows[_quote_label(e.get("month", ""), market)] = e
+    return rows
+
+
+# acaphe writes the board as "RK 05/26" / "AU 09/26" and the tape as
+# "Robusta 05/26" / "Arabica 09/26" — same contract, two spellings. Join on the
+# month code, which both carry.
+def _quote_label(month: str, market: str) -> str:
+    m = re.search(r"(\d{2}/\d{2})", month or "")
+    return f"{'Arabica' if market == 'arabica' else 'Robusta'} {m.group(1)}" if m else month
+
+
 async def _fetch_all() -> dict:
     cookies = await playwright_login()
     ts = int(datetime.now(UTC).timestamp() * 1000)
-    out: dict = {"ticks": {}, "spreads": {}}
+    out: dict = {"ticks": {}, "spreads": {}, "quotes": {}}
+    try:
+        out["quotes"] = _fetch_quotes(cookies)
+        print(f"[tradespread] iquote: {len(out['quotes'])} board rows "
+              f"({', '.join(sorted(out['quotes'])[:4])}…)")
+    except Exception as e:  # noqa: BLE001 — the tape is the primary payload
+        print(f"[tradespread] iquote failed: {e!r} — settles unavailable this run")
     for panel, market in TICK_PANELS.items():
         try:
             r = requests.get(f"{BASE}{panel}?{ts}", cookies=cookies,
@@ -282,15 +389,19 @@ async def _fetch_all() -> dict:
 
 
 def main() -> int:
-    # Scheduled runs fire at both 18:00 and 19:00 UTC so 14:00 New York (the
-    # arabica close + 30 min) is hit in either DST season; the wall-clock guard
-    # lets exactly one through. --force bypasses it for manual dispatch.
+    # ONE scheduled fire, 18:50 UTC. Arabica settles 13:30 ET, which is 17:30
+    # UTC under EDT and 18:30 UTC under EST, so 18:50 UTC lands after the bell
+    # in BOTH seasons — 14:50 ET in summer, 13:50 ET in winter — and in both
+    # cases far enough past it for the exchange settlement to have been posted
+    # (~15 min). That is why the season no longer needs a second cron: the
+    # window below is simply wide enough to admit either. --force bypasses it
+    # for manual dispatch.
     if "--force" not in sys.argv:
         ny = datetime.now(ZoneInfo("America/New_York"))
         hm = ny.hour * 60 + ny.minute
-        if ny.weekday() >= 5 or not (13 * 60 + 45 <= hm <= 14 * 60 + 30):
+        if ny.weekday() >= 5 or not (13 * 60 + 45 <= hm <= 15 * 60 + 30):
             print(f"[tradespread] {ny:%a %H:%M} New York is outside the "
-                  "post-close window — skip (the other cron fire covers this season)")
+                  "post-close window (13:45–15:30) — skip")
             return 0
     raw = asyncio.run(_fetch_all())
     if not raw["ticks"]:
@@ -317,9 +428,10 @@ def main() -> int:
                        encoding="utf-8")
 
     # ── frontend summary ────────────────────────────────────────────────────
-    contracts = {k: _summarise(v) for k, v in raw["ticks"].items()}
+    contracts = {k: _summarise(v, session) for k, v in raw["ticks"].items()}
     for k, v in contracts.items():
         v["market"] = raw["ticks"][k]["market"]
+        _attach_settle(v, (raw.get("quotes") or {}).get(k))
     # spread sizing: consecutive legs of the same market, in listed order
     spreads = []
     for market in ("robusta", "arabica"):
@@ -347,9 +459,13 @@ def main() -> int:
                    encoding="utf-8")
 
     for name, c in contracts.items():
+        arc = c.get("at_rc_close") or {}
         print(f"[tradespread] {session} {name}: {c['n_trades']} trades, "
               f"{c['total_volume']} lots | open {c['first_tick']['price']} "
               f"@{c['first_tick']['time']} → +15m {c['open15']['price']} "
+              f"@{c['open15']['time']} | RC-close {arc.get('price')} "
+              f"| close {c['last']['price']} settle {c.get('settle')} "
+              f"(Δ {c.get('close_vs_settle')}) "
               f"| up {c['up_volume']} / down {c['down_volume']} "
               f"(pressure {c['pressure']}) | VWAP↑ {c['vwap_up']} ↓ {c['vwap_down']}")
     for s in spreads:
