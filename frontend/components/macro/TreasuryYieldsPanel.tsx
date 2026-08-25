@@ -74,11 +74,21 @@ export default function TreasuryYieldsPanel() {
     return data.history[data.history.length - 2];
   }, [data]);
 
-  if (error) {
-    return <div className="p-4 text-xs text-slate-500">Treasury curve unavailable.</div>;
-  }
-  if (!data) {
-    return <div className="p-4 text-xs text-slate-500 animate-pulse">Loading Treasury curve…</div>;
+  // Keep the heading in the empty states. Without it the section collapses to a
+  // single grey sentence between two titled panels and reads as a page glitch
+  // rather than as the Treasury block waiting for its first export — which is
+  // exactly what it looks like before treasury_yields.json first lands.
+  if (error || !data) {
+    return (
+      <div className="p-4 space-y-1">
+        <h2 className="text-lg font-bold text-white">US Treasury Yield Curve</h2>
+        <p className={`text-xs text-slate-500 ${error ? "" : "animate-pulse"}`}>
+          {error
+            ? "Curve unavailable — treasury_yields.json has not been published yet. It is written by the daily static export."
+            : "Loading Treasury curve…"}
+        </p>
+      </div>
+    );
   }
 
   const tenors = data.tenor_order?.length

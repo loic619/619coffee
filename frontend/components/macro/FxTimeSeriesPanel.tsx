@@ -72,7 +72,18 @@ export default function FxTimeSeriesPanel() {
       .catch(() => setError(true));
   }, []);
 
-  const tickers = group === "exporters" ? EXPORTER_ORDER : IMPORTER_ORDER;
+  // Only render pairs the data file actually carries. The order arrays are the
+  // CCI basket, and fx_history.json trails it: when ETB/UGX/HNL were added to
+  // the basket the chart drew three legend cards reading "ETB=X —" (raw ticker,
+  // because the name lookup falls back to the key, and no history to price)
+  // until the next quant-currency-index run caught up. Filtering here means a
+  // pair that is in the basket but not yet — or no longer — in the file simply
+  // does not appear, instead of appearing broken.
+  const tickers = useMemo(() => {
+    const order = group === "exporters" ? EXPORTER_ORDER : IMPORTER_ORDER;
+    if (!data) return [] as readonly string[];
+    return order.filter(t => (data.pairs[t]?.history?.length ?? 0) > 0);
+  }, [data, group]);
 
   const chartData = useMemo(() => {
     if (!data) return [];
