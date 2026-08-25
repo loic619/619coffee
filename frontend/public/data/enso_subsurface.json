@@ -1,5 +1,5 @@
 {
-  "scraped_at": "2026-08-18T07:23:28+00:00",
+  "scraped_at": "2026-08-25T07:29:47+00:00",
   "wwv": {
     "source": "NOAA PMEL \u2014 Warm Water Volume (5\u00b0N-5\u00b0S, 120\u00b0E-80\u00b0W, above 20 \u00b0C isotherm)",
     "source_url": "https://www.pmel.noaa.gov/tao/wwv/data/wwv.dat",
@@ -10,8 +10,8 @@
     },
     "lead_months": "4\u20136",
     "latest": {
-      "month": "2026-06",
-      "wwv_anomaly": 3.004,
+      "month": "2026-07",
+      "wwv_anomaly": 3.245,
       "lead_signal": "el-nino-pending"
     },
     "monthly": [
@@ -1366,6 +1366,10 @@
       {
         "month": "2026-06",
         "wwv_anomaly": 3.004
+      },
+      {
+        "month": "2026-07",
+        "wwv_anomaly": 3.245
       }
     ]
   }
