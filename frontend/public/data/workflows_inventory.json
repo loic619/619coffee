@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-25T08:15:30.059851Z",
+  "generated_at": "2026-08-25T08:31:54.001973Z",
   "count": 84,
   "workflows": [
     {
@@ -482,7 +482,7 @@
     },
     {
       "file": "probe-cci-inputs.yml",
-      "name": "0.9 \u2013 Probe CCI inputs (diagnostic)",
+      "name": "Z \u2013 Probe: CCI inputs (diagnostic)",
       "triggers": [
         "workflow_dispatch"
       ],
@@ -1159,11 +1159,6 @@
         "version": "0.8"
       },
       {
-        "file": "probe-cci-inputs.yml",
-        "name": "0.9 \u2013 Probe CCI inputs (diagnostic)",
-        "version": "0.9"
-      },
-      {
         "file": "vn-customs-by-country.yml",
         "name": "0.9 \u2013 VN Customs by-country (5X/5N) probe / backfill",
         "version": "0.9"
@@ -1240,7 +1235,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 22,
+    "uncovered_workflows_count": 21,
     "stale_curation_count": 0
   }
 }
