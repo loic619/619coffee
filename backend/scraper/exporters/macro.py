@@ -163,3 +163,25 @@ def export_us_cpi(db) -> None:
         print(f"  us_cpi.json → {n} series, last_updated={payload.get('last_updated')}")
     except Exception as e:
         print(f"  us_cpi.json → FAILED: {e}")
+
+def export_treasury_yields() -> None:
+    """Write treasury_yields.json — the US par yield curve, straight from Treasury.
+
+    Standalone (no `db`): the curve is fetched live rather than staged through
+    the database, same shape as the brazil_b3_* exporters.
+    """
+    from scraper.sources.treasury_yields import fetch_curve
+    path = OUT_DIR / "treasury_yields.json"
+    curve = fetch_curve()
+    if not curve:
+        print("  treasury_yields.json → no curve returned — keeping previous file")
+        return
+    safe_write_json(
+        path, curve,
+        lambda d: (bool(d.get("history")) and bool(d.get("latest", {}).get("yields")),
+                   "empty curve"),
+    )
+    lat = curve["latest"]
+    print(f"  treasury_yields.json → {lat['date']}: "
+          f"2y {lat['yields'].get('2y')}% / 10y {lat['yields'].get('10y')}% "
+          f"· 2s10s {lat['spread_2s10s']}bp · {len(curve['history'])} sessions")

@@ -6,6 +6,7 @@ import CrossCommodityPanel from "@/components/macro/CrossCommodityPanel";
 import FertilizerInputsPanel from "@/components/macro/FertilizerInputsPanel";
 import FreightContextPanel from "@/components/macro/FreightContextPanel";
 import InflationSection from "@/components/macro/InflationSection";
+import TreasuryYieldsPanel from "@/components/macro/TreasuryYieldsPanel";
 import PriceDirectionSection from "@/components/signals/PriceDirectionSection";
 import OpenDirectionCalendar from "@/components/signals/OpenDirectionCalendar";
 import RobustaForecastSection from "@/components/signals/RobustaForecastSection";
@@ -23,13 +24,14 @@ export default function MacroPage() {
       <PageHeader
         title="Macro"
         subtitle="FX · inflation · cross-commodity · freight · derived signals · NLP news sentiment"
-        healthKeys={["macro_cot", "freight", "quant_currency_index", "us_cpi", "retail_cpi", "fx_history"]}
+        healthKeys={["macro_cot", "freight", "quant_currency_index", "us_cpi", "retail_cpi", "fx_history", "treasury_yields"]}
       />
       <div className="flex flex-col divide-y divide-slate-800">
         <CurrencyIndexSection />
         <FxTimeSeriesPanel />
         <CrossCommodityPanel />
         <InflationSection />
+        <TreasuryYieldsPanel />
         <FertilizerInputsPanel />
         <FreightContextPanel />
         {/* Derived signals & forecasts (formerly the standalone Signals tab). */}
