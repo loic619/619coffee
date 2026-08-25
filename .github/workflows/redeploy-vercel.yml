@@ -43,6 +43,14 @@ on:
     workflows: ["1.4 – Export and Publish Static JSON", "1.13 – ICE Certified Stocks (arabica + robusta)"]
     types: [completed]
 
+# The guard reads this workflow's own run history, which needs actions:read.
+# Without it the API answers 403, and since the repo default stopped granting
+# that scope on 24 Aug the guard was blocked outright. Declaring it here makes
+# the workflow independent of whatever the repo-wide default happens to be.
+permissions:
+  contents: read
+  actions: read
+
 concurrency:
   group: vercel-redeploy
   cancel-in-progress: false
@@ -79,11 +87,26 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          prior=$(curl -sf -H "Authorization: Bearer $GH_TOKEN" \
+          # This dedup is an OPTIMISATION, not a safety check: deploying the
+          # same SHA twice is harmless, while failing to deploy leaves the site
+          # on stale data. So every failure path below proceeds rather than
+          # blocking. It used to do the opposite — `curl -sf` emits nothing on
+          # an HTTP error, python then died on the empty stdin, and because the
+          # step runs under `bash -e` the whole guard job failed, which
+          # `needs: guard` turned into "no deploy at all". Seven consecutive
+          # data-commit redeploys were lost that way on 24-25 Aug, leaving the
+          # site refreshing only on the daily schedule.
+          prior=$(curl -s --max-time 20 -H "Authorization: Bearer $GH_TOKEN" \
             "https://api.github.com/repos/$REPO/actions/workflows/redeploy-vercel.yml/runs?per_page=20" \
             | python3 -c "
           import json, sys, os
-          d = json.load(sys.stdin)
+          try:
+              d = json.load(sys.stdin)
+          except Exception as e:
+              # Unreadable or empty response — print nothing so the caller
+              # proceeds with the deploy.
+              print('dedup lookup failed: ' + type(e).__name__, file=sys.stderr)
+              sys.exit(0)
           this_run = os.environ['THIS_RUN']
           this_sha = os.environ['THIS_SHA']
           for r in d.get('workflow_runs', []):
@@ -93,7 +116,7 @@ jobs:
                   continue
               if r.get('conclusion') == 'success' or r.get('status') == 'in_progress':
                   print(r['id']); break
-          ")
+          " || true)
           if [ -n "$prior" ]; then
             echo "Redeploy already running/done for sha $THIS_SHA via run $prior — skipping."
             echo "skip=true" >> "$GITHUB_OUTPUT"
