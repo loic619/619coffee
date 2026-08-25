@@ -11,6 +11,11 @@ on:
     paths: [".github/workflows/zz-api-probe.yml"]
   workflow_dispatch:
 
+# The decisive test: declare the scope the 403 named and see if it clears.
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   probe:
     runs-on: ubuntu-latest
