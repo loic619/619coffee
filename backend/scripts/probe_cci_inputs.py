@@ -154,12 +154,19 @@ def probe_treasury() -> None:
             r = requests.get(url, headers=UA, timeout=20)
             body = r.text.strip()
             lines = body.splitlines()
-            if len(lines) < 2 or "," not in body:
-                print(f"   {sym:9s} HTTP {r.status_code} — no data ({body[:40]!r})")
+            # Print the RAW head on anything unexpected. The first pass asserted
+            # an OHLCV shape and blew up on IndexError, which reported nothing
+            # about what Stooq actually said.
+            if len(lines) < 2:
+                print(f"   {sym:9s} HTTP {r.status_code} — {len(lines)} line(s): {body[:80]!r}")
                 continue
-            first, last = lines[1].split(","), lines[-1].split(",")
+            cols = lines[-1].split(",")
+            if len(cols) < 5:
+                print(f"   {sym:9s} HTTP {r.status_code} — header={lines[0][:50]!r} "
+                      f"last={lines[-1][:60]!r}")
+                continue
             print(f"   {sym:9s} HTTP {r.status_code}  {len(lines)-1:>5} rows  "
-                  f"{first[0]} -> {last[0]}  last close = {last[4]}")
+                  f"{lines[1].split(',')[0]} -> {cols[0]}  last close = {cols[4]}")
         except Exception as e:
             print(f"   {sym:9s} FAILED {type(e).__name__}: {str(e)[:60]}")
 
