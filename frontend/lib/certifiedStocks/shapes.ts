@@ -59,11 +59,21 @@ export interface ArabicaAgeingReport {
   by_origin_band?: Record<string, Record<string, number>> | null;
   grand_total?: number | null;
 }
+// Per-port all-time extremes, reduced from the deep archives by the exporter so
+// the browser gets the scale without downloading ~800 KB of history.
+export interface PortPeak {
+  min: number; min_date?: string | null;
+  max: number; max_date?: string | null;
+  first_seen?: string | null; last_seen?: string | null;
+  observations?: number;
+}
+
 export interface ArabicaJsonShape {
   snapshots: ArabicaSnap[];
   as_of?: string | null;
   latest_detail?: { age_detail?: Record<string, ArabicaAgeBucketRow[]>; age_detail_date?: string | null } | null;
   ageing_report?: ArabicaAgeingReport | null;
+  port_peaks?: Record<string, PortPeak>;
 }
 
 // ── Robusta (RC) ─────────────────────────────────────────────────────────────
@@ -93,4 +103,5 @@ export interface RobustaJsonShape {
   };
   recent_activity?: { gradings?: RobustaGradingEvent[]; grading_overview?: RobustaOverviewEvent[] };
   port_origin_history?: Record<string, Record<string, { tenderable: number; class34: number }>>;
+  port_peaks?: Record<string, PortPeak>;
 }

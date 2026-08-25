@@ -105231,5 +105231,79 @@
     ]
   },
   "ageing_report_url": "https://www.ice.com/publicdocs/futures_us_reports/coffee/coffee_aging_20260731.xls",
-  "errors": []
+  "errors": [],
+  "port_peaks": {
+    "ANT": {
+      "min": 158051,
+      "min_date": "2026-08-24",
+      "max": 1842700,
+      "max_date": "2019-02-26",
+      "first_seen": "2010-08-27",
+      "last_seen": "2026-08-24",
+      "observations": 4301
+    },
+    "NY": {
+      "min": 419,
+      "min_date": "2026-08-18",
+      "max": 553914,
+      "max_date": "2015-04-20",
+      "first_seen": "2010-08-27",
+      "last_seen": "2026-08-24",
+      "observations": 4301
+    },
+    "HA/BR": {
+      "min": 8712,
+      "min_date": "2026-08-17",
+      "max": 393980,
+      "max_date": "2013-01-28",
+      "first_seen": "2010-08-27",
+      "last_seen": "2026-08-24",
+      "observations": 4301
+    },
+    "NOLA": {
+      "min": 250,
+      "min_date": "2020-06-17",
+      "max": 380107,
+      "max_date": "2010-08-27",
+      "first_seen": "2010-08-27",
+      "last_seen": "2026-08-24",
+      "observations": 3925
+    },
+    "HOU": {
+      "min": 275,
+      "min_date": "2023-07-13",
+      "max": 328291,
+      "max_date": "2010-08-27",
+      "first_seen": "2010-08-27",
+      "last_seen": "2026-08-24",
+      "observations": 4103
+    },
+    "MIAMI": {
+      "min": 225,
+      "min_date": "2021-10-11",
+      "max": 66880,
+      "max_date": "2015-07-09",
+      "first_seen": "2010-08-27",
+      "last_seen": "2026-08-24",
+      "observations": 3545
+    },
+    "VA": {
+      "min": 0,
+      "min_date": "2026-05-28",
+      "max": 34055,
+      "max_date": "2017-10-30",
+      "first_seen": "2017-03-07",
+      "last_seen": "2026-08-24",
+      "observations": 2009
+    },
+    "BAR": {
+      "min": 0,
+      "min_date": "2026-05-28",
+      "max": 1310,
+      "max_date": "2012-06-22",
+      "first_seen": "2011-04-01",
+      "last_seen": "2026-08-24",
+      "observations": 2796
+    }
+  }
 }

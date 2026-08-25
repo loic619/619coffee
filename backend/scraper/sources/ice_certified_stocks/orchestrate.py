@@ -48,6 +48,107 @@ from .parse_stock_report import parse_stock_report
 from .parse_tenders import parse_tenders
 
 OUT_DIR = Path(__file__).resolve().parents[4] / "frontend" / "public" / "data"
+
+
+# ── Per-port historical extremes ────────────────────────────────────────────
+# The warehouse gauges need a scale, and the only honest one is the port's own
+# history. Deriving it from the live file alone is wrong: that file holds ~15
+# months, so any port sitting at a window high reads "100% full" by
+# construction — Trieste showed full on 24 lots in Aug 2026 against a real 2010
+# peak of 6,169, and Antwerp showed full at 12% of its 2011 peak.
+#
+# The deep archives (certified_stocks_{market}_deep_YYYY-YYYY.json) carry
+# per-port totals back to 1993 for robusta and 2010 for arabica. They are far
+# too large to ship to the browser just for a scale, so the extremes are
+# reduced here, once per run, into a small `port_peaks` block.
+
+_KC_PORT_ALIASES = {
+    "NOR": "NOLA", "NO": "NOLA", "MIA": "MIAMI", "MI": "MIAMI",
+    "NYK": "NY", "HAM": "HA/BR", "HA": "HA/BR", "HO": "HOU", "VIR": "VA",
+}
+
+
+def _canonical_port(market: str, code: str) -> str:
+    c = (code or "").upper()
+    # Robusta codes are already canonical; arabica drifted between the workbook
+    # (long forms) and older snapshots (short forms).
+    return _KC_PORT_ALIASES.get(c, c) if market == "arabica" else c
+
+
+def _port_series_key(market: str) -> tuple[str, ...]:
+    """Snapshot fields that carry the per-port map, live and deep shapes."""
+    if market == "arabica":
+        return ("by_port", "by_port_totals")
+    return ("by_port_lots",)
+
+
+def build_port_peaks(market: str, live_snapshots: list[dict]) -> dict:
+    """All-time min/max per port, over the deep archives plus this run's data.
+
+    Returns {CODE: {min, min_date, max, max_date, first_seen, last_seen,
+    observations}}. A port with no history at all is simply absent, and the
+    frontend falls back to its short-window max.
+    """
+    keys = _port_series_key(market)
+    acc: dict[str, dict] = {}
+
+    def _observe(port: str, value, when: str | None) -> None:
+        try:
+            v = float(value)
+        except (TypeError, ValueError):
+            return
+        if v < 0:
+            return
+        p = _canonical_port(market, port)
+        a = acc.get(p)
+        if a is None:
+            acc[p] = {
+                "min": v, "min_date": when, "max": v, "max_date": when,
+                "first_seen": when, "last_seen": when, "observations": 1,
+            }
+            return
+        a["observations"] += 1
+        if v > a["max"]:
+            a["max"], a["max_date"] = v, when
+        if v < a["min"]:
+            a["min"], a["min_date"] = v, when
+        if when:
+            if not a["first_seen"] or when < a["first_seen"]:
+                a["first_seen"] = when
+            if not a["last_seen"] or when > a["last_seen"]:
+                a["last_seen"] = when
+
+    def _scan(snapshots) -> None:
+        for s in snapshots or []:
+            if not isinstance(s, dict):
+                continue
+            when = s.get("date")
+            for k in keys:
+                by_port = s.get(k)
+                if isinstance(by_port, dict):
+                    # A day whose report failed to publish arrives as an empty
+                    # map; skipping it keeps a blank day out of the minimum.
+                    for port, value in by_port.items():
+                        _observe(port, value, when)
+                    break
+
+    deep_files = sorted(OUT_DIR.glob(f"certified_stocks_{market}_deep_*.json"))
+    for path in deep_files:
+        try:
+            _scan(json.loads(path.read_text(encoding="utf-8")).get("snapshots"))
+        except Exception as e:                                   # noqa: BLE001
+            print(f"[peaks] {market}: could not read {path.name}: {e}")
+    _scan(live_snapshots)
+
+    for a in acc.values():
+        for f in ("min", "max"):
+            a[f] = int(round(a[f]))
+    if deep_files:
+        print(f"[peaks] {market}: {len(acc)} ports over {len(deep_files)} archives + live")
+    else:
+        print(f"[peaks] {market}: no deep archives found — peaks from live snapshots only")
+    return dict(sorted(acc.items(), key=lambda kv: -kv[1]["max"]))
+
 # Per-path throttle. Both prefixes have rate limits — discovered by the 180-day
 # backfill which hit 429 on /publicdocs/ (arabica) after ~50 sequential 1 s/req
 # calls. /marketdata/ is even stricter. New defaults give Akamai breathing room
@@ -904,6 +1005,12 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     if arabica_ageing and arabica_ageing.get("age_detail") and arabica_json.get("latest_detail"):
         arabica_json["latest_detail"]["age_detail"] = arabica_ageing["age_detail"]
         arabica_json["latest_detail"]["age_detail_date"] = arabica_ageing.get("month_end")
+
+    # Warehouse-gauge scale. Computed after the merge so it sees the final
+    # snapshot set, and re-derived every run so a new all-time high is picked
+    # up the day it happens.
+    arabica_json["port_peaks"] = build_port_peaks("arabica", arabica_json.get("snapshots") or [])
+    robusta_json["port_peaks"] = build_port_peaks("robusta", robusta_json.get("snapshots") or [])
 
     if write:
         OUT_DIR.mkdir(parents=True, exist_ok=True)
