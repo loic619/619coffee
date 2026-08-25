@@ -1,0 +1,57 @@
+name: Z.99 – GITHUB_TOKEN Actions-API probe (temporary)
+
+# Diagnostic for the redeploy-guard failures of 24-25 Aug. Calls the exact
+# endpoint the guard calls, with the same token and the same default
+# permissions, and reports the HTTP status, the payload size and the rate-limit
+# headers — the three things `curl -sf` throws away. Delete after reading.
+
+on:
+  push:
+    branches: [fix-redeploy-guard]
+    paths: [".github/workflows/zz-api-probe.yml"]
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the endpoint the guard calls
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          URL="https://api.github.com/repos/$REPO/actions/workflows/redeploy-vercel.yml/runs?per_page=20"
+
+          echo "=== status + size + timing ==="
+          curl -s -o /tmp/body.json -D /tmp/head.txt \
+            -w 'http_code=%{http_code}\nsize=%{size_download} bytes\ntime=%{time_total}s\n' \
+            -H "Authorization: Bearer $GH_TOKEN" "$URL"
+
+          echo
+          echo "=== rate limit ==="
+          grep -i '^x-ratelimit' /tmp/head.txt || echo "(no rate-limit headers returned)"
+
+          echo
+          echo "=== oauth scopes / accepted permissions ==="
+          grep -i '^x-accepted-github-permissions\|^x-oauth-scopes' /tmp/head.txt || echo "(none reported)"
+
+          echo
+          echo "=== does it parse as the guard expects? ==="
+          python3 -c "
+          import json
+          d = json.load(open('/tmp/body.json'))
+          runs = d.get('workflow_runs', [])
+          print(f'parsed OK: {len(runs)} runs, total_count={d.get(\"total_count\")}')
+          " || { echo "PARSE FAILED — first 400 bytes of body:"; head -c 400 /tmp/body.json; }
+
+          echo
+          echo "=== separate: what the token is allowed to do ==="
+          curl -s -D /tmp/rl.txt -o /tmp/rate.json \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/rate_limit"
+          python3 -c "
+          import json
+          d = json.load(open('/tmp/rate.json'))
+          core = d.get('resources', {}).get('core', {})
+          print('core limit:', core.get('limit'), 'remaining:', core.get('remaining'), 'used:', core.get('used'))
+          " || echo "(rate_limit call failed)"
