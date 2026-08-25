@@ -23,7 +23,8 @@ Where:
 Timing: daily close-to-close % change for all FX pairs.
 
 Weights source: USDA PSD 2023/24 crop year export/import volumes.
-Exporter weights normalized over tracked liquid FX pairs only (excl. HNL, ETB, UGX).
+Exporter weights normalized over the eight tracked origins (76.7% of world
+exports). HNL, UGX and ETB joined 2026-08-25 — see the weight block below.
 Importer weights normalized excl. USD (base currency) and untracked currencies.
 
 Usage:
@@ -74,11 +75,28 @@ FX_OUT     = ROOT / "frontend" / "public" / "data" / "fx_history.json"
 _FX_API_BASE = "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api"
 FX_HISTORY_DAYS = 365  # ~1 year of daily closes per pair
 
-# ── Weights (USDA PSD 2023/24, normalized over tracked pairs) ─────────────────
+# ── Weights (USDA PSD market year 2024 = 2023/24, normalized over tracked) ────
 #
-# Raw USDA export shares (liquid FX only):
-#   Brazil 36.2%, Vietnam 18.5%, Colombia 9.0%, Indonesia 3.6%, Peru 3.3%
-#   Total tracked: 70.6%  → normalized to 1.0
+# Recomputed 2026-08-25 from ONE PSD download (probe run 32825668787) when
+# Honduras, Uganda and Ethiopia were added. That re-derivation was necessary,
+# not cosmetic: the previous table was internally consistent (every weight =
+# raw / 70.6) but its raw shares could not be reproduced from any single PSD
+# pull — Colombia's figure implied a 135.6M-bag world and Indonesia's a 170.4M
+# one. Bolting three origins onto that basis would have silently reweighted the
+# existing five against a denominator nobody could reconstruct.
+#
+# Raw USDA export shares, market year 2024, world total 147,746k bags:
+#   Brazil    44,750k  30.29%      Ethiopia   7,430k   5.03%
+#   Vietnam   25,200k  17.06%      Indonesia  7,285k   4.93%
+#   Colombia  13,377k   9.05%      Uganda     6,350k   4.30%
+#   Honduras   4,960k   3.36%      Peru       3,908k   2.65%
+#   Total tracked: 113,260k = 76.7% of world → normalized to 1.0
+#   (was 64.0% with five origins)
+#
+# The three additions are publishable and they move: over five sampled 2026
+# dates the ranges were UGX 5.73%, ETB 3.67%, HNL 1.38% — HNL is the quietest
+# but still more variable than VND (1.01%), which already carries a 22% weight,
+# so the old "illiquid, no information" objection no longer holds.
 #
 # Raw USDA import shares (excl. USA as base currency):
 #   EU 39.2%, Japan 5.5%, Switzerland 3.0%, China 3.0%,
@@ -90,11 +108,14 @@ EXPORTERS = [
     # NB: the plain 3-letter tickers below are stored local-per-USD, so a raw
     # positive return means the currency WEAKENED. _strength_sign() flips them
     # back to a strength return before the index applies the + exporter sign.
-    ("BRL=X",  "Brazilian Real",    0.513),
-    ("VND=X",  "Vietnamese Dong",   0.262),
-    ("COP=X",  "Colombian Peso",    0.128),
-    ("IDR=X",  "Indonesian Rupiah", 0.051),
-    ("PEN=X",  "Peruvian Sol",      0.047),
+    ("BRL=X",  "Brazilian Real",     0.395),
+    ("VND=X",  "Vietnamese Dong",    0.222),
+    ("COP=X",  "Colombian Peso",     0.118),
+    ("ETB=X",  "Ethiopian Birr",     0.066),
+    ("IDR=X",  "Indonesian Rupiah",  0.064),
+    ("UGX=X",  "Ugandan Shilling",   0.056),
+    ("HNL=X",  "Honduran Lempira",   0.044),
+    ("PEN=X",  "Peruvian Sol",       0.035),
 ]
 
 IMPORTERS = [
@@ -109,6 +130,30 @@ IMPORTERS = [
     ("KRW=X",    "South Korean Won", 0.045),
     ("GBP=X",    "British Pound",  0.038),
 ]
+
+# ── Frozen basket for the model's cci_overnight feature ──────────────────────
+#
+# open_direction.py builds cci_overnight by applying FX weights to the INTRADAY
+# snapshot file, which is captured from Barchart (fetch_fx_snapshots._BARCHART_FX)
+# and covers exactly the twelve pairs below. Its summation zero-fills any pair
+# missing from a snapshot row and gates only on `used >= 6`, so pointing it at
+# the widened EXPORTERS table would have silently shrunk EVERY historical value
+# by the ~23% of weight that moved to HNL/UGX/ETB — pairs no snapshot contains —
+# while still passing the gate and raising nothing.
+#
+# So the published index widens and the model's feature does not. This is a
+# deliberate divergence, not drift: the walk-forward record was earned on the
+# twelve-pair basket, and there is no intraday history for the new three to
+# re-earn it on. Revisit only if Barchart turns out to quote ^USDHNL/^USDUGX/
+# ^USDETB and enough overlap accumulates to re-validate.
+SNAPSHOT_EXPORTERS = [
+    ("BRL=X",  "Brazilian Real",    0.513),
+    ("VND=X",  "Vietnamese Dong",   0.262),
+    ("COP=X",  "Colombian Peso",    0.128),
+    ("IDR=X",  "Indonesian Rupiah", 0.051),
+    ("PEN=X",  "Peruvian Sol",      0.047),
+]
+SNAPSHOT_IMPORTERS = list(IMPORTERS)   # importers were not re-weighted
 
 # Z-score lookback window (trading days)
 Z_WINDOW = 252

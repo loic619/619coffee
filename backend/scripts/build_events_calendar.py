@@ -109,15 +109,63 @@ def _last_biz_day(year: int, month: int) -> date:
 
 # ── One-offs — extend manually as new dates are confirmed ─────────────────────
 
+# FOMC 2026 — the Fed publishes its schedule two years ahead. Dates below are
+# the DECISION day (day 2 of each two-day meeting), when the statement lands at
+# 14:00 ET; that is the tradeable moment, not the day the meeting opens.
+# 19:00 UTC covers the EDT half of the year and is an hour early in EST — close
+# enough for a watchlist, and the calendar has no intraday alerting.
+# Mar/Jun/Sep/Dec additionally carry the Summary of Economic Projections (the
+# "dot plot"), which moves the dollar more than a no-change statement does.
+FOMC_2026 = [
+    ("2026-01-28", False), ("2026-03-18", True),
+    ("2026-04-29", False), ("2026-06-17", True),
+    ("2026-07-29", False), ("2026-09-16", True),
+    ("2026-10-28", False), ("2026-12-09", True),
+]
+
 ONE_OFFS: list[dict] = [
-    # Example shape — leave empty for now; user populates as needed.
-    # {
-    #     "date":     "2026-04-08",
-    #     "category": "other",
-    #     "title":    "NCA Annual Convention 2026 — Day 1",
-    #     "url":      "https://www.ncausa.org",
-    #     "notes":    "US roaster industry conference, Phoenix AZ."
-    # },
+    # ── Jackson Hole 2026 (Kansas City Fed, Jackson Lake Lodge WY) ───────────
+    # Aug 27-29. Coffee cares because the symposium is where the Fed signals
+    # the rate path, and the dollar leg of that repricing feeds straight into
+    # the CCI — a weaker dollar lifts producer-currency terms of trade and, via
+    # the exporter side of the index, the arabica/robusta complex.
+    {
+        "date":     "2026-08-27",
+        "category": "central_bank",
+        "title":    "Jackson Hole Symposium — Day 1",
+        "url":      "https://www.kansascityfed.org/research/jackson-hole-economic-symposium/",
+        "notes":    "Kansas City Fed symposium opens. 2026 theme: Financial Innovation — Implications for Payments and Policy.",
+    },
+    {
+        "date":     "2026-08-28",
+        "time":     "14:00",
+        "category": "central_bank",
+        "title":    "Jackson Hole — Fed Chair keynote",
+        "url":      "https://www.kansascityfed.org/research/jackson-hole-economic-symposium/",
+        "notes":    "The market-moving session: the chair's address is the clearest read on the rate path between FOMC meetings. Watch USD → CCI → origin terms of trade.",
+    },
+    {
+        "date":     "2026-08-29",
+        "category": "central_bank",
+        "title":    "Jackson Hole Symposium — Day 3 (close)",
+        "url":      "https://www.kansascityfed.org/research/jackson-hole-economic-symposium/",
+        "notes":    "Final papers and panels.",
+    },
+]
+
+# FOMC decision days, expanded into the same one-off shape.
+ONE_OFFS += [
+    {
+        "date":     d,
+        "time":     "19:00",
+        "category": "central_bank",
+        "title":    "FOMC rate decision" + (" + economic projections (dot plot)" if sep else ""),
+        "url":      "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+        "notes":    ("Statement 14:00 ET, press conference 14:30 ET; minutes ~3 weeks later."
+                     + (" Quarterly SEP/dot plot released with the statement — the bigger dollar event."
+                        if sep else "")),
+    }
+    for d, sep in FOMC_2026
 ]
 
 

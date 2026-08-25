@@ -134,7 +134,38 @@ def probe_psd() -> None:
             print(f"   {name:10s} {v:>9,.0f} k bags   {v/w*100 if w else 0:5.2f}% of world")
 
 
+def probe_treasury() -> None:
+    """Which Stooq symbols actually carry a US Treasury yield curve?
+
+    Stooq is the proven route from a runner — robusta_factors already pulls DXY
+    from dx.f there after Yahoo started blocking Actions IPs. But the yield
+    symbols are guesswork until asked, and a wrong symbol returns a 200 with an
+    error body rather than a 404, so check the payload not the status.
+    """
+    print()
+    print("=" * 70)
+    print("3. Stooq — US Treasury yield symbols")
+    print("=" * 70)
+    cands = ["10usy.b", "2usy.b", "5usy.b", "30usy.b", "3musy.b", "1usy.b",
+             "7usy.b", "20usy.b", "6musy.b"]
+    for sym in cands:
+        url = f"https://stooq.com/q/d/l/?s={sym}&i=d"
+        try:
+            r = requests.get(url, headers=UA, timeout=20)
+            body = r.text.strip()
+            lines = body.splitlines()
+            if len(lines) < 2 or "," not in body:
+                print(f"   {sym:9s} HTTP {r.status_code} — no data ({body[:40]!r})")
+                continue
+            first, last = lines[1].split(","), lines[-1].split(",")
+            print(f"   {sym:9s} HTTP {r.status_code}  {len(lines)-1:>5} rows  "
+                  f"{first[0]} -> {last[0]}  last close = {last[4]}")
+        except Exception as e:
+            print(f"   {sym:9s} FAILED {type(e).__name__}: {str(e)[:60]}")
+
+
 if __name__ == "__main__":
     probe_fx()
     probe_psd()
+    probe_treasury()
     sys.stdout.flush()

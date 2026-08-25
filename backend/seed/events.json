@@ -9,7 +9,7 @@
       "url": "Source URL where the published data will appear, optional",
       "notes": "Free-text rationale or watch-list reason, optional"
     },
-    "selection_rule": "morning_brief.py filters to entries within +24h of the run timestamp (or +0..+1 days when only `date` is set).",
+    "selection_rule": "topic_notify_daily's week_ahead composer (via telegram/handlers/brief.py _upcoming_events_section) filters to entries within +24h of the run timestamp (or +0..+1 days when only `date` is set); UpcomingCalendar.tsx renders the same file as a forward timeline.",
     "maintainer_note": "Add new entries here when scheduling is known. Re-publish events for next year by date arithmetic in the brief — do NOT carry stale past entries forward."
   },
   "events": [
