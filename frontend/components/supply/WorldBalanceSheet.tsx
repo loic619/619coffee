@@ -14,40 +14,12 @@
 // The statement balances by construction: Total supply − Total demand is
 // shown as the residual, which is the number an analyst actually reads.
 import { useEffect, useMemo, useState } from "react";
-
-// `arabica` is the LEGACY unsplit leg. It gets its own column rather than
-// being folded into natural: most origins still carry it, and guessing a
-// process for them would be wrong in both directions (Colombia and the MAG
-// 6 are washed, Brazil is largely natural). The column hides itself once
-// every origin has been restated as washed/natural in the editor.
-const LEGS = ["arabica_washed", "arabica_natural", "arabica", "robusta"] as const;
-type Leg = (typeof LEGS)[number];
-const LEG_LABEL: Record<Leg, string> = {
-  arabica_washed: "Ar. washed",
-  arabica_natural: "Ar. natural",
-  arabica: "Ar. unsplit",
-  robusta: "Robusta",
-};
-const LEG_TONE: Record<Leg, string> = {
-  arabica_washed: "text-amber-300",
-  arabica_natural: "text-orange-400",
-  arabica: "text-amber-600",
-  robusta: "text-emerald-400",
-};
-
-type Legs = Partial<Record<Leg, number>>;
-interface Line {
-  key: string; label: string;
-  arabica_washed?: number; arabica_natural?: number; arabica?: number; robusta?: number;
-}
-interface Risk {
-  key: string; driver: string; origin: string; crop: string;
-  impact_m_bags: number; probability: number; note?: string;
-}
-export interface WorldBalanceDoc {
-  crop_year: string; unit: string; updated: string; note?: string;
-  carry_in: Line[]; demand_hubs: Line[]; carry_out: Line[]; risks: Risk[];
-}
+import WorldBalanceEditor from "./WorldBalanceEditor";
+import {
+  LEGS, LEG_LABEL, LEG_TONE,
+  addLegs, arabicaAll, emptyLegs, fmt, legTotal, r1,
+  type Leg, type Legs, type Line, type Risk, type WorldBalanceDoc,
+} from "@/lib/worldBalance";
 
 interface SeedSeason {
   season: string;
@@ -82,30 +54,22 @@ const GROUPS: { label: string; origins: string[] }[] = [
   { label: "Africa",      origins: ["uganda", "ethiopia", "ivory_coast", "tanzania"] },
 ];
 
-const r1 = (v: number) => Math.round(v * 10) / 10;
-const fmt = (v: number) => (Math.abs(v) < 0.05 ? "–" : v.toFixed(1));
-const emptyLegs = (): Record<Leg, number> =>
-  ({ arabica_washed: 0, arabica_natural: 0, arabica: 0, robusta: 0 });
-const addLegs = (a: Record<Leg, number>, b: Legs) => {
-  for (const l of LEGS) a[l] += b[l] ?? 0;
-  return a;
-};
-const legTotal = (l: Record<Leg, number>) => LEGS.reduce((s, k) => s + l[k], 0);
-
-export default function WorldBalanceSheet({
-  cropYear, onEdit,
-}: { cropYear?: string; onEdit?: () => void }) {
+export default function WorldBalanceSheet({ cropYear }: { cropYear?: string }) {
+  /** Bumped by the editor after a successful save so the statement re-reads
+   *  the file — the commit lands ~2 min later, so this is a nudge for the
+   *  next visit rather than an instant refresh. */
+  const [reload, setReload] = useState(0);
   const [doc, setDoc]   = useState<WorldBalanceDoc | null>(null);
   const [prod, setProd] = useState<Record<string, Record<Leg, number>> | null>(null);
   const [unsplitOrigins, setUnsplitOrigins] = useState<string[]>([]);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    fetch("/data/world_balance_sheet.json")
+    fetch(`/data/world_balance_sheet.json?t=${reload}`)
       .then(r => (r.ok ? r.json() : null))
       .then((d: WorldBalanceDoc | null) => d ? setDoc(d) : setFailed(true))
       .catch(() => setFailed(true));
-  }, []);
+  }, [reload]);
 
   const season = cropYear ?? doc?.crop_year;
 
@@ -195,11 +159,6 @@ export default function WorldBalanceSheet({
     [...(doc?.carry_in ?? []), ...(doc?.demand_hubs ?? []), ...(doc?.carry_out ?? [])]
       .some(l => (l.arabica ?? 0) > 0);
   const cols: readonly Leg[] = legacyInUse ? LEGS : LEGS.filter(l => l !== "arabica");
-  /** Arabica however it is currently expressed — the column that keeps the
-   *  statement comparable while some origins are still unsplit. */
-  const arabicaAll = (l: Record<Leg, number>) =>
-    l.arabica_washed + l.arabica_natural + l.arabica;
-
   if (!doc || !prod) {
     return <div className="text-xs text-slate-500 animate-pulse py-8 text-center">Loading balance sheet…</div>;
   }
@@ -247,13 +206,7 @@ export default function WorldBalanceSheet({
           </div>
           <div className="flex items-center gap-2">
             <span className="text-[8px] text-slate-600">updated {doc.updated}</span>
-            {onEdit && (
-              <button onClick={onEdit}
-                title="Edit the analyst-entered lines (stocks, demand, transit)"
-                className="text-[9px] px-1.5 py-0.5 rounded border border-slate-700 text-slate-500 hover:text-slate-200 hover:border-slate-500 transition-colors">
-                ✎
-              </button>
-            )}
+            <WorldBalanceEditor production={sums.production} onSaved={() => setReload(n => n + 1)} />
           </div>
         </div>
 

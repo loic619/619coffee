@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createHash, timingSafeEqual } from "node:crypto";
+import { passwordOk, dispatchWorkflow } from "@/lib/adminDispatch";
 
 // Password-gated write path for the crop-estimate "edit mode" on the origin
 // S&D cards. The admin password never reaches GitHub: it's checked here
@@ -14,18 +14,6 @@ import { createHash, timingSafeEqual } from "node:crypto";
 // set CROP_EDIT_PASSWORD_SHA256 in the Vercel env to rotate it without a
 // code change.
 
-const PASSWORD_SHA256 =
-  process.env.CROP_EDIT_PASSWORD_SHA256 ??
-  "fa5c94503096a33ea7988754863bccc6116738e11c99da730b32a8d4854e26d1";
-
-const GH_TOKEN = process.env.GH_DISPATCH_TOKEN;
-// Same rename-proof candidate probing as /api/refresh-acaphe: GitHub 301s
-// renamed-repo API calls and fetch downgrades a redirected POST to GET,
-// silently breaking workflow_dispatch — so probe candidates explicitly.
-const REPO_CANDIDATES = [
-  process.env.GH_REPO ?? "loic619/619coffee",
-  "loicscanu-ctrl/Coffee-intel-map",
-];
 const WORKFLOW = "apply-crop-estimate-edit.yml";
 
 const ORIGINS = new Set([
@@ -41,13 +29,6 @@ const MAX_MBAGS = 200;
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-function passwordOk(pw: unknown): boolean {
-  if (typeof pw !== "string" || pw.length === 0 || pw.length > 128) return false;
-  const got = createHash("sha256").update(pw).digest();
-  const want = Buffer.from(PASSWORD_SHA256, "hex");
-  return got.length === want.length && timingSafeEqual(got, want);
-}
 
 interface SeasonIn {
   season?: unknown;
@@ -241,43 +222,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "payload_too_large" }, { status: 400 });
   }
 
-  if (!GH_TOKEN) {
-    return NextResponse.json(
-      { error: "not_configured", hint: "set GH_DISPATCH_TOKEN env var" },
-      { status: 503 },
-    );
-  }
-
-  try {
-    let last: { status: number; body: string } = { status: 0, body: "" };
-    for (const repo of REPO_CANDIDATES) {
-      const res = await fetch(
-        `https://api.github.com/repos/${repo}/actions/workflows/${WORKFLOW}/dispatches`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${GH_TOKEN}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-          },
-          body: JSON.stringify({ ref: "main", inputs: { payload } }),
-          cache: "no-store",
-          redirect: "manual",
-        },
-      );
-
-      if (res.status === 204) {
-        return NextResponse.json({ ok: true, repo });
-      }
-      last = { status: res.status, body: await res.text() };
-      // 404 (repo not at this name) or 301 (renamed) → try the next candidate.
-      if (res.status !== 404 && res.status !== 301) break;
-    }
-    return NextResponse.json(
-      { error: "github_error", status: last.status, body: last.body },
-      { status: 502 },
-    );
-  } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
-  }
+  const res = await dispatchWorkflow(WORKFLOW, payload);
+  if (res.ok) return NextResponse.json({ ok: true, repo: res.repo });
+  return NextResponse.json(
+    { error: res.error, ...(res.body ? { body: res.body } : {}) },
+    { status: res.status },
+  );
 }

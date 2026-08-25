@@ -1,0 +1,77 @@
+name: "3.4.3 – On-demand · Apply world balance-sheet edit (admin UI)"
+
+# The ✎ on the Total tab's Supply & Demand panel posts edited analyst lines
+# to /api/admin/world-balance (password checked server-side); that route
+# dispatches this workflow, which re-validates and rewrites
+# frontend/public/data/world_balance_sheet.json, then commits WITHOUT
+# [skip ci] so Vercel redeploys and the edit is live (~2 min).
+#
+# Only carry-in, consumption by hub, carry-out and the risk register are
+# writable. Production stays derived from the per-origin crop estimates —
+# the applier rejects a payload that tries to set it, so the world view
+# cannot drift from an origin tab.
+#
+# Sibling of 3.4.2, which does the same for the per-origin crop estimates.
+
+on:
+  workflow_dispatch:
+    inputs:
+      payload:
+        description: "Edit payload JSON: {crop_year, updated, carry_in, demand_hubs, carry_out, risks}"
+        required: true
+        type: string
+
+concurrency:
+  group: world-balance-edit
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Write payload
+        # Via env, not inline interpolation — the payload is remote input and
+        # must never be shell-expanded.
+        env:
+          PAYLOAD: ${{ inputs.payload }}
+        run: printf '%s' "$PAYLOAD" > /tmp/world_balance_payload.json
+
+      - name: Validate and apply edit
+        id: apply
+        working-directory: backend
+        run: PYTHONPATH=. python scripts/apply_world_balance_edit.py --payload /tmp/world_balance_payload.json
+
+      - name: Commit & push
+        if: steps.apply.outputs.changed == 'true'
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data/world_balance_sheet.json
+          if git diff --cached --quiet; then
+            echo "No change."
+            exit 0
+          fi
+          git commit -m "data(world-balance): analyst lines edited via admin UI"
+          git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Notify on failure or cancellation
+        if: failure() || cancelled()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=🚨 ${{ github.workflow }} ${{ job.status }} — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
