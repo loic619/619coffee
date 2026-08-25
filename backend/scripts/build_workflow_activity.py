@@ -121,6 +121,19 @@ def main() -> int:
             except urllib.error.HTTPError as e:
                 print(f"[activity] runs error {wf.get('name')} page {page}: {e}", file=sys.stderr)
                 return 1
+            # A run's own `name` is the workflow title CACHED WHEN THE RUN
+            # WAS CREATED, and GitHub never backfills it after a rename — a
+            # run created today still carries last month's title. Aggregating
+            # on it splits one workflow across every name it has ever had and
+            # makes none of them match the inventory, which is read from the
+            # current YAML. That reported eight healthy jobs as "scheduled but
+            # never fired" — the exact false alarm this file exists to rule
+            # out. Carry the owning workflow instead; it comes from the
+            # workflow listing, so it is always current.
+            for r in batch:
+                r["_wf_name"] = wf.get("name")
+                r["_wf_path"] = wf.get("path") or ""
+                r["_wf_id"] = wf_id
             runs.extend(batch)
             if len(batch) < PER_PAGE:
                 break
@@ -156,10 +169,14 @@ def main() -> int:
         if day not in day_idx:
             continue
 
-        name = r.get("name") or "(unnamed)"
-        a = agg.setdefault(name, {
+        # Keyed by file, which is the workflow's real identity: it survives
+        # renames, and it is what the inventory joins on.
+        path = r.get("_wf_path") or r.get("path") or ""
+        file = path.rsplit("/", 1)[-1]
+        name = r.get("_wf_name") or r.get("name") or "(unnamed)"
+        a = agg.setdefault(file or name, {
             "name": name,
-            "file": (r.get("path") or "").rsplit("/", 1)[-1],
+            "file": file,
             "runs": 0, "success": 0, "failure": 0, "cancelled": 0,
             "by_day": [0] * len(days),
             "events": defaultdict(int),
@@ -189,6 +206,15 @@ def main() -> int:
             a["last_run"] = started
             a["last_conclusion"] = concl or r.get("status")
 
+    # Renames are not cosmetic here: `workflow_run` triggers match on the
+    # exact display title, so a renamed workflow silently stops waking its
+    # listeners. Surfacing the drift makes that checkable.
+    renamed = sorted({
+        f"{r.get('name')} → {r.get('_wf_name')}"
+        for r in runs
+        if r.get("_wf_name") and r.get("name") and r["_wf_name"] != r["name"]
+    })
+
     out_wf = []
     for a in agg.values():
         secs = a.pop("_secs")
@@ -203,6 +229,9 @@ def main() -> int:
         # Non-empty means a workflow exceeded the page cap and its counts
         # are a floor, not a total.
         "capped_workflows": capped,
+        # "old title → current title" for workflows renamed inside the
+        # window. Each one is a workflow_run trigger to re-check.
+        "renamed_in_window": renamed,
         "since": since.isoformat(),
         "repo": repo,
         "totals": {k: totals[k] for k in ("runs", "success", "failure", "cancelled", "other")},
@@ -213,6 +242,8 @@ def main() -> int:
     OUT_PATH.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8")
     print(f"[activity] {totals['runs']} runs across {len(out_wf)} workflows "
           f"({totals['success']} ok / {totals['failure']} failed / {totals['cancelled']} cancelled)")
+    for line in renamed:
+        print(f"[activity] renamed in window: {line}")
     return 0
 
 

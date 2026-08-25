@@ -42,6 +42,10 @@ interface ActivityPayload {
    *  are a floor, not a total. Normally empty; if it is not, the panel says
    *  so rather than letting an undercount read as a quiet week. */
   capped_workflows?: string[];
+  /** "old title → current title" for workflows renamed inside the window.
+   *  Not cosmetic: `workflow_run` triggers match on the exact display
+   *  title, so a rename silently stops waking whatever listened for it. */
+  renamed_in_window?: string[];
 }
 interface InventoryLite {
   workflows: { file: string; name: string; crons: string[] }[];
@@ -75,11 +79,16 @@ export default function WorkflowActivity() {
   // Workflows the YAML schedules but which produced no run in the window.
   // This is the class of failure the Actions tab cannot show you — there is
   // nothing to look at, which is exactly the problem.
+  //
+  // Joined on FILE, not on name. A workflow's title is mutable and the
+  // Actions API caches it per run, so matching on it reported eight healthy
+  // daily jobs as silent after a renumbering pass — a false alarm on the one
+  // panel whose whole job is to be trusted when it cries wolf.
   const silent = useMemo(() => {
     if (!data || !inv) return [];
-    const ran = new Set(data.workflows.map(w => w.name));
+    const ran = new Set(data.workflows.map(w => w.file).filter(Boolean));
     return inv.workflows
-      .filter(w => (w.crons?.length ?? 0) > 0 && !ran.has(w.name))
+      .filter(w => (w.crons?.length ?? 0) > 0 && !ran.has(w.file))
       .map(w => ({ name: w.name, file: w.file, crons: w.crons }));
   }, [data, inv]);
 
@@ -102,9 +111,23 @@ export default function WorkflowActivity() {
   const t = data.totals;
   const failRate = t.runs ? (t.failure / t.runs) * 100 : 0;
   const capped = data.capped_workflows ?? [];
+  const renamed = data.renamed_in_window ?? [];
 
   return (
     <div className="space-y-3">
+      {renamed.length > 0 && (
+        <div className="text-[10px] text-sky-300 border border-sky-900/60 bg-sky-950/30 rounded px-2 py-1 space-y-0.5">
+          <div>
+            Renamed inside the window — <span className="text-sky-200">workflow_run</span> triggers
+            match on the exact display title, so anything that listened for the old name has stopped
+            waking. Worth re-checking {renamed.length === 1 ? "this one" : "these"}:
+          </div>
+          {renamed.map(r => (
+            <div key={r} className="font-mono text-[9px] text-sky-400/80 pl-2">{r}</div>
+          ))}
+        </div>
+      )}
+
       {capped.length > 0 && (
         <div className="text-[10px] text-amber-400 border border-amber-900/60 bg-amber-950/30 rounded px-2 py-1">
           Undercount: {capped.join(", ")} exceeded the collector&apos;s page cap, so the counts
