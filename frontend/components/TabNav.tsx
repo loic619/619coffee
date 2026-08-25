@@ -13,9 +13,13 @@ const TABS = [
   { href: "/demand",  label: "Demand" },
   { href: "/macro",   label: "Macro" },
   { href: "/map",     label: "Map" },
-  // Hidden from the tab band (still reachable by direct URL, admin tier only):
-  //   { href: "/data-map", label: "Data Map" },
-  //   { href: "/research", label: "Research" },
+  // Admin-only tabs. They are listed here rather than commented out because
+  // the tier filter below already hides them from `user` and `basic`
+  // (lib/gate.ts USER_BLOCKED / BASIC_PREFIXES), and the middleware refuses
+  // the routes outright for those tiers — so commenting them out only hid
+  // them from the owner, who is the one person allowed to see them.
+  { href: "/data-map", label: "Data Map", adminOnly: true },
+  { href: "/research", label: "Research", adminOnly: true },
 ];
 
 /** Read the cosmetic tier cookie (`tierv`). Enforcement lives in the
@@ -36,7 +40,14 @@ export default function TabNav() {
   // The login gate is a standalone page — no app chrome.
   if (pathname === "/welcome") return null;
 
-  const tabs = TABS.filter((t) => tierAllowsTab(tier, t.href));
+  // `tierAllowsTab` renders everything while the tier is unknown (the cookie is
+  // client-only, so the server pass has nothing to go on) and lets the
+  // middleware do the enforcing. That default is right for the ordinary tabs —
+  // but an admin-only tab would flash for a `basic` visitor before the trim,
+  // advertising a surface they can't reach. These two wait for a confirmed
+  // admin instead: unknown means hidden, and the owner sees them a tick later.
+  const tabs = TABS.filter((t) =>
+    t.adminOnly ? tier === "admin" : tierAllowsTab(tier, t.href));
   return (
     <nav className="relative border-b border-slate-700 bg-slate-900">
       <div className="flex overflow-x-auto px-4 scrollbar-thin">

@@ -41,28 +41,38 @@ const ARCHITECTURE = `flowchart LR
 const FUTURES = `flowchart LR
   WPOLL["Acaphe poll · /15min (1-19h)<br/>acaphe.com"]
   W13["1.3 Daily OI · 02:00 M-F<br/>Barchart core-api"]
+  W120["1.20 Traded tape · 18:50 M-F<br/>acaphe tape + board"]
+  W198["1.98 Intraday KC/RC · 20:13 M-F<br/>Barchart 15-min bars"]
   ARC[("contract_prices_archive.json")]
+  TARC[("tradespread_archive.json")]
   EXP{{"1.4 Export · 02:30"}}
   J_aca[/acaphe_live.json/]
   J_chain[/futures_chain.json/]
   J_oi[/oi_history.json/]
   J_fnd[/oi_fnd_chart.json/]
+  J_tape[/tradespread.json/]
+  J_intra[/intraday_kc_rc_15min.json/]
   quote{{Daily Live Quotes}}
   chain{{Futures Chain}}
   oi{{OI 7-day Table}}
   oifnd{{OI Evolution to FND}}
+  tape{{Traded Tape Panel}}
+  model{{Open-direction model}}
   WPOLL --> J_aca --> quote
   W13 --> ARC
   W13 --> EXP --> J_chain --> chain
   ARC --> J_oi --> oi
   ARC --> J_fnd --> oifnd
+  W120 -->|"full tick tape"| TARC
+  W120 -->|"open · +15min · RC-close<br/>close vs settle · VWAP · pressure"| J_tape --> tape
+  W198 -->|"open · 17:30 · 18:30 anchors"| J_intra --> model
 ${DEFS}
   classDef vis fill:#2e1065,stroke:#8b5cf6,color:#ddd6fe;
-  class WPOLL,W13 scr;
-  class ARC store;
+  class WPOLL,W13,W120,W198 scr;
+  class ARC,TARC store;
   class EXP proc;
-  class J_aca,J_chain,J_oi,J_fnd json;
-  class quote,chain,oi,oifnd vis;`;
+  class J_aca,J_chain,J_oi,J_fnd,J_tape,J_intra json;
+  class quote,chain,oi,oifnd,tape,model vis;`;
 
 const COT = `flowchart LR
   W13["1.3 Daily OI · 02:00 M-F<br/>Barchart core-api"]
@@ -649,6 +659,35 @@ const ROWS: FlowMetadata[] = [
     transport: { provider: "acaphe.com", method: "Direct API GET" },
     storage: { target: "acaphe_live.json", footprint: "<5KB", units: "¢/lb KC + $/MT RC live mid" },
     runtime: { duration: "~3s" },
+  },
+  {
+    wf: "1.20 Traded tape", output: "tradespread.json", component: "TradedTapePanel", visual: "Futures · Traded Tape",
+    cadence: {
+      recurrence: "18:50 UTC Mon-Fri (one run per session)",
+      window: "after both settles — 14:50 ET in EDT, 13:50 ET in EST",
+      trigger: "cron",
+    },
+    transport: { provider: "acaphe.com", method: "Playwright login → 6 tick panels + 2 spread panels + iquote board" },
+    storage: {
+      target: "tradespread.json (summary) + tradespread_archive.json (full tape, 400 sessions)",
+      units: "per contract: first tick, +15 min, price at the 17:30 London bell, "
+           + "last trade, settlement, close − settle, lifted/hit lots, VWAP up/down, pressure",
+    },
+    resiliency: {
+      onMissing: "the board (iquote) fails independently of the tape — settle fields go null "
+               + "and the tick stats still store. Absorbed workflow 0.2 (KC at RC close), which "
+               + "polled a live snapshot 8×/weekday for one instant the tape already timestamps.",
+    },
+  },
+  {
+    wf: "1.98 Intraday KC/RC", output: "intraday_kc_rc_15min.json", component: "open-direction model", visual: "Futures · model inputs (not a panel)",
+    cadence: { recurrence: "20:13 UTC Mon-Fri", trigger: "cron" },
+    transport: { provider: "Barchart", method: "Playwright → 15-min bars, volume-stitched front contract" },
+    storage: {
+      target: "intraday_kc_rc_15min.json",
+      footprint: "~1,500 sessions",
+      units: "RC open/09:15/16:30/17:30, KC 17:30/18:30, both settles — the anchors behind kc_after_rc_diff",
+    },
   },
   {
     wf: "1.22 Slow-data", output: "demand_stocks.json", component: "StocksPanel", visual: "Demand · Stocks (ICE cert + PSD)",
