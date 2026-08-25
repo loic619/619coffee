@@ -38,7 +38,12 @@ from scraper.exporters.futures import (
     export_oi_fnd_chart,
 )
 from scraper.exporters.health import export_health
-from scraper.exporters.macro import export_freight, export_retail_cpi, export_us_cpi
+from scraper.exporters.macro import (
+    export_freight,
+    export_retail_cpi,
+    export_treasury_yields,
+    export_us_cpi,
+)
 from scraper.exporters.news import export_news
 from scraper.exporters.prices import export_latest_prices, export_vn_physical_prices
 from scraper.exporters.supply import (
@@ -127,6 +132,7 @@ def _exporters(db):
         ("factory_mix",           lambda: export_factory_mix_step()),
         ("retail_cpi",            lambda: export_retail_cpi(db)),
         ("us_cpi",                lambda: export_us_cpi(db)),
+        ("treasury_yields",       lambda: export_treasury_yields()),
         ("latest_prices",         lambda: export_latest_prices(db)),
         ("vn_physical_prices",    lambda: export_vn_physical_prices(db)),
         # Must run BEFORE origin_prices_history: it writes brazil_arabica_fisico.json,

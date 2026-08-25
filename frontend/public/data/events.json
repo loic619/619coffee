@@ -9,7 +9,7 @@
       "url": "Source URL where the published data will appear, optional",
       "notes": "Free-text rationale or watch-list reason, optional"
     },
-    "selection_rule": "morning_brief.py filters to entries within +24h of the run timestamp (or +0..+1 days when only `date` is set).",
+    "selection_rule": "topic_notify_daily's week_ahead composer (via telegram/handlers/brief.py _upcoming_events_section) filters to entries within +24h of the run timestamp (or +0..+1 days when only `date` is set); UpcomingCalendar.tsx renders the same file as a forward timeline.",
     "maintainer_note": "Add new entries here when scheduling is known. Re-publish events for next year by date arithmetic in the brief — do NOT carry stale past entries forward."
   },
   "events": [
@@ -33,6 +33,14 @@
       "title": "Vietnam Customs — Jan 2026 export bulletin (approx)",
       "url": "https://customs.gov.vn",
       "notes": "Monthly export figures; published 22-28 of each month. Date is approximate — VN Customs has been irregular in 2025-26."
+    },
+    {
+      "date": "2026-01-28",
+      "time": "19:00",
+      "category": "central_bank",
+      "title": "FOMC rate decision",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+      "notes": "Statement 14:00 ET, press conference 14:30 ET; minutes ~3 weeks later."
     },
     {
       "date": "2026-01-30",
@@ -98,6 +106,14 @@
       "notes": "Approximate — published 15-20 of the month following the reference month."
     },
     {
+      "date": "2026-03-18",
+      "time": "19:00",
+      "category": "central_bank",
+      "title": "FOMC rate decision + economic projections (dot plot)",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+      "notes": "Statement 14:00 ET, press conference 14:30 ET; minutes ~3 weeks later. Quarterly SEP/dot plot released with the statement — the bigger dollar event."
+    },
+    {
       "date": "2026-03-25",
       "category": "vietnam_customs",
       "title": "Vietnam Customs — Mar 2026 export bulletin (approx)",
@@ -146,6 +162,14 @@
       "notes": "RM (Robusta 10-T) May 2026 contract — watch for max-OI roll into the next month in the prior 26 business days."
     },
     {
+      "date": "2026-04-29",
+      "time": "19:00",
+      "category": "central_bank",
+      "title": "FOMC rate decision",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+      "notes": "Statement 14:00 ET, press conference 14:30 ET; minutes ~3 weeks later."
+    },
+    {
       "date": "2026-04-30",
       "category": "ico",
       "title": "ICO Coffee Market Report — Apr 2026",
@@ -188,6 +212,14 @@
       "title": "USDA WASDE — 2026-06 report",
       "url": "https://www.usda.gov/oce/commodity/wasde",
       "notes": "Monthly world S&D balance; coffee section usually drives end-of-year stocks revisions."
+    },
+    {
+      "date": "2026-06-17",
+      "time": "19:00",
+      "category": "central_bank",
+      "title": "FOMC rate decision + economic projections (dot plot)",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+      "notes": "Statement 14:00 ET, press conference 14:30 ET; minutes ~3 weeks later. Quarterly SEP/dot plot released with the statement — the bigger dollar event."
     },
     {
       "date": "2026-06-17",
@@ -245,6 +277,14 @@
       "notes": "Monthly export figures; published 22-28 of each month. Date is approximate — VN Customs has been irregular in 2025-26."
     },
     {
+      "date": "2026-07-29",
+      "time": "19:00",
+      "category": "central_bank",
+      "title": "FOMC rate decision",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+      "notes": "Statement 14:00 ET, press conference 14:30 ET; minutes ~3 weeks later."
+    },
+    {
       "date": "2026-07-31",
       "category": "ico",
       "title": "ICO Coffee Market Report — Jul 2026",
@@ -286,6 +326,28 @@
       "notes": "RM (Robusta 10-T) Sep 2026 contract — watch for max-OI roll into the next month in the prior 26 business days."
     },
     {
+      "date": "2026-08-27",
+      "category": "central_bank",
+      "title": "Jackson Hole Symposium — Day 1",
+      "url": "https://www.kansascityfed.org/research/jackson-hole-economic-symposium/",
+      "notes": "Kansas City Fed symposium opens. 2026 theme: Financial Innovation — Implications for Payments and Policy."
+    },
+    {
+      "date": "2026-08-28",
+      "time": "14:00",
+      "category": "central_bank",
+      "title": "Jackson Hole — Fed Chair keynote",
+      "url": "https://www.kansascityfed.org/research/jackson-hole-economic-symposium/",
+      "notes": "The market-moving session: the chair's address is the clearest read on the rate path between FOMC meetings. Watch USD → CCI → origin terms of trade."
+    },
+    {
+      "date": "2026-08-29",
+      "category": "central_bank",
+      "title": "Jackson Hole Symposium — Day 3 (close)",
+      "url": "https://www.kansascityfed.org/research/jackson-hole-economic-symposium/",
+      "notes": "Final papers and panels."
+    },
+    {
       "date": "2026-08-31",
       "category": "ico",
       "title": "ICO Coffee Market Report — Aug 2026",
@@ -299,6 +361,14 @@
       "title": "USDA WASDE — 2026-09 report",
       "url": "https://www.usda.gov/oce/commodity/wasde",
       "notes": "Monthly world S&D balance; coffee section usually drives end-of-year stocks revisions."
+    },
+    {
+      "date": "2026-09-16",
+      "time": "19:00",
+      "category": "central_bank",
+      "title": "FOMC rate decision + economic projections (dot plot)",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+      "notes": "Statement 14:00 ET, press conference 14:30 ET; minutes ~3 weeks later. Quarterly SEP/dot plot released with the statement — the bigger dollar event."
     },
     {
       "date": "2026-09-17",
@@ -350,6 +420,14 @@
       "notes": "RM (Robusta 10-T) Nov 2026 contract — watch for max-OI roll into the next month in the prior 26 business days."
     },
     {
+      "date": "2026-10-28",
+      "time": "19:00",
+      "category": "central_bank",
+      "title": "FOMC rate decision",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+      "notes": "Statement 14:00 ET, press conference 14:30 ET; minutes ~3 weeks later."
+    },
+    {
       "date": "2026-10-30",
       "category": "ico",
       "title": "ICO Coffee Market Report — Oct 2026",
@@ -390,6 +468,14 @@
       "title": "ICO Coffee Market Report — Nov 2026",
       "url": "https://www.ico.org/show_news.asp",
       "notes": "Monthly composite indicator + export figures; published end of month."
+    },
+    {
+      "date": "2026-12-09",
+      "time": "19:00",
+      "category": "central_bank",
+      "title": "FOMC rate decision + economic projections (dot plot)",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+      "notes": "Statement 14:00 ET, press conference 14:30 ET; minutes ~3 weeks later. Quarterly SEP/dot plot released with the statement — the bigger dollar event."
     },
     {
       "date": "2026-12-10",

@@ -30,7 +30,10 @@ const TT_STYLE = {
   fontSize: 10,
 };
 
-const EXPORTER_ORDER = ["BRL=X", "VND=X", "COP=X", "IDR=X", "PEN=X"] as const;
+// Order mirrors the CCI exporter weights (USDA PSD MY2024 export shares),
+// heaviest first. ETB/UGX/HNL joined the basket 2026-08-25.
+const EXPORTER_ORDER = ["BRL=X", "VND=X", "COP=X", "ETB=X", "IDR=X",
+                        "UGX=X", "HNL=X", "PEN=X"] as const;
 const IMPORTER_ORDER = ["EURUSD=X", "JPY=X", "CHF=X", "CNY=X", "CAD=X", "KRW=X", "GBP=X"] as const;
 
 const PAIR_COLOR: Record<string, string> = {
@@ -39,6 +42,9 @@ const PAIR_COLOR: Record<string, string> = {
   "COP=X":    "#0ea5e9",
   "IDR=X":    "#14b8a6",
   "PEN=X":    "#22d3ee",
+  "ETB=X":    "#34d399",  // added with the basket widening
+  "UGX=X":    "#2dd4bf",
+  "HNL=X":    "#4ade80",
   "EURUSD=X": "#a855f7",  // importers: purple/orange palette
   "JPY=X":    "#ec4899",
   "CHF=X":    "#f43f5e",

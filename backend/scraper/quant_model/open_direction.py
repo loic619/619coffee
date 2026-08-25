@@ -214,8 +214,18 @@ def _cci_overnight_series() -> "pd.Series | None":
     if not _FX_SNAPS.exists():
         return None
     try:
+        # SNAPSHOT_* not EXPORTERS/IMPORTERS: the published index was widened
+        # to eight origins on 2026-08-25, but the intraday snapshots this
+        # feature reads cover only the original twelve Barchart pairs. The loop
+        # below zero-fills absent pairs and gates on `used >= 6`, so the wider
+        # table would shrink every historical value by the weight that moved to
+        # HNL/UGX/ETB without tripping anything. See the note beside
+        # SNAPSHOT_EXPORTERS.
         from scraper.quant_model.fetch_currency_index import (
-            EXPORTERS, IMPORTERS, _strength_sign)
+            SNAPSHOT_EXPORTERS as EXPORTERS,
+            SNAPSHOT_IMPORTERS as IMPORTERS,
+            _strength_sign,
+        )
         doc = json.loads(_FX_SNAPS.read_text(encoding="utf-8"))
         rows = doc.get("days") or []
     except Exception as e:  # noqa: BLE001 — dormancy is fine, SILENT dormancy is not

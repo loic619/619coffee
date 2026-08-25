@@ -103,8 +103,13 @@ def test_unavailable_when_intraday_missing(tmp_path, monkeypatch):
 # ── cci_overnight activation threshold ───────────────────────────────────────
 
 def _write_snaps(tmp_path, dates):
-    from scraper.quant_model.fetch_currency_index import EXPORTERS, IMPORTERS
-    tickers = [t for t, _, _ in EXPORTERS + IMPORTERS][:8]
+    # SNAPSHOT_* — these fixtures stand in for the intraday snapshot file, which
+    # only ever contains the Barchart-captured basket. Building them from the
+    # published EXPORTERS (widened to eight origins on 2026-08-25) put HNL/UGX/ETB
+    # in the fixture and left only 5 of the model's pairs, silently tripping the
+    # `used >= 6` gate and making the feature look absent.
+    from scraper.quant_model.fetch_currency_index import SNAPSHOT_EXPORTERS, SNAPSHOT_IMPORTERS
+    tickers = [t for t, _, _ in SNAPSHOT_EXPORTERS + SNAPSHOT_IMPORTERS][:8]
     days = [{
         "date": d.strftime("%Y-%m-%d"),
         "pairs": {t: {"prev_1730": 5.0, "at_0300": 5.01} for t in tickers},
