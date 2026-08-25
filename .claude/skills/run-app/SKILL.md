@@ -108,8 +108,33 @@ allowed everywhere. If a page redirects unexpectedly, that's `pathAllowed()` in
 - **Don't run `playwright install`.** The image ships Chromium under
   `/opt/pw-browsers/`, and the bundled revision won't match what npm expects —
   the driver globs for the installed one.
-- **Port hygiene.** Kill by listener (`lsof -ti:PORT`), not `pkill -f`, which
-  can match the agent's own command line.
+- **Port hygiene — `lsof` does not work in this container.** `lsof -ti:3002`
+  prints nothing even while the server is demonstrably serving, so the
+  recommended `lsof -ti:PORT | xargs -r kill -9` is a silent no-op and the old
+  server survives every "restart". The new one then dies with `EADDRINUSE`
+  while `curl` still answers — from the *old* process — so the readiness poll
+  goes green and you spend the next twenty minutes debugging a fix that is
+  correctly built and simply not being served. Kill by PID instead, and
+  confirm the restart bound:
+
+  ```bash
+  ps -eo pid,cmd | grep -E "next-server|next start" | grep -v grep   # find them
+  kill -9 <pids>
+  # after starting:
+  grep -c EADDRINUSE /tmp/next.log   # must be 0 — curl alone will not tell you
+  ```
+
+  When a change looks like it did not take, check `grep -o '.\{60\}<your new
+  string>' .next/static/chunks/app/<route>/page-*.js` first: if the string is
+  in the bundle, the build is fine and you have a stale *server*, not a stale
+  build.
+- **`--full` is a no-op on pages that scroll in an inner container.** `/macro`,
+  and any page whose root is `h-full overflow-y-auto`, never scrolls the
+  document, so `fullPage: true` returns a viewport-sized image and the panel
+  you wanted is simply absent. Scroll the element into view first
+  (`locator(sel).scrollIntoViewIfNeeded()`) and screenshot the viewport, or
+  assert on the DOM rather than the picture.
+
 - **`:has-text()` matches substrings.** `button:has-text("port")` clicks the
   **Imports** tab, not the sort control, and you screenshot the wrong page
   while everything reports success. Use `button:text-is("port")` for an exact
