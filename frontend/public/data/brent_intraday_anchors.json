@@ -1,6 +1,6 @@
 {
- "scraped_at": "2026-08-23T13:46:39.631019Z",
- "source": "Barchart queryminutes per CB contract (front = max daily volume; anchors same-contract)",
+ "scraped_at": "2026-08-24T04:02:49.277381Z",
+ "source": "backfill (per-contract) + daily front-contract appends",
  "days": [
   {
    "date": "2019-09-12",
@@ -10753,6 +10753,13 @@
    "symbol": "CBV26",
    "prev_1730": 93.51,
    "at_0300": 93.6
+  },
+  {
+   "date": "2026-08-24",
+   "symbol": "CBV26",
+   "prev_1730": 94.01,
+   "at_0300": 93.11,
+   "prev_date": "2026-08-21"
   }
  ]
 }

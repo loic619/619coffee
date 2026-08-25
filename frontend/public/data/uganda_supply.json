@@ -1,6 +1,6 @@
 {
   "country": "uganda",
-  "scraped_at": "2026-08-24T03:37:18.809565+00:00",
+  "scraped_at": "2026-08-25T03:30:20.834603+00:00",
   "exports": {
     "source": "UCDA Monthly Reports",
     "last_updated": "2026-06",
@@ -796,13 +796,13 @@
     }
   },
   "ucda_price": {
-    "usd_cwt": 180.35,
+    "usd_cwt": 175.45,
     "as_of": "2026-08-24",
     "grade": "Screen 15",
     "grades": {
-      "Screen 15": 180.35,
-      "Wugar": 322.3,
-      "Drugar": 303.3
+      "Screen 15": 175.45,
+      "Wugar": 315.65,
+      "Drugar": 296.65
     }
   },
   "weather": {
@@ -847,9 +847,9 @@
         "csi_60d": 0.7,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH",
-        "rain_mtd_mm": 117.9,
-        "rain_hist_min": 278.1,
-        "rain_hist_max": 561.1
+        "rain_mtd_mm": 117.6,
+        "rain_hist_min": 295.3,
+        "rain_hist_max": 578.3
       },
       {
         "name": "West Nile",
@@ -944,7 +944,6 @@
       {
         "region": "Central",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -987,6 +986,7 @@
           "L",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1016,7 +1016,6 @@
       {
         "region": "Western",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -1082,13 +1081,13 @@
           "M",
           "M",
           "H",
+          "H",
           "H"
         ]
       },
       {
         "region": "Busoga",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -1128,6 +1127,7 @@
           "M",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1160,7 +1160,6 @@
       {
         "region": "Mt Elgon",
         "days": [
-          "-",
           "M",
           "L",
           "M",
@@ -1224,8 +1223,9 @@
           "L",
           "L",
           "L",
-          "L",
-          "L",
+          "M",
+          "M",
+          "M",
           "M"
         ]
       },
@@ -1242,11 +1242,11 @@
           "-",
           "-",
           "-",
+          "L",
+          "L",
+          "M",
+          "M",
           "-",
-          "L",
-          "L",
-          "M",
-          "M",
           "-",
           "-",
           "-",
@@ -1304,7 +1304,6 @@
       {
         "region": "Rwenzori",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -1361,6 +1360,7 @@
           "M",
           "M",
           "L",
+          "M",
           "M",
           "M",
           "M",

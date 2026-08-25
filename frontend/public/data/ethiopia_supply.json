@@ -1,6 +1,6 @@
 {
   "country": "ethiopia",
-  "scraped_at": "2026-08-24T03:37:19.569295Z",
+  "scraped_at": "2026-08-25T03:30:21.527176Z",
   "exports": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-01",
@@ -361,14 +361,14 @@
         "csi_30d_level": "OK",
         "csi_60d_level": "LOW",
         "rain_mtd_mm": 178.9,
-        "rain_hist_min": 71.4,
-        "rain_hist_max": 142.3
+        "rain_hist_min": 75.7,
+        "rain_hist_max": 152.5
       },
       {
         "name": "Harrar",
         "drought": "MED",
-        "csi_30d": 0.794,
-        "csi_60d": 0.794,
+        "csi_30d": 0.84,
+        "csi_60d": 0.816,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
       },
@@ -376,7 +376,7 @@
         "name": "Kaffa",
         "drought": "MED",
         "csi_30d": 1.0,
-        "csi_60d": 0.794,
+        "csi_60d": 0.816,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
       },
@@ -473,7 +473,6 @@
       {
         "region": "Harrar",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -534,8 +533,9 @@
           "M",
           "M",
           "M",
-          "-",
-          "L",
+          "M",
+          "M",
+          "M",
           "M",
           "M",
           "M",
@@ -545,7 +545,6 @@
       {
         "region": "Kaffa",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -607,7 +606,8 @@
           "M",
           "M",
           "M",
-          "M",
+          "L",
+          "L",
           "M",
           "M",
           "M",
