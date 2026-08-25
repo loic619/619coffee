@@ -104,15 +104,21 @@ export default function CertifiedStocksFreshness(props: FreshnessSource) {
         <Chip label="RC stock"     last={props.robustaAsOf}               today={today} thresholdDays={4}  />
         <Chip label="RC gradings"  last={props.robustaGradingsLast}       today={today} thresholdDays={4}  />
         <Chip label="RC age allow" last={props.robustaAgeAllowanceLast}   today={today} thresholdDays={35} />
-        <Chip label="RC iss/recv"  last={props.robustaIssRecvLast}        today={today} thresholdDays={4}  />
-        <Chip label="RC tenders"   last={props.robustaTendersLast}        today={today} thresholdDays={4}  />
+        {/* Delivery-cycle feeds, NOT daily. ICE publishes tenders and the
+            issue/receipt report around the delivery notice period, so the
+            series runs in monthly clusters — measured gaps between reports are
+            30-37 days. A 4-day threshold painted both permanently OVERDUE
+            between cycles, which is a false alarm, not a stale scrape. */}
+        <Chip label="RC iss/recv"  last={props.robustaIssRecvLast}        today={today} thresholdDays={40} />
+        <Chip label="RC tenders"   last={props.robustaTendersLast}        today={today} thresholdDays={40} />
         <Chip label="RC queue"     last={props.robustaOverviewLast}       today={today} thresholdDays={4}  />
         <Chip label="cohort out"   last={props.robustaImpliedOutflowLast} today={today} thresholdDays={35} />
       </div>
       <div className="text-[8.5px] text-slate-600 mt-1">
         Colour: <span className="text-emerald-400">today</span> · <span className="text-slate-300">within publishing cycle</span> ·
         <span className="text-rose-400"> OVERDUE</span> (alert pings immediately when the source misses its expected publish window).
-        Cadence varies per feed — monthly publications (KC ageing, RC age allowance, cohort out) read normal up to ~35 days.
+        Cadence varies per feed — monthly publications (KC ageing, RC age allowance, cohort out) read normal up to ~35 days,
+        and the delivery-cycle feeds (RC tenders, RC iss/recv) up to ~40.
       </div>
     </div>
   );

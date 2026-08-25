@@ -22,6 +22,31 @@ import {
 //     distribution, and flowByOrigin gross_in/gross_out used to derive the
 //     existing / net-gained / lost / transited squares)
 //   • intake — window grading summary for the side indicators
+// Resolve one port's gauge scale. `port_peaks` (exporter-computed, all-time) is
+// the honest basis; the loaded window's max is only a fallback for a port with
+// no archived history. Using the window alone is what made Antwerp read "100%
+// full" at 12% of its 2011 peak, and Trieste read full on 24 lots.
+function _gauge(
+  peaks: Record<string, { min: number; max: number; max_date?: string | null; first_seen?: string | null }> | undefined,
+  code: string, current: number, windowMax: number,
+): { capacity: number; floor: number; peakDate: string | null; historyFrom: string | null; peakIsHistorical: boolean; pctFull: number } {
+  const pk = peaks?.[code];
+  const historical = !!pk && pk.max > 0;
+  // Never let the scale sit below today — a fresh all-time high is 100%, and
+  // legitimately so.
+  const capacity = Math.max(historical ? pk.max : windowMax, current);
+  const floor = historical ? Math.min(pk.min, current) : 0;
+  const span = capacity - floor;
+  return {
+    capacity, floor,
+    peakDate: historical ? pk.max_date ?? null : null,
+    historyFrom: historical ? pk.first_seen ?? null : null,
+    peakIsHistorical: historical,
+    pctFull: span > 0 ? ((current - floor) / span) * 100 : (current > 0 ? 100 : 0),
+  };
+}
+
+
 export interface SystemFlowMarket {
   market: "KC" | "RC";
   label: string;
@@ -289,12 +314,12 @@ export function buildArabica(arabica: ArabicaJsonShape | null, start: Date, end:
     }
     inflow.sort((a, b) => b.volume - a.volume);
     outflow.sort((a, b) => b.volume - a.volume);
-    const cap = Math.max(maxByPort.get(code) ?? current, current);
+    const g = _gauge(arabica?.port_peaks, code, current, maxByPort.get(code) ?? current);
     const ageFinal = ageByPort[code] ?? { fresh: 1, y1to2: 0, y2to3: 0, y3to4: 0, y4plus: 0 };
     const poison = _computePoison(current, "KC", code, byOrigin, ageFinal, 0);
     ports.push({
       market: "KC", code, name: ARABICA_PORT_NAMES[code] ?? code,
-      current, capacity: cap, pctFull: cap > 0 ? (current / cap) * 100 : 0,
+      current, ...g,
       unit: "bags", squareUnit: BAGS_PER_WARRANT_KC,
       byOrigin, age: ageFinal,
       flowByOrigin, inflow, outflow, span: 1, poison,
@@ -614,12 +639,12 @@ export function buildRobusta(robusta: RobustaJsonShape | null, start: Date, end:
     // when present, falls back to per-window inference above.
     const totalHist = portTotalLotsHist[code] ?? 0;
     const class34Share = totalHist > 0 ? (portClass34Lots[code] ?? 0) / totalHist : 0;
-    const cap = Math.max(maxByPort.get(code) ?? current, current);
+    const g = _gauge(robusta?.port_peaks, code, current, maxByPort.get(code) ?? current);
     const ageFinal = ageByPort[code] ?? { fresh: 1, y1to2: 0, y2to3: 0, y3to4: 0, y4plus: 0 };
     const poison = _computePoison(current, "RC", code, byOrigin, ageFinal, class34Share);
     ports.push({
       market: "RC", code, name: ROBUSTA_PORT_NAMES[code] ?? code,
-      current, capacity: cap, pctFull: cap > 0 ? (current / cap) * 100 : 0,
+      current, ...g,
       unit: "lots", squareUnit: LOTS_PER_WARRANT_RC,
       byOrigin, age: ageFinal,
       flowByOrigin, classShares: portOriginClassShares[code],

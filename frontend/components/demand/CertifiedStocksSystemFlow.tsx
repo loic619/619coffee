@@ -439,12 +439,18 @@ export default function CertifiedStocksSystemFlow({ arabica, robusta, start, end
                         <div className="text-[11px] font-bold text-slate-100 leading-tight">{p.name}</div>
                         <div className="text-[9px] font-mono text-slate-500">{p.code}</div>
                       </div>
-                      <div className={`text-xs font-bold ${p.pctFull > 80 ? "text-rose-400" : p.pctFull > 50 ? "text-amber-400" : "text-slate-400"}`}>
+                      <div className={`text-xs font-bold ${p.pctFull > 80 ? "text-rose-400" : p.pctFull > 50 ? "text-amber-400" : "text-slate-400"}`}
+                           title={p.peakIsHistorical
+                             ? `${Math.round(p.pctFull)}% of the way from this warehouse's all-time low (${fmtU(p.floor, p.unit)}) to its all-time high of ${fmtU(p.capacity, p.unit)} ${unitWord(unit)}${p.peakDate ? `, set ${p.peakDate}` : ""}${p.historyFrom ? ` — history from ${p.historyFrom}` : ""}`
+                             : `No archived history for this warehouse — scaled against its high over the loaded window only, so a quiet port can read high on a small number.`}>
                         {Math.round(p.pctFull)}%
                       </div>
                     </div>
                     <div className="text-[9px] text-slate-500 mb-1 font-mono leading-tight">
                       <span className="text-slate-300">{fmtU(p.current, p.unit)}</span>/{fmtU(p.capacity, p.unit)} {unitWord(unit)}
+                      {p.peakIsHistorical
+                        ? <span className="text-slate-600"> peak{p.peakDate ? ` ${p.peakDate.slice(0, 7)}` : ""}</span>
+                        : <span className="text-amber-600/80"> window</span>}
                     </div>
 
                     {/* Poison breakdown — % + per-criterion contribution. */}

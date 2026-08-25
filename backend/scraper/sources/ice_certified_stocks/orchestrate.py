@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from collections import defaultdict
@@ -48,6 +49,170 @@ from .parse_stock_report import parse_stock_report
 from .parse_tenders import parse_tenders
 
 OUT_DIR = Path(__file__).resolve().parents[4] / "frontend" / "public" / "data"
+
+
+# ── Per-port historical extremes (latched) ──────────────────────────────────
+# The warehouse gauges need a scale, and the only honest one is the port's own
+# history. Deriving it from the live file alone is wrong: that file holds ~15
+# months, so any port sitting at a window high reads "100% full" by
+# construction — Trieste showed full on 24 lots in Aug 2026 against a real 2010
+# peak of 6,169, and Antwerp showed full at 12% of its 2011 peak.
+#
+# The deep archives (certified_stocks_{market}_deep_YYYY-YYYY.json) carry
+# per-port totals back to 2009. They are ~800 KB, far too much to ship to the
+# browser just for a scale, so they are reduced here into a small `port_peaks`
+# block.
+#
+# WHY THIS IS LATCHED, NOT RECOMPUTED. A port's all-time extreme is a fact about
+# the past: it cannot change except by being exceeded. Re-deriving it from the
+# archives on every run makes a permanent value depend on a fragile input — an
+# archive that fails to read, gets pruned, or is missing on a fresh runner would
+# silently collapse the scale back to the live window and bring the "100% full
+# on 24 lots" bug straight back, with nothing in the output to show it happened.
+#
+# So the extremes are computed ONCE from the deepest history available, stored,
+# and thereafter only ever RATCHET OUTWARD: a new high raises the max, a new low
+# lowers the min, and nothing else moves them. The archives are re-read only for
+# a port that has no stored value yet. Set REBUILD_PORT_PEAKS=1 to force a full
+# re-derivation — needed if the archives are ever extended further back, which
+# is the one case a latched value would be too narrow.
+
+_KC_PORT_ALIASES = {
+    "NOR": "NOLA", "NO": "NOLA", "MIA": "MIAMI", "MI": "MIAMI",
+    "NYK": "NY", "HAM": "HA/BR", "HA": "HA/BR", "HO": "HOU", "VIR": "VA",
+}
+
+
+def _canonical_port(market: str, code: str) -> str:
+    c = (code or "").upper()
+    # Robusta codes are already canonical; arabica drifted between the workbook
+    # (long forms) and older snapshots (short forms).
+    return _KC_PORT_ALIASES.get(c, c) if market == "arabica" else c
+
+
+def _port_series_keys(market: str) -> tuple[str, ...]:
+    """Snapshot fields carrying the per-port map, live and deep shapes."""
+    if market == "arabica":
+        return ("by_port", "by_port_totals")
+    return ("by_port_lots",)
+
+
+def _observe_extremes(market: str, snapshots, acc: dict) -> dict:
+    """Fold snapshots into {port: {min,max,...}}, widening what is already there."""
+    keys = _port_series_keys(market)
+    for s in snapshots or []:
+        if not isinstance(s, dict):
+            continue
+        when = s.get("date")
+        for k in keys:
+            by_port = s.get(k)
+            if not isinstance(by_port, dict):
+                continue
+            # A day whose report failed to publish arrives as an empty map;
+            # skipping it keeps a blank day out of the minimum.
+            for port, value in by_port.items():
+                try:
+                    v = float(value)
+                except (TypeError, ValueError):
+                    continue
+                if v < 0:
+                    continue
+                p = _canonical_port(market, port)
+                a = acc.get(p)
+                if a is None:
+                    acc[p] = {
+                        "min": v, "min_date": when, "max": v, "max_date": when,
+                        "first_seen": when, "last_seen": when, "observations": 1,
+                    }
+                    continue
+                a["observations"] = (a.get("observations") or 0) + 1
+                if v > a["max"]:
+                    a["max"], a["max_date"] = v, when
+                if v < a["min"]:
+                    a["min"], a["min_date"] = v, when
+                if when:
+                    if not a.get("first_seen") or when < a["first_seen"]:
+                        a["first_seen"] = when
+                    if not a.get("last_seen") or when > a["last_seen"]:
+                        a["last_seen"] = when
+            break
+    return acc
+
+
+def _scan_deep_archives(market: str, acc: dict) -> int:
+    """Fold every deep archive for `market` into `acc`. Returns files read."""
+    read = 0
+    for path in sorted(OUT_DIR.glob(f"certified_stocks_{market}_deep_*.json")):
+        try:
+            _observe_extremes(market, json.loads(path.read_text(encoding="utf-8")).get("snapshots"), acc)
+            read += 1
+        except Exception as e:                                   # noqa: BLE001
+            # Loud, because a silently-skipped archive is what would make a
+            # first computation too narrow.
+            print(f"[peaks] {market}: FAILED to read {path.name}: {e}")
+    return read
+
+
+def build_port_peaks(market: str, live_snapshots: list[dict], previous: dict | None = None) -> dict:
+    """Latched all-time min/max per port.
+
+    `previous` is the prior run's `port_peaks`. Stored ports are carried
+    forward untouched and only ratcheted outward by the live snapshots; the
+    deep archives are re-read only for ports with no stored value (or when
+    REBUILD_PORT_PEAKS=1 forces a full re-derivation).
+    """
+    rebuild = os.environ.get("REBUILD_PORT_PEAKS") == "1"
+    stored: dict = {}
+    if previous and not rebuild:
+        for code, v in previous.items():
+            if isinstance(v, dict) and v.get("max") is not None:
+                stored[code] = dict(v)
+
+    # Which ports does today's data know about that we have no locked value for?
+    live_only: dict = {}
+    _observe_extremes(market, live_snapshots, live_only)
+    unknown = [p for p in live_only if p not in stored]
+
+    archives_read = 0
+    if rebuild or not stored or unknown:
+        why = ("REBUILD_PORT_PEAKS=1" if rebuild
+               else "no stored peaks" if not stored
+               else f"new port(s) {', '.join(sorted(unknown))}")
+        base: dict = {} if (rebuild or not stored) else stored
+        archives_read = _scan_deep_archives(market, base)
+        stored = base
+        print(f"[peaks] {market}: re-derived from {archives_read} archives ({why})")
+
+    # Ratchet: the only thing that moves a locked extreme is being exceeded.
+    widened = []
+    for code, obs in live_only.items():
+        a = stored.get(code)
+        if a is None:
+            stored[code] = obs
+            continue
+        if obs["max"] > a["max"]:
+            widened.append(f"{code} max {a['max']:.0f}→{obs['max']:.0f}")
+            a["max"], a["max_date"] = obs["max"], obs["max_date"]
+        if obs["min"] < a["min"]:
+            widened.append(f"{code} min {a['min']:.0f}→{obs['min']:.0f}")
+            a["min"], a["min_date"] = obs["min"], obs["min_date"]
+        if obs.get("last_seen") and (not a.get("last_seen") or obs["last_seen"] > a["last_seen"]):
+            a["last_seen"] = obs["last_seen"]
+        if obs.get("first_seen") and (not a.get("first_seen") or obs["first_seen"] < a["first_seen"]):
+            a["first_seen"] = obs["first_seen"]
+
+    for a in stored.values():
+        for f in ("min", "max"):
+            if a.get(f) is not None:
+                a[f] = int(round(a[f]))
+        a.setdefault("locked", True)
+
+    if widened:
+        print(f"[peaks] {market}: ratcheted — {'; '.join(widened)}")
+    elif not archives_read:
+        print(f"[peaks] {market}: {len(stored)} ports locked, unchanged")
+    return dict(sorted(stored.items(), key=lambda kv: -(kv[1].get("max") or 0)))
+
 # Per-path throttle. Both prefixes have rate limits — discovered by the 180-day
 # backfill which hit 429 on /publicdocs/ (arabica) after ~50 sequential 1 s/req
 # calls. /marketdata/ is even stricter. New defaults give Akamai breathing room
@@ -904,6 +1069,16 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     if arabica_ageing and arabica_ageing.get("age_detail") and arabica_json.get("latest_detail"):
         arabica_json["latest_detail"]["age_detail"] = arabica_ageing["age_detail"]
         arabica_json["latest_detail"]["age_detail_date"] = arabica_ageing.get("month_end")
+
+    # Warehouse-gauge scale. Latched: carried forward from the previous run and
+    # only ratcheted outward when today's stocks exceed a stored extreme. Done
+    # after the merge so the ratchet sees the final snapshot set.
+    arabica_json["port_peaks"] = build_port_peaks(
+        "arabica", arabica_json.get("snapshots") or [],
+        (existing_a or {}).get("port_peaks") if merge else None)
+    robusta_json["port_peaks"] = build_port_peaks(
+        "robusta", robusta_json.get("snapshots") or [],
+        (existing_r or {}).get("port_peaks") if merge else None)
 
     if write:
         OUT_DIR.mkdir(parents=True, exist_ok=True)

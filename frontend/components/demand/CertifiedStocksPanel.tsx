@@ -115,7 +115,14 @@ interface RobustaJson {
   recent_activity: {
     gradings: Array<{
       date: string;
-      entries?: Array<{ origin?: string; port?: string; class?: number | null; tenderable?: boolean; lots: number }>;
+      entries?: Array<{
+        origin?: string; port?: string;
+        // 1-4 on the standard ladder, or "P" for the premium class.
+        class?: number | string | null;
+        // Price allowance the class carries against the contract, cts/lb.
+        allowance_cts_lb?: number | null;
+        tenderable?: boolean; lots: number;
+      }>;
       summary?: { lots_graded_today: number; tenderable_today?: number; non_tenderable_today?: number };
     }>;
     grading_appeals: Array<{ date: string }>;
@@ -1380,10 +1387,16 @@ function ArabicaColumn({ d, unit, cutoff, end, sinceLabel }: { d: ArabicaJson | 
 // render through the SAME component, so wording and colour coding are identical
 // across the two markets. Only the section title/accent identifies the market.
 
-const FEED_MAX = 24;
+const FEED_MAX = 60;
 type Market = "kc" | "rc";
 type ActivityKind = "grading" | "issuance" | "reception" | "decert";
-interface ActivityEvent { date: string; kind: ActivityKind; detail: string }
+// `port` / `origin` are carried alongside the rendered sentence purely so the
+// feed can be re-sorted by them. A grading event covers one origin but can span
+// several ports; it reports the port that took the most lots.
+interface ActivityEvent {
+  date: string; kind: ActivityKind; detail: string;
+  port?: string | null; origin?: string | null;
+}
 
 // Short exchange-style labels: grading→cert, issuance→issued (issuer side),
 // reception→stopped (stopper/receiver side), decertification→decert.
@@ -1436,6 +1449,41 @@ function _gradingDetail(
   return parts.join(", ");
 }
 
+// ICE robusta grades each parcel into a quality class carrying a fixed price
+// allowance against the contract: P is the premium grade, 1 is par, and 2/3/4
+// step down. The allowance is scraped per row (`allowance_cts_lb`); when an
+// older merged row lacks it we show the class alone rather than assume the
+// standard ladder.
+type GradeClass = number | string | null | undefined;
+
+function _classLabel(cls: GradeClass, allowance?: number | null): string {
+  if (cls == null) return "";
+  const name = typeof cls === "string" ? cls.toUpperCase() : String(cls);
+  if (allowance == null) return `class ${name}`;
+  if (allowance === 0) return `class ${name}, par`;
+  const sign = allowance > 0 ? "+" : "\u2212";
+  // ICE quotes these in whole or half cents — drop a trailing ".0".
+  const mag = Number(Math.abs(allowance).toFixed(2)).toString();
+  return `class ${name}, ${sign}${mag} cts/lb`;
+}
+
+// Robusta grading sentence. Passed lots break out per (port, class) so the
+// quality — and therefore the premium or discount earned — is visible, which a
+// bare "N passed (Antwerp)" hides entirely.
+function _gradingDetailRC(
+  graded: number, origin: string,
+  passed: { port: string; cls: GradeClass; allowance?: number | null; lots: number }[],
+  failed: number, unit: Unit,
+): string {
+  const parts = [`${_amt(graded, unit, "rc")} ${unitSuffix(unit)} ${_feedOrigin(origin)} graded`];
+  for (const g of [...passed].sort((a, b) => b.lots - a.lots)) {
+    const label = _classLabel(g.cls, g.allowance);
+    parts.push(`${_amt(g.lots, unit, "rc")} passed (${_feedPort(g.port, "rc")}${label ? ` \u00b7 ${label}` : ""})`);
+  }
+  if (failed > 0) parts.push(`${_amt(failed, unit, "rc")} failed`);
+  return parts.join(", ");
+}
+
 // "Issuance" / "Reception" sentence — amount, origin (if known), broker, port.
 function _flowDetail(
   lots: number, origin: string | undefined, port: string | undefined,
@@ -1461,14 +1509,62 @@ function _dominantOrigin(m: Record<string, { tenderable?: number }> | undefined)
   return best;
 }
 
+type FeedSort = "date" | "port" | "origin";
+
+// The feed is always the most recent FEED_MAX events — recency is what makes it
+// a feed. Sorting reorders that window rather than reaching further back, so
+// switching to "port" can't quietly replace this month's activity with whatever
+// happens to start with A.
+function _sortEvents(events: ActivityEvent[], by: FeedSort): ActivityEvent[] {
+  const byDateDesc = (a: ActivityEvent, b: ActivityEvent) => b.date.localeCompare(a.date);
+  if (by === "date") return [...events].sort(byDateDesc);
+  const key = (e: ActivityEvent) => (by === "port" ? e.port : e.origin) || "";
+  return [...events].sort((a, b) => {
+    const ka = key(a), kb = key(b);
+    // Rows with no port/origin sink to the bottom instead of leading the list.
+    if (!ka !== !kb) return ka ? -1 : 1;
+    return ka.localeCompare(kb) || byDateDesc(a, b);
+  });
+}
+
 function ActivityFeed({ title, accent, events }: { title: string; accent: string; events: ActivityEvent[] }) {
+  const [sortBy, setSortBy] = useState<FeedSort>("date");
+  const sorted = useMemo(() => _sortEvents(events, sortBy), [events, sortBy]);
+  // Only offer a sort the events can actually honour.
+  const canSort = useMemo(() => ({
+    port:   events.some(e => e.port),
+    origin: events.some(e => e.origin),
+  }), [events]);
+
   return (
     <div>
-      <div className={`text-[10px] uppercase tracking-wider ${accent} mb-1`}>{title}</div>
+      <div className="flex items-baseline justify-between gap-2 mb-1">
+        <div className={`text-[10px] uppercase tracking-wider ${accent}`}>{title}</div>
+        {events.length > 0 && (
+          <div className="flex items-center gap-1 text-[9px]">
+            <span className="text-slate-600">sort</span>
+            <div className="flex rounded overflow-hidden border border-slate-700">
+              {([["date", "date"], ["port", "port"], ["origin", "origin"]] as const).map(([k, lbl]) => {
+                const disabled = k !== "date" && !canSort[k as "port" | "origin"];
+                return (
+                  <button key={k} disabled={disabled} onClick={() => setSortBy(k)}
+                    title={disabled ? `No ${k} on these events` : `Sort by ${lbl}`}
+                    className={`px-1.5 py-0.5 ${
+                      sortBy === k ? "bg-slate-600 text-white"
+                      : disabled ? "bg-slate-900 text-slate-700 cursor-not-allowed"
+                      : "bg-slate-800 text-slate-400 hover:text-slate-200"}`}>
+                    {lbl}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
       {events.length === 0 ? <Pending label="Activity feed" /> : (
-        <ul className="space-y-0.5 text-[11px] font-mono">
-          {events.map((e, i) => (
-            <li key={i} className="flex items-baseline gap-2 text-slate-300">
+        <ul className="space-y-0.5 text-[11px] font-mono max-h-80 overflow-y-auto pr-1">
+          {sorted.map((e, i) => (
+            <li key={`${e.date}-${e.kind}-${i}`} className="flex items-baseline gap-2 text-slate-300">
               <span className="text-slate-500 w-16 shrink-0">{e.date}</span>
               <span className="flex-1">
                 <span className={`${_ACTIVITY_COLOR[e.kind]} font-semibold`}>{_ACTIVITY_LABEL[e.kind]}:</span>{" "}{e.detail}
@@ -1493,13 +1589,17 @@ function _buildArabicaActivity(d: ArabicaJson | null, unit: Unit): ActivityEvent
     for (const o of Array.from(new Set([...Object.keys(passedBO), ...Object.keys(failedBO)]))) {
       const passedPorts = passedBO[o]?.by_port ?? {};
       const graded = (passedBO[o]?.total ?? 0) + (failedBO[o]?.total ?? 0);
-      if (graded > 0) out.push({ date: s.date, kind: "grading", detail: _gradingDetail(graded, o, passedPorts, failedBO[o]?.total ?? 0, unit, "kc") });
+      if (graded > 0) {
+        const topPort = Object.entries(passedPorts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+        out.push({ date: s.date, kind: "grading", origin: o, port: topPort,
+                   detail: _gradingDetail(graded, o, passedPorts, failedBO[o]?.total ?? 0, unit, "kc") });
+      }
     }
     // Issuance / reception (the KC delivery note carries no origin column).
     for (const e of s.issuers_today ?? []) if ((e.value || 0) > 0)
-      out.push({ date: s.date, kind: "issuance", detail: _flowDetail(e.value, undefined, e.port, e.issuer, unit, "kc") });
+      out.push({ date: s.date, kind: "issuance", origin: null, port: e.port ?? null, detail: _flowDetail(e.value, undefined, e.port, e.issuer, unit, "kc") });
     for (const e of s.stoppers_today ?? []) if ((e.value || 0) > 0)
-      out.push({ date: s.date, kind: "reception", detail: _flowDetail(e.value, undefined, e.port, e.stopper, unit, "kc") });
+      out.push({ date: s.date, kind: "reception", origin: null, port: e.port ?? null, detail: _flowDetail(e.value, undefined, e.port, e.stopper, unit, "kc") });
     // Decertification — exact (origin, port) from day-over-day stock delta:
     // outflow = prev_stock + passed − cur_stock.
     const prev = i > 0 ? snaps[i - 1] : null;
@@ -1512,7 +1612,7 @@ function _buildArabicaActivity(d: ArabicaJson | null, unit: Unit): ActivityEvent
         const passedPorts = passedBO[o]?.by_port ?? {};
         for (const p of Array.from(new Set([...Object.keys(curPorts), ...Object.keys(prevPorts)]))) {
           const decert = (prevPorts[p] ?? 0) + (passedPorts[p] ?? 0) - (curPorts[p] ?? 0);
-          if (decert > 0) out.push({ date: s.date, kind: "decert", detail: _decertDetail(decert, o, p, unit, "kc") });
+          if (decert > 0) out.push({ date: s.date, kind: "decert", origin: o, port: p, detail: _decertDetail(decert, o, p, unit, "kc") });
         }
       }
     }
@@ -1526,23 +1626,40 @@ function _buildRobustaActivity(d: RobustaJson | null, unit: Unit): ActivityEvent
   const ra = d?.recent_activity;
   // Grading — group entries by (date, origin); tenderable = passed, else failed.
   for (const g of ra?.gradings ?? []) {
-    const byOrigin: Record<string, { passed: Record<string, number>; failed: number; graded: number }> = {};
+    // Keyed by origin, then by (port, class) so a parcel's quality class — and
+    // the allowance it carries — survives into the sentence.
+    const byOrigin: Record<string, {
+      passed: Record<string, { port: string; cls: GradeClass; allowance?: number | null; lots: number }>;
+      failed: number; graded: number;
+    }> = {};
     for (const e of g.entries ?? []) {
       const o = e.origin || "?"; const p = e.port || "?"; const lots = e.lots || 0;
       const b = (byOrigin[o] = byOrigin[o] ?? { passed: {}, failed: 0, graded: 0 });
       b.graded += lots;
-      if (e.tenderable !== false) b.passed[p] = (b.passed[p] ?? 0) + lots;
-      else b.failed += lots;
+      if (e.tenderable !== false) {
+        const key = `${p}|${e.class ?? ""}`;
+        const slot = (b.passed[key] = b.passed[key] ?? {
+          port: p, cls: e.class ?? null, allowance: e.allowance_cts_lb ?? null, lots: 0,
+        });
+        slot.lots += lots;
+      } else b.failed += lots;
     }
-    for (const [o, b] of Object.entries(byOrigin))
-      if (b.graded > 0) out.push({ date: g.date, kind: "grading", detail: _gradingDetail(b.graded, o, b.passed, b.failed, unit, "rc") });
+    for (const [o, b] of Object.entries(byOrigin)) {
+      if (b.graded <= 0) continue;
+      const passed = Object.values(b.passed);
+      const topPort = passed.slice().sort((x, y) => y.lots - x.lots)[0]?.port ?? null;
+      out.push({
+        date: g.date, kind: "grading", origin: o, port: topPort,
+        detail: _gradingDetailRC(b.graded, o, passed, b.failed, unit),
+      });
+    }
   }
   // Issuance / reception — per clearing member, per origin row (no port column).
   for (const day of ra?.iss_recv_daily ?? []) {
     for (const m of day.members ?? []) {
       for (const row of m.rows ?? []) {
-        if ((row.sold || 0) > 0) out.push({ date: day.date, kind: "issuance", detail: _flowDetail(row.sold, row.origin, undefined, m.code, unit, "rc") });
-        if ((row.bought || 0) > 0) out.push({ date: day.date, kind: "reception", detail: _flowDetail(row.bought, row.origin, undefined, m.code, unit, "rc") });
+        if ((row.sold || 0) > 0) out.push({ date: day.date, kind: "issuance", origin: row.origin, port: null, detail: _flowDetail(row.sold, row.origin, undefined, m.code, unit, "rc") });
+        if ((row.bought || 0) > 0) out.push({ date: day.date, kind: "reception", origin: row.origin, port: null, detail: _flowDetail(row.bought, row.origin, undefined, m.code, unit, "rc") });
       }
     }
   }
@@ -1562,7 +1679,10 @@ function _buildRobustaActivity(d: RobustaJson | null, unit: Unit): ActivityEvent
     const curP = s.by_port_lots ?? {}; const prevP = prev.by_port_lots ?? {};
     for (const p of Array.from(new Set([...Object.keys(curP), ...Object.keys(prevP)]))) {
       const decert = (prevP[p] ?? 0) + (passedAtPort[p] ?? 0) - (curP[p] ?? 0);
-      if (decert > 0) out.push({ date: s.date, kind: "decert", detail: _decertDetail(decert, _dominantOrigin(poh[p]) ?? "mixed origins", p, unit, "rc") });
+      if (decert > 0) {
+        const o = _dominantOrigin(poh[p]) ?? "mixed origins";
+        out.push({ date: s.date, kind: "decert", origin: o, port: p, detail: _decertDetail(decert, o, p, unit, "rc") });
+      }
     }
   }
   return out.sort((a, b) => b.date.localeCompare(a.date)).slice(0, FEED_MAX);
@@ -1579,7 +1699,7 @@ function ArabicaActivityFeed({ d, unit }: { d: ArabicaJson | null; unit: Unit })
 
 interface GradingEvent {
   date: string;
-  entries?: Array<{ origin?: string; port?: string; class?: number | null; tenderable?: boolean; lots: number }>;
+  entries?: Array<{ origin?: string; port?: string; class?: number | string | null; allowance_cts_lb?: number | null; tenderable?: boolean; lots: number }>;
   summary?: {
     tenderable_today?: number;
     non_tenderable_today?: number;
@@ -1629,14 +1749,16 @@ const ROBUSTA_POISON_ORIGINS = new Set(["Brazilian Conillon"]);
 
 interface GradingEntry {
   origin?: string; port?: string;
-  class?: number | null;
+  // 1-4, or "P" for the premium class — which is never poison, so the numeric
+  // Set below correctly ignores it.
+  class?: number | string | null;
   tenderable?: boolean;
   lots: number;
 }
 
 function _isRobustaPoison(e: GradingEntry): boolean {
   if (e.port && ROBUSTA_POISON_PORTS.has(e.port)) return true;
-  if (e.class != null && ROBUSTA_POISON_CLASSES.has(e.class)) return true;
+  if (typeof e.class === "number" && ROBUSTA_POISON_CLASSES.has(e.class)) return true;
   if (e.origin && ROBUSTA_POISON_ORIGINS.has(e.origin)) return true;
   return false;
 }

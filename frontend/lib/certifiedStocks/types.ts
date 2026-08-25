@@ -55,7 +55,19 @@ export interface PortFlow {
   code: string;
   name: string;
   current: number;
+  // Top of the gauge: the port's own all-time high, from the deep archives via
+  // `port_peaks`. Falls back to the loaded window's max when a port has no
+  // archived history — which is what every port used to use, and why a port at
+  // a 15-month high read "100% full" no matter how small the number was.
   capacity: number;
+  /** All-time low, the bottom of the gauge. 0 for most ports. */
+  floor: number;
+  /** When the all-time high was set, and how far back the history runs. */
+  peakDate: string | null;
+  historyFrom: string | null;
+  /** True when capacity is a real archived peak rather than a window max. */
+  peakIsHistorical: boolean;
+  /** Position between floor and capacity, 0–100. */
   pctFull: number;
   unit: "bags" | "lots";
   squareUnit: number;            // bags-per-square or lots-per-square

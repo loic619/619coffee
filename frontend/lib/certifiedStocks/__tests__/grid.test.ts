@@ -67,6 +67,7 @@ describe("buildDensityGrid invariant: current = existing + netGained", () => {
 describe("_assignSpans", () => {
   const mk = (capacity: number): PortFlow => ({
     market: "KC", code: "X", name: "X", current: 0, capacity, pctFull: 0,
+    floor: 0, peakDate: null, historyFrom: null, peakIsHistorical: false,
     unit: "bags", squareUnit: 1, byOrigin: {}, age: FRESH, flowByOrigin: {},
     inflow: [], outflow: [], span: 1,
     poison: { pct: 0, total: 0, aged: 0, badOrigin: 0, deadPort: 0, lowClass: 0 },
