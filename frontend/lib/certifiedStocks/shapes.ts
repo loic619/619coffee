@@ -61,11 +61,18 @@ export interface ArabicaAgeingReport {
 }
 // Per-port all-time extremes, reduced from the deep archives by the exporter so
 // the browser gets the scale without downloading ~800 KB of history.
+//
+// Latched: computed once from the deepest history available, then only ever
+// ratcheted outward when stocks exceed a stored extreme. An extreme is a fact
+// about the past, so nothing else may move it — recomputing each run would make
+// a permanent value hostage to an archive read that might fail.
 export interface PortPeak {
   min: number; min_date?: string | null;
   max: number; max_date?: string | null;
   first_seen?: string | null; last_seen?: string | null;
   observations?: number;
+  /** Present once the value is latched; only a new extreme moves it. */
+  locked?: boolean;
 }
 
 export interface ArabicaJsonShape {
