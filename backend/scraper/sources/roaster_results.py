@@ -480,9 +480,14 @@ def strauss_periods() -> list[dict]:
                     for i, line in enumerate(lines):
                         if not any(v in line for v in _HE_VOLUME):
                             continue
-                        # Quantities are described across a wrapped sentence,
-                        # so carry the neighbours for a readable quote.
-                        chunk = " ".join(lines[max(0, i - 2): i + 2]).strip()
+                        # Start AT the marker line, not two before it. Leading
+                        # with the preceding lines meant the quote opened on
+                        # whatever happened to precede it — a section
+                        # cross-reference in one report, a price attribution in
+                        # another — while the quantity language sat buried at
+                        # the end. The sentence wraps, so carry the following
+                        # line, but the quote must BEGIN on the subject.
+                        chunk = " ".join(lines[i: i + 2]).strip()
                         if _is_about_quantity(chunk) and _direction(chunk):
                             passage = re.sub(r"\s+", " ", chunk)
                             break
