@@ -158,9 +158,14 @@ export default function RoasterEarningsPanel() {
 
       {data?.generated_at && (
         <div className="text-[9px] text-slate-500 italic">
-          Figures as published, on each company&rsquo;s own definition — Nestlé RIG excludes pricing
-          and acquisitions; JDE Peet&rsquo;s volume/mix is organic. Neither is restated or blended.
-          Last refreshed {data.generated_at.slice(0, 10)}.
+          Read from the &ldquo;Sales growth bridge by segment&rdquo; table in each results release —
+          the Vol/Mix column, as published, not restated or blended. Last refreshed{" "}
+          {data.generated_at.slice(0, 10)}.
+          {!companies.some(c => /nestl/i.test(c.name)) && (
+            <> Nestlé is absent, not omitted: their site refuses datacentre traffic outright
+            (403 to a bot, a browser user-agent and a real headless browser alike), so RIG cannot be
+            scraped from CI.</>
+          )}
         </div>
       )}
     </div>

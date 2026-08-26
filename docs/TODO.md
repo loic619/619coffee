@@ -1,5 +1,29 @@
 # TODO / follow-ups
 
+## Roaster volume/mix — Nestlé RIG, and the pre-2024 JDE reports
+`4.2 – Roaster Results` reads the Vol/Mix column of JDE Peet's "Sales growth
+bridge by segment" table. Verified against the published HY-2025 table cell for
+cell (Europe +1.8, LARMEA −1.2, Peet's +0.6, APAC +0.7, group +1.0), and the
+FY-2025 group figure of −4.3 is independently confirmed by the prose headline in
+the same document. Four periods land: 2024-H1/FY, 2025-H1/FY.
+
+- [ ] **Nestlé RIG has no CI route.** Measured from a GitHub runner: 403 to a
+      bot user-agent, to a full browser user-agent, and to a real headless
+      Chromium. Their protection rejects datacentre traffic outright. Options
+      are a non-CI source, an IR aggregator, or hand-entered figures — the JSON
+      schema takes hand-written periods identically, so they merge with no
+      special-casing.
+- [ ] **Only 2024-2025 parse.** The scraper HEAD-checks six years of the URL
+      pattern; 2021-2023 either use a different slug or a different bridge
+      layout. Worth a look, but hand-crafting those four or five periods is
+      cheaper than chasing an old layout.
+- [ ] **`price_pct` / `organic_pct` come back null.** The Vol/Mix column — the
+      one that matters — resolves correctly; the neighbouring header cells do
+      not match under the text-alignment strategy. Cosmetic today because the
+      panel only plots volume, but worth fixing if the price split is ever
+      wanted alongside it.
+
+
 ## ECF port stocks — fix the contaminated months, then widen the scatter
 `ArrivalsVsStockChange` regresses EU arrivals (1-month lag, rolling 2-month)
 against the change in ECF port stocks. It works, but only from **2020-01**,
