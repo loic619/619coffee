@@ -119,8 +119,22 @@ def fetch_curve(existing: list[dict] | None = None) -> dict | None:
     knowledge of the export layout.
     """
     this_year = date.today().year
+    fresh = _fetch_year(this_year)
+
+    # Carrying history forward changed what a dead feed looks like. It used to
+    # leave `rows` empty, so this returned None and the exporter kept the file
+    # untouched; now the carried rows alone would satisfy every downstream
+    # check and the curve would be rewritten daily with a fresh scraped_at over
+    # unchanged data — a feed outage committed as if it were a good run. If the
+    # current year gave us nothing and we already had history, the run learned
+    # nothing, so say so. A cold start still proceeds: there the prior-year
+    # top-up below is real new information rather than a repeat of the file.
+    if not fresh and existing:
+        print("  [treasury] current year returned nothing — keeping the shipped history")
+        return None
+
     rows: list[dict] = list(existing or [])
-    rows.extend(_fetch_year(this_year))
+    rows.extend(fresh)
 
     if len({r["date"] for r in rows}) < _MIN_SESSIONS:
         print(f"  [treasury] merged series short (<{_MIN_SESSIONS}) — adding {this_year - 1}")

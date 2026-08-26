@@ -147,3 +147,17 @@ def test_a_dead_feed_with_no_history_returns_none(monkeypatch):
     from scraper.sources import treasury_yields as ty
     _stub_years(monkeypatch, {})
     assert ty.fetch_curve(existing=None) is None
+
+
+def test_a_dead_feed_does_not_rewrite_the_shipped_history(monkeypatch):
+    """Carrying history forward must not turn an outage into a good-looking run.
+
+    Before the history was passed in, a failed fetch left nothing to return and
+    the exporter kept the previous file. The carried rows would now satisfy
+    every downstream check on their own, so the curve would be rewritten every
+    day with a fresh scraped_at over data that had not moved.
+    """
+    from scraper.sources import treasury_yields as ty
+    calls = _stub_years(monkeypatch, {})            # every year fails
+    assert ty.fetch_curve(existing=_rows(300)) is None
+    assert len(calls) == 1, f"a dead current year must not trigger a top-up: {calls}"
