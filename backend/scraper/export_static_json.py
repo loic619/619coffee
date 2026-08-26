@@ -37,6 +37,7 @@ from scraper.exporters.futures import (
     export_futures_price_history,
     export_oi_fnd_chart,
 )
+from scraper.exporters.front_spread import export_front_spread
 from scraper.exporters.health import export_health
 from scraper.exporters.macro import (
     export_freight,
@@ -114,6 +115,7 @@ def _exporters(db):
         ("futures_chain",         lambda: export_futures_chain(db)),
         ("oi_fnd_chart",          lambda: export_oi_fnd_chart(db)),
         ("futures_price_history", lambda: export_futures_price_history(db)),
+        ("front_spread",          lambda: export_front_spread()),
         ("cot",                   lambda: export_cot(db)),
         ("macro_cot",             lambda: export_macro_cot(db)),
         ("freight",               lambda: export_freight(db)),
