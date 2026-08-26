@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-26T08:49:46.599353Z",
-  "count": 80,
+  "generated_at": "2026-08-26T09:27:30.628582Z",
+  "count": 82,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -94,6 +94,17 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 30
+    },
+    {
+      "file": "backfill-contract-prices.yml",
+      "name": "Z \u2013 Backfill: per-contract prices to 10y (manual)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 55
     },
     {
       "file": "backfill-enso-thermocline.yml",
@@ -567,6 +578,17 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 6
+    },
+    {
+      "file": "research-vn-midmonth.yml",
+      "name": "Z \u2013 Research: Vietnam mid-month vs full month (manual)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 45
     },
     {
       "file": "scraper-annual-un-wpp.yml",
