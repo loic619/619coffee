@@ -3953,6 +3953,18 @@
    "date": "2026-08-26",
    "started": "2026-08-26T10:32:16Z",
    "event": "workflow_dispatch",
+   "conclusion": "success",
+   "attempt": 1,
+   "job_seconds": 496,
+   "billed_minutes": 9,
+   "last_step": "Complete job",
+   "outcome": "success"
+  },
+  {
+   "id": 32959616684,
+   "date": "2026-08-26",
+   "started": "2026-08-26T10:42:37Z",
+   "event": "workflow_dispatch",
    "conclusion": null,
    "attempt": 1,
    "job_seconds": null,

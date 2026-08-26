@@ -506,30 +506,11 @@
  },
  "misses": {
   "business_days": 60,
-  "captured": 57,
-  "missing": [
-   {
-    "date": "2026-06-10",
-    "weekday": "Wed",
-    "recoverable": true,
-    "data_hole": true
-   },
-   {
-    "date": "2026-06-17",
-    "weekday": "Wed",
-    "recoverable": true,
-    "data_hole": true
-   },
-   {
-    "date": "2026-06-29",
-    "weekday": "Mon",
-    "recoverable": true,
-    "data_hole": true
-   }
-  ],
+  "captured": 60,
+  "missing": [],
   "by_weekday": {
    "Wed": {
-    "missing": 2,
+    "missing": 0,
     "of": 12
    },
    "Thu": {
@@ -541,7 +522,7 @@
     "of": 12
    },
    "Mon": {
-    "missing": 1,
+    "missing": 0,
     "of": 12
    },
    "Tue": {
@@ -551,7 +532,7 @@
   }
  },
  "rate_limits": {
-  "runs": 1,
+  "runs": 2,
   "runs_with_429": 0,
   "total_429": 0,
   "total_retry_after_s": 0,
@@ -576,14 +557,31 @@
     "requests": 63,
     "wait_publicdocs_s": 14.0,
     "wait_marketdata_s": 280.0
+   },
+   {
+    "at": "2026-08-26T10:47:50+00:00",
+    "sweep_day": "2026-08-25",
+    "outcome": "completed",
+    "http_429": 0,
+    "http_404": 37,
+    "retry_after_count": 0,
+    "retry_after_total_s": 0,
+    "retry_after_max_s": 0,
+    "throttle_bumps": 0,
+    "aborted_by_429": false,
+    "sweep_gets": 0,
+    "resumed_from": null,
+    "requests": 61,
+    "wait_publicdocs_s": 14.0,
+    "wait_marketdata_s": 270.0
    }
   ]
  },
  "runs": {
-  "count": 330,
+  "count": 331,
   "note": null,
   "outcomes": {
-   "success": 227,
+   "success": 228,
    "cancelled": 10,
    "timeout": 39,
    "queue_cancelled": 46,
@@ -591,23 +589,10 @@
    "failure": 1,
    "unknown": 1
   },
-  "billed_minutes_total": 9283,
+  "billed_minutes_total": 9292,
   "billed_minutes_mean": 28.1,
-  "with_telemetry": 6,
+  "with_telemetry": 7,
   "recent": [
-   {
-    "id": 31559039721,
-    "date": "2026-08-12",
-    "started": "2026-08-12T03:06:45Z",
-    "event": "schedule",
-    "conclusion": "success",
-    "attempt": 1,
-    "job_seconds": 5152,
-    "billed_minutes": 86,
-    "last_step": "Complete job",
-    "outcome": "success",
-    "telemetry": null
-   },
    {
     "id": 31561064251,
     "date": "2026-08-12",
@@ -1317,7 +1302,7 @@
      "http_404": 37,
      "resumed_from": null,
      "wait_publicdocs_s": 14.0,
-     "wait_marketdata_s": 280.0,
+     "wait_marketdata_s": 270.0,
      "wait_retry_after_s": 0
     }
    },
@@ -1341,7 +1326,7 @@
      "http_404": 37,
      "resumed_from": null,
      "wait_publicdocs_s": 14.0,
-     "wait_marketdata_s": 280.0,
+     "wait_marketdata_s": 270.0,
      "wait_retry_after_s": 0
     }
    },
@@ -1365,7 +1350,7 @@
      "http_404": 37,
      "resumed_from": null,
      "wait_publicdocs_s": 14.0,
-     "wait_marketdata_s": 280.0,
+     "wait_marketdata_s": 270.0,
      "wait_retry_after_s": 0
     }
    },
@@ -1389,7 +1374,7 @@
      "http_404": 37,
      "resumed_from": null,
      "wait_publicdocs_s": 14.0,
-     "wait_marketdata_s": 280.0,
+     "wait_marketdata_s": 270.0,
      "wait_retry_after_s": 0
     }
    },
@@ -1413,7 +1398,7 @@
      "http_404": 37,
      "resumed_from": null,
      "wait_publicdocs_s": 14.0,
-     "wait_marketdata_s": 280.0,
+     "wait_marketdata_s": 270.0,
      "wait_retry_after_s": 0
     }
    },
@@ -1421,6 +1406,30 @@
     "id": 32958746567,
     "date": "2026-08-26",
     "started": "2026-08-26T10:32:16Z",
+    "event": "workflow_dispatch",
+    "conclusion": "success",
+    "attempt": 1,
+    "job_seconds": 496,
+    "billed_minutes": 9,
+    "last_step": "Complete job",
+    "outcome": "success",
+    "telemetry": {
+     "http_429": 0,
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 0,
+     "http_404": 37,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 270.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 32959616684,
+    "date": "2026-08-26",
+    "started": "2026-08-26T10:42:37Z",
     "event": "workflow_dispatch",
     "conclusion": null,
     "attempt": 1,
@@ -1437,7 +1446,7 @@
      "http_404": 37,
      "resumed_from": null,
      "wait_publicdocs_s": 14.0,
-     "wait_marketdata_s": 280.0,
+     "wait_marketdata_s": 270.0,
      "wait_retry_after_s": 0
     }
    }
