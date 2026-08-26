@@ -1,7 +1,7 @@
 "use client";
 // Honduras — origin country profile.
 //
-// Built from a 2021 source dossier (IHCAFE regional census, exporter league,
+// Built from a 2021 source dossier (IHCAFE regional census, exporter ranking,
 // destination split, an 11-year S&D balance). Everything the source stated is
 // reproduced; everything that could be checked against itself HAS been, and
 // the five reconciliations are published in §11 rather than quietly patched —
@@ -488,7 +488,7 @@ export default function HondurasProfile() {
       <Highlight>
         <strong>Vintage.</strong> The source dossier is dated <strong>2021</strong>. Structure — regions,
         altitude bands, the levy, the chain, the port pair — moves slowly and is likely still broadly right.
-        Volumes, prices and the exporter league move fast and should be treated as a 2021 snapshot until
+        Volumes, prices and the ranking of export houses move fast and should be treated as a 2021 snapshot until
         refreshed against the app&rsquo;s live series.
       </Highlight>
 
@@ -864,8 +864,10 @@ export default function HondurasProfile() {
       <UL>
         <LI><strong>Ending stocks</strong> — the dossier and USDA describe different origins (§11). One of
           them is wrong by roughly 4×, and nothing in either source says which.</LI>
-        <LI><strong>The exporter league</strong> — still the one block with no live counterpart. Nothing in
-          the app carries per-house export volumes, so the 2021 ranking stands unrefreshed and is the
+        <LI><strong>Who actually exports it</strong> — the §8 ranking of export houses is the one block of
+          the dossier with no live counterpart. Nothing in the app carries per-house export volumes, so
+          those market shares stand frozen at 2021 with no way to tell whether they have drifted. In a
+          market where houses are acquired, exit or lose share, five years is a long time; this is the
           highest-value remaining gap.</LI>
         <LI><strong>Intercropping</strong> — no data in the source. Shade and companion cropping bear
           directly on climate resilience and on how a farmer&rsquo;s income responds to a price shock.</LI>
@@ -876,7 +878,7 @@ export default function HondurasProfile() {
       </UL>
 
       <P className="text-[10px] text-slate-500">
-        Sources: the 2021 origin dossier (IHCAFE regional census, exporter league, destination split, 11-year
+        Sources: the 2021 origin dossier (IHCAFE regional census, exporter ranking, destination split, 11-year
         balance) plus the IHCAFE <em>Ruta del Café</em> regional maps, frozen as constants because a
         historical document should not drift. Everything in §§11–14 is read live from the app&rsquo;s own
         nightly data — USDA PSD, the crop-estimate board, the physical offer sheet, Puerto Cortés port calls
