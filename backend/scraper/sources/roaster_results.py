@@ -76,7 +76,7 @@ def _period_from_url(url: str) -> str | None:
 
 _PCT = re.compile(r"(-?\d+(?:\.\d+)?)\s*%")
 _VOLMIX_HEADER = re.compile(r"vol\s*/?\s*mix", re.I)
-_BRIDGE = re.compile(r"sales growth bridge by segment", re.I)
+_BRIDGE = re.compile(r"growth bridge", re.I)
 
 
 def _cell(v: object) -> str:
@@ -157,12 +157,29 @@ def parse_report(pdf_bytes: bytes) -> list[dict]:
             text = page.extract_text() or ""
             if not _BRIDGE.search(text):
                 continue
-            for table in page.extract_tables():
-                rows = parse_bridge_table(table)
-                if rows:
-                    log.info("[roaster_results] bridge table on p%d → %d segments", pageno, len(rows))
-                    return rows
-            log.info("[roaster_results] p%d names the bridge but no table parsed", pageno)
+            # The bridge is laid out with whitespace, not ruled lines, so
+            # pdfplumber's default "lines" strategy finds no table at all —
+            # which is how the first run silently fell back to prose figures
+            # and mis-attributed price as volume. Try text alignment first.
+            strategies = (
+                {"vertical_strategy": "text", "horizontal_strategy": "text"},
+                {"vertical_strategy": "text", "horizontal_strategy": "lines"},
+                None,   # pdfplumber default, for a ruled table
+            )
+            for settings in strategies:
+                try:
+                    tables = page.extract_tables(settings) if settings else page.extract_tables()
+                except Exception as e:                    # noqa: BLE001
+                    log.debug("[roaster_results] p%d strategy %s: %s", pageno, settings, e)
+                    continue
+                for table in tables or []:
+                    rows = parse_bridge_table(table)
+                    if rows:
+                        log.info("[roaster_results] bridge table p%d via %s → %d segments: %s",
+                                 pageno, (settings or "default"), len(rows),
+                                 ", ".join(f"{r['segment']}={r['volume_mix_pct']}" for r in rows))
+                        return rows
+            log.warning("[roaster_results] p%d names the bridge but no table parsed", pageno)
     return []
 
 
@@ -233,7 +250,12 @@ async def run(page=None, db=None) -> None:  # noqa: ARG001
     data = build()
     n = sum(len(c["periods"]) for c in data["companies"])
     if not n:
-        print("[roaster_results] no periods parsed — leaving existing file untouched")
+        # Deliberately loud and non-writing. The first version of this scraper
+        # fell back to prose and published price as volume — Total=19.5 when
+        # 19.5 was the price effect. A stale or absent file is recoverable; a
+        # plausible wrong number in a demand panel is not.
+        print("[roaster_results] NO PERIODS PARSED — refusing to write. "
+              "Check the bridge-table locator against the current report layout.")
         return
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
