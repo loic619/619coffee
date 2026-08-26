@@ -149,3 +149,115 @@ class TestExportedPayload:
         assert out["markets"]["robusta"]["latest"]["spread"] == -38.0
         # No stocks files in tmp_path, so no paired points — must not crash.
         assert out["markets"]["arabica"]["points"] == []
+
+
+class TestCurveStructureOverwrite:
+    """cot.json's structure_* is recomputed from the archive, not imported."""
+
+    def _rows(self):
+        return [
+            {"date": "2026-06-02",
+             "ny": {"structure_ny": 0.0042}, "ldn": {"structure_ldn": 0.0131}},
+            {"date": "2026-06-03", "ny": {"structure_ny": 0.0042}, "ldn": None},
+        ]
+
+    def _archive(self):
+        return {
+            "arabica": {"2026-06-02": {"KCU26": {"price": 371.4}, "KCZ26": {"price": 335.5}}},
+            "robusta": {"2026-06-02": {"RCU26": {"price": 3200.0}, "RCX26": {"price": 3238.0}}},
+        }
+
+    def _run(self, tmp_path, monkeypatch, rows, archive):
+        p = tmp_path / "a.json"
+        p.write_text(json.dumps(archive), encoding="utf-8")
+        monkeypatch.setattr(F, "ARCHIVE", p)
+        F.overwrite_curve_structure(rows)
+        return rows
+
+    def test_replaces_the_imported_value_and_flips_to_deferred_minus_front(
+            self, tmp_path, monkeypatch):
+        rows = self._run(tmp_path, monkeypatch, self._rows(), self._archive())
+        # front_spread gives front-minus-deferred (+35.9); this field is the
+        # negation, because the signal engine reads negative as backwardation.
+        assert rows[0]["ny"]["structure_ny"] == -35.9
+        assert rows[0]["ldn"]["structure_ldn"] == 38.0
+
+    def test_nulls_weeks_the_archive_does_not_cover(self, tmp_path, monkeypatch):
+        # Better a missing curve signal than one computed on the old scale.
+        rows = self._run(tmp_path, monkeypatch,
+                         [{"date": "2019-01-08", "ny": {"structure_ny": 0.0042}, "ldn": None}],
+                         self._archive())
+        assert rows[0]["ny"]["structure_ny"] is None
+
+    def test_walks_back_to_the_last_board_over_a_holiday(self, tmp_path, monkeypatch):
+        # COT dates are Tuesdays; a miss means a market holiday.
+        rows = self._run(tmp_path, monkeypatch,
+                         [{"date": "2026-06-04", "ny": {"structure_ny": 9.9}, "ldn": None}],
+                         self._archive())
+        assert rows[0]["ny"]["structure_ny"] == -35.9
+
+    def test_does_not_walk_back_indefinitely(self, tmp_path, monkeypatch):
+        rows = self._run(tmp_path, monkeypatch,
+                         [{"date": "2026-06-30", "ny": {"structure_ny": 9.9}, "ldn": None}],
+                         self._archive())
+        assert rows[0]["ny"]["structure_ny"] is None
+
+    def test_tolerates_a_missing_market_block(self, tmp_path, monkeypatch):
+        rows = self._run(tmp_path, monkeypatch, self._rows(), self._archive())
+        assert rows[1]["ldn"] is None          # no crash on a null side
+
+    def test_leaves_values_alone_when_the_archive_is_missing(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(F, "ARCHIVE", tmp_path / "nope.json")
+        rows = self._rows()
+        F.overwrite_curve_structure(rows)
+        assert rows[0]["ny"]["structure_ny"] == 0.0042    # untouched, not nulled
+
+
+class TestContractPriceBackfill:
+    """The 10-year deepening of the per-contract archive."""
+
+    def test_enumerates_only_months_that_trade_on_each_board(self):
+        from backend.scraper import backfill_contract_prices as B
+        ara = B.contracts_for_span("arabica", 2020, 2020)
+        rob = B.contracts_for_span("robusta", 2020, 2020)
+        assert ara == ["KCH20", "KCK20", "KCN20", "KCU20", "KCZ20"]
+        # Robusta lists Jan and Nov; arabica does not. Enumerating one board's
+        # months against the other wastes requests and misses real contracts.
+        assert rob == ["RCF20", "RCH20", "RCK20", "RCN20", "RCU20", "RCX20"]
+
+    def test_orders_oldest_first_so_a_partial_run_still_deepens_the_tail(self):
+        out = __import__("backend.scraper.backfill_contract_prices", fromlist=["x"]) \
+            .contracts_for_span("arabica", 2018, 2020)
+        assert out[0] == "KCH18" and out[-1] == "KCZ20"
+
+    def test_parses_both_row_shapes_and_skips_unusable_prices(self):
+        from backend.scraper import backfill_contract_prices as B
+        payload = {"data": [
+            {"raw": {"tradeTime": "2020-03-02T00:00:00", "close": 112.5}},
+            {"date": "2020-03-03", "close": "113.25"},
+            {"raw": {"tradeTime": "2020-03-04", "close": 0}},      # zero is not a price
+            {"raw": {"tradeTime": "2020-03-05", "close": None}},
+            {"raw": {"close": 99.0}},                               # no date
+        ]}
+        assert B.parse_eod(payload) == {"2020-03-02": 112.5, "2020-03-03": 113.25}
+        assert B.parse_eod(None) == {}
+        assert B.parse_eod({"data": "nonsense"}) == {}
+
+    def test_backfill_never_overwrites_what_the_nightly_fetch_already_wrote(self):
+        # The nightly job reads the live board; this reads a vendor history
+        # file. Where they disagree the live read wins, so backfill fills gaps
+        # only — otherwise a re-run would rewrite good data with vendor data.
+        from backend.scraper import backfill_contract_prices as B
+        archive = {"arabica": {"2020-03-02": {"KCH20": {"oi": 1234, "price": 999.0}}}}
+        added = B.merge_prices(archive, "arabica", "KCH20",
+                               {"2020-03-02": 112.5, "2020-03-03": 113.25})
+        assert added == 1
+        assert archive["arabica"]["2020-03-02"]["KCH20"]["price"] == 999.0   # kept
+        assert archive["arabica"]["2020-03-02"]["KCH20"]["oi"] == 1234       # untouched
+        assert archive["arabica"]["2020-03-03"]["KCH20"]["price"] == 113.25  # filled
+
+    def test_retention_window_covers_what_the_backfill_fetches(self):
+        # If retention is shorter than the backfill span, the next nightly trim
+        # deletes the work. This is the guard that keeps the two in step.
+        from backend.scraper.fetch_oi_json import ARCHIVE_MAX_DAYS
+        assert ARCHIVE_MAX_DAYS >= 261 * 10

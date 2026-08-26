@@ -19,9 +19,16 @@ number and a dispersion on it — a mean ratio is only useful if it is STABLE,
 so the report leads on spread and on how often doubling would have misled you
 by more than a stated tolerance.
 
-Network note: files.customs.gov.vn must be reachable. Some sandboxed
-environments deny it by network policy; the production scraper reaches it
-fine, which is where this is meant to run.
+Where the k1 bulletins come from: the SAME portal page the monthly scraper
+already reads (customs.gov.vn pageId=441, enumerated through the bridge
+servlet). k1 and k2 sit side by side in that listing — both stamped '2x' and
+both carrying the same '{year}-t{month}' month code, which is why the monthly
+scraper now filters k1 out explicitly. Enumerating beats predicting URLs: the
+listing gives the real filename rather than a guess at one.
+
+Network note: the portal and files.customs.gov.vn must be reachable. Some
+sandboxed environments deny them by network policy; the production scraper
+reaches them fine, which is where this is meant to run.
 
     python -m backend.scraper.research_vn_midmonth --months 24
 """
@@ -39,7 +46,13 @@ sys.path.insert(0, str(_HERE.parents[2]))
 from backend.scraper.sources.vn_coffee_export import (  # noqa: E402
     _CACHE_PATH,
     _FILES_HOST,
+    _PORTAL_URL,
+    _download_pdf,
     _extract_coffee_row,
+    _fetch_publication_list,
+    _is_2x,
+    _period_marker,
+    _period_to_month,
     _try_download_pdf,
 )
 
@@ -162,6 +175,47 @@ def ratio_stats(pairs: list[dict]) -> dict:
         "half_inside_observed_range": half_plausible,
         "verdict": verdict,
     }
+
+
+def k1_from_publications(publications: list[dict]) -> dict[str, str]:
+    """{month: url} for every mid-month export bulletin in a portal listing.
+
+    Pure: takes the already-fetched listing so it can be tested without a
+    network. Mirrors the monthly scraper's field probing, because the portal
+    has used several key spellings over time.
+    """
+    out: dict[str, str] = {}
+    for pub in publications or []:
+        file_url = pub.get("fileSoBo") or pub.get("filePath") or pub.get("url") or ""
+        combined = (f"{file_url} {pub.get('loaiBaoCao') or pub.get('type') or ''} "
+                    f"{pub.get('tenBaoCao') or pub.get('name') or ''}")
+        if not _is_2x(combined) or _period_marker(combined) != "k1":
+            continue
+        month = _period_to_month(combined)
+        if month and file_url:
+            out.setdefault(month, file_url)
+    return out
+
+
+async def harvest_k1_via_portal(page) -> dict[str, dict]:
+    """{month: coffee row} for the k1 bulletins the portal currently lists."""
+    await page.goto(_PORTAL_URL, wait_until="domcontentloaded", timeout=30_000)
+    await page.wait_for_timeout(2_000)
+    pubs = await _fetch_publication_list(page)
+    by_month = k1_from_publications(pubs)
+    print(f"[vn-midmonth] portal listed {len(pubs)} publications, "
+          f"{len(by_month)} of them mid-month export bulletins")
+    out: dict[str, dict] = {}
+    for month, url in sorted(by_month.items()):
+        body = _download_pdf(url)
+        if not body:
+            print(f"[vn-midmonth] {month}: k1 PDF download failed")
+            continue
+        row = _extract_coffee_row(body)
+        if row:
+            row["url"] = url
+            out[month] = row
+    return out
 
 
 def host_reachable(timeout: float = 15.0) -> bool:
