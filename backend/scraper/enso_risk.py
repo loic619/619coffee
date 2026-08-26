@@ -59,6 +59,17 @@ MIN_ANOMALY_PCT = 8.0
 #: Below this share of events agreeing with the mean, the composite is
 #: cancellation rather than signal.
 MIN_CONSISTENCY = 0.6
+#: Region-level gate. If a region's rainfall barely correlates with the ONI at
+#: ANY lag, it has no measurable ENSO relationship and no crop phase of it
+#: should be coloured, however tidy a single phase composite happens to look.
+#: The measured distribution breaks naturally here: nine regions sit below it
+#: (Paraná 0.12, Sul de Minas 0.15, Rwenzori 0.02) and the rest run 0.21-0.53.
+MIN_LAG_R = 0.20
+#: A real teleconnection pushes the two phases in OPPOSITE directions. When El
+#: Niño and La Niña both come out dry, whatever is moving the rain is not
+#: ENSO — it is a trend, or small-n coincidence. Paraná is the case in point:
+#: -11.0% under El Niño and -9.6% under La Niña at cherry fill.
+MIN_OPPOSITE_PCT = 5.0
 #: How far ahead the projection looks. The analogue overlay supplies six
 #: months forward; beyond that the plume is wider than the answer.
 FORWARD_MONTHS = 6
@@ -118,7 +129,8 @@ def affected_months(event_months: list[tuple[int, int]], lag: int) -> set[int]:
     return {_add_months(y, m, lag)[1] for y, m in event_months}
 
 
-def _score(bucket: dict, phase: str, intensity: str) -> tuple[int, str, dict]:
+def _score(bucket: dict, phase: str, intensity: str,
+           opposite: dict | None = None) -> tuple[int, str, dict]:
     """Severity + driver text for one measured bucket on one crop phase."""
     anomaly = bucket.get("anomaly_pct")
     evidence = {
@@ -131,6 +143,12 @@ def _score(bucket: dict, phase: str, intensity: str) -> tuple[int, str, dict]:
         return 0, "Past events disagree — no usable signal", evidence
     if abs(anomaly) < MIN_ANOMALY_PCT:
         return 0, "Near-normal rainfall expected", evidence
+
+    # Does the opposite phase disagree, as a real teleconnection should?
+    opp = (opposite or {}).get("anomaly_pct")
+    if (opp is not None and (opposite or {}).get("usable")
+            and abs(opp) >= MIN_OPPOSITE_PCT and (opp >= 0) == (anomaly >= 0)):
+        return 0, "El Niño and La Niña move it the same way — not an ENSO signal", evidence
 
     direction = "wet" if anomaly > 0 else "dry"
     sev, text = PHASE_RESPONSE[phase][direction]
@@ -152,6 +170,14 @@ def region_risk(origin: str, region: str, phase: str, intensity: str,
     cal = CROP_CALENDAR.get(origin) or {"cycles": []}
     hits: list[dict] = []
 
+    # If the region's rainfall does not track the ONI at any lag, nothing about
+    # it is an ENSO risk. Stated on the pin rather than left as a quiet green.
+    lag_r = rec.get("lag_r")
+    if lag_r is not None and abs(lag_r) < MIN_LAG_R:
+        return {"level": "low", "color": _LEVEL_COLOR["low"], "severity": 0,
+                "driver": f"No measurable ENSO link here (r={lag_r:+.2f})",
+                "phase_hits": [], "lag_months": rec.get("lag_months"), "lag_r": lag_r}
+
     for cycle in cal["cycles"]:
         for ph in ("flowering", "fruit_fill", "harvest"):
             window = cycle.get(ph) or []
@@ -160,8 +186,10 @@ def region_risk(origin: str, region: str, phase: str, intensity: str,
             overlap = [m for m in window if m in months]
             if not overlap:
                 continue
-            measured = ((rec.get("phases") or {}).get(f"{cycle['label']}/{ph}") or {}).get(phase) or {}
-            sev, text, evidence = _score(measured, ph, intensity)
+            all_phases = (rec.get("phases") or {}).get(f"{cycle['label']}/{ph}") or {}
+            measured = all_phases.get(phase) or {}
+            other = "la-nina" if phase == "el-nino" else "el-nino"
+            sev, text, evidence = _score(measured, ph, intensity, all_phases.get(other))
             hits.append({
                 "cycle": cycle["label"], "phase": ph, "months": overlap,
                 "severity": sev, "driver": text, **evidence,

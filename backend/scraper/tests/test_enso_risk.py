@@ -137,3 +137,43 @@ def test_risk_summary_counts_match_pin_count():
     pins = build_risk_pins("neutral", "Weak", event_months=[])
     s = risk_summary(pins)
     assert sum(s.values()) == len(pins)
+
+
+def test_a_region_whose_rainfall_ignores_enso_scores_nothing():
+    """Paraná's rainfall correlates with the ONI at r=0.12 — no measurable
+    relationship at any lag. A tidy-looking composite on one crop phase must
+    not colour a pin the region has not earned."""
+    t = _tele("brazil", "Paraná", "main/fruit_fill", "el-nino",
+              anomaly_pct=-11.0, n=4, lag=0)
+    t["regions"]["brazil|Paraná"]["lag_r"] = 0.121
+    r = region_risk("brazil", "Paraná", "el-nino", "Strong", {12, 1, 2}, t)
+    assert r["level"] == "low"
+    assert "No measurable ENSO link" in r["driver"]
+
+
+def test_both_phases_moving_the_same_way_is_not_a_signal():
+    """A real teleconnection pushes El Niño and La Niña in opposite
+    directions. When both come out dry, something other than ENSO is moving
+    the rain."""
+    t = _tele("brazil", "Paraná", "main/fruit_fill", "el-nino",
+              anomaly_pct=-11.0, n=4, lag=0)
+    t["regions"]["brazil|Paraná"]["lag_r"] = 0.55          # strong enough to pass the region gate
+    t["regions"]["brazil|Paraná"]["phases"]["main/fruit_fill"]["la-nina"] = {
+        "anomaly_pct": -9.6, "n": 3, "consistency": 0.67, "usable": True,
+    }
+    r = region_risk("brazil", "Paraná", "el-nino", "Strong", {12, 1, 2}, t)
+    assert r["level"] == "low"
+    assert "same way" in r["phase_hits"][0]["driver"]
+
+
+def test_opposite_phases_still_score():
+    """The guard must not swallow a genuine signal: Vietnam is dry under
+    El Niño and wet under La Niña, which is exactly what it should keep."""
+    t = _tele("vn", "Dak Lak", "robusta/flowering", "el-nino",
+              anomaly_pct=-55.0, n=5, lag=3)
+    t["regions"]["vn|Dak Lak"]["lag_r"] = -0.39
+    t["regions"]["vn|Dak Lak"]["phases"]["robusta/flowering"]["la-nina"] = {
+        "anomaly_pct": 22.0, "n": 4, "consistency": 0.75, "usable": True,
+    }
+    r = region_risk("vn", "Dak Lak", "el-nino", "Moderate", {1, 2, 3}, t)
+    assert r["level"] == "high"

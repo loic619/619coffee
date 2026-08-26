@@ -280,6 +280,7 @@ export default function SupplySDTab() {
         </div>
       </div>
 
+      {ccs && <ReconcilePanel bundle={bundle} ccs={ccs} />}
       <SpreadPanel spreads={spreads} season={tableSeason} bundle={bundle} />
       {ccs && <TightnessPanel ccs={ccs} />}
     </div>
@@ -385,6 +386,93 @@ function SourceTable({ bundle, season, setSeason, sources }: {
         similar it looks. Final is the analyst override where one is set; the balance sheet uses
         it in preference to the mean.
       </div>
+    </div>
+  );
+}
+
+/** Our world against CCS's, decomposed. Scope first, then what is left.
+ *
+ *  Deliberately does not adjudicate. Two houses can read the same crop
+ *  differently and both be publishing in good faith; what is useful is knowing
+ *  HOW MUCH of the gap is a different question being answered (origins we do
+ *  not itemise) and how much is a genuine difference of view, and where that
+ *  view sits. Naming a winner here would be a house opinion dressed as a
+ *  reconciliation. */
+function ReconcilePanel({ bundle, ccs }: { bundle: SdBundle; ccs: CcsDoc }) {
+  // Latest season both sides cover. CCS's PRELIM column is excluded from the
+  // consumption consensus, but its production table is published, so it is a
+  // fair comparison here.
+  const season = [...ccs.seasons].reverse().find(sea => derivedWorld(bundle, sea) != null);
+  if (!season) return null;
+  const i = ccs.seasons.indexOf(season);
+  const ours = derivedWorld(bundle, season);
+  const tail = ccs.production.total?.others?.[i];
+  const world = ccs.production_totals.total?.[i];
+  if (ours == null || tail == null || world == null) return null;
+  const comparable = Math.round((ours + tail) * 10) / 10;
+  const residual = Math.round((world - comparable) * 10) / 10;
+
+  // Per-origin differences, largest absolute first.
+  const diffs = Object.entries(bundle.seeds).flatMap(([o, seed]) => {
+    const s = (seed.seasons ?? []).find(x => x.season === season);
+    const theirs = s?.production?.ccs;
+    if (theirs == null) return [];
+    const vals = Object.values(s?.production ?? {});
+    const mine = s?.production_final ?? (vals.length ? vals.reduce((a, v) => a + v, 0) / vals.length : 0);
+    return [{ origin: o, label: ORIGIN_FILES[o]?.label ?? o,
+              mine: Math.round(mine * 10) / 10, theirs,
+              diff: Math.round((theirs - mine) * 10) / 10 }];
+  }).sort((a, z) => Math.abs(z.diff) - Math.abs(a.diff)).slice(0, 5);
+
+  return (
+    <div className={CARD}>
+      <div className={LABEL}>
+        Our world against CCS
+        <span className="ml-2 text-slate-600 normal-case">· {season}, million 60-kg bags</span>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-1 text-[10px]">
+          <Row k="Our consensus, 16 origins" v={ours} />
+          <Row k="+ rest of world (CCS “Others”)" v={tail} muted />
+          <Row k="= on comparable scope" v={comparable} rule />
+          <Row k="CCS published world" v={world} />
+          <Row k="Difference" v={residual} rule accent />
+        </div>
+        <div className="space-y-1 text-[10px]">
+          <div className="text-slate-500 mb-1">Where that difference sits</div>
+          {diffs.map(d => (
+            <div key={d.origin} className="flex justify-between gap-2">
+              <span className="text-slate-400">{d.label}</span>
+              <span className="font-mono text-slate-500">
+                {d.mine.toFixed(1)} vs {d.theirs.toFixed(1)}
+                <span className={`ml-2 ${Math.abs(d.diff) >= 2 ? "text-slate-300" : "text-slate-600"}`}>
+                  {d.diff > 0 ? "+" : ""}{d.diff.toFixed(1)}
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="text-[8px] text-slate-600 leading-relaxed">
+        Scope is separated from opinion: the rest-of-world line closes the part of the gap that is
+        simply origins this sheet does not itemise, and what remains sits in the origins both cover.
+        No judgement is offered on which figure is right — two houses can read the same crop
+        differently and both be publishing in good faith. This records where they differ and by how
+        much, which is the part a position actually turns on.
+      </div>
+    </div>
+  );
+}
+
+function Row({ k, v, muted, rule, accent }: {
+  k: string; v: number; muted?: boolean; rule?: boolean; accent?: boolean;
+}) {
+  return (
+    <div className={`flex justify-between gap-3 ${rule ? "border-t border-slate-700 pt-1 mt-1" : ""}`}>
+      <span className={muted ? "text-slate-500" : "text-slate-400"}>{k}</span>
+      <span className={`font-mono ${accent ? "text-amber-400 font-bold" : rule ? "text-slate-200 font-bold" : "text-slate-300"}`}>
+        {v > 0 && accent ? "+" : ""}{v.toFixed(1)}
+      </span>
     </div>
   );
 }
