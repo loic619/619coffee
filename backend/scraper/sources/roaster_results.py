@@ -33,7 +33,7 @@ import io
 import json
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import requests
@@ -190,7 +190,7 @@ def _report_urls(back_years: int = 6) -> list[str]:
     parsing it).
     """
     base = "https://www.jdepeets.com/siteassets/home/investors/financial-reports/"
-    year = datetime.now(timezone.utc).year
+    year = datetime.now(UTC).year
     urls: list[str] = []
     for y in range(year, year - back_years, -1):
         for kind in ("full-year", "half-year"):
@@ -308,7 +308,7 @@ def parse_nestle_report(pdf_bytes: bytes) -> list[dict]:
 
 
 def nestle_periods(back_years: int = 3) -> list[dict]:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     periods: list[dict] = []
     for year in range(now.year, now.year - back_years, -1):
         for label, slugs, month, offset in _NESTLE_KINDS:
@@ -615,7 +615,7 @@ def build() -> dict:
             "periods": strauss,
         })
     return {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "source": "Company results releases (PDF)",
         "narratives": narratives,
         "note": ("JDE Peet's only. Nestle's site returns 403 to bot, browser-UA and headless-"
