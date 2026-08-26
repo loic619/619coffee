@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-26T14:19:42.298593Z",
-  "count": 85,
+  "generated_at": "2026-08-26T16:48:00.654018Z",
+  "count": 86,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -160,6 +160,17 @@
       "workflow_run_deps": [],
       "concurrency_group": "backfill-sentiment",
       "timeout_minutes": null
+    },
+    {
+      "file": "backfill-weather-history.yml",
+      "name": "0.21 \u2013 Backfill weather history from the Open-Meteo archive",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": "weather-fetch",
+      "timeout_minutes": 45
     },
     {
       "file": "bps-indonesia-exim.yml",
@@ -1177,6 +1188,11 @@
         "version": "0.20"
       },
       {
+        "file": "backfill-weather-history.yml",
+        "name": "0.21 \u2013 Backfill weather history from the Open-Meteo archive",
+        "version": "0.21"
+      },
+      {
         "file": "build-oni-history.yml",
         "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
         "version": "0.6"
@@ -1263,7 +1279,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 23,
+    "uncovered_workflows_count": 24,
     "stale_curation_count": 0
   }
 }
