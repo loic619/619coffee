@@ -300,9 +300,16 @@ const DEMAND = `flowchart LR
   W41["4.1 Earnings · quarterly · filings"]
   W31["3.1 Kaffeesteuer · 1st/mo · DESTATIS"]
   WMIX["manual / various"]
-  WICE_KCD["1.13 ICE Cert Stocks · daily 17:00<br/>Arabica xls (sheet 7)<br/>publicdocs/coffee_cert_stock_*.xls"]
+  WICE_KCD["1.13 ICE Cert Stocks · 00:35 M-F + chain<br/>once-a-day guard<br/>Arabica xls (sheet 7)"]
   WICE_KCA["1.14 ICE Arabica Ageing · day-1/mo<br/>coffee_aging_YYYYMMDD.xls"]
-  WICE_RC["ICE Robusta · daily 17:00<br/>stock_report_RC_*.csv (10:30-11:15 sweep)<br/>+ age_allowance + gradings + iss_recv"]
+  WICE_RC["ICE Robusta (in 1.13)<br/>stock_report_RC_YYYYMMDD_HHMMSS.csv<br/>+ age_allowance + gradings + iss_recv"]
+  HITS[("stock_report_hits.json<br/>observed publish seconds")]
+  T0{{"tier 0 · recorded second<br/>1 GET"}}
+  T1{{"tier 1 · top-10 ±2s"}}
+  T2{{"tier 2 · sweep 10:25-12:50<br/>4s/req · resumable cursor"}}
+  REC{{"hole recovery<br/>known time, no snapshot"}}
+  J_ipt[/ice_publish_times.json/]
+  icepub{{"Research · Admin<br/>publish-time calendar"}}
   WICE_SPA["ICE SPA API (fallback)<br/>POST marketdata/api/reports/142/data<br/>{KC | RC} → warehouse + total"]
   COH[["cohort_outflow.py<br/>per-cohort DNA from gradings<br/>+ DNA-coverage guard"]]
   EXP{{"1.4 Export · 02:30"}}
@@ -342,7 +349,12 @@ const DEMAND = `flowchart LR
   WMIX --> J_mix --> mix
   WICE_KCD --> J_csa
   WICE_KCA --> J_csa
-  WICE_RC --> J_csr
+  WICE_RC --> T0 -->|miss| T1 -->|miss| T2
+  T2 --> J_csr
+  HITS --> T0
+  T2 -->|"records the second"| HITS
+  HITS --> REC --> J_csr
+  HITS --> J_ipt --> icepub
   WICE_RC --> COH --> J_csr
   WICE_SPA -.fallback / freshness probe.-> J_csa
   WICE_SPA -.fallback / freshness probe.-> J_csr
@@ -359,9 +371,11 @@ ${DEFS}
   classDef vis fill:#451a03,stroke:#f59e0b,color:#fde68a;
   class W3B,WPOP,W41,W31,WMIX,WICE_KCD,WICE_KCA,WICE_RC,WICE_SPA scr;
   class COH proc;
+  class T0,T1,T2,REC proc;
+  class HITS store;
   class EXP proc;
-  class J_stk,J_earn,J_tax,J_mix,J_csa,J_csr,J_h json;
-  class stk,ecf,psd,jp,age,grow,world,earn,tax,mix,tiles,period,sysflow,fresh vis;`;
+  class J_stk,J_earn,J_tax,J_mix,J_csa,J_csr,J_h,J_ipt json;
+  class stk,ecf,psd,jp,age,grow,world,earn,tax,mix,tiles,period,sysflow,fresh,icepub vis;`;
 
 const MACRO = `flowchart LR
   W19["1.9 Quant CCI · 21:30 M-F<br/>jsDelivr FX · yfinance"]
@@ -815,11 +829,35 @@ const ROWS: FlowMetadata[] = [
   {
     wf: "1.13 ICE Certified Stocks", output: "certified_stocks_arabica.json + …robusta.json", component: "CertifiedStocksPanel · CertifiedStocksSystemFlow",
     visual: "Demand · Tiles + Period view + System flow + Freshness chips",
-    cadence: { recurrence: "17:00 UTC Mon-Fri (weekend-skip added 2026-05)", window: "after ICE robusta ~10:30 UTC + arabica ~13:30 UTC publish", trigger: "cron" },
-    transport: { provider: "ICE marketdata (10 source feeds)", method: "Direct API GET (XLS + PDF + XML)", bypass: "browser-shaped UA + Referer chain" },
-    storage: { target: "certified_stocks_arabica.json + certified_stocks_robusta.json", footprint: "~200KB combined", units: "60kg bags (KC) / 10MT lots (RC) — both surfaced" },
-    resiliency: { onMissing: "per-source failures logged but don't block the run; last-good JSON retained", parserFallback: "XLS-first → PDF fallback when ICE varies the daily file format" },
-    runtime: { duration: "~5-10 min daily / ~90 min one-off 180d backfill", cost: "weekend-skip saves ~10 CI min/wk" },
+    cadence: {
+      recurrence: "00:35 UTC Tue-Sat cron + chained off 1.1, once-a-day guard",
+      window: "anchors the previous business day; ICE robusta publishes 10:25-12:50 UTC",
+      trigger: "composite",   // 00:35 cron + workflow_run chain off 1.1
+    },
+    transport: {
+      provider: "ICE marketdata (10 source feeds)",
+      method: "Direct API GET (XLS + PDF + CSV), 5s/req — /marketdata/ 429s ANY concurrency",
+      bypass: "browser-shaped UA + Referer chain",
+    },
+    storage: {
+      target: "certified_stocks_arabica.json + certified_stocks_robusta.json",
+      footprint: "~200KB combined",
+      units: "60kg bags (KC) / 10MT lots (RC) — both surfaced",
+    },
+    resiliency: {
+      onMissing:
+        "The robusta CSV is stamped with the exact SECOND it was generated and there is no "
+        + "index, so it has to be guessed: tier 0 tries the second already recorded for that "
+        + "date (1 GET), tier 1 the ten most frequent ±2s, tier 2 sweeps 10:25-12:50 at 4s/req "
+        + "and saves a cursor so a run killed by the 120-min timeout resumes rather than "
+        + "restarting. ICE retains historical reports (probe 0.18), so a missed day stays "
+        + "recoverable: any date with a known time but no snapshot is re-fetched, ≤20/run.",
+      parserFallback: "XLS-first → PDF fallback when ICE varies the daily file format",
+    },
+    runtime: {
+      duration: "~8 min when the day's second is known; up to the 120-min cap on a cold sweep",
+      cost: "was ~49% of all Actions minutes before the once-a-day guard and tier 0",
+    },
   },
   {
     wf: "1.14 ICE Arabica Ageing (monthly)", output: "certified_stocks_arabica.json.ageing_report", component: "ArabicaPeriodTable",
