@@ -22,16 +22,82 @@
       "key": "stonex",
       "label": "StoneX",
       "color": "#e879f9"
+    },
+    {
+      "key": "ccs",
+      "label": "CCS Coffee",
+      "color": "#facc15"
     }
   ],
   "seasons": [
+    {
+      "season": "2016/17",
+      "production": {
+        "ccs": 5.9
+      },
+      "production_split": {
+        "ccs": {
+          "arabica_washed": 1.8,
+          "arabica_natural": 4.1
+        }
+      }
+    },
+    {
+      "season": "2017/18",
+      "production": {
+        "ccs": 5.8
+      },
+      "production_split": {
+        "ccs": {
+          "arabica_washed": 1.7,
+          "arabica_natural": 4.1
+        }
+      }
+    },
+    {
+      "season": "2018/19",
+      "production": {
+        "ccs": 6.4
+      },
+      "production_split": {
+        "ccs": {
+          "arabica_washed": 1.9,
+          "arabica_natural": 4.5
+        }
+      }
+    },
+    {
+      "season": "2019/20",
+      "production": {
+        "ccs": 6.5
+      },
+      "production_split": {
+        "ccs": {
+          "arabica_washed": 2.0,
+          "arabica_natural": 4.5
+        }
+      }
+    },
+    {
+      "season": "2020/21",
+      "production": {
+        "ccs": 7.1
+      },
+      "production_split": {
+        "ccs": {
+          "arabica_washed": 2.1,
+          "arabica_natural": 5.0
+        }
+      }
+    },
     {
       "season": "2021/22",
       "forecast": false,
       "production": {
         "marex": 6.8,
         "usda": 8.2,
-        "stonex": 7.8
+        "stonex": 7.8,
+        "ccs": 7.4
       },
       "production_split": {
         "marex": {
@@ -41,6 +107,10 @@
         "stonex": {
           "arabica_washed": 2.3,
           "arabica_natural": 5.5
+        },
+        "ccs": {
+          "arabica_washed": 2.2,
+          "arabica_natural": 5.2
         }
       }
     },
@@ -50,7 +120,8 @@
       "production": {
         "usda": 7.3,
         "marex": 6.9,
-        "stonex": 7.0
+        "stonex": 7.0,
+        "ccs": 7.0
       },
       "production_split": {
         "marex": {
@@ -58,6 +129,10 @@
           "arabica_natural": 4.8
         },
         "stonex": {
+          "arabica_washed": 2.1,
+          "arabica_natural": 4.9
+        },
+        "ccs": {
           "arabica_washed": 2.1,
           "arabica_natural": 4.9
         }
@@ -69,7 +144,8 @@
       "production": {
         "usda": 9.1,
         "marex": 7.4,
-        "stonex": 7.1
+        "stonex": 7.1,
+        "ccs": 7.2
       },
       "production_split": {
         "marex": {
@@ -78,6 +154,10 @@
         },
         "stonex": {
           "arabica_washed": 2.1,
+          "arabica_natural": 5.0
+        },
+        "ccs": {
+          "arabica_washed": 2.2,
           "arabica_natural": 5.0
         }
       }
@@ -88,7 +168,8 @@
       "production": {
         "usda": 11.5,
         "marex": 7.8,
-        "stonex": 7.8
+        "stonex": 7.8,
+        "ccs": 7.2
       },
       "production_split": {
         "marex": {
@@ -98,6 +179,10 @@
         "stonex": {
           "arabica_washed": 2.3,
           "arabica_natural": 5.5
+        },
+        "ccs": {
+          "arabica_washed": 2.2,
+          "arabica_natural": 5.0
         }
       },
       "production_final": 7.8

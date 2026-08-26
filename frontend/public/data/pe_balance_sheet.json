@@ -22,18 +22,82 @@
       "key": "sopex",
       "label": "Sopex",
       "color": "#22d3ee"
+    },
+    {
+      "key": "ccs",
+      "label": "CCS Coffee",
+      "color": "#facc15"
     }
   ],
   "seasons": [
+    {
+      "season": "2016/17",
+      "production": {
+        "ccs": 4.1
+      },
+      "production_split": {
+        "ccs": {
+          "arabica_washed": 4.1
+        }
+      }
+    },
+    {
+      "season": "2017/18",
+      "production": {
+        "ccs": 4.3
+      },
+      "production_split": {
+        "ccs": {
+          "arabica_washed": 4.3
+        }
+      }
+    },
+    {
+      "season": "2018/19",
+      "production": {
+        "ccs": 4.4
+      },
+      "production_split": {
+        "ccs": {
+          "arabica_washed": 4.4
+        }
+      }
+    },
+    {
+      "season": "2019/20",
+      "production": {
+        "ccs": 3.8
+      },
+      "production_split": {
+        "ccs": {
+          "arabica_washed": 3.8
+        }
+      }
+    },
+    {
+      "season": "2020/21",
+      "production": {
+        "ccs": 3.7
+      },
+      "production_split": {
+        "ccs": {
+          "arabica_washed": 3.7
+        }
+      }
+    },
     {
       "season": "2021/22",
       "forecast": false,
       "production": {
         "marex": 4.2,
-        "usda": 4.2
+        "usda": 4.2,
+        "ccs": 4.2
       },
       "production_split": {
         "marex": {
+          "arabica_washed": 4.2
+        },
+        "ccs": {
           "arabica_washed": 4.2
         }
       }
@@ -43,11 +107,15 @@
       "forecast": false,
       "production": {
         "usda": 3.5,
-        "marex": 3.6
+        "marex": 3.6,
+        "ccs": 3.5
       },
       "production_split": {
         "marex": {
           "arabica_washed": 3.6
+        },
+        "ccs": {
+          "arabica_washed": 3.5
         }
       }
     },
@@ -56,10 +124,14 @@
       "forecast": false,
       "production": {
         "usda": 3.9,
-        "marex": 4.0
+        "marex": 4.0,
+        "ccs": 4.0
       },
       "production_split": {
         "marex": {
+          "arabica_washed": 4.0
+        },
+        "ccs": {
           "arabica_washed": 4.0
         }
       }
@@ -69,11 +141,15 @@
       "forecast": false,
       "production": {
         "usda": 4.1,
-        "marex": 3.7
+        "marex": 3.7,
+        "ccs": 4.0
       },
       "production_split": {
         "marex": {
           "arabica_washed": 3.7
+        },
+        "ccs": {
+          "arabica_washed": 4.0
         }
       }
     },
