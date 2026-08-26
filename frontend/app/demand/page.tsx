@@ -16,6 +16,7 @@ const CertifiedStocksPanel = dynamic(
 );
 import GrowthMarketsPanel from "@/components/demand/GrowthMarketsPanel";
 import RoasterEarningsPanel from "@/components/demand/RoasterEarningsPanel";
+import ArrivalsVsStockChange from "@/components/demand/ArrivalsVsStockChange";
 import ImportsStory from "@/components/demand/ImportsStory";
 import KaffeesteuerChart from "@/components/demand/KaffeesteuerChart";
 import KaffeesteuerReexport from "@/components/demand/KaffeesteuerReexport";
@@ -123,6 +124,7 @@ function DemandPageInner() {
       {tab === "imports" && (
         <Section>
           <ImportsStory />
+          <ArrivalsVsStockChange />
         </Section>
       )}
 
