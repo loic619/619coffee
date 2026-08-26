@@ -1,0 +1,66 @@
+name: Z.94 – Strauss explanation-cell structure (temporary)
+
+# The reports carry three recurring tables with an "Explanation" column, and the
+# useful commentary lives in specific rows of each. This dumps their real
+# structure from the Hebrew filing so the extractor targets actual row labels
+# and cell positions instead of guessed ones.
+#
+# Two unknowns the screenshots cannot answer: the Hebrew row labels (the shared
+# screenshots are the translated edition), and where the explanation cell lands
+# in a right-to-left table once pdfplumber has flattened it.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [demand-earnings-revamp]
+    paths: [".github/workflows/zz-strauss-tables.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install requests pdfplumber
+      - name: Dump tables carrying prose cells
+        timeout-minutes: 12
+        run: |
+          python - <<'PY'
+          import io, re, sys, requests, pdfplumber
+          def say(*a): print(*a); sys.stdout.flush()
+          def he(t): 
+              flipped = (t or "")[::-1]
+              return re.sub(r"[\d.,%()]+", lambda m: m.group(0)[::-1], flipped)
+
+          URL="https://ir.strauss-group.com/wp-content/uploads/2026/07/Q1-2026-STRS.pdf"
+          H={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"}
+          r=requests.get(URL,headers=H,timeout=120)
+          say(f"HTTP {r.status_code}  {len(r.content)/1e6:.1f} MB")
+
+          shown=0
+          with pdfplumber.open(io.BytesIO(r.content)) as pdf:
+              for pageno,page in enumerate(pdf.pages[:70],1):
+                  for strat in ({"vertical_strategy":"lines","horizontal_strategy":"lines"},
+                                {"vertical_strategy":"text","horizontal_strategy":"lines"}):
+                      try: tables=page.extract_tables(strat)
+                      except Exception: continue
+                      for t in tables or []:
+                          # A table with an explanation column has rows whose
+                          # longest cell is prose, not a number.
+                          prose_rows=[row for row in t
+                                      if row and max((len(c or "") for c in row), default=0) > 90]
+                          if len(prose_rows) < 2: continue
+                          say(f"\n##### p{pageno} strat={strat['vertical_strategy']} rows={len(t)} cols={max(len(r_) for r_ in t)}")
+                          for row in t[:9]:
+                              cells=[(c or "").strip() for c in row]
+                              longest=max(range(len(cells)), key=lambda i: len(cells[i])) if cells else 0
+                              label=he(cells[0])[:40] if cells else ""
+                              prose=he(cells[longest])[:150] if cells else ""
+                              say(f"   col0={label!r:44} | longest_col={longest} | {prose!r}")
+                          shown+=1
+                          if shown>=5: raise SystemExit(0)
+          say("no explanation-style tables found")
+          PY
