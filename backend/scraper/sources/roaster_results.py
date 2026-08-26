@@ -341,6 +341,128 @@ def nestle_periods(back_years: int = 3) -> list[dict]:
     return sorted(periods, key=lambda p: p["period"])
 
 
+# ── Strauss Group ────────────────────────────────────────────────────────────
+# Strauss is a DIFFERENT KIND of source, and the difference matters more than
+# the similarity. Nestle and JDE both publish a volume figure on a fixed
+# definition every period. Strauss publishes no volume number at all — checked
+# across four filings, ~360 pages, with coffee discussed on 24-31 pages each.
+# What it does publish is a sentence, e.g. Q2-2026:
+#
+#   "The decrease in sales stems mainly from exchange-rate translation ... and
+#    from a decline in selling prices in Brazil following the fall in green
+#    coffee prices, partly offset by an increase in the quantities sold in most
+#    countries."
+#
+# That is a real demand signal — volumes up while revenue fell on price and FX
+# — but it is a DIRECTION, not a magnitude. It is carried here as narrative and
+# rendered as narrative, never as a bar, because the moment a direction is
+# plotted on a percentage axis it starts being read as a quantity.
+#
+# TEXT ORIENTATION. The filings are Hebrew and pdfplumber returns each line
+# fully reversed — letters and word order both. Reversing the whole line
+# restores readable Hebrew; storing the raw extraction would put mojibake in
+# front of a reader who could otherwise check the quote against the source.
+_STRAUSS_REPORTS = {
+    "2026-Q2": "https://ir.strauss-group.com/wp-content/uploads/2026/08/P1762866-00.pdf",
+    "2026-Q1": "https://ir.strauss-group.com/wp-content/uploads/2026/07/Q1-2026-STRS.pdf",
+    "2025-FY": "https://ir.strauss-group.com/wp-content/uploads/2024/08/FY2025-report.pdf",
+    "2025-Q3": "https://ir.strauss-group.com/wp-content/uploads/2024/08/Reporting_Package_Q3_2025.pdf",
+}
+_HE_COFFEE = ("קפה",)
+_HE_VOLUME = ("כמויות", "כמות", "היקף", "נפח")
+_HE_UP = ("עלייה", "עליה", "גידול", "צמיחה")
+_HE_DOWN = ("ירידה", "קיטון", "צמצום")
+
+# Working translations of the passages actually read, keyed by period. NOT the
+# company's own English — Strauss publishes these filings in Hebrew only — so
+# they are labelled as unofficial wherever they surface. A period without an
+# entry shows its Hebrew and says the translation is pending, rather than
+# inventing English for a quote nobody has checked.
+_STRAUSS_TRANSLATIONS = {
+    "2026-Q2": ("The decrease in sales stems mainly from the effect of exchange-rate "
+                "translation — chiefly the strengthening of the shekel against the "
+                "Brazilian real — and from a decline in selling prices in Brazil "
+                "following the fall in green coffee prices, partly offset by an "
+                "increase in the quantities sold in most countries."),
+}
+
+
+def _he(line: str) -> str:
+    """Restore reversed RTL extraction to readable Hebrew."""
+    return line[::-1].strip()
+
+
+def _direction(text: str) -> str | None:
+    """up / down / mixed, from how the passage describes quantities.
+
+    Only classified when a direction word sits near a volume word — otherwise
+    the sentence is about sales or prices and says nothing about cups.
+    """
+    idx = min((text.find(v) for v in _HE_VOLUME if v in text), default=-1)
+    if idx < 0:
+        return None
+    window = text[max(0, idx - 90): idx + 90]
+    up = any(w in window for w in _HE_UP)
+    down = any(w in window for w in _HE_DOWN)
+    if up and down:
+        return "mixed"
+    if up:
+        return "up"
+    if down:
+        return "down"
+    return None
+
+
+def strauss_periods() -> list[dict]:
+    try:
+        import pdfplumber
+    except ImportError:                                   # pragma: no cover
+        return []
+    out: list[dict] = []
+    for period, url in _STRAUSS_REPORTS.items():
+        try:
+            r = requests.get(url, headers=_HEADERS, timeout=120)
+        except Exception:                                 # noqa: BLE001
+            continue
+        if not r.ok or b"%PDF" not in r.content[:2048]:
+            log.info("[roaster_results] strauss %s: not a PDF", period)
+            continue
+        passage = None
+        try:
+            with pdfplumber.open(io.BytesIO(r.content)) as pdf:
+                for page in pdf.pages[:110]:
+                    raw = page.extract_text() or ""
+                    if not any(c in raw for c in ("קפה", "הפק")):
+                        continue
+                    lines = [_he(l) for l in raw.splitlines()]
+                    for i, line in enumerate(lines):
+                        if not any(v in line for v in _HE_VOLUME):
+                            continue
+                        # Quantities are described across a wrapped sentence,
+                        # so carry the neighbours for a readable quote.
+                        chunk = " ".join(lines[max(0, i - 2): i + 2]).strip()
+                        if _direction(chunk):
+                            passage = re.sub(r"\s+", " ", chunk)
+                            break
+                    if passage:
+                        break
+        except Exception as e:                            # noqa: BLE001
+            log.info("[roaster_results] strauss %s parse failed: %s", period, e)
+            continue
+        if not passage:
+            log.info("[roaster_results] strauss %s: no volume passage found", period)
+            continue
+        out.append({
+            "period": period,
+            "source_url": url,
+            "direction": _direction(passage),
+            "quote_he": passage[:600],
+            "quote_en": _STRAUSS_TRANSLATIONS.get(period),
+        })
+        log.info("[roaster_results] strauss %s → %s", period, _direction(passage))
+    return sorted(out, key=lambda p: p["period"])
+
+
 def build() -> dict:
     periods: list[dict] = []
     for url in _report_urls():
@@ -377,9 +499,22 @@ def build() -> dict:
             "metric_name": "RIG",
             "periods": nestle,
         })
+
+    narratives = []
+    strauss = strauss_periods()
+    if strauss:
+        narratives.append({
+            "key": "strauss",
+            "name": "Strauss Group",
+            "metric_name": "Volume commentary",
+            "note": ("Strauss publishes no volume figure. These are their own words on "
+                     "quantities sold, translated — direction only, never a magnitude."),
+            "periods": strauss,
+        })
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "source": "Company results releases (PDF)",
+        "narratives": narratives,
         "note": ("JDE Peet's only. Nestle's site returns 403 to bot, browser-UA and headless-"
                  "browser requests alike from CI runners, so RIG cannot be scraped there."),
         "companies": companies,

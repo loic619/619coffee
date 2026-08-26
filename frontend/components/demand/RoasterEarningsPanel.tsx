@@ -31,7 +31,80 @@ interface Period {
   segments: Segment[];
 }
 interface Company { key: string; name: string; metric_name: string; periods: Period[] }
-interface Payload { generated_at?: string; companies?: Company[] }
+
+// A narrative source is deliberately a different shape from a Company. Strauss
+// publishes no volume figure — only a sentence about quantities sold — and the
+// moment a direction is given a percentage axis it starts being read as a
+// magnitude. Different data, different object, different rendering.
+interface NarrativePeriod {
+  period: string;
+  source_url?: string;
+  direction?: "up" | "down" | "mixed" | null;
+  quote_he?: string;
+  quote_en?: string | null;
+}
+interface Narrative {
+  key: string; name: string; metric_name: string; note?: string;
+  periods: NarrativePeriod[];
+}
+interface Payload { generated_at?: string; companies?: Company[]; narratives?: Narrative[] }
+
+const DIRECTION_STYLE: Record<string, { label: string; cls: string }> = {
+  up:    { label: "▲ volumes up",    cls: "text-emerald-300 border-emerald-500/50 bg-emerald-500/10" },
+  down:  { label: "▼ volumes down",  cls: "text-red-300 border-red-500/50 bg-red-500/10" },
+  mixed: { label: "◆ mixed",         cls: "text-amber-300 border-amber-500/50 bg-amber-500/10" },
+};
+
+function NarrativeBlock({ n }: { n: Narrative }) {
+  const periods = [...n.periods].reverse();   // newest first: the quote people want
+  return (
+    <div className="bg-slate-900/50 rounded border border-slate-700 p-2.5 space-y-2">
+      <div className="flex items-baseline justify-between flex-wrap gap-2">
+        <div className="text-[11px] font-semibold text-slate-100">{n.name}</div>
+        <div className="text-[9px] font-mono text-slate-500">{n.metric_name}</div>
+      </div>
+      {n.note && <p className="text-[10px] text-slate-400">{n.note}</p>}
+
+      <div className="space-y-2">
+        {periods.map(p => {
+          const d = p.direction ? DIRECTION_STYLE[p.direction] : null;
+          return (
+            <div key={p.period} className="border-l-2 border-slate-700 pl-2 space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-mono text-slate-300">{p.period}</span>
+                {d && (
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded border ${d.cls}`}>{d.label}</span>
+                )}
+                {p.source_url && (
+                  <a href={p.source_url} target="_blank" rel="noreferrer"
+                     className="text-[9px] text-slate-500 underline hover:text-slate-300">source</a>
+                )}
+              </div>
+              {p.quote_en ? (
+                <p className="text-[10px] text-slate-300 italic">&ldquo;{p.quote_en}&rdquo;</p>
+              ) : (
+                <p className="text-[9px] text-slate-500">
+                  Translation pending — the Hebrew is below, unaltered.
+                </p>
+              )}
+              {p.quote_he && (
+                <p dir="rtl" lang="he" className="text-[10px] text-slate-500 leading-snug">
+                  {p.quote_he}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-[9px] text-slate-500 italic">
+        Strauss files in Hebrew only, so the English is a working translation, not the
+        company&rsquo;s own wording — the original is shown alongside so it can be checked. The
+        arrow is a direction, not a rate: no volume figure is published.
+      </p>
+    </div>
+  );
+}
 
 function CompanyBlock({ c }: { c: Company }) {
   const latest = c.periods.at(-1);
@@ -122,6 +195,7 @@ export default function RoasterEarningsPanel() {
   }, []);
 
   const companies = data?.companies ?? [];
+  const narratives = data?.narratives ?? [];
 
   return (
     <div className="bg-slate-800 rounded-lg border border-slate-700 p-3 space-y-3">
@@ -153,6 +227,17 @@ export default function RoasterEarningsPanel() {
             Showing nothing rather than a placeholder is deliberate: an invented demand signal is
             worse than an empty panel.
           </p>
+        </div>
+      )}
+
+      {narratives.length > 0 && (
+        <div className="space-y-2">
+          <div className="text-[10px] uppercase tracking-wide text-slate-400 border-t border-slate-700 pt-2">
+            Said, not counted — companies that describe volume without publishing it
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {narratives.map(n => <NarrativeBlock key={n.key} n={n} />)}
+          </div>
         </div>
       )}
 
