@@ -21,6 +21,61 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install requests pdfplumber
+      - name: Browser for the bot-protected site
+        run: pip install playwright && python -m playwright install --with-deps chromium
+      - name: JDE segment structure + report archive
+        run: |
+          python - <<'PY'
+          import io, re, requests, pdfplumber
+          UA=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+              "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+          H={"User-Agent":UA,"Accept-Language":"en-US,en;q=0.9"}
+          idx="https://www.jdepeets.com/investors/"
+          r=requests.get(idx,headers=H,timeout=45)
+          pdfs=sorted(set(re.findall(r'href="([^"]+\.pdf[^"]*)"', r.text, re.I)))
+          print(f"PDFs linked from {idx}: {len(pdfs)}")
+          for p in pdfs: print("   ", p[:150])
+          # Try the predictable archive pattern for older periods.
+          base="https://www.jdepeets.com/siteassets/home/investors/financial-reports/"
+          for slug in ("jde-peets-half-year-results-2025-report.pdf",
+                       "jde-peets-full-year-results-2024-report.pdf",
+                       "jde-peets-half-year-results-2024-report.pdf"):
+              try:
+                  h=requests.head(base+slug,headers=H,timeout=30,allow_redirects=True)
+                  print(f"   archive {slug}: HTTP {h.status_code}")
+              except Exception as e: print(f"   archive {slug}: EXC {type(e).__name__}")
+          # Full text of the segment pages so the parser matches the real layout.
+          u=base+"jde-peets-full-year-results-2025-report.pdf"
+          pr=requests.get(u,headers=H,timeout=90)
+          with pdfplumber.open(io.BytesIO(pr.content)) as pdf:
+              for n in (4,5):
+                  t=pdf.pages[n].extract_text() or ""
+                  print(f"\n----- page {n+1} -----")
+                  print(t[:2200])
+          PY
+
+      - name: Nestle via a real browser
+        run: |
+          python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          import re
+          with sync_playwright() as pw:
+              b=pw.chromium.launch(args=["--no-sandbox"])
+              pg=b.new_page(user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"))
+              for url in ("https://www.nestle.com/investors/publications",
+                          "https://www.nestle.com/investors/results"):
+                  try:
+                      resp=pg.goto(url,wait_until="domcontentloaded",timeout=60000)
+                      html=pg.content()
+                      pdfs=sorted(set(re.findall(r'href="([^"]+\.pdf[^"]*)"',html,re.I)))
+                      print(f"{url} -> HTTP {resp.status if resp else '?'}  pdfs={len(pdfs)}")
+                      for p in pdfs[:10]: print("    ",p[:150])
+                  except Exception as e:
+                      print(f"{url} EXC {type(e).__name__}: {e}")
+              b.close()
+          PY
+
       - name: Discover
         run: |
           python - <<'PY'
