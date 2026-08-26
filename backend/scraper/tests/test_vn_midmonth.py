@@ -198,3 +198,53 @@ class TestK1FromPublications:
         assert R.k1_from_publications([]) == {}
         assert R.k1_from_publications(None) == {}
         assert R.k1_from_publications([{}, {"fileSoBo": ""}]) == {}
+
+
+class TestHalfMonthAudit:
+    """Guard against a k1 bulletin ever supplying a monthly figure."""
+
+    def test_detects_a_planted_half_month(self):
+        # Feb's period covers half the month, so its YTD only advanced half a
+        # month too — ratio ~0.5 even though the number looks plausible alone.
+        monthly = [
+            {"month": "2026-01", "period_qty_tonnes": 100_000, "ytd_cum_qty_tonnes": 100_000},
+            {"month": "2026-02", "period_qty_tonnes": 50_000,  "ytd_cum_qty_tonnes": 200_000},
+            {"month": "2026-03", "period_qty_tonnes": 100_000, "ytd_cum_qty_tonnes": 300_000},
+        ]
+        out = R.half_month_audit(monthly)
+        assert out["suspect_months"] == ["2026-02"]
+        assert out["clean"] is False
+
+    def test_passes_a_clean_series_including_normal_upward_revisions(self):
+        # Ratios land just under 1.0 because Customs revises prior months up.
+        # That must NOT read as contamination.
+        monthly = [
+            {"month": "2026-01", "period_qty_tonnes": 100_000, "ytd_cum_qty_tonnes": 100_000},
+            {"month": "2026-02", "period_qty_tonnes": 96_000,  "ytd_cum_qty_tonnes": 200_000},
+            {"month": "2026-03", "period_qty_tonnes": 89_000,  "ytd_cum_qty_tonnes": 299_000},
+        ]
+        out = R.half_month_audit(monthly)
+        assert out["clean"] is True and out["checked"] == 3
+
+    def test_skips_pairs_separated_by_a_gap(self):
+        # A missing month makes the step span two months, which would look
+        # exactly like a half — the false positive this guard must not raise.
+        monthly = [
+            {"month": "2026-01", "period_qty_tonnes": 100_000, "ytd_cum_qty_tonnes": 100_000},
+            {"month": "2026-03", "period_qty_tonnes": 100_000, "ytd_cum_qty_tonnes": 300_000},
+        ]
+        out = R.half_month_audit(monthly)
+        assert out["clean"] is True
+        assert [r["month"] for r in out["ratios"]] == ["2026-01"]
+
+    def test_the_committed_cache_is_clean(self):
+        # Runs against the real scraped cache, so a future contaminated fetch
+        # fails CI rather than quietly entering the monthly series.
+        import json
+
+        from backend.scraper.sources.vn_coffee_export import _CACHE_PATH
+        if not _CACHE_PATH.exists():
+            return
+        cache = json.loads(_CACHE_PATH.read_text(encoding="utf-8"))
+        out = R.half_month_audit(cache.get("monthly", []))
+        assert out["clean"], f"half-month figures in the monthly series: {out['suspect_months']}"

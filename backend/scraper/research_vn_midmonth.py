@@ -177,6 +177,50 @@ def ratio_stats(pairs: list[dict]) -> dict:
     }
 
 
+# A k1 bulletin's period quantity covers days 1-15 AND its YTD cumulative is a
+# half-month cumulative, so period/ytd-step lands near 0.5. A genuine full month
+# lands near 1.0. Anything between is the contamination signature.
+HALF_MONTH_BAND = (0.35, 0.65)
+
+
+def _prev_month(m: str) -> str:
+    y, mm = int(m[:4]), int(m[5:])
+    return f"{y - 1}-12" if mm == 1 else f"{y}-{mm - 1:02d}"
+
+
+def half_month_audit(monthly: list[dict]) -> dict:
+    """Did a mid-month bulletin ever get published as a monthly figure?
+
+    Checks each month's stated period quantity against the step its YTD
+    cumulative took. Only CONSECUTIVE cached months are comparable — where a
+    month is missing the step spans two months and would look like a half.
+
+    Ratios sit slightly under 1.0 in practice because Customs revises prior
+    months upward, so a later YTD exceeds the sum of the as-published months.
+    That is a revision, not contamination; only the ~0.5 band is.
+    """
+    rows = {r["month"]: r for r in monthly
+            if isinstance(r.get("month"), str) and r.get("ytd_cum_qty_tonnes")}
+    checked, suspect = [], []
+    for m in sorted(rows):
+        pm = _prev_month(m)
+        if m[5:] == "01":
+            step = rows[m].get("ytd_cum_qty_tonnes")
+        elif pm in rows:
+            step = rows[m]["ytd_cum_qty_tonnes"] - rows[pm]["ytd_cum_qty_tonnes"]
+        else:
+            continue                      # gap — step spans more than one month
+        period = rows[m].get("period_qty_tonnes") or 0.0
+        if not step or step <= 0 or period <= 0:
+            continue
+        ratio = period / step
+        checked.append({"month": m, "ratio": round(ratio, 4)})
+        if HALF_MONTH_BAND[0] <= ratio <= HALF_MONTH_BAND[1]:
+            suspect.append(m)
+    return {"checked": len(checked), "suspect_months": suspect,
+            "clean": not suspect, "ratios": checked}
+
+
 def k1_from_publications(publications: list[dict]) -> dict[str, str]:
     """{month: url} for every mid-month export bulletin in a portal listing.
 

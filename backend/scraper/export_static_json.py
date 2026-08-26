@@ -32,12 +32,12 @@ from database import SessionLocal
 from scraper.exporters.base import OUT_DIR
 from scraper.exporters.cot import export_cot, export_macro_cot
 from scraper.exporters.demand import export_demand_stocks, export_factory_mix_step
+from scraper.exporters.front_spread import export_front_spread
 from scraper.exporters.futures import (
     export_futures_chain,
     export_futures_price_history,
     export_oi_fnd_chart,
 )
-from scraper.exporters.front_spread import export_front_spread
 from scraper.exporters.health import export_health
 from scraper.exporters.macro import (
     export_freight,
