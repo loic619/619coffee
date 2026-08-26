@@ -369,7 +369,11 @@ _STRAUSS_REPORTS = {
     "2025-Q3": "https://ir.strauss-group.com/wp-content/uploads/2024/08/Reporting_Package_Q3_2025.pdf",
 }
 _HE_COFFEE = ("קפה",)
-_HE_VOLUME = ("כמויות", "כמות", "היקף", "נפח")
+# Quantity words ONLY. An earlier version also matched "היקף"/"נפח" (scope,
+# volume) and picked up a sentence about the monetary size of the Israeli food
+# market — a real number, entirely the wrong subject. These four are only used
+# of quantities of goods.
+_HE_VOLUME = ("כמויות", "כמותי", "כמות", "יחידות")
 _HE_UP = ("עלייה", "עליה", "גידול", "צמיחה")
 _HE_DOWN = ("ירידה", "קיטון", "צמצום")
 
@@ -378,8 +382,13 @@ _HE_DOWN = ("ירידה", "קיטון", "צמצום")
 # they are labelled as unofficial wherever they surface. A period without an
 # entry shows its Hebrew and says the translation is pending, rather than
 # inventing English for a quote nobody has checked.
+# Keyed by a distinctive Hebrew FRAGMENT of the passage, not by period. Keying
+# on the period assumed the scraper would select the same sentence I read — it
+# selected a different one, which would have shown my English beside unrelated
+# Hebrew. Matching on the text makes a mismatch impossible: no fragment, no
+# translation.
 _STRAUSS_TRANSLATIONS = {
-    "2026-Q2": ("The decrease in sales stems mainly from the effect of exchange-rate "
+    "בכמויות הנמכרות במרבית": ("The decrease in sales stems mainly from the effect of exchange-rate "
                 "translation — chiefly the strengthening of the shekel against the "
                 "Brazilian real — and from a decline in selling prices in Brazil "
                 "following the fall in green coffee prices, partly offset by an "
@@ -388,8 +397,35 @@ _STRAUSS_TRANSLATIONS = {
 
 
 def _he(line: str) -> str:
-    """Restore reversed RTL extraction to readable Hebrew."""
-    return line[::-1].strip()
+    """Restore reversed RTL extraction to readable Hebrew.
+
+    Reversing the whole line fixes the Hebrew — letters and word order both —
+    but BREAKS anything that was already left-to-right. "9,340" comes back as
+    "043,9" and "12.1%" as "%1.21". So digit runs are flipped a second time,
+    which returns them to their original orientation.
+    """
+    flipped = line[::-1].strip()
+    return re.sub(r"[\d.,%]+", lambda m: m.group(0)[::-1], flipped)
+
+
+_HE_PRICE_DRIVEN = ("מחירי המכירה", "עדכון מחירי", "מחירי מכירה")
+
+
+def _is_about_quantity(text: str) -> bool:
+    """True only when the passage speaks about quantities of goods.
+
+    Guards two ways of being wrong that both produced plausible-looking output:
+    a sentence about the monetary size of a market, and a sentence attributing
+    higher SALES to higher PRICES. The second is especially dangerous here —
+    it reads as growth and means the opposite of a volume gain.
+    """
+    if not any(v in text for v in _HE_VOLUME):
+        return False
+    idx = min((text.find(v) for v in _HE_VOLUME if v in text), default=-1)
+    near = text[max(0, idx - 60): idx + 60]
+    # A price attribution sitting right on top of the quantity word means the
+    # sentence is about price, not cups.
+    return not any(pd in near for pd in _HE_PRICE_DRIVEN)
 
 
 def _direction(text: str) -> str | None:
@@ -441,7 +477,7 @@ def strauss_periods() -> list[dict]:
                         # Quantities are described across a wrapped sentence,
                         # so carry the neighbours for a readable quote.
                         chunk = " ".join(lines[max(0, i - 2): i + 2]).strip()
-                        if _direction(chunk):
+                        if _is_about_quantity(chunk) and _direction(chunk):
                             passage = re.sub(r"\s+", " ", chunk)
                             break
                     if passage:
@@ -452,12 +488,17 @@ def strauss_periods() -> list[dict]:
         if not passage:
             log.info("[roaster_results] strauss %s: no volume passage found", period)
             continue
+        english = None
+        for marker, text in _STRAUSS_TRANSLATIONS.items():
+            if marker in passage:
+                english = text
+                break
         out.append({
             "period": period,
             "source_url": url,
             "direction": _direction(passage),
             "quote_he": passage[:600],
-            "quote_en": _STRAUSS_TRANSLATIONS.get(period),
+            "quote_en": english,
         })
         log.info("[roaster_results] strauss %s → %s", period, _direction(passage))
     return sorted(out, key=lambda p: p["period"])
