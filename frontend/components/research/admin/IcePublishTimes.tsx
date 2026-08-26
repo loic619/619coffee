@@ -18,6 +18,18 @@ interface Payload {
     window: string; candidate_seconds: number; interval_s: number;
     tier1_k: number; observed_max_offset_s: number | null; days_inside_window: number;
   };
+  misses: {
+    business_days: number;
+    captured: number;
+    missing: { date: string; weekday: string; data_hole: boolean }[];
+    by_weekday: Record<string, { missing: number; of: number }>;
+  };
+  rate_limits: {
+    runs: number; note?: string;
+    runs_with_429?: number; total_429?: number; total_retry_after_s?: number;
+    worst_retry_after_s?: number; runs_aborted_by_429?: number;
+    runs_resumed?: number; median_sweep_gets?: number;
+  };
 }
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
@@ -159,6 +171,65 @@ export default function IcePublishTimes() {
         for per-minute billed compute. It is the strongest single argument for moving this workflow
         to a self-hosted runner, where waiting is free.
       </Highlight>
+
+      <H2>Days we missed</H2>
+      <P>
+        {data.misses.captured} of {data.misses.business_days} business days in the span were
+        captured. The {data.misses.missing.length} misses are spread across weekdays with no
+        pattern — so there is no recurring day to schedule around:
+      </P>
+      <RefTable
+        head={["weekday", "missed / business days"]}
+        rows={["Mon", "Tue", "Wed", "Thu", "Fri"].map((w) => [
+          w,
+          `${data.misses.by_weekday[w]?.missing ?? 0} / ${data.misses.by_weekday[w]?.of ?? 0}`,
+        ])}
+      />
+      <P>
+        Each miss is checked against the committed stock snapshots to tell a guessing failure from
+        a day ICE never published. <strong>data hole</strong> means no snapshot exists from any
+        source — the workbook fallback did not cover it either, so the session is genuinely lost.
+      </P>
+      <RefTable
+        head={["date", "weekday", "outcome"]}
+        rows={data.misses.missing.map((m) => [
+          m.date, m.weekday,
+          m.data_hole ? "data hole — session lost" : "filled by the workbook ingest",
+        ])}
+      />
+
+      <H2>Rate limiting</H2>
+      {data.rate_limits.runs === 0 ? (
+        <>
+          <P>
+            <strong>Not measured yet.</strong> {data.rate_limits.note}. Until now nothing counted
+            429s, Retry-After waits or throttle bumps — the only record was the run log, which
+            GitHub keeps for 90 days and never aggregates. Reading one run by hand showed a{" "}
+            <em>404</em> storm rather than a 429 storm, but one run is not a statistic.
+          </P>
+          <P>
+            The scraper now records every run: 429 count, each Retry-After wait, throttle bumps,
+            whether the run was aborted by rate limiting, how many sweep GETs it spent and whether
+            it resumed from a previous attempt. This section fills in from the next run onward.
+          </P>
+        </>
+      ) : (
+        <>
+          <RefTable
+            head={["metric", "value"]}
+            rows={[
+              ["runs recorded", String(data.rate_limits.runs)],
+              ["runs that hit a 429", `${data.rate_limits.runs_with_429} of ${data.rate_limits.runs}`],
+              ["total 429s", String(data.rate_limits.total_429)],
+              ["time spent obeying Retry-After", `${data.rate_limits.total_retry_after_s}s`],
+              ["worst single Retry-After", `${data.rate_limits.worst_retry_after_s}s`],
+              ["runs aborted by rate limiting", String(data.rate_limits.runs_aborted_by_429)],
+              ["runs that resumed a previous sweep", String(data.rate_limits.runs_resumed)],
+              ["median sweep GETs", String(data.rate_limits.median_sweep_gets)],
+            ]}
+          />
+        </>
+      )}
 
       <H2>Every capture</H2>
       <P>

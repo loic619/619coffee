@@ -251,6 +251,73 @@ STOCK_REPORT_SWEEP_RANGE = ((10, 30), (11, 15))
 # the publish window expands; only matters once the hits log fills out.
 STOCK_REPORT_TIER1_K = 10
 
+# ── Sweep resume + run telemetry ─────────────────────────────────────────────
+# Two files, both committed by the workflow so they survive across runs.
+#
+# RESUME: the sweep is a linear walk from 10:30. When a run is killed — the
+# 120-min timeout, a cancelled queue slot, a 429 abort — the next one used to
+# start again at 10:30 and re-pay every second it had already ruled out. The
+# cursor records how far the walk got for a given day, so a second attempt
+# resumes instead of restarting. Ruling out 10:30:00–10:45:00 is durable
+# knowledge: those files do not appear later.
+#
+# STATS: nothing has ever recorded WHY a run was expensive. Counting 429s,
+# Retry-After waits, throttle bumps and sweep GETs per run is what turns "it
+# took 111 minutes" into an answerable question.
+STOCK_REPORT_CURSOR_PATH = Path(__file__).with_name("stock_report_cursor.json")
+RUN_STATS_PATH = Path(__file__).with_name("ice_run_stats.json")
+RUN_STATS_KEEP = 200
+
+_RUN_STATS: dict = {
+    "http_429": 0, "retry_after_waits": [], "throttle_bumps": 0,
+    "aborted_by_429": 0, "sweep_gets": 0, "http_404": 0, "resumed_from": None,
+}
+
+
+def _load_cursor() -> dict:
+    try:
+        return json.loads(STOCK_REPORT_CURSOR_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _save_cursor(d: date, last_tried: str | None) -> None:
+    """Remember the last second ruled out for `d`. Cleared on success — a
+    found day never needs resuming."""
+    try:
+        payload = {} if last_tried is None else {"date": d.isoformat(), "last_tried": last_tried}
+        STOCK_REPORT_CURSOR_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001 — telemetry must never break the run
+        print(f"  ! cursor write failed: {e}")
+
+
+def _record_run_stats(outcome: str, sweep_day: date | None) -> None:
+    try:
+        prev = json.loads(RUN_STATS_PATH.read_text(encoding="utf-8")).get("runs", [])
+    except Exception:
+        prev = []
+    waits = _RUN_STATS["retry_after_waits"]
+    prev.append({
+        "at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "sweep_day": sweep_day.isoformat() if sweep_day else None,
+        "outcome": outcome,
+        "http_429": _RUN_STATS["http_429"],
+        "http_404": _RUN_STATS["http_404"],
+        "retry_after_count": len(waits),
+        "retry_after_total_s": round(sum(waits), 1),
+        "retry_after_max_s": max(waits) if waits else 0,
+        "throttle_bumps": _RUN_STATS["throttle_bumps"],
+        "aborted_by_429": bool(_RUN_STATS["aborted_by_429"]),
+        "sweep_gets": _RUN_STATS["sweep_gets"],
+        "resumed_from": _RUN_STATS["resumed_from"],
+    })
+    try:
+        RUN_STATS_PATH.write_text(
+            json.dumps({"runs": prev[-RUN_STATS_KEEP:]}, indent=1), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001
+        print(f"  ! run-stats write failed: {e}")
+
+
 def _load_stock_report_hits() -> list[dict]:
     if not STOCK_REPORT_HITS_PATH.exists():
         return []
@@ -378,8 +445,10 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
             if _retry:
                 # Retry already done; give up on this URL and let the run continue.
                 _RATE_STATE["consecutive_429s"] += 1
+                _RUN_STATS["http_429"] += 1
                 if _RATE_STATE["consecutive_429s"] >= TOO_MANY_429S:
                     _RATE_STATE["aborted"] = 1
+                    _RUN_STATS["aborted_by_429"] = 1
                     print(f"  ! {TOO_MANY_429S} consecutive 429s — aborting remaining fetches")
                 ctype = r.headers.get("Content-Type", "")[:40]
                 print(f"  ! HTTP 429 (after retry) ({ctype}) {url}")
@@ -396,10 +465,15 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
                 pass
             if raw_after > RETRY_AFTER_GIVE_UP_S:
                 _RATE_STATE["aborted"] = 1
+                _RUN_STATS["http_429"] += 1
+                _RUN_STATS["aborted_by_429"] = 1
                 print(f"  ! HTTP 429 with Retry-After={raw_after}s — too long, aborting "
                       f"remaining fetches: {url}")
                 return r
             wait_s = min(raw_after, RETRY_AFTER_MAX_S)
+            _RUN_STATS["http_429"] += 1
+            _RUN_STATS["retry_after_waits"].append(wait_s)
+            _RUN_STATS["throttle_bumps"] += 1
             # Self-tune: bump the matched path's throttle so subsequent calls
             # slow down too (capped). Applies to BOTH /publicdocs/ and
             # /marketdata/ — the 180-day run discovered both have rate limits.
@@ -414,6 +488,8 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
             _RATE_STATE["consecutive_429s"] = 0
         else:
             ctype = r.headers.get("Content-Type", "")[:40]
+            if r.status_code == 404:
+                _RUN_STATS["http_404"] += 1
             print(f"  ! HTTP {r.status_code} ({ctype}) {url}")
             return r
 
@@ -518,17 +594,39 @@ def pull_stock_report(d: date, *, sweep: bool = True) -> tuple[str | None, dict 
     # restoring it after. _http_get keeps its 429 guard, so an over-fast
     # interval aborts cleanly rather than hammering.
     tried = set(tier1)
+    # Resume where a killed run left off. The walk is monotonic and the
+    # knowledge is durable — a second already answered 404 will not start
+    # answering 200 later — so re-walking it is pure repeated cost. Only
+    # honoured for the SAME day; a new day starts from the top.
+    cur = _load_cursor()
+    resume_after = cur.get("last_tried") if cur.get("date") == d.isoformat() else None
+    if resume_after:
+        _RUN_STATS["resumed_from"] = resume_after
+        print(f"  → resuming sweep after {resume_after} (previous run stopped there)")
+
     saved_throttle = _THROTTLE["marketdata"]
     _THROTTLE["marketdata"] = _STOCK_SWEEP_INTERVAL_S
+    last = None
     try:
         for hhmmss in _stock_report_sweep_times():
             if hhmmss in tried:
                 continue
+            if resume_after and hhmmss <= resume_after:
+                continue
+            last = hhmmss
+            _RUN_STATS["sweep_gets"] += 1
             url, parsed = _try(hhmmss)
             if url:
+                _save_cursor(d, None)          # found — nothing left to resume
                 return url, parsed
+            if _RATE_STATE["aborted"]:
+                break                          # banned: keep the cursor, stop here
     finally:
         _THROTTLE["marketdata"] = saved_throttle
+        # Persist progress whether we were banned, timed out mid-loop, or simply
+        # exhausted the window. Written on the way out so even an abort keeps it.
+        if last:
+            _save_cursor(d, last)
     return None, None
 
 
@@ -934,21 +1032,26 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     tenders_all: dict[date, dict] = {}
     overview_all: dict[date, dict] = {}
     infested_all: list[dict] = []
+    sweep_day: date | None = None      # also read by the telemetry after run()
     if not only_monthly:
-        print("[robusta] stock report (.csv, today + recent)...")
-        # Try most-recent business days for stock_report; ICE only keeps one per
-        # day under a HHMMSS-stamped URL. Tier-2 sweep (~10 min) runs only for
-        # the latest day so the daily cron stays bounded — older days that
-        # already missed are filled by the workbook ingest instead.
-        recent_days = days_sorted_asc[-5:]
-        sweep_day = recent_days[-1] if recent_days else None
-        for d in recent_days:
-            url, parsed = pull_stock_report(d, sweep=(d == sweep_day))
+        print("[robusta] stock report (.csv, latest day only)...")
+        # ONLY the latest day. ICE keeps exactly one stock report live under the
+        # HHMMSS URL — yesterday's is already gone — so probing the four older
+        # days could never return anything. It still cost the full tier-1 ladder
+        # each: 4 days x ~48 candidates x 5s = ~16 minutes of guaranteed 404s
+        # every single run. Measured on run 32800023781 (2026-08-25): five days
+        # probed, "1 stock-report snapshots captured".
+        #
+        # Older days are not lost by skipping them — a missed day never came
+        # from here anyway; it comes from the workbook//publicdocs ingest below.
+        sweep_day = days_sorted_asc[-1] if days_sorted_asc else None
+        if sweep_day is not None:
+            url, parsed = pull_stock_report(sweep_day, sweep=True)
             if parsed is not None:
-                robusta_stocks[d] = parsed
+                robusta_stocks[sweep_day] = parsed
                 robusta_stock_url = url
         print(f"  → {len(robusta_stocks)} stock-report snapshots captured "
-              f"(tier-2 sweep day: {sweep_day})\n")
+              f"(sweep day: {sweep_day}; older days are no longer served by ICE)\n")
 
         print(f"[robusta] gradings + iss/recv + tenders + overview, {len(days_sorted_asc)} days...")
         for d in days_sorted_asc:
@@ -1109,7 +1212,8 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
             # over a news-feed write. The JSON snapshots already shipped.
             print(f"[ice-news] FAILED: {e!r} — JSON snapshots already written")
 
-    return {"arabica": arabica_json, "robusta": robusta_json}
+    return {"arabica": arabica_json, "robusta": robusta_json,
+            "_sweep_day": sweep_day}
 
 
 # ── Smoke test ───────────────────────────────────────────────────────────────
@@ -1175,6 +1279,17 @@ def _cli() -> None:
     print(f"\nSUMMARY: arabica snapshots={len(out['arabica']['snapshots'])} · "
           f"robusta snapshots={len(out['robusta']['snapshots'])} · "
           f"gradings={len(out['robusta']['recent_activity']['gradings'])}")
+    # Telemetry last, so it records what the run actually cost.
+    _record_run_stats(
+        outcome="aborted_429" if _RUN_STATS["aborted_by_429"] else "completed",
+        sweep_day=out.get("_sweep_day"),
+    )
+    print(f"RATE: {_RUN_STATS['http_429']} x 429 · "
+          f"{len(_RUN_STATS['retry_after_waits'])} Retry-After waits "
+          f"({round(sum(_RUN_STATS['retry_after_waits']))}s total) · "
+          f"{_RUN_STATS['throttle_bumps']} throttle bumps · "
+          f"{_RUN_STATS['sweep_gets']} sweep GETs · "
+          f"{_RUN_STATS['http_404']} x 404")
 
 
 if __name__ == "__main__":

@@ -115,6 +115,83 @@ def build() -> dict:
             "days_inside_window": sum(1 for s in vals if SWEEP_START_S <= s <= SWEEP_END_S),
         },
         "days": [{"date": d, "time": _hms(s)} for d, s, _t in obs],
+        "misses": _misses(obs),
+        "rate_limits": _rate_limits(),
+    }
+
+
+def _misses(obs: list[tuple[str, int, str]]) -> dict:
+    """Business days inside the observed span with NO capture.
+
+    Answers the question the run log cannot: were these days we simply failed
+    to guess, or days ICE never published? A missing day whose stock snapshot is
+    also absent from certified_stocks_robusta.json is a genuine hole — the
+    workbook fallback did not cover it either.
+    """
+    import datetime as dt
+
+    if not obs:
+        return {"business_days": 0, "captured": 0, "missing": [], "by_weekday": {}}
+    have = {d for d, _s, _t in obs}
+    d0 = dt.date.fromisoformat(obs[0][0])
+    d1 = dt.date.fromisoformat(obs[-1][0])
+
+    snaps: set[str] = set()
+    try:
+        rob = json.loads((OUT_DIR / "certified_stocks_robusta.json").read_text(encoding="utf-8"))
+        snaps = {s["date"] for s in rob.get("snapshots", []) if s.get("date")}
+    except Exception:
+        pass
+
+    biz, missing = 0, []
+    by_wd: dict[str, list[int]] = {}
+    d = d0
+    while d <= d1:
+        if d.weekday() < 5:
+            biz += 1
+            iso, wd = d.isoformat(), d.strftime("%a")
+            slot = by_wd.setdefault(wd, [0, 0])
+            slot[1] += 1
+            if iso not in have:
+                slot[0] += 1
+                missing.append({"date": iso, "weekday": wd,
+                                # True = no snapshot from ANY source: a real hole.
+                                "data_hole": iso not in snaps})
+        d += dt.timedelta(days=1)
+    return {
+        "business_days": biz,
+        "captured": len(have),
+        "missing": missing,
+        "by_weekday": {k: {"missing": v[0], "of": v[1]} for k, v in by_wd.items()},
+    }
+
+
+def _rate_limits() -> dict:
+    """Per-run 429 / Retry-After telemetry, once runs start recording it.
+
+    Nothing existed before 2026-08-26, so this is empty until the first run on
+    the instrumented scraper. Reporting an empty record honestly beats
+    back-filling a guess from logs that only retain 90 days.
+    """
+    path = HITS.with_name("ice_run_stats.json")
+    try:
+        runs = json.loads(path.read_text(encoding="utf-8")).get("runs", [])
+    except Exception:
+        runs = []
+    if not runs:
+        return {"runs": 0, "note": "instrumented 2026-08-26 — no runs recorded yet"}
+    n = len(runs)
+    waits = [r.get("retry_after_total_s", 0) for r in runs]
+    return {
+        "runs": n,
+        "runs_with_429": sum(1 for r in runs if r.get("http_429")),
+        "total_429": sum(r.get("http_429", 0) for r in runs),
+        "total_retry_after_s": round(sum(waits)),
+        "worst_retry_after_s": max((r.get("retry_after_max_s", 0) for r in runs), default=0),
+        "runs_aborted_by_429": sum(1 for r in runs if r.get("aborted_by_429")),
+        "runs_resumed": sum(1 for r in runs if r.get("resumed_from")),
+        "median_sweep_gets": sorted(r.get("sweep_gets", 0) for r in runs)[n // 2],
+        "recent": runs[-20:],
     }
 
 
