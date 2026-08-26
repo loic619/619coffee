@@ -394,11 +394,12 @@ _HE_DOWN = ("ירידה", "קיטון", "צמצום")
 # Hebrew. Matching on the text makes a mismatch impossible: no fragment, no
 # translation.
 _STRAUSS_TRANSLATIONS = {
-    "בכמויות הנמכרות במרבית": ("The decrease in sales stems mainly from the effect of exchange-rate "
-                "translation — chiefly the strengthening of the shekel against the "
-                "Brazilian real — and from a decline in selling prices in Brazil "
-                "following the fall in green coffee prices, partly offset by an "
-                "increase in the quantities sold in most countries."),
+    # Trimmed to match the excerpt actually shown. The full sentence also
+    # attributes the fall to FX translation and lower Brazilian selling prices;
+    # rendering that English beside a Hebrew tail would have the translation
+    # claiming more than the quote next to it.
+    "בכמויות הנמכרות במרבית": ("… following the fall in green coffee prices, partly offset by "
+                "an increase in the quantities sold in most countries."),
 }
 
 
