@@ -63,3 +63,20 @@ def test_telemetry_never_breaks_the_run(tmp_path, monkeypatch):
     monkeypatch.setattr(O, "RUN_STATS_PATH", tmp_path / "nope" / "s.json")
     O._save_cursor(date(2026, 8, 24), "104500")
     O._record_run_stats("completed", date(2026, 8, 24))
+
+
+def test_wait_time_is_attributed_to_the_host_that_imposed_it(tmp_path, monkeypatch):
+    """'Where did the 111 minutes go' must be answerable per host."""
+    _isolate(tmp_path, monkeypatch)
+    monkeypatch.setitem(O._RUN_STATS, "wait_publicdocs_s", 210.0)
+    monkeypatch.setitem(O._RUN_STATS, "wait_marketdata_s", 5192.0)
+    monkeypatch.setitem(O._RUN_STATS, "requests", 1400)
+    monkeypatch.setitem(O._RUN_STATS, "retry_after_waits", [])
+    O._record_run_stats("completed", date(2026, 8, 24))
+    row = json.loads((tmp_path / "stats.json").read_text())["runs"][-1]
+    assert row["wait_marketdata_s"] == 5192.0
+    assert row["wait_publicdocs_s"] == 210.0
+    assert row["requests"] == 1400
+    # The two throttles are separate budgets — marketdata dominates because the
+    # sweep lives there, and conflating them would hide that.
+    assert row["wait_marketdata_s"] > row["wait_publicdocs_s"] * 10

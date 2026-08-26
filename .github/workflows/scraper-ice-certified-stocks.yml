@@ -242,6 +242,24 @@ jobs:
         run: |
           PYTHONPATH=. python -m scraper.topic_notify_daily certified || true
 
+      # Per-run outcome record. Reads this workflow's OWN run history from the
+      # Actions API (the `actions: read` grant above) and writes one row per run
+      # — outcome, billed job minutes, and which step was in flight when it
+      # ended. The scraper's own telemetry cannot see runs that were killed
+      # before they wrote anything; this can. Never fails the job.
+      - name: Rebuild the run-outcome history
+        if: ${{ steps.weekday.outputs.skip != 'true' && inputs.mode != 'smoke' }}
+        working-directory: backend
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: PYTHONPATH=. python -m scraper.sources.ice_certified_stocks.build_run_history || true
+
+      - name: Publish the ICE publish-time + run-cost research payload
+        if: ${{ steps.weekday.outputs.skip != 'true' && inputs.mode != 'smoke' }}
+        working-directory: backend
+        run: PYTHONPATH=. python -m scraper.exporters.ice_publish_times || true
+
       - name: Commit + push if changed
         if: ${{ steps.weekday.outputs.skip != 'true' && inputs.mode != 'smoke' }}
         run: |
@@ -250,7 +268,11 @@ jobs:
           git add data/topic_notify_state.json \
                    frontend/public/data/certified_stocks_arabica.json \
                   frontend/public/data/certified_stocks_robusta.json \
-                  backend/scraper/sources/ice_certified_stocks/stock_report_hits.json
+                  backend/scraper/sources/ice_certified_stocks/stock_report_hits.json \
+                  backend/scraper/sources/ice_certified_stocks/stock_report_cursor.json \
+                  backend/scraper/sources/ice_certified_stocks/ice_run_stats.json \
+                  backend/scraper/sources/ice_certified_stocks/ice_run_history.json \
+                  frontend/public/data/ice_publish_times.json
           git diff --cached --quiet \
             && echo "No changes." \
             || (git commit -m "data: ICE certified stocks (${{ inputs.days_back || 30 }}d) [skip ci]" \

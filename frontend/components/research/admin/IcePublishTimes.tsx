@@ -24,6 +24,24 @@ interface Payload {
     missing: { date: string; weekday: string; data_hole: boolean }[];
     by_weekday: Record<string, { missing: number; of: number }>;
   };
+  runs: {
+    count: number;
+    note: string | null;
+    outcomes: Record<string, number>;
+    billed_minutes_total: number;
+    billed_minutes_mean: number;
+    with_telemetry: number;
+    recent: {
+      date: string; event: string | null; outcome: string;
+      billed_minutes: number | null; last_step: string | null;
+      telemetry: {
+        http_429: number | null;
+        wait_publicdocs_s: number | null;
+        wait_marketdata_s: number | null;
+        wait_retry_after_s: number | null;
+      } | null;
+    }[];
+  };
   rate_limits: {
     runs: number; note?: string;
     runs_with_429?: number; total_429?: number; total_retry_after_s?: number;
@@ -228,6 +246,63 @@ export default function IcePublishTimes() {
               ["median sweep GETs", String(data.rate_limits.median_sweep_gets)],
             ]}
           />
+        </>
+      )}
+
+      <H2>Every run</H2>
+      {data.runs.count === 0 ? (
+        <P>
+          <strong>Populating.</strong> {data.runs.note}. GitHub knows every run that ever
+          existed — including the ones killed before they could write anything — and the scraper
+          knows where its own time went; the table below joins the two on the run date. Neither
+          record was being kept until now.
+        </P>
+      ) : (
+        <>
+          <P>
+            {data.runs.count} runs, {data.runs.billed_minutes_total.toLocaleString()} billed
+            minutes ({data.runs.billed_minutes_mean} per run). Outcomes:{" "}
+            {Object.entries(data.runs.outcomes)
+              .sort((a, b) => b[1] - a[1])
+              .map(([k, v]) => `${v} ${k.replace(/_/g, " ")}`)
+              .join(" · ")}.
+          </P>
+          <UL>
+            <LI><strong>timeout</strong> — ran to the 120-minute cap: the sweep never found the
+              file, or found it too late.</LI>
+            <LI><strong>queue cancelled</strong> — dropped in the concurrency queue before doing
+              any work. Costs nothing, produces nothing.</LI>
+            <LI><strong>cancelled</strong> — stopped mid-run for another reason.</LI>
+          </UL>
+          <P>
+            The wait columns are the answer to &ldquo;where did the time go&rdquo;: minutes spent
+            asleep between requests, split by which host&rsquo;s rate limit imposed the pause, plus
+            time spent obeying an explicit <Code>Retry-After</Code>. Blank means the run ended
+            before it could record anything.
+          </P>
+          <RefTable
+            head={["date", "trigger", "outcome", "billed", "publicdocs", "marketdata",
+                   "retry-after", "429", "stopped at"]}
+            rows={data.runs.recent.slice().reverse().map((r) => {
+              const t = r.telemetry;
+              const m = (s?: number | null) =>
+                s == null ? "—" : `${(s / 60).toFixed(1)}m`;
+              return [
+                r.date, r.event ?? "—", r.outcome.replace(/_/g, " "),
+                r.billed_minutes ? `${r.billed_minutes}m` : "—",
+                m(t?.wait_publicdocs_s), m(t?.wait_marketdata_s), m(t?.wait_retry_after_s),
+                t?.http_429 == null ? "—" : String(t.http_429),
+                r.outcome === "success" ? "—" : (r.last_step ?? "—"),
+              ];
+            })}
+          />
+          {data.runs.with_telemetry < data.runs.count && (
+            <P className="text-slate-500">
+              {data.runs.count - data.runs.with_telemetry} of {data.runs.count} runs predate the
+              scraper telemetry (added 2026-08-26), so their wait columns are blank. The outcome
+              and billed columns come from GitHub and are complete.
+            </P>
+          )}
         </>
       )}
 

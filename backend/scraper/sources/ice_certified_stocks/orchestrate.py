@@ -271,6 +271,10 @@ RUN_STATS_KEEP = 200
 _RUN_STATS: dict = {
     "http_429": 0, "retry_after_waits": [], "throttle_bumps": 0,
     "aborted_by_429": 0, "sweep_gets": 0, "http_404": 0, "resumed_from": None,
+    # Seconds actually SLEPT between requests, split by which host's limit
+    # imposed it. This is the answer to "where did the 111 minutes go" — the
+    # run is almost entirely deliberate waiting, and this says whose.
+    "wait_publicdocs_s": 0.0, "wait_marketdata_s": 0.0, "requests": 0,
 }
 
 
@@ -310,6 +314,9 @@ def _record_run_stats(outcome: str, sweep_day: date | None) -> None:
         "aborted_by_429": bool(_RUN_STATS["aborted_by_429"]),
         "sweep_gets": _RUN_STATS["sweep_gets"],
         "resumed_from": _RUN_STATS["resumed_from"],
+        "requests": _RUN_STATS["requests"],
+        "wait_publicdocs_s": round(_RUN_STATS["wait_publicdocs_s"], 1),
+        "wait_marketdata_s": round(_RUN_STATS["wait_marketdata_s"], 1),
     })
     try:
         RUN_STATS_PATH.write_text(
@@ -501,6 +508,11 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
         print(f"  ! {type(e).__name__}: {url} — {e}")
         return None
     finally:
+        # Attribute the pause to the host that dictated it. `throttle` was read
+        # at entry, so a self-bump mid-call is counted from the next request on.
+        _RUN_STATS["requests"] += 1
+        key = "wait_marketdata_s" if "/marketdata/" in url else "wait_publicdocs_s"
+        _RUN_STATS[key] += throttle
         time.sleep(throttle)
 
 
@@ -1284,6 +1296,10 @@ def _cli() -> None:
         outcome="aborted_429" if _RUN_STATS["aborted_by_429"] else "completed",
         sweep_day=out.get("_sweep_day"),
     )
+    print(f"WAIT: publicdocs {_RUN_STATS['wait_publicdocs_s']/60:.1f} min · "
+          f"marketdata {_RUN_STATS['wait_marketdata_s']/60:.1f} min · "
+          f"retry-after {sum(_RUN_STATS['retry_after_waits'])/60:.1f} min "
+          f"over {_RUN_STATS['requests']} requests")
     print(f"RATE: {_RUN_STATS['http_429']} x 429 · "
           f"{len(_RUN_STATS['retry_after_waits'])} Retry-After waits "
           f"({round(sum(_RUN_STATS['retry_after_waits']))}s total) · "

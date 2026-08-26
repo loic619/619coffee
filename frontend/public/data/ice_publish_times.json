@@ -447,5 +447,14 @@
  "rate_limits": {
   "runs": 0,
   "note": "instrumented 2026-08-26 — no runs recorded yet"
+ },
+ "runs": {
+  "count": 0,
+  "note": "populates from the next 1.13 run — the run-history builder was added 2026-08-26",
+  "outcomes": {},
+  "billed_minutes_total": 0,
+  "billed_minutes_mean": 0,
+  "with_telemetry": 0,
+  "recent": []
  }
 }

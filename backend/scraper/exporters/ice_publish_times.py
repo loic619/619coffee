@@ -117,6 +117,63 @@ def build() -> dict:
         "days": [{"date": d, "time": _hms(s)} for d, s, _t in obs],
         "misses": _misses(obs),
         "rate_limits": _rate_limits(),
+        "runs": _runs(),
+    }
+
+
+def _runs() -> dict:
+    """Per-run outcome table: GitHub's record joined to the scraper's own.
+
+    Two sources, because neither is sufficient alone. GitHub knows every run
+    existed and what it concluded — including the ones killed before they could
+    write anything — but knows nothing about WHY a run was slow. The scraper's
+    telemetry knows the 429s, the Retry-After waits and where the time went, but
+    only for runs that survived to write it. Joined on run date.
+    """
+    hist_path = HITS.with_name("ice_run_history.json")
+    stats_path = HITS.with_name("ice_run_stats.json")
+    try:
+        hist = json.loads(hist_path.read_text(encoding="utf-8")).get("runs", [])
+    except Exception:
+        hist = []
+    try:
+        stats = json.loads(stats_path.read_text(encoding="utf-8")).get("runs", [])
+    except Exception:
+        stats = []
+    by_day: dict[str, dict] = {}
+    for s in stats:
+        by_day[(s.get("at") or "")[:10]] = s
+
+    rows = []
+    for r in hist:
+        s = by_day.get(r.get("date") or "")
+        rows.append({**r, "telemetry": {
+            "http_429": s.get("http_429"),
+            "retry_after_count": s.get("retry_after_count"),
+            "retry_after_total_s": s.get("retry_after_total_s"),
+            "throttle_bumps": s.get("throttle_bumps"),
+            "sweep_gets": s.get("sweep_gets"),
+            "http_404": s.get("http_404"),
+            "resumed_from": s.get("resumed_from"),
+            "wait_publicdocs_s": s.get("wait_publicdocs_s"),
+            "wait_marketdata_s": s.get("wait_marketdata_s"),
+            "wait_retry_after_s": s.get("retry_after_total_s"),
+        } if s else None})
+
+    tally: dict[str, int] = {}
+    for r in rows:
+        tally[r.get("outcome", "unknown")] = tally.get(r.get("outcome", "unknown"), 0) + 1
+    billed = sum(r.get("billed_minutes") or 0 for r in rows)
+    return {
+        "count": len(rows),
+        "note": None if rows else
+                "populates from the next 1.13 run — the run-history builder was "
+                "added 2026-08-26",
+        "outcomes": tally,
+        "billed_minutes_total": billed,
+        "billed_minutes_mean": round(billed / len(rows), 1) if rows else 0,
+        "with_telemetry": sum(1 for r in rows if r.get("telemetry")),
+        "recent": rows[-60:],
     }
 
 
