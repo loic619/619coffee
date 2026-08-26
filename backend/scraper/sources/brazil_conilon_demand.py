@@ -99,6 +99,16 @@ _PSD_ATTRS: dict[str, tuple[str, ...]] = {
 }
 _REQUIRED = ("robusta_production", "soluble_exports", "soluble_domestic", "rg_domestic")
 
+# The whole derivation leans on one assumption — that Brazil's soluble industry
+# runs on conilon — and that assumption has a domain. Through the 1990s the
+# soluble draw was as large as the entire conilon crop or larger (1993: 4.5 M
+# bags of robusta against roughly 5 M going into soluble), because back then the
+# plants ran substantially on low-grade arabica and on stock. Subtracting all of
+# it from conilon there produces a NEGATIVE blend, which is not a small error to
+# be smoothed over — it is the assumption announcing it does not hold. Years
+# where soluble eats more than this fraction of the crop are refused.
+_MAX_SOLUBLE_SHARE = 0.50
+
 
 def fetch_psd(timeout: int = 120) -> dict[int, dict[str, float]]:
     """{market_year: {attr: bags}} for Brazil, straight off USDA's PSD release."""
@@ -191,16 +201,19 @@ def build() -> dict:
         print(f"[conilon-demand] CONAB cross-check unavailable ({type(e).__name__}: {e})")
         conab = {}
 
-    rows = []
+    rows, rejected = [], []
     for year in sorted(psd):
         p, e = psd[year], exp.get(year)
         if not e or e["months"] < 12:
             continue                          # incomplete marketing year
         if any(k not in p for k in _REQUIRED):
             continue                          # PSD has not filled this year in
-        blend = (p["robusta_production"] - e["conilon"]
-                 - p["soluble_exports"] - p["soluble_domestic"])
+        soluble = p["soluble_exports"] + p["soluble_domestic"]
+        blend = p["robusta_production"] - e["conilon"] - soluble
         rg = p["rg_domestic"]
+        if blend <= 0 or soluble > _MAX_SOLUBLE_SHARE * p["robusta_production"]:
+            rejected.append(year)
+            continue
         rows.append({
             "year": year,
             "robusta_production": round(p["robusta_production"]),
@@ -220,6 +233,17 @@ def build() -> dict:
                 if p.get("domestic_use") else None),
             "conab_conilon_production": round(conab[year]["conilon"]) if year in conab else None,
         })
+
+    # Publish a contiguous run, not a series with holes in it: everything up to
+    # and including the last rejected year goes, so the reader never sees a line
+    # jump a gap it was not told about.
+    if rejected:
+        cutoff = max(rejected)
+        kept = [r for r in rows if r["year"] > cutoff]
+        print(f"[conilon-demand] {len(rejected)} year(s) failed the soluble-share "
+              f"test ({min(rejected)}–{cutoff}); series starts "
+              f"{kept[0]['year'] if kept else '—'}")
+        rows = kept
 
     # Centred three-year mean: the carry-in stock swings a flow residual cannot
     # see mostly cancel over three crops, so this is the line to read for trend.
@@ -243,7 +267,11 @@ def build() -> dict:
                    "reads here as demand that disappeared; share_3y damps it. "
                    "Correlates 0.86 with the published trade estimate over "
                    "2011–2024 and matches it within a point in 2020–2022, but "
-                   "runs ~10 points low in the older years."),
+                   "runs ~10 points low in the older years. Years in which the "
+                   "soluble draw exceeded half the conilon crop are refused "
+                   "rather than published: through the 1990s Brazil's soluble "
+                   "plants ran substantially on low-grade arabica, so charging "
+                   "all of it to conilon there yields a negative blend."),
         "sources": {
             "balance_sheet": PSD_URL,
             "export_split": "Cecafé monthly exports by species",
