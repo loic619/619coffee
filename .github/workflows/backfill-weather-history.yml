@@ -1,0 +1,105 @@
+name: "0.19 – Backfill weather history from the Open-Meteo archive"
+
+# backend/scripts/backfill_weather_history.py existed with NO runner, which is
+# why this was needed at all. The daily fetch (1.10) pulls Open-Meteo's
+# FORECAST host, which exposes ~92 past days, and appends them — so a region
+# added to ORIGINS starts accumulating from the day it appears and has no
+# history before it. Uganda's five rebuilt belts had 102 days against the
+# 11,552 the older regions carry, and the ENSO teleconnection measures against
+# 11 years, so those belts stayed dark on the risk map while every check
+# reported success.
+#
+# The ARCHIVE host holds the full daily record. This script fetches a range
+# once and fills only the dates missing from the store: idempotent, additive,
+# never overwrites an accumulated day, so re-running is safe.
+#
+# Run it whenever a region is ADDED to a region set — the seed rebuild (0.11)
+# creates the region and its climatology, the daily fetch (1.10) accumulates
+# forward, and only this fills what came before. All three are needed; each
+# alone leaves a green run and a hole in the data.
+#
+# NOTE: the archive host is not always reachable from CI. A failed fetch leaves
+# the store untouched rather than half-written, so a retry is the whole fix.
+
+on:
+  workflow_dispatch:
+    inputs:
+      origins:
+        description: "Space-separated origin keys (e.g. 'uganda'), or blank for all"
+        required: false
+        default: ""
+        type: string
+      start:
+        description: "Inclusive start date YYYY-MM-DD (the teleconnection needs 2015-01-01)"
+        required: false
+        default: "2015-01-01"
+        type: string
+      end:
+        description: "Inclusive end date YYYY-MM-DD; blank = one week ago"
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  # Shares the weather group: this writes the same store 1.10 appends to and
+  # 0.11 reads, so the three must never interleave.
+  group: weather-fetch
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -q requests
+
+      - name: Backfill
+        working-directory: backend
+        env:
+          ORIGINS: ${{ inputs.origins }}
+          START: ${{ inputs.start }}
+          END: ${{ inputs.end }}
+        # `or` rather than a get()-style default: an unset workflow input
+        # arrives as the EMPTY STRING, not as absent, so a default would never
+        # fire. Same trap that crashed every scheduled COT run.
+        run: |
+          set -e
+          args=(--write --start "${START:-2015-01-01}")
+          [ -n "$END" ] && args+=(--end "$END")
+          [ -n "$ORIGINS" ] && args+=(--origins $ORIGINS)
+          PYTHONPATH=. python scripts/backfill_weather_history.py "${args[@]}"
+
+      - name: Commit & push
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backend/seed/weather_history
+          if git diff --cached --quiet; then
+            echo "No new days — the store already covered this range."
+            exit 0
+          fi
+          git commit -m "data: backfill weather history from archive [skip ci]"
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Notify on failure or cancellation
+        if: failure() || cancelled()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=🚨 ${{ github.workflow }} ${{ job.status }} — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
