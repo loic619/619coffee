@@ -297,6 +297,7 @@ ${DEFS}
 const DEMAND = `flowchart LR
   W3B["1.3b Slow-data · 1st/mo<br/>ECF stocks · USDA PSD · AJCA · UCDA"]
   WPOP["Population/age · UN WPP · World Bank"]
+  W41["4.1 Earnings · quarterly · filings"]
   W31["3.1 Kaffeesteuer · 1st/mo · DESTATIS"]
   WMIX["manual / various"]
   WICE_KCD["1.13 ICE Cert Stocks · daily 17:00<br/>Arabica xls (sheet 7)<br/>publicdocs/coffee_cert_stock_*.xls"]
@@ -306,6 +307,7 @@ const DEMAND = `flowchart LR
   COH[["cohort_outflow.py<br/>per-cohort DNA from gradings<br/>+ DNA-coverage guard"]]
   EXP{{"1.4 Export · 02:30"}}
   J_stk[/demand_stocks.json/]
+  J_earn[/earnings.json/]
   J_tax[/kaffeesteuer.json/]
   J_mix[/factory_mix.json/]
   J_csa[/"certified_stocks_arabica.json<br/>+ ageing_report (year-bands)"/]
@@ -318,6 +320,7 @@ const DEMAND = `flowchart LR
   age{{Age Cohort}}
   grow{{Growth Markets}}
   world{{World Consumption}}
+  earn{{Roaster Earnings}}
   tax{{"Kaffeesteuer (DE tax)"}}
   mix{{Roasting Mix}}
   tiles{{4-tile header per contract}}
@@ -334,6 +337,7 @@ const DEMAND = `flowchart LR
   J_stk --> age
   J_stk --> grow
   J_stk --> world
+  W41 --> J_earn --> earn
   W31 --> J_tax --> tax
   WMIX --> J_mix --> mix
   WICE_KCD --> J_csa
@@ -353,11 +357,11 @@ const DEMAND = `flowchart LR
   J_csr --> fresh
 ${DEFS}
   classDef vis fill:#451a03,stroke:#f59e0b,color:#fde68a;
-  class W3B,WPOP,W31,WMIX,WICE_KCD,WICE_KCA,WICE_RC,WICE_SPA scr;
+  class W3B,WPOP,W41,W31,WMIX,WICE_KCD,WICE_KCA,WICE_RC,WICE_SPA scr;
   class COH proc;
   class EXP proc;
-  class J_stk,J_tax,J_mix,J_csa,J_csr,J_h json;
-  class stk,ecf,psd,jp,age,grow,world,tax,mix,tiles,period,sysflow,fresh vis;`;
+  class J_stk,J_earn,J_tax,J_mix,J_csa,J_csr,J_h json;
+  class stk,ecf,psd,jp,age,grow,world,earn,tax,mix,tiles,period,sysflow,fresh vis;`;
 
 const MACRO = `flowchart LR
   W19["1.9 Quant CCI · 21:30 M-F<br/>jsDelivr FX · yfinance"]
@@ -758,6 +762,12 @@ const ROWS: FlowMetadata[] = [
     cadence: { recurrence: "02:00 UTC on the 14th of each month (mid-month publish)", trigger: "cron" },
     transport: { provider: "ugandacoffee.go.ug", method: "BeautifulSoup HTML + table extract" },
     storage: { target: "uganda_supply.json", units: "60kg bags + by-grade splits" },
+  },
+  {
+    wf: "4.1 Earnings", output: "earnings.json", component: "EarningsTable", visual: "Demand · Roaster Earnings",
+    cadence: { recurrence: "08:00 UTC on the 15th of Feb/May/Aug/Nov (post-quarter)", trigger: "cron" },
+    transport: { provider: "10-K / 10-Q filings", method: "manual + filings scrape" },
+    storage: { target: "earnings.json", units: "USD revenue / volumes per roaster" },
   },
   {
     wf: "various / manual", output: "factory_mix.json", component: "RoastingMixPanel", visual: "Demand · Roasting Mix",

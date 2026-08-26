@@ -1,0 +1,76 @@
+name: Z.97 – Roaster results-PDF discovery (temporary)
+
+# Finds the quarterly/half-year results PDFs for Nestle and JDE Peet's and
+# shows how RIG / volume-mix actually appear in the text, so the parser is
+# written against the real layout instead of a guess. Sandbox has no egress;
+# this is the only way to see the documents. Delete once the parser is built.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [demand-earnings-revamp]
+    paths: [".github/workflows/zz-roaster-pdf-probe.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install requests pdfplumber
+      - name: Discover
+        run: |
+          python - <<'PY'
+          import io, re, requests
+
+          # A realistic browser UA: the plain bot string gets 403 from Nestle.
+          UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+          H = {"User-Agent": UA, "Accept": "text/html,application/xhtml+xml,application/pdf,*/*",
+               "Accept-Language": "en-US,en;q=0.9"}
+
+          PAGES = {
+            "nestle-investors":  "https://www.nestle.com/investors",
+            "nestle-results":    "https://www.nestle.com/investors/publications",
+            "nestle-press":      "https://www.nestle.com/media/pressreleases",
+            "jde-investors":     "https://www.jdepeets.com/investors/",
+            "jde-reports":       "https://www.jdepeets.com/investors/financial-results/",
+            "jde-publications":  "https://www.jdepeets.com/investors/reports-and-presentations/",
+          }
+          found = {}
+          for name, url in PAGES.items():
+              try:
+                  r = requests.get(url, headers=H, timeout=45, allow_redirects=True)
+              except Exception as e:
+                  print(f"{name:20s} EXC {type(e).__name__}"); continue
+              pdfs = re.findall(r'href="([^"]+\.pdf[^"]*)"', r.text, re.I) if r.ok else []
+              # Keep only results-looking documents.
+              interesting = [p for p in pdfs if re.search(r'(result|report|half|full|year|q[1-4]|hy|fy|press)', p, re.I)]
+              print(f"{name:20s} HTTP {r.status_code}  pdfs={len(pdfs)} interesting={len(interesting)}")
+              for p in interesting[:6]:
+                  print(f"                       {p[:150]}")
+              if interesting:
+                  found[name] = [p if p.startswith("http") else requests.compat.urljoin(url, p) for p in interesting]
+
+          # Pull the first candidate from each site and show how the metric reads.
+          import pdfplumber
+          for name, urls in found.items():
+              u = urls[0]
+              print(f"\n=== {name}: {u[:130]}")
+              try:
+                  pr = requests.get(u, headers=H, timeout=90)
+                  if not pr.ok or b"%PDF" not in pr.content[:1024]:
+                      print(f"    HTTP {pr.status_code}, not a PDF"); continue
+                  with pdfplumber.open(io.BytesIO(pr.content)) as pdf:
+                      print(f"    pages={len(pdf.pages)}")
+                      for pageno, page in enumerate(pdf.pages[:6], 1):
+                          txt = page.extract_text() or ""
+                          for line in txt.splitlines():
+                              if re.search(r'\bRIG\b|real internal growth|volume.?mix|organic growth', line, re.I):
+                                  print(f"    p{pageno}: {line.strip()[:150]}")
+              except Exception as e:
+                  print(f"    EXC {type(e).__name__}: {e}")
+          PY

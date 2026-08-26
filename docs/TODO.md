@@ -1,5 +1,38 @@
 # TODO / follow-ups
 
+## ECF port stocks — fix the contaminated months, then widen the scatter
+`ArrivalsVsStockChange` regresses EU arrivals (1-month lag, rolling 2-month)
+against the change in ECF port stocks. It works, but only from **2020-01**,
+because 11 of the 151 ECF months are not physically believable and running the
+regression across them **inverts** the result:
+
+| window | n | slope | R² |
+|---|---|---|---|
+| full series (contaminated) | 149 | −0.10 | 0.001 |
+| trusted window (2020-01→) | 76 | +0.77 | 0.30 |
+
+The damage is two clusters: 2019 drops from 745,601 MT to ~370,000 for four
+months and returns to 807,387; 2014 changes basis mid-year (some rows carry only
+`ports` bag counts, some `value_mt`). Aggregate port stocks do not halve and
+double, so these are parse artefacts.
+
+- [ ] **Fix `ecf_stocks` parsing backwards.** Establish what the 2019 block and
+      the 2014 rows are actually counting — most likely a partial port table or
+      a unit switch in the PDF. `sanitiseLevels()` already drops isolated
+      spikes; a sustained four-month block at half level is beyond what any
+      short-window filter can honestly distinguish from truth, which is why the
+      date cutoff exists rather than a cleverer filter.
+- [ ] **Then lower `TRUSTED_FROM`** in `frontend/lib/arrivalsVsStocks.ts` and the
+      two-period split (`CUT = "2018-10"`) starts working on its own — the
+      component already splits when the data reaches back far enough, so no UI
+      change is needed.
+- [ ] **Open question — measure.** The reference chart plots *exporters'* green
+      shipments to Western Europe; we plot *Eurostat extra-EU arrivals*. Same
+      flow, opposite reporter. Worth checking whether the mirror explains any of
+      the R² gap (theirs 0.54 for 2018-24, ours 0.30 for 2020-26) before reading
+      the difference as a genuine change in the relationship.
+
+
 ## Brazil farmer-selling "echo" — tune against live data + dual-crop UI (Step 3)
 Backend shipped: Google-News (pt-BR) echo discovery + crop-year-aware dual-crop
 parser writing an additive `crops` block to farmer_selling_brazil.json. CI now

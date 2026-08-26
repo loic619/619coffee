@@ -257,6 +257,21 @@ def test_validate_cecafe_daily_v2_empty_fails():
     assert not ok
 
 
+# ── earnings ──────────────────────────────────────────────────────────────────
+
+def test_validate_earnings_passes():
+    from scraper.validate_export import validate_earnings
+    ok, reason = validate_earnings({"scraped_at": today_str(), "companies": [{"ticker": "CAFE"}]})
+    assert ok, reason
+
+
+def test_validate_earnings_empty():
+    from scraper.validate_export import validate_earnings
+    ok, _ = validate_earnings({"scraped_at": today_str(), "companies": []})
+    assert not ok
+
+
+# ── kaffeesteuer ──────────────────────────────────────────────────────────────
 
 def test_validate_kaffeesteuer_passes():
     from scraper.validate_export import validate_kaffeesteuer
