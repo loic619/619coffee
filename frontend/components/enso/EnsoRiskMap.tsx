@@ -5,6 +5,17 @@ import { RISK_META, type EnsoRiskPin, type RiskLevel } from "@/lib/enso";
 
 const LEVELS: RiskLevel[] = ["high", "moderate", "low"];
 
+const PHASE_LABEL: Record<string, string> = {
+  flowering: "flowering",
+  fruit_fill: "cherry fill",
+  harvest: "harvest",
+};
+const MON = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** "Oct–Dec" for a run, "Jun" for one month — windows are already in
+ *  chronological order, so a Nov–Jan harvest reads correctly. */
+const MONTHS = (ms: number[]) =>
+  ms.length === 0 ? "" : ms.length === 1 ? MON[ms[0]] : `${MON[ms[0]]}–${MON[ms[ms.length - 1]]}`;
+
 // Phase 3 buoys layer — pulled lazily from /data/enso_thermocline.json
 // (same file the EnsoThermoclineCard reads). We re-derive the marker
 // styling from the buoy's kelvin_signal so the map and the card stay
@@ -89,7 +100,27 @@ export default function EnsoRiskMap({ pins }: { pins: EnsoRiskPin[] }) {
           weight: 1.5,
         })
           .bindPopup(
-            `<b>${p.region}</b> · ${p.country}<br/>Risk: <b style="color:${p.color}">${RISK_META[p.level].label}</b><br/>${p.driver}`
+            [
+              `<b>${p.region}</b> · ${p.country}`,
+              `Risk: <b style="color:${p.color}">${RISK_META[p.level].label}</b>`,
+              p.driver,
+              // The evidence behind the colour. A pin that cannot show which
+              // crop phase it is worried about, and on what measured record,
+              // is just an assertion with a hex code.
+              ...(p.phase_hits ?? [])
+                .filter((h) => h.severity > 0)
+                .map(
+                  (h) =>
+                    `<span style="opacity:.75">${MONTHS(h.months)} · ${PHASE_LABEL[h.phase] ?? h.phase} (${h.cycle}) — ` +
+                    `${h.anomaly_pct != null ? `${h.anomaly_pct > 0 ? "+" : ""}${h.anomaly_pct.toFixed(0)}% rain, ` : ""}` +
+                    `${h.n} past events</span>`
+                ),
+              p.lag_months != null
+                ? `<span style="opacity:.55">ENSO leads rainfall here by ${p.lag_months} mo</span>`
+                : "",
+            ]
+              .filter(Boolean)
+              .join("<br/>")
           )
           .addTo(groups[p.level]);
       }
@@ -179,6 +210,9 @@ export default function EnsoRiskMap({ pins }: { pins: EnsoRiskPin[] }) {
     });
 
   const developing = pins.filter((p) => p.status === "emerging").length;
+  // A region with no measured response is a gap in the record, not a safe
+  // region. Say so rather than letting it sit green and unexplained.
+  const unmeasured = pins.filter((p) => p.measured === false).length;
 
   return (
     <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
@@ -193,6 +227,14 @@ export default function EnsoRiskMap({ pins }: { pins: EnsoRiskPin[] }) {
               title="NOAA confirms an ENSO event four to five months after onset. These pins read the observed ocean state and are capped at amber until the event is confirmed."
             >
               · {developing} region{developing === 1 ? "" : "s"} on a developing event (capped at amber)
+            </span>
+          )}
+          {unmeasured > 0 && (
+            <span
+              className="ml-2 normal-case text-slate-500"
+              title="These regions are in the origin list but their weather history has not been rebuilt under the current belt names, so there is nothing to score them against."
+            >
+              · {unmeasured} region{unmeasured === 1 ? "" : "s"} not yet measured
             </span>
           )}
         </div>

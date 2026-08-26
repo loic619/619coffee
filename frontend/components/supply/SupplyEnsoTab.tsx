@@ -54,6 +54,17 @@ function PhaseSummary({ data }: { data: EnsoData }) {
             <div className="text-xs text-slate-400">
               Current ONI <span className="font-mono text-slate-200">{data.oni ?? "—"}</span>
               {data.peak_month ? ` · peak ${data.peak_month}` : ""}
+              {data.event_months && data.event_months.length > 1 && (
+                // Duration, not just state: which months this event is
+                // projected to stay active. That window is what decides
+                // whether it can reach a flowering or a harvest.
+                <span title="Projected from the analogue-mean ONI path — the same trajectories the analog chart plots">
+                  {" · projected "}
+                  <span className="font-mono text-slate-200">
+                    {data.event_months[0]} → {data.event_months[data.event_months.length - 1]}
+                  </span>
+                </span>
+              )}
               {data.nino34?.sst_anomaly != null && (
                 <>
                   {" · Niño 3.4 "}

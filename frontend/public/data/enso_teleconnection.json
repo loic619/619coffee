@@ -1,0 +1,4254 @@
+{
+ "generated": "2026-08-26T04:04:11+00:00",
+ "window_years": [
+  2015,
+  2025
+ ],
+ "oni_threshold": 0.5,
+ "min_events": 3,
+ "note": "Measured ENSO response per growing region per crop phase, from this repo's own monthly rainfall history and ONI record. anomaly_pct is the mean departure from that window's normal across occurrences of each ENSO phase; consistency is the share of occurrences that moved the same way as the mean, so a large mean built from disagreeing events is visible rather than averaged away. lag_months is where the teleconnection actually lands — ENSO arrives as an SST anomaly and the rainfall response is not simultaneous. The history is eleven years, so treat direction as informative and magnitude as indicative; a bucket with usable=false has too few occurrences to drive a severity.",
+ "regions": {
+  "brazil|Sul de Minas": {
+   "origin": "brazil",
+   "region": "Sul de Minas",
+   "lag_months": 0,
+   "lag_r": 0.15,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      9,
+      10,
+      11
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 14.6,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -8.1,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -8.6,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      12,
+      1,
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 1.2,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -12.8,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 7.8,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      5,
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 11.0,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": -34.2,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 1.5,
+      "n": 8,
+      "consistency": 0.38,
+      "usable": true
+     }
+    }
+   }
+  },
+  "brazil|Cerrado": {
+   "origin": "brazil",
+   "region": "Cerrado",
+   "lag_months": 0,
+   "lag_r": 0.213,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      9,
+      10,
+      11
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 8.6,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -2.3,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -8.5,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      12,
+      1,
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 5.0,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -10.6,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -6.5,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      5,
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 151.9,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": -22.9,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -35.1,
+      "n": 8,
+      "consistency": 0.75,
+      "usable": true
+     }
+    }
+   }
+  },
+  "brazil|Espírito Santo": {
+   "origin": "brazil",
+   "region": "Espírito Santo",
+   "lag_months": 6,
+   "lag_r": -0.154,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      9,
+      10,
+      11
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -8.6,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 31.8,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -5.8,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      12,
+      1,
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -6.2,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 4.4,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 5.0,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      5,
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -14.3,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 14.7,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 6.4,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    }
+   }
+  },
+  "brazil|Paraná": {
+   "origin": "brazil",
+   "region": "Paraná",
+   "lag_months": 0,
+   "lag_r": 0.121,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      9,
+      10,
+      11
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 17.9,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -10.6,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -9.8,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      12,
+      1,
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -11.0,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -9.6,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 18.2,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      5,
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 5.2,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 48.9,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -7.4,
+      "n": 8,
+      "consistency": 0.5,
+      "usable": true
+     }
+    }
+   }
+  },
+  "colombia|Huila": {
+   "origin": "colombia",
+   "region": "Huila",
+   "lag_months": 6,
+   "lag_r": 0.308,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "principal/flowering": {
+     "months": [
+      1,
+      2,
+      3
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 0.6,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": -18.8,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 2.2,
+      "n": 8,
+      "consistency": 0.5,
+      "usable": true
+     }
+    },
+    "principal/fruit_fill": {
+     "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 15.1,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -12.8,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -12.3,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    },
+    "principal/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -9.1,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -14.7,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 0.2,
+      "n": 6,
+      "consistency": 0.5,
+      "usable": true
+     }
+    },
+    "mitaca/flowering": {
+     "months": [
+      9,
+      10
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 22.9,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -2.4,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -17.3,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     }
+    },
+    "mitaca/fruit_fill": {
+     "months": [
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 10.6,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": -20.8,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -5.4,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
+     }
+    },
+    "mitaca/harvest": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 16.8,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -10.3,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -21.4,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    }
+   }
+  },
+  "colombia|Antioquia": {
+   "origin": "colombia",
+   "region": "Antioquia",
+   "lag_months": 0,
+   "lag_r": -0.29,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "principal/flowering": {
+     "months": [
+      1,
+      2,
+      3
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -11.9,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 9.5,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 10.3,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     }
+    },
+    "principal/fruit_fill": {
+     "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": -21.5,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 32.7,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 4.6,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
+     }
+    },
+    "principal/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -7.8,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -0.3,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 21.6,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    },
+    "mitaca/flowering": {
+     "months": [
+      9,
+      10
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -8.3,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 10.2,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -4.0,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     }
+    },
+    "mitaca/fruit_fill": {
+     "months": [
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": -14.3,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 3.5,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 22.1,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    },
+    "mitaca/harvest": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -2.5,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 31.6,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -3.5,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
+     }
+    }
+   }
+  },
+  "colombia|Cauca": {
+   "origin": "colombia",
+   "region": "Cauca",
+   "lag_months": 6,
+   "lag_r": 0.472,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "principal/flowering": {
+     "months": [
+      1,
+      2,
+      3
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 17.2,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": -23.7,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -1.3,
+      "n": 8,
+      "consistency": 0.62,
+      "usable": true
+     }
+    },
+    "principal/fruit_fill": {
+     "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 63.0,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -49.3,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -59.0,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    },
+    "principal/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 1.8,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -2.5,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -3.5,
+      "n": 6,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "mitaca/flowering": {
+     "months": [
+      9,
+      10
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 62.9,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -19.4,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -42.6,
+      "n": 5,
+      "consistency": 1.0,
+      "usable": true
+     }
+    },
+    "mitaca/fruit_fill": {
+     "months": [
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 16.9,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": -14.8,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -8.1,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
+     }
+    },
+    "mitaca/harvest": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 53.4,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -40.9,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -51.8,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    }
+   }
+  },
+  "colombia|Caldas": {
+   "origin": "colombia",
+   "region": "Caldas",
+   "lag_months": 6,
+   "lag_r": 0.433,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "principal/flowering": {
+     "months": [
+      1,
+      2,
+      3
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 23.9,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": -2.9,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -5.6,
+      "n": 8,
+      "consistency": 0.88,
+      "usable": true
+     }
+    },
+    "principal/fruit_fill": {
+     "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 33.6,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -23.7,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -36.6,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    },
+    "principal/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 10.3,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -10.3,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -4.6,
+      "n": 6,
+      "consistency": 0.83,
+      "usable": true
+     }
+    },
+    "mitaca/flowering": {
+     "months": [
+      9,
+      10
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 44.3,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -10.2,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -31.4,
+      "n": 5,
+      "consistency": 1.0,
+      "usable": true
+     }
+    },
+    "mitaca/fruit_fill": {
+     "months": [
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 34.3,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": -10.1,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -14.3,
+      "n": 7,
+      "consistency": 0.86,
+      "usable": true
+     }
+    },
+    "mitaca/harvest": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 35.0,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -24.6,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -38.2,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    }
+   }
+  },
+  "colombia|Nariño": {
+   "origin": "colombia",
+   "region": "Nariño",
+   "lag_months": 2,
+   "lag_r": -0.46,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "principal/flowering": {
+     "months": [
+      1,
+      2,
+      3
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -21.9,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 15.4,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 24.1,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    },
+    "principal/fruit_fill": {
+     "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": -24.0,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 41.2,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 2.7,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     }
+    },
+    "principal/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -20.0,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 20.5,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -1.1,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     }
+    },
+    "mitaca/flowering": {
+     "months": [
+      9,
+      10
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -33.6,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 30.1,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 4.6,
+      "n": 8,
+      "consistency": 0.5,
+      "usable": true
+     }
+    },
+    "mitaca/fruit_fill": {
+     "months": [
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": -14.8,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 14.7,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 11.5,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "mitaca/harvest": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -15.5,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 26.0,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -0.2,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     }
+    }
+   }
+  },
+  "honduras|El Paraíso": {
+   "origin": "honduras",
+   "region": "El Paraíso",
+   "lag_months": 0,
+   "lag_r": -0.251,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      3,
+      4,
+      5
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -22.1,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 54.1,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -4.0,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      7,
+      8,
+      9
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -21.0,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 42.5,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -0.1,
+      "n": 8,
+      "consistency": 0.38,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -13.7,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 5.7,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 20.8,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    }
+   }
+  },
+  "honduras|Copán": {
+   "origin": "honduras",
+   "region": "Copán",
+   "lag_months": 0,
+   "lag_r": -0.301,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      3,
+      4,
+      5
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -27.0,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 57.6,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -1.4,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      7,
+      8,
+      9
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -19.6,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 23.1,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 2.0,
+      "n": 8,
+      "consistency": 0.38,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -9.3,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 8.4,
+      "n": 4,
+      "consistency": 0.25,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -6.4,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    }
+   }
+  },
+  "honduras|Santa Bárbara": {
+   "origin": "honduras",
+   "region": "Santa Bárbara",
+   "lag_months": 4,
+   "lag_r": -0.366,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      3,
+      4,
+      5
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -9.7,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 19.9,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -15.4,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      7,
+      8,
+      9
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -25.4,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 25.5,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 10.1,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -35.5,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 9.1,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 12.5,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     }
+    }
+   }
+  },
+  "honduras|Montecillos": {
+   "origin": "honduras",
+   "region": "Montecillos",
+   "lag_months": 0,
+   "lag_r": -0.267,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      3,
+      4,
+      5
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -2.8,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 16.1,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -4.2,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      7,
+      8,
+      9
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -13.0,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 38.4,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -1.5,
+      "n": 8,
+      "consistency": 0.62,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -21.8,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 34.9,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -1.6,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    }
+   }
+  },
+  "honduras|Agalta": {
+   "origin": "honduras",
+   "region": "Agalta",
+   "lag_months": 1,
+   "lag_r": -0.387,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      3,
+      4,
+      5
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -31.4,
+      "n": 5,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 41.9,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 10.4,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      7,
+      8,
+      9
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -31.3,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 49.8,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 1.6,
+      "n": 8,
+      "consistency": 0.5,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -15.8,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 7.8,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 16.3,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    }
+   }
+  },
+  "indonesia|Lampung": {
+   "origin": "indonesia",
+   "region": "Lampung",
+   "lag_months": 0,
+   "lag_r": -0.348,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "robusta (Sumatra)/flowering": {
+     "months": [
+      10,
+      11,
+      12
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -34.9,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 11.8,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 40.4,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    },
+    "robusta (Sumatra)/fruit_fill": {
+     "months": [
+      1,
+      2
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 9.4,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -21.9,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 6.2,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     }
+    },
+    "robusta (Sumatra)/harvest": {
+     "months": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -26.2,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 37.9,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 5.8,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
+     }
+    },
+    "arabica/flowering": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -14.7,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 7.8,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 5.2,
+      "n": 7,
+      "consistency": 0.43,
+      "usable": true
+     }
+    },
+    "arabica/fruit_fill": {
+     "months": [
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": -54.1,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 90.7,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 2.2,
+      "n": 8,
+      "consistency": 0.5,
+      "usable": true
+     }
+    },
+    "arabica/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -13.0,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 0.5,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 22.8,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    }
+   }
+  },
+  "indonesia|Gayo": {
+   "origin": "indonesia",
+   "region": "Gayo",
+   "lag_months": 6,
+   "lag_r": 0.106,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "robusta (Sumatra)/flowering": {
+     "months": [
+      10,
+      11,
+      12
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 12.6,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 0.8,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -5.5,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
+     }
+    },
+    "robusta (Sumatra)/fruit_fill": {
+     "months": [
+      1,
+      2
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": -20.8,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 0.6,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 5.1,
+      "n": 8,
+      "consistency": 0.62,
+      "usable": true
+     }
+    },
+    "robusta (Sumatra)/harvest": {
+     "months": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 14.6,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -2.4,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -31.5,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    },
+    "arabica/flowering": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 18.5,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -7.5,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -31.2,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    },
+    "arabica/fruit_fill": {
+     "months": [
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 23.1,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -11.6,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -26.9,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     }
+    },
+    "arabica/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -6.0,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 0.9,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 3.3,
+      "n": 6,
+      "consistency": 0.5,
+      "usable": true
+     }
+    }
+   }
+  },
+  "indonesia|Java": {
+   "origin": "indonesia",
+   "region": "Java",
+   "lag_months": 6,
+   "lag_r": 0.348,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "robusta (Sumatra)/flowering": {
+     "months": [
+      10,
+      11,
+      12
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 26.0,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 53.5,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -18.8,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
+     }
+    },
+    "robusta (Sumatra)/fruit_fill": {
+     "months": [
+      1,
+      2
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": -16.2,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 4.2,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 3.5,
+      "n": 8,
+      "consistency": 0.62,
+      "usable": true
+     }
+    },
+    "robusta (Sumatra)/harvest": {
+     "months": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 31.3,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -31.3,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -15.6,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "arabica/flowering": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 26.1,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -39.2,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 13.1,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "arabica/fruit_fill": {
+     "months": [
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 43.5,
+      "n": 5,
+      "consistency": 0.2,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -14.5,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -57.9,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     }
+    },
+    "arabica/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -26.4,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 23.4,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 10.6,
+      "n": 6,
+      "consistency": 0.5,
+      "usable": true
+     }
+    }
+   }
+  },
+  "indonesia|Toraja": {
+   "origin": "indonesia",
+   "region": "Toraja",
+   "lag_months": 0,
+   "lag_r": -0.091,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "robusta (Sumatra)/flowering": {
+     "months": [
+      10,
+      11,
+      12
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -18.1,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -4.1,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 46.6,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "robusta (Sumatra)/fruit_fill": {
+     "months": [
+      1,
+      2
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 36.6,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -31.0,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -30.1,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     }
+    },
+    "robusta (Sumatra)/harvest": {
+     "months": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -13.1,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 1.4,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 5.4,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
+     }
+    },
+    "arabica/flowering": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 18.9,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -17.0,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -5.7,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
+     }
+    },
+    "arabica/fruit_fill": {
+     "months": [
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": -56.1,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 14.1,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 12.3,
+      "n": 8,
+      "consistency": 0.5,
+      "usable": true
+     }
+    },
+    "arabica/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -3.1,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -12.4,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 13.4,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    }
+   }
+  },
+  "indonesia|Flores": {
+   "origin": "indonesia",
+   "region": "Flores",
+   "lag_months": 0,
+   "lag_r": -0.351,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "robusta (Sumatra)/flowering": {
+     "months": [
+      10,
+      11,
+      12
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -48.3,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 26.8,
+      "n": 5,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 29.6,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "robusta (Sumatra)/fruit_fill": {
+     "months": [
+      1,
+      2
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": -7.0,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 8.9,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 2.7,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "robusta (Sumatra)/harvest": {
+     "months": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -23.6,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 11.4,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 8.5,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
+     }
+    },
+    "arabica/flowering": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -8.8,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -15.3,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 6.0,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
+     }
+    },
+    "arabica/fruit_fill": {
+     "months": [
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": -55.2,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 55.6,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 6.9,
+      "n": 8,
+      "consistency": 0.5,
+      "usable": true
+     }
+    },
+    "arabica/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -28.0,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 17.6,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 10.0,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    }
+   }
+  },
+  "uganda|Mt Elgon": {
+   "origin": "uganda",
+   "region": "Mt Elgon",
+   "lag_months": 0,
+   "lag_r": 0.415,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 105.9,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -41.5,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -39.5,
+      "n": 7,
+      "consistency": 0.86,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 7.2,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 12.2,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -3.3,
+      "n": 8,
+      "consistency": 0.5,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 66.2,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -38.4,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -27.1,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "fly/flowering": {
+     "months": [
+      10,
+      11,
+      12
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 79.8,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -55.8,
+      "n": 5,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -20.0,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "fly/fruit_fill": {
+     "months": [
+      1,
+      2,
+      3
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 31.6,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -10.5,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -42.2,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     }
+    },
+    "fly/harvest": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 105.9,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -41.5,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -39.5,
+      "n": 7,
+      "consistency": 0.86,
+      "usable": true
+     }
+    }
+   }
+  },
+  "uganda|Rwenzori": {
+   "origin": "uganda",
+   "region": "Rwenzori",
+   "lag_months": 4,
+   "lag_r": -0.018,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 4.3,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 0.5,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -11.9,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 10.6,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -2.4,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -7.5,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -6.6,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 10.4,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 5.4,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     }
+    },
+    "fly/flowering": {
+     "months": [
+      10,
+      11,
+      12
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 10.9,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": 11.2,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -4.1,
+      "n": 8,
+      "consistency": 0.62,
+      "usable": true
+     }
+    },
+    "fly/fruit_fill": {
+     "months": [
+      1,
+      2,
+      3
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 7.5,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 26.6,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -27.4,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     }
+    },
+    "fly/harvest": {
+     "months": [
+      4,
+      5,
+      6
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 4.3,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 0.5,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -11.9,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    }
+   }
+  },
+  "ethiopia|Sidama/Yirgacheffe": {
+   "origin": "ethiopia",
+   "region": "Sidama/Yirgacheffe",
+   "lag_months": 1,
+   "lag_r": 0.406,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 8.5,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 5.6,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -19.8,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 20.3,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -26.8,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -4.9,
+      "n": 7,
+      "consistency": 0.43,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 68.7,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -41.5,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -33.2,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    },
+    "second/flowering": {
+     "months": [
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 16.7,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -25.7,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -3.5,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
+     }
+    },
+    "second/fruit_fill": {
+     "months": [
+      9,
+      10,
+      11,
+      12,
+      1,
+      2
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 48.8,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -28.7,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -26.5,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     }
+    },
+    "second/harvest": {
+     "months": [
+      3,
+      4,
+      5
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 15.4,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -22.8,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -2.9,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     }
+    }
+   }
+  },
+  "ethiopia|Jimma": {
+   "origin": "ethiopia",
+   "region": "Jimma",
+   "lag_months": 1,
+   "lag_r": 0.189,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 4.2,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -11.5,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 4.5,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 2.4,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 5.9,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -1.9,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 41.0,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -31.5,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -26.7,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "second/flowering": {
+     "months": [
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -1.4,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 17.2,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -1.9,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
+     }
+    },
+    "second/fruit_fill": {
+     "months": [
+      9,
+      10,
+      11,
+      12,
+      1,
+      2
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 29.4,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -17.0,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -23.8,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     }
+    },
+    "second/harvest": {
+     "months": [
+      3,
+      4,
+      5
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 1.0,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -18.7,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 17.1,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     }
+    }
+   }
+  },
+  "ethiopia|Limu": {
+   "origin": "ethiopia",
+   "region": "Limu",
+   "lag_months": 6,
+   "lag_r": -0.038,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 7.8,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -3.7,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -2.5,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": -7.5,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 8.1,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 2.5,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "main/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 28.2,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 45.8,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -26.3,
+      "n": 6,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "second/flowering": {
+     "months": [
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -10.4,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 13.6,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -1.3,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "second/fruit_fill": {
+     "months": [
+      9,
+      10,
+      11,
+      12,
+      1,
+      2
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 24.5,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 28.8,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -19.2,
+      "n": 6,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "second/harvest": {
+     "months": [
+      3,
+      4,
+      5
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 6.3,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 6.9,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -11.5,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     }
+    }
+   }
+  },
+  "ethiopia|Kaffa": {
+   "origin": "ethiopia",
+   "region": "Kaffa",
+   "lag_months": 1,
+   "lag_r": 0.53,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 30.2,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -23.8,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -26.6,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 6.3,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -9.9,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": -1.3,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 54.2,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -42.4,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -3.8,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "second/flowering": {
+     "months": [
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -2.1,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -5.0,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 1.6,
+      "n": 7,
+      "consistency": 0.43,
+      "usable": true
+     }
+    },
+    "second/fruit_fill": {
+     "months": [
+      9,
+      10,
+      11,
+      12,
+      1,
+      2
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 38.7,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -27.9,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -18.9,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "second/harvest": {
+     "months": [
+      3,
+      4,
+      5
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 26.1,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -24.9,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -18.6,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     }
+    }
+   }
+  },
+  "ethiopia|Harrar": {
+   "origin": "ethiopia",
+   "region": "Harrar",
+   "lag_months": 0,
+   "lag_r": 0.167,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -0.9,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -13.4,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 14.8,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": -21.1,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": -34.5,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 9.6,
+      "n": 8,
+      "consistency": 0.62,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 52.4,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -28.6,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -38.4,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    },
+    "second/flowering": {
+     "months": [
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -33.0,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "la-nina": {
+      "anomaly_pct": -19.8,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 10.7,
+      "n": 8,
+      "consistency": 0.62,
+      "usable": true
+     }
+    },
+    "second/fruit_fill": {
+     "months": [
+      9,
+      10,
+      11,
+      12,
+      1,
+      2
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 44.4,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -26.6,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -25.2,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    },
+    "second/harvest": {
+     "months": [
+      3,
+      4,
+      5
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -8.1,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -49.2,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 26.2,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     }
+    }
+   }
+  },
+  "vn|Dak Lak": {
+   "origin": "vn",
+   "region": "Dak Lak",
+   "lag_months": 3,
+   "lag_r": -0.387,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "robusta/flowering": {
+     "months": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -70.6,
+      "n": 5,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 36.8,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 102.9,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "robusta/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -22.6,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 15.8,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 11.8,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     }
+    },
+    "robusta/harvest": {
+     "months": [
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -55.1,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 13.2,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 25.6,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     }
+    }
+   }
+  },
+  "vn|Lam Dong": {
+   "origin": "vn",
+   "region": "Lam Dong",
+   "lag_months": 2,
+   "lag_r": -0.246,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "robusta/flowering": {
+     "months": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -32.8,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 9.0,
+      "n": 4,
+      "consistency": 0.25,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 64.2,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     }
+    },
+    "robusta/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -5.6,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -8.5,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 3.6,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
+     }
+    },
+    "robusta/harvest": {
+     "months": [
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -33.0,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -3.6,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 48.2,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     }
+    }
+   }
+  },
+  "vn|Dak Nong": {
+   "origin": "vn",
+   "region": "Dak Nong",
+   "lag_months": 3,
+   "lag_r": -0.385,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "robusta/flowering": {
+     "months": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -52.1,
+      "n": 5,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 37.7,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 54.8,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "robusta/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -5.9,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 9.4,
+      "n": 2,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 1.0,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
+     }
+    },
+    "robusta/harvest": {
+     "months": [
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -32.8,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 21.2,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 11.4,
+      "n": 4,
+      "consistency": 0.25,
+      "usable": true
+     }
+    }
+   }
+  },
+  "vn|Gia Lai": {
+   "origin": "vn",
+   "region": "Gia Lai",
+   "lag_months": 2,
+   "lag_r": -0.249,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "robusta/flowering": {
+     "months": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -32.8,
+      "n": 5,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 48.1,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -14.3,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    },
+    "robusta/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -1.6,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -3.8,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 1.2,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
+     }
+    },
+    "robusta/harvest": {
+     "months": [
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -46.6,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 2.2,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 57.5,
+      "n": 3,
+      "consistency": 0.33,
+      "usable": true
+     }
+    }
+   }
+  },
+  "vn|Kon Tum": {
+   "origin": "vn",
+   "region": "Kon Tum",
+   "lag_months": 1,
+   "lag_r": -0.276,
+   "years": [
+    2015,
+    2025
+   ],
+   "phases": {
+    "robusta/flowering": {
+     "months": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -41.2,
+      "n": 5,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 57.6,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 11.0,
+      "n": 3,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "robusta/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -6.5,
+      "n": 3,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 2.5,
+      "n": 1,
+      "consistency": 1.0,
+      "usable": false
+     },
+     "neutral": {
+      "anomaly_pct": 2.4,
+      "n": 7,
+      "consistency": 0.43,
+      "usable": true
+     }
+    },
+    "robusta/harvest": {
+     "months": [
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -56.9,
+      "n": 4,
+      "consistency": 1.0,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 13.7,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 101.5,
+      "n": 2,
+      "consistency": 0.5,
+      "usable": false
+     }
+    }
+   }
+  }
+ }
+}

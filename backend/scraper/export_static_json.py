@@ -107,7 +107,13 @@ def _exporters(db):
         export_country_pins()
 
     def _enso_intel():
+        # The measured teleconnection is refreshed FIRST: it is derived from
+        # the weather history the pipeline has just rewritten, and the risk
+        # pins are scored against it. Rebuilding the pins from a stale
+        # measurement is the drift this whole module exists to avoid.
         from scraper.build_enso_intel import export_enso_intel
+        from scraper.enso_teleconnection import export as export_teleconnection
+        export_teleconnection()
         export_enso_intel()
 
     return [
