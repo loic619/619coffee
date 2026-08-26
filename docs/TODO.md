@@ -1,28 +1,42 @@
 # TODO / follow-ups
 
-## Roaster volume/mix — Nestlé RIG, and the pre-2024 JDE reports
-`4.2 – Roaster Results` reads the Vol/Mix column of JDE Peet's "Sales growth
-bridge by segment" table. Verified against the published HY-2025 table cell for
-cell (Europe +1.8, LARMEA −1.2, Peet's +0.6, APAC +0.7, group +1.0), and the
-FY-2025 group figure of −4.3 is independently confirmed by the prose headline in
-the same document. Four periods land: 2024-H1/FY, 2025-H1/FY.
+## Roaster volume/mix — finish the Nestlé coverage
+`4.2 – Roaster Results` is live. **JDE Peet's is complete**: 4 periods
+(2024-H1/FY, 2025-H1/FY) read from the Vol/Mix column of the "Sales growth
+bridge by segment" table, verified against the published HY-2025 table cell for
+cell and cross-checked against the prose headline in the same document.
 
-- [ ] **Nestlé RIG has no CI route.** Measured from a GitHub runner: 403 to a
-      bot user-agent, to a full browser user-agent, and to a real headless
-      Chromium. Their protection rejects datacentre traffic outright. Options
-      are a non-CI source, an IR aggregator, or hand-entered figures — the JSON
-      schema takes hand-written periods identically, so they merge with no
-      special-casing.
-- [ ] **Only 2024-2025 parse.** The scraper HEAD-checks six years of the URL
-      pattern; 2021-2023 either use a different slug or a different bridge
-      layout. Worth a look, but hand-crafting those four or five periods is
-      cheaper than chasing an old layout.
-- [ ] **`price_pct` / `organic_pct` come back null.** The Vol/Mix column — the
-      one that matters — resolves correctly; the neighbouring header cells do
-      not match under the text-alignment strategy. Cosmetic today because the
-      panel only plots volume, but worth fixing if the price split is ever
-      wanted alongside it.
+**Nestlé is proven but thin: 1 period (2025-3M), Total Group only.**
 
+The hard part is solved. Their HTML pages 403 from CI, but the press releases
+sit on an unprotected static path and the URL is fully derivable, so the
+results calendar never needs scraping:
+
+    https://www.nestle.com/sites/default/files/{YYYY-MM}/{slug}-{YYYY}-en.pdf
+    three-month → April · half-year → July · nine-month → October
+    full-year   → the FOLLOWING February
+
+`parse_nestle_summary()` reads the RIG row correctly — given the published
+9M-2025 layout it recovers all 8 segments (Total Group +0.6, Americas −0.4,
+AOA +0.3, Europe +0.5, Health Science +4.1, Nespresso +2.4, Waters +2.0,
+Other +2.2). Two gaps remain:
+
+- [ ] **Only the three-month slug resolves.** Alternates for half-year,
+      nine-month and full-year were tried across two month-directories each and
+      all 404'd. Read the real names off
+      https://www.nestle.com/investors/results and hardcode them — that page is
+      browsable by hand even though CI cannot fetch it.
+- [ ] **Only Total Group extracts from the live PDF**, though the parser
+      recovers all 8 segments from the same layout supplied as a fixture. So
+      pdfplumber is returning a different table shape than assumed — most
+      likely the header rows land in a separate table object from the data
+      rows. Dump `page.extract_tables()` for the 3M-2025 PDF in CI and shape
+      the header reconstruction to what actually comes back.
+
+Hand-crafting is a reasonable endpoint here rather than a defeat: the parser
+and the URL scheme both work, so each added period is a URL, not a research
+problem, and the JSON takes hand-written periods identically — they merge with
+no special-casing.
 
 ## ECF port stocks — fix the contaminated months, then widen the scatter
 `ArrivalsVsStockChange` regresses EU arrivals (1-month lag, rolling 2-month)
