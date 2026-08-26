@@ -1,169 +1,196 @@
 {
  "note": "Observed publish times of the ICE London robusta certified-stock CSV. The file is served under an HHMMSS-stamped URL with no index, so these are the seconds workflow 1.13 has to guess.",
  "source": "backend/scraper/sources/ice_certified_stocks/stock_report_hits.json",
- "captures": 56,
+ "captures": 59,
  "first_date": "2026-06-03",
  "last_date": "2026-08-24",
- "earliest": "10:30:04",
- "latest": "10:51:38",
+ "earliest": "10:29:56",
+ "latest": "12:47:15",
  "median": "10:32:29",
- "p90": "10:42:30",
- "distinct_seconds": 53,
+ "p90": "10:43:54",
+ "distinct_seconds": 56,
  "seconds_seen_more_than_once": 2,
  "by_minute": [
   {
+   "minute": "10:29",
+   "count": 1,
+   "share": 0.0169
+  },
+  {
    "minute": "10:30",
    "count": 18,
-   "share": 0.3214
+   "share": 0.3051
   },
   {
    "minute": "10:31",
    "count": 8,
-   "share": 0.1429
+   "share": 0.1356
   },
   {
    "minute": "10:32",
    "count": 10,
-   "share": 0.1786
+   "share": 0.1695
   },
   {
    "minute": "10:33",
    "count": 1,
-   "share": 0.0179
+   "share": 0.0169
   },
   {
    "minute": "10:34",
    "count": 2,
-   "share": 0.0357
+   "share": 0.0339
   },
   {
    "minute": "10:35",
    "count": 2,
-   "share": 0.0357
+   "share": 0.0339
   },
   {
    "minute": "10:36",
    "count": 3,
-   "share": 0.0536
+   "share": 0.0508
   },
   {
    "minute": "10:37",
    "count": 2,
-   "share": 0.0357
+   "share": 0.0339
   },
   {
    "minute": "10:38",
    "count": 1,
-   "share": 0.0179
+   "share": 0.0169
   },
   {
    "minute": "10:39",
    "count": 1,
-   "share": 0.0179
+   "share": 0.0169
   },
   {
    "minute": "10:40",
    "count": 1,
-   "share": 0.0179
+   "share": 0.0169
   },
   {
    "minute": "10:41",
    "count": 1,
-   "share": 0.0179
+   "share": 0.0169
   },
   {
    "minute": "10:42",
    "count": 1,
-   "share": 0.0179
+   "share": 0.0169
   },
   {
    "minute": "10:43",
    "count": 1,
-   "share": 0.0179
+   "share": 0.0169
   },
   {
    "minute": "10:45",
    "count": 1,
-   "share": 0.0179
+   "share": 0.0169
   },
   {
    "minute": "10:50",
    "count": 1,
-   "share": 0.0179
+   "share": 0.0169
   },
   {
    "minute": "10:51",
    "count": 2,
-   "share": 0.0357
+   "share": 0.0339
+  },
+  {
+   "minute": "11:00",
+   "count": 1,
+   "share": 0.0169
+  },
+  {
+   "minute": "12:47",
+   "count": 1,
+   "share": 0.0169
   }
  ],
  "cumulative": [
   {
+   "through": "10:29",
+   "share": 0.0169
+  },
+  {
    "through": "10:30",
-   "share": 0.3214
+   "share": 0.322
   },
   {
    "through": "10:31",
-   "share": 0.4643
+   "share": 0.4576
   },
   {
    "through": "10:32",
-   "share": 0.6429
+   "share": 0.6271
   },
   {
    "through": "10:33",
-   "share": 0.6607
+   "share": 0.6441
   },
   {
    "through": "10:34",
-   "share": 0.6964
+   "share": 0.678
   },
   {
    "through": "10:35",
-   "share": 0.7321
+   "share": 0.7119
   },
   {
    "through": "10:36",
-   "share": 0.7857
+   "share": 0.7627
   },
   {
    "through": "10:37",
-   "share": 0.8214
+   "share": 0.7966
   },
   {
    "through": "10:38",
-   "share": 0.8393
+   "share": 0.8136
   },
   {
    "through": "10:39",
-   "share": 0.8571
+   "share": 0.8305
   },
   {
    "through": "10:40",
-   "share": 0.875
+   "share": 0.8475
   },
   {
    "through": "10:41",
-   "share": 0.8929
+   "share": 0.8644
   },
   {
    "through": "10:42",
-   "share": 0.9107
+   "share": 0.8814
   },
   {
    "through": "10:43",
-   "share": 0.9286
+   "share": 0.8983
   },
   {
    "through": "10:45",
-   "share": 0.9464
+   "share": 0.9153
   },
   {
    "through": "10:50",
-   "share": 0.9643
+   "share": 0.9322
   },
   {
    "through": "10:51",
+   "share": 0.9661
+  },
+  {
+   "through": "11:00",
+   "share": 0.9831
+  },
+  {
+   "through": "12:47",
    "share": 1.0
   }
  ],
@@ -172,8 +199,8 @@
   "candidate_seconds": 2760,
   "interval_s": 4.0,
   "tier1_k": 10,
-  "observed_max_offset_s": 1298,
-  "days_inside_window": 56
+  "observed_max_offset_s": 8235,
+  "days_inside_window": 57
  },
  "days": [
   {
@@ -195,6 +222,10 @@
   {
    "date": "2026-06-09",
    "time": "10:32:32"
+  },
+  {
+   "date": "2026-06-10",
+   "time": "10:29:56"
   },
   {
    "date": "2026-06-11",
@@ -243,6 +274,10 @@
   {
    "date": "2026-06-26",
    "time": "10:34:37"
+  },
+  {
+   "date": "2026-06-29",
+   "time": "12:47:15"
   },
   {
    "date": "2026-06-30",
@@ -385,6 +420,10 @@
    "time": "10:30:33"
   },
   {
+   "date": "2026-08-18",
+   "time": "11:00:55"
+  },
+  {
    "date": "2026-08-19",
    "time": "10:36:56"
   },
@@ -403,27 +442,11 @@
  ],
  "misses": {
   "business_days": 59,
-  "captured": 56,
-  "missing": [
-   {
-    "date": "2026-06-10",
-    "weekday": "Wed",
-    "data_hole": true
-   },
-   {
-    "date": "2026-06-29",
-    "weekday": "Mon",
-    "data_hole": true
-   },
-   {
-    "date": "2026-08-18",
-    "weekday": "Tue",
-    "data_hole": true
-   }
-  ],
+  "captured": 59,
+  "missing": [],
   "by_weekday": {
    "Wed": {
-    "missing": 1,
+    "missing": 0,
     "of": 12
    },
    "Thu": {
@@ -435,11 +458,11 @@
     "of": 12
    },
    "Mon": {
-    "missing": 1,
+    "missing": 0,
     "of": 12
    },
    "Tue": {
-    "missing": 1,
+    "missing": 0,
     "of": 11
    }
   }

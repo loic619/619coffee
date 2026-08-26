@@ -1047,23 +1047,31 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     sweep_day: date | None = None      # also read by the telemetry after run()
     if not only_monthly:
         print("[robusta] stock report (.csv, latest day only)...")
-        # ONLY the latest day. ICE keeps exactly one stock report live under the
-        # HHMMSS URL — yesterday's is already gone — so probing the four older
-        # days could never return anything. It still cost the full tier-1 ladder
-        # each: 4 days x ~48 candidates x 5s = ~16 minutes of guaranteed 404s
-        # every single run. Measured on run 32800023781 (2026-08-25): five days
-        # probed, "1 stock-report snapshots captured".
+        # Recent days get tier-1; only the latest gets the tier-2 sweep.
         #
-        # Older days are not lost by skipping them — a missed day never came
-        # from here anyway; it comes from the workbook//publicdocs ingest below.
-        sweep_day = days_sorted_asc[-1] if days_sorted_asc else None
-        if sweep_day is not None:
-            url, parsed = pull_stock_report(sweep_day, sweep=True)
+        # A previous edit here cut this to the latest day alone, on the reading
+        # that "ICE only keeps one per day" and the four older probes were 16
+        # minutes of guaranteed 404s. That inference was wrong. The evidence was
+        # a log line — "1 stock-report snapshots captured" out of five days —
+        # which is equally explained by tier-1 GUESSING WRONG on the other four,
+        # since the publish second is near-unique and tier-1 covers ~34% of days.
+        # And the operator has since produced working URLs for 2026-06-10 and
+        # 2026-06-29 months after the fact, which points the other way entirely.
+        #
+        # probe_stock_report_access.py settles it. Until it has run, the older
+        # days are probed as they always were: if retention is real, those
+        # probes are the only route back to a missed session, and a missed
+        # session is a permanent hole in the record (verified: all three misses
+        # in the June–August window have no snapshot from any source).
+        recent_days = days_sorted_asc[-5:]
+        sweep_day = recent_days[-1] if recent_days else None
+        for d in recent_days:
+            url, parsed = pull_stock_report(d, sweep=(d == sweep_day))
             if parsed is not None:
-                robusta_stocks[sweep_day] = parsed
+                robusta_stocks[d] = parsed
                 robusta_stock_url = url
         print(f"  → {len(robusta_stocks)} stock-report snapshots captured "
-              f"(sweep day: {sweep_day}; older days are no longer served by ICE)\n")
+              f"(tier-2 sweep day: {sweep_day})\n")
 
         print(f"[robusta] gradings + iss/recv + tenders + overview, {len(days_sorted_asc)} days...")
         for d in days_sorted_asc:

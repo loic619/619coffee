@@ -169,18 +169,83 @@ export default function IcePublishTimes() {
         of billed runner time to reach, every one of them spent waiting politely.
       </P>
 
-      <H>What we have not been able to improve</H>
+      <H>A correction — the sweep cannot cover the real range</H>
       <P>
-        Four strategies were modelled against these {data.captures} observations — the current
-        tier-1-then-sweep, sweep-only, a narrowed window, and seeding tier 1 from the dense opening
-        block rather than from frequency. The current arrangement won: mean 15.4 min against 17.9
-        for sweep-only. The guessing is already close to optimal for the information available.
+        An earlier version of this page concluded the search was near-optimal, from a model of
+        four strategies against the captured days. That conclusion was wrong, and wrong in an
+        instructive way: <strong>it was fitted only to the days the search succeeded on.</strong>{" "}
+        The days it failed were, by construction, invisible to it — survivorship bias in its
+        purest form.
       </P>
       <P>
-        The real reduction came from run <em>count</em>, not run length: the chain off the news
-        scraper was firing this workflow about three times a day against a source that publishes
-        once, and 12 of 27 runs in the week to 25 August were cancelled in the concurrency queue. A
-        once-a-day guard now short-circuits the duplicates.
+        Supplying the three missed days&rsquo; true publish times changed the picture entirely.
+        Each failed for a different reason, and none of them is a tuning problem:
+      </P>
+      <RefTable
+        head={["date", "published", "vs the 10:30–11:15 window", "why it was missed"]}
+        rows={[
+          ["2026-06-10", "10:29:56", "4s BEFORE it opens",
+            "the window starts too late — by four seconds"],
+          ["2026-08-18", "11:00:55", "inside, 1,855s in",
+            "reaching it needs 124 min of sweeping; the job times out at 120"],
+          ["2026-06-29", "12:47:15", "92 min AFTER it closes",
+            "outside any window a linear sweep could walk"],
+        ]}
+      />
+      <Highlight>
+        With those three included the true observed range is <strong>10:29:56 → 12:47:15</strong> —
+        8,239 candidate seconds. A linear sweep of that at 4s per request is <strong>9.2
+        hours</strong>. The window is not merely mistuned; a second-by-second walk is the wrong
+        instrument for this distribution.
+      </Highlight>
+      <P>
+        Widening it does not rescue the approach, because the binding constraint is the timeout,
+        not the window. Even a window covering every observed publish only reaches 97% of days
+        within 120 minutes — and the tail is savage: p50 is 10 minutes of sweeping, p90 is 56, and
+        p100 is 549.
+      </P>
+      <RefTable
+        head={["window @4s", "candidates", "full sweep", "found within 120 min"]}
+        rows={[
+          ["10:30–11:15 (current)", "2,760", "3.1 h", "56 of 59 · 95%"],
+          ["10:25–11:15", "3,060", "3.4 h", "57 of 59 · 97%"],
+          ["10:25–12:50", "8,701", "9.7 h", "57 of 59 · 97%"],
+          ["10:25–12:50 @1s", "8,701", "2.4 h", "58 of 59 · 98%"],
+        ]}
+      />
+
+      <H>What actually needs answering</H>
+      <P>
+        Two assumptions underneath the whole design have never been tested, and each one, if
+        false, removes the problem rather than tuning it:
+      </P>
+      <UL>
+        <LI>
+          <strong>Is there a directory index?</strong> The guessing exists only because we believe
+          there is no listing for <Code>stock_reports/</Code>. If one responds, the sweep can be
+          deleted: read the index, take the filename, one GET.
+        </LI>
+        <LI>
+          <strong>Are historical reports retained?</strong> The scraper assumes only the current
+          day is served — but that belief rested on a log line (&ldquo;1 of 5 days captured&rdquo;)
+          equally explained by tier-1 guessing wrong on the other four. Working URLs for 10 June
+          and 29 June, fetched in late August, point the other way. If retention is real, a missed
+          day is recoverable and the sweep should resume across runs instead of giving up.
+        </LI>
+      </UL>
+      <P>
+        A dispatch-only probe now answers both. Until it has, the scraper keeps probing recent
+        days as it always did — a reversal of an earlier change here that cut it to the latest day
+        only, on the strength of the same untested assumption.
+      </P>
+
+      <H>What did improve</H>
+      <P>
+        Run <em>count</em>, not run length: the chain off the news scraper was firing this workflow
+        about three times a day against a source that publishes once, and 12 of 27 runs in the week
+        to 25 August were cancelled in the concurrency queue. A once-a-day guard now short-circuits
+        the duplicates. And a sweep killed part-way now records where it stopped, so the next
+        attempt resumes instead of re-walking seconds it has already ruled out.
       </P>
 
       <Highlight>
