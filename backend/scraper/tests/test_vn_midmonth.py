@@ -145,3 +145,56 @@ class TestReachabilityGuard:
         monkeypatch.setattr(R, "fetch_k1", lambda y, m: calls.append((y, m)))
         assert R.main(6, 2026, 8) == 2
         assert calls == [], "fanned out despite an unreachable host"
+
+
+class TestPeriodMarker:
+    """k1 and k2 are the same bulletin type for the same month — only the
+    marker separates a half month from a full one."""
+
+    def test_reads_both_markers(self):
+        from backend.scraper.sources.vn_coffee_export import _period_marker
+        assert _period_marker("2026-t6k1-2x(vn-sb).pdf") == "k1"
+        assert _period_marker("2026-t6k2-2x(vn-sb).pdf") == "k2"
+        assert _period_marker("2026-t06k1-2x(VN-SB).pdf") == "k1"
+
+    def test_no_marker_on_a_plain_monthly_bulletin(self):
+        from backend.scraper.sources.vn_coffee_export import _period_marker
+        assert _period_marker("2026-t6-2x(vn-sb).pdf") is None
+
+    def test_the_collision_this_guards(self):
+        # Both pass _is_2x AND map to the same month. Without the marker the
+        # monthly scraper could publish a half-month figure as the month.
+        from backend.scraper.sources.vn_coffee_export import _is_2x, _period_to_month
+        k1, k2 = "2026-t6k1-2x(vn-sb).pdf", "2026-t6k2-2x(vn-sb).pdf"
+        assert _is_2x(k1) and _is_2x(k2)
+        assert _period_to_month(k1) == _period_to_month(k2) == "2026-06"
+
+
+class TestK1FromPublications:
+    def _pub(self, url):
+        return {"fileSoBo": url, "loaiBaoCao": "2x", "tenBaoCao": "Xuat khau"}
+
+    def test_picks_only_the_mid_month_bulletins(self):
+        pubs = [self._pub("/x/2026-t6k1-2x(vn-sb).pdf"),
+                self._pub("/x/2026-t6k2-2x(vn-sb).pdf"),
+                self._pub("/x/2026-t5k1-2x(vn-sb).pdf")]
+        out = R.k1_from_publications(pubs)
+        assert out == {"2026-06": "/x/2026-t6k1-2x(vn-sb).pdf",
+                       "2026-05": "/x/2026-t5k1-2x(vn-sb).pdf"}
+
+    def test_ignores_other_bulletin_types(self):
+        # 5x is by-country, 1n is imports — neither is the export commodity table.
+        pubs = [self._pub("/x/2026-t6k1-5x(vn-sb).pdf"),
+                self._pub("/x/2026-t6k1-1n(vn-sb).pdf")]
+        assert R.k1_from_publications(pubs) == {}
+
+    def test_probes_the_alternative_key_spellings_the_portal_has_used(self):
+        assert R.k1_from_publications(
+            [{"filePath": "/x/2026-t6k1-2x(vn-sb).pdf"}]) == {"2026-06": "/x/2026-t6k1-2x(vn-sb).pdf"}
+        assert R.k1_from_publications(
+            [{"url": "/x/2026-t6k1-2x(vn-sb).pdf"}]) == {"2026-06": "/x/2026-t6k1-2x(vn-sb).pdf"}
+
+    def test_survives_an_empty_or_junk_listing(self):
+        assert R.k1_from_publications([]) == {}
+        assert R.k1_from_publications(None) == {}
+        assert R.k1_from_publications([{}, {"fileSoBo": ""}]) == {}

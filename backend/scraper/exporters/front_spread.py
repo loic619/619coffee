@@ -27,6 +27,7 @@ from __future__ import annotations
 import json
 import re
 from collections import defaultdict
+from datetime import date, timedelta
 from pathlib import Path
 
 from scraper.exporters.base import OUT_DIR
@@ -148,6 +149,77 @@ def analyse(points: list[dict]) -> dict:
         "second_half": {"span": [pts[h]["month"], pts[-1]["month"]] if pts[h:] else None, "spearman": r2},
         "holds_in_both_halves": holds,
     }
+
+
+# COT side → the archive's market key.
+_STRUCT_MARKETS = {"ny": "arabica", "ldn": "robusta"}
+
+# How far back to walk for a board if the COT date itself has none. COT dates
+# are Tuesdays, so a miss means a holiday — a long weekend is the worst case.
+_MAX_BOARD_LOOKBACK_DAYS = 5
+
+
+def overwrite_curve_structure(result: list[dict]) -> None:
+    """Recompute `structure_ny` / `structure_ldn` from the contract archive.
+
+    These fields arrived by manual DB import and are NOT one quantity: before
+    2026-03-17 they hold something on a ~0.01 scale (a ratio), after it an
+    absolute spread on a ~10-100 scale. The sign happens to agree, so the
+    backwardation/contango classification survived — but the signal engine also
+    derives a magnitude from the week-on-week CHANGE, and a percent change
+    across a unit break is meaningless. Two eras under one field name is a trap
+    regardless of who reads it next.
+
+    The contract archive holds real per-contract boards, so the spread can just
+    be computed. Sign is kept as the engine documents it — DEFERRED MINUS
+    FRONT, negative = backwardation — which is the negation of the trade-facing
+    convention `front_spread()` returns.
+
+    Dates the archive does not cover are set to None rather than left on the
+    old scale. The engine already skips null structure, so those weeks lose
+    their curve signals instead of getting wrong ones. The archive starts
+    2021-08; earlier COT weeks fill in when it is backfilled deeper.
+    """
+    if not ARCHIVE.exists():
+        print("  cot.json: contract archive missing — structure_* left as imported")
+        return
+    try:
+        archive = json.loads(ARCHIVE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"  cot.json: contract archive unreadable ({e}) — structure_* left as imported")
+        return
+
+    spreads: dict[str, dict[str, float]] = {}
+    for side, mkt in _STRUCT_MARKETS.items():
+        board_by_day = archive.get(mkt) or {}
+        out: dict[str, float] = {}
+        for day, board in board_by_day.items():
+            fs = front_spread(board)
+            if fs:
+                # front-minus-deferred → deferred-minus-front for this field.
+                out[day] = round(-fs["spread"], 4)
+        spreads[side] = out
+
+    filled = {"ny": 0, "ldn": 0}
+    for row in result:
+        d = date.fromisoformat(row["date"])
+        for side in ("ny", "ldn"):
+            block = row.get(side)
+            if not block:
+                continue
+            key = f"structure_{'ny' if side == 'ny' else 'ldn'}"
+            table = spreads[side]
+            val = None
+            for back in range(_MAX_BOARD_LOOKBACK_DAYS + 1):
+                got = table.get((d - timedelta(days=back)).isoformat())
+                if got is not None:
+                    val = got
+                    break
+            block[key] = val
+            if val is not None:
+                filled[side] += 1
+    print(f"  cot.json: structure recomputed from archive — "
+          f"ny {filled['ny']}/{len(result)}, ldn {filled['ldn']}/{len(result)} weeks")
 
 
 MARKETS = {
