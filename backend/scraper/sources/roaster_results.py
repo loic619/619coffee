@@ -74,99 +74,122 @@ def _period_from_url(url: str) -> str | None:
     return f"{year}-{suffix}"
 
 
-def parse_sentence(sentence: str) -> tuple[float | None, float | None]:
-    """(organic %, volume/mix %) from one results sentence.
+_PCT = re.compile(r"(-?\d+(?:\.\d+)?)\s*%")
+_VOLMIX_HEADER = re.compile(r"vol\s*/?\s*mix", re.I)
+_BRIDGE = re.compile(r"sales growth bridge by segment", re.I)
 
-    Returns None for volume/mix when the sentence names it without a figure —
-    "very resilient volume/mix" is a claim, not a number, and inventing one
-    would defeat the point of tracking the metric at all.
+
+def _cell(v: object) -> str:
+    return re.sub(r"\s+", " ", str(v or "")).strip()
+
+
+def _pct(cell: str) -> float | None:
+    """'1.8%' -> 1.8, '-1.2%' -> -1.2, an em-dash or blank -> None.
+
+    A dash means the company reported no effect for that cell, which is not the
+    same as zero and certainly not the same as a guess.
     """
-    organic = None
-    om = _ORGANIC.search(sentence)
-    if om:
-        organic = float(om.group(1))
+    m = _PCT.search(cell)
+    return float(m.group(1)) if m else None
 
-    vol: float | None = None
-    best: int | None = None
-    for nm in _NUM.finditer(sentence):
-        if om and nm.start() == om.start(1):
-            continue                                   # that's the organic figure
-        value = float(nm.group(1))
-        candidates = [(abs(nm.start() - v.start()), "vol") for v in _VOL.finditer(sentence)]
-        candidates += [(abs(nm.start() - p.start()), "price") for p in _PRICE.finditer(sentence)]
-        if not candidates:
+
+def parse_bridge_table(table: list[list]) -> list[dict]:
+    """Rows of the 'Sales growth bridge by segment' table.
+
+    The table is the authoritative source — the same figures appear in prose
+    elsewhere in the report, but the phrasing there is unstable (order flips,
+    signs move between word and number, and some segments are described as
+    "very resilient" with no figure at all). A table column is unambiguous.
+
+    Column position is found by HEADER TEXT rather than fixed index, because
+    the bridge carries Vol/Mix, Price, Organic, FX, Scope and Reported, and
+    that layout is not guaranteed to stay put across years.
+    """
+    if not table:
+        return []
+    header_idx = None
+    vol_col = price_col = organic_col = None
+    for i, row in enumerate(table):
+        cells = [_cell(c) for c in row]
+        for j, c in enumerate(cells):
+            if _VOLMIX_HEADER.search(c):
+                header_idx, vol_col = i, j
+            elif re.fullmatch(r"price", c, re.I):
+                price_col = j
+            elif re.search(r"organic", c, re.I):
+                organic_col = j
+        if header_idx is not None:
+            break
+    if header_idx is None or vol_col is None:
+        return []
+
+    out: list[dict] = []
+    for row in table[header_idx + 1:]:
+        cells = [_cell(c) for c in row]
+        if not cells or not cells[0]:
             continue
-        distance, which = min(candidates)
-        if which != "vol":
+        segment = cells[0]
+        # Skip footnote / total-of-totals noise but keep the group line.
+        if len(segment) > 40 or _PCT.search(segment):
             continue
-        # An unsigned number after "a decrease in" is negative.
-        if value > 0 and _DECREASE.search(sentence[max(0, nm.start() - 60):nm.start()]):
-            value = -value
-        if best is None or distance < best:
-            best, vol = distance, value
-    return organic, vol
-
-
-def _segment_for(text: str, position: int) -> str:
-    """Nearest preceding segment name, or 'Group' for the headline figure."""
-    window = text[max(0, position - 400):position]
-    hits = [(window.rfind(s), s) for s in _SEGMENTS if window.rfind(s) >= 0]
-    if not hits:
-        return "Group"
-    return max(hits)[1].replace("’", "'")
+        vol = _pct(cells[vol_col]) if vol_col < len(cells) else None
+        if vol is None:
+            continue
+        out.append({
+            "segment": segment.replace("\u2019", "'"),
+            "volume_mix_pct": vol,
+            "price_pct": _pct(cells[price_col]) if price_col is not None and price_col < len(cells) else None,
+            "organic_pct": _pct(cells[organic_col]) if organic_col is not None and organic_col < len(cells) else None,
+        })
+    return out
 
 
 def parse_report(pdf_bytes: bytes) -> list[dict]:
-    """Every (segment, organic, volume/mix) triple a results PDF carries."""
+    """Vol/Mix per segment from the report's segment bridge."""
     try:
         import pdfplumber
     except ImportError:                                   # pragma: no cover
         log.error("[roaster_results] pdfplumber missing")
         return []
 
-    rows: list[dict] = []
-    seen: set[str] = set()
     with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-        for page in pdf.pages[:12]:                       # figures live at the front
-            text = (page.extract_text() or "").replace("\n", " ")
-            # NOT [^.]*? — a decimal point ends that match inside "15.3%", so
-            # the "sentence" becomes "Organic sales up +15" and every figure is
-            # lost. Take a bounded window instead and stop at a period that is
-            # followed by a space and a capital, i.e. a real sentence end.
-            for m in re.finditer(r"Organic sales.{0,400}?(?:\.\s+[A-Z]|$)", text):
-                sentence = m.group(0)
-                if not _VOL.search(sentence):
-                    continue
-                organic, vol = parse_sentence(sentence)
-                if organic is None and vol is None:
-                    continue
-                segment = _segment_for(text, m.start())
-                key = f"{segment}|{organic}|{vol}"
-                if key in seen:
-                    continue
-                seen.add(key)
-                rows.append({
-                    "segment": segment,
-                    "volume_mix_pct": vol,
-                    "organic_pct": organic,
-                })
-    return rows
+        for pageno, page in enumerate(pdf.pages, 1):
+            text = page.extract_text() or ""
+            if not _BRIDGE.search(text):
+                continue
+            for table in page.extract_tables():
+                rows = parse_bridge_table(table)
+                if rows:
+                    log.info("[roaster_results] bridge table on p%d → %d segments", pageno, len(rows))
+                    return rows
+            log.info("[roaster_results] p%d names the bridge but no table parsed", pageno)
+    return []
 
 
-def _report_urls() -> list[str]:
-    try:
-        r = requests.get(_IR_INDEX, headers=_HEADERS, timeout=45)
-        r.raise_for_status()
-    except Exception as e:                                # noqa: BLE001
-        log.warning("[roaster_results] IR index fetch failed: %s", e)
-        return []
-    hrefs = re.findall(r'href="([^"]+\.pdf[^"]*)"', r.text, re.I)
-    out = []
-    for h in hrefs:
-        if not re.search(r"result", h, re.I):
-            continue
-        out.append(h if h.startswith("http") else requests.compat.urljoin(_IR_INDEX, h))
-    return sorted(set(out))
+def _report_urls(back_years: int = 6) -> list[str]:
+    """Financial-report PDFs, newest first.
+
+    Built from the site's own URL pattern and HEAD-checked, rather than scraped
+    from the index page: the pattern is stable across years, while the index
+    markup is not (an earlier version of this scraper found exactly one PDF by
+    parsing it).
+    """
+    base = "https://www.jdepeets.com/siteassets/home/investors/financial-reports/"
+    year = datetime.now(timezone.utc).year
+    urls: list[str] = []
+    for y in range(year, year - back_years, -1):
+        for kind in ("full-year", "half-year"):
+            u = f"{base}jde-peets-{kind}-results-{y}-report.pdf"
+            try:
+                h = requests.head(u, headers=_HEADERS, timeout=30, allow_redirects=True)
+            except Exception:                             # noqa: BLE001
+                continue
+            if h.status_code == 200:
+                urls.append(u)
+            else:
+                log.debug("[roaster_results] %s → HTTP %s", u, h.status_code)
+    log.info("[roaster_results] %d report(s) available", len(urls))
+    return urls
 
 
 def build() -> dict:
