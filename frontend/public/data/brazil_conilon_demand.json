@@ -1,0 +1,263 @@
+{
+ "unit": "bags_60kg",
+ "estimate": true,
+ "method": "conilon domestic demand = CONAB conilon production − Cecafé conilon green exports − Cecafé soluble exports, over the Jul–Jun marketing year; share = that ÷ USDA PSD Brazilian domestic use. An estimate, not a published series.",
+ "sources": {
+  "production": "https://portaldeinformacoes.conab.gov.br/downloads/arquivos/SerieHistoricaCafe.txt",
+  "exports": "Cecafé monthly exports by species",
+  "consumption": "USDA PSD Brazil domestic consumption"
+ },
+ "updated": "2026-08-26T04:35:43.809973+00:00",
+ "history": [
+  {
+   "year": 2001,
+   "conilon_production": 8750000,
+   "arabica_production": 22550000,
+   "conilon_exports": 2588210,
+   "soluble_exports": 2474958,
+   "conilon_domestic": 3686832,
+   "domestic_consumption": 13700000,
+   "conilon_share": 26.9
+  },
+  {
+   "year": 2002,
+   "conilon_production": 10530000,
+   "arabica_production": 37950000,
+   "conilon_exports": 4399583,
+   "soluble_exports": 2712152,
+   "conilon_domestic": 3418265,
+   "domestic_consumption": 13500000,
+   "conilon_share": 25.3
+  },
+  {
+   "year": 2003,
+   "conilon_production": 8740000,
+   "arabica_production": 20080000,
+   "conilon_exports": 1350224,
+   "soluble_exports": 3033533,
+   "conilon_domestic": 4356243,
+   "domestic_consumption": 14400000,
+   "conilon_share": 30.3
+  },
+  {
+   "year": 2004,
+   "conilon_production": 7557000,
+   "arabica_production": 31715000,
+   "conilon_exports": 824583,
+   "soluble_exports": 3368145,
+   "conilon_domestic": 3364272,
+   "domestic_consumption": 15500000,
+   "conilon_share": 21.7
+  },
+  {
+   "year": 2005,
+   "conilon_production": 9126000,
+   "arabica_production": 23818000,
+   "conilon_exports": 982776,
+   "soluble_exports": 3192866,
+   "conilon_domestic": 4950358,
+   "domestic_consumption": 15915000,
+   "conilon_share": 31.1
+  },
+  {
+   "year": 2006,
+   "conilon_production": 9497000,
+   "arabica_production": 33015000,
+   "conilon_exports": 1481802,
+   "soluble_exports": 3164631,
+   "conilon_domestic": 4850567,
+   "domestic_consumption": 16720000,
+   "conilon_share": 29.0
+  },
+  {
+   "year": 2007,
+   "conilon_production": 10973000,
+   "arabica_production": 25095000,
+   "conilon_exports": 1734451,
+   "soluble_exports": 3538047,
+   "conilon_domestic": 5700502,
+   "domestic_consumption": 17390000,
+   "conilon_share": 32.8
+  },
+  {
+   "year": 2008,
+   "conilon_production": 10509000,
+   "arabica_production": 35484000,
+   "conilon_exports": 1867847,
+   "soluble_exports": 3008910,
+   "conilon_domestic": 5632243,
+   "domestic_consumption": 18030000,
+   "conilon_share": 31.2
+  },
+  {
+   "year": 2009,
+   "conilon_production": 10604000,
+   "arabica_production": 28866000,
+   "conilon_exports": 1036440,
+   "soluble_exports": 3185710,
+   "conilon_domestic": 6381850,
+   "domestic_consumption": 18760000,
+   "conilon_share": 34.0
+  },
+  {
+   "year": 2010,
+   "conilon_production": 11271000,
+   "arabica_production": 36824000,
+   "conilon_exports": 2135454,
+   "soluble_exports": 3393391,
+   "conilon_domestic": 5742155,
+   "domestic_consumption": 19420000,
+   "conilon_share": 29.6
+  },
+  {
+   "year": 2011,
+   "conilon_production": 11296000,
+   "arabica_production": 32189000,
+   "conilon_exports": 1729991,
+   "soluble_exports": 3469467,
+   "conilon_domestic": 6096542,
+   "domestic_consumption": 20025000,
+   "conilon_share": 30.4
+  },
+  {
+   "year": 2012,
+   "conilon_production": 12483000,
+   "arabica_production": 38343000,
+   "conilon_exports": 1243459,
+   "soluble_exports": 3716479,
+   "conilon_domestic": 7523062,
+   "domestic_consumption": 20110000,
+   "conilon_share": 37.4
+  },
+  {
+   "year": 2013,
+   "conilon_production": 10866000,
+   "arabica_production": 38287000,
+   "conilon_exports": 1941989,
+   "soluble_exports": 3506678,
+   "conilon_domestic": 5417333,
+   "domestic_consumption": 20210000,
+   "conilon_share": 26.8
+  },
+  {
+   "year": 2014,
+   "conilon_production": 13036000,
+   "arabica_production": 32307000,
+   "conilon_exports": 4564257,
+   "soluble_exports": 3493954,
+   "conilon_domestic": 4977789,
+   "domestic_consumption": 20420000,
+   "conilon_share": 24.4
+  },
+  {
+   "year": 2015,
+   "conilon_production": 11187000,
+   "arabica_production": 32049000,
+   "conilon_exports": 2328215,
+   "soluble_exports": 3644949,
+   "conilon_domestic": 5213836,
+   "domestic_consumption": 20855000,
+   "conilon_share": 25.0
+  },
+  {
+   "year": 2016,
+   "conilon_production": 7986000,
+   "arabica_production": 43382000,
+   "conilon_exports": 278425,
+   "soluble_exports": 3727502,
+   "conilon_domestic": 3980073,
+   "domestic_consumption": 21625000,
+   "conilon_share": 18.4
+  },
+  {
+   "year": 2017,
+   "conilon_production": 10721000,
+   "arabica_production": 34257000,
+   "conilon_exports": 682831,
+   "soluble_exports": 3495685,
+   "conilon_domestic": 6542484,
+   "domestic_consumption": 22420000,
+   "conilon_share": 29.2
+  },
+  {
+   "year": 2018,
+   "conilon_production": 14166000,
+   "arabica_production": 47490000,
+   "conilon_exports": 3614484,
+   "soluble_exports": 4023535,
+   "conilon_domestic": 6527981,
+   "domestic_consumption": 23200000,
+   "conilon_share": 28.1
+  },
+  {
+   "year": 2019,
+   "conilon_production": 15013000,
+   "arabica_production": 34297000,
+   "conilon_exports": 4457787,
+   "soluble_exports": 4040267,
+   "conilon_domestic": 6514946,
+   "domestic_consumption": 22994000,
+   "conilon_share": 28.3
+  },
+  {
+   "year": 2020,
+   "conilon_production": 14311000,
+   "arabica_production": 48768000,
+   "conilon_exports": 4730981,
+   "soluble_exports": 3953757,
+   "conilon_domestic": 5626262,
+   "domestic_consumption": 22280000,
+   "conilon_share": 25.3
+  },
+  {
+   "year": 2021,
+   "conilon_production": 16292500,
+   "arabica_production": 31423500,
+   "conilon_exports": 2610819,
+   "soluble_exports": 4055150,
+   "conilon_domestic": 9626531,
+   "domestic_consumption": 22340000,
+   "conilon_share": 43.1
+  },
+  {
+   "year": 2022,
+   "conilon_production": 18199300,
+   "arabica_production": 32720800,
+   "conilon_exports": 1468179,
+   "soluble_exports": 3712100,
+   "conilon_domestic": 13019021,
+   "domestic_consumption": 22450000,
+   "conilon_share": 58.0
+  },
+  {
+   "year": 2023,
+   "conilon_production": 16167400,
+   "arabica_production": 38904900,
+   "conilon_exports": 8251712,
+   "soluble_exports": 3687582,
+   "conilon_domestic": 4228106,
+   "domestic_consumption": 22160000,
+   "conilon_share": 19.1
+  },
+  {
+   "year": 2024,
+   "conilon_production": 14616700,
+   "arabica_production": 39598400,
+   "conilon_exports": 6575579,
+   "soluble_exports": 4156533,
+   "conilon_domestic": 3884588,
+   "domestic_consumption": 21970000,
+   "conilon_share": 17.7
+  },
+  {
+   "year": 2025,
+   "conilon_production": 20772200,
+   "arabica_production": 35763100,
+   "conilon_exports": 5041374,
+   "soluble_exports": 3879654,
+   "conilon_domestic": 11851172,
+   "domestic_consumption": 22280000,
+   "conilon_share": 53.2
+  }
+ ]
+}
