@@ -9,12 +9,10 @@ fixed definition:
     JDE Peet's   volume/mix vs price, split per segment
     Nestle       RIG (Real Internal Growth), same idea, different house style
 
-WHAT THIS COVERS. JDE Peet's only, for now. Nestle's site returns HTTP 403 to a
-plain bot user-agent, to a full browser user-agent, and to a real headless
-Chromium driving a browser user-agent — all three measured from a GitHub
-runner. Their protection rejects datacentre traffic outright, so no scraper
-that runs in CI reaches them. Nestle RIG needs another route entirely, which is
-recorded in docs/TODO.md rather than half-built here.
+WHAT THIS COVERS. Both. Nestle's HTML pages do return 403 from CI, but their
+press releases sit on a STATIC file path that is not protected, so the PDFs are
+fetched directly by URL pattern and the site is never scraped at all. That is
+both faster and less brittle than walking the results calendar.
 
 PARSING. The numbers live in prose, not a table, and the phrasing is not
 stable. All four of these appear in one report:
@@ -209,6 +207,100 @@ def _report_urls(back_years: int = 6) -> list[str]:
     return urls
 
 
+# ── Nestle ───────────────────────────────────────────────────────────────────
+# The HTML pages 403 from CI, but the press releases sit on a STATIC file path
+# that is not behind the same protection — reachable with a plain GET. The
+# directory is the publication month, which is fixed per release type: three-
+# month sales in April, half-year in July, nine-month in October, and full-year
+# the FOLLOWING February.
+#
+# Their "Sales performance summary" is TRANSPOSED relative to JDE's bridge:
+# metrics run down the side (RIG, Pricing, Organic growth, Net M&A, FX,
+# Reported) and segments across the top (Total Group, the Zones, Nespresso …).
+# So the RIG row is located by its label and zipped against the header row,
+# rather than reading a column.
+_NESTLE_BASE = "https://www.nestle.com/sites/default/files"
+_NESTLE_KINDS = [
+    # (label, url slug, publication month, year offset)
+    ("3M", "three-month-sales-press-release", 4, 0),
+    ("H1", "half-year-results-press-release", 7, 0),
+    ("9M", "nine-month-sales-press-release", 10, 0),
+    ("FY", "full-year-results-press-release", 2, 1),
+]
+_RIG_ROW = re.compile(r"real internal growth|\bRIG\b", re.I)
+_HEADER_ANCHOR = re.compile(r"total group", re.I)
+
+
+def parse_nestle_summary(table: list[list]) -> list[dict]:
+    """RIG per segment from the sales-performance summary."""
+    flat = [[_cell(c) for c in row] for row in (table or [])]
+    header = next((r for r in flat if _HEADER_ANCHOR.search(" ".join(r))), None)
+    rig = next((r for r in flat if r and _RIG_ROW.search(r[0])), None)
+    if not header or not rig:
+        return []
+    out: list[dict] = []
+    for i, name in enumerate(header):
+        if not name or i >= len(rig):
+            continue
+        if _HEADER_ANCHOR.search(name) is None and i == 0:
+            continue                                   # the stub cell
+        value = _pct(rig[i])
+        if value is None:
+            continue
+        out.append({"segment": name, "volume_mix_pct": value,
+                    "price_pct": None, "organic_pct": None})
+    return out
+
+
+def parse_nestle_report(pdf_bytes: bytes) -> list[dict]:
+    try:
+        import pdfplumber
+    except ImportError:                                   # pragma: no cover
+        return []
+    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+        for pageno, page in enumerate(pdf.pages, 1):
+            text = page.extract_text() or ""
+            if not _RIG_ROW.search(text):
+                continue
+            # Lines FIRST here: Nestle's summary is a ruled table, and the text
+            # strategy shreds the page header into cells that happen to contain
+            # "RIG" — which is how an earlier attempt matched the wrong table.
+            for settings in ({"vertical_strategy": "lines", "horizontal_strategy": "lines"},
+                             {"vertical_strategy": "text", "horizontal_strategy": "lines"},
+                             None):
+                try:
+                    tables = page.extract_tables(settings) if settings else page.extract_tables()
+                except Exception:                          # noqa: BLE001
+                    continue
+                for table in tables or []:
+                    rows = parse_nestle_summary(table)
+                    if rows:
+                        log.info("[roaster_results] nestle RIG p%d → %s", pageno,
+                                 ", ".join(f"{r['segment']}={r['volume_mix_pct']}" for r in rows))
+                        return rows
+    return []
+
+
+def nestle_periods(back_years: int = 3) -> list[dict]:
+    now = datetime.now(timezone.utc)
+    periods: list[dict] = []
+    for year in range(now.year, now.year - back_years, -1):
+        for label, slug, month, offset in _NESTLE_KINDS:
+            url = f"{_NESTLE_BASE}/{year + offset}-{month:02d}/{slug}-{year}-en.pdf"
+            try:
+                r = requests.get(url, headers=_HEADERS, timeout=60)
+            except Exception:                              # noqa: BLE001
+                continue
+            if not r.ok or b"%PDF" not in r.content[:1024]:
+                continue
+            rows = parse_nestle_report(r.content)
+            if not rows:
+                log.info("[roaster_results] nestle %s-%s: PDF found, no RIG table", year, label)
+                continue
+            periods.append({"period": f"{year}-{label}", "source_url": url, "segments": rows})
+    return sorted(periods, key=lambda p: p["period"])
+
+
 def build() -> dict:
     periods: list[dict] = []
     for url in _report_urls():
@@ -236,6 +328,14 @@ def build() -> dict:
             "name": "JDE Peet's",
             "metric_name": "Volume/mix",
             "periods": sorted(periods, key=lambda p: p["period"]),
+        })
+    nestle = nestle_periods()
+    if nestle:
+        companies.append({
+            "key": "nestle",
+            "name": "Nestlé",
+            "metric_name": "RIG",
+            "periods": nestle,
         })
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
