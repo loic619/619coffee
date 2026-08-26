@@ -1,0 +1,158 @@
+{
+  "generated_at": "2026-08-26T05:21:01.040268+00:00",
+  "source": "Company results releases (PDF)",
+  "note": "JDE Peet's only. Nestle's site returns 403 to bot, browser-UA and headless-browser requests alike from CI runners, so RIG cannot be scraped there.",
+  "companies": [
+    {
+      "key": "jdep",
+      "name": "JDE Peet's",
+      "metric_name": "Volume/mix",
+      "periods": [
+        {
+          "period": "2024-FY",
+          "source_url": "https://www.jdepeets.com/siteassets/home/investors/financial-reports/jde-peets-full-year-results-2024-report.pdf",
+          "segments": [
+            {
+              "segment": "Europe",
+              "volume_mix_pct": -0.8,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "LARMEA",
+              "volume_mix_pct": 3.3,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "Peet's",
+              "volume_mix_pct": 5.0,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "APAC",
+              "volume_mix_pct": -2.3,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "JDE Peet's",
+              "volume_mix_pct": 0.7,
+              "price_pct": null,
+              "organic_pct": null
+            }
+          ]
+        },
+        {
+          "period": "2024-H1",
+          "source_url": "https://www.jdepeets.com/siteassets/home/investors/financial-reports/jde-peets-half-year-results-2024-report.pdf",
+          "segments": [
+            {
+              "segment": "Europe",
+              "volume_mix_pct": 1.4,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "LARMEA",
+              "volume_mix_pct": 2.0,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "Peet's",
+              "volume_mix_pct": 2.3,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "APAC",
+              "volume_mix_pct": -3.7,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "JDE Peet's",
+              "volume_mix_pct": 1.2,
+              "price_pct": null,
+              "organic_pct": null
+            }
+          ]
+        },
+        {
+          "period": "2025-FY",
+          "source_url": "https://www.jdepeets.com/siteassets/home/investors/financial-reports/jde-peets-full-year-results-2025-report.pdf",
+          "segments": [
+            {
+              "segment": "Europe",
+              "volume_mix_pct": -7.9,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "LARMEA",
+              "volume_mix_pct": -0.1,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "Peet's",
+              "volume_mix_pct": 0.7,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "APAC",
+              "volume_mix_pct": -1.4,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "JDE Peet's",
+              "volume_mix_pct": -4.3,
+              "price_pct": null,
+              "organic_pct": null
+            }
+          ]
+        },
+        {
+          "period": "2025-H1",
+          "source_url": "https://www.jdepeets.com/siteassets/home/investors/financial-reports/jde-peets-half-year-results-2025-report.pdf",
+          "segments": [
+            {
+              "segment": "Europe",
+              "volume_mix_pct": 1.8,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "LARMEA",
+              "volume_mix_pct": -1.2,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "Peet's",
+              "volume_mix_pct": 0.6,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "APAC",
+              "volume_mix_pct": 0.7,
+              "price_pct": null,
+              "organic_pct": null
+            },
+            {
+              "segment": "JDE Peet's",
+              "volume_mix_pct": 1.0,
+              "price_pct": null,
+              "organic_pct": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
