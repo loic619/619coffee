@@ -1,0 +1,81 @@
+name: "Z – Backfill: per-contract prices to 10y (manual)"
+
+# One-off/manual: deepen data/contract_prices_archive.json past the ~5y the
+# nightly OI fetch has accumulated, by walking Barchart's per-contract EOD
+# history (see backend/scraper/backfill_contract_prices.py).
+#
+# Re-runnable and safe: merge_prices() fills GAPS only and never overwrites a
+# price the nightly job captured from the live board.
+#
+# Retention: fetch_oi_json.ARCHIVE_MAX_DAYS must cover the span fetched here,
+# or the next nightly _trim_archive deletes the work. It is set to 10y, and a
+# test pins it at >= the backfill span so the two cannot drift apart.
+
+on:
+  workflow_dispatch:
+    inputs:
+      years:
+        description: "Years of history to fetch (archive retention is 10y)"
+        required: false
+        default: "10"
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    concurrency:
+      # Its OWN lane, deliberately. Sharing a group across workflows is what
+      # this repo moved away from on 2026-08-14: GitHub queues exactly ONE
+      # pending run per group, so a third arrival CANCELS the one waiting and
+      # throws its fetched data away. Push serialisation is handled by the
+      # commit-data action instead.
+      group: backfill-contract-prices
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}
+      - name: Install dependencies
+        run: |
+          pip install playwright requests
+          sudo rm -f /etc/apt/sources.list.d/*microsoft* /etc/apt/sources.list.d/*azure* || true
+          playwright install chromium --with-deps || playwright install chromium
+      - name: Archive span before
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          a = json.loads(pathlib.Path("data/contract_prices_archive.json").read_text())
+          for m in ("arabica", "robusta"):
+              ks = sorted(a.get(m, {}))
+              print(f"{m}: {len(ks)} days  {ks[0] if ks else '-'} → {ks[-1] if ks else '-'}")
+          PY
+      - name: Backfill per-contract prices
+        env:
+          PYTHONPATH: backend
+        run: python backend/scraper/backfill_contract_prices.py --years "${{ inputs.years || '10' }}"
+      - name: Rebuild the studies that read the archive
+        # front_spread reads the archive directly, so a deeper archive must be
+        # re-exported in the same run or the chart keeps showing the old span.
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from scraper.exporters.front_spread import export_front_spread
+          export_front_spread()
+          print("front_spread.json re-exported")
+          PY
+      - name: Commit
+        uses: ./.github/actions/commit-data
+        with:
+          files: |
+            data/contract_prices_archive.json
+            frontend/public/data/front_spread.json
+          message: "data: per-contract price archive backfill to 10y [skip ci]"

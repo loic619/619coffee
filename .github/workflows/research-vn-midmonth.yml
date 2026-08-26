@@ -1,0 +1,88 @@
+name: "Z – Research: Vietnam mid-month vs full month (manual)"
+
+# One-off/manual study: does Vietnam Customs' k1 bulletin (data through the
+# 15th) represent about half the eventual full month?
+#
+# The trade reads k1 early and doubles it. This measures whether that works
+# rather than repeating it, and deliberately leads on DISPERSION — a mean of
+# 0.50 built from 0.30 and 0.70 looks perfect in a headline and is useless in
+# a trade. See backend/scraper/research_vn_midmonth.py.
+#
+# Reads k1 from the same portal listing the monthly scraper already uses
+# (customs.gov.vn pageId=441), so it needs a browser session, not just the
+# file host.
+#
+# Writes data/vn_midmonth_ratio.json. Touches no series the app renders.
+
+on:
+  workflow_dispatch:
+    inputs:
+      months:
+        description: "How many recent complete months to pair"
+        required: false
+        default: "24"
+
+jobs:
+  study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    concurrency:
+      group: research-vn-midmonth
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}
+      - name: Install dependencies
+        run: |
+          pip install playwright requests pdfplumber
+          sudo rm -f /etc/apt/sources.list.d/*microsoft* /etc/apt/sources.list.d/*azure* || true
+          playwright install chromium --with-deps || playwright install chromium
+      - name: Audit the monthly series first
+        # Cheap, offline, and the thing most worth knowing before trusting any
+        # k1/full ratio: confirm no half-month figure already sits in the
+        # monthly series. Fails the run rather than reporting on bad pairs.
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          import json, sys
+          from backend.scraper.research_vn_midmonth import half_month_audit
+          from backend.scraper.sources.vn_coffee_export import _CACHE_PATH
+          cache = json.loads(_CACHE_PATH.read_text(encoding="utf-8"))
+          out = half_month_audit(cache.get("monthly", []))
+          print(json.dumps({k: v for k, v in out.items() if k != "ratios"}, indent=2))
+          if not out["clean"]:
+              print(f"::error::half-month figures in the monthly series: {out['suspect_months']}")
+              sys.exit(1)
+          PY
+      - name: Run the mid-month study
+        env:
+          PYTHONPATH: backend
+        run: python -m backend.scraper.research_vn_midmonth --months "${{ inputs.months || '24' }}"
+      - name: Show the verdict in the job summary
+        if: always()
+        run: |
+          if [ -f data/vn_midmonth_ratio.json ]; then
+            {
+              echo "## Vietnam mid-month study"
+              echo '```json'
+              python -c "import json;d=json.load(open('data/vn_midmonth_ratio.json'));print(json.dumps(d['stats'],indent=2))"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No report written — see the step log." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Commit
+        uses: ./.github/actions/commit-data
+        with:
+          files: data/vn_midmonth_ratio.json
+          message: "research: Vietnam mid-month vs full-month ratios [skip ci]"
