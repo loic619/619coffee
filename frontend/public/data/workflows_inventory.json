@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-25T09:33:16.707546Z",
-  "count": 83,
+  "generated_at": "2026-08-26T04:29:06.672322Z",
+  "count": 84,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -483,6 +483,17 @@
     {
       "file": "probe-cepea.yml",
       "name": "Z \u2013 Probe: CEPEA coffee scrape (test)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 10
+    },
+    {
+      "file": "probe-conab-cafe.yml",
+      "name": "Probe: CONAB coffee historical series (temporary)",
       "triggers": [
         "workflow_dispatch"
       ],
@@ -1163,11 +1174,6 @@
         "version": "1.18"
       },
       {
-        "file": "tradespread.yml",
-        "name": "1.20 \u2013 Traded tape (acaphe tradespread)",
-        "version": "1.20"
-      },
-      {
         "file": "b3-kc-close.yml",
         "name": "1.6 \u2013 B3 at KC close + final fechamento",
         "version": "1.6"
@@ -1176,11 +1182,6 @@
         "file": "fetch-intraday-kc-rc.yml",
         "name": "1.96 \u2013 Fetch Intraday KC/RC 15min (Barchart)",
         "version": "1.96"
-      },
-      {
-        "file": "refresh-intraday-15min.yml",
-        "name": "1.98 \u2013 Refresh Intraday KC/RC 15min (daily)",
-        "version": "1.98"
       },
       {
         "file": "apply-crop-estimate-edit.yml",
@@ -1224,7 +1225,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 21,
+    "uncovered_workflows_count": 19,
     "stale_curation_count": 0
   }
 }
