@@ -26,3 +26,12 @@ scipy
 # 3.1.x is already a transitive dep through several libs; pinning it here makes
 # the requirement explicit so a future trim of transitive deps can't break it.
 jinja2>=3.1,<4.0
+
+# test_workflow_triggers.py parses .github/workflows/*.yml to guard two silent
+# failure modes: a rename that orphans every workflow_run listener, and two
+# workflows sharing a leading number. It used pytest.importorskip("yaml") and
+# PyYAML was declared nowhere, so the guard SKIPPED in CI — the exact
+# "goes quiet without failing" failure it exists to catch, applied to itself.
+# A duplicate 1.21 reached main through that gap. Declared, and the test now
+# imports yaml outright so it can never skip again.
+pyyaml>=6.0,<7.0
