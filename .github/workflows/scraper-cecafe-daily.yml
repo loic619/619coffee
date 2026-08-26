@@ -144,12 +144,41 @@ jobs:
       # workflow (10:00 UTC, after this job), so a flaky Cecafe fetch no longer
       # blocks the daily deploy.
 
-      - name: Notify on failure
+      - name: Notify on failure — but only if the DATA has gone stale
         if: failure()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        # Cecafe's site is intermittently unreachable from GitHub runners. The
+        # scraper already retries three times inside the run, keeps the last
+        # good JSON, and the next cron picks the data up — so a single failed
+        # window costs nothing and used to send an alert anyway, roughly twice
+        # a week. Alerts that fire on recoverable events stop being read, and
+        # then the one that matters is missed too.
+        #
+        # So the run still goes red — the failure is real and belongs in the
+        # run record — but the phone only buzzes once the DATA is actually
+        # behind. Cecafe publishes each business day; three days covers a long
+        # weekend plus one missed window before anything is genuinely wrong.
         run: |
+          STALE_DAYS=3
+          FILE=frontend/public/data/cecafe_daily.json
+          age=$(python3 - "$FILE" <<'PY'
+          import json, sys
+          from datetime import date
+          try:
+              d = json.load(open(sys.argv[1]))
+              y, m, dd = (int(x) for x in d["updated"].split("-"))
+              print((date.today() - date(y, m, dd)).days)
+          except Exception:
+              print(999)   # unreadable stamp: treat as stale and alert
+          PY
+          )
+          echo "cecafe_daily.json is ${age} day(s) old (alert threshold ${STALE_DAYS})"
+          if [ "$age" -lt "$STALE_DAYS" ]; then
+            echo "Fetch failed but the data is still current — no alert. Next cron will retry."
+            exit 0
+          fi
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             -d "chat_id=${TELEGRAM_CHAT_ID}" \
-            -d "text=🚨 ${{ github.workflow }} failed — $(date -u +'%Y-%m-%d %H:%M UTC') — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
+            -d "text=🚨 ${{ github.workflow }} — Cecafe data is ${age}d old (fetch failing) — $(date -u +'%Y-%m-%d %H:%M UTC') — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
