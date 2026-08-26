@@ -10,7 +10,8 @@ from models import (
 )
 from scraper._export_common import _badge as _badge_from_risk_code
 from scraper._export_common import _worst_risk
-from scraper.enso import derive_enso_phase as _derive_enso_phase
+from scraper.enso import classify_enso as _classify_enso
+from scraper.enso import current_event_peak as _current_event_peak
 from scraper.enso import oni_to_dots as _oni_to_dots
 from scraper.exporters.base import OUT_DIR, ROOT
 from scraper.rules import frost_model as _fm
@@ -234,7 +235,21 @@ def export_farmer_economics(db) -> None:
             meta = json.loads(enso_item.meta or "{}")
             oni_history = meta.get("oni_history", [])
             if oni_history:
-                phase, intensity, current_oni = _derive_enso_phase(oni_history)
+                # Niño 3.4 leads the ONI, so the same weekly series the map
+                # uses is fed in here too — otherwise farmer_economics.json and
+                # enso.json can disagree about the phase, which is exactly how
+                # the risk map ended up green during a +2.6 °C event.
+                _idx_path = OUT_DIR / "enso_indices.json"
+                _nino34 = None
+                if _idx_path.exists():
+                    try:
+                        _idx = json.loads(_idx_path.read_text(encoding="utf-8"))
+                        _nino34 = (_idx.get("nino34") or {}).get("weekly") or None
+                    except (OSError, ValueError):
+                        _nino34 = None
+                _cls = _classify_enso(oni_history, nino34_weekly=_nino34)
+                phase, intensity, current_oni = _cls["phase"], _cls["intensity"], _cls["oni"]
+                status = _cls["status"]
                 dots = _oni_to_dots(current_oni)
 
                 regional_impact = []
@@ -243,27 +258,35 @@ def export_farmer_economics(db) -> None:
 
                 # Forecast direction: trend-based sentence (NOAA ONI file is
                 # all historical — no real future forecasts available).
-                confirmed = [p for p in oni_history if not p.get("preliminary")]
                 recent_vals = [p["value"] for p in oni_history[-5:]]
                 trend = (recent_vals[-1] - recent_vals[0]) if len(recent_vals) >= 2 else 0
+                label = "El Niño" if phase == "el-nino" else "La Niña"
                 if phase == "neutral":
-                    forecast_direction = "Neutral · No strong signal for 2026"
+                    forecast_direction = "Neutral · no ENSO signal in the observed record"
+                elif status == "emerging":
+                    # Say plainly that it is not yet a NOAA-confirmed event —
+                    # the alternative was calling a +1.39 ONI "neutral".
+                    forecast_direction = (
+                        f"{label} developing · strengthening"
+                        if (trend > 0.15) == (phase == "el-nino")
+                        else f"{label} developing · not yet a confirmed event"
+                    )
                 elif phase == "el-nino":
                     forecast_direction = "El Niño weakening" if trend < -0.15 else "El Niño conditions ongoing"
                 else:  # la-nina
                     forecast_direction = "La Niña weakening toward neutral" if trend > 0.15 else "La Niña ongoing"
 
-                # Peak month: confirmed (non-preliminary) point with highest |value|
-                history_for_peak = confirmed if confirmed else oni_history
-                if history_for_peak:
-                    peak_pt    = max(history_for_peak, key=lambda p: abs(p["value"]))
-                    peak_month = peak_pt["month"]
-                else:
-                    peak_month = ""
+                # Peak of the CURRENT event. The old code took the extremum over
+                # the whole published history, so a developing El Niño reported
+                # the previous La Niña's trough as its peak (Nov-25, -0.61).
+                peak_month = _current_event_peak(oni_history, phase)
 
                 oni_forecast = meta.get("oni_forecast", [])
                 enso_out = {
                     "phase":              phase,
+                    "phase_status":       status,
+                    "official_phase":     _cls["official_phase"],
+                    "phase_basis":        _cls["basis"],
                     "intensity":          intensity,
                     "oni":                current_oni,
                     "peak_month":         peak_month,

@@ -1,0 +1,45 @@
+{
+ "generated": "2026-08-26T04:26:15+00:00",
+ "crop_year": "2025/26",
+ "unit": "million 60-kg bags",
+ "sources": [
+  {
+   "key": "internal",
+   "label": "Our hubs",
+   "season": "2025/26",
+   "m_bags": 164.0,
+   "note": "Sum of the consumption-by-hub lines on this sheet",
+   "carried_forward": false
+  },
+  {
+   "key": "ccs",
+   "label": "CCS Coffee",
+   "season": "2023/24",
+   "m_bags": 171.6,
+   "note": "CCS world consumption; their PRELIM column is excluded",
+   "carried_forward": true
+  },
+  {
+   "key": "ico",
+   "label": "ICO",
+   "season": "2023/24",
+   "m_bags": 177.0,
+   "note": "ICO Coffee Market Report",
+   "carried_forward": true
+  },
+  {
+   "key": "usda",
+   "label": "USDA PSD",
+   "season": "2025/26",
+   "m_bags": 178.0,
+   "note": "Summed across 49 tracked consuming markets",
+   "carried_forward": false
+  }
+ ],
+ "mean": 172.7,
+ "spread": [
+  164.0,
+  178.0
+ ],
+ "note": "World consumption as the mean of the available published estimates, mirroring how production is derived on this sheet. The hub lines supply the SHAPE of demand and are scaled to this headline, so they stay editable and stay meaningful — they say how the world drinks, not how much. A source whose latest season trails the statement's crop year is marked carried_forward: consumption moves slowly enough for it to be informative, but not so slowly that the staleness should be invisible."
+}

@@ -4,190 +4,1273 @@
     "country": "Brazil",
     "lat": -21.55,
     "lon": -45.43,
+    "measured": true,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "driver": "No phase at risk in the projected window",
+    "severity": 0,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "flowering",
+        "months": [
+          9,
+          10,
+          11
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 14.6,
+        "n": 4,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          12
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 1.2,
+        "n": 4,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          6,
+          7,
+          8
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": 11.0,
+        "n": 2,
+        "consistency": 0.5
+      }
+    ],
+    "lag_months": 0,
+    "lag_r": 0.15
   },
   {
     "region": "Cerrado",
     "country": "Brazil",
     "lat": -18.95,
     "lon": -46.99,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Rain through flowering — blossom drop, uneven set (main) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "flowering",
+        "months": [
+          9,
+          10,
+          11
+        ],
+        "severity": 1,
+        "driver": "Rain through flowering — blossom drop, uneven set",
+        "anomaly_pct": 8.6,
+        "n": 4,
+        "consistency": 0.75
+      },
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          12
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": 5.0,
+        "n": 4,
+        "consistency": 0.75
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          6,
+          7,
+          8
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": 151.9,
+        "n": 2,
+        "consistency": 1.0
+      }
+    ],
+    "lag_months": 0,
+    "lag_r": 0.213,
+    "status": "emerging"
   },
   {
     "region": "Espírito Santo",
     "country": "Brazil",
     "lat": -20.0,
     "lon": -40.8,
+    "measured": true,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "driver": "No phase at risk in the projected window",
+    "severity": 0,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          12,
+          1,
+          2,
+          3,
+          4
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -6.2,
+        "n": 2,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          5,
+          6
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -14.3,
+        "n": 5,
+        "consistency": 0.6
+      }
+    ],
+    "lag_months": 6,
+    "lag_r": -0.154
   },
   {
     "region": "Paraná",
     "country": "Brazil",
     "lat": -23.31,
     "lon": -50.62,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Drought at cherry fill — bean size, cherry drop (main) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "flowering",
+        "months": [
+          9,
+          10,
+          11
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 17.9,
+        "n": 4,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          12
+        ],
+        "severity": 2,
+        "driver": "Drought at cherry fill — bean size, cherry drop",
+        "anomaly_pct": -11.0,
+        "n": 4,
+        "consistency": 0.75
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          6,
+          7,
+          8
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": 5.2,
+        "n": 2,
+        "consistency": 0.5
+      }
+    ],
+    "lag_months": 0,
+    "lag_r": 0.121,
+    "status": "emerging"
   },
   {
     "region": "Huila",
     "country": "Colombia",
     "lat": 1.85,
     "lon": -76.05,
+    "measured": true,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "driver": "No phase at risk in the projected window",
+    "severity": 0,
+    "phase_hits": [
+      {
+        "cycle": "principal",
+        "phase": "flowering",
+        "months": [
+          1,
+          2,
+          3
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": 0.6,
+        "n": 2,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "principal",
+        "phase": "fruit_fill",
+        "months": [
+          4,
+          5,
+          6
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 15.1,
+        "n": 5,
+        "consistency": 0.4
+      },
+      {
+        "cycle": "principal",
+        "phase": "harvest",
+        "months": [
+          12,
+          1
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -9.1,
+        "n": 3,
+        "consistency": 0.67
+      },
+      {
+        "cycle": "mitaca",
+        "phase": "fruit_fill",
+        "months": [
+          12,
+          1,
+          2,
+          3
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": 10.6,
+        "n": 2,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "mitaca",
+        "phase": "harvest",
+        "months": [
+          4,
+          5,
+          6
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 16.8,
+        "n": 5,
+        "consistency": 0.4
+      }
+    ],
+    "lag_months": 6,
+    "lag_r": 0.308
   },
   {
     "region": "Antioquia",
     "country": "Colombia",
     "lat": 6.25,
     "lon": -75.56,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Drought at cherry fill — bean size, cherry drop (principal) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "principal",
+        "phase": "fruit_fill",
+        "months": [
+          6,
+          7,
+          8,
+          9
+        ],
+        "severity": 2,
+        "driver": "Drought at cherry fill — bean size, cherry drop",
+        "anomaly_pct": -21.5,
+        "n": 3,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "principal",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": -7.8,
+        "n": 4,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "mitaca",
+        "phase": "flowering",
+        "months": [
+          9,
+          10
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -8.3,
+        "n": 3,
+        "consistency": 0.67
+      },
+      {
+        "cycle": "mitaca",
+        "phase": "fruit_fill",
+        "months": [
+          11,
+          12
+        ],
+        "severity": 2,
+        "driver": "Drought at cherry fill — bean size, cherry drop",
+        "anomaly_pct": -14.3,
+        "n": 4,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "mitaca",
+        "phase": "harvest",
+        "months": [
+          6
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": -2.5,
+        "n": 3,
+        "consistency": 0.67
+      }
+    ],
+    "lag_months": 0,
+    "lag_r": -0.29,
+    "status": "emerging"
   },
   {
     "region": "Cauca",
     "country": "Colombia",
     "lat": 2.44,
     "lon": -76.61,
+    "measured": true,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "driver": "No phase at risk in the projected window",
+    "severity": 0,
+    "phase_hits": [
+      {
+        "cycle": "principal",
+        "phase": "flowering",
+        "months": [
+          1,
+          2,
+          3
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": 17.2,
+        "n": 2,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "principal",
+        "phase": "fruit_fill",
+        "months": [
+          4,
+          5,
+          6
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 63.0,
+        "n": 5,
+        "consistency": 0.4
+      },
+      {
+        "cycle": "principal",
+        "phase": "harvest",
+        "months": [
+          12,
+          1
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 1.8,
+        "n": 3,
+        "consistency": 0.33
+      },
+      {
+        "cycle": "mitaca",
+        "phase": "fruit_fill",
+        "months": [
+          12,
+          1,
+          2,
+          3
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": 16.9,
+        "n": 2,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "mitaca",
+        "phase": "harvest",
+        "months": [
+          4,
+          5,
+          6
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 53.4,
+        "n": 5,
+        "consistency": 0.4
+      }
+    ],
+    "lag_months": 6,
+    "lag_r": 0.472
   },
   {
     "region": "Caldas",
     "country": "Colombia",
     "lat": 5.07,
     "lon": -75.52,
+    "measured": true,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "driver": "No phase at risk in the projected window",
+    "severity": 0,
+    "phase_hits": [
+      {
+        "cycle": "principal",
+        "phase": "flowering",
+        "months": [
+          1,
+          2,
+          3
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": 23.9,
+        "n": 2,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "principal",
+        "phase": "fruit_fill",
+        "months": [
+          4,
+          5,
+          6
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 33.6,
+        "n": 5,
+        "consistency": 0.4
+      },
+      {
+        "cycle": "principal",
+        "phase": "harvest",
+        "months": [
+          12,
+          1
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 10.3,
+        "n": 3,
+        "consistency": 0.33
+      },
+      {
+        "cycle": "mitaca",
+        "phase": "fruit_fill",
+        "months": [
+          12,
+          1,
+          2,
+          3
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": 34.3,
+        "n": 2,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "mitaca",
+        "phase": "harvest",
+        "months": [
+          4,
+          5,
+          6
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 35.0,
+        "n": 5,
+        "consistency": 0.4
+      }
+    ],
+    "lag_months": 6,
+    "lag_r": 0.433
   },
   {
     "region": "Nariño",
     "country": "Colombia",
     "lat": 1.21,
     "lon": -77.28,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Drought at flowering — failed set (principal) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "principal",
+        "phase": "flowering",
+        "months": [
+          1,
+          2
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -21.9,
+        "n": 5,
+        "consistency": 0.8
+      },
+      {
+        "cycle": "principal",
+        "phase": "fruit_fill",
+        "months": [
+          8,
+          9
+        ],
+        "severity": 2,
+        "driver": "Drought at cherry fill — bean size, cherry drop",
+        "anomaly_pct": -24.0,
+        "n": 4,
+        "consistency": 0.75
+      },
+      {
+        "cycle": "principal",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12,
+          1
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -20.0,
+        "n": 3,
+        "consistency": 0.67
+      },
+      {
+        "cycle": "mitaca",
+        "phase": "flowering",
+        "months": [
+          9,
+          10
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -33.6,
+        "n": 2,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "mitaca",
+        "phase": "fruit_fill",
+        "months": [
+          11,
+          12,
+          1,
+          2
+        ],
+        "severity": 2,
+        "driver": "Drought at cherry fill — bean size, cherry drop",
+        "anomaly_pct": -14.8,
+        "n": 4,
+        "consistency": 1.0
+      }
+    ],
+    "lag_months": 2,
+    "lag_r": -0.46,
+    "status": "emerging"
   },
   {
     "region": "El Paraíso",
     "country": "Honduras",
     "lat": 13.99,
     "lon": -86.57,
+    "measured": true,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "driver": "No phase at risk in the projected window",
+    "severity": 0,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          7,
+          8,
+          9
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -21.0,
+        "n": 2,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -13.7,
+        "n": 4,
+        "consistency": 0.75
+      }
+    ],
+    "lag_months": 0,
+    "lag_r": -0.251
   },
   {
     "region": "Copán",
     "country": "Honduras",
     "lat": 14.83,
     "lon": -88.87,
+    "measured": true,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "driver": "No phase at risk in the projected window",
+    "severity": 0,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          7,
+          8,
+          9
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -19.6,
+        "n": 2,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -9.3,
+        "n": 4,
+        "consistency": 0.75
+      }
+    ],
+    "lag_months": 0,
+    "lag_r": -0.301
   },
   {
     "region": "Santa Bárbara",
     "country": "Honduras",
     "lat": 14.92,
     "lon": -88.24,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Drought at flowering — failed set (main) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "flowering",
+        "months": [
+          3,
+          4
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -9.7,
+        "n": 5,
+        "consistency": 0.6
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12,
+          1,
+          2
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -35.5,
+        "n": 2,
+        "consistency": 1.0
+      }
+    ],
+    "lag_months": 4,
+    "lag_r": -0.366,
+    "status": "emerging"
   },
   {
     "region": "Montecillos",
     "country": "Honduras",
     "lat": 14.16,
     "lon": -88.02,
+    "measured": true,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "driver": "No phase at risk in the projected window",
+    "severity": 0,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          7,
+          8,
+          9
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -13.0,
+        "n": 2,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -21.8,
+        "n": 4,
+        "consistency": 0.75
+      }
+    ],
+    "lag_months": 0,
+    "lag_r": -0.267
   },
   {
     "region": "Agalta",
     "country": "Honduras",
     "lat": 14.68,
     "lon": -86.22,
+    "measured": true,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "driver": "No phase at risk in the projected window",
+    "severity": 0,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          7,
+          8,
+          9
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -31.3,
+        "n": 2,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12,
+          1
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -15.8,
+        "n": 4,
+        "consistency": 0.75
+      }
+    ],
+    "lag_months": 1,
+    "lag_r": -0.387
   },
   {
     "region": "Lampung",
     "country": "Indonesia",
     "lat": -5.0,
     "lon": 104.8,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Drought at flowering — failed set (robusta (Sumatra)) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "robusta (Sumatra)",
+        "phase": "flowering",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -34.9,
+        "n": 4,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "robusta (Sumatra)",
+        "phase": "harvest",
+        "months": [
+          6,
+          7,
+          8
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -26.2,
+        "n": 3,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "arabica",
+        "phase": "flowering",
+        "months": [
+          6
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -14.7,
+        "n": 3,
+        "consistency": 0.67
+      },
+      {
+        "cycle": "arabica",
+        "phase": "fruit_fill",
+        "months": [
+          7,
+          8,
+          9
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -54.1,
+        "n": 2,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "arabica",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -13.0,
+        "n": 4,
+        "consistency": 1.0
+      }
+    ],
+    "lag_months": 0,
+    "lag_r": -0.348,
+    "status": "emerging"
   },
   {
     "region": "Gayo",
     "country": "Indonesia",
     "lat": 4.62,
     "lon": 96.85,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Rain through harvest — drying, mould, defects (robusta (Sumatra)) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "robusta (Sumatra)",
+        "phase": "flowering",
+        "months": [
+          12
+        ],
+        "severity": 1,
+        "driver": "Rain through flowering — blossom drop, uneven set",
+        "anomaly_pct": 12.6,
+        "n": 3,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "robusta (Sumatra)",
+        "phase": "fruit_fill",
+        "months": [
+          1,
+          2
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -20.8,
+        "n": 2,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "robusta (Sumatra)",
+        "phase": "harvest",
+        "months": [
+          3,
+          4,
+          5,
+          6
+        ],
+        "severity": 2,
+        "driver": "Rain through harvest — drying, mould, defects",
+        "anomaly_pct": 14.6,
+        "n": 5,
+        "consistency": 0.8
+      },
+      {
+        "cycle": "arabica",
+        "phase": "flowering",
+        "months": [
+          4,
+          5,
+          6
+        ],
+        "severity": 1,
+        "driver": "Rain through flowering — blossom drop, uneven set",
+        "anomaly_pct": 18.5,
+        "n": 5,
+        "consistency": 0.8
+      },
+      {
+        "cycle": "arabica",
+        "phase": "harvest",
+        "months": [
+          12,
+          1,
+          2,
+          3
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": -6.0,
+        "n": 3,
+        "consistency": 0.67
+      }
+    ],
+    "lag_months": 6,
+    "lag_r": 0.106,
+    "status": "emerging"
   },
   {
     "region": "Java",
     "country": "Indonesia",
     "lat": -7.91,
     "lon": 113.82,
+    "measured": true,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "driver": "No phase at risk in the projected window",
+    "severity": 0,
+    "phase_hits": [
+      {
+        "cycle": "robusta (Sumatra)",
+        "phase": "flowering",
+        "months": [
+          12
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 26.0,
+        "n": 3,
+        "consistency": 0.33
+      },
+      {
+        "cycle": "robusta (Sumatra)",
+        "phase": "fruit_fill",
+        "months": [
+          1,
+          2
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -16.2,
+        "n": 2,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "robusta (Sumatra)",
+        "phase": "harvest",
+        "months": [
+          3,
+          4,
+          5,
+          6
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 31.3,
+        "n": 5,
+        "consistency": 0.4
+      },
+      {
+        "cycle": "arabica",
+        "phase": "flowering",
+        "months": [
+          4,
+          5,
+          6
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 26.1,
+        "n": 5,
+        "consistency": 0.4
+      },
+      {
+        "cycle": "arabica",
+        "phase": "harvest",
+        "months": [
+          12,
+          1,
+          2,
+          3
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -26.4,
+        "n": 3,
+        "consistency": 0.67
+      }
+    ],
+    "lag_months": 6,
+    "lag_r": 0.348
   },
   {
     "region": "Toraja",
     "country": "Indonesia",
     "lat": -2.97,
     "lon": 119.9,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Drought at flowering — failed set (robusta (Sumatra)) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "robusta (Sumatra)",
+        "phase": "flowering",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -18.1,
+        "n": 4,
+        "consistency": 0.75
+      },
+      {
+        "cycle": "robusta (Sumatra)",
+        "phase": "harvest",
+        "months": [
+          6,
+          7,
+          8
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -13.1,
+        "n": 3,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "arabica",
+        "phase": "flowering",
+        "months": [
+          6
+        ],
+        "severity": 1,
+        "driver": "Rain through flowering — blossom drop, uneven set",
+        "anomaly_pct": 18.9,
+        "n": 3,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "arabica",
+        "phase": "fruit_fill",
+        "months": [
+          7,
+          8,
+          9
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -56.1,
+        "n": 2,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "arabica",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": -3.1,
+        "n": 4,
+        "consistency": 0.75
+      }
+    ],
+    "lag_months": 0,
+    "lag_r": -0.091,
+    "status": "emerging"
   },
   {
     "region": "Flores",
     "country": "Indonesia",
     "lat": -8.79,
     "lon": 120.98,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Drought at flowering — failed set (robusta (Sumatra)) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "robusta (Sumatra)",
+        "phase": "flowering",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -48.3,
+        "n": 4,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "robusta (Sumatra)",
+        "phase": "harvest",
+        "months": [
+          6,
+          7,
+          8
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -23.6,
+        "n": 3,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "arabica",
+        "phase": "flowering",
+        "months": [
+          6
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -8.8,
+        "n": 3,
+        "consistency": 0.67
+      },
+      {
+        "cycle": "arabica",
+        "phase": "fruit_fill",
+        "months": [
+          7,
+          8,
+          9
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -55.2,
+        "n": 2,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "arabica",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -28.0,
+        "n": 4,
+        "consistency": 1.0
+      }
+    ],
+    "lag_months": 0,
+    "lag_r": -0.351,
+    "status": "emerging"
   },
   {
     "region": "Greater Masaka",
@@ -196,8 +1279,10 @@
     "lon": 31.73,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "severity": 0,
+    "driver": "No measured ENSO response for this region yet",
+    "measured": false,
+    "phase_hits": []
   },
   {
     "region": "Central",
@@ -206,8 +1291,10 @@
     "lon": 32.04,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "severity": 0,
+    "driver": "No measured ENSO response for this region yet",
+    "measured": false,
+    "phase_hits": []
   },
   {
     "region": "Western",
@@ -216,8 +1303,10 @@
     "lon": 30.19,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "severity": 0,
+    "driver": "No measured ENSO response for this region yet",
+    "measured": false,
+    "phase_hits": []
   },
   {
     "region": "Busoga",
@@ -226,18 +1315,92 @@
     "lon": 33.47,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "severity": 0,
+    "driver": "No measured ENSO response for this region yet",
+    "measured": false,
+    "phase_hits": []
   },
   {
     "region": "Mt Elgon",
     "country": "Uganda",
     "lat": 1.39,
     "lon": 34.45,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Rain through harvest — drying, mould, defects (fly) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "flowering",
+        "months": [
+          6
+        ],
+        "severity": 1,
+        "driver": "Rain through flowering — blossom drop, uneven set",
+        "anomaly_pct": 105.9,
+        "n": 3,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          7,
+          8,
+          9
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": 7.2,
+        "n": 2,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 66.2,
+        "n": 4,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "fly",
+        "phase": "flowering",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 79.8,
+        "n": 4,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "fly",
+        "phase": "harvest",
+        "months": [
+          6
+        ],
+        "severity": 2,
+        "driver": "Rain through harvest — drying, mould, defects",
+        "anomaly_pct": 105.9,
+        "n": 3,
+        "consistency": 1.0
+      }
+    ],
+    "lag_months": 0,
+    "lag_r": 0.415,
+    "status": "emerging"
   },
   {
     "region": "West Nile",
@@ -246,117 +1409,768 @@
     "lon": 30.9,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "severity": 0,
+    "driver": "No measured ENSO response for this region yet",
+    "measured": false,
+    "phase_hits": []
   },
   {
     "region": "Rwenzori",
     "country": "Uganda",
     "lat": 0.66,
     "lon": 30.27,
+    "measured": true,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "driver": "No phase at risk in the projected window",
+    "severity": 0,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "flowering",
+        "months": [
+          4
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": 4.3,
+        "n": 5,
+        "consistency": 0.6
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12,
+          1,
+          2
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -6.6,
+        "n": 2,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "fly",
+        "phase": "flowering",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": 10.9,
+        "n": 2,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "fly",
+        "phase": "fruit_fill",
+        "months": [
+          1,
+          2,
+          3
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": 7.5,
+        "n": 4,
+        "consistency": 0.75
+      },
+      {
+        "cycle": "fly",
+        "phase": "harvest",
+        "months": [
+          4
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": 4.3,
+        "n": 5,
+        "consistency": 0.6
+      }
+    ],
+    "lag_months": 4,
+    "lag_r": -0.018
   },
   {
     "region": "Sidama/Yirgacheffe",
     "country": "Ethiopia",
     "lat": 6.16,
     "lon": 38.2,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Rain through harvest — drying, mould, defects (main) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          7,
+          8,
+          9
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 20.3,
+        "n": 3,
+        "consistency": 0.33
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12,
+          1
+        ],
+        "severity": 2,
+        "driver": "Rain through harvest — drying, mould, defects",
+        "anomaly_pct": 68.7,
+        "n": 4,
+        "consistency": 0.75
+      },
+      {
+        "cycle": "second",
+        "phase": "flowering",
+        "months": [
+          7,
+          8
+        ],
+        "severity": 1,
+        "driver": "Rain through flowering — blossom drop, uneven set",
+        "anomaly_pct": 16.7,
+        "n": 3,
+        "consistency": 0.67
+      },
+      {
+        "cycle": "second",
+        "phase": "fruit_fill",
+        "months": [
+          9,
+          10,
+          11,
+          12,
+          1
+        ],
+        "severity": 0,
+        "driver": "Wet through cherry fill — favourable",
+        "anomaly_pct": 48.8,
+        "n": 4,
+        "consistency": 0.75
+      }
+    ],
+    "lag_months": 1,
+    "lag_r": 0.406,
+    "status": "emerging"
   },
   {
     "region": "Jimma",
     "country": "Ethiopia",
     "lat": 7.67,
     "lon": 36.83,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Rain through harvest — drying, mould, defects (main) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          7,
+          8,
+          9
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": 2.4,
+        "n": 3,
+        "consistency": 0.67
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12,
+          1
+        ],
+        "severity": 2,
+        "driver": "Rain through harvest — drying, mould, defects",
+        "anomaly_pct": 41.0,
+        "n": 4,
+        "consistency": 0.75
+      },
+      {
+        "cycle": "second",
+        "phase": "flowering",
+        "months": [
+          7,
+          8
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": -1.4,
+        "n": 3,
+        "consistency": 0.33
+      },
+      {
+        "cycle": "second",
+        "phase": "fruit_fill",
+        "months": [
+          9,
+          10,
+          11,
+          12,
+          1
+        ],
+        "severity": 0,
+        "driver": "Wet through cherry fill — favourable",
+        "anomaly_pct": 29.4,
+        "n": 4,
+        "consistency": 0.75
+      }
+    ],
+    "lag_months": 1,
+    "lag_r": 0.189,
+    "status": "emerging"
   },
   {
     "region": "Limu",
     "country": "Ethiopia",
     "lat": 8.06,
     "lon": 36.8,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Rain through harvest — drying, mould, defects (main) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "flowering",
+        "months": [
+          2,
+          3,
+          4
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 7.8,
+        "n": 3,
+        "consistency": 0.33
+      },
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          5,
+          6
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": -7.5,
+        "n": 5,
+        "consistency": 0.8
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          12,
+          1
+        ],
+        "severity": 2,
+        "driver": "Rain through harvest — drying, mould, defects",
+        "anomaly_pct": 28.2,
+        "n": 3,
+        "consistency": 0.67
+      },
+      {
+        "cycle": "second",
+        "phase": "flowering",
+        "months": [
+          6
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -10.4,
+        "n": 5,
+        "consistency": 0.8
+      },
+      {
+        "cycle": "second",
+        "phase": "fruit_fill",
+        "months": [
+          12,
+          1,
+          2
+        ],
+        "severity": 0,
+        "driver": "Wet through cherry fill — favourable",
+        "anomaly_pct": 24.5,
+        "n": 3,
+        "consistency": 0.67
+      },
+      {
+        "cycle": "second",
+        "phase": "harvest",
+        "months": [
+          3,
+          4,
+          5
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 6.3,
+        "n": 4,
+        "consistency": 0.5
+      }
+    ],
+    "lag_months": 6,
+    "lag_r": -0.038,
+    "status": "emerging"
   },
   {
     "region": "Kaffa",
     "country": "Ethiopia",
     "lat": 7.27,
     "lon": 36.23,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Rain through harvest — drying, mould, defects (main) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          7,
+          8,
+          9
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": 6.3,
+        "n": 3,
+        "consistency": 0.67
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12,
+          1
+        ],
+        "severity": 2,
+        "driver": "Rain through harvest — drying, mould, defects",
+        "anomaly_pct": 54.2,
+        "n": 4,
+        "consistency": 0.75
+      },
+      {
+        "cycle": "second",
+        "phase": "flowering",
+        "months": [
+          7,
+          8
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": -2.1,
+        "n": 3,
+        "consistency": 0.67
+      },
+      {
+        "cycle": "second",
+        "phase": "fruit_fill",
+        "months": [
+          9,
+          10,
+          11,
+          12,
+          1
+        ],
+        "severity": 0,
+        "driver": "Wet through cherry fill — favourable",
+        "anomaly_pct": 38.7,
+        "n": 4,
+        "consistency": 0.75
+      }
+    ],
+    "lag_months": 1,
+    "lag_r": 0.53,
+    "status": "emerging"
   },
   {
     "region": "Harrar",
     "country": "Ethiopia",
     "lat": 9.31,
     "lon": 42.12,
+    "measured": true,
     "level": "low",
     "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "driver": "No phase at risk in the projected window",
+    "severity": 0,
+    "phase_hits": [
+      {
+        "cycle": "main",
+        "phase": "fruit_fill",
+        "months": [
+          6,
+          7,
+          8,
+          9
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -21.1,
+        "n": 2,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "main",
+        "phase": "harvest",
+        "months": [
+          10,
+          11,
+          12
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 52.4,
+        "n": 4,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "second",
+        "phase": "flowering",
+        "months": [
+          6,
+          7,
+          8
+        ],
+        "severity": 0,
+        "driver": "Too few past events to score",
+        "anomaly_pct": -33.0,
+        "n": 2,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "second",
+        "phase": "fruit_fill",
+        "months": [
+          9,
+          10,
+          11,
+          12
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": 44.4,
+        "n": 4,
+        "consistency": 0.5
+      }
+    ],
+    "lag_months": 0,
+    "lag_r": 0.167
   },
   {
     "region": "Dak Lak",
     "country": "Vietnam",
     "lat": 12.67,
     "lon": 108.05,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Drought at flowering — failed set (robusta) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "robusta",
+        "phase": "flowering",
+        "months": [
+          1,
+          2,
+          3
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -70.6,
+        "n": 5,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "robusta",
+        "phase": "fruit_fill",
+        "months": [
+          9,
+          10
+        ],
+        "severity": 2,
+        "driver": "Drought at cherry fill — bean size, cherry drop",
+        "anomaly_pct": -22.6,
+        "n": 4,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "robusta",
+        "phase": "harvest",
+        "months": [
+          11,
+          12,
+          1
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -55.1,
+        "n": 3,
+        "consistency": 1.0
+      }
+    ],
+    "lag_months": 3,
+    "lag_r": -0.387,
+    "status": "emerging"
   },
   {
     "region": "Lam Dong",
     "country": "Vietnam",
     "lat": 11.94,
     "lon": 108.44,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Drought at flowering — failed set (robusta) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "robusta",
+        "phase": "flowering",
+        "months": [
+          1,
+          2
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -32.8,
+        "n": 5,
+        "consistency": 0.8
+      },
+      {
+        "cycle": "robusta",
+        "phase": "fruit_fill",
+        "months": [
+          8,
+          9,
+          10
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": -5.6,
+        "n": 3,
+        "consistency": 0.67
+      },
+      {
+        "cycle": "robusta",
+        "phase": "harvest",
+        "months": [
+          11,
+          12,
+          1
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -33.0,
+        "n": 4,
+        "consistency": 0.75
+      }
+    ],
+    "lag_months": 2,
+    "lag_r": -0.246,
+    "status": "emerging"
   },
   {
     "region": "Dak Nong",
     "country": "Vietnam",
     "lat": 12.0,
     "lon": 107.69,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Drought at flowering — failed set (robusta) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "robusta",
+        "phase": "flowering",
+        "months": [
+          1,
+          2,
+          3
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -52.1,
+        "n": 5,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "robusta",
+        "phase": "fruit_fill",
+        "months": [
+          9,
+          10
+        ],
+        "severity": 0,
+        "driver": "Past events disagree — no usable signal",
+        "anomaly_pct": -5.9,
+        "n": 4,
+        "consistency": 0.5
+      },
+      {
+        "cycle": "robusta",
+        "phase": "harvest",
+        "months": [
+          11,
+          12,
+          1
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -32.8,
+        "n": 3,
+        "consistency": 1.0
+      }
+    ],
+    "lag_months": 3,
+    "lag_r": -0.385,
+    "status": "emerging"
   },
   {
     "region": "Gia Lai",
     "country": "Vietnam",
     "lat": 13.98,
     "lon": 108.0,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Drought at flowering — failed set (robusta) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "robusta",
+        "phase": "flowering",
+        "months": [
+          1,
+          2
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -32.8,
+        "n": 5,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "robusta",
+        "phase": "fruit_fill",
+        "months": [
+          8,
+          9,
+          10
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": -1.6,
+        "n": 3,
+        "consistency": 0.67
+      },
+      {
+        "cycle": "robusta",
+        "phase": "harvest",
+        "months": [
+          11,
+          12,
+          1
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -46.6,
+        "n": 4,
+        "consistency": 1.0
+      }
+    ],
+    "lag_months": 2,
+    "lag_r": -0.249,
+    "status": "emerging"
   },
   {
     "region": "Kon Tum",
     "country": "Vietnam",
     "lat": 14.35,
     "lon": 108.0,
-    "level": "low",
-    "color": "#16a34a",
-    "driver": "Near-normal",
-    "severity": 0
+    "measured": true,
+    "level": "moderate",
+    "color": "#f59e0b",
+    "driver": "Drought at flowering — failed set (robusta) — developing",
+    "severity": 1,
+    "phase_hits": [
+      {
+        "cycle": "robusta",
+        "phase": "flowering",
+        "months": [
+          1
+        ],
+        "severity": 2,
+        "driver": "Drought at flowering — failed set",
+        "anomaly_pct": -41.2,
+        "n": 5,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "robusta",
+        "phase": "fruit_fill",
+        "months": [
+          7,
+          8,
+          9,
+          10
+        ],
+        "severity": 0,
+        "driver": "Near-normal rainfall expected",
+        "anomaly_pct": -6.5,
+        "n": 3,
+        "consistency": 1.0
+      },
+      {
+        "cycle": "robusta",
+        "phase": "harvest",
+        "months": [
+          11,
+          12,
+          1
+        ],
+        "severity": 0,
+        "driver": "Dry harvest — clean drying",
+        "anomaly_pct": -56.9,
+        "n": 4,
+        "consistency": 1.0
+      }
+    ],
+    "lag_months": 1,
+    "lag_r": -0.276,
+    "status": "emerging"
   }
 ]

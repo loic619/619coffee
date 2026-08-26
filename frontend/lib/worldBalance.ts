@@ -123,3 +123,48 @@ export const ORIGIN_LABELS: Record<string, string> = {
   india: "India", china: "China", uganda: "Uganda", ethiopia: "Ethiopia",
   ivory_coast: "Ivory Coast", tanzania: "Tanzania",
 };
+
+
+/** One published world-consumption estimate. The sheet's demand headline is
+ *  the mean of these plus our own hub build — reporting one of four numbers
+ *  as "the" number is a house view wearing a statement's clothing. */
+export interface ConsumptionSource {
+  key: string;
+  label: string;
+  season: string | null;
+  m_bags: number;
+  note?: string;
+  /** Its latest published season trails the statement's crop year. Included
+   *  because consumption moves slowly; flagged because that is not free. */
+  carried_forward?: boolean;
+}
+export interface WorldConsumptionDoc {
+  crop_year: string;
+  unit: string;
+  sources: ConsumptionSource[];
+  mean: number | null;
+  spread: [number, number] | null;
+  note?: string;
+}
+
+/** Where each origin's crop-estimate seed lives. Shared by the world
+ *  statement and the S&D tab so the two can never aggregate different sets
+ *  of origins and quietly disagree about the world. */
+export const ORIGIN_FILES: Record<string, { file: string; subkey?: string; label: string }> = {
+  brazil:    { file: "br_balance_sheet.json",      label: "Brazil" },
+  colombia:  { file: "co_balance_sheet.json",      label: "Colombia" },
+  honduras:  { file: "hn_balance_sheet.json",      label: "Honduras" },
+  guatemala: { file: "gt_balance_sheet.json",      label: "Guatemala" },
+  nicaragua: { file: "ni_balance_sheet.json",      label: "Nicaragua" },
+  costa_rica:{ file: "cr_balance_sheet.json",      label: "Costa Rica" },
+  mexico:    { file: "mx_balance_sheet.json",      label: "Mexico" },
+  peru:      { file: "pe_balance_sheet.json",      label: "Peru" },
+  vietnam:   { file: "vn_farmer_economics.json", subkey: "balance_sheet", label: "Vietnam" },
+  indonesia: { file: "id_balance_sheet.json",      label: "Indonesia" },
+  india:     { file: "in_balance_sheet.json",      label: "India" },
+  china:     { file: "cn_balance_sheet.json",      label: "China" },
+  uganda:    { file: "ug_balance_sheet.json",      label: "Uganda" },
+  ethiopia:  { file: "et_balance_sheet.json",      label: "Ethiopia" },
+  ivory_coast:{ file: "ci_balance_sheet.json",     label: "Ivory Coast" },
+  tanzania:  { file: "tz_balance_sheet.json",      label: "Tanzania" },
+};
