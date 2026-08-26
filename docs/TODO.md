@@ -1,5 +1,38 @@
 # TODO / follow-ups
 
+## Strauss — volume is described, never quantified
+Investigated at your request. Their reports extract cleanly (~100-140k chars,
+not scans) and discuss coffee on 24-31 pages and Brazil on 12-18. **But there
+is no numeric volume series to scrape.** What exists is a directional sentence
+per period, e.g. Q2-2026 (translated from the Hebrew):
+
+> "The decrease in sales stems mainly from exchange-rate translation — the
+> strengthening of the shekel against the Brazilian real — and from a decline
+> in selling prices in Brazil following the fall in green coffee prices,
+> **partly offset by an increase in the quantities sold in most countries**."
+
+Direction, no figure. Two structural facts also confirmed from FY-2025:
+Três Corações is a 50%-owned JV, and Brazil is ~70% of coffee sales turnover
+(so Brazil really is the driver, as expected — but its market-share figures are
+quoted on 100% of the JV's sales, not Strauss's half).
+
+- [ ] **Decide whether a qualitative row belongs in the Earnings panel.** The
+      panel plots numbers; Strauss would be a direction with a quote. That is
+      real and sourced, but it is a different kind of object and needs its own
+      treatment rather than being forced into a bar chart. Left out until that
+      is decided, on the principle that a revenue line relabelled as demand is
+      worse than an absence.
+- [ ] **ABIC is the better route to the same question.** Brazilian roasted-
+      coffee volumes are published by the industry association and are actual
+      numbers. If the goal is Brazilian consumption, that source answers it
+      directly rather than through a group filing that does not disclose it.
+
+NOTE ON METHOD: the first pass searched only "quantity" and "tonne" in Hebrew
+and concluded there was no volume language at all. That was wrong — widening to
+"היקף"/"נפח" and the reversed RTL forms found it immediately. A negative result
+is only as good as the vocabulary behind it.
+
+
 ## Roaster volume/mix — finish the Nestlé coverage
 `4.2 – Roaster Results` is live. **JDE Peet's is complete**: 4 periods
 (2024-H1/FY, 2025-H1/FY) read from the Vol/Mix column of the "Sales growth
