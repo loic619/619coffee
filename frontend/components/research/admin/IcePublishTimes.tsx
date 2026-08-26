@@ -18,6 +18,7 @@ interface Payload {
     window: string; candidate_seconds: number; interval_s: number;
     tier1_k: number; observed_max_offset_s: number | null; days_inside_window: number;
   };
+  days: { date: string; time: string }[];
   by_weekday: {
     days: { weekday: string; n: number; median: string; max: string; late: number }[];
     late_threshold: string;
@@ -55,6 +56,120 @@ interface Payload {
     worst_retry_after_s?: number; runs_aborted_by_429?: number;
     runs_resumed?: number; median_sweep_gets?: number;
   };
+}
+
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July",
+                "August", "September", "October", "November", "December"];
+
+/** Severity band for a publish time — the sweep cost, not an arbitrary scale. */
+function band(secs: number): { cls: string; label: string } {
+  if (secs <= 10 * 3600 + 33 * 60) return { cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30", label: "by 10:33" };
+  if (secs <= 10 * 3600 + 40 * 60) return { cls: "bg-amber-500/15 text-amber-300 border-amber-500/30", label: "10:33–10:40" };
+  if (secs <= 11 * 3600) return { cls: "bg-orange-500/20 text-orange-300 border-orange-500/40", label: "10:40–11:00" };
+  return { cls: "bg-rose-500/20 text-rose-300 border-rose-500/40", label: "after 11:00" };
+}
+
+/**
+ * Calendar of publish times, Mon–Fri only (ICE does not publish at weekends).
+ *
+ * Laid out with the weekdays as COLUMNS on purpose: the interesting structure
+ * in this data is the weekday tail, so putting Monday under Monday makes the
+ * clustering visible as a vertical pattern rather than something you have to
+ * take on trust from a p-value.
+ */
+function PublishCalendar({ days, missing }: {
+  days: { date: string; time: string }[];
+  missing: { date: string; recoverable: boolean }[];
+}) {
+  const byDate = new Map(days.map((d) => [d.date, d.time]));
+  const miss = new Map(missing.map((m) => [m.date, m.recoverable]));
+  const toSecs = (t: string) => {
+    const [h, m, s] = t.split(":").map(Number);
+    return h * 3600 + m * 60 + s;
+  };
+
+  // Month span covering every observation.
+  const all = [...days.map((d) => d.date), ...missing.map((m) => m.date)].sort();
+  if (!all.length) return null;
+  const [y0, m0] = all[0].split("-").map(Number);
+  const [y1, m1] = all[all.length - 1].split("-").map(Number);
+
+  const months: { year: number; month: number }[] = [];
+  for (let y = y0, m = m0; y < y1 || (y === y1 && m <= m1); m === 12 ? (m = 1, y++) : m++) {
+    months.push({ year: y, month: m });
+  }
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 my-4">
+      {months.map(({ year, month }) => {
+        // Mon..Fri cells for this month, with leading blanks in week one.
+        const cells: (string | null)[] = [];
+        const first = new Date(Date.UTC(year, month - 1, 1));
+        const lead = (first.getUTCDay() + 6) % 7;             // 0 = Monday
+        for (let i = 0; i < Math.min(lead, 5); i++) cells.push(null);
+        const dim = new Date(Date.UTC(year, month, 0)).getUTCDate();
+        for (let d = 1; d <= dim; d++) {
+          const wd = (new Date(Date.UTC(year, month - 1, d)).getUTCDay() + 6) % 7;
+          if (wd < 5) cells.push(`${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
+        }
+        return (
+          <div key={`${year}-${month}`}
+               className="border border-slate-700/60 rounded-lg p-2.5 bg-slate-900/40">
+            <div className="text-xs font-bold text-slate-200 mb-2">
+              {MONTHS[month - 1]} {year}
+            </div>
+            <div className="grid grid-cols-5 gap-1">
+              {WEEKDAYS.map((w) => (
+                <div key={w} className="text-[9px] uppercase tracking-wider text-slate-500 text-center pb-0.5">
+                  {w}
+                </div>
+              ))}
+              {cells.map((iso, i) => {
+                if (!iso) return <div key={`b${i}`} />;
+                const dnum = Number(iso.slice(8));
+                const time = byDate.get(iso);
+                if (!time) {
+                  const known = miss.get(iso);
+                  const isMiss = miss.has(iso);
+                  return (
+                    <div key={iso}
+                         title={isMiss ? (known ? "missed — publish time known, recoverable" : "missed — time unknown") : "outside the record"}
+                         className={`rounded border px-1 py-1 text-center ${
+                           isMiss ? "border-dashed border-slate-500/70 bg-slate-800/40"
+                                  : "border-slate-800 bg-slate-900/30"}`}>
+                      <div className="text-[10px] text-slate-500 tabular-nums">{dnum}</div>
+                      <div className="text-[9px] text-slate-600 font-mono">
+                        {isMiss ? "miss" : "—"}
+                      </div>
+                    </div>
+                  );
+                }
+                // A known time and a stored snapshot are different things. Once
+                // an operator supplies the publish second for a lost session we
+                // know exactly WHEN it published while still not holding the
+                // data — so the cell shows the time and stays dashed until the
+                // snapshot actually lands.
+                const noData = miss.has(iso);
+                const b = band(toSecs(time));
+                return (
+                  <div key={iso}
+                       title={`${iso} — published ${time}${noData ? " · snapshot still missing" : ""}`}
+                       className={`rounded border px-1 py-1 text-center ${b.cls}${
+                         noData ? " border-dashed !border-slate-400/80" : ""}`}>
+                    <div className="text-[10px] opacity-70 tabular-nums">
+                      {dnum}{noData ? "•" : ""}
+                    </div>
+                    <div className="text-[9px] font-mono tabular-nums">{time.slice(0, 5)}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
@@ -269,6 +384,34 @@ export default function IcePublishTimes() {
         for per-minute billed compute. It is the strongest single argument for moving this workflow
         to a self-hosted runner, where waiting is free.
       </Highlight>
+
+      <H2>The calendar</H2>
+      <P>
+        Every session on record, weekdays only. Colour is the sweep cost, not an arbitrary
+        scale — green is found in the first few minutes, red is the tail that eats an hour.
+        A dashed cell marked • is a session whose publish time we know but whose snapshot we do
+        not hold: recoverable, not recovered.
+      </P>
+      <div className="flex flex-wrap gap-3 my-2 text-[10px]">
+        {[
+          ["bg-emerald-500/15 border-emerald-500/30 text-emerald-300", "by 10:33"],
+          ["bg-amber-500/15 border-amber-500/30 text-amber-300", "10:33–10:40"],
+          ["bg-orange-500/20 border-orange-500/40 text-orange-300", "10:40–11:00"],
+          ["bg-rose-500/20 border-rose-500/40 text-rose-300", "after 11:00"],
+          ["border-dashed border-slate-400/80 bg-slate-800/40 text-slate-400", "no snapshot (dashed • )"],
+        ].map(([cls, label]) => (
+          <span key={label} className="flex items-center gap-1.5">
+            <span className={`inline-block w-4 h-3 rounded border ${cls}`} />
+            <span className="text-slate-400">{label}</span>
+          </span>
+        ))}
+      </div>
+      <PublishCalendar days={data.days} missing={data.misses.missing} />
+      <P>
+        Read down the columns rather than across the rows: Monday sits under Monday. The late
+        cells — orange and red — sit almost entirely in the left three, which is the weekday
+        effect below, seen directly rather than inferred.
+      </P>
 
       <H2>Is there a weekday pattern?</H2>
       <P>
