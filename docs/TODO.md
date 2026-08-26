@@ -1,5 +1,109 @@
 # TODO / follow-ups
 
+## Strauss — volume is described, never quantified
+Investigated at your request. Their reports extract cleanly (~100-140k chars,
+not scans) and discuss coffee on 24-31 pages and Brazil on 12-18. **But there
+is no numeric volume series to scrape.** What exists is a directional sentence
+per period, e.g. Q2-2026 (translated from the Hebrew):
+
+> "The decrease in sales stems mainly from exchange-rate translation — the
+> strengthening of the shekel against the Brazilian real — and from a decline
+> in selling prices in Brazil following the fall in green coffee prices,
+> **partly offset by an increase in the quantities sold in most countries**."
+
+Direction, no figure. Two structural facts also confirmed from FY-2025:
+Três Corações is a 50%-owned JV, and Brazil is ~70% of coffee sales turnover
+(so Brazil really is the driver, as expected — but its market-share figures are
+quoted on 100% of the JV's sales, not Strauss's half).
+
+- [ ] **Decide whether a qualitative row belongs in the Earnings panel.** The
+      panel plots numbers; Strauss would be a direction with a quote. That is
+      real and sourced, but it is a different kind of object and needs its own
+      treatment rather than being forced into a bar chart. Left out until that
+      is decided, on the principle that a revenue line relabelled as demand is
+      worse than an absence.
+- [ ] **ABIC is the better route to the same question.** Brazilian roasted-
+      coffee volumes are published by the industry association and are actual
+      numbers. If the goal is Brazilian consumption, that source answers it
+      directly rather than through a group filing that does not disclose it.
+
+NOTE ON METHOD: the first pass searched only "quantity" and "tonne" in Hebrew
+and concluded there was no volume language at all. That was wrong — widening to
+"היקף"/"נפח" and the reversed RTL forms found it immediately. A negative result
+is only as good as the vocabulary behind it.
+
+
+## Roaster volume/mix — finish the Nestlé coverage
+`4.2 – Roaster Results` is live. **JDE Peet's is complete**: 4 periods
+(2024-H1/FY, 2025-H1/FY) read from the Vol/Mix column of the "Sales growth
+bridge by segment" table, verified against the published HY-2025 table cell for
+cell and cross-checked against the prose headline in the same document.
+
+**Nestlé is proven but thin: 1 period (2025-3M), Total Group only.**
+
+The hard part is solved. Their HTML pages 403 from CI, but the press releases
+sit on an unprotected static path and the URL is fully derivable, so the
+results calendar never needs scraping:
+
+    https://www.nestle.com/sites/default/files/{YYYY-MM}/{slug}-{YYYY}-en.pdf
+    three-month → April · half-year → July · nine-month → October
+    full-year   → the FOLLOWING February
+
+`parse_nestle_summary()` reads the RIG row correctly — given the published
+9M-2025 layout it recovers all 8 segments (Total Group +0.6, Americas −0.4,
+AOA +0.3, Europe +0.5, Health Science +4.1, Nespresso +2.4, Waters +2.0,
+Other +2.2). Two gaps remain:
+
+- [ ] **Only the three-month slug resolves.** Alternates for half-year,
+      nine-month and full-year were tried across two month-directories each and
+      all 404'd. Read the real names off
+      https://www.nestle.com/investors/results and hardcode them — that page is
+      browsable by hand even though CI cannot fetch it.
+- [ ] **Only Total Group extracts from the live PDF**, though the parser
+      recovers all 8 segments from the same layout supplied as a fixture. So
+      pdfplumber is returning a different table shape than assumed — most
+      likely the header rows land in a separate table object from the data
+      rows. Dump `page.extract_tables()` for the 3M-2025 PDF in CI and shape
+      the header reconstruction to what actually comes back.
+
+Hand-crafting is a reasonable endpoint here rather than a defeat: the parser
+and the URL scheme both work, so each added period is a URL, not a research
+problem, and the JSON takes hand-written periods identically — they merge with
+no special-casing.
+
+## ECF port stocks — fix the contaminated months, then widen the scatter
+`ArrivalsVsStockChange` regresses EU arrivals (1-month lag, rolling 2-month)
+against the change in ECF port stocks. It works, but only from **2020-01**,
+because 11 of the 151 ECF months are not physically believable and running the
+regression across them **inverts** the result:
+
+| window | n | slope | R² |
+|---|---|---|---|
+| full series (contaminated) | 149 | −0.10 | 0.001 |
+| trusted window (2020-01→) | 76 | +0.77 | 0.30 |
+
+The damage is two clusters: 2019 drops from 745,601 MT to ~370,000 for four
+months and returns to 807,387; 2014 changes basis mid-year (some rows carry only
+`ports` bag counts, some `value_mt`). Aggregate port stocks do not halve and
+double, so these are parse artefacts.
+
+- [ ] **Fix `ecf_stocks` parsing backwards.** Establish what the 2019 block and
+      the 2014 rows are actually counting — most likely a partial port table or
+      a unit switch in the PDF. `sanitiseLevels()` already drops isolated
+      spikes; a sustained four-month block at half level is beyond what any
+      short-window filter can honestly distinguish from truth, which is why the
+      date cutoff exists rather than a cleverer filter.
+- [ ] **Then lower `TRUSTED_FROM`** in `frontend/lib/arrivalsVsStocks.ts` and the
+      two-period split (`CUT = "2018-10"`) starts working on its own — the
+      component already splits when the data reaches back far enough, so no UI
+      change is needed.
+- [ ] **Open question — measure.** The reference chart plots *exporters'* green
+      shipments to Western Europe; we plot *Eurostat extra-EU arrivals*. Same
+      flow, opposite reporter. Worth checking whether the mirror explains any of
+      the R² gap (theirs 0.54 for 2018-24, ours 0.30 for 2020-26) before reading
+      the difference as a genuine change in the relationship.
+
+
 ## Brazil farmer-selling "echo" — tune against live data + dual-crop UI (Step 3)
 Backend shipped: Google-News (pt-BR) echo discovery + crop-year-aware dual-crop
 parser writing an additive `crops` block to farmer_selling_brazil.json. CI now
