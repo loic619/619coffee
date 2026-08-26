@@ -88,28 +88,63 @@ def _spread(ys: dict, a: str, b: str) -> float | None:
     return round((ys[b] - ys[a]) * 100, 1)
 
 
-def fetch_curve(years: list[int] | None = None) -> dict | None:
-    """Fetch the curve for `years` (default: this year and last) and shape it.
+# Below this many merged sessions the series is too short to chart a year of
+# curve history, so the prior year is pulled in to top it up.
+_MIN_SESSIONS = 250
 
-    Two years so the series survives a January run, when the current-year feed
-    holds only a handful of sessions.
+
+def _fetch_year(y: int) -> list[dict]:
+    try:
+        r = requests.get(_URL.format(year=y), headers=_HEADERS, timeout=(8, 60))
+        r.raise_for_status()
+        got = parse_curve(r.text)
+        print(f"  [treasury] {y}: {len(got)} sessions")
+        return got
+    except Exception as e:  # noqa: BLE001 — one bad year must not lose the other
+        print(f"  [treasury] {y}: FAILED ({type(e).__name__}): {e}")
+        return []
+
+
+def fetch_curve(existing: list[dict] | None = None) -> dict | None:
+    """Fetch the current year, merged over `existing` history.
+
+    Fetching both years unconditionally cost 37.4 s — 41.6% of the whole static
+    export on the first live run, making this the slowest topic in the job by a
+    wide margin. The prior year never changes once it is published, so it is
+    pulled only when the merged series is still short: the first run and early
+    January take two requests, every other run takes one.
+
+    `existing` is the previously shipped history (the exporter passes it in);
+    keeping it here rather than reading the file keeps this module free of any
+    knowledge of the export layout.
     """
     this_year = date.today().year
-    years = years or [this_year - 1, this_year]
-    rows: list[dict] = []
-    for y in years:
-        try:
-            r = requests.get(_URL.format(year=y), headers=_HEADERS, timeout=(8, 60))
-            r.raise_for_status()
-            got = parse_curve(r.text)
-            print(f"  [treasury] {y}: {len(got)} sessions")
-            rows.extend(got)
-        except Exception as e:  # noqa: BLE001 — one bad year must not lose the other
-            print(f"  [treasury] {y}: FAILED ({type(e).__name__}): {e}")
+    fresh = _fetch_year(this_year)
+
+    # Carrying history forward changed what a dead feed looks like. It used to
+    # leave `rows` empty, so this returned None and the exporter kept the file
+    # untouched; now the carried rows alone would satisfy every downstream
+    # check and the curve would be rewritten daily with a fresh scraped_at over
+    # unchanged data — a feed outage committed as if it were a good run. If the
+    # current year gave us nothing and we already had history, the run learned
+    # nothing, so say so. A cold start still proceeds: there the prior-year
+    # top-up below is real new information rather than a repeat of the file.
+    if not fresh and existing:
+        print("  [treasury] current year returned nothing — keeping the shipped history")
+        return None
+
+    rows: list[dict] = list(existing or [])
+    rows.extend(fresh)
+
+    if len({r["date"] for r in rows}) < _MIN_SESSIONS:
+        print(f"  [treasury] merged series short (<{_MIN_SESSIONS}) — adding {this_year - 1}")
+        rows.extend(_fetch_year(this_year - 1))
+
     if not rows:
         return None
 
-    # Dedupe on date, later year wins.
+    # Dedupe on date; a freshly fetched row supersedes a carried-over one
+    # because it is appended later (Treasury does revise same-day prints).
     by_date = {r["date"]: r for r in rows}
     hist = [by_date[d] for d in sorted(by_date)]
     latest = hist[-1]
