@@ -44,7 +44,8 @@ from scraper.sources import uganda_weather as _uganda_weather
 
 # _guatemala (ANACAFE) proven live via the "Probe: ANACAFE" workflow (run #1:
 # egress 200, RESULT PASS — 3 grades via the formula fallback), now in the daily
-# suite. The standalone probe-anacafe.yml workflow stays for ad-hoc re-checks.
+# suite. That standalone probe workflow has since been removed — the daily run
+# is the live check.
 # b3 (ICA) retired 2026-08-14: B3's DerivativeQuotation endpoint answers
 # "Quotation not available" for ICA at every hour, while b3_icf pulls the
 # SAME arabica 4/5 official settlement (prvsDayAdjstmntPric) from the same

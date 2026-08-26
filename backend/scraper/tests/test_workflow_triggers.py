@@ -16,9 +16,13 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-import pytest
-
-yaml = pytest.importorskip("yaml")
+# Imported outright, never via importorskip. PyYAML was declared in no
+# requirements file, so the skip fired on every CI run and this whole guard sat
+# silent for months — the same "quiet without failing" failure it was written to
+# catch, turned on itself. A duplicate workflow number reached main through the
+# gap. pyyaml is now a declared test dependency; a missing one must break the
+# build rather than quietly disarm the check.
+import yaml
 
 WF_DIR = Path(__file__).resolve().parents[3] / ".github" / "workflows"
 NUMBER_RE = re.compile(r"^([\d.]+[a-z]?)\s*[–-]")

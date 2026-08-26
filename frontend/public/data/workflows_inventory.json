@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-26T08:00:40.661730Z",
-  "count": 85,
+  "generated_at": "2026-08-26T08:47:05.715032Z",
+  "count": 80,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -471,61 +471,6 @@
       "workflow_run_deps": [],
       "concurrency_group": "acaphe-poll",
       "timeout_minutes": 8
-    },
-    {
-      "file": "probe-acaphe.yml",
-      "name": "Z \u2013 Probe: Acaphe row14 (test)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 10
-    },
-    {
-      "file": "probe-anacafe.yml",
-      "name": "Z \u2013 Probe: ANACAFE Guatemala prices (test)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 10
-    },
-    {
-      "file": "probe-cepea.yml",
-      "name": "Z \u2013 Probe: CEPEA coffee scrape (test)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 10
-    },
-    {
-      "file": "probe-fisico.yml",
-      "name": "Z \u2013 Probe: Brazil Arabica f\u00edsico (test)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 8
-    },
-    {
-      "file": "probe-ice-egress.yml",
-      "name": "Z \u2013 Probe: ICE certified-stocks egress (diagnostic)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 10
     },
     {
       "file": "probe-ice-stock-access.yml",
@@ -1193,11 +1138,6 @@
         "version": "1.18"
       },
       {
-        "file": "brazil-conilon-demand.yml",
-        "name": "1.23 \u2013 Brazil conilon domestic demand",
-        "version": "1.23"
-      },
-      {
         "file": "b3-kc-close.yml",
         "name": "1.6 \u2013 B3 at KC close + final fechamento",
         "version": "1.6"
@@ -1249,7 +1189,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 21,
+    "uncovered_workflows_count": 20,
     "stale_curation_count": 0
   }
 }

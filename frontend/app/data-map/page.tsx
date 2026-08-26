@@ -1032,6 +1032,16 @@ const ROWS: FlowMetadata[] = [
     resiliency: { onMissing: "no upstream network — fails only if the compute itself breaks" },
   },
   {
+    wf: "1.23 Brazil conilon demand", output: "brazil_conilon_demand.json",
+    component: "BrazilArbitragePanel", visual: "Futures · Brazil Internal Arbitrage · conilon blend share",
+    cadence: { recurrence: "05:23 UTC Tuesdays", window: "weekly — the legs refresh on their own schedules", trigger: "cron" },
+    transport: { provider: "USDA FAS PSD + CONAB", method: "PSD coffee CSV zip + CONAB SerieHistoricaCafe.txt; Cecafé read from the repo" },
+    storage: { target: "brazil_conilon_demand.json", footprint: "<20KB", units: "60-kg bags + % of the roast-and-ground blend" },
+    resiliency: {
+      onMissing: "estimate — refuses years where soluble exceeds half the conilon crop, and a CONAB outage degrades to a missing cross-check rather than no series",
+    },
+  },
+  {
     wf: "1.8 Check live quotes", output: "—", component: "—", visual: "Telegram alert · live-quotes freshness",
     cadence: { recurrence: "hourly :15 Mon-Fri 09:15-20:15 UTC", window: "poll window", trigger: "cron" },
     transport: { method: "Upstash GET live_quotes → parse fetched_at" },
