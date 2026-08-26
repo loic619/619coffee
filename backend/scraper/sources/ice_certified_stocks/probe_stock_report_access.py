@@ -27,7 +27,7 @@ import time
 
 import requests
 
-from scraper.sources.ice_certified_stocks import fetchers as F
+from scraper.sources.ice_certified_stocks import fetch as F
 
 BASE = "https://www.ice.com/marketdata/publicdocs/liffe/coffee"
 PAUSE = 5.0          # the marketdata throttle — this probe must not draw a ban
