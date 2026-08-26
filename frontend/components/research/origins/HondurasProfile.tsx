@@ -698,6 +698,14 @@ export default function HondurasProfile() {
       </P>
 
       <H2>8 · Exporters — a concentrated gate on a fragmented farm base</H2>
+      <Highlight>
+        <strong>These shares are 2021 and stay 2021.</strong> Every other block of this profile has a live
+        counterpart in the app and is re-checked against it in §§11–14; this one has none — nothing the app
+        carries breaks exports down by house. The ranking below is reproduced as the dossier gave it and is
+        a point-in-time picture, not a current market share. Houses get acquired, exit and lose share, so
+        treat the <em>shape</em> — a fragmented farm base funnelling through a concentrated gate — as the
+        durable finding, and the individual percentages as a 2021 reading.
+      </Highlight>
       <P>
         {fmt(T_FARMERS)} growers ship through a handful of houses. The top ten account for{" "}
         <strong>{pct(100 * EXP_TOP10 / EXP_TOTAL)}</strong> of the {fmt(EXP_TOTAL)} 46-kg bags exported, and
@@ -708,7 +716,7 @@ export default function HondurasProfile() {
       </P>
       <div className="my-4 rounded-lg border border-slate-800 bg-slate-900/40 p-3">
         <div className="mb-2 text-[10px] uppercase tracking-wide text-slate-400">
-          Exports by house — thousand 46-kg bags
+          Exports by house — thousand 46-kg bags · 2021
         </div>
         <div style={{ height: 250 }}>
           <ResponsiveContainer width="100%" height="100%">
@@ -864,11 +872,6 @@ export default function HondurasProfile() {
       <UL>
         <LI><strong>Ending stocks</strong> — the dossier and USDA describe different origins (§11). One of
           them is wrong by roughly 4×, and nothing in either source says which.</LI>
-        <LI><strong>Who actually exports it</strong> — the §8 ranking of export houses is the one block of
-          the dossier with no live counterpart. Nothing in the app carries per-house export volumes, so
-          those market shares stand frozen at 2021 with no way to tell whether they have drifted. In a
-          market where houses are acquired, exit or lose share, five years is a long time; this is the
-          highest-value remaining gap.</LI>
         <LI><strong>Intercropping</strong> — no data in the source. Shade and companion cropping bear
           directly on climate resilience and on how a farmer&rsquo;s income responds to a price shock.</LI>
         <LI><strong>Leaf rust</strong> — flagged unverified. Given 2012–13, still worth closing.</LI>
