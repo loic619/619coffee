@@ -129,7 +129,11 @@ def parse_report(pdf_bytes: bytes) -> list[dict]:
     with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
         for page in pdf.pages[:12]:                       # figures live at the front
             text = (page.extract_text() or "").replace("\n", " ")
-            for m in re.finditer(r"Organic sales[^.]*?\.", text):
+            # NOT [^.]*? — a decimal point ends that match inside "15.3%", so
+            # the "sentence" becomes "Organic sales up +15" and every figure is
+            # lost. Take a bounded window instead and stop at a period that is
+            # followed by a space and a capital, i.e. a real sentence end.
+            for m in re.finditer(r"Organic sales.{0,400}?(?:\.\s+[A-Z]|$)", text):
                 sentence = m.group(0)
                 if not _VOL.search(sentence):
                     continue
