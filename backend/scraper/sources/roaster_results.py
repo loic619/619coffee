@@ -220,23 +220,49 @@ def _report_urls(back_years: int = 6) -> list[str]:
 # So the RIG row is located by its label and zipped against the header row,
 # rather than reading a column.
 _NESTLE_BASE = "https://www.nestle.com/sites/default/files"
+# (label, candidate slugs, publication month, year offset). Only the 3M slug is
+# confirmed; the rest 404'd on the first pass, so each carries alternates and
+# every miss is logged rather than swallowed.
 _NESTLE_KINDS = [
-    # (label, url slug, publication month, year offset)
-    ("3M", "three-month-sales-press-release", 4, 0),
-    ("H1", "half-year-results-press-release", 7, 0),
-    ("9M", "nine-month-sales-press-release", 10, 0),
-    ("FY", "full-year-results-press-release", 2, 1),
+    ("3M", ["three-month-sales-press-release", "three-month-sales-press-release-en",
+            "q1-sales-press-release"], 4, 0),
+    ("H1", ["half-year-results-press-release", "half-yearly-results-press-release",
+            "half-year-report-press-release", "hy-results-press-release"], 7, 0),
+    ("9M", ["nine-month-sales-press-release", "nine-months-sales-press-release",
+            "q3-sales-press-release"], 10, 0),
+    ("FY", ["full-year-results-press-release", "full-year-results-press-release-en",
+            "fy-results-press-release", "annual-results-press-release"], 2, 1),
 ]
 _RIG_ROW = re.compile(r"real internal growth|\bRIG\b", re.I)
 _HEADER_ANCHOR = re.compile(r"total group", re.I)
 
 
 def parse_nestle_summary(table: list[list]) -> list[dict]:
-    """RIG per segment from the sales-performance summary."""
+    """RIG per segment from the sales-performance summary.
+
+    The header is MULTI-LINE: "Zone Americas" and "Nestlé Health Science" are
+    stacked across two or three PDF rows, so no single row carries them all.
+    Reading one row found only the single-line "Total Group" and silently
+    dropped every segment. So the header is rebuilt column-wise by joining
+    every row above the RIG line.
+    """
     flat = [[_cell(c) for c in row] for row in (table or [])]
-    header = next((r for r in flat if _HEADER_ANCHOR.search(" ".join(r))), None)
-    rig = next((r for r in flat if r and _RIG_ROW.search(r[0])), None)
-    if not header or not rig:
+    rig_idx = next((i for i, r in enumerate(flat) if r and _RIG_ROW.search(r[0])), None)
+    if rig_idx is None:
+        return []
+    rig = flat[rig_idx]
+
+    width = max(len(r) for r in flat[:rig_idx + 1]) if rig_idx >= 0 else 0
+    header: list[str] = []
+    for col in range(width):
+        parts = []
+        for row in flat[:rig_idx]:
+            cell = row[col] if col < len(row) else ""
+            # A sales figure means we have reached the data rows, not headers.
+            if cell and not re.search(r"\d[\d ,.]*$", cell):
+                parts.append(cell)
+        header.append(" ".join(parts).strip())
+    if not any(_HEADER_ANCHOR.search(h) for h in header):
         return []
     out: list[dict] = []
     for i, name in enumerate(header):
@@ -285,19 +311,33 @@ def nestle_periods(back_years: int = 3) -> list[dict]:
     now = datetime.now(timezone.utc)
     periods: list[dict] = []
     for year in range(now.year, now.year - back_years, -1):
-        for label, slug, month, offset in _NESTLE_KINDS:
-            url = f"{_NESTLE_BASE}/{year + offset}-{month:02d}/{slug}-{year}-en.pdf"
-            try:
-                r = requests.get(url, headers=_HEADERS, timeout=60)
-            except Exception:                              # noqa: BLE001
-                continue
-            if not r.ok or b"%PDF" not in r.content[:1024]:
-                continue
-            rows = parse_nestle_report(r.content)
-            if not rows:
-                log.info("[roaster_results] nestle %s-%s: PDF found, no RIG table", year, label)
-                continue
-            periods.append({"period": f"{year}-{label}", "source_url": url, "segments": rows})
+        for label, slugs, month, offset in _NESTLE_KINDS:
+            got = False
+            for slug in slugs:
+                # Both the month directory and the neighbouring month, since
+                # a release published late in the window lands in the next one.
+                for d_month in (month, month + 1):
+                    url = f"{_NESTLE_BASE}/{year + offset}-{d_month:02d}/{slug}-{year}-en.pdf"
+                    try:
+                        r = requests.get(url, headers=_HEADERS, timeout=60)
+                    except Exception:                      # noqa: BLE001
+                        continue
+                    if not r.ok or b"%PDF" not in r.content[:1024]:
+                        continue
+                    rows = parse_nestle_report(r.content)
+                    if not rows:
+                        log.info("[roaster_results] nestle %s-%s: PDF at %s, no RIG table",
+                                 year, label, url)
+                        continue
+                    periods.append({"period": f"{year}-{label}", "source_url": url,
+                                    "segments": rows})
+                    got = True
+                    break
+                if got:
+                    break
+            if not got:
+                log.info("[roaster_results] nestle %s-%s: no PDF found (tried %d slugs)",
+                         year, label, len(slugs))
     return sorted(periods, key=lambda p: p["period"])
 
 
