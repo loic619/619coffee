@@ -241,7 +241,11 @@ def _write_cells(archive: dict, contracts: list[dict], oi_date: str, price_date:
 
 
 def _trim_archive(archive: dict) -> None:
-    """Drop date keys older than the 5y retention window."""
+    """Drop date keys older than the ARCHIVE_MAX_DAYS retention window.
+
+    Nothing else deletes from the archive, so this is the only thing that can
+    undo a backfill: raise ARCHIVE_MAX_DAYS before fetching deeper history, or
+    the next nightly run removes it."""
     from datetime import datetime
     cutoff_ord = date.today().toordinal() - ARCHIVE_MAX_DAYS * 7 // 5  # ~calendar span for N trading days
     for market in ("arabica", "robusta"):
