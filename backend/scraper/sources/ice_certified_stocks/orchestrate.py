@@ -1102,23 +1102,19 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
         # probes are the only route back to a missed session, and a missed
         # session is a permanent hole in the record (verified: all three misses
         # in the June–August window have no snapshot from any source).
-        recent_days = days_sorted_asc[-5:]
-        sweep_day = recent_days[-1] if recent_days else None
-        for d in recent_days:
-            url, parsed = pull_stock_report(d, sweep=(d == sweep_day))
-            if parsed is not None:
-                robusta_stocks[d] = parsed
-                robusta_stock_url = url
-        print(f"  → {len(robusta_stocks)} stock-report snapshots captured "
-              f"(tier-2 sweep day: {sweep_day})\n")
-
-        # Recover holes. Any date whose publish second we KNOW but whose
-        # snapshot we never stored is one GET away, now that retention is
-        # confirmed — tier 0 goes straight to the URL. The candidate list comes
-        # from the hit log rather than the run window, because the holes are
-        # usually months old by the time their time is learned (all three in
-        # the June–August window were), and a window wide enough to reach them
-        # would drag every other per-day fetch along with it.
+        # Recover holes FIRST — before the sweep, deliberately.
+        #
+        # Each is a single GET with a known-good URL: certain value, negligible
+        # cost. The sweep below is the opposite — up to two hours, and it may
+        # find nothing. Ordering the certain work behind the gamble means a run
+        # that times out mid-sweep never reaches the recovery at all, which is
+        # exactly what happened on run 32950531834: three holes that were three
+        # requests away sat behind a full walk for an unrelated day.
+        #
+        # The candidate list comes from the hit log rather than the run window,
+        # because holes are usually months old by the time their time is learned
+        # (all three in the June–August window were), and a window wide enough
+        # to reach them would drag every other per-day fetch along with it.
         stored = set()
         _existing = _load_existing_json(OUT_DIR / "certified_stocks_robusta.json")
         if _existing:
@@ -1138,6 +1134,17 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
                     print(f"  ✓ recovered {iso}")
                 else:
                     print(f"  ✗ {iso} still unresolved")
+
+        recent_days = days_sorted_asc[-5:]
+        sweep_day = recent_days[-1] if recent_days else None
+        for d in recent_days:
+            url, parsed = pull_stock_report(d, sweep=(d == sweep_day))
+            if parsed is not None:
+                robusta_stocks[d] = parsed
+                robusta_stock_url = url
+        print(f"  → {len(robusta_stocks)} stock-report snapshots captured "
+              f"(tier-2 sweep day: {sweep_day})\n")
+
 
         print(f"[robusta] gradings + iss/recv + tenders + overview, {len(days_sorted_asc)} days...")
         for d in days_sorted_asc:
