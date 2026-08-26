@@ -1,0 +1,68 @@
+name: "4.2 – Roaster Results (volume/mix from PDFs)"
+
+# Volume growth from the results releases — the half of sales growth that says
+# anything about consumption. Quarterly, a week after each reporting season,
+# matching 4.1's cadence: these are the same documents, read for a different
+# number. Four runs a year.
+
+on:
+  schedule:
+    - cron: "0 9 15 2,5,8,11 *"
+  workflow_dispatch:
+  push:
+    branches: [demand-earnings-revamp]
+    paths: [".github/workflows/scraper-roaster-results.yml",
+            "backend/scraper/sources/roaster_results.py"]
+
+concurrency:
+  group: scraper-roaster-results
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install dependencies
+        run: pip install requests pdfplumber
+      - name: Fetch and parse results releases
+        run: |
+          cd backend
+          python -c "
+          import asyncio, logging
+          logging.basicConfig(level=logging.INFO, format='%(message)s')
+          from scraper.sources.roaster_results import run
+          asyncio.run(run())
+          "
+      - name: Show what landed
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          p = pathlib.Path("frontend/public/data/roaster_earnings.json")
+          if not p.exists():
+              print("no file written"); raise SystemExit(0)
+          d = json.loads(p.read_text())
+          for c in d.get("companies", []):
+              print(f"{c['name']} ({c['metric_name']}): {len(c['periods'])} period(s)")
+              for per in c["periods"]:
+                  print(f"  {per['period']}")
+                  for s in per["segments"]:
+                      print(f"     {s['segment']:22s} vol/mix={s['volume_mix_pct']}  organic={s['organic_pct']}")
+          PY
+      - name: Commit if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data/roaster_earnings.json || true
+          git diff --cached --quiet && echo "No changes." || (
+            git commit -m "data: roaster volume/mix from results releases [skip ci]" &&
+            git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" &&
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          )
