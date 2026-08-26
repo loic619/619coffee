@@ -188,6 +188,12 @@ jobs:
           # the Actions log instead of waiting for the (block-buffered) pipe
           # to fill — otherwise a long run looks "stalled" until completion.
           PYTHONUNBUFFERED: "1"
+          # The sweep window is deliberately narrow (10:29-11:00), so a report
+          # published outside it is an expected outcome that needs a human to
+          # supply the second. The orchestrator says so directly rather than
+          # leaving it to be noticed as a gap.
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           # Optional — when set, the orchestrator's tail step upserts a
           # news_feed row carrying a `_commentary` block for each market.
           # The next run of workflow 1.4 (Export and Publish) lifts that

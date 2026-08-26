@@ -230,22 +230,27 @@ _RATE_STATE: dict[str, int] = {"consecutive_429s": 0, "aborted": 0}
 # the one knob left. This overrides the 5s marketdata throttle for the sweep
 # (restored right after) to probe ICE's sequential-rate ceiling — step it down
 # 5 → 4 → 3 → 2 → 1 → 0.5 ONLY after a run at the current value draws no 429.
-_STOCK_SWEEP_INTERVAL_S = 4.0
+# 3s, stepped down from 4s per the rule above: run 32950531834 swept ~1,300
+# candidates at 4s and drew zero 429s. The step is what makes a MISS reachable
+# — at 4s a full 10:29–11:00 walk is 128 minutes against a 120-minute timeout,
+# so the run would always die before it could conclude anything. At 3s it is
+# 96 minutes, and "swept everything, found nothing" becomes a same-day answer.
+_STOCK_SWEEP_INTERVAL_S = 3.0
 
 # Stock_report.csv's HHMMSS publish time varies daily. Strategy is tiered:
 #   Tier 1 — try the K most-frequent HHMMSS values from past successful
 #            captures (loaded from STOCK_REPORT_HITS_PATH). Cheap: ≤K GETs.
-#   Tier 2 — if Tier 1 misses, sweep every second of the published
-#            10:30:00 → 11:15:59 window. ICE has been observed publishing as
-#            late as 11:12:30, so the 10:30–10:31 window we used before
-#            now silently misses ~once a month. 46 min × 60 s = 2760 GETs;
-#            at 5 s/req that's ~3.8 h WCB on a full miss, but in practice
-#            Tier 1 catches almost every day, so the sweep rarely runs.
-#            Skipped during multi-day backfills (`sweep=False`).
+#   Tier 2 — if Tier 1 misses, sweep every second of STOCK_REPORT_SWEEP_RANGE
+#            (see below for why that range is narrow on purpose). 1,920 GETs at
+#            3 s/req = 96 min for a full walk, which fits the 120-min job
+#            timeout — so a sweep that ends empty has genuinely looked
+#            everywhere and says so, instead of being indistinguishable from a
+#            run that ran out of time. Resumable via the cursor, and skipped
+#            during multi-day backfills (`sweep=False`).
 # Every successful capture is appended to the hits file so the Tier 1
 # ordering self-tunes over time.
 STOCK_REPORT_HITS_PATH = Path(__file__).with_name("stock_report_hits.json")
-# Inclusive minute range to sweep: [10:25 … 12:50] = 146 minutes.
+# Inclusive minute range to sweep: [10:29 … 11:00] = 32 minutes.
 #
 # Was 10:30–11:15, and all three misses in the June–August window fell outside
 # what that could reach: 2026-06-10 published at 10:29:56 — four seconds before
@@ -258,7 +263,13 @@ STOCK_REPORT_HITS_PATH = Path(__file__).with_name("stock_report_hits.json")
 # Retention changes that. Probe 0.18 confirmed ICE still serves reports from
 # June in late August, so an unfinished sweep is a PAUSE, not a loss — the
 # cursor resumes it on the next run, and the day is still there to be found.
-STOCK_REPORT_SWEEP_RANGE = ((10, 25), (12, 50))
+# Deliberately narrower than the observed range. 10:29–11:00 covers 58 of the
+# 60 sessions on record (97%); the two it gives up on published at 11:23 and
+# 12:47, and reaching those would mean a 9-hour walk to buy two days a quarter.
+# A day outside the window is now an EXPECTED, ANNOUNCED outcome rather than a
+# silent hole: the run says so on Telegram, the research page lists it as
+# pending, and one operator-supplied second backfills it.
+STOCK_REPORT_SWEEP_RANGE = ((10, 29), (11, 0))
 # K = 10 (was 5) — wider Tier 1 keeps the cheap path covering more days as
 # the publish window expands; only matters once the hits log fills out.
 STOCK_REPORT_TIER1_K = 10
@@ -290,6 +301,11 @@ _RUN_STATS: dict = {
     # imposed it. This is the answer to "where did the 111 minutes go" — the
     # run is almost entirely deliberate waiting, and this says whose.
     "wait_publicdocs_s": 0.0, "wait_marketdata_s": 0.0, "requests": 0,
+    # True only when the sweep walked the ENTIRE window and found nothing —
+    # i.e. the report published outside 10:29–11:00. Distinct from a run that
+    # stopped early because it was rate-limited or ran out of clock, which
+    # says nothing about where the file is.
+    "sweep_exhausted": False,
 }
 
 
@@ -308,6 +324,34 @@ def _save_cursor(d: date, last_tried: str | None) -> None:
         STOCK_REPORT_CURSOR_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     except Exception as e:  # noqa: BLE001 — telemetry must never break the run
         print(f"  ! cursor write failed: {e}")
+
+
+def _notify_late_release(day: date) -> None:
+    """Say so when the sweep covered its whole window and the report was not in
+    it. The window is deliberately narrow, so this is a designed outcome, not a
+    failure — but it is one that needs a human, because the only way to recover
+    the session is for someone to supply the publish second. Silence would turn
+    an announced trade-off back into a silent hole."""
+    import os
+
+    tok = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat = os.environ.get("TELEGRAM_CHAT_ID")
+    lo, hi = STOCK_REPORT_SWEEP_RANGE
+    win = f"{lo[0]:02d}:{lo[1]:02d}–{hi[0]:02d}:{hi[1]:02d}"
+    text = (f"\u26a0\ufe0f ICE robusta stock report \u2014 missed, late release\n"
+            f"{day.isoformat()} did not publish inside {win} UTC "
+            f"({_RUN_STATS['sweep_gets']} seconds checked).\n"
+            f"Add the publish time on the Admin research page to backfill it.")
+    print(f"[robusta] LATE RELEASE — {day} not in {win}")
+    if not tok or not chat:
+        print("[robusta] telegram not configured — not sending")
+        return
+    try:
+        import requests as _rq
+        _rq.post(f"https://api.telegram.org/bot{tok}/sendMessage",
+                 data={"chat_id": chat, "text": text}, timeout=20)
+    except Exception as e:  # noqa: BLE001 — never fail the run on a notification
+        print(f"[robusta] telegram send failed: {e}")
 
 
 def _record_run_stats(outcome: str, sweep_day: date | None) -> None:
@@ -672,6 +716,10 @@ def pull_stock_report(d: date, *, sweep: bool = True) -> tuple[str | None, dict 
                 return url, parsed
             if _RATE_STATE["aborted"]:
                 break                          # banned: keep the cursor, stop here
+        else:
+            # for-else: the loop ran to completion without breaking, so every
+            # second in the window answered 404. The file is not in here.
+            _RUN_STATS["sweep_exhausted"] = True
     finally:
         _THROTTLE["marketdata"] = saved_throttle
         # Persist progress whether we were banned, timed out mid-loop, or simply
@@ -1142,6 +1190,9 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
             if parsed is not None:
                 robusta_stocks[d] = parsed
                 robusta_stock_url = url
+        if sweep_day is not None and sweep_day not in robusta_stocks \
+                and _RUN_STATS["sweep_exhausted"]:
+            _notify_late_release(sweep_day)
         print(f"  → {len(robusta_stocks)} stock-report snapshots captured "
               f"(tier-2 sweep day: {sweep_day})\n")
 

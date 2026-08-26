@@ -1,0 +1,53 @@
+name: "0.20 – Probe: ICE sequential pace (is 3s/req accepted?)"
+
+# Dispatch-only. The tier-2 sweep stepped from 4s/request to 3s, and that step
+# is load-bearing: at 4s a full 10:29–11:00 walk is 128 minutes against a
+# 120-minute timeout, so the run can never conclude "swept everything, found
+# nothing". At 3s it is 96 minutes and a miss becomes declarable the same day.
+#
+# The justification for 3s was inferred (a 4s run drew no 429s), not measured.
+# This measures it: ~200 sequential GETs at the target interval against seconds
+# where no file can exist, with a known-good retained report fetched before,
+# during and after as the control. The control is the real test — 404s say the
+# URL is wrong, only the control says whether we are still let in.
+#
+# Shares 1.13's concurrency lane: same host, never both at once.
+
+on:
+  workflow_dispatch:
+    inputs:
+      interval:
+        description: "Seconds between requests (the value under test)"
+        required: false
+        default: "3.0"
+        type: string
+      requests:
+        description: "How many walk requests to issue"
+        required: false
+        default: "200"
+        type: string
+
+concurrency:
+  group: scraper-ice-certified-stocks
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --quiet requests
+      - name: Probe the pace
+        working-directory: backend
+        env:
+          PYTHONUNBUFFERED: "1"
+        # Exit 1 on FAIL is deliberate: a red run is the signal to revert
+        # _STOCK_SWEEP_INTERVAL_S, not something to page through logs for.
+        run: |
+          PYTHONPATH=. python -m scraper.sources.ice_certified_stocks.probe_stock_report_pace \
+            --interval "${{ inputs.interval || '3.0' }}" \
+            --requests "${{ inputs.requests || '200' }}"

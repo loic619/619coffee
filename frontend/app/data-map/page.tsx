@@ -306,7 +306,9 @@ const DEMAND = `flowchart LR
   HITS[("stock_report_hits.json<br/>observed publish seconds")]
   T0{{"tier 0 · recorded second<br/>1 GET"}}
   T1{{"tier 1 · top-10 ±2s"}}
-  T2{{"tier 2 · sweep 10:25-12:50<br/>4s/req · resumable cursor"}}
+  T2{{"tier 2 · sweep 10:29-11:00<br/>3s/req · 96 min full walk<br/>resumable cursor"}}
+  MISS{{"sweep exhausted<br/>Telegram: missed, late release"}}
+  BF["0.19 operator backfill<br/>enter HHMMSS on Research"]
   REC{{"hole recovery<br/>known time, no snapshot"}}
   J_ipt[/ice_publish_times.json/]
   icepub{{"Research · Admin<br/>publish-time calendar"}}
@@ -353,6 +355,8 @@ const DEMAND = `flowchart LR
   T2 --> J_csr
   HITS --> T0
   T2 -->|"records the second"| HITS
+  T2 -->|"no hit in window"| MISS --> icepub
+  icepub --> BF --> HITS
   HITS --> REC --> J_csr
   HITS --> J_ipt --> icepub
   WICE_RC --> COH --> J_csr
@@ -831,7 +835,8 @@ const ROWS: FlowMetadata[] = [
     visual: "Demand · Tiles + Period view + System flow + Freshness chips",
     cadence: {
       recurrence: "00:35 UTC Tue-Sat cron + chained off 1.1, once-a-day guard",
-      window: "anchors the previous business day; ICE robusta publishes 10:25-12:50 UTC",
+      window: "anchors the previous business day; ICE robusta publishes 10:25-12:50 UTC, "
+        + "97% of it inside the swept 10:29-11:00",
       trigger: "composite",   // 00:35 cron + workflow_run chain off 1.1
     },
     transport: {
@@ -848,10 +853,15 @@ const ROWS: FlowMetadata[] = [
       onMissing:
         "The robusta CSV is stamped with the exact SECOND it was generated and there is no "
         + "index, so it has to be guessed: tier 0 tries the second already recorded for that "
-        + "date (1 GET), tier 1 the ten most frequent ±2s, tier 2 sweeps 10:25-12:50 at 4s/req "
+        + "date (1 GET), tier 1 the ten most frequent ±2s, tier 2 sweeps 10:29-11:00 at 3s/req "
         + "and saves a cursor so a run killed by the 120-min timeout resumes rather than "
-        + "restarting. ICE retains historical reports (probe 0.18), so a missed day stays "
-        + "recoverable: any date with a known time but no snapshot is re-fetched, ≤20/run.",
+        + "restarting. That window is narrow ON PURPOSE — 1,920 candidates is a 96-min full "
+        + "walk that fits the timeout, so 'found nothing' is a real answer rather than 'ran out "
+        + "of time'; it covers 97% of sessions and the rest are announced, not hidden. A sweep "
+        + "that exhausts the window posts 'missed, late release' to Telegram and the day is "
+        + "listed as pending on Research · Admin, where entering the second dispatches 0.19. "
+        + "ICE retains historical reports (probe 0.18), so a missed day stays recoverable: any "
+        + "date with a known time but no snapshot is re-fetched, ≤20/run.",
       parserFallback: "XLS-first → PDF fallback when ICE varies the daily file format",
     },
     runtime: {
