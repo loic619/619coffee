@@ -471,12 +471,38 @@ export default function IcePublishTimes() {
       <Highlight>
         The interval step from 4s to 3s is what buys that. At 4s the same walk is{" "}
         {Math.round((data.sweep.candidate_seconds * 4) / 60)} minutes — past the timeout, so the
-        run could never conclude anything. The step follows the rule this page set earlier: drop
-        one notch only after a run at the current value drew no 429s. Workflow 0.20 tests the new
-        pace directly, walking 200 candidates at 3s with a known-good report fetched before,
-        during and after; the control is the real test, since 404s tell you the URL is wrong and
-        only a control tells you whether you are still welcome.
+        run could never conclude anything.
       </Highlight>
+      <P>
+        The step follows the rule this page set earlier: drop one notch only after a run at the
+        current value drew no 429s. That rule is satisfied by inference, which is not the same as
+        evidence, so workflow <strong>0.20</strong> measured it on 26 August — 200 sequential GETs
+        at 3s against seconds where no file can exist, with a known-good retained report fetched
+        before, at every fiftieth request, and after. The control is the real test: a 404 only
+        tells you the URL is wrong, and only the control tells you whether you are still welcome.
+      </P>
+      <RefTable
+        head={["measure", "result"]}
+        rows={[
+          ["requests at 3s", "200 in 10.5 min (3.14s/req actual)"],
+          ["statuses", "404 × 200 — no other code seen"],
+          ["HTTP 429s", "0"],
+          ["transport failures", "0"],
+          ["control fetches (before · ×4 during · after)", "200 every time — never kicked out"],
+          ["latency", "median 0.13s, max 0.35s — flat throughout"],
+        ]}
+      />
+      <P>
+        Flat latency is worth as much as the zero: throttling usually announces itself by slowing
+        down before it starts refusing, and there was no sign of it. The result does not fully
+        generalise, though — a worst-case sweep issues 1,920 requests, not 200, so this rules out
+        a short-window limit rather than a daily one. The scraper still carries its defences for
+        that case: <Code>Retry-After</Code> obeyed, the throttle self-bumping ×1.3 on a 429, an
+        abort after four consecutive ones, and the cursor so an aborted run resumes instead of
+        restarting. The step-down rule would now permit trying 2s. There is no reason to: 96
+        minutes already fits, so a further step buys nothing and spends risk. <strong>3s stands,
+        with 4s the fallback</strong> if a long sweep ever draws 429s the run telemetry can show.
+      </P>
       <P>
         What makes deliberate under-coverage acceptable is that the residual is no longer silent.
         A sweep that exhausts the window without a hit posts <em>missed, late release</em> to

@@ -230,8 +230,16 @@ _RATE_STATE: dict[str, int] = {"consecutive_429s": 0, "aborted": 0}
 # the one knob left. This overrides the 5s marketdata throttle for the sweep
 # (restored right after) to probe ICE's sequential-rate ceiling — step it down
 # 5 → 4 → 3 → 2 → 1 → 0.5 ONLY after a run at the current value draws no 429.
-# 3s, stepped down from 4s per the rule above: run 32950531834 swept ~1,300
-# candidates at 4s and drew zero 429s. The step is what makes a MISS reachable
+# 3s, stepped down from 4s per the rule above and then MEASURED: probe 0.20
+# (run 32979574768, 2026-08-26) walked 200 sequential candidates at 3s and drew
+# zero 429s, zero transport failures, flat 0.13s latency, and a known-good
+# control that returned 200 before, four times during, and after — we were
+# never throttled and never kicked out.
+# Caveat the probe cannot settle: a worst-case sweep is 1,920 requests, not 200,
+# so this rules out a short-window limit, not a daily one. If the run telemetry
+# ever shows 429s on a long sweep, step back to 4.0 — do NOT go to 2s, since 96
+# minutes already fits the timeout and a further step buys nothing.
+# The step is what makes a MISS reachable
 # — at 4s a full 10:29–11:00 walk is 128 minutes against a 120-minute timeout,
 # so the run would always die before it could conclude anything. At 3s it is
 # 96 minutes, and "swept everything, found nothing" becomes a same-day answer.
