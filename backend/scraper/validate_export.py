@@ -450,14 +450,6 @@ def validate_cecafe_daily(data: dict) -> tuple[bool, str]:
     return True, "ok (v1 legacy)"
 
 
-def validate_earnings(data: dict) -> tuple[bool, str]:
-    if not isinstance(data, dict):
-        return False, "not a dict"
-    if not data.get("companies"):
-        return False, "companies list is empty"
-    return True, "ok"
-
-
 def validate_kaffeesteuer(data: dict) -> tuple[bool, str]:
     if not isinstance(data, dict):
         return False, "not a dict"

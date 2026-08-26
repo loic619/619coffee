@@ -1,0 +1,72 @@
+name: Z.98 – Earnings + deep-Eurostat probe (temporary)
+
+# Two questions this sandbox cannot answer (no outbound network):
+#   1. How far back will Eurostat serve MONTHLY EU coffee imports when we ask
+#      for totals only (no partner breakdown)? The by-partner query trips a 413
+#      past ~40 months, which is why the live series is only 31 months deep —
+#      too short for the two-period regression in the requested scatter.
+#   2. Are Nestle's RIG and JDE Peet's volume/mix figures reachable and
+#      parseable from their IR pages? They are not in any financial API.
+# Delete once read.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [demand-earnings-revamp]
+    paths: [".github/workflows/zz-earnings-exports-probe.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install requests
+      - name: 1 - how deep does monthly Eurostat go, totals only
+        run: |
+          python - <<'PY'
+          import requests
+          BASE="https://ec.europa.eu/eurostat/api/comext/dissemination/statistics/1.0/data/ds-045409"
+          H={"User-Agent":"Mozilla/5.0 (CoffeeIntelBot/1.0)","Accept":"application/json"}
+          for last_n in (200, 150, 120, 96, 60, 40):
+              # WORLD partner only -> one series per month instead of ~200.
+              params=[("format","JSON"),("freq","M"),("reporter","EU27_2020"),
+                      ("partner","WORLD"),("product","0901"),("flow","1"),
+                      ("indicators","QUANTITY_IN_100KG"),("lastTimePeriod",str(last_n))]
+              try:
+                  r=requests.get(BASE,params=params,headers=H,timeout=90)
+              except Exception as e:
+                  print(f"  lastN={last_n:4d}  EXC {type(e).__name__}"); continue
+              if r.status_code!=200:
+                  print(f"  lastN={last_n:4d}  HTTP {r.status_code}  {r.text[:90]}"); continue
+              b=r.json()
+              times=(b.get("dimension",{}).get("time",{}).get("category",{}).get("index",{}) or {})
+              keys=sorted(times)
+              print(f"  lastN={last_n:4d}  HTTP 200  months={len(keys)}  {keys[0] if keys else '-'} -> {keys[-1] if keys else '-'}  bytes={len(r.content)}")
+              if keys: break
+          PY
+      - name: 2 - are the roaster results reachable
+        run: |
+          python - <<'PY'
+          import re, requests
+          H={"User-Agent":"Mozilla/5.0 (compatible; CoffeeIntelBot/1.0)"}
+          TARGETS={
+            "Nestle IR press releases": "https://www.nestle.com/media/pressreleases",
+            "Nestle investors":         "https://www.nestle.com/investors/publications",
+            "JDE Peet's IR":            "https://www.jdepeets.com/investors/",
+            "JDE Peet's results":       "https://www.jdepeets.com/investors/results-and-presentations/",
+          }
+          for name,url in TARGETS.items():
+              try:
+                  r=requests.get(url,headers=H,timeout=45,allow_redirects=True)
+                  txt=r.text if r.status_code==200 else ""
+                  hits={k:len(re.findall(k,txt,re.I)) for k in
+                        ("RIG","real internal growth","organic growth","volume/mix","vol/mix","price/mix")}
+                  pdfs=len(re.findall(r'href="[^"]+\.pdf', txt, re.I))
+                  print(f"  {name:26s} HTTP {r.status_code}  bytes={len(r.content):>8}  pdf_links={pdfs}  {hits}")
+              except Exception as e:
+                  print(f"  {name:26s} EXC {type(e).__name__}: {e}")
+          PY

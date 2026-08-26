@@ -14,8 +14,8 @@ const CertifiedStocksPanel = dynamic(
       <div className="bg-slate-900 border border-slate-700 rounded-lg p-4 animate-pulse h-64" />
     ) },
 );
-import EarningsTable from "@/components/demand/EarningsTable";
 import GrowthMarketsPanel from "@/components/demand/GrowthMarketsPanel";
+import RoasterEarningsPanel from "@/components/demand/RoasterEarningsPanel";
 import ImportsStory from "@/components/demand/ImportsStory";
 import KaffeesteuerChart from "@/components/demand/KaffeesteuerChart";
 import KaffeesteuerReexport from "@/components/demand/KaffeesteuerReexport";
@@ -26,7 +26,7 @@ import WorldConsumptionWidget from "@/components/demand/WorldConsumptionWidget";
 import PageHeader from "@/components/PageHeader";
 import { useUrlState } from "@/lib/useUrlState";
 
-type SubTab = "certified" | "destination" | "spot" | "demand" | "imports" | "listed";
+type SubTab = "certified" | "destination" | "spot" | "demand" | "imports" | "earnings";
 
 const TABS: { id: SubTab; label: string }[] = [
   { id: "certified",   label: "Certified stocks" },
@@ -34,7 +34,7 @@ const TABS: { id: SubTab; label: string }[] = [
   { id: "spot",        label: "Spot" },
   { id: "demand",      label: "Consumption" },
   { id: "imports",     label: "Imports" },
-  { id: "listed",      label: "Listed stocks" },
+  { id: "earnings",    label: "Earnings" },
 ];
 const SUB_TABS = TABS.map((t) => t.id) as SubTab[];
 
@@ -126,9 +126,9 @@ function DemandPageInner() {
         </Section>
       )}
 
-      {tab === "listed" && (
+      {tab === "earnings" && (
         <Section>
-          <EarningsTable />
+          <RoasterEarningsPanel />
         </Section>
       )}
 
