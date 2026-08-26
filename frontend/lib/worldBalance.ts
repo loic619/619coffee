@@ -123,3 +123,26 @@ export const ORIGIN_LABELS: Record<string, string> = {
   india: "India", china: "China", uganda: "Uganda", ethiopia: "Ethiopia",
   ivory_coast: "Ivory Coast", tanzania: "Tanzania",
 };
+
+
+/** One published world-consumption estimate. The sheet's demand headline is
+ *  the mean of these plus our own hub build — reporting one of four numbers
+ *  as "the" number is a house view wearing a statement's clothing. */
+export interface ConsumptionSource {
+  key: string;
+  label: string;
+  season: string | null;
+  m_bags: number;
+  note?: string;
+  /** Its latest published season trails the statement's crop year. Included
+   *  because consumption moves slowly; flagged because that is not free. */
+  carried_forward?: boolean;
+}
+export interface WorldConsumptionDoc {
+  crop_year: string;
+  unit: string;
+  sources: ConsumptionSource[];
+  mean: number | null;
+  spread: [number, number] | null;
+  note?: string;
+}

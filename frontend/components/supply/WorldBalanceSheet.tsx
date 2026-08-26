@@ -29,9 +29,16 @@ import WorldBalanceEditor from "./WorldBalanceEditor";
 import {
   LEGS, LEG_LABEL, LEG_TONE, allocate,
   addLegs, arabicaAll, emptyLegs, fmt, legTotal, r1,
-  type DemandSegmentsDoc, type GradeRow, type Leg, type Legs, type Line,
-  type OriginGradesDoc, type Risk, type WorldBalanceDoc,
+  type ConsumptionSource, type DemandSegmentsDoc, type GradeRow, type Leg, type Legs,
+  type Line, type OriginGradesDoc, type Risk, type WorldBalanceDoc,
+  type WorldConsumptionDoc,
 } from "@/lib/worldBalance";
+
+/** Just the slice of ccs_sd.json this component needs. */
+interface CcsDoc {
+  seasons: string[];
+  production: Record<"total" | "robusta" | "arabica", Record<string, number[]>>;
+}
 
 interface SeedSeason {
   season: string;
@@ -174,6 +181,8 @@ export default function WorldBalanceSheet({ cropYear }: { cropYear?: string }) {
   const [prod, setProd] = useState<Record<string, Record<Leg, number>> | null>(null);
   const [grades, setGrades] = useState<OriginGradesDoc | null>(null);
   const [segs, setSegs]     = useState<DemandSegmentsDoc | null>(null);
+  const [cons, setCons]     = useState<WorldConsumptionDoc | null>(null);
+  const [ccs, setCcs]       = useState<CcsDoc | null>(null);
   const [unsplitOrigins, setUnsplitOrigins] = useState<string[]>([]);
   const [failed, setFailed] = useState(false);
   const [arabicaSplit, setArabicaSplit] = useState(true);
@@ -193,6 +202,10 @@ export default function WorldBalanceSheet({ cropYear }: { cropYear?: string }) {
       .then(r => (r.ok ? r.json() : null)).then(setGrades).catch(() => {});
     fetch(`/data/demand_segments.json?t=${reload}`)
       .then(r => (r.ok ? r.json() : null)).then(setSegs).catch(() => {});
+    fetch(`/data/world_consumption.json?t=${reload}`)
+      .then(r => (r.ok ? r.json() : null)).then(setCons).catch(() => {});
+    fetch(`/data/ccs_sd.json?t=${reload}`)
+      .then(r => (r.ok ? r.json() : null)).then(setCcs).catch(() => {});
   }, [reload]);
 
   const season = cropYear ?? doc?.crop_year;
@@ -253,20 +266,73 @@ export default function WorldBalanceSheet({ cropYear }: { cropYear?: string }) {
     return () => { cancelled = true; };
   }, [season]);
 
+  /** Consumption headline = mean of the published estimates AND our own hub
+   *  build. The externals come from the file; `internal` is recomputed here
+   *  from what is actually on screen, so an admin edit to the hub lines moves
+   *  the consensus immediately instead of waiting for the next pipeline run
+   *  and disagreeing with itself in the meantime. */
+  const consensus = useMemo(() => {
+    const hubSum = (doc?.demand_hubs ?? []).reduce(
+      (t, l) => t + legTotal(addLegs(emptyLegs(), l)), 0);
+    const external = (cons?.sources ?? []).filter(s => s.key !== "internal");
+    if (!hubSum) return null;
+    const internal: ConsumptionSource = {
+      key: "internal", label: "Our hubs", season: doc?.crop_year ?? null,
+      m_bags: r1(hubSum), note: "Sum of the consumption-by-hub lines on this sheet",
+    };
+    const all = [internal, ...external];
+    const mean = r1(all.reduce((t, s) => t + s.m_bags, 0) / all.length);
+    // Scale the hub lines to the consensus. They supply the SHAPE of demand —
+    // how the world drinks — and the consensus supplies the level. Exactly how
+    // production already works here: mean of sources, split scaled to it.
+    return { sources: all, mean, hubSum: r1(hubSum), k: mean / hubSum };
+  }, [doc, cons]);
+
+  /** The long tail we do not itemise. The sheet sums 16 named origins; CCS's
+   *  "Others" row is everything else — Kenya, PNG, the smaller Central
+   *  Americans — and at 8.8 M bags it is not a rounding difference. Leaving it
+   *  out understates supply by about that much and turns a balanced sheet into
+   *  a false deficit, which is exactly what happened when consumption moved to
+   *  a consensus while production stayed on 16 origins.
+   *
+   *  Split: every itemised robusta producer appears in CCS's robusta table, so
+   *  its "Others" is entirely long-tail robusta; arabica is the remainder.
+   *  That reconciles against CCS's arabica "Others" to within 0.7 M bags once
+   *  the arabica of origins we DO carry is added back. */
+  const restOfWorld = useMemo(() => {
+    if (!ccs?.seasons?.length) return null;
+    const usable = ccs.seasons
+      .map((sea, i) => ({ sea, i }))
+      .filter(({ sea }) => sea !== "2024/25");   // CCS marks it PRELIM
+    if (!usable.length) return null;
+    const exact = usable.find(u => u.sea === season);
+    const { sea, i } = exact ?? usable[usable.length - 1];
+    const total = ccs.production.total?.others?.[i];
+    const robusta = ccs.production.robusta?.others?.[i];
+    if (total == null || robusta == null) return null;
+    const legs = emptyLegs();
+    legs.robusta = r1(robusta);
+    legs.arabica_natural = r1(total - robusta);
+    return { legs, season: sea, carried: sea !== season, total: r1(total) };
+  }, [ccs, season]);
+
   const sums = useMemo(() => {
+    const k = consensus?.k ?? 1;
     const sumLines = (ls: Line[] | undefined) =>
       (ls ?? []).reduce((acc, l) => addLegs(acc, l), emptyLegs());
     const production = Object.values(prod ?? {}).reduce(
       (acc, l) => addLegs(acc, l), emptyLegs());
+    if (restOfWorld) addLegs(production, restOfWorld.legs);
     const carryIn  = sumLines(doc?.carry_in);
-    const demand   = sumLines(doc?.demand_hubs);
+    const demand   = emptyLegs();
+    for (const l of LEGS) demand[l] = r1(sumLines(doc?.demand_hubs)[l] * k);
     const carryOut = sumLines(doc?.carry_out);
     const supply = addLegs(addLegs(emptyLegs(), production), carryIn);
     const totalDemand = addLegs(addLegs(emptyLegs(), demand), carryOut);
     const residual = emptyLegs();
     for (const l of LEGS) residual[l] = r1(supply[l] - totalDemand[l]);
     return { production, carryIn, demand, carryOut, supply, totalDemand, residual };
-  }, [prod, doc]);
+  }, [prod, doc, consensus, restOfWorld]);
 
   // ── Statement rows ────────────────────────────────────────────────────
   const supplyRows = useMemo<StmtRow[]>(() => {
@@ -291,15 +357,25 @@ export default function WorldBalanceSheet({ cropYear }: { cropYear?: string }) {
         children: kids.length === 1 ? kids[0].children : kids,
       });
     }
+    if (restOfWorld) {
+      rows.push({
+        key: "pr:row", label: "Rest of world", legs: restOfWorld.legs, tone: "text-slate-400",
+        title: `CCS "Others" — origins this sheet does not itemise. ${restOfWorld.season}`
+          + (restOfWorld.carried ? " (carried forward)" : ""),
+      });
+    }
     rows.push({ key: "pr:total", label: "Total production", legs: sums.production, bold: true });
     rows.push({ key: "supply:total", label: "TOTAL SUPPLY", legs: sums.supply, bold: true, tone: "text-emerald-300" });
     return rows;
-  }, [doc, prod, grades, sums]);
+  }, [doc, prod, grades, sums, restOfWorld]);
 
   const demandRows = useMemo<StmtRow[]>(() => {
     if (!doc) return [];
+    const k = consensus?.k ?? 1;
     const rows: StmtRow[] = (doc.demand_hubs ?? []).map(l => {
       const legs = addLegs(emptyLegs(), l);
+      // Same factor as the total, so the lines still add up to it.
+      for (const leg of LEGS) legs[leg] = r1(legs[leg] * k);
       return {
         key: `dh:${l.key}`, label: l.label, legs, tone: "text-slate-400",
         children: segs ? segmentChildren(l.key, legs, segs) : undefined,
@@ -312,7 +388,7 @@ export default function WorldBalanceSheet({ cropYear }: { cropYear?: string }) {
     rows.push({ key: "co:total", label: "Total carry-out", legs: sums.carryOut, bold: true });
     rows.push({ key: "demand:total", label: "TOTAL DEMAND", legs: sums.totalDemand, bold: true, tone: "text-red-300" });
     return rows;
-  }, [doc, segs, sums]);
+  }, [doc, segs, sums, consensus]);
 
   const allKeys = useMemo(
     () => collectKeys([...supplyRows, ...demandRows]), [supplyRows, demandRows]);
@@ -502,6 +578,28 @@ export default function WorldBalanceSheet({ cropYear }: { cropYear?: string }) {
             restated as washed/natural — no process is guessed for it, since these origins
             span both ({unsplitOrigins.join(", ")}). Split them in the editor&apos;s by-source
             view and the column disappears.</>
+          )}
+          {consensus && consensus.sources.length > 1 && (
+            <> Consumption is the mean of {consensus.sources.length} estimates —{" "}
+              {consensus.sources.map((src, i) => (
+                <span key={src.key}>
+                  {i > 0 && ", "}
+                  <span className={src.key === "internal" ? "text-slate-500" : ""}>
+                    {src.label} {src.m_bags.toFixed(1)}
+                  </span>
+                  {src.carried_forward && src.season && (
+                    <span className="text-slate-700" title={`Latest published season: ${src.season}`}>
+                      {" "}({src.season})
+                    </span>
+                  )}
+                </span>
+              ))}
+              {" "}— giving <span className="text-slate-400">{consensus.mean.toFixed(1)}</span>.
+              The hub lines supply the shape of demand and are scaled to it, the same way an
+              origin&apos;s crop split is scaled to its production headline, so they stay editable
+              and keep saying how the world drinks rather than how much. A season in brackets is a
+              source whose latest print trails {doc.crop_year}.
+            </>
           )}
           {" "}Arabica is stated by processing. Where a source publishes only a country
           total, the washed/natural cut comes from that origin&apos;s processing convention,

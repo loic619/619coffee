@@ -106,6 +106,12 @@ def _exporters(db):
         from scraper.build_country_pins import export_country_pins
         export_country_pins()
 
+    def _world_consumption():
+        # After stocks (it reads demand_stocks.json) and after any admin edit
+        # to the hub lines, so the consensus is built from current inputs.
+        from scraper.build_world_consumption import export as export_world_consumption
+        export_world_consumption()
+
     def _enso_intel():
         # The measured teleconnection is refreshed FIRST: it is derived from
         # the weather history the pipeline has just rewritten, and the risk
@@ -117,6 +123,7 @@ def _exporters(db):
         export_enso_intel()
 
     return [
+        ("world_consumption",     _world_consumption),
         ("futures_chain",         lambda: export_futures_chain(db)),
         ("oi_fnd_chart",          lambda: export_oi_fnd_chart(db)),
         ("futures_price_history", lambda: export_futures_price_history(db)),
