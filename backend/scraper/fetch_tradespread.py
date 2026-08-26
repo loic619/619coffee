@@ -160,15 +160,26 @@ def _elapsed(ticks: list) -> list[int]:
     return [v - base for v in out]
 
 
-def _at_or_before(ticks: list, secs: list[int], target: int) -> list | None:
-    """The last tick at or before `target` (session seconds), or None."""
+def _at_or_before_idx(secs: list[int], target: int) -> int | None:
+    """Index of the last tick at or before `target` (session seconds).
+
+    Index rather than the tick itself: prints repeat exactly on a quiet tape
+    (same second, price, cumulative volume and size), so looking a tick back up
+    by value can land on the wrong one.
+    """
     hit = None
-    for t, s in zip(ticks, secs):
-        if s <= target:
-            hit = t
+    for i, sec in enumerate(secs):
+        if sec <= target:
+            hit = i
         else:
             break
     return hit
+
+
+def _at_or_before(ticks: list, secs: list[int], target: int) -> list | None:
+    """The last tick at or before `target` (session seconds), or None."""
+    i = _at_or_before_idx(secs, target)
+    return ticks[i] if i is not None else None
 
 
 def _rc_close_secs(session: str, base: int) -> int:
@@ -226,7 +237,16 @@ def _summarise(block: dict, session: str) -> dict:
     # already carries every print with a timestamp, so one end-of-day fetch
     # reconstructs it exactly — and for every contract, not just the front.
     base = _hms(ticks[0][0])
-    rc_close = _at_or_before(ticks, secs, _rc_close_secs(session, base) - base)
+    bell = _rc_close_secs(session, base) - base
+    rc_idx = _at_or_before_idx(secs, bell)
+    rc_close = ticks[rc_idx] if rc_idx is not None else None
+    # How old that print was AT the bell. "Last print at or before 17:30" is
+    # only a closing price on a contract that actually trades: Robusta 09/26 on
+    # 2026-08-25 printed four times all session, and its at-the-bell value was
+    # SIX HOURS stale — which reads as an 89-point eight-minute collapse when it
+    # is six hours of nothing. A consumer that cannot see the staleness cannot
+    # tell those apart, so it ships alongside the price.
+    rc_stale = None if rc_idx is None else bell - secs[rc_idx]
 
     total = ticks[-1][2]
     return {
@@ -235,7 +255,8 @@ def _summarise(block: dict, session: str) -> dict:
         "total_volume": total,
         "first_tick": {"time": first_t, "price": first_px},
         "open15": {"time": open15[0], "price": open15[1]},
-        "at_rc_close": ({"time": rc_close[0], "price": rc_close[1]}
+        "at_rc_close": ({"time": rc_close[0], "price": rc_close[1],
+                         "stale_s": rc_stale}
                         if rc_close else None),
         "last": {"time": ticks[-1][0], "price": ticks[-1][1]},
         "up_trades": up_n, "down_trades": dn_n,
@@ -266,6 +287,10 @@ def _attach_settle(summary: dict, quote: dict | None) -> None:
     summary["settle"] = settle
     summary["prev_settle"] = prev
     summary["open_board"] = (quote or {}).get("open")
+    # OI is recorded opportunistically, NOT as a source of truth. acaphe's
+    # open-interest column is empty at the hour this runs (every contract came
+    # back None on 2026-08-25), so the daily Barchart pull — workflow 1.3 —
+    # stays the OI feed and must not be retired on the strength of this field.
     summary["oi"] = (quote or {}).get("oi")
     summary["board_volume"] = (quote or {}).get("vol")
     summary["close_vs_settle"] = (
@@ -460,10 +485,14 @@ def main() -> int:
 
     for name, c in contracts.items():
         arc = c.get("at_rc_close") or {}
+        # Flag an anchor that is more than 15 min old — on an illiquid contract
+        # the "price at the bell" can be hours stale and look like a crash.
+        _st = arc.get("stale_s") or 0
+        stale_note = f" (stale {_st // 60}m)" if _st > 900 else ""
         print(f"[tradespread] {session} {name}: {c['n_trades']} trades, "
               f"{c['total_volume']} lots | open {c['first_tick']['price']} "
               f"@{c['first_tick']['time']} → +15m {c['open15']['price']} "
-              f"@{c['open15']['time']} | RC-close {arc.get('price')} "
+              f"@{c['open15']['time']} | RC-close {arc.get('price')}{stale_note} "
               f"| close {c['last']['price']} settle {c.get('settle')} "
               f"(Δ {c.get('close_vs_settle')}) "
               f"| up {c['up_volume']} / down {c['down_volume']} "

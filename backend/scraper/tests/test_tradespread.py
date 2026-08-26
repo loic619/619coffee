@@ -79,7 +79,7 @@ def test_at_rc_close_reads_the_price_at_the_london_bell():
     s = _summarise({"label": "Arabica 12/26", "n_trades": 4, "ticks": ticks},
                    "2026-08-21")
     # 23:29:42 VN is the last print at or before 23:30 VN (= 17:30 London BST).
-    assert s["at_rc_close"] == {"time": "23:29:42", "price": 323.7}
+    assert s["at_rc_close"] == {"time": "23:29:42", "price": 323.7, "stale_s": 18}
 
 
 def test_at_or_before_returns_none_when_the_anchor_precedes_the_open():
@@ -116,3 +116,28 @@ def test_a_missing_board_row_leaves_the_tape_stats_intact():
     _attach_settle(s, None)
     assert s["settle"] is None and s["close_vs_settle"] is None
     assert s["last"]["price"] == 322.65
+
+
+def test_at_rc_close_reports_how_stale_the_print_was():
+    """Real case, Robusta 09/26 on 2026-08-25: four trades all session, and the
+    last one before the bell was SIX HOURS old. Without stale_s that reads as an
+    89-point eight-minute collapse; with it, as six hours of nothing."""
+    ticks = _tape(
+        ["15:00:13", "16:34:59", "17:17:01", "23:38:45"],
+        [3768.0, 3757.0, 3742.0, 3653.0],
+    )
+    s = _summarise({"label": "Robusta 09/26", "n_trades": 4, "ticks": ticks},
+                   "2026-08-25")
+    arc = s["at_rc_close"]
+    assert arc["price"] == 3742.0                 # last print before the bell
+    assert arc["stale_s"] == 22379                # 6.2 hours old at 23:30
+    assert arc["stale_s"] > 6 * 3600
+    # The close itself is AFTER the bell and is a different thing entirely.
+    assert s["last"]["time"] == "23:38:45"
+
+
+def test_a_liquid_contract_reports_a_fresh_anchor():
+    ticks = _tape(["15:00:00", "23:29:55", "23:31:00"], [3700.0, 3690.0, 3688.0])
+    s = _summarise({"label": "Robusta 11/26", "n_trades": 3, "ticks": ticks},
+                   "2026-08-25")
+    assert s["at_rc_close"]["stale_s"] == 5
