@@ -1,108 +1,77 @@
-"""probe_abic_blend.py — TEMPORARY.
+"""probe_abic_blend.py — TEMPORARY (round 2).
 
-Looks for a published, year-by-year series of conilon/canéfora's share of the
-Brazilian domestic roast-and-ground blend. That is the metric the reference
-arbitrage chart plots on its right axis ("Domestic Conillon Demand %", 35–76%),
-and it is NOT what a production-minus-exports residual measures — the residual
-absorbs stock swings and lands at half the level.
+Round 1 settled the sourcing question: nobody publishes conilon's share of the
+Brazilian blend. ABIC's own executive director, quoted in The AgriBiz
+(2026-02-18): "As indústrias não passam qual blend estão usando... a gente não
+tem o número." The 75–80% figure in circulation is itself a residual — the
+market source who gave it says so outright: "a conta de oferta, exportação e
+consumo só fecha presumindo um blend mais favorável ao robusta."
 
-ABIC (Associação Brasileira da Indústria de Café) is the only body that surveys
-roasters directly. Its "Indicadores da Indústria" deck is a PDF; the sandbox
-cannot reach abic.com.br, so this runs on a CI runner with full egress.
+So the residual IS the method. What is wrong with ours is the LEVEL: it lands
+around 25–30% where trade estimates land at 50–76%, a ratio near 1.9. Prime
+suspect: CONAB's conilon production is materially below USDA PSD's Brazilian
+robusta, and our denominator (USDA domestic use) comes off a different balance
+sheet than our numerator (CONAB production). Mixing the two understates the
+share by construction.
+
+This round reads PSD's Brazil rows to see what it carries — an arabica/robusta
+production split, soluble exports, domestic use — so the whole balance can be
+built inside ONE balance sheet.
 
 Delete once the answer is known.
 """
 from __future__ import annotations
 
+import csv
 import io
-import re
 import sys
+import zipfile
+from collections import defaultdict
 
 import requests
 
-UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                    "(KHTML, like Gecko) Chrome/126 Safari/537.36"}
-
-PAGES = [
-    "https://www.abic.com.br/estatisticas/indicadores-da-industria/",
-    "https://www.abic.com.br/estatisticas/producao-e-consumo/",
-    "https://www.abic.com.br/estatisticas/",
-    "https://www.theagribiz.com/cafe/robusta-toma-o-cafe-brasileiro-75-do-blend-ja-e-dele/",
-]
-
-# Lines worth printing out of a 60-page deck.
-HOT = re.compile(r"conilon|canéfora|canefora|robusta|blend|arábica|arabica|"
-                 r"mistura|espécie", re.I)
-
-
-def _get(url: str) -> requests.Response | None:
-    try:
-        r = requests.get(url, headers=UA, timeout=45)
-        print(f"  GET {url} -> {r.status_code} {len(r.content)}B "
-              f"{r.headers.get('content-type', '?')}")
-        return r if r.ok else None
-    except Exception as e:                                   # noqa: BLE001
-        print(f"  GET {url} -> FAILED {e}")
-        return None
-
-
-def _pdf_text(blob: bytes) -> str:
-    from pypdf import PdfReader
-    reader = PdfReader(io.BytesIO(blob))
-    return "\n".join((p.extract_text() or "") for p in reader.pages)
+UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"}
+PSD = "https://apps.fas.usda.gov/psdonline/downloads/psd_coffee_csv.zip"
 
 
 def main() -> int:
-    pdfs: list[str] = []
+    r = requests.get(PSD, headers=UA, timeout=120)
+    print(f"GET {PSD} -> {r.status_code} {len(r.content)}B")
+    r.raise_for_status()
+    z = zipfile.ZipFile(io.BytesIO(r.content))
+    print("members:", z.namelist())
+    rows = list(csv.DictReader(
+        io.TextIOWrapper(z.open(z.namelist()[0]), encoding="utf-8-sig")))
+    print(f"rows: {len(rows)}")
+    print("columns:", list(rows[0].keys()))
 
-    print("=" * 78)
-    print("STEP 1 — HTML pages: collect PDF links and inline blend numbers")
-    print("=" * 78)
-    for url in PAGES:
-        print(f"\n--- {url}")
-        r = _get(url)
-        if not r:
-            continue
-        html = r.text
-        for href in re.findall(r'href="([^"]+\.pdf[^"]*)"', html, re.I):
-            full = href if href.startswith("http") else \
-                "https://www.abic.com.br" + ("" if href.startswith("/") else "/") + href
-            if full not in pdfs:
-                pdfs.append(full)
-                print(f"  pdf: {full}")
-        text = re.sub(r"<[^>]+>", " ", html)
-        text = re.sub(r"\s+", " ", text)
-        for m in re.finditer(r"[^.]{0,160}(?:conilon|canéfora|robusta|blend)[^.]{0,160}\.",
-                             text, re.I):
-            print(f"  txt: {m.group(0).strip()[:340]}")
+    br = [x for x in rows if x["Country_Name"].strip().lower() == "brazil"]
+    print(f"\nBrazil rows: {len(br)}")
+    attrs = sorted({x["Attribute_Description"].strip() for x in br})
+    print("Brazil attributes:")
+    for a in attrs:
+        print(f"  - {a}")
+    units = sorted({(x["Attribute_Description"].strip(), x["Unit_Description"].strip())
+                    for x in br})
+    print("\nattribute -> unit:")
+    for a, u in units:
+        print(f"  {a:<34} {u}")
 
-    print()
-    print("=" * 78)
-    print(f"STEP 2 — {len(pdfs)} PDF(s): extract blend/species lines")
-    print("=" * 78)
-    for url in pdfs[:14]:
-        print(f"\n--- {url}")
-        r = _get(url)
-        if not r:
-            continue
+    print("\nBrazil by market year (all attributes, 2000+):")
+    by_year: dict[int, dict[str, float]] = defaultdict(dict)
+    for x in br:
         try:
-            text = _pdf_text(r.content)
-        except Exception as e:                               # noqa: BLE001
-            print(f"  pdf parse failed: {e}")
+            y = int(x["Market_Year"])
+            v = float(x["Value"] or 0)
+        except ValueError:
             continue
-        lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
-        print(f"  {len(lines)} non-empty lines")
-        hits = [ln for ln in lines if HOT.search(ln)]
-        if not hits:
-            print("  no species/blend mentions")
-        for ln in hits[:120]:
-            print(f"  | {ln[:220]}")
-
-    print()
-    print("=" * 78)
-    print("STEP 3 — sanity: does anything carry a % series 30–80 next to conilon?")
-    print("=" * 78)
-    print("(read the STEP 2 dump above; nothing automatic here)")
+        if y >= 2000:
+            by_year[y][x["Attribute_Description"].strip()] = v
+    keys = attrs
+    print("year | " + " | ".join(k[:22] for k in keys))
+    for y in sorted(by_year):
+        print(f"{y} | " + " | ".join(f"{by_year[y].get(k, float('nan')):.0f}" for k in keys))
     return 0
 
 
