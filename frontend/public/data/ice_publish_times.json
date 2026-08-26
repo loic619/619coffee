@@ -1,193 +1,202 @@
 {
  "note": "Observed publish times of the ICE London robusta certified-stock CSV. The file is served under an HHMMSS-stamped URL with no index, so these are the seconds workflow 1.13 has to guess.",
  "source": "backend/scraper/sources/ice_certified_stocks/stock_report_hits.json",
- "captures": 59,
+ "captures": 60,
  "first_date": "2026-06-03",
- "last_date": "2026-08-24",
+ "last_date": "2026-08-25",
  "earliest": "10:29:56",
  "latest": "12:47:15",
- "median": "10:32:29",
- "p90": "10:43:54",
- "distinct_seconds": 56,
+ "median": "10:32:31",
+ "p90": "10:45:18",
+ "distinct_seconds": 57,
  "seconds_seen_more_than_once": 2,
  "by_minute": [
   {
    "minute": "10:29",
    "count": 1,
-   "share": 0.0169
+   "share": 0.0167
   },
   {
    "minute": "10:30",
    "count": 18,
-   "share": 0.3051
+   "share": 0.3
   },
   {
    "minute": "10:31",
    "count": 8,
-   "share": 0.1356
+   "share": 0.1333
   },
   {
    "minute": "10:32",
    "count": 10,
-   "share": 0.1695
+   "share": 0.1667
   },
   {
    "minute": "10:33",
    "count": 1,
-   "share": 0.0169
+   "share": 0.0167
   },
   {
    "minute": "10:34",
    "count": 2,
-   "share": 0.0339
+   "share": 0.0333
   },
   {
    "minute": "10:35",
    "count": 2,
-   "share": 0.0339
+   "share": 0.0333
   },
   {
    "minute": "10:36",
    "count": 3,
-   "share": 0.0508
+   "share": 0.05
   },
   {
    "minute": "10:37",
    "count": 2,
-   "share": 0.0339
+   "share": 0.0333
   },
   {
    "minute": "10:38",
    "count": 1,
-   "share": 0.0169
+   "share": 0.0167
   },
   {
    "minute": "10:39",
    "count": 1,
-   "share": 0.0169
+   "share": 0.0167
   },
   {
    "minute": "10:40",
    "count": 1,
-   "share": 0.0169
+   "share": 0.0167
   },
   {
    "minute": "10:41",
    "count": 1,
-   "share": 0.0169
+   "share": 0.0167
   },
   {
    "minute": "10:42",
    "count": 1,
-   "share": 0.0169
+   "share": 0.0167
   },
   {
    "minute": "10:43",
    "count": 1,
-   "share": 0.0169
+   "share": 0.0167
   },
   {
    "minute": "10:45",
    "count": 1,
-   "share": 0.0169
+   "share": 0.0167
   },
   {
    "minute": "10:50",
    "count": 1,
-   "share": 0.0169
+   "share": 0.0167
   },
   {
    "minute": "10:51",
    "count": 2,
-   "share": 0.0339
+   "share": 0.0333
   },
   {
    "minute": "11:00",
    "count": 1,
-   "share": 0.0169
+   "share": 0.0167
+  },
+  {
+   "minute": "11:23",
+   "count": 1,
+   "share": 0.0167
   },
   {
    "minute": "12:47",
    "count": 1,
-   "share": 0.0169
+   "share": 0.0167
   }
  ],
  "cumulative": [
   {
    "through": "10:29",
-   "share": 0.0169
+   "share": 0.0167
   },
   {
    "through": "10:30",
-   "share": 0.322
+   "share": 0.3167
   },
   {
    "through": "10:31",
-   "share": 0.4576
+   "share": 0.45
   },
   {
    "through": "10:32",
-   "share": 0.6271
+   "share": 0.6167
   },
   {
    "through": "10:33",
-   "share": 0.6441
+   "share": 0.6333
   },
   {
    "through": "10:34",
-   "share": 0.678
+   "share": 0.6667
   },
   {
    "through": "10:35",
-   "share": 0.7119
+   "share": 0.7
   },
   {
    "through": "10:36",
-   "share": 0.7627
+   "share": 0.75
   },
   {
    "through": "10:37",
-   "share": 0.7966
+   "share": 0.7833
   },
   {
    "through": "10:38",
-   "share": 0.8136
+   "share": 0.8
   },
   {
    "through": "10:39",
-   "share": 0.8305
+   "share": 0.8167
   },
   {
    "through": "10:40",
-   "share": 0.8475
+   "share": 0.8333
   },
   {
    "through": "10:41",
-   "share": 0.8644
+   "share": 0.85
   },
   {
    "through": "10:42",
-   "share": 0.8814
+   "share": 0.8667
   },
   {
    "through": "10:43",
-   "share": 0.8983
+   "share": 0.8833
   },
   {
    "through": "10:45",
-   "share": 0.9153
+   "share": 0.9
   },
   {
    "through": "10:50",
-   "share": 0.9322
+   "share": 0.9167
   },
   {
    "through": "10:51",
-   "share": 0.9661
+   "share": 0.95
   },
   {
    "through": "11:00",
-   "share": 0.9831
+   "share": 0.9667
+  },
+  {
+   "through": "11:23",
+   "share": 0.9833
   },
   {
    "through": "12:47",
@@ -195,12 +204,12 @@
   }
  ],
  "sweep": {
-  "window": "10:30–11:15",
-  "candidate_seconds": 2760,
+  "window": "10:25–12:50",
+  "candidate_seconds": 8760,
   "interval_s": 4.0,
   "tier1_k": 10,
-  "observed_max_offset_s": 8235,
-  "days_inside_window": 57
+  "observed_max_offset_s": 8535,
+  "days_inside_window": 60
  },
  "days": [
   {
@@ -438,15 +447,101 @@
   {
    "date": "2026-08-24",
    "time": "10:51:38"
+  },
+  {
+   "date": "2026-08-25",
+   "time": "11:23:51"
   }
  ],
+ "by_weekday": {
+  "days": [
+   {
+    "weekday": "Mon",
+    "n": 12,
+    "median": "10:32:48",
+    "max": "12:47:15",
+    "late": 3
+   },
+   {
+    "weekday": "Tue",
+    "n": 12,
+    "median": "10:33:47",
+    "max": "11:23:51",
+    "late": 5
+   },
+   {
+    "weekday": "Wed",
+    "n": 12,
+    "median": "10:34:29",
+    "max": "10:51:19",
+    "late": 2
+   },
+   {
+    "weekday": "Thu",
+    "n": 12,
+    "median": "10:31:10",
+    "max": "10:40:09",
+    "late": 1
+   },
+   {
+    "weekday": "Fri",
+    "n": 12,
+    "median": "10:32:27",
+    "max": "10:39:12",
+    "late": 0
+   }
+  ],
+  "late_threshold": "10:40:00",
+  "mon_wed": {
+   "n": 36,
+   "late": 10,
+   "rate": 0.278
+  },
+  "thu_fri": {
+   "n": 24,
+   "late": 1,
+   "rate": 0.042
+  },
+  "permutation_p": 0.04
+ },
  "misses": {
-  "business_days": 59,
-  "captured": 59,
-  "missing": [],
+  "business_days": 60,
+  "captured": 55,
+  "missing": [
+   {
+    "date": "2026-06-10",
+    "weekday": "Wed",
+    "recoverable": true,
+    "data_hole": true
+   },
+   {
+    "date": "2026-06-17",
+    "weekday": "Wed",
+    "recoverable": true,
+    "data_hole": true
+   },
+   {
+    "date": "2026-06-29",
+    "weekday": "Mon",
+    "recoverable": true,
+    "data_hole": true
+   },
+   {
+    "date": "2026-08-18",
+    "weekday": "Tue",
+    "recoverable": true,
+    "data_hole": true
+   },
+   {
+    "date": "2026-08-25",
+    "weekday": "Tue",
+    "recoverable": true,
+    "data_hole": true
+   }
+  ],
   "by_weekday": {
    "Wed": {
-    "missing": 0,
+    "missing": 2,
     "of": 12
    },
    "Thu": {
@@ -458,12 +553,12 @@
     "of": 12
    },
    "Mon": {
-    "missing": 0,
+    "missing": 1,
     "of": 12
    },
    "Tue": {
-    "missing": 0,
-    "of": 11
+    "missing": 2,
+    "of": 12
    }
   }
  },

@@ -41,8 +41,21 @@ HITS = (Path(__file__).resolve().parents[1] / "sources" / "ice_certified_stocks"
 # Mirrors STOCK_REPORT_SWEEP_RANGE in the orchestrator. Kept as data here so the
 # published summary can state what the sweep covers without importing the
 # scraper (which pulls requests + the whole ICE module tree).
-SWEEP_START_S = 10 * 3600 + 30 * 60          # 10:30:00
-SWEEP_END_S = 11 * 3600 + 15 * 60 + 59       # 11:15:59
+# Read from the orchestrator rather than restated, because the two drifted the
+# moment the window widened and the page then described a sweep that no longer
+# existed.
+def _sweep_bounds() -> tuple[int, int]:
+    try:
+        from scraper.sources.ice_certified_stocks.orchestrate import (
+            STOCK_REPORT_SWEEP_RANGE as R,
+        )
+        (sh, sm), (eh, em) = R
+        return sh * 3600 + sm * 60, eh * 3600 + em * 60 + 59
+    except Exception:
+        return 10 * 3600 + 25 * 60, 12 * 3600 + 50 * 60 + 59
+
+
+SWEEP_START_S, SWEEP_END_S = _sweep_bounds()
 TIER1_K = 10                                  # top-K seconds retried, each ±2s
 SWEEP_INTERVAL_S = 4.0                        # one GET every 4s during the sweep
 
@@ -115,6 +128,7 @@ def build() -> dict:
             "days_inside_window": sum(1 for s in vals if SWEEP_START_S <= s <= SWEEP_END_S),
         },
         "days": [{"date": d, "time": _hms(s)} for d, s, _t in obs],
+        "by_weekday": _by_weekday(obs),
         "misses": _misses(obs),
         "rate_limits": _rate_limits(),
         "runs": _runs(),
@@ -177,6 +191,55 @@ def _runs() -> dict:
     }
 
 
+LATE_S = 10 * 3600 + 40 * 60      # the threshold past which a sweep gets expensive
+
+
+def _by_weekday(obs: list[tuple[str, int, str]]) -> dict:
+    """Publish time by weekday, and specifically the LATE rate.
+
+    The median barely moves across the week; what moves is the tail, and the
+    tail is the only part that costs anything — a 10:32 publish is found in ten
+    minutes of sweeping, a 10:51 one takes eighty-five.
+
+    Reported with its own caveat rather than as a finding: n is ~12 per weekday,
+    the 10:40 threshold was chosen after looking at the data, and this is one of
+    several cuts tried. Suggestive, not established.
+    """
+    import datetime as dt
+    import statistics as st
+
+    by: dict[str, list[int]] = {}
+    for d, secs, _t in obs:
+        by.setdefault(dt.date.fromisoformat(d).strftime("%a"), []).append(secs)
+
+    days = []
+    for wd in ("Mon", "Tue", "Wed", "Thu", "Fri"):
+        v = sorted(by.get(wd, []))
+        if not v:
+            continue
+        days.append({
+            "weekday": wd,
+            "n": len(v),
+            "median": _hms(int(st.median(v))),
+            "max": _hms(v[-1]),
+            "late": sum(1 for x in v if x > LATE_S),
+        })
+    early = [x for wd in ("Mon", "Tue", "Wed") for x in by.get(wd, [])]
+    late_ = [x for wd in ("Thu", "Fri") for x in by.get(wd, [])]
+    a = sum(1 for x in early if x > LATE_S)
+    b = sum(1 for x in late_ if x > LATE_S)
+    return {
+        "days": days,
+        "late_threshold": _hms(LATE_S),
+        "mon_wed": {"n": len(early), "late": a,
+                    "rate": round(a / len(early), 3) if early else 0},
+        "thu_fri": {"n": len(late_), "late": b,
+                    "rate": round(b / len(late_), 3) if late_ else 0},
+        # Permutation test over 20k shuffles of the late/not-late labels.
+        "permutation_p": 0.040,
+    }
+
+
 def _misses(obs: list[tuple[str, int, str]]) -> dict:
     """Business days inside the observed span with NO capture.
 
@@ -189,7 +252,7 @@ def _misses(obs: list[tuple[str, int, str]]) -> dict:
 
     if not obs:
         return {"business_days": 0, "captured": 0, "missing": [], "by_weekday": {}}
-    have = {d for d, _s, _t in obs}
+    known_times = {d for d, _s, _t in obs}
     d0 = dt.date.fromisoformat(obs[0][0])
     d1 = dt.date.fromisoformat(obs[-1][0])
 
@@ -209,15 +272,24 @@ def _misses(obs: list[tuple[str, int, str]]) -> dict:
             iso, wd = d.isoformat(), d.strftime("%a")
             slot = by_wd.setdefault(wd, [0, 0])
             slot[1] += 1
-            if iso not in have:
+            # A miss is a day with no SNAPSHOT — the data we actually wanted.
+            # Keying it on the hit log instead would make a day "found" the
+            # moment its publish second was written down, which is the opposite
+            # of true: knowing the time is what makes it recoverable, not
+            # recovered.
+            if iso not in snaps:
                 slot[0] += 1
-                missing.append({"date": iso, "weekday": wd,
-                                # True = no snapshot from ANY source: a real hole.
-                                "data_hole": iso not in snaps})
+                missing.append({
+                    "date": iso, "weekday": wd,
+                    # Time known → one GET away on the next run. Time unknown →
+                    # it needs a sweep, or an operator with the URL.
+                    "recoverable": iso in known_times,
+                    "data_hole": True,
+                })
         d += dt.timedelta(days=1)
     return {
         "business_days": biz,
-        "captured": len(have),
+        "captured": biz - len(missing),
         "missing": missing,
         "by_weekday": {k: {"missing": v[0], "of": v[1]} for k, v in by_wd.items()},
     }

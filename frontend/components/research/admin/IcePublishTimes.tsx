@@ -18,10 +18,17 @@ interface Payload {
     window: string; candidate_seconds: number; interval_s: number;
     tier1_k: number; observed_max_offset_s: number | null; days_inside_window: number;
   };
+  by_weekday: {
+    days: { weekday: string; n: number; median: string; max: string; late: number }[];
+    late_threshold: string;
+    mon_wed: { n: number; late: number; rate: number };
+    thu_fri: { n: number; late: number; rate: number };
+    permutation_p: number;
+  };
   misses: {
     business_days: number;
     captured: number;
-    missing: { date: string; weekday: string; data_hole: boolean }[];
+    missing: { date: string; weekday: string; data_hole: boolean; recoverable: boolean }[];
     by_weekday: Record<string, { missing: number; of: number }>;
   };
   runs: {
@@ -263,6 +270,44 @@ export default function IcePublishTimes() {
         to a self-hosted runner, where waiting is free.
       </Highlight>
 
+      <H2>Is there a weekday pattern?</H2>
+      <P>
+        Worth asking, because the median barely moves across the week but the{" "}
+        <em>tail</em> does — and the tail is the only part that costs anything. A 10:32 publish is
+        found in ten minutes of sweeping; a 10:51 one takes eighty-five.
+      </P>
+      <RefTable
+        head={["day", "n", "median", "latest", `after ${data.by_weekday.late_threshold.slice(0, 5)}`]}
+        rows={data.by_weekday.days.map((d) => [
+          d.weekday, String(d.n), d.median, d.max, `${d.late} / ${d.n}`,
+        ])}
+      />
+      <Highlight>
+        Late publishes cluster in the <strong>first half</strong> of the week, not the second:{" "}
+        {Math.round(data.by_weekday.mon_wed.rate * 100)}% of Mon–Wed sessions publish after{" "}
+        {data.by_weekday.late_threshold.slice(0, 5)} against{" "}
+        {Math.round(data.by_weekday.thu_fri.rate * 100)}% of Thu–Fri
+        ({data.by_weekday.mon_wed.late}/{data.by_weekday.mon_wed.n} vs{" "}
+        {data.by_weekday.thu_fri.late}/{data.by_weekday.thu_fri.n}, permutation
+        p&nbsp;=&nbsp;{data.by_weekday.permutation_p.toFixed(3)}). Every one of the five latest
+        publishes on record is a Monday, Tuesday or Wednesday — the exact opposite of a
+        Friday-afternoon story.
+      </Highlight>
+      <P>
+        Treat it as suggestive, not established. There are about twelve observations per weekday,
+        the &ldquo;late&rdquo; threshold was chosen after looking at the data, and this is one of
+        several cuts tried — testing enough slices of 59 points will eventually produce a p below
+        0.05. The medians alone show nothing: Mon–Wed 10:32:47 against Thu–Fri 10:31:37, a
+        seventy-second gap with p&nbsp;=&nbsp;0.157. Position in the month shows nothing either.
+      </P>
+      <P>
+        If it survives more data it is directly actionable, since it says where to spend the
+        budget rather than merely describing the source: a Monday run should expect to sweep and
+        be given room, a Thursday run that has not found the file by 10:40 is probably looking at
+        something other than a late publish. What would settle it is another two months of
+        captures against this threshold, fixed in advance.
+      </P>
+
       <H2>Days we missed</H2>
       <P>
         {data.misses.captured} of {data.misses.business_days} business days in the span were
@@ -277,15 +322,17 @@ export default function IcePublishTimes() {
         ])}
       />
       <P>
-        Each miss is checked against the committed stock snapshots to tell a guessing failure from
-        a day ICE never published. <strong>data hole</strong> means no snapshot exists from any
-        source — the workbook fallback did not cover it either, so the session is genuinely lost.
+        A miss is a business day with no snapshot — the data we actually wanted. Keying it on the
+        hit log instead would mark a day &ldquo;found&rdquo; the moment its publish second was
+        written down, which is the opposite of true: knowing the time makes a day
+        <em>recoverable</em>, not recovered. With retention confirmed, every row below whose time
+        is known is a single GET away on the next run.
       </P>
       <RefTable
         head={["date", "weekday", "outcome"]}
         rows={data.misses.missing.map((m) => [
           m.date, m.weekday,
-          m.data_hole ? "data hole — session lost" : "filled by the workbook ingest",
+          m.recoverable ? "publish time known — one GET away" : "time unknown — needs a sweep",
         ])}
       />
 
