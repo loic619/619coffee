@@ -222,8 +222,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "payload_too_large" }, { status: 400 });
   }
 
-  const res = await dispatchWorkflow(WORKFLOW, payload);
-  if (res.ok) return NextResponse.json({ ok: true, repo: res.repo });
+  // `origin` rides alongside the payload so the workflow can key its
+  // concurrency group per origin — a single group cancelled most of a
+  // by-source save, because a group holds only one queued run.
+  const res = await dispatchWorkflow(WORKFLOW, payload, { origin });
+  // `queued`, not `saved`: a 204 means GitHub accepted the dispatch. The
+  // run still has to validate, commit and redeploy.
+  if (res.ok) return NextResponse.json({ ok: true, queued: true, repo: res.repo });
   return NextResponse.json(
     { error: res.error, ...(res.body ? { body: res.body } : {}) },
     { status: res.status },

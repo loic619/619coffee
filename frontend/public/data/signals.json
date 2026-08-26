@@ -66,7 +66,7 @@
       "market": "NY",
       "severity": "info",
       "score": 1,
-      "magnitude": "medium",
+      "magnitude": "small",
       "text": "KC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
     },
     {
@@ -113,7 +113,7 @@
       "timeframe": "forecast",
       "score": 0,
       "magnitude": "medium",
-      "text": "colombia/Caldas: Potential false flowering or dropped blossoms. Harvest delay.  [spei_3=-2.32, forecast_7d_rain=108.6]"
+      "text": "colombia/Caldas: Potential false flowering or dropped blossoms. Harvest delay.  [spei_3=-2.32, forecast_7d_rain=91.5]"
     },
     {
       "id": "AGRO_uganda_Mt_Elgon_severe_defoliation",
@@ -186,18 +186,6 @@
       "score": 0,
       "magnitude": "medium",
       "text": "vn/Lam Dong: Early canopy stress. Yield impact not locked in yet — monitor.  [vhi=40.58, spei_3=-1.47]"
-    },
-    {
-      "id": "AGRO_brazil_Sul_de_Minas_brazil_frost_risk",
-      "name": "Watch Frost Threat",
-      "category": "AGRO",
-      "categoryLabel": "Agronomic",
-      "market": "PHYS",
-      "severity": "watch",
-      "timeframe": "forecast",
-      "score": 0,
-      "magnitude": "medium",
-      "text": "brazil/Sul de Minas: Marginal frost risk on 2026-09-05: 1.4 °C canopy. Monitor overnight lows.  [type=none, surface_c=1.4, air_min_c=5.4, hours_below_0=0, date=2026-09-05]"
     }
   ],
   "history": [
@@ -2306,7 +2294,7 @@
           "market": "NY",
           "severity": "info",
           "score": 1,
-          "magnitude": "medium",
+          "magnitude": "small",
           "text": "KC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
@@ -2338,5 +2326,5 @@
       "priceLDN": 3777
     }
   ],
-  "generatedAt": "2026-08-25T09:31:30.416Z"
+  "generatedAt": "2026-08-26T03:39:26.523Z"
 }

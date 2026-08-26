@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-25T04:09:21+00:00",
+ "generated_at": "2026-08-26T04:10:53+00:00",
  "counts": {
   "CRIT": 0,
   "WARN": 0,
@@ -9,18 +9,18 @@
   {
    "grade": "INFO",
    "check": "SHAP identity",
-   "message": "exact \u2014 residual 0.0e+00",
-   "residual": 0.0
+   "message": "exact \u2014 residual 2.8e-17",
+   "residual": 2.7755575615628914e-17
   },
   {
    "grade": "INFO",
    "check": "active factors",
-   "message": "in the model: kc_after_rc_diff, days_since_roll (1171 trainable rows)",
+   "message": "in the model: kc_after_rc_diff, days_since_roll (1172 trainable rows)",
    "features": [
     "kc_after_rc_diff",
     "days_since_roll"
    ],
-   "n_train": 1171
+   "n_train": 1172
   },
   {
    "grade": "INFO",
@@ -31,31 +31,31 @@
      "band": 0.06,
      "acted_n": 558,
      "acted_accuracy": 0.6021505376344086,
-     "coverage": 0.6071817192600653
+     "coverage": 0.6065217391304348
     },
     {
      "band": 0.08,
      "acted_n": 434,
      "acted_accuracy": 0.631336405529954,
-     "coverage": 0.4722524483133841
+     "coverage": 0.4717391304347826
     },
     {
      "band": 0.1,
      "acted_n": 348,
      "acted_accuracy": 0.6379310344827587,
-     "coverage": 0.3786724700761698
+     "coverage": 0.3782608695652174
     },
     {
      "band": 0.12,
      "acted_n": 274,
      "acted_accuracy": 0.6788321167883211,
-     "coverage": 0.2981501632208923
+     "coverage": 0.29782608695652174
     },
     {
      "band": 0.15,
      "acted_n": 180,
      "acted_accuracy": 0.7166666666666667,
-     "coverage": 0.19586507072905332
+     "coverage": 0.1956521739130435
     }
    ]
   },
@@ -64,56 +64,56 @@
    "check": "dormant factor",
    "message": "brent_overnight: held out by design (regime tag, not a coefficient)",
    "feature": "brent_overnight",
-   "coverage": 1512
+   "coverage": 1513
   },
   {
    "grade": "INFO",
    "check": "dormant factor",
-   "message": "cci_overnight: coverage 317, joint-trainable 210, joint-trainable rows gate binds (210/252), ETA ~8w",
+   "message": "cci_overnight: coverage 318, joint-trainable 211, joint-trainable rows gate binds (211/252), ETA ~8w",
    "feature": "cci_overnight",
-   "coverage": 317,
-   "joint": 210,
+   "coverage": 318,
+   "joint": 211,
    "eta": "~8w"
   },
   {
    "grade": "INFO",
    "check": "dormant factor",
-   "message": "b3_close_gap: coverage 2, joint-trainable 2, coverage gate binds (2/40), ETA ~228w",
+   "message": "b3_close_gap: coverage 3, joint-trainable 3, coverage gate binds (3/40), ETA ~148w",
    "feature": "b3_close_gap",
-   "coverage": 2,
-   "joint": 2,
-   "eta": "~228w"
+   "coverage": 3,
+   "joint": 3,
+   "eta": "~148w"
   },
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "intraday_kc_rc_15min: fresh (2026-08-24)",
+   "message": "intraday_kc_rc_15min: fresh (2026-08-25)",
    "input": "intraday_kc_rc_15min",
-   "last": "2026-08-24",
+   "last": "2026-08-25",
    "stale_sessions": 1
   },
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "fx_intraday_snapshots: fresh (2026-08-25)",
+   "message": "fx_intraday_snapshots: fresh (2026-08-26)",
    "input": "fx_intraday_snapshots",
-   "last": "2026-08-25",
+   "last": "2026-08-26",
    "stale_sessions": 0
   },
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "b3_kc_close_snapshots: fresh (2026-08-24)",
+   "message": "b3_kc_close_snapshots: fresh (2026-08-25)",
    "input": "b3_kc_close_snapshots",
-   "last": "2026-08-24",
+   "last": "2026-08-25",
    "stale_sessions": 1
   },
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "brent_intraday_anchors: fresh (2026-08-25)",
+   "message": "brent_intraday_anchors: fresh (2026-08-26)",
    "input": "brent_intraday_anchors",
-   "last": "2026-08-25",
+   "last": "2026-08-26",
    "stale_sessions": 0
   },
   {
@@ -126,11 +126,11 @@
   {
    "grade": "INFO",
    "check": "walk-forward",
-   "message": "acted 63.8% on 348 calls (37.9% coverage) at band \u00b10.1",
+   "message": "acted 63.8% on 348 calls (37.8% coverage) at band \u00b10.1",
    "band": 0.1,
    "acted_n": 348,
    "acted_accuracy": 0.6379310344827587,
-   "coverage": 0.3786724700761698
+   "coverage": 0.3782608695652174
   }
  ]
 }

@@ -20,10 +20,28 @@ on:
         description: "Edit payload JSON: {origin, updated, seasons:[{season, forecast, production}]}"
         required: true
         type: string
+      origin:
+        # Duplicated out of the payload purely so the concurrency group can
+        # read it — expressions cannot reach inside a JSON string input, and
+        # the applier re-derives the origin from the payload itself, so a
+        # mismatch here can misroute the queue but can never misroute a write.
+        description: "Origin key, for the per-origin concurrency group"
+        required: false
+        default: "unknown"
+        type: string
 
 concurrency:
-  # Serialize rapid saves; never cancel one that's mid-commit.
-  group: crop-estimate-edit
+  # PER ORIGIN, and this is not a nicety. A concurrency group holds at most
+  # ONE queued run: when a third arrives GitHub silently CANCELS the pending
+  # one, and cancel-in-progress:false does not change that. The by-source
+  # editor saves every origin in one go — one dispatch each — so a single
+  # group meant most origins were cancelled while the UI reported success.
+  # Measured at 4 cancellations in 7 runs before this change.
+  #
+  # Keyed per origin, concurrent saves no longer contend, and two saves of
+  # the SAME origin still serialise, which is the one case where
+  # latest-wins is correct.
+  group: crop-estimate-edit-${{ inputs.origin }}
   cancel-in-progress: false
 
 jobs:

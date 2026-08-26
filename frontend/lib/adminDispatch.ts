@@ -35,9 +35,14 @@ export type DispatchResult =
   | { ok: true; repo: string }
   | { ok: false; status: number; error: string; body?: string };
 
-/** workflow_dispatch a workflow with a single `payload` string input. */
+/** workflow_dispatch a workflow with a `payload` string input, plus any
+ *  extra string inputs the workflow declares.
+ *
+ *  A 204 here means GITHUB ACCEPTED THE DISPATCH — not that the run
+ *  succeeded, and not even that it will run. Callers must not report a
+ *  write as committed on the strength of this result. */
 export async function dispatchWorkflow(
-  workflow: string, payload: string,
+  workflow: string, payload: string, extraInputs: Record<string, string> = {},
 ): Promise<DispatchResult> {
   if (!GH_TOKEN) {
     return { ok: false, status: 503, error: "not_configured" };
@@ -53,7 +58,7 @@ export async function dispatchWorkflow(
           Accept: "application/vnd.github+json",
           "X-GitHub-Api-Version": "2022-11-28",
         },
-        body: JSON.stringify({ ref: "main", inputs: { payload } }),
+        body: JSON.stringify({ ref: "main", inputs: { payload, ...extraInputs } }),
         cache: "no-store",
         redirect: "manual",
       },

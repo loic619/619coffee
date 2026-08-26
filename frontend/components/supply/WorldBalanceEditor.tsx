@@ -545,9 +545,11 @@ export default function WorldBalanceEditor({
               </div>
             ) : saved ? (
               <div className="space-y-3">
-                <div className="text-[10px] text-emerald-400 font-semibold">✓ Saved.</div>
+                <div className="text-[10px] text-emerald-400 font-semibold">✓ Submitted.</div>
                 <div className="text-[9px] text-slate-400 leading-relaxed">
                   The commit is being pushed and redeployed — live for everyone in ~2 minutes.
+                  This confirms the edit was accepted for processing, not that it is
+                  committed; a failure raises a Telegram alert.
                   Production stays derived from the crop estimates, so the balance you just set
                   will move again when an origin estimate changes.
                 </div>

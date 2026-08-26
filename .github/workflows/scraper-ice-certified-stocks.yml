@@ -85,19 +85,80 @@ jobs:
     timeout-minutes: 120
     permissions:
       contents: write
+      # The once-a-day guard below asks the Actions API which runs already
+      # succeeded today. The repo-wide default stopped granting actions:read
+      # on 24 Aug (see #737), and without it that call 403s — the guard would
+      # fail open and scrape every time, silently doing nothing at all.
+      # Declared here so it does not depend on the repo default.
+      actions: read
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Weekend guard — ICE doesn't publish Sat/Sun
+      - name: Once-a-day guard — the chain fires far more often than ICE publishes
+        id: already
+        # 1.1 runs ~3x a day and every completion chains a full cert-stocks
+        # scrape, but ICE publishes once per business day and this scraper
+        # anchors on the PREVIOUS business day — so runs 2 and 3 re-fetch
+        # what run 1 already has. They also collide in the concurrency group,
+        # which holds only ONE queued run and cancels the pending one when a
+        # third arrives: 12 of 27 runs cancelled in the week to 25 Aug.
+        #
+        # Fails OPEN on purpose. If the run list cannot be read we scrape,
+        # because a wasted run costs minutes and a skipped one costs a day
+        # of certified stocks.
+        if: github.event_name == 'workflow_run'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          THIS_RUN: ${{ github.run_id }}
+        run: |
+          export TODAY=$(date -u +%Y-%m-%d)
+          body=$(curl -s --max-time 30 -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$REPO/actions/workflows/scraper-ice-certified-stocks.yml/runs?per_page=30" || true)
+          prior=$(printf '%s' "$body" | python3 -c "
+          import json, os, sys
+          try:
+              d = json.load(sys.stdin)
+          except Exception as e:
+              print(f'[guard] run list unreadable ({e}) — scraping anyway', file=sys.stderr)
+              sys.exit(0)
+          today = os.environ['TODAY']
+          this_run = os.environ['THIS_RUN']
+          for r in d.get('workflow_runs', []):
+              if str(r['id']) == this_run:
+                  continue
+              if not (r.get('run_started_at') or '').startswith(today):
+                  continue
+              if r.get('conclusion') == 'success':
+                  print(r['id']); break
+          " || true)
+          if [ -n "$prior" ]; then
+            echo "Already scraped successfully today via run $prior — skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No successful run yet today. Proceeding."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip guard — weekend, or already scraped today
         id: weekday
-        # The cron is Mon-Fri already, but the workflow_run chain fires daily.
-        # The scraper anchors on the previous business day with a multi-day
-        # backfill window, so skipping weekends loses nothing (Friday's data
-        # is covered by Monday's run).
+        # This step must ALWAYS run: every step below gates on
+        # steps.weekday.outputs.skip, and a step skipped by its own `if`
+        # publishes no outputs at all — so an empty value would read as
+        # "don't skip" and sail straight past both guards. It therefore owns
+        # both conditions rather than being gated by the first one.
+        #
+        # Weekend: the cron is Mon-Fri already, but the workflow_run chain
+        # fires daily. The scraper anchors on the previous business day with
+        # a multi-day backfill window, so skipping weekends loses nothing
+        # (Friday's data is covered by Monday's run).
         run: |
           dow=$(date -u +%u)
-          if [ "$dow" -ge 6 ] && [ "${{ github.event_name }}" = "workflow_run" ]; then
+          if [ "${{ steps.already.outputs.skip }}" = "true" ]; then
+            echo "Already scraped successfully today — skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif [ "$dow" -ge 6 ] && [ "${{ github.event_name }}" = "workflow_run" ]; then
             echo "Weekend chain trigger (dow=$dow) — skipping."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else

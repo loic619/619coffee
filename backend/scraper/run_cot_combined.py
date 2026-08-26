@@ -24,7 +24,12 @@ from scraper.sources.cot_combined import fetch_and_upsert
 
 
 def main() -> int:
-    n_years = int(os.environ.get("COT_COMBINED_YEARS", "1"))
+    # `or "1"`, not a get() default. COT_COMBINED_YEARS is wired from
+    # inputs.combined_years, and on a SCHEDULED run that input does not
+    # exist, so the workflow sets the variable to the empty string rather
+    # than leaving it unset — get()'s default never fires and int("")
+    # raises. This killed every scheduled COT run.
+    n_years = int(os.environ.get("COT_COMBINED_YEARS") or "1")
     this_year = date.today().year
     years = [this_year - i for i in range(max(1, n_years))]
 

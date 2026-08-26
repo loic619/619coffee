@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-25T09:28:00.013017Z",
-  "count": 83,
+  "generated_at": "2026-08-26T04:43:09.060464Z",
+  "count": 85,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -10,7 +10,7 @@
       ],
       "crons": [],
       "workflow_run_deps": [],
-      "concurrency_group": "crop-estimate-edit",
+      "concurrency_group": "crop-estimate-edit-${{ inputs.origin }}",
       "timeout_minutes": 10
     },
     {
@@ -160,6 +160,20 @@
       "workflow_run_deps": [],
       "concurrency_group": "bps-indonesia-exim",
       "timeout_minutes": 30
+    },
+    {
+      "file": "brazil-conilon-demand.yml",
+      "name": "1.21 \u2013 Brazil conilon domestic demand",
+      "triggers": [
+        "schedule",
+        "workflow_dispatch"
+      ],
+      "crons": [
+        "23 5 * * 2"
+      ],
+      "workflow_run_deps": [],
+      "concurrency_group": "brazil-conilon-demand",
+      "timeout_minutes": 10
     },
     {
       "file": "brazil-export-forecast.yml",
@@ -457,6 +471,17 @@
       "workflow_run_deps": [],
       "concurrency_group": "acaphe-poll",
       "timeout_minutes": 8
+    },
+    {
+      "file": "probe-abic-blend.yml",
+      "name": "Probe: ABIC blend composition (temporary)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 10
     },
     {
       "file": "probe-acaphe.yml",
@@ -1163,11 +1188,6 @@
         "version": "1.18"
       },
       {
-        "file": "tradespread.yml",
-        "name": "1.20 \u2013 Traded tape (acaphe tradespread)",
-        "version": "1.20"
-      },
-      {
         "file": "b3-kc-close.yml",
         "name": "1.6 \u2013 B3 at KC close + final fechamento",
         "version": "1.6"
@@ -1176,11 +1196,6 @@
         "file": "fetch-intraday-kc-rc.yml",
         "name": "1.96 \u2013 Fetch Intraday KC/RC 15min (Barchart)",
         "version": "1.96"
-      },
-      {
-        "file": "refresh-intraday-15min.yml",
-        "name": "1.98 \u2013 Refresh Intraday KC/RC 15min (daily)",
-        "version": "1.98"
       },
       {
         "file": "apply-crop-estimate-edit.yml",
@@ -1224,7 +1239,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 21,
+    "uncovered_workflows_count": 19,
     "stale_curation_count": 0
   }
 }
