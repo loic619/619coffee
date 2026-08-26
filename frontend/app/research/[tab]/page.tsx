@@ -3,7 +3,7 @@ import PageHeader from "@/components/PageHeader";
 import ResearchView from "@/components/research/ResearchView";
 
 // Top-level research categories.
-const VALID_TABS = ["quant", "supply", "logistics", "exchange", "demand"] as const;
+const VALID_TABS = ["quant", "supply", "logistics", "exchange", "demand", "admin"] as const;
 type Cat = typeof VALID_TABS[number];
 
 // Old per-topic tab ids now redirect to the category that absorbed them, so
@@ -18,6 +18,7 @@ const SUBTITLE: Record<Cat, string> = {
   logistics: "Origin cost stacks, freight and destination in-store cost",
   exchange:  "Certified stocks, options, contract rules and the differential",
   demand:    "Consumption modelling, saturation ceilings and demand data",
+  admin:     "How the platform feeds itself \u2014 scraper behaviour, cost and reliability",
 };
 
 const LEGACY_REDIRECT: Record<string, Cat> = {

@@ -8,7 +8,7 @@
 //
 // `body` names the React component that renders the article; the catalogue
 // carries only the metadata around it, so live charts stay live.
-export type Cat = "quant" | "supply" | "logistics" | "exchange" | "demand";
+export type Cat = "quant" | "supply" | "logistics" | "exchange" | "demand" | "admin";
 export type Tone = "amber" | "sky" | "violet" | "emerald" | "indigo" | "rose" | "slate";
 
 export interface Article {
@@ -28,9 +28,11 @@ export const CAT_LABEL: Record<Cat, string> = {
   logistics: "Logistics",
   exchange:  "Exchange & certified stocks",
   demand:    "Demand",
+  admin:     "Admin & platform",
 };
 
 export const ARTICLES: Article[] = [
+  { id: "when-ice-publishes-the-robusta-stock-report", cat: "admin", title: "When ICE publishes the robusta stock report", subtitle: "56 observed publish seconds, and what they cost us to guess \u2014 the distribution behind workflow 1.13's runtime", kicker: "Platform \u00b7 scraper economics", tone: "slate", updated: "2026-08-25", body: "IcePublishTimes" },
   { id: "are-swap-dealers-commercials-or-speculators", cat: "quant", title: "Are swap dealers commercials or speculators?", subtitle: "Three behavioural tests on the disaggregated COT — both contracts, long and short legs kept separate", kicker: "COT · cohort identity", tone: "amber", updated: "2026-08-14", body: "CotSwapIdentity" },
   { id: "intraweek-cot-nowcast-methodology", cat: "quant", title: "Intraweek COT nowcast — methodology", subtitle: "Bridging the weekly COT report with a daily positioning estimate", kicker: "COT · positioning", tone: "amber", updated: "2026-07-14", body: "IntraweekMethodology" },
   { id: "cot-backtest-report", cat: "quant", title: "COT backtest report", subtitle: "Walk-forward backtest of the intraweek positioning model", kicker: "COT · positioning", tone: "amber", updated: "2026-07-14", body: "CotBacktestReport" },

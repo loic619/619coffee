@@ -213,9 +213,21 @@ jobs:
                 --days "${{ inputs.days_back || 7 }}" --skip-monthly
             fi
           }
-          for attempt in 1 2 3; do
+          # Two attempts, 60s apart — not three at 5 min.
+          #
+          # Every second of this ladder is billed, and a failed attempt is
+          # expensive: the run is dominated by a sequential 4s/req sweep, so one
+          # attempt can be 40+ minutes. Three attempts with 5-minute sleeps meant
+          # a bad afternoon spent up to the full 120-minute timeout and returned
+          # nothing — 10 minutes of that purely asleep between tries.
+          #
+          # The retry is there for a transient network blip or a 429 abort, and
+          # those clear in seconds; a fault that survives 60s is not going to
+          # clear by minute five either. A genuinely missed day is backfilled by
+          # the workbook ingest, so the cost of giving up early is bounded.
+          for attempt in 1 2; do
             run_scraper && break
-            [ $attempt -lt 3 ] && echo "Attempt $attempt failed, retrying in 5m..." && sleep 300 || exit 1
+            [ $attempt -lt 2 ] && echo "Attempt $attempt failed, retrying in 60s..." && sleep 60 || exit 1
           done
 
       # Per-source Telegram text, fired the moment this data lands (replaces the
