@@ -30,9 +30,16 @@ jobs:
         with: { python-version: "3.11" }
       - run: pip install requests pdfplumber
       - name: Fetch and inspect
+        timeout-minutes: 12
         run: |
           python - <<'PY'
-          import io, re, requests, pdfplumber
+          import io, re, sys, time, requests, pdfplumber
+
+          # Print as we go and flush: the first version buffered everything per
+          # document, so when it stalled on a large filing it produced nothing
+          # at all and told us only that it was slow.
+          def say(*a):
+              print(*a); sys.stdout.flush()
 
           UA=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
@@ -43,50 +50,50 @@ jobs:
             "FY-2025": "https://ir.strauss-group.com/wp-content/uploads/2024/08/FY2025-report.pdf",
             "Q3-2025": "https://ir.strauss-group.com/wp-content/uploads/2024/08/Reporting_Package_Q3_2025.pdf",
           }
-          # Hebrew + Latin. Reversed forms too, since RTL extraction often
-          # yields the string backwards and a naive search then finds nothing.
-          TERMS={
-            "coffee(he)":  "קפה",
-            "coffee(rev)": "הפק",
-            "Brazil(he)":  "ברזיל",
-            "Brazil(rev)": "ליזרב",
-            "tonnes(he)":  "טונ",
-            "volume(he)":  "כמות",
-            "segment(he)": "מגזר",
-            "Brazil(en)":  "Brazil",
-            "coffee(en)":  "offee",
-            "Tres":        "Cora",
-            "volume(en)":  "olume",
-            "tons(en)":    "tonne",
-          }
+          COFFEE = ("קפה", "הפק", "offee", "Cora")
+          BRAZIL = ("ברזיל", "ליזרב", "razil")
+          VOLUME = ("כמות", "טונ", "olume", "tonne", "Tons", "tons")
+
+          MAX_PAGES = 90     # segment discussion sits early; the tail is notes.
+
           for label,url in DOCS.items():
-              print(f"\n=== {label}  {url}")
+              say(f"\n=== {label}  {url.rsplit('/',1)[-1]}")
+              t0=time.time()
               try:
                   r=requests.get(url,headers=H,timeout=120)
               except Exception as e:
-                  print(f"    EXC {type(e).__name__}"); continue
+                  say(f"    fetch EXC {type(e).__name__}"); continue
               if not r.ok or b"%PDF" not in r.content[:2048]:
-                  print(f"    HTTP {r.status_code}, not a PDF ({len(r.content)} bytes)"); continue
+                  say(f"    HTTP {r.status_code}, not a PDF ({len(r.content)} bytes)"); continue
+              say(f"    HTTP 200  {len(r.content)/1e6:.1f} MB  ({time.time()-t0:.0f}s)")
               try:
                   with pdfplumber.open(io.BytesIO(r.content)) as pdf:
-                      npages=len(pdf.pages)
-                      alltext=[]
-                      for pg in pdf.pages:
-                          alltext.append(pg.extract_text() or "")
-                      joined="\n".join(alltext)
-                      chars=len(joined.strip())
-                      print(f"    HTTP 200  pages={npages}  extracted_chars={chars}")
+                      n=len(pdf.pages)
+                      say(f"    pages={n}, scanning first {min(n,MAX_PAGES)}")
+                      chars=0; cof=bra=vol=0; interesting=[]
+                      for i,pg in enumerate(pdf.pages[:MAX_PAGES],1):
+                          try: t=pg.extract_text() or ""
+                          except Exception: t=""
+                          chars+=len(t)
+                          c=any(k in t for k in COFFEE)
+                          b=any(k in t for k in BRAZIL)
+                          v=any(k in t for k in VOLUME)
+                          cof+=c; bra+=b; vol+=v
+                          if c and v:
+                              interesting.append(i)
+                          if i % 30 == 0:
+                              say(f"      ...p{i} chars so far={chars}")
+                      say(f"    text chars (first {min(n,MAX_PAGES)} pp) = {chars}")
                       if chars < 500:
-                          print("    -> effectively NO TEXT LAYER (image-only scan?)"); continue
-                      hits={k:joined.count(v) for k,v in TERMS.items()}
-                      print("    term hits:", {k:v for k,v in hits.items() if v})
-                      # Show pages where coffee AND a number co-occur.
-                      for i,t in enumerate(alltext,1):
-                          if not t: continue
-                          if ("קפה" in t or "הפק" in t or "offee" in t):
-                              nums=len(re.findall(r"\d[\d,\.]{2,}", t))
-                              if nums >= 5:
-                                  print(f"      p{i}: coffee mention + {nums} numbers")
+                          say("    -> NO TEXT LAYER — image-only scan"); continue
+                      say(f"    pages mentioning: coffee={cof} brazil={bra} volume-word={vol}")
+                      say(f"    coffee+volume on pages: {interesting[:12]}")
+                      for i in interesting[:3]:
+                          t=pdf.pages[i-1].extract_text() or ""
+                          lines=[l.strip() for l in t.splitlines()
+                                 if any(k in l for k in COFFEE+VOLUME) and re.search(r"\d", l)]
+                          say(f"      --- p{i} sample lines ---")
+                          for l in lines[:6]: say(f"        {l[:150]}")
               except Exception as e:
-                  print(f"    parse EXC {type(e).__name__}: {e}")
+                  say(f"    parse EXC {type(e).__name__}: {e}")
           PY
