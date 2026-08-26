@@ -388,12 +388,15 @@ _STRAUSS_ANCHORS = [
     ("intl_coffee", "International Coffee — net sales",
      ("קפה בינלאומי", "הקפה הבינלאומי")),
     ("brazil", "Brazil — Três Corações",
-     ("טרס קורסאוס", "קורסאוס")),
+     ("Corações", "Coracoes", "טרס קורסאוס")),
 ]
 _HE_COFFEE = ("קפה",)
 _HE_VOLUME = ("כמויות", "כמותי")
 _HE_UP = ("עלייה", "עליה", "גידול", "צמיחה")
 _HE_DOWN = ("ירידה", "קיטון", "צמצום")
+# Verbs of attribution. An explanation cell always says something "stems
+# from" / "is attributable to"; a definitions list never does.
+_HE_EXPLAINS = ("נובע", "נובעת", "נבע", "נבעה", "מיוחס", "מיוחסת", "בעיקר", "כתוצאה")
 _HE_PRICE_DRIVEN = ("מחירי המכירה", "עדכון מחירי", "מחירי מכירה")
 
 # Keyed by a distinctive Hebrew FRAGMENT, never by period. Keying on the period
@@ -430,7 +433,12 @@ def _he(line: str) -> str:
     Digit runs are therefore flipped a second time, restoring them.
     """
     flipped = line[::-1].strip()
-    return re.sub(r"[\d.,%()]+", lambda m: m.group(0)[::-1], flipped)
+    # Digits AND Latin words were already left-to-right before the flip, so
+    # both come back reversed. "9,340" arrived as "043,9" and "Três Corações"
+    # as "seõçaroC sêrT" — which is why a Hebrew anchor for the Brazilian JV
+    # could never match: the report writes that name in Latin script.
+    flipped = re.sub(r"[\d.,%()]+", lambda m: m.group(0)[::-1], flipped)
+    return re.sub(r"[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ.'\u2019]*", lambda m: m.group(0)[::-1], flipped)
 
 
 def _is_about_quantity(text: str) -> bool:
@@ -500,9 +508,12 @@ def strauss_periods() -> list[dict]:
                             if not any(a in line for a in anchors):
                                 continue
                             quote = _quote_at(lines, i)
-                            # Must actually explain something, not just name it
-                            # in a heading or a table of contents entry.
-                            if len(quote) < 60:
+                            # Must EXPLAIN, not merely name. Without this the
+                            # "International Coffee" anchor matched the
+                            # legal-entity glossary — Strauss Coffee B.V., São
+                            # Miguel Holding, Três Corações (JV) — in every
+                            # report, which reads as a hit and says nothing.
+                            if len(quote) < 60 or not any(m in quote for m in _HE_EXPLAINS):
                                 continue
                             english = None
                             for marker, text in _STRAUSS_TRANSLATIONS.items():
