@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-26T07:48:31.082970Z",
-  "count": 84,
+  "generated_at": "2026-08-26T08:00:40.661730Z",
+  "count": 85,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -525,6 +525,17 @@
       "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": null,
+      "timeout_minutes": 10
+    },
+    {
+      "file": "probe-ice-stock-access.yml",
+      "name": "0.18 \u2013 Probe: ICE stock-report access (index / retention)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": "scraper-ice-certified-stocks",
       "timeout_minutes": 10
     },
     {
@@ -1147,6 +1158,11 @@
         "version": "0.17"
       },
       {
+        "file": "probe-ice-stock-access.yml",
+        "name": "0.18 \u2013 Probe: ICE stock-report access (index / retention)",
+        "version": "0.18"
+      },
+      {
         "file": "build-oni-history.yml",
         "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
         "version": "0.6"
@@ -1233,7 +1249,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 20,
+    "uncovered_workflows_count": 21,
     "stale_curation_count": 0
   }
 }
