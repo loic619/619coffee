@@ -265,14 +265,22 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/topic_notify_state.json \
+          # Add only what exists. Four of these are written conditionally — the
+          # cursor only when a sweep is interrupted, the stats/history only when
+          # their step got that far — and `git add` on a missing path exits 128,
+          # which under `bash -e` killed the whole step. Run 32955091040 fetched
+          # its data successfully and then threw it away on exactly that.
+          for f in data/topic_notify_state.json \
                    frontend/public/data/certified_stocks_arabica.json \
-                  frontend/public/data/certified_stocks_robusta.json \
-                  backend/scraper/sources/ice_certified_stocks/stock_report_hits.json \
-                  backend/scraper/sources/ice_certified_stocks/stock_report_cursor.json \
-                  backend/scraper/sources/ice_certified_stocks/ice_run_stats.json \
-                  backend/scraper/sources/ice_certified_stocks/ice_run_history.json \
-                  frontend/public/data/ice_publish_times.json
+                   frontend/public/data/certified_stocks_robusta.json \
+                   frontend/public/data/ice_publish_times.json \
+                   backend/scraper/sources/ice_certified_stocks/stock_report_hits.json \
+                   backend/scraper/sources/ice_certified_stocks/stock_report_cursor.json \
+                   backend/scraper/sources/ice_certified_stocks/ice_run_stats.json \
+                   backend/scraper/sources/ice_certified_stocks/ice_run_history.json; do
+            [ -f "$f" ] && git add "$f"
+          done
+          true
           git diff --cached --quiet \
             && echo "No changes." \
             || (git commit -m "data: ICE certified stocks (${{ inputs.days_back || 30 }}d) [skip ci]" \
