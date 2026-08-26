@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T05:21:01.040268+00:00",
+  "generated_at": "2026-08-26T05:54:03.008443+00:00",
   "source": "Company results releases (PDF)",
   "note": "JDE Peet's only. Nestle's site returns 403 to bot, browser-UA and headless-browser requests alike from CI runners, so RIG cannot be scraped there.",
   "companies": [
@@ -147,6 +147,25 @@
             {
               "segment": "JDE Peet's",
               "volume_mix_pct": 1.0,
+              "price_pct": null,
+              "organic_pct": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "nestle",
+      "name": "Nestlé",
+      "metric_name": "RIG",
+      "periods": [
+        {
+          "period": "2025-3M",
+          "source_url": "https://www.nestle.com/sites/default/files/2025-04/three-month-sales-press-release-2025-en.pdf",
+          "segments": [
+            {
+              "segment": "Total Group",
+              "volume_mix_pct": 0.7,
               "price_pct": null,
               "organic_pct": null
             }
