@@ -373,7 +373,13 @@ _HE_COFFEE = ("קפה",)
 # volume) and picked up a sentence about the monetary size of the Israeli food
 # market — a real number, entirely the wrong subject. These four are only used
 # of quantities of goods.
-_HE_VOLUME = ("כמויות", "כמותי", "כמות", "יחידות")
+# STRONG markers only. "כמות"/"יחידות" are generic enough to appear in
+# cross-references, expense discussion and market-size prose — three of the
+# four passages the looser list selected were about a section reference, a
+# price attribution and marketing spend respectively, all reading plausibly as
+# volume commentary. These two constructions are the ones Strauss actually uses
+# when describing quantities of coffee sold.
+_HE_VOLUME = ("כמויות", "כמותי")
 _HE_UP = ("עלייה", "עליה", "גידול", "צמיחה")
 _HE_DOWN = ("ירידה", "קיטון", "צמצום")
 
