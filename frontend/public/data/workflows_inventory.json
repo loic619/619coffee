@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T06:54:02.154878Z",
+  "generated_at": "2026-08-26T07:34:53.791717Z",
   "count": 84,
   "workflows": [
     {
@@ -163,7 +163,7 @@
     },
     {
       "file": "brazil-conilon-demand.yml",
-      "name": "1.21 \u2013 Brazil conilon domestic demand",
+      "name": "1.23 \u2013 Brazil conilon domestic demand",
       "triggers": [
         "schedule",
         "workflow_dispatch"
@@ -1177,6 +1177,11 @@
         "version": "1.18"
       },
       {
+        "file": "brazil-conilon-demand.yml",
+        "name": "1.23 \u2013 Brazil conilon domestic demand",
+        "version": "1.23"
+      },
+      {
         "file": "b3-kc-close.yml",
         "name": "1.6 \u2013 B3 at KC close + final fechamento",
         "version": "1.6"
@@ -1228,7 +1233,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 19,
+    "uncovered_workflows_count": 20,
     "stale_curation_count": 0
   }
 }
