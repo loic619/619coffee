@@ -262,6 +262,9 @@ STOCK_REPORT_SWEEP_RANGE = ((10, 25), (12, 50))
 # K = 10 (was 5) — wider Tier 1 keeps the cheap path covering more days as
 # the publish window expands; only matters once the hits log fills out.
 STOCK_REPORT_TIER1_K = 10
+# Cap the per-run hole recovery. Each is a single GET (tier 0), but a bad
+# hit-log edit should not turn one run into an unbounded backfill.
+RECOVER_MAX = 20
 
 # ── Sweep resume + run telemetry ─────────────────────────────────────────────
 # Two files, both committed by the workflow so they survive across runs.
@@ -1108,6 +1111,33 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
                 robusta_stock_url = url
         print(f"  → {len(robusta_stocks)} stock-report snapshots captured "
               f"(tier-2 sweep day: {sweep_day})\n")
+
+        # Recover holes. Any date whose publish second we KNOW but whose
+        # snapshot we never stored is one GET away, now that retention is
+        # confirmed — tier 0 goes straight to the URL. The candidate list comes
+        # from the hit log rather than the run window, because the holes are
+        # usually months old by the time their time is learned (all three in
+        # the June–August window were), and a window wide enough to reach them
+        # would drag every other per-day fetch along with it.
+        stored = set()
+        _existing = _load_existing_json(OUT_DIR / "certified_stocks_robusta.json")
+        if _existing:
+            stored = {s.get("date") for s in (_existing.get("snapshots") or [])}
+        holes = [h["date"] for h in _load_stock_report_hits()
+                 if h.get("date") not in ("bootstrap", None)
+                 and h["date"] not in stored
+                 and h["date"] not in {d.isoformat() for d in robusta_stocks}]
+        if holes:
+            print(f"[robusta] recovering {len(holes)} known-time hole(s): "
+                  f"{', '.join(holes[:RECOVER_MAX])}")
+            for iso in holes[:RECOVER_MAX]:
+                dd = date.fromisoformat(iso)
+                url, parsed = pull_stock_report(dd, sweep=False)
+                if parsed is not None:
+                    robusta_stocks[dd] = parsed
+                    print(f"  ✓ recovered {iso}")
+                else:
+                    print(f"  ✗ {iso} still unresolved")
 
         print(f"[robusta] gradings + iss/recv + tenders + overview, {len(days_sorted_asc)} days...")
         for d in days_sorted_asc:
