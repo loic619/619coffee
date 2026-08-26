@@ -36,12 +36,18 @@ interface Company { key: string; name: string; metric_name: string; periods: Per
 // publishes no volume figure — only a sentence about quantities sold — and the
 // moment a direction is given a percentage axis it starts being read as a
 // magnitude. Different data, different object, different rendering.
+interface NarrativeQuote {
+  topic: string;
+  label: string;
+  quote_he?: string;
+  quote_en?: string | null;
+  direction?: "up" | "down" | "mixed" | null;
+}
 interface NarrativePeriod {
   period: string;
   source_url?: string;
   direction?: "up" | "down" | "mixed" | null;
-  quote_he?: string;
-  quote_en?: string | null;
+  quotes?: NarrativeQuote[];
 }
 interface Narrative {
   key: string; name: string; metric_name: string; note?: string;
@@ -80,18 +86,25 @@ function NarrativeBlock({ n }: { n: Narrative }) {
                      className="text-[9px] text-slate-500 underline hover:text-slate-300">source</a>
                 )}
               </div>
-              {p.quote_en ? (
-                <p className="text-[10px] text-slate-300 italic">&ldquo;{p.quote_en}&rdquo;</p>
-              ) : (
-                <p className="text-[9px] text-slate-500">
-                  Translation pending — the Hebrew is below, unaltered.
-                </p>
-              )}
-              {p.quote_he && (
-                <p dir="rtl" lang="he" className="text-[10px] text-slate-500 leading-snug">
-                  {p.quote_he}
-                </p>
-              )}
+              {/* One block per explanation cell. Labelled, because "sales
+                  fell on FX" and "volumes rose" come from different rows and
+                  mean different things — merging them would blur exactly the
+                  distinction that makes these quotes worth showing. */}
+              {(p.quotes ?? []).map(q => (
+                <div key={q.topic} className="space-y-0.5">
+                  <div className="text-[9px] uppercase tracking-wide text-slate-500">{q.label}</div>
+                  {q.quote_en ? (
+                    <p className="text-[10px] text-slate-300 italic">&ldquo;{q.quote_en}&rdquo;</p>
+                  ) : (
+                    <p className="text-[9px] text-slate-600">Translation pending — Hebrew below, unaltered.</p>
+                  )}
+                  {q.quote_he && (
+                    <p dir="rtl" lang="he" className="text-[10px] text-slate-500 leading-snug">
+                      {q.quote_he}
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
           );
         })}

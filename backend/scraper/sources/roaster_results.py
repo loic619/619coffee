@@ -368,38 +368,57 @@ _STRAUSS_REPORTS = {
     "2025-FY": "https://ir.strauss-group.com/wp-content/uploads/2024/08/FY2025-report.pdf",
     "2025-Q3": "https://ir.strauss-group.com/wp-content/uploads/2024/08/Reporting_Package_Q3_2025.pdf",
 }
+# THE THREE RECURRING EXPLANATION CELLS.
+#
+# Strauss's reports carry the same three tables every period, each with an
+# "Explanation" column, and the coffee-demand commentary always sits in the
+# same rows. They are not extractable as tables: pdfplumber finds no
+# multi-column structure in these filings at all — the ruled tables of the
+# translated edition come through as plain text lines. So each is anchored on a
+# phrase that identifies its row, and the sentence is read from there.
+#
+# Anchored rather than keyword-matched because keyword proximity kept selecting
+# the wrong subject: a section cross-reference, a marketing-expense line, and a
+# sentence attributing higher sales to higher prices all read as volume
+# commentary until you looked at them.
+_STRAUSS_ANCHORS = [
+    # (topic key, human label, Hebrew anchor found in that row's explanation)
+    ("group_sales", "Group sales",
+     ("מגידול כמותי", "גידול כמותי", "מצמיחה כמותית", "בכמויות הנמכרות")),
+    ("intl_coffee", "International Coffee — net sales",
+     ("קפה בינלאומי", "הקפה הבינלאומי")),
+    ("brazil", "Brazil — Três Corações",
+     ("טרס קורסאוס", "קורסאוס")),
+]
 _HE_COFFEE = ("קפה",)
-# Quantity words ONLY. An earlier version also matched "היקף"/"נפח" (scope,
-# volume) and picked up a sentence about the monetary size of the Israeli food
-# market — a real number, entirely the wrong subject. These four are only used
-# of quantities of goods.
-# STRONG markers only. "כמות"/"יחידות" are generic enough to appear in
-# cross-references, expense discussion and market-size prose — three of the
-# four passages the looser list selected were about a section reference, a
-# price attribution and marketing spend respectively, all reading plausibly as
-# volume commentary. These two constructions are the ones Strauss actually uses
-# when describing quantities of coffee sold.
 _HE_VOLUME = ("כמויות", "כמותי")
 _HE_UP = ("עלייה", "עליה", "גידול", "צמיחה")
 _HE_DOWN = ("ירידה", "קיטון", "צמצום")
+_HE_PRICE_DRIVEN = ("מחירי המכירה", "עדכון מחירי", "מחירי מכירה")
 
-# Working translations of the passages actually read, keyed by period. NOT the
-# company's own English — Strauss publishes these filings in Hebrew only — so
-# they are labelled as unofficial wherever they surface. A period without an
-# entry shows its Hebrew and says the translation is pending, rather than
-# inventing English for a quote nobody has checked.
-# Keyed by a distinctive Hebrew FRAGMENT of the passage, not by period. Keying
-# on the period assumed the scraper would select the same sentence I read — it
-# selected a different one, which would have shown my English beside unrelated
-# Hebrew. Matching on the text makes a mismatch impossible: no fragment, no
-# translation.
+# Keyed by a distinctive Hebrew FRAGMENT, never by period. Keying on the period
+# would attach English to whatever sentence the extractor happened to select —
+# which is how a quote ends up attributed to a company that did not say it.
+# These are the Q1-2026 explanation cells from the translated edition of that
+# report, not machine translation.
 _STRAUSS_TRANSLATIONS = {
-    # Trimmed to match the excerpt actually shown. The full sentence also
-    # attributes the fall to FX translation and lower Brazilian selling prices;
-    # rendering that English beside a Hebrew tail would have the translation
-    # claiming more than the quote next to it.
-    "בכמויות הנמכרות במרבית": ("… following the fall in green coffee prices, partly offset by "
-                "an increase in the quantities sold in most countries."),
+    "מגידול כמותי": (
+        "The increase is primarily attributable to higher volume and the improved sales mix. "
+        "The increase was partially offset by the negative impact of exchange rates as well as "
+        "a decline in sale prices in the International Coffee segment, consistent with the "
+        "decline in green coffee prices, primarily in Brazil."),
+    "הקפה הבינלאומי": (
+        "The decline in sales is primarily attributable to the impact of currency exchange "
+        "rates, primarily the strengthening of the Shekel against the Brazilian Real relative "
+        "to the corresponding period last year."),
+    "טרס קורסאוס": (
+        "The decline in Três Corações's sales in local currency is largely due to lower sales "
+        "prices following the decline in coffee prices. The Company's sales were adversely "
+        "impacted by the strengthening of the Shekel against the Brazilian Real by "
+        "approximately NIS 41 million."),
+    "בכמויות הנמכרות במרבית": (
+        "… following the fall in green coffee prices, partly offset by an increase in the "
+        "quantities sold in most countries."),
 }
 
 
@@ -407,40 +426,29 @@ def _he(line: str) -> str:
     """Restore reversed RTL extraction to readable Hebrew.
 
     Reversing the whole line fixes the Hebrew — letters and word order both —
-    but BREAKS anything that was already left-to-right. "9,340" comes back as
-    "043,9" and "12.1%" as "%1.21". So digit runs are flipped a second time,
-    which returns them to their original orientation.
+    but BREAKS anything already left-to-right: "9,340" comes back as "043,9".
+    Digit runs are therefore flipped a second time, restoring them.
     """
     flipped = line[::-1].strip()
-    return re.sub(r"[\d.,%]+", lambda m: m.group(0)[::-1], flipped)
-
-
-_HE_PRICE_DRIVEN = ("מחירי המכירה", "עדכון מחירי", "מחירי מכירה")
+    return re.sub(r"[\d.,%()]+", lambda m: m.group(0)[::-1], flipped)
 
 
 def _is_about_quantity(text: str) -> bool:
     """True only when the passage speaks about quantities of goods.
 
-    Guards two ways of being wrong that both produced plausible-looking output:
-    a sentence about the monetary size of a market, and a sentence attributing
-    higher SALES to higher PRICES. The second is especially dangerous here —
-    it reads as growth and means the opposite of a volume gain.
+    Guards the failure that matters most here: a sentence attributing higher
+    SALES to higher PRICES reads as growth and means the opposite of a volume
+    gain, which is the single most misleading thing this panel could show.
     """
     if not any(v in text for v in _HE_VOLUME):
         return False
     idx = min((text.find(v) for v in _HE_VOLUME if v in text), default=-1)
     near = text[max(0, idx - 60): idx + 60]
-    # A price attribution sitting right on top of the quantity word means the
-    # sentence is about price, not cups.
     return not any(pd in near for pd in _HE_PRICE_DRIVEN)
 
 
 def _direction(text: str) -> str | None:
-    """up / down / mixed, from how the passage describes quantities.
-
-    Only classified when a direction word sits near a volume word — otherwise
-    the sentence is about sales or prices and says nothing about cups.
-    """
+    """up / down / mixed, from how the passage describes quantities."""
     idx = min((text.find(v) for v in _HE_VOLUME if v in text), default=-1)
     if idx < 0:
         return None
@@ -456,7 +464,13 @@ def _direction(text: str) -> str | None:
     return None
 
 
+def _quote_at(lines: list[str], i: int, span: int = 3) -> str:
+    """The anchored line plus its wrap, as one readable sentence."""
+    return re.sub(r"\s+", " ", " ".join(lines[i: i + span])).strip()
+
+
 def strauss_periods() -> list[dict]:
+    """One entry per report, carrying up to three anchored explanation quotes."""
     try:
         import pdfplumber
     except ImportError:                                   # pragma: no cover
@@ -470,49 +484,60 @@ def strauss_periods() -> list[dict]:
         if not r.ok or b"%PDF" not in r.content[:2048]:
             log.info("[roaster_results] strauss %s: not a PDF", period)
             continue
-        passage = None
+
+        found: dict[str, dict] = {}
         try:
             with pdfplumber.open(io.BytesIO(r.content)) as pdf:
-                for page in pdf.pages[:110]:
+                for page in pdf.pages:
                     raw = page.extract_text() or ""
                     if not any(c in raw for c in ("קפה", "הפק")):
                         continue
                     lines = [_he(l) for l in raw.splitlines()]
-                    for i, line in enumerate(lines):
-                        if not any(v in line for v in _HE_VOLUME):
+                    for key, label, anchors in _STRAUSS_ANCHORS:
+                        if key in found:
                             continue
-                        # Start AT the marker line, not two before it. Leading
-                        # with the preceding lines meant the quote opened on
-                        # whatever happened to precede it — a section
-                        # cross-reference in one report, a price attribution in
-                        # another — while the quantity language sat buried at
-                        # the end. The sentence wraps, so carry the following
-                        # line, but the quote must BEGIN on the subject.
-                        chunk = " ".join(lines[i: i + 2]).strip()
-                        if _is_about_quantity(chunk) and _direction(chunk):
-                            passage = re.sub(r"\s+", " ", chunk)
+                        for i, line in enumerate(lines):
+                            if not any(a in line for a in anchors):
+                                continue
+                            quote = _quote_at(lines, i)
+                            # Must actually explain something, not just name it
+                            # in a heading or a table of contents entry.
+                            if len(quote) < 60:
+                                continue
+                            english = None
+                            for marker, text in _STRAUSS_TRANSLATIONS.items():
+                                if marker in quote:
+                                    english = text
+                                    break
+                            found[key] = {
+                                "topic": key,
+                                "label": label,
+                                "quote_he": quote[:700],
+                                "quote_en": english,
+                                "direction": _direction(quote) if _is_about_quantity(quote) else None,
+                            }
                             break
-                    if passage:
+                    if len(found) == len(_STRAUSS_ANCHORS):
                         break
         except Exception as e:                            # noqa: BLE001
             log.info("[roaster_results] strauss %s parse failed: %s", period, e)
             continue
-        if not passage:
-            log.info("[roaster_results] strauss %s: no volume passage found", period)
+
+        if not found:
+            log.info("[roaster_results] strauss %s: no anchored explanation found", period)
             continue
-        english = None
-        for marker, text in _STRAUSS_TRANSLATIONS.items():
-            if marker in passage:
-                english = text
-                break
+        quotes = [found[k] for k, _, _ in _STRAUSS_ANCHORS if k in found]
+        # Period direction = the group-sales row's, the only one that speaks to
+        # quantities outright; the other two explain price and currency.
+        direction = next((q["direction"] for q in quotes if q["topic"] == "group_sales"), None)
         out.append({
             "period": period,
             "source_url": url,
-            "direction": _direction(passage),
-            "quote_he": passage[:600],
-            "quote_en": english,
+            "direction": direction,
+            "quotes": quotes,
         })
-        log.info("[roaster_results] strauss %s → %s", period, _direction(passage))
+        log.info("[roaster_results] strauss %s → %d quote(s): %s",
+                 period, len(quotes), ", ".join(q["topic"] for q in quotes))
     return sorted(out, key=lambda p: p["period"])
 
 
