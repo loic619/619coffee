@@ -5,6 +5,7 @@ import AcapheLiveQuotes from "@/components/futures/AcapheLiveQuotes";
 import OIFndChart from "@/components/futures/OIFndChart";
 import OriginPricesPanel from "@/components/macro/OriginPricesPanel";
 import B3CoffeePanel from "@/components/futures/B3CoffeePanel";
+import BrazilArbitragePanel from "@/components/futures/BrazilArbitragePanel";
 import OptionsOIPanel from "@/components/futures/OptionsOIPanel";
 import TradedTapePanel from "@/components/futures/TradedTapePanel";
 import PageHeader from "@/components/PageHeader";
@@ -1049,6 +1050,13 @@ function FuturesPageInner() {
               lifted vs hit lots, VWAPs, and calendar-spread sizing. */}
           <div className="border-t border-slate-800 pt-4 mt-4">
             <TradedTapePanel />
+          </div>
+
+          {/* Brazil's internal arabica/conilon arbitrage — the substitution
+              spread that steers domestic blends and frees (or absorbs) conilon
+              for export. Sits with the B3 domestic-exchange section. */}
+          <div className="border-t border-slate-800 pt-4 mt-4">
+            <BrazilArbitragePanel />
           </div>
 
           <div className="border-t border-slate-800 pt-4 mt-4">
