@@ -261,3 +261,19 @@ class TestContractPriceBackfill:
         # deletes the work. This is the guard that keeps the two in step.
         from backend.scraper.fetch_oi_json import ARCHIVE_MAX_DAYS
         assert ARCHIVE_MAX_DAYS >= 261 * 10
+
+    def test_backfill_aborts_before_touching_the_archive_when_barchart_is_denied(
+            self, monkeypatch, tmp_path):
+        # The archive is the app's deepest price history. A run that cannot
+        # reach the source must leave it exactly as it found it.
+        import asyncio
+        from datetime import date as _date
+
+        from backend.scraper import backfill_contract_prices as B
+        p = tmp_path / "a.json"
+        p.write_text('{"arabica":{},"robusta":{}}', encoding="utf-8")
+        monkeypatch.setattr(B, "ARCHIVE_FILE", p)
+        monkeypatch.setattr(B, "host_reachable", lambda: False)
+        before = p.read_text(encoding="utf-8")
+        assert asyncio.run(B.run(10, _date(2026, 8, 26))) == 2
+        assert p.read_text(encoding="utf-8") == before

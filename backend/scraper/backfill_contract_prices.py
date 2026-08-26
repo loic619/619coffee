@@ -148,12 +148,33 @@ async def _api(pg, url: str, tries: int = 4):
     return None
 
 
+def host_reachable(timeout: float = 15.0) -> bool:
+    """One cheap probe before launching a browser.
+
+    Without it a denied host surfaces as Playwright's "run playwright install"
+    banner or a 30s navigation timeout — neither of which names the actual
+    problem. Same preflight as the Vietnam study, for the same reason.
+    """
+    import requests
+    try:
+        requests.head("https://www.barchart.com", timeout=timeout, allow_redirects=True)
+        return True
+    except Exception as e:                    # noqa: BLE001 — any failure is the answer
+        print(f"[backfill-prices] barchart.com unreachable ({type(e).__name__}: {e})")
+        return False
+
+
 async def run(years: int, today: date) -> int:
     from playwright.async_api import async_playwright
 
     if not ARCHIVE_FILE.exists():
         print(f"[backfill-prices] archive missing at {ARCHIVE_FILE}")
         return 1
+    if not host_reachable():
+        print("[backfill-prices] ABORT — no network path to Barchart. Run this where the "
+              "scrapers run, not in a sandbox that denies outbound by policy. "
+              "The archive was NOT modified.")
+        return 2
     archive = json.loads(ARCHIVE_FILE.read_text(encoding="utf-8"))
     print(f"[backfill-prices] before: {archive_span(archive)}")
 
