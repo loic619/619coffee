@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T04:43:09.060464Z",
+  "generated_at": "2026-08-26T08:00:40.661730Z",
   "count": 85,
   "workflows": [
     {
@@ -163,7 +163,7 @@
     },
     {
       "file": "brazil-conilon-demand.yml",
-      "name": "1.21 \u2013 Brazil conilon domestic demand",
+      "name": "1.23 \u2013 Brazil conilon domestic demand",
       "triggers": [
         "schedule",
         "workflow_dispatch"
@@ -473,17 +473,6 @@
       "timeout_minutes": 8
     },
     {
-      "file": "probe-abic-blend.yml",
-      "name": "Probe: ABIC blend composition (temporary)",
-      "triggers": [
-        "workflow_dispatch"
-      ],
-      "crons": [],
-      "workflow_run_deps": [],
-      "concurrency_group": null,
-      "timeout_minutes": 10
-    },
-    {
       "file": "probe-acaphe.yml",
       "name": "Z \u2013 Probe: Acaphe row14 (test)",
       "triggers": [
@@ -536,6 +525,17 @@
       "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": null,
+      "timeout_minutes": 10
+    },
+    {
+      "file": "probe-ice-stock-access.yml",
+      "name": "0.18 \u2013 Probe: ICE stock-report access (index / retention)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": "scraper-ice-certified-stocks",
       "timeout_minutes": 10
     },
     {
@@ -1158,6 +1158,11 @@
         "version": "0.17"
       },
       {
+        "file": "probe-ice-stock-access.yml",
+        "name": "0.18 \u2013 Probe: ICE stock-report access (index / retention)",
+        "version": "0.18"
+      },
+      {
         "file": "build-oni-history.yml",
         "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
         "version": "0.6"
@@ -1186,6 +1191,11 @@
         "file": "model-health.yml",
         "name": "1.18 \u2013 Open-Direction Model Health",
         "version": "1.18"
+      },
+      {
+        "file": "brazil-conilon-demand.yml",
+        "name": "1.23 \u2013 Brazil conilon domestic demand",
+        "version": "1.23"
       },
       {
         "file": "b3-kc-close.yml",
@@ -1239,7 +1249,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 19,
+    "uncovered_workflows_count": 21,
     "stale_curation_count": 0
   }
 }

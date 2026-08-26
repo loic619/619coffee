@@ -125,6 +125,20 @@ def _period_to_month(code: str) -> str | None:
     return None
 
 
+def _period_marker(code: str) -> str | None:
+    """Half-month marker in a bulletin code: 'k1', 'k2', or None.
+
+    Vietnam Customs publishes twice a month — k1 covers data through the 15th,
+    k2 is the full-month cumulative (vn_fertilizer filters on k2 for exactly
+    this reason). Both carry the same '2x' type and the same '{year}-t{month}'
+    stamp, so `_period_to_month` maps them to the SAME month and `_is_2x`
+    accepts both. Without this distinction a mid-month bulletin can silently
+    supply the monthly export figure.
+    """
+    m = re.search(r"-t\d{1,2}(k[12])", code, re.IGNORECASE)
+    return m.group(1).lower() if m else None
+
+
 def _is_2x(code: str) -> bool:
     """'2x' = monthly export-by-commodity bulletin.
 
@@ -505,14 +519,23 @@ async def _harvest_via_bridge(page) -> dict[str, dict]:
             continue
         month = _period_to_month(combined)
         if month:
-            pubs_2x.append({"month": month, "url": file_url, "raw": combined})
+            pubs_2x.append({"month": month, "url": file_url, "raw": combined,
+                            "marker": _period_marker(combined)})
 
-    print(f"[vn_coffee_export] [pathB] {len(pubs_2x)} 2x bulletins identified")
+    n_k1 = sum(1 for p in pubs_2x if p["marker"] == "k1")
+    print(f"[vn_coffee_export] [pathB] {len(pubs_2x)} 2x bulletins identified "
+          f"({n_k1} of them mid-month k1)")
     if not pubs_2x:
         return per_month
 
+    # A k1 bulletin covers only days 1-15 but carries the same month stamp and
+    # the same '2x' type as its full-month k2 sibling. Taking whichever the
+    # portal happened to list first would publish a half-month number as the
+    # month. Full-month bulletins only.
     by_month: dict[str, str] = {}
     for pub in pubs_2x:
+        if pub["marker"] == "k1":
+            continue
         by_month.setdefault(pub["month"], pub["url"])
 
     for month, url in sorted(by_month.items()):

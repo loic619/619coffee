@@ -32,6 +32,7 @@ from database import SessionLocal
 from scraper.exporters.base import OUT_DIR
 from scraper.exporters.cot import export_cot, export_macro_cot
 from scraper.exporters.demand import export_demand_stocks, export_factory_mix_step
+from scraper.exporters.front_spread import export_front_spread
 from scraper.exporters.futures import (
     export_futures_chain,
     export_futures_price_history,
@@ -83,6 +84,7 @@ def _exporters(db):
     from scraper.exporters.cot_options_book import export_cot_options_book
     from scraper.exporters.cot_sept_study import export_cot_sept_study
     from scraper.exporters.cot_swap_identity import export_cot_swap_identity
+    from scraper.exporters.ice_publish_times import export_ice_publish_times
     from scraper.exporters.intraday_drift import export_intraday_drift
     from scraper.exporters.open_direction_factors import export_open_direction_factors
     from scraper.exporters.options_expiry_study import export_options_expiry_study
@@ -106,14 +108,28 @@ def _exporters(db):
         from scraper.build_country_pins import export_country_pins
         export_country_pins()
 
+    def _world_consumption():
+        # After stocks (it reads demand_stocks.json) and after any admin edit
+        # to the hub lines, so the consensus is built from current inputs.
+        from scraper.build_world_consumption import export as export_world_consumption
+        export_world_consumption()
+
     def _enso_intel():
+        # The measured teleconnection is refreshed FIRST: it is derived from
+        # the weather history the pipeline has just rewritten, and the risk
+        # pins are scored against it. Rebuilding the pins from a stale
+        # measurement is the drift this whole module exists to avoid.
         from scraper.build_enso_intel import export_enso_intel
+        from scraper.enso_teleconnection import export as export_teleconnection
+        export_teleconnection()
         export_enso_intel()
 
     return [
+        ("world_consumption",     _world_consumption),
         ("futures_chain",         lambda: export_futures_chain(db)),
         ("oi_fnd_chart",          lambda: export_oi_fnd_chart(db)),
         ("futures_price_history", lambda: export_futures_price_history(db)),
+        ("front_spread",          lambda: export_front_spread()),
         ("cot",                   lambda: export_cot(db)),
         ("macro_cot",             lambda: export_macro_cot(db)),
         ("freight",               lambda: export_freight(db)),
@@ -160,6 +176,7 @@ def _exporters(db):
         ("intraday_drift",        lambda: export_intraday_drift()),
         ("yield_rainfall",        lambda: export_yield_rainfall()),
         ("conilon_basis",         lambda: export_conilon_basis()),
+        ("ice_publish_times",     lambda: export_ice_publish_times()),
         ("news",                  lambda: export_news(db)),
         ("country_pins",          _country_pins),
         ("enso",                  _enso_intel),

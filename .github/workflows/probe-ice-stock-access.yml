@@ -1,0 +1,29 @@
+name: "0.18 – Probe: ICE stock-report access (index / retention)"
+
+# Dispatch-only. Answers the two assumptions the HHMMSS sweep is built on:
+# is there a directory index (which would delete the sweep entirely), and are
+# historical reports retained (which decides whether a missed day is
+# recoverable or a permanent hole). A dozen requests at the 5s marketdata
+# throttle — deliberately gentle, because ICE answers impatience with a
+# one-hour ban.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: scraper-ice-certified-stocks   # shares 1.13's lane — same host, never both
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --quiet requests
+      - name: Probe
+        working-directory: backend
+        run: PYTHONPATH=. python -m scraper.sources.ice_certified_stocks.probe_stock_report_access

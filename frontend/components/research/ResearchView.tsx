@@ -46,6 +46,7 @@ import EnsoModelMethodology from "./methodology/EnsoModelMethodology";
 import DemandDataMethodology from "./methodology/DemandDataMethodology";
 import DeliveryProcessMethodology from "./methodology/DeliveryProcessMethodology";
 import { AlwaysOpen, ResearchCard, type Tone } from "./methodology/prose";
+import IcePublishTimes from "./admin/IcePublishTimes";
 import { ARTICLES, CAT_LABEL, type Article } from "@/lib/research/catalog";
 import { applyOverrides, type Override, type OverrideMap } from "@/lib/research/overrides";
 import EditPanel from "./EditPanel";
@@ -53,16 +54,18 @@ import FactorMap, { FactorMapLegend } from "./factor-map/FactorMap";
 import { BY_ID } from "./factor-map/nodes";
 import { nodesForArticle } from "./factor-map/articleNodes";
 import HondurasProfile from "./origins/HondurasProfile";
+import CertStocksSpread from "./CertStocksSpread";
 
 // Top-level research categories. Each groups several articles/tools, which render
 // stacked as collapsible cards on the category page.
-type Cat = "quant" | "supply" | "logistics" | "exchange" | "demand";
+type Cat = "quant" | "supply" | "logistics" | "exchange" | "demand" | "admin";
 const CATS: { id: Cat; label: string }[] = [
   { id: "quant",     label: "Quant & positioning" },
   { id: "supply",    label: "Supply" },
   { id: "logistics", label: "Logistics" },
   { id: "exchange",  label: "Exchange & certified stocks" },
   { id: "demand",    label: "Demand" },
+  { id: "admin",     label: "Admin & platform" },
 ];
 
 function H({ children }: { children: React.ReactNode }) {
@@ -1776,6 +1779,7 @@ in & out (transit) = decerted bags whose cohort was graded in-window`}</Fml>
 // DemandArticles) are unpacked to their per-article children so an
 // article can be opened on its own rather than with its four siblings.
 const BODY: Record<string, React.ReactNode> = {
+  "when-ice-publishes-the-robusta-stock-report": <IcePublishTimes />,
   "are-swap-dealers-commercials-or-speculators": <CotSwapIdentity />,
   "intraweek-cot-nowcast-methodology": <IntraweekMethodology />,
   "cot-backtest-report": <CotBacktestReport />,
@@ -1802,6 +1806,7 @@ const BODY: Record<string, React.ReactNode> = {
   "theoretical-yield-vs-rainfall-theory-29-harvests-and": <YieldRainfall />,
   "frost-risk-why-radiative-frost-is-the-trade-that-mat": <FrostRiskMethodology />,
   "honduras-origin-country-profile": <HondurasProfile />,
+  "cert-stocks-and-the-front-spread": <CertStocksSpread />,
   "origin-logistics-the-fobbing-cost-model": <OriginLogistics />,
   "destination-in-store-cost": <DestinationInstore />,
   "freight-port-activity-how-the-numbers-are-built": <FreightMethodology />,

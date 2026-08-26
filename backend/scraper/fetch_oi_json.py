@@ -33,10 +33,17 @@ ROOT = Path(__file__).resolve().parents[2]   # …/Coffee-intel-map
 DATA_FILE = ROOT / "data" / "oi_history.json"
 ARCHIVE_FILE = ROOT / "data" / "contract_prices_archive.json"
 MAX_DAYS = 14
-# Permanent archive retention: 5 years of trading days. The Industry Pulse
-# chart has a 5Y window, so we keep at least that much per-contract history
-# to source the price line from. ~261 trading days/yr × 5 + buffer.
-ARCHIVE_MAX_DAYS = 1320
+# Permanent archive retention: 10 years of trading days.
+#
+# The Industry Pulse price line only needs 5, but the archive is also the
+# research series behind the certified-stocks/spread study — and that study
+# found the robusta relationship CHANGES REGIME inside a 5-year window, which
+# is precisely the case where a short sample misleads. Depth is the cheap fix.
+#
+# This must stay >= whatever backfill_contract_prices.py has fetched: the trim
+# below runs nightly and would silently delete anything beyond the window.
+# ~261 trading days/yr × 10 + buffer.
+ARCHIVE_MAX_DAYS = 2640
 
 BARCHART_INIT_URL = "https://www.barchart.com/futures/quotes/KCK26/overview"
 
@@ -234,7 +241,11 @@ def _write_cells(archive: dict, contracts: list[dict], oi_date: str, price_date:
 
 
 def _trim_archive(archive: dict) -> None:
-    """Drop date keys older than the 5y retention window."""
+    """Drop date keys older than the ARCHIVE_MAX_DAYS retention window.
+
+    Nothing else deletes from the archive, so this is the only thing that can
+    undo a backfill: raise ARCHIVE_MAX_DAYS before fetching deeper history, or
+    the next nightly run removes it."""
     from datetime import datetime
     cutoff_ord = date.today().toordinal() - ARCHIVE_MAX_DAYS * 7 // 5  # ~calendar span for N trading days
     for market in ("arabica", "robusta"):

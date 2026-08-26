@@ -152,6 +152,36 @@ export { THRESHOLDS as __THRESHOLDS };
 export type Magnitude = "small" | "medium" | "large";
 
 /** WoW magnitude: small <5%, medium 5–12%, large >12%. */
+/** Week-on-week move in the 1st/2nd spread, sized in the market's own quote
+ *  unit rather than as a percentage.
+ *
+ *  The spread crosses zero routinely, which makes a ratio-based magnitude
+ *  meaningless near the crossing: |curr-prev|/|prev| explodes as prev→0 even
+ *  when nothing happened. Thresholds are absolute and per-market because the
+ *  units differ — KC quotes c/lb, RC quotes $/t — and a number that reads
+ *  "large" in one is noise in the other.
+ *
+ *  A null on either side means the move cannot be sized at all (the contract
+ *  archive does not cover that week), which is "small", not zero: the engine
+ *  should not shout about a move it cannot measure. */
+export const SPREAD_MAG_BANDS: Record<"NY" | "LDN", { medium: number; large: number }> = {
+  NY:  { medium: 0.75, large: 2.0 },    // c/lb
+  LDN: { medium: 15,   large: 40 },     // $/t
+};
+
+export function magSpreadMove(
+  prev: number | null, curr: number | null, mkt: "NY" | "LDN",
+): Magnitude {
+  if (prev === null || curr === null || !Number.isFinite(prev) || !Number.isFinite(curr)) {
+    return "small";
+  }
+  const move = Math.abs(curr - prev);
+  const b = SPREAD_MAG_BANDS[mkt];
+  if (move >= b.large) return "large";
+  if (move >= b.medium) return "medium";
+  return "small";
+}
+
 export function mag(prev: number, curr: number): Magnitude {
   const base = Math.abs(prev) || 1;
   const pct  = Math.abs((curr - prev) / base);
@@ -352,9 +382,15 @@ export function evaluateSignals(rows: ProcessedCotRow[]): Signal[] {
   };
   // Curve structure magnitude: undefined endpoints → "small" (engine can't
   // meaningfully size the move when one side is missing).
+  //
+  // NOT mag(): that is a percent change, and the spread is a signed quantity
+  // that crosses zero. A curve going +0.5 → -0.5 is a trivial move in carry
+  // terms and a 200% change in mag()'s terms, so every week the curve passes
+  // through flat would have read "large". Size it on the ABSOLUTE move in the
+  // market's own quote unit instead — see magSpreadMove.
   const magStr: Record<Mkt, Magnitude> = {
-    NY:  (pStrNY  !== null && strNY  !== null) ? mag(pStrNY,  strNY)  : "small",
-    LDN: (pStrLDN !== null && strLDN !== null) ? mag(pStrLDN, strLDN) : "small",
+    NY:  magSpreadMove(pStrNY,  strNY,  "NY"),
+    LDN: magSpreadMove(pStrLDN, strLDN, "LDN"),
   };
 
   const signals: Signal[] = [];

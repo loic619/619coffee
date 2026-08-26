@@ -93,6 +93,12 @@ Sub-tabs deep-link, so you can go straight to one:
   `imports`, `listed`
 - `/futures`, `/cot`, `/macro`, `/supply`, `/freight`, `/news`, `/map`,
   `/data-map`, `/enso`, `/signals`
+
+**The query key is not always `tab`.** `/supply` uses `?origin=` — so
+`/supply?tab=sd` silently falls through to Brazil and you screenshot the wrong
+page while everything reports success. Check the `useUrlState(...)` call in the
+page component for the key it actually reads, and check the `url:` line the
+driver prints against what rendered.
 - `/research/<tab>`
 
 Tiers matter: signing in with the **user** code lands on `/map` and may not be

@@ -363,16 +363,81 @@
     "note": "Prod: avg(USDA, MARD, ICO). Exports: ICO. Consumption: domestic estimate.",
     "seasons": [
       {
+        "season": "2016/17",
+        "production": {
+          "ccs": 24.1
+        },
+        "production_split": {
+          "ccs": {
+            "robusta": 23.1,
+            "arabica_washed": 1.0
+          }
+        }
+      },
+      {
+        "season": "2017/18",
+        "production": {
+          "ccs": 30.0
+        },
+        "production_split": {
+          "ccs": {
+            "robusta": 29.0,
+            "arabica_washed": 1.0
+          }
+        }
+      },
+      {
+        "season": "2018/19",
+        "production": {
+          "ccs": 28.9
+        },
+        "production_split": {
+          "ccs": {
+            "robusta": 27.9,
+            "arabica_washed": 1.0
+          }
+        }
+      },
+      {
+        "season": "2019/20",
+        "production": {
+          "ccs": 28.7
+        },
+        "production_split": {
+          "ccs": {
+            "robusta": 27.7,
+            "arabica_washed": 1.0
+          }
+        }
+      },
+      {
+        "season": "2020/21",
+        "production": {
+          "ccs": 27.5
+        },
+        "production_split": {
+          "ccs": {
+            "robusta": 26.5,
+            "arabica_washed": 1.0
+          }
+        }
+      },
+      {
         "season": "2021/22",
         "forecast": false,
         "production": {
           "usda": 31.6,
-          "marex": 31.0
+          "marex": 31.0,
+          "ccs": 30.1
         },
         "production_split": {
           "marex": {
             "robusta": 29.9,
             "arabica_washed": 1.1
+          },
+          "ccs": {
+            "robusta": 29.1,
+            "arabica_washed": 1.0
           }
         }
       },
@@ -383,12 +448,17 @@
           "usda": 28.3,
           "mard": 30.2,
           "ico": 29.0,
-          "marex": 29.3
+          "marex": 29.3,
+          "ccs": 30.7
         },
         "production_split": {
           "marex": {
             "robusta": 28.2,
             "arabica_washed": 1.1
+          },
+          "ccs": {
+            "robusta": 29.7,
+            "arabica_washed": 1.0
           }
         },
         "exports_ico": 25.0,
@@ -401,12 +471,17 @@
           "usda": 27.6,
           "mard": 27.0,
           "ico": 26.0,
-          "marex": 27.9
+          "marex": 27.9,
+          "ccs": 28.0
         },
         "production_split": {
           "marex": {
             "robusta": 26.8,
             "arabica_washed": 1.1
+          },
+          "ccs": {
+            "robusta": 27.0,
+            "arabica_washed": 1.0
           }
         },
         "exports_ico": 21.5,
@@ -420,12 +495,17 @@
           "mard": 30.0,
           "ico": 30.8,
           "marex": 27.7,
-          "ecom": 31.3
+          "ecom": 31.3,
+          "ccs": 27.5
         },
         "production_split": {
           "marex": {
             "robusta": 26.5,
             "arabica_washed": 1.2
+          },
+          "ccs": {
+            "robusta": 26.5,
+            "arabica_washed": 1.0
           }
         },
         "exports_ico": 27.0,
@@ -500,6 +580,11 @@
         "key": "ecom",
         "label": "ECOM",
         "color": "#f472b6"
+      },
+      {
+        "key": "ccs",
+        "label": "CCS Coffee",
+        "color": "#facc15"
       }
     ],
     "arabica_split_basis": "washed 100% / natural 0% \u2014 The Son La / Dien Bien arabica crop is washed. Analyst convention applied to sources that publish only an arabica total; a source's own breakdown, or a hand edit in the crop-estimate editor, wins over it."

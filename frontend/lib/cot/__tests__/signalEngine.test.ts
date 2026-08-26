@@ -3,6 +3,8 @@ import { describe, it, expect } from "vitest";
 import {
   dir,
   dirCount,
+  mag,
+  magSpreadMove,
   pct52,
   isHigh,
   isLow,
@@ -606,5 +608,49 @@ describe("transformApiData → evaluateSignals (null short-side counts)", () => 
     const tc2       = signals.find(s => s.id === "TC2" && s.market === "LDN");
     expect(tc1).toBeUndefined();
     expect(tc2).toBeUndefined();
+  });
+});
+
+describe("magSpreadMove — sizing a signed spread that crosses zero", () => {
+  it("does not call a trivial move through flat 'large'", () => {
+    // The bug this replaces: mag() is |curr-prev|/|prev|, so +0.5 → -0.5 was a
+    // 200% change and read "large" — every time the KC curve passed through
+    // flat, which it does routinely.
+    expect(magSpreadMove(0.2, -0.2, "NY")).toBe("small");   // 0.4 c/lb — nothing
+    expect(mag(0.2, -0.2)).toBe("large");        // the old behaviour, for contrast
+    // And a move that IS material still sizes up, so this is not just a mute.
+    expect(magSpreadMove(0.2, -2.2, "NY")).toBe("large");
+  });
+
+  it("does not explode as the previous week approaches zero", () => {
+    expect(magSpreadMove(0.01, 0.02, "NY")).toBe("small");
+    expect(magSpreadMove(0.5, 1.0, "LDN")).toBe("small");
+  });
+
+  it("sizes real moves in each market's own quote unit", () => {
+    expect(magSpreadMove(2.0, 2.9, "NY")).toBe("medium");   // +0.90 c/lb
+    expect(magSpreadMove(2.0, 5.0, "NY")).toBe("large");    // +3.00 c/lb
+    expect(magSpreadMove(40, 60, "LDN")).toBe("medium");    // +20 $/t
+    expect(magSpreadMove(40, 100, "LDN")).toBe("large");    // +60 $/t
+  });
+
+  it("does not share thresholds across markets", () => {
+    // 20 is noise in $/t and enormous in c/lb. One shared band would be wrong
+    // for one of them by construction.
+    expect(magSpreadMove(0, 20, "LDN")).toBe("medium");
+    expect(magSpreadMove(0, 20, "NY")).toBe("large");
+  });
+
+  it("is direction-agnostic", () => {
+    expect(magSpreadMove(5, 1, "NY")).toBe(magSpreadMove(1, 5, "NY"));
+  });
+
+  it("returns 'small' when the week cannot be measured at all", () => {
+    // Weeks the contract archive does not cover carry null structure. Absent
+    // is not the same as unchanged, but it must not read as a big move.
+    expect(magSpreadMove(null, 5, "NY")).toBe("small");
+    expect(magSpreadMove(5, null, "NY")).toBe("small");
+    expect(magSpreadMove(null, null, "LDN")).toBe("small");
+    expect(magSpreadMove(NaN, 5, "NY")).toBe("small");
   });
 });

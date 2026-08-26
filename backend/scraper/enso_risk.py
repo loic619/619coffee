@@ -1,23 +1,49 @@
-"""ENSO crop-risk matrix: phase + intensity → per-growing-region risk level.
+"""ENSO crop-risk: project the event, land it on the calendar, score the phase.
 
-Cross-references the ENSO phase/intensity (from enso.derive_enso_phase) with a
-static per-region effect table and the region centroids already maintained in
-scripts/fetch_origin_weather.ORIGINS, producing Red/Amber/Green risk pins for
-the map and a summary for the /enso tab. Pure (no I/O); the exporter feeds it
-the current phase and writes the pins JSON.
+The old version answered one question — "is this region dry or wet under this
+phase?" — and coloured the pin from a hand-typed table. Three things were
+wrong with that, and this module fixes all three.
 
-Severity scale per (region, phase): 2 = major coffee-yield threat (drought at
-flowering, frost), 1 = moderate (excess rain / disease / flood), 0 = benign or
-favourable. A Strong/Extreme phase bumps an at-risk region one level hotter; a
-favourable region (sev 0) stays green regardless of intensity.
+1 · THE TABLE WAS ASSERTED, NOT MEASURED
+    It said El Niño means drought across all five Ugandan belts. Measured
+    against this repo's own rainfall history, every belt is WETTER in El Niño
+    and drier in La Niña — the sign was inverted. The effect table now comes
+    from enso_teleconnection.json, computed from data, carrying its own
+    evidence (n events, consistency) so a weak signal cannot masquerade as a
+    strong one.
+
+2 · A RAINFALL ANOMALY HAS NO MEANING WITHOUT A CROP PHASE
+    Uganda again: El Niño's extra Oct–Dec rain is not a gift, because Oct–Feb
+    is the MAIN-CROP HARVEST. The same water in Apr–Jun, at main-crop
+    flowering, would be genuinely positive. Risk is anomaly × phase, and
+    crop_calendar.PHASE_RESPONSE supplies the second half — rain at harvest is
+    a severity-2 quality event, rain at fill is benign.
+
+3 · THE EVENT HAS A DURATION AND A LAG, NOT JUST A STATE
+    An El Niño arriving in two months, peaking, and decaying over the
+    following six touches specific calendar months — and the WEATHER response
+    is offset from the SST signal by a region-specific lag (measured: 0 months
+    at Mt Elgon, 3 in Dak Lak). So the question is not "is there an El Niño"
+    but "which crop phases will its weather actually land on". That is what
+    `project_event_months` and `affected_months` compute.
+
+Severity: 2 = major yield or quality threat, 1 = moderate, 0 = benign. A
+Strong/Extreme event escalates an at-risk phase; an event that is only
+emerging is capped at amber upstream.
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
+from scraper.crop_calendar import CROP_CALENDAR, PHASE_RESPONSE
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from fetch_origin_weather import ORIGINS  # noqa: E402
+
+DATA = Path(__file__).resolve().parents[2] / "frontend" / "public" / "data"
+TELECONNECTION_PATH = DATA / "enso_teleconnection.json"
 
 COUNTRY_LABEL = {
     "brazil": "Brazil", "colombia": "Colombia", "honduras": "Honduras",
@@ -25,55 +51,24 @@ COUNTRY_LABEL = {
     "vn": "Vietnam",
 }
 
-# Per-region effect per active phase: {origin: {region: {phase: (driver, severity)}}}.
-# Grounded in the per-origin _*_ENSO_IMPACT prose already in the exporters.
-_EFFECTS: dict[str, dict[str, dict[str, tuple[str, int]]]] = {
-    "brazil": {
-        "Sul de Minas":   {"el-nino": ("Drought", 2),    "la-nina": ("Wet (favourable)", 0)},
-        "Cerrado":        {"el-nino": ("Drought", 2),    "la-nina": ("Wet (favourable)", 0)},
-        "Paraná":         {"el-nino": ("Frost risk", 2), "la-nina": ("Reduced frost", 0)},
-        "Espírito Santo": {"el-nino": ("Excess rain", 1), "la-nina": ("Drought", 2)},
-    },
-    "colombia": {
-        r: {"el-nino": ("Drought", 2), "la-nina": ("Excess rain / disease", 1)}
-        for r in ("Huila", "Antioquia", "Cauca", "Caldas", "Nariño")
-    },
-    "honduras": {
-        r: {"el-nino": ("Drought", 2), "la-nina": ("Flood / landslide", 1)}
-        for r in ("El Paraíso", "Copán", "Santa Bárbara", "Montecillos", "Agalta")
-    },
-    "indonesia": {
-        r: {"el-nino": ("Drought", 2), "la-nina": ("Excess rain / disease", 1)}
-        for r in ("Lampung", "Gayo", "Java", "Toraja", "Flores")
-    },
-    "uganda": {
-        r: {"el-nino": ("Drought / heat", 2), "la-nina": ("Flooding risk", 1)}
-        for r in ("Greater Masaka", "Central", "Western", "Busoga",
-                  "Mt Elgon", "West Nile", "Rwenzori")
-    },
-    "ethiopia": {
-        "Sidama/Yirgacheffe": {"el-nino": ("Drought", 2), "la-nina": ("Wet (favourable)", 0)},
-        "Jimma": {"el-nino": ("Drought", 2), "la-nina": ("Excess rain", 1)},
-        "Limu":  {"el-nino": ("Drought", 2), "la-nina": ("Excess rain", 1)},
-        "Kaffa": {"el-nino": ("Drought", 2), "la-nina": ("Fungal disease", 1)},
-        "Harrar": {"el-nino": ("Drought", 2), "la-nina": ("Excess moisture", 1)},
-    },
-    "vn": {
-        r: {"el-nino": ("Drought (Robusta)", 2), "la-nina": ("Excess rain at harvest", 1)}
-        for r in ("Dak Lak", "Lam Dong", "Dak Nong", "Gia Lai", "Kon Tum")
-    },
-}
-
 _LEVEL_COLOR = {"high": "#dc2626", "moderate": "#f59e0b", "low": "#16a34a"}
 
+#: A departure smaller than this is not worth colouring a pin over, whatever
+#: the phase. Rainfall is noisy and eleven years is a short record.
+MIN_ANOMALY_PCT = 8.0
+#: Below this share of events agreeing with the mean, the composite is
+#: cancellation rather than signal.
+MIN_CONSISTENCY = 0.6
+#: How far ahead the projection looks. The analogue overlay supplies six
+#: months forward; beyond that the plume is wider than the answer.
+FORWARD_MONTHS = 6
 
-def _effective_severity(base: int, intensity: str) -> int:
-    """A Strong/Extreme phase escalates an at-risk region; benign stays benign."""
-    if base <= 0:
-        return 0
-    if intensity in ("Strong", "Extreme"):
-        return base + 1
-    return base
+
+def _load_teleconnection() -> dict:
+    try:
+        return json.loads(TELECONNECTION_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
 
 
 def _level(sev: int) -> str:
@@ -84,37 +79,154 @@ def _level(sev: int) -> str:
     return "low"
 
 
-def risk_for_region(origin: str, region: str, phase: str, intensity: str) -> dict:
-    """{level, color, driver, severity} for one region under the given ENSO state."""
-    eff = _EFFECTS.get(origin, {}).get(region, {})
-    if phase == "neutral" or phase not in eff:
-        driver, base = "Near-normal", 0
+def _add_months(year: int, month: int, n: int) -> tuple[int, int]:
+    idx = (year * 12 + (month - 1)) + n
+    return idx // 12, idx % 12 + 1
+
+
+def project_event_months(
+    current: tuple[int, int], oni_now: float, forward: list[float] | None = None,
+    threshold: float = 0.5,
+) -> list[tuple[int, int]]:
+    """The (year, month) pairs this ENSO event is expected to be ACTIVE.
+
+    `forward` is the projected ONI path — in practice the analogue mean, which
+    is what the /enso tab already plots. The event runs from now until the
+    projection falls back inside the threshold, which is what gives the map a
+    duration instead of a snapshot.
+    """
+    if abs(oni_now) < threshold:
+        return []
+    warm = oni_now > 0
+    months = [current]
+    for i, v in enumerate(forward or [], start=1):
+        if i > FORWARD_MONTHS:
+            break
+        # Decay ends the event the moment the projection crosses back.
+        if (v < threshold) if warm else (v > -threshold):
+            break
+        months.append(_add_months(*current, i))
+    return months
+
+
+def affected_months(event_months: list[tuple[int, int]], lag: int) -> set[int]:
+    """Calendar months whose WEATHER the event is expected to drive.
+
+    The SST signal leads the rainfall response by a region-specific lag, so an
+    event active in Aug–Jan with a 3-month lag lands on Nov–Apr weather.
+    """
+    return {_add_months(y, m, lag)[1] for y, m in event_months}
+
+
+def _score(bucket: dict, phase: str, intensity: str) -> tuple[int, str, dict]:
+    """Severity + driver text for one measured bucket on one crop phase."""
+    anomaly = bucket.get("anomaly_pct")
+    evidence = {
+        "anomaly_pct": anomaly, "n": bucket.get("n", 0),
+        "consistency": bucket.get("consistency"),
+    }
+    if anomaly is None or not bucket.get("usable"):
+        return 0, "Too few past events to score", evidence
+    if (bucket.get("consistency") or 0) < MIN_CONSISTENCY:
+        return 0, "Past events disagree — no usable signal", evidence
+    if abs(anomaly) < MIN_ANOMALY_PCT:
+        return 0, "Near-normal rainfall expected", evidence
+
+    direction = "wet" if anomaly > 0 else "dry"
+    sev, text = PHASE_RESPONSE[phase][direction]
+    if sev > 0 and intensity in ("Strong", "Extreme"):
+        sev += 1
+    return sev, text, evidence
+
+
+def region_risk(origin: str, region: str, phase: str, intensity: str,
+                months: set[int], teleconnection: dict,
+                status: str = "official") -> dict:
+    """Risk for one region: score every crop phase the event's weather lands
+    on, and report the worst — plus the full phase breakdown."""
+    if phase == "neutral" or not months:
+        return {"level": "low", "color": _LEVEL_COLOR["low"],
+                "driver": "Near-normal", "severity": 0, "phase_hits": []}
+
+    rec = (teleconnection.get("regions") or {}).get(f"{origin}|{region}") or {}
+    cal = CROP_CALENDAR.get(origin) or {"cycles": []}
+    hits: list[dict] = []
+
+    for cycle in cal["cycles"]:
+        for ph in ("flowering", "fruit_fill", "harvest"):
+            window = cycle.get(ph) or []
+            # Keep the window's own chronological order — a Nov–Jan harvest
+            # reads as [11, 12, 1], not the numerically sorted [1, 11, 12].
+            overlap = [m for m in window if m in months]
+            if not overlap:
+                continue
+            measured = ((rec.get("phases") or {}).get(f"{cycle['label']}/{ph}") or {}).get(phase) or {}
+            sev, text, evidence = _score(measured, ph, intensity)
+            hits.append({
+                "cycle": cycle["label"], "phase": ph, "months": overlap,
+                "severity": sev, "driver": text, **evidence,
+            })
+
+    scoring = [h for h in hits if h["severity"] > 0]
+    if not scoring:
+        worst_sev, driver = 0, "No phase at risk in the projected window"
     else:
-        driver, base = eff[phase]
-    sev = _effective_severity(base, intensity)
-    level = _level(sev)
-    return {"level": level, "color": _LEVEL_COLOR[level], "driver": driver, "severity": sev}
+        worst = max(scoring, key=lambda h: h["severity"])
+        worst_sev = worst["severity"]
+        driver = f"{worst['driver']} ({worst['cycle']})"
+
+    if status == "emerging":
+        # Unconfirmed events warn rather than shout — see scraper.enso.
+        worst_sev = min(worst_sev, 1)
+        if worst_sev:
+            driver = f"{driver} — developing"
+
+    level = _level(worst_sev)
+    out = {"level": level, "color": _LEVEL_COLOR[level], "driver": driver,
+           "severity": worst_sev, "phase_hits": hits,
+           "lag_months": rec.get("lag_months"), "lag_r": rec.get("lag_r")}
+    if status == "emerging" and worst_sev:
+        out["status"] = "emerging"
+    return out
 
 
-def build_risk_pins(phase: str, intensity: str) -> list[dict]:
-    """Risk pin per growing region: name, country, lat/lon (from ORIGINS), risk."""
+def build_risk_pins(phase: str, intensity: str, status: str = "official",
+                    event_months: list[tuple[int, int]] | None = None,
+                    teleconnection: dict | None = None) -> list[dict]:
+    """Risk pin per growing region: name, country, lat/lon, risk, phase hits."""
+    tele = teleconnection if teleconnection is not None else _load_teleconnection()
     pins: list[dict] = []
     for origin, regions in ORIGINS.items():
+        if origin not in CROP_CALENDAR:
+            continue
         country = COUNTRY_LABEL.get(origin, origin.title())
-        effects = _EFFECTS.get(origin, {})
         for reg in regions:
             name = reg["name"]
-            if name not in effects:
+            rec = (tele.get("regions") or {}).get(f"{origin}|{name}")
+            if rec is None:
+                # No measured response — usually because the region was added
+                # to ORIGINS but its weather file has not been rebuilt with the
+                # new belt names yet. Emit the pin anyway, flagged: dropping it
+                # would quietly shrink the map, and a region that vanishes is
+                # indistinguishable from a region at no risk.
+                pins.append({
+                    "region": name, "country": country,
+                    "lat": reg["lat"], "lon": reg["lon"],
+                    "level": "low", "color": _LEVEL_COLOR["low"], "severity": 0,
+                    "driver": "No measured ENSO response for this region yet",
+                    "measured": False, "phase_hits": [],
+                })
                 continue
-            risk = risk_for_region(origin, name, phase, intensity)
-            pins.append({
-                "region": name,
-                "country": country,
-                "lat": reg["lat"],
-                "lon": reg["lon"],
-                **risk,
-            })
+            months = affected_months(event_months or [], rec.get("lag_months") or 0)
+            risk = region_risk(origin, name, phase, intensity, months, tele, status)
+            pins.append({"region": name, "country": country,
+                         "lat": reg["lat"], "lon": reg["lon"], "measured": True, **risk})
     return pins
+
+
+def unmeasured(pins: list[dict]) -> list[str]:
+    """"Country · Region" for every pin with no measured response behind it."""
+    return [f"{p['country']} · {p['region']}" for p in pins if not p.get("measured", True)]
 
 
 def risk_summary(pins: list[dict]) -> dict:

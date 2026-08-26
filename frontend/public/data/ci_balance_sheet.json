@@ -17,19 +17,83 @@
       "key": "marex",
       "label": "Marex",
       "color": "#a78bfa"
+    },
+    {
+      "key": "ccs",
+      "label": "CCS Coffee",
+      "color": "#facc15"
     }
   ],
   "seasons": [
+    {
+      "season": "2016/17",
+      "production": {
+        "ccs": 1.4
+      },
+      "production_split": {
+        "ccs": {
+          "robusta": 1.4
+        }
+      }
+    },
+    {
+      "season": "2017/18",
+      "production": {
+        "ccs": 2.1
+      },
+      "production_split": {
+        "ccs": {
+          "robusta": 2.1
+        }
+      }
+    },
+    {
+      "season": "2018/19",
+      "production": {
+        "ccs": 2.1
+      },
+      "production_split": {
+        "ccs": {
+          "robusta": 2.1
+        }
+      }
+    },
+    {
+      "season": "2019/20",
+      "production": {
+        "ccs": 1.9
+      },
+      "production_split": {
+        "ccs": {
+          "robusta": 1.9
+        }
+      }
+    },
+    {
+      "season": "2020/21",
+      "production": {
+        "ccs": 1.4
+      },
+      "production_split": {
+        "ccs": {
+          "robusta": 1.4
+        }
+      }
+    },
     {
       "season": "2021/22",
       "forecast": false,
       "production": {
         "marex": 1.4,
-        "usda": 1.1
+        "usda": 1.1,
+        "ccs": 1.5
       },
       "production_split": {
         "marex": {
           "robusta": 1.4
+        },
+        "ccs": {
+          "robusta": 1.5
         }
       }
     },
@@ -38,11 +102,15 @@
       "forecast": false,
       "production": {
         "marex": 1.2,
-        "usda": 1.0
+        "usda": 1.0,
+        "ccs": 1.5
       },
       "production_split": {
         "marex": {
           "robusta": 1.2
+        },
+        "ccs": {
+          "robusta": 1.5
         }
       }
     },
@@ -51,11 +119,15 @@
       "forecast": false,
       "production": {
         "marex": 1.4,
-        "usda": 1.3
+        "usda": 1.3,
+        "ccs": 1.5
       },
       "production_split": {
         "marex": {
           "robusta": 1.4
+        },
+        "ccs": {
+          "robusta": 1.5
         }
       }
     },
@@ -64,10 +136,14 @@
       "forecast": false,
       "production": {
         "marex": 1.5,
-        "usda": 0.7
+        "usda": 0.7,
+        "ccs": 1.5
       },
       "production_split": {
         "marex": {
+          "robusta": 1.5
+        },
+        "ccs": {
           "robusta": 1.5
         }
       }

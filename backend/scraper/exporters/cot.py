@@ -10,6 +10,7 @@ from models import (
     CotWeekly,
 )
 from scraper.exporters.base import OUT_DIR
+from scraper.exporters.front_spread import overwrite_curve_structure
 from scraper.price_sanity import (
     baselines_by_symbol,
     corrupt_batch_dates,
@@ -60,6 +61,7 @@ def export_cot(db) -> None:
             combined=combined_by_week.get((row.date, row.market)),
         )
     result = sorted(merged.values(), key=lambda x: x["date"])
+    overwrite_curve_structure(result)
 
     # Publish only the window the dashboard renders. The COT signal engine uses
     # 52-week percentiles (+8-week historical look-back) and the Industry Pulse

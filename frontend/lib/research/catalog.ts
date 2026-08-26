@@ -8,7 +8,7 @@
 //
 // `body` names the React component that renders the article; the catalogue
 // carries only the metadata around it, so live charts stay live.
-export type Cat = "quant" | "supply" | "logistics" | "exchange" | "demand";
+export type Cat = "quant" | "supply" | "logistics" | "exchange" | "demand" | "admin";
 export type Tone = "amber" | "sky" | "violet" | "emerald" | "indigo" | "rose" | "slate";
 
 export interface Article {
@@ -28,9 +28,11 @@ export const CAT_LABEL: Record<Cat, string> = {
   logistics: "Logistics",
   exchange:  "Exchange & certified stocks",
   demand:    "Demand",
+  admin:     "Admin & platform",
 };
 
 export const ARTICLES: Article[] = [
+  { id: "when-ice-publishes-the-robusta-stock-report", cat: "admin", title: "When ICE publishes the robusta stock report", subtitle: "56 observed publish seconds, and what they cost us to guess \u2014 the distribution behind workflow 1.13's runtime", kicker: "Platform \u00b7 scraper economics", tone: "slate", updated: "2026-08-25", body: "IcePublishTimes" },
   { id: "are-swap-dealers-commercials-or-speculators", cat: "quant", title: "Are swap dealers commercials or speculators?", subtitle: "Three behavioural tests on the disaggregated COT — both contracts, long and short legs kept separate", kicker: "COT · cohort identity", tone: "amber", updated: "2026-08-14", body: "CotSwapIdentity" },
   { id: "intraweek-cot-nowcast-methodology", cat: "quant", title: "Intraweek COT nowcast — methodology", subtitle: "Bridging the weekly COT report with a daily positioning estimate", kicker: "COT · positioning", tone: "amber", updated: "2026-07-14", body: "IntraweekMethodology" },
   { id: "cot-backtest-report", cat: "quant", title: "COT backtest report", subtitle: "Walk-forward backtest of the intraweek positioning model", kicker: "COT · positioning", tone: "amber", updated: "2026-07-14", body: "CotBacktestReport" },
@@ -77,4 +79,5 @@ export const ARTICLES: Article[] = [
   { id: "the-ceiling-k-the-retail-multiplier-and-where-the-an", cat: "demand", title: "The ceiling (K), the retail multiplier, and where the analogy breaks", subtitle: "What bounds K — culture, demographics, price — and how it can shift", kicker: "Demand · Saturation & Risk", tone: "rose", updated: null, body: "DemandArticles" },
   { id: "demand-data-indices-the-reconciliation-and-concentra", cat: "demand", title: "Demand data & indices — the reconciliation and concentration math", subtitle: "The smaller indices behind the import, consumption and spot panels", kicker: "Demand · Data methods", tone: "rose", updated: "2026-07-14", body: "DemandDataMethodology" },
   { id: "honduras-origin-country-profile", cat: "supply", title: "Honduras — origin country profile", subtitle: "Six regions, 73k growers and a 2× yield spread: what the 2021 dossier says, and which of its numbers survive checking", kicker: "Origin profile · Honduras", tone: "emerald", updated: "2026-08-25", body: "HondurasProfile" },
+  { id: "cert-stocks-and-the-front-spread", cat: "exchange", title: "Certified stocks and the front spread — does the textbook hold?", subtitle: "The scatter every broker publishes, rebuilt on our own five years of contract boards — and checked in halves, which is where the two markets part company", kicker: "Curve structure · Theory of storage", tone: "sky", updated: "2026-08-26", body: "CertStocksSpread" },
 ];

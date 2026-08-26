@@ -1,0 +1,483 @@
+{
+ "note": "Observed publish times of the ICE London robusta certified-stock CSV. The file is served under an HHMMSS-stamped URL with no index, so these are the seconds workflow 1.13 has to guess.",
+ "source": "backend/scraper/sources/ice_certified_stocks/stock_report_hits.json",
+ "captures": 59,
+ "first_date": "2026-06-03",
+ "last_date": "2026-08-24",
+ "earliest": "10:29:56",
+ "latest": "12:47:15",
+ "median": "10:32:29",
+ "p90": "10:43:54",
+ "distinct_seconds": 56,
+ "seconds_seen_more_than_once": 2,
+ "by_minute": [
+  {
+   "minute": "10:29",
+   "count": 1,
+   "share": 0.0169
+  },
+  {
+   "minute": "10:30",
+   "count": 18,
+   "share": 0.3051
+  },
+  {
+   "minute": "10:31",
+   "count": 8,
+   "share": 0.1356
+  },
+  {
+   "minute": "10:32",
+   "count": 10,
+   "share": 0.1695
+  },
+  {
+   "minute": "10:33",
+   "count": 1,
+   "share": 0.0169
+  },
+  {
+   "minute": "10:34",
+   "count": 2,
+   "share": 0.0339
+  },
+  {
+   "minute": "10:35",
+   "count": 2,
+   "share": 0.0339
+  },
+  {
+   "minute": "10:36",
+   "count": 3,
+   "share": 0.0508
+  },
+  {
+   "minute": "10:37",
+   "count": 2,
+   "share": 0.0339
+  },
+  {
+   "minute": "10:38",
+   "count": 1,
+   "share": 0.0169
+  },
+  {
+   "minute": "10:39",
+   "count": 1,
+   "share": 0.0169
+  },
+  {
+   "minute": "10:40",
+   "count": 1,
+   "share": 0.0169
+  },
+  {
+   "minute": "10:41",
+   "count": 1,
+   "share": 0.0169
+  },
+  {
+   "minute": "10:42",
+   "count": 1,
+   "share": 0.0169
+  },
+  {
+   "minute": "10:43",
+   "count": 1,
+   "share": 0.0169
+  },
+  {
+   "minute": "10:45",
+   "count": 1,
+   "share": 0.0169
+  },
+  {
+   "minute": "10:50",
+   "count": 1,
+   "share": 0.0169
+  },
+  {
+   "minute": "10:51",
+   "count": 2,
+   "share": 0.0339
+  },
+  {
+   "minute": "11:00",
+   "count": 1,
+   "share": 0.0169
+  },
+  {
+   "minute": "12:47",
+   "count": 1,
+   "share": 0.0169
+  }
+ ],
+ "cumulative": [
+  {
+   "through": "10:29",
+   "share": 0.0169
+  },
+  {
+   "through": "10:30",
+   "share": 0.322
+  },
+  {
+   "through": "10:31",
+   "share": 0.4576
+  },
+  {
+   "through": "10:32",
+   "share": 0.6271
+  },
+  {
+   "through": "10:33",
+   "share": 0.6441
+  },
+  {
+   "through": "10:34",
+   "share": 0.678
+  },
+  {
+   "through": "10:35",
+   "share": 0.7119
+  },
+  {
+   "through": "10:36",
+   "share": 0.7627
+  },
+  {
+   "through": "10:37",
+   "share": 0.7966
+  },
+  {
+   "through": "10:38",
+   "share": 0.8136
+  },
+  {
+   "through": "10:39",
+   "share": 0.8305
+  },
+  {
+   "through": "10:40",
+   "share": 0.8475
+  },
+  {
+   "through": "10:41",
+   "share": 0.8644
+  },
+  {
+   "through": "10:42",
+   "share": 0.8814
+  },
+  {
+   "through": "10:43",
+   "share": 0.8983
+  },
+  {
+   "through": "10:45",
+   "share": 0.9153
+  },
+  {
+   "through": "10:50",
+   "share": 0.9322
+  },
+  {
+   "through": "10:51",
+   "share": 0.9661
+  },
+  {
+   "through": "11:00",
+   "share": 0.9831
+  },
+  {
+   "through": "12:47",
+   "share": 1.0
+  }
+ ],
+ "sweep": {
+  "window": "10:30–11:15",
+  "candidate_seconds": 2760,
+  "interval_s": 4.0,
+  "tier1_k": 10,
+  "observed_max_offset_s": 8235,
+  "days_inside_window": 57
+ },
+ "days": [
+  {
+   "date": "2026-06-03",
+   "time": "10:51:19"
+  },
+  {
+   "date": "2026-06-04",
+   "time": "10:30:16"
+  },
+  {
+   "date": "2026-06-05",
+   "time": "10:39:12"
+  },
+  {
+   "date": "2026-06-08",
+   "time": "10:32:47"
+  },
+  {
+   "date": "2026-06-09",
+   "time": "10:32:32"
+  },
+  {
+   "date": "2026-06-10",
+   "time": "10:29:56"
+  },
+  {
+   "date": "2026-06-11",
+   "time": "10:32:35"
+  },
+  {
+   "date": "2026-06-12",
+   "time": "10:30:45"
+  },
+  {
+   "date": "2026-06-15",
+   "time": "10:30:50"
+  },
+  {
+   "date": "2026-06-16",
+   "time": "10:30:33"
+  },
+  {
+   "date": "2026-06-17",
+   "time": "10:43:54"
+  },
+  {
+   "date": "2026-06-18",
+   "time": "10:30:43"
+  },
+  {
+   "date": "2026-06-19",
+   "time": "10:32:21"
+  },
+  {
+   "date": "2026-06-22",
+   "time": "10:30:56"
+  },
+  {
+   "date": "2026-06-23",
+   "time": "10:30:30"
+  },
+  {
+   "date": "2026-06-24",
+   "time": "10:31:59"
+  },
+  {
+   "date": "2026-06-25",
+   "time": "10:31:18"
+  },
+  {
+   "date": "2026-06-26",
+   "time": "10:34:37"
+  },
+  {
+   "date": "2026-06-29",
+   "time": "12:47:15"
+  },
+  {
+   "date": "2026-06-30",
+   "time": "10:35:02"
+  },
+  {
+   "date": "2026-07-01",
+   "time": "10:30:46"
+  },
+  {
+   "date": "2026-07-02",
+   "time": "10:31:36"
+  },
+  {
+   "date": "2026-07-03",
+   "time": "10:31:39"
+  },
+  {
+   "date": "2026-07-06",
+   "time": "10:41:35"
+  },
+  {
+   "date": "2026-07-07",
+   "time": "10:31:20"
+  },
+  {
+   "date": "2026-07-08",
+   "time": "10:30:24"
+  },
+  {
+   "date": "2026-07-09",
+   "time": "10:30:39"
+  },
+  {
+   "date": "2026-07-10",
+   "time": "10:35:10"
+  },
+  {
+   "date": "2026-07-13",
+   "time": "10:32:50"
+  },
+  {
+   "date": "2026-07-14",
+   "time": "10:30:33"
+  },
+  {
+   "date": "2026-07-15",
+   "time": "10:38:33"
+  },
+  {
+   "date": "2026-07-16",
+   "time": "10:33:20"
+  },
+  {
+   "date": "2026-07-17",
+   "time": "10:30:31"
+  },
+  {
+   "date": "2026-07-20",
+   "time": "10:34:50"
+  },
+  {
+   "date": "2026-07-21",
+   "time": "10:50:54"
+  },
+  {
+   "date": "2026-07-22",
+   "time": "10:30:04"
+  },
+  {
+   "date": "2026-07-23",
+   "time": "10:30:50"
+  },
+  {
+   "date": "2026-07-24",
+   "time": "10:30:22"
+  },
+  {
+   "date": "2026-07-27",
+   "time": "10:30:28"
+  },
+  {
+   "date": "2026-07-28",
+   "time": "10:32:31"
+  },
+  {
+   "date": "2026-07-29",
+   "time": "10:32:03"
+  },
+  {
+   "date": "2026-07-30",
+   "time": "10:40:09"
+  },
+  {
+   "date": "2026-07-31",
+   "time": "10:32:49"
+  },
+  {
+   "date": "2026-08-03",
+   "time": "10:36:32"
+  },
+  {
+   "date": "2026-08-04",
+   "time": "10:42:30"
+  },
+  {
+   "date": "2026-08-05",
+   "time": "10:37:08"
+  },
+  {
+   "date": "2026-08-06",
+   "time": "10:31:03"
+  },
+  {
+   "date": "2026-08-07",
+   "time": "10:32:34"
+  },
+  {
+   "date": "2026-08-10",
+   "time": "10:31:49"
+  },
+  {
+   "date": "2026-08-11",
+   "time": "10:45:18"
+  },
+  {
+   "date": "2026-08-12",
+   "time": "10:37:27"
+  },
+  {
+   "date": "2026-08-13",
+   "time": "10:30:38"
+  },
+  {
+   "date": "2026-08-14",
+   "time": "10:31:06"
+  },
+  {
+   "date": "2026-08-17",
+   "time": "10:30:33"
+  },
+  {
+   "date": "2026-08-18",
+   "time": "11:00:55"
+  },
+  {
+   "date": "2026-08-19",
+   "time": "10:36:56"
+  },
+  {
+   "date": "2026-08-20",
+   "time": "10:32:29"
+  },
+  {
+   "date": "2026-08-21",
+   "time": "10:36:24"
+  },
+  {
+   "date": "2026-08-24",
+   "time": "10:51:38"
+  }
+ ],
+ "misses": {
+  "business_days": 59,
+  "captured": 59,
+  "missing": [],
+  "by_weekday": {
+   "Wed": {
+    "missing": 0,
+    "of": 12
+   },
+   "Thu": {
+    "missing": 0,
+    "of": 12
+   },
+   "Fri": {
+    "missing": 0,
+    "of": 12
+   },
+   "Mon": {
+    "missing": 0,
+    "of": 12
+   },
+   "Tue": {
+    "missing": 0,
+    "of": 11
+   }
+  }
+ },
+ "rate_limits": {
+  "runs": 0,
+  "note": "instrumented 2026-08-26 — no runs recorded yet"
+ },
+ "runs": {
+  "count": 0,
+  "note": "populates from the next 1.13 run — the run-history builder was added 2026-08-26",
+  "outcomes": {},
+  "billed_minutes_total": 0,
+  "billed_minutes_mean": 0,
+  "with_telemetry": 0,
+  "recent": []
+ }
+}

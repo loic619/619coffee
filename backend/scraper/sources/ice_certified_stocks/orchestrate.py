@@ -245,11 +245,97 @@ _STOCK_SWEEP_INTERVAL_S = 4.0
 # Every successful capture is appended to the hits file so the Tier 1
 # ordering self-tunes over time.
 STOCK_REPORT_HITS_PATH = Path(__file__).with_name("stock_report_hits.json")
-# Inclusive minute range to sweep: [10:30 … 11:15] = 46 minutes.
-STOCK_REPORT_SWEEP_RANGE = ((10, 30), (11, 15))
+# Inclusive minute range to sweep: [10:25 … 12:50] = 146 minutes.
+#
+# Was 10:30–11:15, and all three misses in the June–August window fell outside
+# what that could reach: 2026-06-10 published at 10:29:56 — four seconds before
+# the window opened — and 2026-06-29 at 12:47:15, ninety-two minutes after it
+# closed. The old bound was fitted to the days the sweep already succeeded on,
+# which is exactly the sample that cannot show you its own blind spots.
+#
+# Widening this used to be unaffordable: 8,700 candidates at 4s is 9.7 hours
+# against a 120-minute timeout, and a day not reached inside one run was lost.
+# Retention changes that. Probe 0.18 confirmed ICE still serves reports from
+# June in late August, so an unfinished sweep is a PAUSE, not a loss — the
+# cursor resumes it on the next run, and the day is still there to be found.
+STOCK_REPORT_SWEEP_RANGE = ((10, 25), (12, 50))
 # K = 10 (was 5) — wider Tier 1 keeps the cheap path covering more days as
 # the publish window expands; only matters once the hits log fills out.
 STOCK_REPORT_TIER1_K = 10
+
+# ── Sweep resume + run telemetry ─────────────────────────────────────────────
+# Two files, both committed by the workflow so they survive across runs.
+#
+# RESUME: the sweep is a linear walk from 10:30. When a run is killed — the
+# 120-min timeout, a cancelled queue slot, a 429 abort — the next one used to
+# start again at 10:30 and re-pay every second it had already ruled out. The
+# cursor records how far the walk got for a given day, so a second attempt
+# resumes instead of restarting. Ruling out 10:30:00–10:45:00 is durable
+# knowledge: those files do not appear later.
+#
+# STATS: nothing has ever recorded WHY a run was expensive. Counting 429s,
+# Retry-After waits, throttle bumps and sweep GETs per run is what turns "it
+# took 111 minutes" into an answerable question.
+STOCK_REPORT_CURSOR_PATH = Path(__file__).with_name("stock_report_cursor.json")
+RUN_STATS_PATH = Path(__file__).with_name("ice_run_stats.json")
+RUN_STATS_KEEP = 200
+
+_RUN_STATS: dict = {
+    "http_429": 0, "retry_after_waits": [], "throttle_bumps": 0,
+    "aborted_by_429": 0, "sweep_gets": 0, "http_404": 0, "resumed_from": None,
+    # Seconds actually SLEPT between requests, split by which host's limit
+    # imposed it. This is the answer to "where did the 111 minutes go" — the
+    # run is almost entirely deliberate waiting, and this says whose.
+    "wait_publicdocs_s": 0.0, "wait_marketdata_s": 0.0, "requests": 0,
+}
+
+
+def _load_cursor() -> dict:
+    try:
+        return json.loads(STOCK_REPORT_CURSOR_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _save_cursor(d: date, last_tried: str | None) -> None:
+    """Remember the last second ruled out for `d`. Cleared on success — a
+    found day never needs resuming."""
+    try:
+        payload = {} if last_tried is None else {"date": d.isoformat(), "last_tried": last_tried}
+        STOCK_REPORT_CURSOR_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001 — telemetry must never break the run
+        print(f"  ! cursor write failed: {e}")
+
+
+def _record_run_stats(outcome: str, sweep_day: date | None) -> None:
+    try:
+        prev = json.loads(RUN_STATS_PATH.read_text(encoding="utf-8")).get("runs", [])
+    except Exception:
+        prev = []
+    waits = _RUN_STATS["retry_after_waits"]
+    prev.append({
+        "at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "sweep_day": sweep_day.isoformat() if sweep_day else None,
+        "outcome": outcome,
+        "http_429": _RUN_STATS["http_429"],
+        "http_404": _RUN_STATS["http_404"],
+        "retry_after_count": len(waits),
+        "retry_after_total_s": round(sum(waits), 1),
+        "retry_after_max_s": max(waits) if waits else 0,
+        "throttle_bumps": _RUN_STATS["throttle_bumps"],
+        "aborted_by_429": bool(_RUN_STATS["aborted_by_429"]),
+        "sweep_gets": _RUN_STATS["sweep_gets"],
+        "resumed_from": _RUN_STATS["resumed_from"],
+        "requests": _RUN_STATS["requests"],
+        "wait_publicdocs_s": round(_RUN_STATS["wait_publicdocs_s"], 1),
+        "wait_marketdata_s": round(_RUN_STATS["wait_marketdata_s"], 1),
+    })
+    try:
+        RUN_STATS_PATH.write_text(
+            json.dumps({"runs": prev[-RUN_STATS_KEEP:]}, indent=1), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001
+        print(f"  ! run-stats write failed: {e}")
+
 
 def _load_stock_report_hits() -> list[dict]:
     if not STOCK_REPORT_HITS_PATH.exists():
@@ -268,6 +354,15 @@ def _record_stock_report_hit(d: date, hhmmss: str) -> None:
     STOCK_REPORT_HITS_PATH.write_text(
         json.dumps({"hits": hits}, indent=2), encoding="utf-8",
     )
+
+
+def _recorded_time_for(d: date) -> str | None:
+    """The publish second already recorded for this exact date, if any."""
+    iso = d.isoformat()
+    for h in _load_stock_report_hits():
+        if h.get("date") == iso and h.get("hhmmss"):
+            return h["hhmmss"]
+    return None
 
 
 def _hhmmss_pm(t: str, pm: int) -> list[str]:
@@ -378,8 +473,10 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
             if _retry:
                 # Retry already done; give up on this URL and let the run continue.
                 _RATE_STATE["consecutive_429s"] += 1
+                _RUN_STATS["http_429"] += 1
                 if _RATE_STATE["consecutive_429s"] >= TOO_MANY_429S:
                     _RATE_STATE["aborted"] = 1
+                    _RUN_STATS["aborted_by_429"] = 1
                     print(f"  ! {TOO_MANY_429S} consecutive 429s — aborting remaining fetches")
                 ctype = r.headers.get("Content-Type", "")[:40]
                 print(f"  ! HTTP 429 (after retry) ({ctype}) {url}")
@@ -396,10 +493,15 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
                 pass
             if raw_after > RETRY_AFTER_GIVE_UP_S:
                 _RATE_STATE["aborted"] = 1
+                _RUN_STATS["http_429"] += 1
+                _RUN_STATS["aborted_by_429"] = 1
                 print(f"  ! HTTP 429 with Retry-After={raw_after}s — too long, aborting "
                       f"remaining fetches: {url}")
                 return r
             wait_s = min(raw_after, RETRY_AFTER_MAX_S)
+            _RUN_STATS["http_429"] += 1
+            _RUN_STATS["retry_after_waits"].append(wait_s)
+            _RUN_STATS["throttle_bumps"] += 1
             # Self-tune: bump the matched path's throttle so subsequent calls
             # slow down too (capped). Applies to BOTH /publicdocs/ and
             # /marketdata/ — the 180-day run discovered both have rate limits.
@@ -414,6 +516,8 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
             _RATE_STATE["consecutive_429s"] = 0
         else:
             ctype = r.headers.get("Content-Type", "")[:40]
+            if r.status_code == 404:
+                _RUN_STATS["http_404"] += 1
             print(f"  ! HTTP {r.status_code} ({ctype}) {url}")
             return r
 
@@ -425,6 +529,11 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
         print(f"  ! {type(e).__name__}: {url} — {e}")
         return None
     finally:
+        # Attribute the pause to the host that dictated it. `throttle` was read
+        # at entry, so a self-bump mid-call is counted from the next request on.
+        _RUN_STATS["requests"] += 1
+        key = "wait_marketdata_s" if "/marketdata/" in url else "wait_publicdocs_s"
+        _RUN_STATS[key] += throttle
         time.sleep(throttle)
 
 
@@ -503,6 +612,21 @@ def pull_stock_report(d: date, *, sweep: bool = True) -> tuple[str | None, dict 
             return url, _safe_parse(parse_stock_report, "stock_report", d, r.text)
         return None, None
 
+    # Tier 0 — the time we already know for THIS date.
+    #
+    # Retention is confirmed (probe 0.18, 2026-08-26: three reports from June
+    # and August still served in late August, 200/579b). So once a day's publish
+    # second is recorded, fetching it again is a single GET forever — no
+    # guessing, no sweep. That makes every recorded day cheap to re-fetch and,
+    # more usefully, makes a MISSED day recoverable the moment its second is
+    # learned from any source, including by hand.
+    known = _recorded_time_for(d)
+    if known:
+        url, parsed = _try(known)
+        if url:
+            return url, parsed
+        print(f"  ! recorded time {known} for {d} no longer resolves — re-searching")
+
     tier1 = _stock_report_tier1_times()
     for hhmmss in tier1:
         url, parsed = _try(hhmmss)
@@ -518,17 +642,39 @@ def pull_stock_report(d: date, *, sweep: bool = True) -> tuple[str | None, dict 
     # restoring it after. _http_get keeps its 429 guard, so an over-fast
     # interval aborts cleanly rather than hammering.
     tried = set(tier1)
+    # Resume where a killed run left off. The walk is monotonic and the
+    # knowledge is durable — a second already answered 404 will not start
+    # answering 200 later — so re-walking it is pure repeated cost. Only
+    # honoured for the SAME day; a new day starts from the top.
+    cur = _load_cursor()
+    resume_after = cur.get("last_tried") if cur.get("date") == d.isoformat() else None
+    if resume_after:
+        _RUN_STATS["resumed_from"] = resume_after
+        print(f"  → resuming sweep after {resume_after} (previous run stopped there)")
+
     saved_throttle = _THROTTLE["marketdata"]
     _THROTTLE["marketdata"] = _STOCK_SWEEP_INTERVAL_S
+    last = None
     try:
         for hhmmss in _stock_report_sweep_times():
             if hhmmss in tried:
                 continue
+            if resume_after and hhmmss <= resume_after:
+                continue
+            last = hhmmss
+            _RUN_STATS["sweep_gets"] += 1
             url, parsed = _try(hhmmss)
             if url:
+                _save_cursor(d, None)          # found — nothing left to resume
                 return url, parsed
+            if _RATE_STATE["aborted"]:
+                break                          # banned: keep the cursor, stop here
     finally:
         _THROTTLE["marketdata"] = saved_throttle
+        # Persist progress whether we were banned, timed out mid-loop, or simply
+        # exhausted the window. Written on the way out so even an abort keeps it.
+        if last:
+            _save_cursor(d, last)
     return None, None
 
 
@@ -934,12 +1080,25 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     tenders_all: dict[date, dict] = {}
     overview_all: dict[date, dict] = {}
     infested_all: list[dict] = []
+    sweep_day: date | None = None      # also read by the telemetry after run()
     if not only_monthly:
-        print("[robusta] stock report (.csv, today + recent)...")
-        # Try most-recent business days for stock_report; ICE only keeps one per
-        # day under a HHMMSS-stamped URL. Tier-2 sweep (~10 min) runs only for
-        # the latest day so the daily cron stays bounded — older days that
-        # already missed are filled by the workbook ingest instead.
+        print("[robusta] stock report (.csv, latest day only)...")
+        # Recent days get tier-1; only the latest gets the tier-2 sweep.
+        #
+        # A previous edit here cut this to the latest day alone, on the reading
+        # that "ICE only keeps one per day" and the four older probes were 16
+        # minutes of guaranteed 404s. That inference was wrong. The evidence was
+        # a log line — "1 stock-report snapshots captured" out of five days —
+        # which is equally explained by tier-1 GUESSING WRONG on the other four,
+        # since the publish second is near-unique and tier-1 covers ~34% of days.
+        # And the operator has since produced working URLs for 2026-06-10 and
+        # 2026-06-29 months after the fact, which points the other way entirely.
+        #
+        # probe_stock_report_access.py settles it. Until it has run, the older
+        # days are probed as they always were: if retention is real, those
+        # probes are the only route back to a missed session, and a missed
+        # session is a permanent hole in the record (verified: all three misses
+        # in the June–August window have no snapshot from any source).
         recent_days = days_sorted_asc[-5:]
         sweep_day = recent_days[-1] if recent_days else None
         for d in recent_days:
@@ -1109,7 +1268,8 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
             # over a news-feed write. The JSON snapshots already shipped.
             print(f"[ice-news] FAILED: {e!r} — JSON snapshots already written")
 
-    return {"arabica": arabica_json, "robusta": robusta_json}
+    return {"arabica": arabica_json, "robusta": robusta_json,
+            "_sweep_day": sweep_day}
 
 
 # ── Smoke test ───────────────────────────────────────────────────────────────
@@ -1175,6 +1335,21 @@ def _cli() -> None:
     print(f"\nSUMMARY: arabica snapshots={len(out['arabica']['snapshots'])} · "
           f"robusta snapshots={len(out['robusta']['snapshots'])} · "
           f"gradings={len(out['robusta']['recent_activity']['gradings'])}")
+    # Telemetry last, so it records what the run actually cost.
+    _record_run_stats(
+        outcome="aborted_429" if _RUN_STATS["aborted_by_429"] else "completed",
+        sweep_day=out.get("_sweep_day"),
+    )
+    print(f"WAIT: publicdocs {_RUN_STATS['wait_publicdocs_s']/60:.1f} min · "
+          f"marketdata {_RUN_STATS['wait_marketdata_s']/60:.1f} min · "
+          f"retry-after {sum(_RUN_STATS['retry_after_waits'])/60:.1f} min "
+          f"over {_RUN_STATS['requests']} requests")
+    print(f"RATE: {_RUN_STATS['http_429']} x 429 · "
+          f"{len(_RUN_STATS['retry_after_waits'])} Retry-After waits "
+          f"({round(sum(_RUN_STATS['retry_after_waits']))}s total) · "
+          f"{_RUN_STATS['throttle_bumps']} throttle bumps · "
+          f"{_RUN_STATS['sweep_gets']} sweep GETs · "
+          f"{_RUN_STATS['http_404']} x 404")
 
 
 if __name__ == "__main__":
