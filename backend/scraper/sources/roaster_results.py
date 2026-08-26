@@ -405,16 +405,26 @@ _HE_PRICE_DRIVEN = ("מחירי המכירה", "עדכון מחירי", "מחי�
 # These are the Q1-2026 explanation cells from the translated edition of that
 # report, not machine translation.
 _STRAUSS_TRANSLATIONS = {
-    "מגידול כמותי": (
+    # Keyed by a LONG, distinctive fragment of the sentence itself.
+    #
+    # The first version keyed on the period, which would have attached English
+    # to whatever sentence the extractor happened to pick. The second keyed on
+    # short phrases like "the International Coffee" — which appears in the
+    # explanation cell, in a line about selling EXPENSES, and in a paragraph
+    # about expanding into Europe in the 1990s. That would have rendered
+    # "the decline in sales is attributable to exchange rates" beside a
+    # sentence on 1990s history: a quote attributed to a company that did not
+    # say it, in the place it was said.
+    #
+    # So fragments must be long enough that a false pairing is not possible.
+    # A period with no match shows its Hebrew and says the translation is
+    # pending — the failure mode is silence, never a wrong attribution.
+    "מגידול כמותי ושיפור בתמהיל המכירות": (
         "The increase is primarily attributable to higher volume and the improved sales mix. "
         "The increase was partially offset by the negative impact of exchange rates as well as "
         "a decline in sale prices in the International Coffee segment, consistent with the "
         "decline in green coffee prices, primarily in Brazil."),
-    "הקפה הבינלאומי": (
-        "The decline in sales is primarily attributable to the impact of currency exchange "
-        "rates, primarily the strengthening of the Shekel against the Brazilian Real relative "
-        "to the corresponding period last year."),
-    "טרס קורסאוס": (
+    "מירידה במחירי המכירה בעקבות הירידה במחירי הקפ": (
         "The decline in Três Corações's sales in local currency is largely due to lower sales "
         "prices following the decline in coffee prices. The Company's sales were adversely "
         "impacted by the strengthening of the Shekel against the Brazilian Real by "
@@ -422,6 +432,10 @@ _STRAUSS_TRANSLATIONS = {
     "בכמויות הנמכרות במרבית": (
         "… following the fall in green coffee prices, partly offset by an increase in the "
         "quantities sold in most countries."),
+    # The International Coffee net-sales explanation is NOT keyed here. The
+    # extractor is not yet reliably selecting that row — it has returned the
+    # selling-expenses line and a company-history paragraph — and a translation
+    # is worse than useless until the sentence it belongs to is the one shown.
 }
 
 
