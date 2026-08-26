@@ -1,7 +1,11 @@
 name: "0.21 – Backfill weather history from the Open-Meteo archive"
 
-# backend/scripts/backfill_weather_history.py existed with NO runner, which is
-# why this was needed at all. The daily fetch (1.10) pulls Open-Meteo's
+# CORRECTION to this file's first version: the script did once have a runner —
+# "0.4 – Backfill weather history", which ran four times in May 2026 and was
+# removed in the August pruning of one-shot workflows. GitHub keeps the run
+# history against the path, which is how a "new" workflow here shows five runs.
+# So the problem was a runner RETIRED while the script it drove was still
+# needed, not one that never existed. The daily fetch (1.10) pulls Open-Meteo's
 # FORECAST host, which exposes ~92 past days, and appends them — so a region
 # added to ORIGINS starts accumulating from the day it appears and has no
 # history before it. Uganda's five rebuilt belts had 102 days against the
@@ -80,12 +84,30 @@ jobs:
           [ -n "$ORIGINS" ] && args+=(--origins $ORIGINS)
           PYTHONPATH=. python scripts/backfill_weather_history.py "${args[@]}"
 
+      - name: Rebuild the chart JSON from the filled store
+        working-directory: backend
+        env:
+          ORIGINS: ${{ inputs.origins }}
+        # Without this the backfill is invisible. It writes
+        # seed/weather_history/{origin}.json, but everything downstream reads
+        # {origin}_weather.json — including monthly_totals_history, which is
+        # what the ENSO teleconnection measures against. Fill the store and
+        # stop, and the run goes green while the belts stay dark, which is the
+        # exact failure this workflow was added to end. The retired 0.4 did
+        # this step; dropping it was how the first version of this file would
+        # have repeated the bug it was written to fix.
+        run: |
+          set -e
+          args=(--write)
+          [ -n "$ORIGINS" ] && args+=(--origins $ORIGINS)
+          PYTHONPATH=. python scripts/fetch_origin_weather.py "${args[@]}"
+
       - name: Commit & push
         run: |
           set -e
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add backend/seed/weather_history
+          git add backend/seed/weather_history frontend/public/data
           if git diff --cached --quiet; then
             echo "No new days — the store already covered this range."
             exit 0
