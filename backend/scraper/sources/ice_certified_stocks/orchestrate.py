@@ -245,8 +245,20 @@ _STOCK_SWEEP_INTERVAL_S = 4.0
 # Every successful capture is appended to the hits file so the Tier 1
 # ordering self-tunes over time.
 STOCK_REPORT_HITS_PATH = Path(__file__).with_name("stock_report_hits.json")
-# Inclusive minute range to sweep: [10:30 … 11:15] = 46 minutes.
-STOCK_REPORT_SWEEP_RANGE = ((10, 30), (11, 15))
+# Inclusive minute range to sweep: [10:25 … 12:50] = 146 minutes.
+#
+# Was 10:30–11:15, and all three misses in the June–August window fell outside
+# what that could reach: 2026-06-10 published at 10:29:56 — four seconds before
+# the window opened — and 2026-06-29 at 12:47:15, ninety-two minutes after it
+# closed. The old bound was fitted to the days the sweep already succeeded on,
+# which is exactly the sample that cannot show you its own blind spots.
+#
+# Widening this used to be unaffordable: 8,700 candidates at 4s is 9.7 hours
+# against a 120-minute timeout, and a day not reached inside one run was lost.
+# Retention changes that. Probe 0.18 confirmed ICE still serves reports from
+# June in late August, so an unfinished sweep is a PAUSE, not a loss — the
+# cursor resumes it on the next run, and the day is still there to be found.
+STOCK_REPORT_SWEEP_RANGE = ((10, 25), (12, 50))
 # K = 10 (was 5) — wider Tier 1 keeps the cheap path covering more days as
 # the publish window expands; only matters once the hits log fills out.
 STOCK_REPORT_TIER1_K = 10
@@ -342,6 +354,15 @@ def _record_stock_report_hit(d: date, hhmmss: str) -> None:
     STOCK_REPORT_HITS_PATH.write_text(
         json.dumps({"hits": hits}, indent=2), encoding="utf-8",
     )
+
+
+def _recorded_time_for(d: date) -> str | None:
+    """The publish second already recorded for this exact date, if any."""
+    iso = d.isoformat()
+    for h in _load_stock_report_hits():
+        if h.get("date") == iso and h.get("hhmmss"):
+            return h["hhmmss"]
+    return None
 
 
 def _hhmmss_pm(t: str, pm: int) -> list[str]:
@@ -590,6 +611,21 @@ def pull_stock_report(d: date, *, sweep: bool = True) -> tuple[str | None, dict 
             _record_stock_report_hit(d, hhmmss)
             return url, _safe_parse(parse_stock_report, "stock_report", d, r.text)
         return None, None
+
+    # Tier 0 — the time we already know for THIS date.
+    #
+    # Retention is confirmed (probe 0.18, 2026-08-26: three reports from June
+    # and August still served in late August, 200/579b). So once a day's publish
+    # second is recorded, fetching it again is a single GET forever — no
+    # guessing, no sweep. That makes every recorded day cheap to re-fetch and,
+    # more usefully, makes a MISSED day recoverable the moment its second is
+    # learned from any source, including by hand.
+    known = _recorded_time_for(d)
+    if known:
+        url, parsed = _try(known)
+        if url:
+            return url, parsed
+        print(f"  ! recorded time {known} for {d} no longer resolves — re-searching")
 
     tier1 = _stock_report_tier1_times()
     for hhmmss in tier1:

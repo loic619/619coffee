@@ -80,3 +80,27 @@ def test_wait_time_is_attributed_to_the_host_that_imposed_it(tmp_path, monkeypat
     # The two throttles are separate budgets — marketdata dominates because the
     # sweep lives there, and conflating them would hide that.
     assert row["wait_marketdata_s"] > row["wait_publicdocs_s"] * 10
+
+
+def test_a_recorded_day_is_one_get_not_a_search(tmp_path, monkeypatch):
+    """Retention is confirmed (probe 0.18), so a known second stays valid.
+    Tier 0 must use it — that is what makes a missed day recoverable once its
+    time is learned, and what makes re-fetching a known day nearly free."""
+    hits = tmp_path / "hits.json"
+    hits.write_text(json.dumps({"hits": [
+        {"date": "bootstrap", "hhmmss": "103021"},
+        {"date": "2026-06-29", "hhmmss": "124715"},
+    ]}))
+    monkeypatch.setattr(O, "STOCK_REPORT_HITS_PATH", hits)
+    assert O._recorded_time_for(date(2026, 6, 29)) == "124715"
+    assert O._recorded_time_for(date(2026, 6, 30)) is None
+
+
+def test_the_sweep_window_reaches_every_observed_publish():
+    """All three misses fell outside the old 10:30–11:15 bound: 10:29:56 was
+    four seconds early, 12:47:15 was ninety-two minutes late."""
+    (sh, sm), (eh, em) = O.STOCK_REPORT_SWEEP_RANGE
+    start, end = sh * 60 + sm, eh * 60 + em
+    for hhmmss in ("102956", "103004", "110055", "124715"):
+        minute = int(hhmmss[:2]) * 60 + int(hhmmss[2:4])
+        assert start <= minute <= end, f"{hhmmss} outside the sweep window"

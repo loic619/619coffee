@@ -214,29 +214,37 @@ export default function IcePublishTimes() {
         ]}
       />
 
-      <H>What actually needs answering</H>
+      <H>The probe, and what it settled</H>
       <P>
-        Two assumptions underneath the whole design have never been tested, and each one, if
-        false, removes the problem rather than tuning it:
+        Two assumptions underneath the whole design had never been tested. Workflow 0.18 tested
+        them on 26 August, in about a dozen requests:
       </P>
-      <UL>
-        <LI>
-          <strong>Is there a directory index?</strong> The guessing exists only because we believe
-          there is no listing for <Code>stock_reports/</Code>. If one responds, the sweep can be
-          deleted: read the index, take the filename, one GET.
-        </LI>
-        <LI>
-          <strong>Are historical reports retained?</strong> The scraper assumes only the current
-          day is served — but that belief rested on a log line (&ldquo;1 of 5 days captured&rdquo;)
-          equally explained by tier-1 guessing wrong on the other four. Working URLs for 10 June
-          and 29 June, fetched in late August, point the other way. If retention is real, a missed
-          day is recoverable and the sweep should resume across runs instead of giving up.
-        </LI>
-      </UL>
+      <RefTable
+        head={["question", "result", "consequence"]}
+        rows={[
+          ["Is there a directory index?", "No — all candidates 404",
+            "the guessing cannot be deleted; it stays necessary"],
+          ["Are historical reports retained?", "Yes — 3 of 3, months later",
+            "a missed day is RECOVERABLE, and an unfinished sweep is a pause, not a loss"],
+          ["Is HEAD honoured?", "Yes — 200, zero bytes",
+            "probing can be byte-cheap; the cost is time, not bandwidth"],
+        ]}
+      />
+      <Highlight>
+        Retention is the finding that matters. It converts the 120-minute timeout from a
+        data-loss event into an interruption: the cursor records where the walk stopped, the next
+        run picks it up, and the file is still there when it arrives. Everything the old design
+        gave up on — the wide window, the long tail, the day that needed 124 minutes — becomes
+        affordable, because it no longer has to fit in one run.
+      </Highlight>
       <P>
-        A dispatch-only probe now answers both. Until it has, the scraper keeps probing recent
-        days as it always did — a reversal of an earlier change here that cut it to the latest day
-        only, on the strength of the same untested assumption.
+        Three changes follow directly. A <strong>tier 0</strong> now tries the second already
+        recorded for that exact date before any searching — one GET for any day whose time is
+        known, from any source including by hand, which is what makes the three lost sessions
+        recoverable. The sweep window widens to <strong>10:25–12:50</strong>, covering every
+        observed publish including the two that fell outside the old bound. And the earlier
+        &ldquo;probe only the latest day&rdquo; change is reverted, since older days are exactly
+        the ones worth re-probing now.
       </P>
 
       <H>What did improve</H>
