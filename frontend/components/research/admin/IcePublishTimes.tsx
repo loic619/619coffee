@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { H, H2, P, UL, LI, Code, Highlight, RefTable, DataFiles } from "../methodology/prose";
 import { useFetchJson } from "@/lib/useFetchJson";
 
@@ -56,6 +57,78 @@ interface Payload {
     worst_retry_after_s?: number; runs_aborted_by_429?: number;
     runs_resumed?: number; median_sweep_gets?: number;
   };
+}
+
+/**
+ * One pending miss, with the field that closes it.
+ *
+ * The narrow window makes a late publish an ANNOUNCED outcome rather than a
+ * silent hole — Telegram says so at the time, and the day lands here. The only
+ * thing that recovers it is a human reading the second off the ICE filename,
+ * because there is no index to read it from. Entering it appends the
+ * observation to the hit log and re-runs the scraper, whose tier 0 then fetches
+ * the session in a single GET at any age (retention, probe 0.18).
+ */
+function BackfillRow({ date, weekday }: { date: string; weekday: string }) {
+  const [value, setValue] = useState("");
+  const [state, setState] = useState<{ kind: "idle" | "busy" | "ok" | "err"; msg?: string }>({
+    kind: "idle",
+  });
+
+  async function submit() {
+    const hhmmss = value.replace(/\D/g, "");
+    if (!/^\d{6}$/.test(hhmmss)) {
+      setState({ kind: "err", msg: "six digits, as in the filename — e.g. 112351" });
+      return;
+    }
+    setState({ kind: "busy" });
+    try {
+      const res = await fetch("/api/admin/ice-publish-time", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date, hhmmss }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setState({ kind: "ok", msg: "queued — the backfill run takes a few minutes" });
+      } else {
+        setState({ kind: "err", msg: body.hint ?? body.error ?? `HTTP ${res.status}` });
+      }
+    } catch (e) {
+      setState({ kind: "err", msg: e instanceof Error ? e.message : "network error" });
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 py-1.5 border-b border-slate-800/70 last:border-0">
+      <span className="font-mono text-xs text-slate-300 w-24">{date}</span>
+      <span className="text-[11px] text-slate-500 w-8">{weekday}</span>
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") void submit(); }}
+        placeholder="HHMMSS"
+        inputMode="numeric"
+        maxLength={8}
+        disabled={state.kind === "busy" || state.kind === "ok"}
+        className="w-24 px-2 py-1 rounded bg-slate-900 border border-slate-700 font-mono
+                   text-xs text-slate-200 placeholder:text-slate-600 disabled:opacity-50"
+      />
+      <button
+        onClick={() => void submit()}
+        disabled={state.kind === "busy" || state.kind === "ok"}
+        className="px-2.5 py-1 rounded border border-slate-600 text-[11px] text-slate-300
+                   hover:bg-slate-800 disabled:opacity-40"
+      >
+        {state.kind === "busy" ? "sending…" : "backfill"}
+      </button>
+      {state.msg && (
+        <span className={`text-[11px] ${state.kind === "ok" ? "text-emerald-400" : "text-rose-400"}`}>
+          {state.msg}
+        </span>
+      )}
+    </div>
+  );
 }
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
@@ -203,7 +276,14 @@ export default function IcePublishTimes() {
     const [h, m, s] = t.split(":").map(Number);
     return h * 3600 + m * 60 + s;
   };
-  const medianOffset = data.median ? hms(data.median) - (10 * 3600 + 30 * 60) : 0;
+  // Derived from the payload's window rather than a literal, because the window
+  // has moved twice now and every hardcoded copy of it went stale silently.
+  const windowStart = hms(`${data.sweep.window.split(/[–-]/)[0].trim()}:00`);
+  const medianOffset = data.median ? Math.max(hms(data.median) - windowStart, 0) : 0;
+  // A pending miss is a business day with no snapshot AND no known publish
+  // second: the sweep cannot reach it and nothing automatic will. It needs the
+  // one input a machine cannot produce.
+  const pending = data.misses.missing.filter((m) => !m.recoverable);
 
   return (
     <>
@@ -283,12 +363,13 @@ export default function IcePublishTimes() {
         </LI>
       </UL>
       <P>
-        The sweep ascends from 10:30, so it exploits the front-loading automatically: a median day
-        sits {medianOffset}s into the window, so it is found after about{" "}
+        The sweep ascends from the window&rsquo;s start, so it exploits the front-loading
+        automatically: a median day sits {medianOffset}s in and is found after about{" "}
         {Math.round((medianOffset * data.sweep.interval_s) / 60)} minutes of GETs. The tail is what
-        hurts — the latest day on record is {data.sweep.observed_max_offset_s}s in, roughly{" "}
-        {Math.round(((data.sweep.observed_max_offset_s ?? 0) * data.sweep.interval_s) / 60)} minutes
-        of billed runner time to reach, every one of them spent waiting politely.
+        hurts. The latest session on record sits {data.sweep.observed_max_offset_s}s past the
+        window&rsquo;s start — {Math.round(((data.sweep.observed_max_offset_s ?? 0) * data.sweep.interval_s) / 60)}{" "}
+        minutes of billed waiting if you insisted on walking to it, which is precisely why the
+        window stops before it and hands that day to the backfill loop instead.
       </P>
 
       <H>A correction — the sweep cannot cover the real range</H>
@@ -327,12 +408,12 @@ export default function IcePublishTimes() {
         p100 is 549.
       </P>
       <RefTable
-        head={["window @4s", "candidates", "full sweep", "found within 120 min"]}
+        head={["window", "candidates", "full sweep", "days covered"]}
         rows={[
-          ["10:30–11:15 (current)", "2,760", "3.1 h", "56 of 59 · 95%"],
-          ["10:25–11:15", "3,060", "3.4 h", "57 of 59 · 97%"],
-          ["10:25–12:50", "8,701", "9.7 h", "57 of 59 · 97%"],
-          ["10:25–12:50 @1s", "8,701", "2.4 h", "58 of 59 · 98%"],
+          ["10:30–11:15 @4s (old)", "2,760", "3.1 h", "56 of 59 · 95%"],
+          ["10:25–11:15 @4s", "3,060", "3.4 h", "57 of 59 · 97%"],
+          ["10:25–12:50 @4s", "8,701", "9.7 h", "58 of 59 · 98%"],
+          ["10:29–11:00 @3s (chosen)", "1,920", "1.6 h", "58 of 60 · 97%"],
         ]}
       />
 
@@ -363,10 +444,71 @@ export default function IcePublishTimes() {
         Three changes follow directly. A <strong>tier 0</strong> now tries the second already
         recorded for that exact date before any searching — one GET for any day whose time is
         known, from any source including by hand, which is what makes the three lost sessions
-        recoverable. The sweep window widens to <strong>10:25–12:50</strong>, covering every
-        observed publish including the two that fell outside the old bound. And the earlier
-        &ldquo;probe only the latest day&rdquo; change is reverted, since older days are exactly
-        the ones worth re-probing now.
+        recoverable. A sweep killed part-way records its cursor, so the next run resumes rather
+        than re-walking seconds it has already ruled out. And the earlier &ldquo;probe only the
+        latest day&rdquo; change is reverted, since older days are exactly the ones worth
+        re-probing now.
+      </P>
+
+      <H>Choosing the window: narrow on purpose</H>
+      <P>
+        The first response to the correction was to widen the window to cover every observed
+        publish — 10:25–12:50, 8,701 candidates. That is the wrong instinct, and the table above
+        says why: widening buys the 98th percentile at a cost of nine hours of walking, against a
+        source that publishes once a day and a job that is billed by the minute. Coverage is not
+        free and the last two percent are the expensive ones.
+      </P>
+      <P>
+        The window is now <strong>{data.sweep.window}</strong> at{" "}
+        <strong>{data.sweep.interval_s}s per request</strong> — {data.sweep.days_inside_window} of
+        the {data.captures} sessions on record, {" "}
+        {pct(data.sweep.days_inside_window / Math.max(data.captures, 1))}, in a full walk of{" "}
+        {Math.round((data.sweep.candidate_seconds * data.sweep.interval_s) / 60)} minutes. That
+        number is the point of the design, not a side effect: it fits inside the 120-minute
+        timeout, so a run that finds nothing has genuinely <em>looked everywhere</em> and can say
+        so. Under the wide window a fruitless run and an unfinished run were indistinguishable.
+      </P>
+      <Highlight>
+        The interval step from 4s to 3s is what buys that. At 4s the same walk is{" "}
+        {Math.round((data.sweep.candidate_seconds * 4) / 60)} minutes — past the timeout, so the
+        run could never conclude anything.
+      </Highlight>
+      <P>
+        The step follows the rule this page set earlier: drop one notch only after a run at the
+        current value drew no 429s. That rule is satisfied by inference, which is not the same as
+        evidence, so workflow <strong>0.20</strong> measured it on 26 August — 200 sequential GETs
+        at 3s against seconds where no file can exist, with a known-good retained report fetched
+        before, at every fiftieth request, and after. The control is the real test: a 404 only
+        tells you the URL is wrong, and only the control tells you whether you are still welcome.
+      </P>
+      <RefTable
+        head={["measure", "result"]}
+        rows={[
+          ["requests at 3s", "200 in 10.5 min (3.14s/req actual)"],
+          ["statuses", "404 × 200 — no other code seen"],
+          ["HTTP 429s", "0"],
+          ["transport failures", "0"],
+          ["control fetches (before · ×4 during · after)", "200 every time — never kicked out"],
+          ["latency", "median 0.13s, max 0.35s — flat throughout"],
+        ]}
+      />
+      <P>
+        Flat latency is worth as much as the zero: throttling usually announces itself by slowing
+        down before it starts refusing, and there was no sign of it. The result does not fully
+        generalise, though — a worst-case sweep issues 1,920 requests, not 200, so this rules out
+        a short-window limit rather than a daily one. The scraper still carries its defences for
+        that case: <Code>Retry-After</Code> obeyed, the throttle self-bumping ×1.3 on a 429, an
+        abort after four consecutive ones, and the cursor so an aborted run resumes instead of
+        restarting. The step-down rule would now permit trying 2s. There is no reason to: 96
+        minutes already fits, so a further step buys nothing and spends risk. <strong>3s stands,
+        with 4s the fallback</strong> if a long sweep ever draws 429s the run telemetry can show.
+      </P>
+      <P>
+        What makes deliberate under-coverage acceptable is that the residual is no longer silent.
+        A sweep that exhausts the window without a hit posts <em>missed, late release</em> to
+        Telegram and lists the day as pending below, where one entered second recovers it. A known
+        3% of sessions needing one manual field beats nine hours of runner time spent buying
+        them automatically.
       </P>
 
       <H>What did improve</H>
@@ -475,9 +617,41 @@ export default function IcePublishTimes() {
         head={["date", "weekday", "outcome"]}
         rows={data.misses.missing.map((m) => [
           m.date, m.weekday,
-          m.recoverable ? "publish time known — one GET away" : "time unknown — needs a sweep",
+          m.recoverable ? "publish time known — one GET away" : "time unknown — pending an entry",
         ])}
       />
+
+      <H>Pending misses — enter the second, and it backfills</H>
+      <P>
+        The window is deliberately narrower than the observed range, so some sessions will fall
+        outside it. That is a priced decision, not an oversight: {data.sweep.window} covers{" "}
+        {data.sweep.days_inside_window} of the {data.captures} sessions on record, and reaching
+        the last two would mean a nine-hour walk to buy two days a quarter. What changes is that a
+        miss is now <em>announced</em> — the run posts &ldquo;missed, late release&rdquo; to
+        Telegram the moment its sweep exhausts the window without a hit, and the day appears here.
+      </P>
+      <P>
+        There is no index to read the publish second from, so the only thing that closes one of
+        these is a person opening the ICE stock-reports page and copying the six digits out of the
+        filename. Enter them below and workflow 0.19 appends the observation and re-runs the
+        scraper; tier 0 then fetches that session in a single GET, however old it is.
+      </P>
+      {pending.length === 0 ? (
+        <P className="text-emerald-400">
+          Nothing pending — every business day on record either has its snapshot or has its
+          publish time known and queued for the next run.
+        </P>
+      ) : (
+        <div className="my-3 p-3 rounded border border-slate-700/70 bg-slate-900/40">
+          <div className="text-[11px] text-slate-500 mb-2">
+            Filename format: <Code>Stock_Report_RC_YYYYMMDD_HHMMSS.csv</Code> — enter the{" "}
+            <Code>HHMMSS</Code> part only.
+          </div>
+          {pending.map((m) => (
+            <BackfillRow key={m.date} date={m.date} weekday={m.weekday} />
+          ))}
+        </div>
+      )}
 
       <H2>Rate limiting</H2>
       {data.rate_limits.runs === 0 ? (

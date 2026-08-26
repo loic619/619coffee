@@ -1,0 +1,115 @@
+name: "0.19 – Record an ICE publish time (operator backfill)"
+
+# The robusta stock CSV is served under an HHMMSS-stamped URL with no index, and
+# the sweep deliberately covers only 10:29–11:00 — 97% of sessions, bought at a
+# 96-minute worst case instead of nine hours. A report published outside that
+# window is announced on Telegram and listed as pending on the Admin research
+# page, because the one thing that recovers it is a human supplying the second.
+#
+# This is the other half of that loop. Given a date and the second, it appends
+# the observation to the hit log and re-runs the scraper, whose tier 0 then
+# fetches the session in a single request — retention is confirmed, so age does
+# not matter (probe 0.18: June reports still served in late August).
+#
+# Dispatched from the research page via /api/admin/ice-publish-time, or by hand.
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Session date, YYYY-MM-DD"
+        required: true
+        type: string
+      hhmmss:
+        description: "Publish time as it appears in the filename, e.g. 112351"
+        required: true
+        type: string
+
+concurrency:
+  group: scraper-ice-certified-stocks   # shares 1.13's lane — same host
+  cancel-in-progress: false
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install --quiet -r scraper/requirements.txt
+
+      - name: Record the observation
+        working-directory: backend
+        env:
+          IN_DATE: ${{ inputs.date }}
+          IN_TIME: ${{ inputs.hhmmss }}
+        run: |
+          python - <<'PY'
+          import json, os, re, sys, datetime as dt
+          from pathlib import Path
+
+          d, t = os.environ["IN_DATE"].strip(), os.environ["IN_TIME"].strip()
+          # Validate here as well as at the API. A bad value would be committed
+          # to the hit log and then poison tier 0 for that date forever.
+          if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", d):
+              sys.exit(f"bad date: {d!r}")
+          if not re.fullmatch(r"\d{6}", t):
+              sys.exit(f"bad time: {t!r} — want HHMMSS, e.g. 112351")
+          hh, mm, ss = int(t[:2]), int(t[2:4]), int(t[4:6])
+          if not (0 <= hh < 24 and 0 <= mm < 60 and 0 <= ss < 60):
+              sys.exit(f"not a wall-clock time: {t}")
+          day = dt.date.fromisoformat(d)
+          if day > dt.date.today():
+              sys.exit(f"{d} is in the future")
+
+          p = Path("scraper/sources/ice_certified_stocks/stock_report_hits.json")
+          doc = json.loads(p.read_text(encoding="utf-8"))
+          hits = [h for h in doc["hits"] if h.get("date") != d]
+          hits.append({"date": d, "hhmmss": t, "source": "operator"})
+          hits.sort(key=lambda h: (h["date"] != "bootstrap", h["date"]))
+          doc["hits"] = hits
+          p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+          print(f"recorded {d} -> {t}")
+          PY
+
+      - name: Backfill the session
+        working-directory: backend
+        env:
+          PYTHONUNBUFFERED: "1"
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        # --days 3 keeps the run short: the recovery list comes from the hit
+        # log, not the window, so the newly-recorded day is picked up regardless
+        # of how old it is.
+        run: PYTHONPATH=. python -m scraper.sources.ice_certified_stocks.orchestrate --days 3 --skip-monthly
+
+      - name: Republish the research payload
+        working-directory: backend
+        run: PYTHONPATH=. python -m scraper.exporters.ice_publish_times || true
+
+      - name: Commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          for f in frontend/public/data/certified_stocks_arabica.json \
+                   frontend/public/data/certified_stocks_robusta.json \
+                   frontend/public/data/ice_publish_times.json \
+                   backend/scraper/sources/ice_certified_stocks/stock_report_hits.json \
+                   backend/scraper/sources/ice_certified_stocks/stock_report_cursor.json \
+                   backend/scraper/sources/ice_certified_stocks/ice_run_stats.json; do
+            [ -f "$f" ] && git add "$f"
+          done
+          true
+          git diff --cached --quiet \
+            && echo "Nothing changed — the session may not be recoverable at that second." \
+            || (git commit -m "data: ICE robusta backfill ${{ inputs.date }} @ ${{ inputs.hhmmss }} [skip ci]" \
+                && git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" \
+                && git push origin "HEAD:${GITHUB_REF_NAME}")

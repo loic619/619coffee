@@ -44,20 +44,22 @@ HITS = (Path(__file__).resolve().parents[1] / "sources" / "ice_certified_stocks"
 # Read from the orchestrator rather than restated, because the two drifted the
 # moment the window widened and the page then described a sweep that no longer
 # existed.
-def _sweep_bounds() -> tuple[int, int]:
+def _sweep_cfg() -> tuple[int, int, float]:
     try:
+        from scraper.sources.ice_certified_stocks.orchestrate import (
+            _STOCK_SWEEP_INTERVAL_S as IV,
+        )
         from scraper.sources.ice_certified_stocks.orchestrate import (
             STOCK_REPORT_SWEEP_RANGE as R,
         )
         (sh, sm), (eh, em) = R
-        return sh * 3600 + sm * 60, eh * 3600 + em * 60 + 59
+        return sh * 3600 + sm * 60, eh * 3600 + em * 60 + 59, IV
     except Exception:
-        return 10 * 3600 + 25 * 60, 12 * 3600 + 50 * 60 + 59
+        return 10 * 3600 + 29 * 60, 11 * 3600 + 0 * 60 + 59, 3.0
 
 
-SWEEP_START_S, SWEEP_END_S = _sweep_bounds()
+SWEEP_START_S, SWEEP_END_S, SWEEP_INTERVAL_S = _sweep_cfg()
 TIER1_K = 10                                  # top-K seconds retried, each ±2s
-SWEEP_INTERVAL_S = 4.0                        # one GET every 4s during the sweep
 
 
 def _secs(hhmmss: str) -> int | None:

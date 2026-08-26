@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-26T10:32:26.032725Z",
-  "count": 82,
+  "generated_at": "2026-08-26T14:19:42.298593Z",
+  "count": 85,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -398,6 +398,17 @@
       "timeout_minutes": 10
     },
     {
+      "file": "ice-record-publish-time.yml",
+      "name": "0.19 \u2013 Record an ICE publish time (operator backfill)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": "scraper-ice-certified-stocks",
+      "timeout_minutes": 20
+    },
+    {
       "file": "lint-backend.yml",
       "name": "9.2 \u2013 Backend Lint",
       "triggers": [
@@ -493,6 +504,17 @@
       "workflow_run_deps": [],
       "concurrency_group": "scraper-ice-certified-stocks",
       "timeout_minutes": 10
+    },
+    {
+      "file": "probe-ice-stock-pace.yml",
+      "name": "0.20 \u2013 Probe: ICE sequential pace (is 3s/req accepted?)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": "scraper-ice-certified-stocks",
+      "timeout_minutes": 30
     },
     {
       "file": "quant-currency-index.yml",
@@ -937,6 +959,21 @@
       "timeout_minutes": 15
     },
     {
+      "file": "scraper-roaster-results.yml",
+      "name": "4.2 \u2013 Roaster Results (volume/mix from PDFs)",
+      "triggers": [
+        "push",
+        "schedule",
+        "workflow_dispatch"
+      ],
+      "crons": [
+        "0 9 15 2,5,8,11 *"
+      ],
+      "workflow_run_deps": [],
+      "concurrency_group": "scraper-roaster-results",
+      "timeout_minutes": 15
+    },
+    {
       "file": "scraper-slow-data.yml",
       "name": "1.22 \u2013 Monthly Slow-Data Scraper (USDA PSD)",
       "triggers": [
@@ -1130,6 +1167,16 @@
         "version": "0.18"
       },
       {
+        "file": "ice-record-publish-time.yml",
+        "name": "0.19 \u2013 Record an ICE publish time (operator backfill)",
+        "version": "0.19"
+      },
+      {
+        "file": "probe-ice-stock-pace.yml",
+        "name": "0.20 \u2013 Probe: ICE sequential pace (is 3s/req accepted?)",
+        "version": "0.20"
+      },
+      {
         "file": "build-oni-history.yml",
         "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
         "version": "0.6"
@@ -1180,6 +1227,11 @@
         "version": "3.4.3"
       },
       {
+        "file": "scraper-roaster-results.yml",
+        "name": "4.2 \u2013 Roaster Results (volume/mix from PDFs)",
+        "version": "4.2"
+      },
+      {
         "file": "research-retest-watch.yml",
         "name": "9.10 \u2013 Research retest watch",
         "version": "9.10"
@@ -1211,7 +1263,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 20,
+    "uncovered_workflows_count": 23,
     "stale_curation_count": 0
   }
 }

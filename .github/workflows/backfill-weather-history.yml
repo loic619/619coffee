@@ -1,4 +1,4 @@
-name: "0.19 – Backfill weather history from the Open-Meteo archive"
+name: "0.21 – Backfill weather history from the Open-Meteo archive"
 
 # backend/scripts/backfill_weather_history.py existed with NO runner, which is
 # why this was needed at all. The daily fetch (1.10) pulls Open-Meteo's

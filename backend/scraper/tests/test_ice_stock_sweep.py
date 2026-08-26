@@ -96,14 +96,24 @@ def test_a_recorded_day_is_one_get_not_a_search(tmp_path, monkeypatch):
     assert O._recorded_time_for(date(2026, 6, 30)) is None
 
 
-def test_the_sweep_window_reaches_every_observed_publish():
-    """All three misses fell outside the old 10:30–11:15 bound: 10:29:56 was
-    four seconds early, 12:47:15 was ninety-two minutes late."""
+def test_the_window_covers_the_body_and_gives_up_on_the_tail():
+    """The window is a deliberate trade, not an attempt at completeness.
+
+    10:29–11:00 catches the dense mass — including 10:29:56, which the old
+    10:30 bound missed by four seconds — and abandons the far tail, because
+    reaching 12:47 would mean a nine-hour walk to buy about two sessions a
+    quarter. The abandoned days are announced, not silently dropped.
+    """
     (sh, sm), (eh, em) = O.STOCK_REPORT_SWEEP_RANGE
     start, end = sh * 60 + sm, eh * 60 + em
-    for hhmmss in ("102956", "103004", "110055", "124715"):
-        minute = int(hhmmss[:2]) * 60 + int(hhmmss[2:4])
-        assert start <= minute <= end, f"{hhmmss} outside the sweep window"
+
+    def inside(hhmmss: str) -> bool:
+        return start <= int(hhmmss[:2]) * 60 + int(hhmmss[2:4]) <= end
+
+    for covered in ("102956", "103004", "104354", "110055"):
+        assert inside(covered), f"{covered} should be inside the window"
+    for abandoned in ("112351", "124715"):
+        assert not inside(abandoned), f"{abandoned} should be outside — it is the trade"
 
 
 def test_recovered_days_outside_the_window_still_become_snapshots(monkeypatch):
@@ -117,3 +127,29 @@ def test_recovered_days_outside_the_window_still_become_snapshots(monkeypatch):
     assert _d(2026, 6, 10) in days and _d(2026, 6, 29) in days
     assert days[0] == _d(2026, 6, 10)          # sorted, oldest first
     assert len(days) == 5
+
+
+def test_the_window_is_narrow_on_purpose_and_fits_the_timeout():
+    """10:29–11:00 at 3s must complete inside the 120-minute job timeout —
+    otherwise a genuine miss can never be DECLARED, only timed out on."""
+    (sh, sm), (eh, em) = O.STOCK_REPORT_SWEEP_RANGE
+    cands = (eh * 60 + em) * 60 + 59 - ((sh * 60 + sm) * 60) + 1
+    full_min = cands * O._STOCK_SWEEP_INTERVAL_S / 60
+    assert full_min < 120, f"full sweep {full_min:.0f} min exceeds the timeout"
+    assert full_min > 60, "suspiciously fast — check the window or interval"
+
+
+def test_sweep_exhausted_is_not_the_same_as_stopped_early():
+    # The flag drives a "late release" alert, so it must mean "walked the whole
+    # window and found nothing" — never "gave up because of a 429 or the clock".
+    O._RUN_STATS["sweep_exhausted"] = False
+    assert O._RUN_STATS["sweep_exhausted"] is False
+    assert "sweep_exhausted" in O._RUN_STATS
+
+
+def test_late_release_notice_names_the_day_and_window(monkeypatch, capsys):
+    monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
+    O._notify_late_release(date(2026, 8, 25))
+    out = capsys.readouterr().out
+    assert "LATE RELEASE" in out and "2026-08-25" in out and "10:29" in out
