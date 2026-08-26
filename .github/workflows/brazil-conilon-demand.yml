@@ -1,0 +1,45 @@
+name: "1.21 – Brazil conilon domestic demand"
+
+# CONAB publishes the arabica/conilon production split once per crop-year
+# survey (four bulletins a year), so this runs weekly rather than daily — the
+# other two legs (Cecafé exports, USDA PSD use) are refreshed by their own
+# workflows and this just recombines whatever is current.
+
+on:
+  schedule:
+    - cron: '23 5 * * 2'      # Tuesdays, after the weekly data settles
+  workflow_dispatch:
+
+concurrency:
+  group: brazil-conilon-demand
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install --quiet requests
+      - name: Build the derived series
+        working-directory: backend
+        run: PYTHONPATH=. python -m scraper.sources.brazil_conilon_demand
+      - name: Commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data/brazil_conilon_demand.json
+          if git diff --cached --quiet; then echo "No changes."; else
+            git commit -m "data: brazil conilon domestic demand [skip ci]"
+            for i in 1 2 3 4 5; do
+              git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push && exit 0
+              sleep $((RANDOM % 5 + 3))
+            done
+            echo "::error::push failed"; exit 1
+          fi
