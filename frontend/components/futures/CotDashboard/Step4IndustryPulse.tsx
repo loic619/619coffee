@@ -9,6 +9,7 @@ import { buildPriceSegments, SEG_KEYS, type PriceDay, type SegmentRow } from "@/
 import type { ProcessedCotRow } from "@/lib/cot/types";
 import { CHART_STYLE } from "./constants";
 import SectionHeader from "./SectionHeader";
+import WeeksOfCoverPanel from "./WeeksOfCoverPanel";
 
 type MtKey = "pmpuLongMT_NY" | "pmpuLongMT_LDN" | "pmpuShortMT_NY" | "pmpuShortMT_LDN";
 
@@ -235,6 +236,12 @@ export default function Step4IndustryPulse({ data }: { data: ProcessedCotRow[] }
           {mkChart("ldn")}
         </div>
       </div>
+
+      {/* The same positions on a scale a trader reasons in. Tonnes answer
+          "how much"; weeks of cover answer "how much, relative to what the
+          world drinks" — which is the question the level was always a proxy
+          for, and the only form in which KC and RC are comparable. */}
+      <WeeksOfCoverPanel data={data} />
     </div>
   );
 }
