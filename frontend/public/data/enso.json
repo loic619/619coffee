@@ -1470,48 +1470,228 @@
         "country": "Uganda",
         "lat": -0.33,
         "lon": 31.73,
-        "level": "low",
-        "color": "#16a34a",
-        "severity": 0,
-        "driver": "No measured ENSO response for this region yet",
-        "measured": false,
-        "phase_hits": []
+        "measured": true,
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Rain through harvest — drying, mould, defects (main) — developing",
+        "severity": 1,
+        "phase_hits": [
+          {
+            "cycle": "main",
+            "phase": "fruit_fill",
+            "months": [
+              8,
+              9
+            ],
+            "severity": 0,
+            "driver": "Near-normal rainfall expected",
+            "anomaly_pct": -4.1,
+            "n": 3,
+            "consistency": 0.67
+          },
+          {
+            "cycle": "main",
+            "phase": "harvest",
+            "months": [
+              10,
+              11,
+              12,
+              1,
+              2
+            ],
+            "severity": 2,
+            "driver": "Rain through harvest — drying, mould, defects",
+            "anomaly_pct": 19.7,
+            "n": 3,
+            "consistency": 1.0
+          },
+          {
+            "cycle": "fly",
+            "phase": "flowering",
+            "months": [
+              10,
+              11,
+              12
+            ],
+            "severity": 1,
+            "driver": "Rain through flowering — blossom drop, uneven set",
+            "anomaly_pct": 15.5,
+            "n": 3,
+            "consistency": 1.0
+          },
+          {
+            "cycle": "fly",
+            "phase": "fruit_fill",
+            "months": [
+              1,
+              2
+            ],
+            "severity": 0,
+            "driver": "Wet through cherry fill — favourable",
+            "anomaly_pct": 11.4,
+            "n": 5,
+            "consistency": 0.8
+          }
+        ],
+        "lag_months": 2,
+        "lag_r": 0.206,
+        "status": "emerging"
       },
       {
         "region": "Central",
         "country": "Uganda",
         "lat": 0.4,
         "lon": 32.04,
-        "level": "low",
-        "color": "#16a34a",
-        "severity": 0,
-        "driver": "No measured ENSO response for this region yet",
-        "measured": false,
-        "phase_hits": []
+        "measured": true,
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Rain through harvest — drying, mould, defects (main) — developing",
+        "severity": 1,
+        "phase_hits": [
+          {
+            "cycle": "main",
+            "phase": "fruit_fill",
+            "months": [
+              7,
+              8,
+              9
+            ],
+            "severity": 0,
+            "driver": "Too few past events to score",
+            "anomaly_pct": -18.7,
+            "n": 2,
+            "consistency": 1.0
+          },
+          {
+            "cycle": "main",
+            "phase": "harvest",
+            "months": [
+              10,
+              11,
+              12,
+              1
+            ],
+            "severity": 2,
+            "driver": "Rain through harvest — drying, mould, defects",
+            "anomaly_pct": 15.5,
+            "n": 4,
+            "consistency": 0.75
+          },
+          {
+            "cycle": "fly",
+            "phase": "flowering",
+            "months": [
+              10,
+              11,
+              12
+            ],
+            "severity": 0,
+            "driver": "Near-normal rainfall expected",
+            "anomaly_pct": 7.5,
+            "n": 4,
+            "consistency": 0.75
+          },
+          {
+            "cycle": "fly",
+            "phase": "fruit_fill",
+            "months": [
+              1
+            ],
+            "severity": 0,
+            "driver": "Wet through cherry fill — favourable",
+            "anomaly_pct": 8.4,
+            "n": 5,
+            "consistency": 0.6
+          }
+        ],
+        "lag_months": 1,
+        "lag_r": 0.245,
+        "status": "emerging"
       },
       {
         "region": "Western",
         "country": "Uganda",
         "lat": -0.59,
         "lon": 30.19,
+        "measured": true,
         "level": "low",
         "color": "#16a34a",
         "severity": 0,
-        "driver": "No measured ENSO response for this region yet",
-        "measured": false,
-        "phase_hits": []
+        "driver": "No measurable ENSO link here (r=+0.05)",
+        "phase_hits": [],
+        "lag_months": 2,
+        "lag_r": 0.051
       },
       {
         "region": "Busoga",
         "country": "Uganda",
         "lat": 0.61,
         "lon": 33.47,
-        "level": "low",
-        "color": "#16a34a",
-        "severity": 0,
-        "driver": "No measured ENSO response for this region yet",
-        "measured": false,
-        "phase_hits": []
+        "measured": true,
+        "level": "moderate",
+        "color": "#f59e0b",
+        "driver": "Rain through harvest — drying, mould, defects (main) — developing",
+        "severity": 1,
+        "phase_hits": [
+          {
+            "cycle": "main",
+            "phase": "fruit_fill",
+            "months": [
+              7,
+              8,
+              9
+            ],
+            "severity": 0,
+            "driver": "Too few past events to score",
+            "anomaly_pct": -14.6,
+            "n": 2,
+            "consistency": 1.0
+          },
+          {
+            "cycle": "main",
+            "phase": "harvest",
+            "months": [
+              10,
+              11,
+              12,
+              1
+            ],
+            "severity": 2,
+            "driver": "Rain through harvest — drying, mould, defects",
+            "anomaly_pct": 24.5,
+            "n": 4,
+            "consistency": 0.75
+          },
+          {
+            "cycle": "fly",
+            "phase": "flowering",
+            "months": [
+              10,
+              11,
+              12
+            ],
+            "severity": 1,
+            "driver": "Rain through flowering — blossom drop, uneven set",
+            "anomaly_pct": 20.9,
+            "n": 4,
+            "consistency": 0.75
+          },
+          {
+            "cycle": "fly",
+            "phase": "fruit_fill",
+            "months": [
+              1
+            ],
+            "severity": 0,
+            "driver": "Past events disagree — no usable signal",
+            "anomaly_pct": 8.7,
+            "n": 5,
+            "consistency": 0.4
+          }
+        ],
+        "lag_months": 1,
+        "lag_r": 0.265,
+        "status": "emerging"
       },
       {
         "region": "Mt Elgon",
@@ -1521,7 +1701,7 @@
         "measured": true,
         "level": "moderate",
         "color": "#f59e0b",
-        "driver": "Rain through harvest — drying, mould, defects (fly) — developing",
+        "driver": "Rain through harvest — drying, mould, defects (main) — developing",
         "severity": 1,
         "phase_hits": [
           {
@@ -1532,7 +1712,7 @@
             ],
             "severity": 1,
             "driver": "Rain through flowering — blossom drop, uneven set",
-            "anomaly_pct": 105.9,
+            "anomaly_pct": 96.4,
             "n": 3,
             "consistency": 1.0
           },
@@ -1546,7 +1726,7 @@
             ],
             "severity": 0,
             "driver": "Too few past events to score",
-            "anomaly_pct": 7.2,
+            "anomaly_pct": 3.3,
             "n": 2,
             "consistency": 0.5
           },
@@ -1558,11 +1738,11 @@
               11,
               12
             ],
-            "severity": 0,
-            "driver": "Past events disagree — no usable signal",
-            "anomaly_pct": 66.2,
+            "severity": 2,
+            "driver": "Rain through harvest — drying, mould, defects",
+            "anomaly_pct": 65.7,
             "n": 4,
-            "consistency": 0.5
+            "consistency": 0.75
           },
           {
             "cycle": "fly",
@@ -1574,7 +1754,7 @@
             ],
             "severity": 0,
             "driver": "Past events disagree — no usable signal",
-            "anomaly_pct": 79.8,
+            "anomaly_pct": 76.6,
             "n": 4,
             "consistency": 0.5
           },
@@ -1586,13 +1766,13 @@
             ],
             "severity": 2,
             "driver": "Rain through harvest — drying, mould, defects",
-            "anomaly_pct": 105.9,
+            "anomaly_pct": 96.4,
             "n": 3,
             "consistency": 1.0
           }
         ],
         "lag_months": 0,
-        "lag_r": 0.415,
+        "lag_r": 0.418,
         "status": "emerging"
       },
       {
@@ -1600,12 +1780,14 @@
         "country": "Uganda",
         "lat": 2.52,
         "lon": 30.9,
+        "measured": true,
         "level": "low",
         "color": "#16a34a",
         "severity": 0,
-        "driver": "No measured ENSO response for this region yet",
-        "measured": false,
-        "phase_hits": []
+        "driver": "No measurable ENSO link here (r=+0.14)",
+        "phase_hits": [],
+        "lag_months": 1,
+        "lag_r": 0.142
       },
       {
         "region": "Rwenzori",
@@ -1619,7 +1801,7 @@
         "driver": "No measurable ENSO link here (r=-0.02)",
         "phase_hits": [],
         "lag_months": 4,
-        "lag_r": -0.018
+        "lag_r": -0.019
       },
       {
         "region": "Sidama/Yirgacheffe",
@@ -2099,16 +2281,10 @@
     ],
     "summary": {
       "high": 0,
-      "moderate": 14,
-      "low": 22
+      "moderate": 17,
+      "low": 19
     },
-    "unmeasured": [
-      "Uganda · Greater Masaka",
-      "Uganda · Central",
-      "Uganda · Western",
-      "Uganda · Busoga",
-      "Uganda · West Nile"
-    ]
+    "unmeasured": []
   },
   "last_updated": "2026-08-26"
 }
