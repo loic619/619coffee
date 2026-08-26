@@ -1186,7 +1186,12 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
 
     # ── Build robusta snapshots (one per business day with any data) ──
     robusta_snapshots: list[dict] = []
-    for d in days_sorted_asc:
+    # The run window PLUS anything the hole recovery pulled in. Recovered days
+    # are months older than the window by definition, so iterating the window
+    # alone fetched them and then silently dropped them before the merge —
+    # which is exactly what happened on run 32958. The two August holes landed
+    # (inside the 7-day window) and the three June ones did not.
+    for d in sorted(set(days_sorted_asc) | set(robusta_stocks)):
         gradings_today = [g for g in gradings_all if g["date"] == d.isoformat()]
         snap = _robusta_snapshot(d, robusta_stocks.get(d), gradings_today,
                                   iss_recv_all.get(d), tenders_all.get(d))

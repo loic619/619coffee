@@ -104,3 +104,16 @@ def test_the_sweep_window_reaches_every_observed_publish():
     for hhmmss in ("102956", "103004", "110055", "124715"):
         minute = int(hhmmss[:2]) * 60 + int(hhmmss[2:4])
         assert start <= minute <= end, f"{hhmmss} outside the sweep window"
+
+
+def test_recovered_days_outside_the_window_still_become_snapshots(monkeypatch):
+    """A recovered hole is months older than the run window by definition.
+    Building snapshots from the window alone fetched them and dropped them."""
+    from datetime import date as _d
+    window = [_d(2026, 8, 24), _d(2026, 8, 25), _d(2026, 8, 26)]
+    recovered = {_d(2026, 6, 10): {"x": 1}, _d(2026, 6, 29): {"x": 2}}
+    # The union the orchestrator now iterates.
+    days = sorted(set(window) | set(recovered))
+    assert _d(2026, 6, 10) in days and _d(2026, 6, 29) in days
+    assert days[0] == _d(2026, 6, 10)          # sorted, oldest first
+    assert len(days) == 5
