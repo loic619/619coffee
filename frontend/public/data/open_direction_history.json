@@ -20613,10 +20613,10 @@
   "date": "2026-08-25",
   "prob_up": 0.449,
   "direction": "Abstain",
-  "actual_gap_pct": null,
-  "actual_dir": null,
+  "actual_gap_pct": 0.053,
+  "actual_dir": "Up",
   "hit": null,
-  "status": "pending",
+  "status": "resolved",
   "source": "live",
   "factors": [
    {
@@ -20632,6 +20632,32 @@
     "raw_fmt": "day 16",
     "z": -0.09,
     "phi": -0.0154
+   }
+  ]
+ },
+ {
+  "date": "2026-08-26",
+  "prob_up": 0.4112,
+  "direction": "Abstain",
+  "actual_gap_pct": null,
+  "actual_dir": null,
+  "hit": null,
+  "status": "pending",
+  "source": "live",
+  "factors": [
+   {
+    "var_name": "kc_after_rc_diff",
+    "raw_value": -0.002086,
+    "raw_fmt": "-0.21%",
+    "z": -0.52,
+    "phi": -0.2165
+   },
+   {
+    "var_name": "days_since_roll",
+    "raw_value": 17.0,
+    "raw_fmt": "day 17",
+    "z": -0.01,
+    "phi": -0.0023
    }
   ]
  }
