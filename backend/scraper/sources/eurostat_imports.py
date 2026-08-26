@@ -243,6 +243,64 @@ def _fetch_monthly(last_n: int, reporter: str = REPORTER, flow: str = "1") -> di
         return {}
 
 
+# ── Deep monthly totals ──────────────────────────────────────────────────────
+# The by-partner monthly query trips Comext's async 413 past ~40 months, which
+# caps `monthly_total` at ~31 months — too short to regress EU arrivals against
+# EU stock changes over more than one demand cycle. Asking for a single partner
+# AGGREGATE instead of ~200 individual partners returns 185 months in under
+# 9 KB, so the depth was never a Comext limit, only a payload one.
+#
+# Partner code matters for correctness, not just depth: `monthly_total` is
+# EXTRA-EU (it drops intra-EU partners), so falling back to WORLD would fold
+# intra-EU re-trade into the same series. The extra-EU aggregate is tried
+# first and WORLD only as a last resort, with the choice recorded in the
+# payload so the frontend can say which basis it is showing.
+_EXTRA_EU_PARTNERS = ("EXT_EU27_2020", "EXTRA_EU27_2020", "WORLD")
+
+
+def _fetch_monthly_partner_total(partner: str, last_n: int = 200,
+                                 reporter: str = REPORTER, flow: str = "1") -> dict:
+    params = [("format", "JSON"), ("freq", "M"), ("reporter", reporter),
+              ("partner", partner), ("product", PRODUCT), ("flow", flow),
+              ("indicators", INDICATOR), ("lastTimePeriod", str(last_n))]
+    try:
+        r = requests.get(BASE, params=params, headers=_HEADERS, timeout=90)
+    except Exception as e:                                        # noqa: BLE001
+        log.info("Eurostat deep monthly partner=%s error: %s", partner, e)
+        return {}
+    if r.status_code != 200:
+        log.info("Eurostat deep monthly partner=%s HTTP %s", partner, r.status_code)
+        return {}
+    try:
+        return r.json()
+    except ValueError:
+        return {}
+
+
+def fetch_deep_monthly(flow: str = "1") -> tuple[dict, str | None]:
+    """{'YYYY-MM': mt} as far back as Comext serves, plus the partner used."""
+    for partner in _EXTRA_EU_PARTNERS:
+        body = _fetch_monthly_partner_total(partner, flow=flow)
+        dims = (body.get("dimension") or {}).get("time", {}).get("category", {}).get("index") or {}
+        values = body.get("value") or {}
+        if not dims or not values:
+            continue
+        pos_to_month = {v: k for k, v in dims.items()} if isinstance(dims, dict) else {}
+        out: dict[str, float] = {}
+        for pos, val in values.items():
+            month = pos_to_month.get(int(pos))
+            if not month or val is None:
+                continue
+            mt = float(val) / 10.0          # Comext quantity is 100 kg
+            if mt > 0:
+                out[month] = round(mt, 1)
+        if out:
+            log.info("Eurostat deep monthly partner=%s flow=%s → %d months (%s → %s)",
+                     partner, flow, len(out), min(out), max(out))
+            return dict(sorted(out.items())), partner
+    log.warning("Eurostat deep monthly: no partner aggregate returned data")
+    return {}, None
+
 def parse_monthly_total(body: dict) -> dict:
     """Sum extra-EU partners per month → {'YYYY-MM': mt}. (Excludes EU members
     and bloc aggregates, like the annual parse.)"""
@@ -559,6 +617,12 @@ def build_eu_coffee_imports(db=None) -> dict:  # noqa: ARG001
         if monthly_exports:
             break
     monthly_exports = {k: v for k, v in sorted(monthly_exports.items()) if v > 0}
+
+    # Long monthly arrivals series for the arrivals-vs-stock-change scatter.
+    # Separate from monthly_total because that one is capped by the by-partner
+    # query's payload limit; this one asks for a single aggregate and reaches
+    # back to 2011.
+    deep_monthly, deep_partner = fetch_deep_monthly(flow="1")
     if OUT_PATH.exists():
         try:
             prev_all = json.loads(OUT_PATH.read_text(encoding="utf-8"))
@@ -632,6 +696,11 @@ def build_eu_coffee_imports(db=None) -> dict:  # noqa: ARG001
         "origins":       bloc["origins"],
         "total_by_year": bloc["total_by_year"],
         "monthly_total": bloc["monthly_total"],
+        # Deep monthly arrivals (single partner aggregate, ~2011 onward) plus
+        # the aggregate actually used, so the UI can name its basis honestly
+        # rather than implying extra-EU when it fell back to WORLD.
+        "monthly_total_deep": deep_monthly,
+        "monthly_total_deep_partner": deep_partner,
         # Extra-EU exports (flow=2) — net imports = total_by_year − exports_total_by_year.
         "exports_total_by_year": exports_total_by_year,
         "monthly_exports": monthly_exports,
