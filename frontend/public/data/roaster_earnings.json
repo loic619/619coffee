@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-08-26T05:14:09.320793+00:00",
+  "source": "Company results releases (PDF)",
+  "note": "JDE Peet's only. Nestle's site returns 403 to bot, browser-UA and headless-browser requests alike from CI runners, so RIG cannot be scraped there.",
+  "companies": [
+    {
+      "key": "jdep",
+      "name": "JDE Peet's",
+      "metric_name": "Volume/mix",
+      "periods": [
+        {
+          "period": "2025-FY",
+          "source_url": "https://www.jdepeets.com/siteassets/home/investors/financial-reports/jde-peets-full-year-results-2025-report.pdf",
+          "segments": [
+            {
+              "segment": "Total",
+              "volume_mix_pct": 19.5,
+              "organic_pct": null
+            },
+            {
+              "segment": "Europe",
+              "volume_mix_pct": -7.9,
+              "organic_pct": 8.3
+            },
+            {
+              "segment": "LARMEA",
+              "volume_mix_pct": -0.1,
+              "organic_pct": 39.7
+            },
+            {
+              "segment": "Peet's",
+              "volume_mix_pct": 0.7,
+              "organic_pct": 6.7
+            },
+            {
+              "segment": "APAC",
+              "volume_mix_pct": -1.4,
+              "organic_pct": 8.5
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
