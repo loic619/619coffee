@@ -29,6 +29,7 @@ import WorldBalanceEditor from "./WorldBalanceEditor";
 import {
   LEGS, LEG_LABEL, LEG_TONE, allocate,
   addLegs, arabicaAll, emptyLegs, fmt, legTotal, r1,
+  ORIGIN_FILES,
   type ConsumptionSource, type DemandSegmentsDoc, type GradeRow, type Leg, type Legs,
   type Line, type OriginGradesDoc, type Risk, type WorldBalanceDoc,
   type WorldConsumptionDoc,
@@ -47,24 +48,6 @@ interface SeedSeason {
   production_final?: number;
 }
 
-const ORIGIN_FILES: Record<string, { file: string; subkey?: string; label: string }> = {
-  brazil:    { file: "br_balance_sheet.json",      label: "Brazil" },
-  colombia:  { file: "co_balance_sheet.json",      label: "Colombia" },
-  honduras:  { file: "hn_balance_sheet.json",      label: "Honduras" },
-  guatemala: { file: "gt_balance_sheet.json",      label: "Guatemala" },
-  nicaragua: { file: "ni_balance_sheet.json",      label: "Nicaragua" },
-  costa_rica:{ file: "cr_balance_sheet.json",      label: "Costa Rica" },
-  mexico:    { file: "mx_balance_sheet.json",      label: "Mexico" },
-  peru:      { file: "pe_balance_sheet.json",      label: "Peru" },
-  vietnam:   { file: "vn_farmer_economics.json", subkey: "balance_sheet", label: "Vietnam" },
-  indonesia: { file: "id_balance_sheet.json",      label: "Indonesia" },
-  india:     { file: "in_balance_sheet.json",      label: "India" },
-  china:     { file: "cn_balance_sheet.json",      label: "China" },
-  uganda:    { file: "ug_balance_sheet.json",      label: "Uganda" },
-  ethiopia:  { file: "et_balance_sheet.json",      label: "Ethiopia" },
-  ivory_coast:{ file: "ci_balance_sheet.json",     label: "Ivory Coast" },
-  tanzania:  { file: "tz_balance_sheet.json",      label: "Tanzania" },
-};
 const GROUPS: { label: string; origins: string[] }[] = [
   { label: "Brazil",      origins: ["brazil"] },
   { label: "Colombia",    origins: ["colombia"] },
