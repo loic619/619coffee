@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-25T09:31:10.762839Z",
+  "generated_at": "2026-08-26T03:39:06.862543Z",
   "method": {
     "comovement": "Pearson on weekly CHANGES in lots; partials strip ΔOI, which the report's adding-up constraint (Σ long = Σ short = OI) would otherwise impose on every cohort pair.",
     "price_response": "corr(Δposition, same-week % return of the front contract). Hedgers lean against the move, speculators with it.",
@@ -13,8 +13,8 @@
         "pmpu_long": {
           "share_oi_pct": 24.76,
           "mean_lots": 53547.0,
-          "price_response_r": -0.425,
-          "price_response_t": -7.6,
+          "price_response_r": -0.421,
+          "price_response_t": -7.49,
           "significant": true,
           "ar1": 0.968,
           "weekly_turnover_pct": 6.31
@@ -22,8 +22,8 @@
         "pmpu_short": {
           "share_oi_pct": 46.51,
           "mean_lots": 101392.0,
-          "price_response_r": 0.369,
-          "price_response_t": 6.41,
+          "price_response_r": 0.376,
+          "price_response_t": 6.54,
           "significant": true,
           "ar1": 0.989,
           "weekly_turnover_pct": 3.07
@@ -31,8 +31,8 @@
         "swap_long": {
           "share_oi_pct": 15.83,
           "mean_lots": 34291.0,
-          "price_response_r": 0.092,
-          "price_response_t": 1.49,
+          "price_response_r": 0.096,
+          "price_response_t": 1.56,
           "significant": false,
           "ar1": 0.994,
           "weekly_turnover_pct": 2.16
@@ -40,8 +40,8 @@
         "swap_short": {
           "share_oi_pct": 12.18,
           "mean_lots": 26089.0,
-          "price_response_r": 0.021,
-          "price_response_t": 0.35,
+          "price_response_r": 0.032,
+          "price_response_t": 0.51,
           "significant": false,
           "ar1": 0.984,
           "weekly_turnover_pct": 4.55
@@ -49,8 +49,8 @@
         "mm_long": {
           "share_oi_pct": 22.68,
           "mean_lots": 47504.0,
-          "price_response_r": 0.51,
-          "price_response_t": 9.57,
+          "price_response_r": 0.515,
+          "price_response_t": 9.7,
           "significant": true,
           "ar1": 0.967,
           "weekly_turnover_pct": 5.36
@@ -58,8 +58,8 @@
         "mm_short": {
           "share_oi_pct": 7.65,
           "mean_lots": 16081.0,
-          "price_response_r": -0.474,
-          "price_response_t": -8.69,
+          "price_response_r": -0.48,
+          "price_response_t": -8.83,
           "significant": true,
           "ar1": 0.963,
           "weekly_turnover_pct": 12.93
@@ -92,8 +92,8 @@
               "mm": 0.037
             }
           ],
-          "price_response_first_half": 0.031,
-          "price_response_second_half": 0.17
+          "price_response_first_half": 0.042,
+          "price_response_second_half": 0.169
         },
         "short": {
           "vs_pmpu_1w": -0.068,
@@ -121,8 +121,8 @@
               "mm": -0.009
             }
           ],
-          "price_response_first_half": 0.036,
-          "price_response_second_half": 0.015
+          "price_response_first_half": 0.083,
+          "price_response_second_half": 0.014
         }
       },
       "rolling": {
@@ -1419,12 +1419,6 @@
           }
         ],
         "price_response_long": [
-          {
-            "date": "2022-08-02",
-            "pmpu": -0.623,
-            "swap": 0.222,
-            "mm": 0.519
-          },
           {
             "date": "2022-08-09",
             "pmpu": -0.609,
@@ -3986,12 +3980,6 @@
         ],
         "price_response_short": [
           {
-            "date": "2022-08-02",
-            "pmpu": 0.173,
-            "swap": -0.109,
-            "mm": -0.603
-          },
-          {
             "date": "2022-08-09",
             "pmpu": 0.212,
             "swap": -0.048,
@@ -5260,9 +5248,9 @@
         ]
       },
       "price_window": {
-        "start": "2021-08-10",
+        "start": "2021-08-17",
         "end": "2026-08-18",
-        "weeks": 263
+        "weeks": 262
       },
       "label": "New York — KC arabica",
       "contract": "ICE US Coffee C",
@@ -5284,8 +5272,8 @@
         "pmpu_short": {
           "share_oi_pct": 57.85,
           "mean_lots": 57329.0,
-          "price_response_r": 0.396,
-          "price_response_t": 6.97,
+          "price_response_r": 0.399,
+          "price_response_t": 7.01,
           "significant": true,
           "ar1": 0.965,
           "weekly_turnover_pct": 5.85
@@ -5293,8 +5281,8 @@
         "swap_long": {
           "share_oi_pct": 4.76,
           "mean_lots": 5001.0,
-          "price_response_r": 0.075,
-          "price_response_t": 1.22,
+          "price_response_r": 0.078,
+          "price_response_t": 1.26,
           "significant": false,
           "ar1": 0.978,
           "weekly_turnover_pct": 9.42
@@ -5302,8 +5290,8 @@
         "swap_short": {
           "share_oi_pct": 9.13,
           "mean_lots": 8644.0,
-          "price_response_r": 0.098,
-          "price_response_t": 1.59,
+          "price_response_r": 0.099,
+          "price_response_t": 1.61,
           "significant": false,
           "ar1": 0.9,
           "weekly_turnover_pct": 10.36
@@ -5311,8 +5299,8 @@
         "mm_long": {
           "share_oi_pct": 30.42,
           "mean_lots": 29361.0,
-          "price_response_r": 0.481,
-          "price_response_t": 8.86,
+          "price_response_r": 0.485,
+          "price_response_t": 8.95,
           "significant": true,
           "ar1": 0.959,
           "weekly_turnover_pct": 8.29
@@ -5320,7 +5308,7 @@
         "mm_short": {
           "share_oi_pct": 9.64,
           "mean_lots": 9054.0,
-          "price_response_r": -0.398,
+          "price_response_r": -0.399,
           "price_response_t": -7.01,
           "significant": true,
           "ar1": 0.934,
@@ -5354,8 +5342,8 @@
               "mm": 0.001
             }
           ],
-          "price_response_first_half": 0.268,
-          "price_response_second_half": -0.025
+          "price_response_first_half": 0.281,
+          "price_response_second_half": -0.029
         },
         "short": {
           "vs_pmpu_1w": -0.063,
@@ -5383,8 +5371,8 @@
               "mm": -0.055
             }
           ],
-          "price_response_first_half": 0.093,
-          "price_response_second_half": 0.119
+          "price_response_first_half": 0.096,
+          "price_response_second_half": 0.12
         }
       },
       "rolling": {
@@ -6681,12 +6669,6 @@
           }
         ],
         "price_response_long": [
-          {
-            "date": "2022-08-02",
-            "pmpu": -0.149,
-            "swap": -0.259,
-            "mm": 0.502
-          },
           {
             "date": "2022-08-09",
             "pmpu": -0.147,
@@ -9248,12 +9230,6 @@
         ],
         "price_response_short": [
           {
-            "date": "2022-08-02",
-            "pmpu": 0.417,
-            "swap": -0.038,
-            "mm": -0.489
-          },
-          {
             "date": "2022-08-09",
             "pmpu": 0.463,
             "swap": -0.024,
@@ -10522,9 +10498,9 @@
         ]
       },
       "price_window": {
-        "start": "2021-08-10",
+        "start": "2021-08-17",
         "end": "2026-08-18",
-        "weeks": 263
+        "weeks": 262
       },
       "label": "London — RC robusta",
       "contract": "ICE Europe Robusta",
