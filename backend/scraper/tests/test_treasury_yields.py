@@ -5,6 +5,8 @@ reads every BC_* child generically rather than naming tenors, so these tests
 lean on that: a renamed or newly added tenor must flow through, and a malformed
 one must not take the session with it.
 """
+import sys
+
 from scraper.sources.treasury_yields import _spread, _tenor_key, parse_curve
 
 XML = """<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
@@ -161,3 +163,115 @@ def test_a_dead_feed_does_not_rewrite_the_shipped_history(monkeypatch):
     calls = _stub_years(monkeypatch, {})            # every year fails
     assert ty.fetch_curve(existing=_rows(300)) is None
     assert len(calls) == 1, f"a dead current year must not trigger a top-up: {calls}"
+
+
+# ── retention: unbounded, on purpose ─────────────────────────────────────────
+# shape_curve used to end `hist[-500:]`. That is ~2 years, so the very next
+# daily export after a 10-year backfill would have deleted eight of them —
+# exactly the trap the per-contract price archive documents ("retention must
+# cover the span fetched here, or the next nightly trim deletes the work").
+# These pin the removal so it cannot come back as a tidy-up.
+
+def _sessions(n, start_year=2016):
+    """n synthetic sessions spread across consecutive years."""
+    out = []
+    for i in range(n):
+        y = start_year + i // 250
+        d = i % 250
+        out.append({"date": f"{y}-{1 + d // 28:02d}-{1 + d % 28:02d}",
+                    "yields": {"2y": 3.0, "10y": 4.0}})
+    return out
+
+
+def test_history_is_never_truncated():
+    """A decade must survive shaping intact."""
+    from scraper.sources.treasury_yields import shape_curve
+    rows = _sessions(2500)
+    out = shape_curve(rows)
+    assert len(out["history"]) == len({r["date"] for r in rows}) == 2500
+
+
+def test_shaping_keeps_the_oldest_session():
+    """Truncation would take from the FRONT, so assert the front specifically."""
+    from scraper.sources.treasury_yields import shape_curve
+    rows = _sessions(1200)
+    oldest = min(r["date"] for r in rows)
+    out = shape_curve(rows)
+    assert out["history"][0]["date"] == oldest
+
+
+def test_source_carries_no_slice_on_history():
+    """Structural: catch a reintroduced cap even if a future shape changes.
+
+    Looks for a SLICE of the history list specifically. Two things it must not
+    trip on: the docstring, which deliberately quotes the removed `hist[-500:]`
+    to explain why it went; and `hist[-1]`, which is the legitimate way the
+    latest session is read. A substring search for "hist[-" matches both.
+    """
+    import ast
+    import inspect
+
+    from scraper.sources import treasury_yields as ty
+    fn = ast.parse(inspect.getsource(ty.shape_curve).lstrip()).body[0]
+    body = fn.body[1:] if ast.get_docstring(fn) else fn.body
+
+    slices = [
+        ast.unparse(n)
+        for stmt in body
+        for n in ast.walk(stmt)
+        if isinstance(n, ast.Subscript)
+        and isinstance(n.slice, ast.Slice)
+        and isinstance(n.value, ast.Name)
+        and n.value.id == "hist"
+    ]
+    assert not slices, f"history is being sliced again: {slices} — see the retention note"
+
+
+def test_the_daily_path_preserves_a_deep_archive():
+    """The regression that matters: a daily run over a 10y file must not shrink
+    it. fetch_curve merges the current year over what it is handed."""
+    from scraper.sources import treasury_yields as ty
+    deep = _sessions(2500)
+    ty_fetch = ty._fetch_year
+    try:
+        ty._fetch_year = lambda y: [{"date": "2026-08-26", "yields": {"2y": 4.2, "10y": 4.7}}]
+        out = ty.fetch_curve(existing=deep)
+    finally:
+        ty._fetch_year = ty_fetch
+    assert len(out["history"]) >= 2500, "a daily run shrank the archive"
+    assert out["latest"]["date"] == "2026-08-26"
+
+
+# ── the backfill merges rather than replaces ─────────────────────────────────
+
+def test_backfill_keeps_existing_when_a_year_fails(monkeypatch, tmp_path):
+    """A failed year must cost nothing — the point of loading existing first."""
+    import json as _json
+
+    from scraper import backfill_treasury_yields as bf
+    out = tmp_path / "treasury_yields.json"
+    existing = _sessions(300, start_year=2024)
+    out.write_text(_json.dumps({"history": existing}), encoding="utf-8")
+    monkeypatch.setattr(bf, "OUT", out)
+    # Only one year answers; the rest return nothing.
+    monkeypatch.setattr(bf, "_fetch_year",
+                        lambda y: [{"date": "2019-06-03", "yields": {"10y": 2.1}}] if y == 2019 else [])
+    monkeypatch.setattr(sys, "argv", ["x", "--years", "10"])
+    assert bf.main() == 0
+    hist = _json.loads(out.read_text(encoding="utf-8"))["history"]
+    dates = {r["date"] for r in hist}
+    assert {r["date"] for r in existing} <= dates, "existing sessions were lost"
+    assert "2019-06-03" in dates, "the one good year was not merged in"
+
+
+def test_backfill_fails_loudly_when_nothing_is_fetched(monkeypatch, tmp_path):
+    """Going green on zero rows is how a dead backfill hides."""
+    import json as _json
+
+    from scraper import backfill_treasury_yields as bf
+    out = tmp_path / "treasury_yields.json"
+    out.write_text(_json.dumps({"history": _sessions(10)}), encoding="utf-8")
+    monkeypatch.setattr(bf, "OUT", out)
+    monkeypatch.setattr(bf, "_fetch_year", lambda y: [])
+    monkeypatch.setattr(sys, "argv", ["x", "--years", "10"])
+    assert bf.main() == 3
