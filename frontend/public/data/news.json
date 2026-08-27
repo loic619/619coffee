@@ -1,5 +1,57 @@
 [
   {
+    "id": 10359,
+    "title": "ICE-EU RC Daily OI Snapshot \u2013 2026-08-25",
+    "body": "ICE-EU RC Open Interest changed by -1,487 over the last session, with -2,111 on nearby two contracts and +624 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.",
+    "source": "ICE",
+    "category": "futures",
+    "lat": 51.51,
+    "lng": -0.09,
+    "tags": [
+      "daily-oi",
+      "robusta",
+      "futures",
+      "auto-commentary"
+    ],
+    "meta": "{\"market\": \"robusta\", \"date\": \"2026-08-25\", \"_commentary\": {\"text\": \"ICE-EU RC Open Interest changed by -1,487 over the last session, with -2,111 on nearby two contracts and +624 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-26T21:14:25.423725",
+    "commentary": {
+      "text": "ICE-EU RC Open Interest changed by -1,487 over the last session, with -2,111 on nearby two contracts and +624 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Bearish",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "OI snapshot: price down, long liquidation"
+  },
+  {
+    "id": 10358,
+    "title": "IFUS KC Daily OI Snapshot \u2013 2026-08-25",
+    "body": "IFUS KC Open Interest changed by -940 over the last session, with -1,473 on nearby two contracts and +533 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.",
+    "source": "ICE",
+    "category": "futures",
+    "lat": 40.74,
+    "lng": -74.05,
+    "tags": [
+      "daily-oi",
+      "arabica",
+      "futures",
+      "auto-commentary"
+    ],
+    "meta": "{\"market\": \"arabica\", \"date\": \"2026-08-25\", \"_commentary\": {\"text\": \"IFUS KC Open Interest changed by -940 over the last session, with -1,473 on nearby two contracts and +533 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-08-26T21:14:23.228238",
+    "commentary": {
+      "text": "IFUS KC Open Interest changed by -940 over the last session, with -1,473 on nearby two contracts and +533 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Bearish",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "OI snapshot: price down, long liquidation"
+  },
+  {
     "id": 10357,
     "title": "Fertilizer Prices \u2013 2026-08",
     "body": null,
@@ -321,7 +373,10 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427036-precos-do-cafe-caem-mais-de-4-em-ny-nesta-4-26-com-perspectiva-de-aumento-da-oferta-de-cafe-no-brasil.html",
-    "pub_date": "2026-08-26T20:12:00"
+    "pub_date": "2026-08-26T20:12:00",
+    "sentiment": "Bearish",
+    "sentiment_confidence": 95.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10350,
@@ -337,7 +392,10 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427032-feira-cocatrel-de-negocios-traz-operacao-barter-como-condicao-especial-e-vantajosa-de-pagamento.html",
-    "pub_date": "2026-08-26T19:38:00"
+    "pub_date": "2026-08-26T19:38:00",
+    "sentiment": "Neutral",
+    "sentiment_confidence": 85.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10351,
@@ -353,7 +411,10 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427008-cooperados-da-cooxupe-chegam-a-87-5-da-colheita-de-cafe.html",
-    "pub_date": "2026-08-26T15:17:00"
+    "pub_date": "2026-08-26T15:17:00",
+    "sentiment": "Bearish",
+    "sentiment_confidence": 90.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10344,
@@ -368,7 +429,10 @@
       "sprudge"
     ],
     "meta": "https://sprudge.com/a-glass-of-coffee-glassblowing-steps-into-the-coffee-spotlight-1061277.html",
-    "pub_date": "2026-08-26T14:00:49"
+    "pub_date": "2026-08-26T14:00:49",
+    "sentiment": "Neutral",
+    "sentiment_confidence": 99.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10345,
@@ -383,7 +447,10 @@
       "sprudge"
     ],
     "meta": "https://sprudge.com/this-weekend-coffee-collective-is-taking-over-londons-rosslyn-coffee-1282974.html",
-    "pub_date": "2026-08-26T12:00:25"
+    "pub_date": "2026-08-26T12:00:25",
+    "sentiment": "Neutral",
+    "sentiment_confidence": 99.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10352,
@@ -399,7 +466,10 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426992-cafe-cepea-colheita-do-arabica-avanca-mas-qualidade-dos-lotes-preocupa.html",
-    "pub_date": "2026-08-26T10:58:00"
+    "pub_date": "2026-08-26T10:58:00",
+    "sentiment": "Neutral",
+    "sentiment_confidence": 70.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10334,
@@ -891,8 +961,8 @@
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426972-cafe-perde-forca-em-ny-nesta-3-25-com-realizacao-de-lucros-apos-disparada-da-vespera.html",
     "pub_date": "2026-08-25T19:02:00",
-    "sentiment": "Bearish",
-    "sentiment_confidence": 85.0,
+    "sentiment": "Neutral",
+    "sentiment_confidence": 90.0,
     "sentiment_method": "gemini"
   },
   {
@@ -911,7 +981,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426967-morre-onofre-lacerda-referencia-e-pioneiro-dos-cafes-especiais-do-caparao-aos-80-anos.html",
     "pub_date": "2026-08-25T18:16:00",
     "sentiment": "Neutral",
-    "sentiment_confidence": 95.0,
+    "sentiment_confidence": 99.0,
     "sentiment_method": "gemini"
   },
   {
@@ -928,8 +998,8 @@
     ],
     "meta": "https://sprudge.com/build-outs-of-coffee-workshop-cafe-academy-in-london-uk-1219117.html",
     "pub_date": "2026-08-25T14:00:25",
-    "sentiment": "Bullish",
-    "sentiment_confidence": 60.0,
+    "sentiment": "Neutral",
+    "sentiment_confidence": 99.0,
     "sentiment_method": "gemini"
   },
   {
@@ -947,7 +1017,7 @@
     "meta": "https://sprudge.com/barista-brawl-a-new-cooperative-trading-card-game-about-pulling-bar-shifts-1282865.html",
     "pub_date": "2026-08-25T12:00:57",
     "sentiment": "Neutral",
-    "sentiment_confidence": 98.0,
+    "sentiment_confidence": 99.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1276,7 +1346,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426904-cafe-dispara-em-ny-nesta-2-e-sobe-quase-5-cereja-descascado-alcanca-os-r-2-mil-em-varginha-mg.html",
     "pub_date": "2026-08-24T20:44:00",
     "sentiment": "Bullish",
-    "sentiment_confidence": 90.0,
+    "sentiment_confidence": 85.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1295,7 +1365,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426911-exportacao-de-cafe-do-brasil-no-mes-ja-supera-agosto-de-2025-com-alta-de-50-diz-secex.html",
     "pub_date": "2026-08-24T19:02:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 70.0,
+    "sentiment_confidence": 90.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1333,7 +1403,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426871-colheita-de-cafe-arabica-salta-a-87-na-regiao-de-atuacao-da-expocacer.html",
     "pub_date": "2026-08-24T15:00:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 80.0,
+    "sentiment_confidence": 90.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1350,8 +1420,8 @@
     ],
     "meta": "https://sprudge.com/the-sprudge-guide-to-coffee-in-warsaw-poland-1133769.html",
     "pub_date": "2026-08-24T14:00:44",
-    "sentiment": "Bullish",
-    "sentiment_confidence": 55.0,
+    "sentiment": "Neutral",
+    "sentiment_confidence": 99.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1736,7 +1806,7 @@
     "meta": "https://sprudge.com/a-twenty-coffee-blend-anyone-the-sprudge-roasters-village-has-component-suggestions-1278365.html",
     "pub_date": "2026-08-23T12:00:40",
     "sentiment": "Neutral",
-    "sentiment_confidence": 90.0,
+    "sentiment_confidence": 99.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2397,7 +2467,7 @@
     "meta": "https://sprudge.com/what-is-the-true-water-cost-of-a-cup-of-coffee-1276145.html",
     "pub_date": "2026-08-21T16:46:45",
     "sentiment": "Neutral",
-    "sentiment_confidence": 95.0,
+    "sentiment_confidence": 99.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2416,7 +2486,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426790-ameaca-do-el-nino-a-safra-de-cafe-do-vietna-nao-deve-ser-subestimada-diz-associacao.html",
     "pub_date": "2026-08-21T14:24:00",
     "sentiment": "Bullish",
-    "sentiment_confidence": 90.0,
+    "sentiment_confidence": 95.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2435,7 +2505,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426778-el-nino-e-nao-terremoto-afetara-safra-de-cafe-da-colombia-diz-lider-do-setor.html",
     "pub_date": "2026-08-21T12:54:00",
     "sentiment": "Bullish",
-    "sentiment_confidence": 85.0,
+    "sentiment_confidence": 95.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2872,7 +2942,7 @@
     "meta": "https://sprudge.com/filigree-coffee-others-coffee-and-equator-coffees-on-the-coffee-sprudgecast-1277162.html",
     "pub_date": "2026-08-20T20:04:33",
     "sentiment": "Neutral",
-    "sentiment_confidence": 95.0,
+    "sentiment_confidence": 99.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2891,7 +2961,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426752-producao-de-cafe-da-colombia-cai-23-em-julho-por-efeitos-climaticos.html",
     "pub_date": "2026-08-20T18:28:00",
     "sentiment": "Bullish",
-    "sentiment_confidence": 98.0,
+    "sentiment_confidence": 95.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2909,7 +2979,7 @@
     "meta": "https://sprudge.com/turning-coffee-waste-into-syngas-and-biochar-a-ecological-double-whammy-1275294.html",
     "pub_date": "2026-08-20T18:04:15",
     "sentiment": "Neutral",
-    "sentiment_confidence": 98.0,
+    "sentiment_confidence": 90.0,
     "sentiment_method": "gemini"
   },
   {
@@ -3272,10 +3342,7 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426685-hedgepoint-mantem-projecao-de-safra-de-cafe-do-brasil-em-recorde.html",
-    "pub_date": "2026-08-19T19:00:00",
-    "sentiment": "Bearish",
-    "sentiment_confidence": 95.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-19T19:00:00"
   },
   {
     "id": 10040,
@@ -3291,10 +3358,7 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426674-cafe-realiza-lucros-nesta-4-feira-19-e-fecha-com-perdas-de-mais-de-1-na-bolsa-de-ny.html",
-    "pub_date": "2026-08-19T18:33:00",
-    "sentiment": "Bearish",
-    "sentiment_confidence": 85.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-19T18:33:00"
   },
   {
     "id": 10041,
@@ -3310,10 +3374,7 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426659-colheita-de-cafe-da-cooxupe-alcanca-811.html",
-    "pub_date": "2026-08-19T13:05:00",
-    "sentiment": "Bearish",
-    "sentiment_confidence": 80.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-19T13:05:00"
   },
   {
     "id": 10036,
@@ -3328,10 +3389,7 @@
       "sprudge"
     ],
     "meta": "https://sprudge.com/the-new-brew-watch-is-inspired-by-milk-pouring-into-coffee-1274374.html",
-    "pub_date": "2026-08-19T12:00:26",
-    "sentiment": "Neutral",
-    "sentiment_confidence": 98.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-19T12:00:26"
   },
   {
     "id": 10042,
@@ -3347,10 +3405,7 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426636-cafe-cepea-embarques-comecam-firmes-mas-atraso-da-colheita-limita-oferta.html",
-    "pub_date": "2026-08-19T10:52:00",
-    "sentiment": "Bullish",
-    "sentiment_confidence": 75.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-19T10:52:00"
   },
   {
     "id": 10018,
@@ -3977,57 +4032,5 @@
     "sentiment_confidence": 75.0,
     "sentiment_method": "deterministic",
     "sentiment_reason": "Uganda: no regions flagged at risk"
-  },
-  {
-    "id": 9946,
-    "title": "Indonesia Agronomic Status \u2013 2026-08-18",
-    "body": "Agronomic Status Update: Indonesia (Lampung, Gayo, Java, Toraja, Flores) is currently flagged as normal.",
-    "source": "Open-Meteo + NOAA STAR",
-    "category": "supply",
-    "lat": -2.55,
-    "lng": 118.01,
-    "tags": [
-      "weather",
-      "indonesia",
-      "agronomic",
-      "auto-commentary"
-    ],
-    "meta": "{\"origin\": \"indonesia\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Indonesia (Lampung, Gayo, Java, Toraja, Flores) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-08-18T02:48:32.657438",
-    "commentary": {
-      "text": "Agronomic Status Update: Indonesia (Lampung, Gayo, Java, Toraja, Flores) is currently flagged as normal.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Neutral",
-    "sentiment_confidence": 75.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "Indonesia: no regions flagged at risk"
-  },
-  {
-    "id": 9945,
-    "title": "Honduras Agronomic Status \u2013 2026-08-18",
-    "body": "Agronomic Status Update: Honduras (El Para\u00edso, Cop\u00e1n, Santa B\u00e1rbara, Montecillos, Agalta) is currently flagged as normal.",
-    "source": "Open-Meteo + NOAA STAR",
-    "category": "supply",
-    "lat": 14.07,
-    "lng": -87.2,
-    "tags": [
-      "weather",
-      "honduras",
-      "agronomic",
-      "auto-commentary"
-    ],
-    "meta": "{\"origin\": \"honduras\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Honduras (El Para\u00edso, Cop\u00e1n, Santa B\u00e1rbara, Montecillos, Agalta) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-08-18T02:48:32.112488",
-    "commentary": {
-      "text": "Agronomic Status Update: Honduras (El Para\u00edso, Cop\u00e1n, Santa B\u00e1rbara, Montecillos, Agalta) is currently flagged as normal.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Neutral",
-    "sentiment_confidence": 75.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "Honduras: no regions flagged at risk"
   }
 ]

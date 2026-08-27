@@ -1,6 +1,6 @@
 {
   "country": "ethiopia",
-  "scraped_at": "2026-08-26T03:38:13.990739Z",
+  "scraped_at": "2026-08-27T04:35:23.853355Z",
   "exports": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-01",
@@ -351,23 +351,23 @@
     "grade": "All grades avg"
   },
   "weather": {
-    "scraped_at": "2026-08-26T02:44:26.467242Z",
+    "scraped_at": "2026-08-26T21:11:32.692681Z",
     "regions": [
       {
         "name": "Sidama/Yirgacheffe",
         "drought": "NONE",
         "csi_30d": 0.0,
-        "csi_60d": 0.094,
+        "csi_60d": 0.116,
         "csi_30d_level": "OK",
         "csi_60d_level": "LOW",
-        "rain_mtd_mm": 198.1,
-        "rain_hist_min": 76.8,
-        "rain_hist_max": 166.1
+        "rain_mtd_mm": 185.1,
+        "rain_hist_min": 78.5,
+        "rain_hist_max": 175.2
       },
       {
         "name": "Harrar",
         "drought": "MED",
-        "csi_30d": 0.84,
+        "csi_30d": 0.794,
         "csi_60d": 0.816,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
@@ -409,7 +409,6 @@
           "-",
           "-",
           "-",
-          "-",
           "L",
           "L",
           "L",
@@ -458,6 +457,7 @@
           "-",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -485,7 +485,6 @@
           "M",
           "M",
           "M",
-          "M",
           "-",
           "-",
           "-",
@@ -527,6 +526,7 @@
           "L",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -617,11 +617,11 @@
     ]
   },
   "enso": {
-    "phase": "neutral",
+    "phase": "el-nino",
     "intensity": "Moderate",
     "oni": 1.39,
     "peak_month": "Nov-25",
-    "forecast_direction": "Neutral - No strong signal for 2026",
+    "forecast_direction": "El Nino conditions ongoing",
     "oni_history": [
       {
         "month": "Jan-25",
@@ -703,36 +703,36 @@
     "regional_impact": [
       {
         "region": "Sidama/Yirgacheffe",
-        "type": "WARM",
-        "note": "near-normal bimodal rainfall",
+        "type": "DRY",
+        "note": "long rains below-avg, flowering stress",
         "dots": 2
       },
       {
         "region": "Harrar",
-        "type": "WARM",
-        "note": "near-normal conditions",
+        "type": "DRY",
+        "note": "eastern highlands drought, cherry shriveling",
         "dots": 2
       },
       {
         "region": "Kaffa",
-        "type": "WARM",
-        "note": "near-normal southwest conditions",
+        "type": "DRY",
+        "note": "southwest moisture deficit, yield impact",
         "dots": 2
       },
       {
         "region": "Limu",
-        "type": "WARM",
-        "note": "near-normal conditions",
+        "type": "DRY",
+        "note": "below-avg rainfall, quality risk",
         "dots": 2
       },
       {
         "region": "Jimma",
-        "type": "WARM",
-        "note": "near-normal conditions",
+        "type": "DRY",
+        "note": "extended dry spells during critical growth",
         "dots": 2
       }
     ],
-    "historical_stat": "Neutral ENSO: near-average Ethiopia arabica output expected",
+    "historical_stat": "El Nino years: Ethiopia coffee output -5 to -15% vs neutral; worst impacts in eastern highlands",
     "last_updated": "2026-08-26"
   },
   "harvest_cal": {
