@@ -1,5 +1,5 @@
 {
-  "note": "Front (1st) minus 2nd nearby, from the 5-year per-contract archive, against end-month exchange certified stocks. Positive spread = backwardation. Stocks in thousand 60-kg bags (robusta lots converted at 10 t). No curve is fitted and no single pooled number is presented as the answer \u2014 see `analysis` for the split-half check.",
+  "note": "Front (1st) minus 2nd nearby, from the per-contract archive, against end-month exchange certified stocks. Positive spread = backwardation. Stocks in thousand 60-kg bags (robusta lots converted at 10 t). Each point carries the spread twice: `spread` in the market's own unit and `spread_pct` as a share of the front contract's price, which is the only one of the two that is comparable across price regimes and across the two markets. No curve is fitted and no single pooled number is presented as the answer \u2014 see `analysis` for the split-half check.",
   "sign_convention": "front minus deferred (opposite of cot.structure_*)",
   "markets": {
     "arabica": {
@@ -9,307 +9,368 @@
         {
           "month": "2021-08",
           "stocks_k_bags": 2165.26,
-          "spread": -2.8375
+          "spread": -2.8375,
+          "spread_pct": -1.5569
         },
         {
           "month": "2021-09",
           "stocks_k_bags": 2089.39,
-          "spread": -2.2286
+          "spread": -2.2286,
+          "spread_pct": -1.1744
         },
         {
           "month": "2021-10",
           "stocks_k_bags": 1879.86,
-          "spread": -2.8214
+          "spread": -2.8214,
+          "spread_pct": -1.3925
         },
         {
           "month": "2021-11",
           "stocks_k_bags": 1599.65,
-          "spread": -1.4286
+          "spread": -1.4286,
+          "spread_pct": -0.6881
         },
         {
           "month": "2021-12",
           "stocks_k_bags": 1541.07,
-          "spread": 0.2682
+          "spread": 0.2682,
+          "spread_pct": 0.1122
         },
         {
           "month": "2022-01",
           "stocks_k_bags": 1218.63,
-          "spread": -0.1225
+          "spread": -0.1225,
+          "spread_pct": -0.0523
         },
         {
           "month": "2022-02",
           "stocks_k_bags": 989.39,
-          "spread": 0.1737
+          "spread": 0.1737,
+          "spread_pct": 0.0718
         },
         {
           "month": "2022-03",
           "stocks_k_bags": 1080.12,
-          "spread": 0.6174
+          "spread": 0.6174,
+          "spread_pct": 0.2745
         },
         {
           "month": "2022-04",
           "stocks_k_bags": 1118.6,
-          "spread": 0.0175
+          "spread": 0.0175,
+          "spread_pct": 0.0078
         },
         {
           "month": "2022-05",
           "stocks_k_bags": 1060.5,
-          "spread": 0.1429
+          "spread": 0.1429,
+          "spread_pct": 0.0648
         },
         {
           "month": "2022-06",
           "stocks_k_bags": 887.43,
-          "spread": 1.2119
+          "spread": 1.2119,
+          "spread_pct": 0.5279
         },
         {
           "month": "2022-07",
           "stocks_k_bags": 700.05,
-          "spread": 3.7225
+          "spread": 3.7225,
+          "spread_pct": 1.7282
         },
         {
           "month": "2022-08",
           "stocks_k_bags": 672.59,
-          "spread": 3.5348
+          "spread": 3.5348,
+          "spread_pct": 1.5749
         },
         {
           "month": "2022-09",
           "stocks_k_bags": 426.18,
-          "spread": 4.9238
+          "spread": 4.9238,
+          "spread_pct": 2.187
         },
         {
           "month": "2022-10",
           "stocks_k_bags": 384.8,
-          "spread": 6.069
+          "spread": 6.069,
+          "spread_pct": 2.9543
         },
         {
           "month": "2022-11",
           "stocks_k_bags": 591.77,
-          "spread": 0.0976
+          "spread": 0.0976,
+          "spread_pct": -0.0199
         },
         {
           "month": "2022-12",
           "stocks_k_bags": 814.69,
-          "spread": -0.6762
+          "spread": -0.6762,
+          "spread_pct": -0.4245
         },
         {
           "month": "2023-01",
           "stocks_k_bags": 861.5,
-          "spread": -0.445
+          "spread": -0.445,
+          "spread_pct": -0.2889
         },
         {
           "month": "2023-02",
           "stocks_k_bags": 787.35,
-          "spread": 1.5316
+          "spread": 1.5316,
+          "spread_pct": 0.7905
         },
         {
           "month": "2023-03",
           "stocks_k_bags": 742.89,
-          "spread": 2.8935
+          "spread": 2.8935,
+          "spread_pct": 1.5912
         },
         {
           "month": "2023-04",
           "stocks_k_bags": 680.16,
-          "spread": 2.3658
+          "spread": 2.3658,
+          "spread_pct": 1.2285
         },
         {
           "month": "2023-05",
           "stocks_k_bags": 583.52,
-          "spread": 2.8636
+          "spread": 2.8636,
+          "spread_pct": 1.5256
         },
         {
           "month": "2023-06",
           "stocks_k_bags": 544.91,
-          "spread": 2.9929
+          "spread": 2.9929,
+          "spread_pct": 1.6642
         },
         {
           "month": "2023-07",
           "stocks_k_bags": 528.75,
-          "spread": 0.5
+          "spread": 0.5,
+          "spread_pct": 0.3022
         },
         {
           "month": "2023-08",
           "stocks_k_bags": 484.74,
-          "spread": -1.0
+          "spread": -1.0,
+          "spread_pct": -0.6775
         },
         {
           "month": "2023-09",
           "stocks_k_bags": 441.94,
-          "spread": -1.2975
+          "spread": -1.2975,
+          "spread_pct": -0.8583
         },
         {
           "month": "2023-10",
           "stocks_k_bags": 389.14,
-          "spread": 0.0091
+          "spread": 0.0091,
+          "spread_pct": -0.0245
         },
         {
           "month": "2023-11",
           "stocks_k_bags": 224.07,
-          "spread": 5.6833
+          "spread": 5.6833,
+          "spread_pct": 3.1697
         },
         {
           "month": "2023-12",
           "stocks_k_bags": 251.22,
-          "spread": 6.8425
+          "spread": 6.8425,
+          "spread_pct": 3.5099
         },
         {
           "month": "2024-01",
           "stocks_k_bags": 249.83,
-          "spread": 3.0643
+          "spread": 3.0643,
+          "spread_pct": 1.635
         },
         {
           "month": "2024-02",
           "stocks_k_bags": 353.61,
-          "spread": 6.3125
+          "spread": 6.3125,
+          "spread_pct": 3.2731
         },
         {
           "month": "2024-03",
           "stocks_k_bags": 595.21,
-          "spread": 4.7875
+          "spread": 4.7875,
+          "spread_pct": 2.4717
         },
         {
           "month": "2024-04",
           "stocks_k_bags": 659.76,
-          "spread": 3.9
+          "spread": 3.9,
+          "spread_pct": 1.6894
         },
         {
           "month": "2024-05",
           "stocks_k_bags": 784.77,
-          "spread": 2.2455
+          "spread": 2.2455,
+          "spread_pct": 1.0826
         },
         {
           "month": "2024-06",
           "stocks_k_bags": 808.18,
-          "spread": 0.6605
+          "spread": 0.6605,
+          "spread_pct": 0.2848
         },
         {
           "month": "2024-07",
           "stocks_k_bags": 814.92,
-          "spread": 1.6761
+          "spread": 1.6761,
+          "spread_pct": 0.7026
         },
         {
           "month": "2024-08",
           "stocks_k_bags": 847.87,
-          "spread": 2.8523
+          "spread": 2.8523,
+          "spread_pct": 1.163
         },
         {
           "month": "2024-09",
           "stocks_k_bags": 814.0,
-          "spread": 2.1075
+          "spread": 2.1075,
+          "spread_pct": 0.8262
         },
         {
           "month": "2024-10",
           "stocks_k_bags": 852.06,
-          "spread": 1.2348
+          "spread": 1.2348,
+          "spread_pct": 0.4869
         },
         {
           "month": "2024-11",
           "stocks_k_bags": 900.55,
-          "spread": 1.1325
+          "spread": 1.1325,
+          "spread_pct": 0.3759
         },
         {
           "month": "2024-12",
           "stocks_k_bags": 979.97,
-          "spread": 3.0048
+          "spread": 3.0048,
+          "spread_pct": 0.934
         },
         {
           "month": "2025-01",
           "stocks_k_bags": 867.58,
-          "spread": 4.2881
+          "spread": 4.2881,
+          "spread_pct": 1.2675
         },
         {
           "month": "2025-02",
           "stocks_k_bags": 805.59,
-          "spread": 8.1158
+          "spread": 8.1158,
+          "spread_pct": 1.9947
         },
         {
           "month": "2025-03",
           "stocks_k_bags": 770.48,
-          "spread": 5.2452
+          "spread": 5.2452,
+          "spread_pct": 1.3373
         },
         {
           "month": "2025-04",
           "stocks_k_bags": 813.67,
-          "spread": 4.8524
+          "spread": 4.8524,
+          "spread_pct": 1.234
         },
         {
           "month": "2025-05",
           "stocks_k_bags": 888.39,
-          "spread": 6.8595
+          "spread": 6.8595,
+          "spread_pct": 1.7788
         },
         {
           "month": "2025-06",
           "stocks_k_bags": 841.17,
-          "spread": 3.35
+          "spread": 3.35,
+          "spread_pct": 1.0167
         },
         {
           "month": "2025-07",
           "stocks_k_bags": 770.62,
-          "spread": 5.1818
+          "spread": 5.1818,
+          "spread_pct": 1.7302
         },
         {
           "month": "2025-08",
           "stocks_k_bags": 710.2,
-          "spread": 8.3405
+          "spread": 8.3405,
+          "spread_pct": 2.4222
         },
         {
           "month": "2025-09",
           "stocks_k_bags": 569.94,
-          "spread": 14.4762
+          "spread": 14.4762,
+          "spread_pct": 3.7727
         },
         {
           "month": "2025-10",
           "stocks_k_bags": 431.73,
-          "spread": 19.363
+          "spread": 19.363,
+          "spread_pct": 4.9262
         },
         {
           "month": "2025-11",
           "stocks_k_bags": 406.96,
-          "spread": 25.9474
+          "spread": 25.9474,
+          "spread_pct": 6.3636
         },
         {
           "month": "2025-12",
           "stocks_k_bags": 453.15,
-          "spread": 21.7136
+          "spread": 21.7136,
+          "spread_pct": 5.6371
         },
         {
           "month": "2026-01",
           "stocks_k_bags": 435.72,
-          "spread": 17.875
+          "spread": 17.875,
+          "spread_pct": 5.0115
         },
         {
           "month": "2026-02",
           "stocks_k_bags": 477.23,
-          "spread": 5.5316
+          "spread": 5.5316,
+          "spread_pct": 1.8106
         },
         {
           "month": "2026-03",
           "stocks_k_bags": 557.47,
-          "spread": 5.5727
+          "spread": 5.5727,
+          "spread_pct": 1.8532
         },
         {
           "month": "2026-04",
           "stocks_k_bags": 499.28,
-          "spread": 8.5238
+          "spread": 8.5238,
+          "spread_pct": 2.8228
         },
         {
           "month": "2026-05",
           "stocks_k_bags": 435.43,
-          "spread": 12.3929
+          "spread": 12.3929,
+          "spread_pct": 4.3016
         },
         {
           "month": "2026-06",
           "stocks_k_bags": 377.46,
-          "spread": 7.525
+          "spread": 7.525,
+          "spread_pct": 2.7235
         },
         {
           "month": "2026-07",
           "stocks_k_bags": 264.18,
-          "spread": 16.0174
+          "spread": 16.0174,
+          "spread_pct": 4.9263
         },
         {
           "month": "2026-08",
           "stocks_k_bags": 226.24,
-          "spread": 24.4294
+          "spread": 24.4294,
+          "spread_pct": 7.0095
         }
       ],
       "analysis": {
@@ -331,11 +392,32 @@
         },
         "holds_in_both_halves": true
       },
+      "analysis_pct": {
+        "n": 61,
+        "spearman": -0.7105,
+        "first_half": {
+          "span": [
+            "2021-08",
+            "2024-01"
+          ],
+          "spearman": -0.6365
+        },
+        "second_half": {
+          "span": [
+            "2024-02",
+            "2026-08"
+          ],
+          "spearman": -0.8613
+        },
+        "holds_in_both_halves": true
+      },
       "latest": {
         "date": "2026-08-25",
         "spread": 35.9,
+        "spread_pct": 9.6661,
         "front": "KCU26",
-        "second": "KCZ26"
+        "second": "KCZ26",
+        "front_price": 371.4
       }
     },
     "robusta": {
@@ -345,307 +427,368 @@
         {
           "month": "2021-08",
           "stocks_k_bags": 2292.83,
-          "spread": -10.3684
+          "spread": -10.3684,
+          "spread_pct": -0.5611
         },
         {
           "month": "2021-09",
           "stocks_k_bags": 2048.33,
-          "spread": 5.2727
+          "spread": 5.2727,
+          "spread_pct": 0.2469
         },
         {
           "month": "2021-10",
           "stocks_k_bags": 1943.5,
-          "spread": 6.7143
+          "spread": 6.7143,
+          "spread_pct": 0.2822
         },
         {
           "month": "2021-11",
           "stocks_k_bags": 1758.83,
-          "spread": 41.1364
+          "spread": 41.1364,
+          "spread_pct": 1.8054
         },
         {
           "month": "2021-12",
           "stocks_k_bags": 1641.0,
-          "spread": 105.3478
+          "spread": 105.3478,
+          "spread_pct": 4.3402
         },
         {
           "month": "2022-01",
           "stocks_k_bags": 1562.83,
-          "spread": 95.2381
+          "spread": 95.2381,
+          "spread_pct": 4.0173
         },
         {
           "month": "2022-02",
           "stocks_k_bags": 1534.0,
-          "spread": 39.95
+          "spread": 39.95,
+          "spread_pct": 1.745
         },
         {
           "month": "2022-03",
           "stocks_k_bags": 1589.83,
-          "spread": 110.1304
+          "spread": 110.1304,
+          "spread_pct": 4.9334
         },
         {
           "month": "2022-04",
           "stocks_k_bags": 1534.83,
-          "spread": -7.45
+          "spread": -7.45,
+          "spread_pct": -0.3624
         },
         {
           "month": "2022-05",
           "stocks_k_bags": 1687.5,
-          "spread": -7.5909
+          "spread": -7.5909,
+          "spread_pct": -0.3682
         },
         {
           "month": "2022-06",
           "stocks_k_bags": 1805.0,
-          "spread": -11.3636
+          "spread": -11.3636,
+          "spread_pct": -0.5495
         },
         {
           "month": "2022-07",
           "stocks_k_bags": 1714.5,
-          "spread": -8.4286
+          "spread": -8.4286,
+          "spread_pct": -0.429
         },
         {
           "month": "2022-08",
           "stocks_k_bags": 1579.17,
-          "spread": -2.0
+          "spread": -2.0,
+          "spread_pct": -0.0867
         },
         {
           "month": "2022-09",
           "stocks_k_bags": 1570.17,
-          "spread": -2.9091
+          "spread": -2.9091,
+          "spread_pct": -0.1311
         },
         {
           "month": "2022-10",
           "stocks_k_bags": 1503.83,
-          "spread": 10.3333
+          "spread": 10.3333,
+          "spread_pct": 0.5194
         },
         {
           "month": "2022-11",
           "stocks_k_bags": 1421.0,
-          "spread": 20.6364
+          "spread": 20.6364,
+          "spread_pct": 1.108
         },
         {
           "month": "2022-12",
           "stocks_k_bags": 1071.0,
-          "spread": 56.5238
+          "spread": 56.5238,
+          "spread_pct": 2.9296
         },
         {
           "month": "2023-01",
           "stocks_k_bags": 1029.33,
-          "spread": 49.7143
+          "spread": 49.7143,
+          "spread_pct": 2.5421
         },
         {
           "month": "2023-02",
           "stocks_k_bags": 1168.67,
-          "spread": -6.6
+          "spread": -6.6,
+          "spread_pct": -0.3086
         },
         {
           "month": "2023-03",
           "stocks_k_bags": 1255.17,
-          "spread": -9.4348
+          "spread": -9.4348,
+          "spread_pct": -0.4551
         },
         {
           "month": "2023-04",
           "stocks_k_bags": 1311.5,
-          "spread": 76.1579
+          "spread": 76.1579,
+          "spread_pct": 3.1027
         },
         {
           "month": "2023-05",
           "stocks_k_bags": 1356.83,
-          "spread": 121.0
+          "spread": 121.0,
+          "spread_pct": 4.6006
         },
         {
           "month": "2023-06",
           "stocks_k_bags": 1231.67,
-          "spread": 75.1818
+          "spread": 75.1818,
+          "spread_pct": 2.7003
         },
         {
           "month": "2023-07",
           "stocks_k_bags": 863.83,
-          "spread": 205.1905
+          "spread": 205.1905,
+          "spread_pct": 7.4448
         },
         {
           "month": "2023-08",
           "stocks_k_bags": 560.5,
-          "spread": 176.1739
+          "spread": 176.1739,
+          "spread_pct": 6.682
         },
         {
           "month": "2023-09",
           "stocks_k_bags": 711.0,
-          "spread": 173.7619
+          "spread": 173.7619,
+          "spread_pct": 6.5665
         },
         {
           "month": "2023-10",
           "stocks_k_bags": 652.0,
-          "spread": 105.5
+          "spread": 105.5,
+          "spread_pct": 4.2756
         },
         {
           "month": "2023-11",
           "stocks_k_bags": 654.67,
-          "spread": 158.1818
+          "spread": 158.1818,
+          "spread_pct": 6.0165
         },
         {
           "month": "2023-12",
           "stocks_k_bags": 576.33,
-          "spread": 93.85
+          "spread": 93.85,
+          "spread_pct": 3.1598
         },
         {
           "month": "2024-01",
           "stocks_k_bags": 472.0,
-          "spread": 203.2727
+          "spread": 203.2727,
+          "spread_pct": 6.2997
         },
         {
           "month": "2024-02",
           "stocks_k_bags": 403.17,
-          "spread": 96.8571
+          "spread": 96.8571,
+          "spread_pct": 2.9974
         },
         {
           "month": "2024-03",
           "stocks_k_bags": 507.83,
-          "spread": 72.2
+          "spread": 72.2,
+          "spread_pct": 2.1291
         },
         {
           "month": "2024-04",
           "stocks_k_bags": 657.5,
-          "spread": 93.2273
+          "spread": 93.2273,
+          "spread_pct": 2.2504
         },
         {
           "month": "2024-05",
           "stocks_k_bags": 779.67,
-          "spread": 195.5652
+          "spread": 195.5652,
+          "spread_pct": 5.1178
         },
         {
           "month": "2024-06",
           "stocks_k_bags": 970.67,
-          "spread": 169.15
+          "spread": 169.15,
+          "spread_pct": 3.9399
         },
         {
           "month": "2024-07",
           "stocks_k_bags": 1056.33,
-          "spread": 214.6087
+          "spread": 214.6087,
+          "spread_pct": 4.6856
         },
         {
           "month": "2024-08",
           "stocks_k_bags": 1010.33,
-          "spread": 258.3636
+          "spread": 258.3636,
+          "spread_pct": 5.3448
         },
         {
           "month": "2024-09",
           "stocks_k_bags": 739.33,
-          "spread": 351.5238
+          "spread": 351.5238,
+          "spread_pct": 6.4763
         },
         {
           "month": "2024-10",
           "stocks_k_bags": 651.17,
-          "spread": 110.913
+          "spread": 110.913,
+          "spread_pct": 2.2527
         },
         {
           "month": "2024-11",
           "stocks_k_bags": 641.17,
-          "spread": 13.7143
+          "spread": 13.7143,
+          "spread_pct": 0.2695
         },
         {
           "month": "2024-12",
           "stocks_k_bags": 725.83,
-          "spread": 52.7619
+          "spread": 52.7619,
+          "spread_pct": 1.0367
         },
         {
           "month": "2025-01",
           "stocks_k_bags": 743.83,
-          "spread": 38.6818
+          "spread": 38.6818,
+          "spread_pct": 0.7523
         },
         {
           "month": "2025-02",
           "stocks_k_bags": 707.83,
-          "spread": 4.85
+          "spread": 4.85,
+          "spread_pct": 0.0891
         },
         {
           "month": "2025-03",
           "stocks_k_bags": 724.17,
-          "spread": 0.4286
+          "spread": 0.4286,
+          "spread_pct": 0.005
         },
         {
           "month": "2025-04",
           "stocks_k_bags": 704.17,
-          "spread": -9.1429
+          "spread": -9.1429,
+          "spread_pct": -0.1591
         },
         {
           "month": "2025-05",
           "stocks_k_bags": 901.5,
-          "spread": -22.25
+          "spread": -22.25,
+          "spread_pct": -0.4356
         },
         {
           "month": "2025-06",
           "stocks_k_bags": 862.33,
-          "spread": 121.4286
+          "spread": 121.4286,
+          "spread_pct": 2.9268
         },
         {
           "month": "2025-07",
           "stocks_k_bags": 1168.67,
-          "spread": 235.5652
+          "spread": 235.5652,
+          "spread_pct": 6.38
         },
         {
           "month": "2025-08",
           "stocks_k_bags": 1120.67,
-          "spread": 136.619
+          "spread": 136.619,
+          "spread_pct": 3.1154
         },
         {
           "month": "2025-09",
           "stocks_k_bags": 1075.0,
-          "spread": 169.9091
+          "spread": 169.9091,
+          "spread_pct": 3.671
         },
         {
           "month": "2025-10",
           "stocks_k_bags": 1012.83,
-          "spread": 34.5217
+          "spread": 34.5217,
+          "spread_pct": 0.7579
         },
         {
           "month": "2025-11",
           "stocks_k_bags": 723.67,
-          "spread": 37.4
+          "spread": 37.4,
+          "spread_pct": 0.8264
         },
         {
           "month": "2025-12",
           "stocks_k_bags": 703.5,
-          "spread": 119.1818
+          "spread": 119.1818,
+          "spread_pct": 2.9137
         },
         {
           "month": "2026-01",
           "stocks_k_bags": 757.33,
-          "spread": 153.4286
+          "spread": 153.4286,
+          "spread_pct": 3.6837
         },
         {
           "month": "2026-02",
           "stocks_k_bags": 761.5,
-          "spread": 57.3
+          "spread": 57.3,
+          "spread_pct": 1.5145
         },
         {
           "month": "2026-03",
           "stocks_k_bags": 682.17,
-          "spread": 85.2273
+          "spread": 85.2273,
+          "spread_pct": 2.3074
         },
         {
           "month": "2026-04",
           "stocks_k_bags": 640.83,
-          "spread": 131.2857
+          "spread": 131.2857,
+          "spread_pct": 3.7245
         },
         {
           "month": "2026-05",
           "stocks_k_bags": 653.5,
-          "spread": 185.8421
+          "spread": 185.8421,
+          "spread_pct": 5.1782
         },
         {
           "month": "2026-06",
           "stocks_k_bags": 675.5,
-          "spread": 90.4545
+          "spread": 90.4545,
+          "spread_pct": 2.5212
         },
         {
           "month": "2026-07",
           "stocks_k_bags": 691.33,
-          "spread": 48.1304
+          "spread": 48.1304,
+          "spread_pct": 1.2354
         },
         {
           "month": "2026-08",
           "stocks_k_bags": 805.17,
-          "spread": 3.5882
+          "spread": 3.5882,
+          "spread_pct": 0.094
         }
       ],
       "analysis": {
@@ -667,11 +810,32 @@
         },
         "holds_in_both_halves": false
       },
+      "analysis_pct": {
+        "n": 61,
+        "spearman": -0.3574,
+        "first_half": {
+          "span": [
+            "2021-08",
+            "2024-01"
+          ],
+          "spearman": -0.6445
+        },
+        "second_half": {
+          "span": [
+            "2024-02",
+            "2026-08"
+          ],
+          "spearman": 0.2141
+        },
+        "holds_in_both_halves": false
+      },
       "latest": {
         "date": "2026-08-25",
         "spread": -38.0,
+        "spread_pct": -1.0402,
         "front": "RCU26",
-        "second": "RCX26"
+        "second": "RCX26",
+        "front_price": 3653.0
       }
     }
   }

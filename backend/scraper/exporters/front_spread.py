@@ -62,6 +62,15 @@ def front_spread(board: dict) -> dict | None:
     the way the trade quotes it and the way a scatter against stocks reads.
     Note this is the OPPOSITE of the `structure_ny/ldn` field on cot rows,
     which stores deferred-minus-front.
+
+    Also returns the spread as a PERCENT OF THE FRONT PRICE. The absolute
+    figure is the one the trade quotes, but it is not comparable across time
+    or across the two markets: 40 $/t on robusta at 1,500 and 40 $/t at 5,600
+    are different curves, and c/lb cannot be set beside $/t at all. The
+    percentage is scale-free and does both. It is computed here, per day, so
+    the monthly aggregate can average the daily RATIO rather than divide one
+    average by another — the two differ whenever the price level moves within
+    the month, and the ratio of averages is the wrong one.
     """
     rows = []
     for sym, v in (board or {}).items():
@@ -73,20 +82,30 @@ def front_spread(board: dict) -> dict | None:
         return None
     rows.sort(key=lambda r: r[0])
     (_, f_sym, f_px), (_, s_sym, s_px) = rows[0], rows[1]
-    return {"spread": round(f_px - s_px, 4), "front": f_sym, "second": s_sym}
+    return {
+        "spread": round(f_px - s_px, 4),
+        "spread_pct": round(100.0 * (f_px - s_px) / f_px, 4),
+        "front": f_sym,
+        "second": s_sym,
+        "front_price": round(f_px, 4),
+    }
 
 
-def monthly_mean_spread(daily: dict[str, dict]) -> dict[str, float]:
-    """Calendar-month average of the daily spread.
+def monthly_mean_spread(daily: dict[str, dict], field: str = "spread") -> dict[str, float]:
+    """Calendar-month average of a daily spread field.
 
     A month average, not a month-end reading: the front contract's last days
     are thin and erratic, and one bad print at month end would move a scatter
     point that is meant to describe the whole month.
+
+    Pass `field="spread_pct"` for the scale-free series. Averaging the daily
+    percentages is deliberate — see `front_spread`.
     """
     buckets: dict[str, list[float]] = defaultdict(list)
     for day, row in daily.items():
-        if row:
-            buckets[day[:7]].append(row["spread"])
+        v = (row or {}).get(field)
+        if isinstance(v, (int, float)):
+            buckets[day[:7]].append(float(v))
     return {m: round(sum(v) / len(v), 4) for m, v in buckets.items() if v}
 
 
@@ -124,16 +143,21 @@ def spearman(xs: list[float], ys: list[float]) -> float | None:
     return round(num / den, 4) if den else None
 
 
-def analyse(points: list[dict]) -> dict:
+def analyse(points: list[dict], field: str = "spread") -> dict:
     """Pooled correlation PLUS both halves.
 
     The halves are the point. A pooled −0.41 that is −0.66 early and +0.27 late
     is not a weak relationship, it is a relationship that stopped — and only the
     split shows the difference.
+
+    Run over `spread_pct` as well as `spread`. The percentage is not a monotone
+    transform of the absolute spread — it is divided by a price level that
+    moves — so the rank correlation can genuinely differ, and a finding that
+    survives only in one unit is a finding about the unit.
     """
     pts = sorted(points, key=lambda p: p["month"])
     xs = [p["stocks_k_bags"] for p in pts]
-    ys = [p["spread"] for p in pts]
+    ys = [p[field] for p in pts]
     h = len(pts) // 2
     full = spearman(xs, ys)
     r1 = spearman(xs[:h], ys[:h])
@@ -271,11 +295,14 @@ def export_front_spread() -> None:
     archive = json.loads(ARCHIVE.read_text(encoding="utf-8"))
 
     payload: dict = {
-        "note": ("Front (1st) minus 2nd nearby, from the 5-year per-contract archive, "
-                 "against end-month exchange certified stocks. Positive spread = "
-                 "backwardation. Stocks in thousand 60-kg bags (robusta lots converted "
-                 "at 10 t). No curve is fitted and no single pooled number is presented "
-                 "as the answer — see `analysis` for the split-half check."),
+        "note": ("Front (1st) minus 2nd nearby, from the per-contract archive, against "
+                 "end-month exchange certified stocks. Positive spread = backwardation. "
+                 "Stocks in thousand 60-kg bags (robusta lots converted at 10 t). Each "
+                 "point carries the spread twice: `spread` in the market's own unit and "
+                 "`spread_pct` as a share of the front contract's price, which is the "
+                 "only one of the two that is comparable across price regimes and across "
+                 "the two markets. No curve is fitted and no single pooled number is "
+                 "presented as the answer — see `analysis` for the split-half check."),
         "sign_convention": "front minus deferred (opposite of cot.structure_*)",
         "markets": {},
     }
@@ -285,11 +312,13 @@ def export_front_spread() -> None:
         daily = {d: front_spread(b) for d, b in board.items()}
         daily = {d: v for d, v in daily.items() if v}
         m_spread = monthly_mean_spread(daily)
+        m_pct = monthly_mean_spread(daily, "spread_pct")
         m_stocks = month_end_stocks(
             _load_stock_snapshots(cfg["stock_files"]), cfg["stock_field"], cfg["stock_mult"])
 
         months = sorted(set(m_spread) & set(m_stocks))
-        points = [{"month": m, "stocks_k_bags": m_stocks[m], "spread": m_spread[m]} for m in months]
+        points = [{"month": m, "stocks_k_bags": m_stocks[m],
+                   "spread": m_spread[m], "spread_pct": m_pct[m]} for m in months]
 
         latest_day = max(daily) if daily else None
         payload["markets"][key] = {
@@ -297,6 +326,10 @@ def export_front_spread() -> None:
             "unit": cfg["unit"],
             "points": points,
             "analysis": analyse(points) if len(points) >= 12 else {"n": len(points)},
+            # The same check in the scale-free unit, so the reader can see the
+            # result is a property of the market and not of c/lb versus $/t.
+            "analysis_pct": (analyse(points, "spread_pct") if len(points) >= 12
+                             else {"n": len(points)}),
             "latest": ({"date": latest_day, **daily[latest_day]} if latest_day else None),
         }
 
