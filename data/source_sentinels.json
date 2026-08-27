@@ -21,7 +21,7 @@
     "blind_alerted": null,
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-26T07:28:18+00:00",
+    "last_probe": "2026-08-27T17:52:16+00:00",
     "overdue_alerted": null,
     "signal": null,
     "verify": null
@@ -30,7 +30,7 @@
     "blind_alerted": "2026-08",
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-08-26T07:28:18+00:00",
+    "last_probe": "2026-08-27T17:52:16+00:00",
     "overdue_alerted": "2026-08",
     "signal": null,
     "verify": null
@@ -65,12 +65,18 @@
   },
   "fnc": {
     "blind_alerted": null,
-    "confirmed": "2026-07",
-    "last_found": null,
-    "last_probe": "2026-08-26T07:28:18+00:00",
+    "confirmed": "2026-08",
+    "last_found": "2026-08-27T17:52:16+00:00",
+    "last_probe": "2026-08-27T17:52:16+00:00",
     "overdue_alerted": "2026-08",
-    "signal": "db3e559a25a56c4d1b4507c1574b90b8d25e68646f9df99c817e1883c2f047b2",
-    "verify": null
+    "signal": "76caafb0bfe54c3bdb89fab6e605ed5383cc95b07c15ef13fd38eda7689507f8",
+    "verify": {
+      "dispatched_at": "2026-08-27T17:52:16+00:00",
+      "expected": "2026-07",
+      "file": "frontend/public/data/colombia_supply.json",
+      "kind": "month_in_file",
+      "status": "pending"
+    }
   },
   "ucda": {
     "confirmed": "2026-08",
