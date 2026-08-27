@@ -1,5 +1,9 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine } from "recharts";
+import { ResponsiveContainer } from "@/components/ui/FocusableChart";
+
+import { fmtDateLabel } from "@/lib/formatters";
 
 // US Treasury par yield curve, published by Treasury itself (no vendor in the
 // path). Coffee's interest is the dollar channel: the front end of the curve
@@ -28,6 +32,9 @@ const TENOR_LABEL: Record<string, string> = {
   "10y": "10Y", "20y": "20Y", "30y": "30Y",
 };
 
+type Window = "3M" | "6M" | "1Y" | "MAX";
+const WINDOW_DAYS: Record<Window, number> = { "3M": 63, "6M": 126, "1Y": 252, MAX: 10_000 };
+
 function bpChange(now?: number, prev?: number): { text: string; cls: string } {
   if (now == null || prev == null) return { text: "—", cls: "text-slate-500" };
   const bp = Math.round((now - prev) * 100);
@@ -53,6 +60,87 @@ function CurveLine({ curve, tenors }: { curve: Record<string, number>; tenors: s
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-12" preserveAspectRatio="none">
       <polyline points={path} fill="none" stroke="#60a5fa" strokeWidth="1.5" />
     </svg>
+  );
+}
+
+function YieldHistory({ history }: { history: Session[] }) {
+  // The 10Y is the default because it is the discount rate the rest of the
+  // complex is priced off, but every tenor in the file is selectable — they all
+  // come down the same feed, so offering only one would be throwing data away.
+  const [tenor, setTenor] = useState("10y");
+  const [win, setWin] = useState<Window>("1Y");
+
+  const available = useMemo(() => {
+    const seen = new Set<string>();
+    for (const s of history) for (const t of Object.keys(s.yields)) seen.add(t);
+    return ["2y", "5y", "10y", "30y"].filter((t) => seen.has(t));
+  }, [history]);
+
+  const series = useMemo(() => {
+    const rows = history.slice(-WINDOW_DAYS[win]);
+    return rows
+      .filter((r) => r.yields[tenor] != null)
+      .map((r) => ({ date: r.date, label: fmtDateLabel(r.date), y: r.yields[tenor] }));
+  }, [history, tenor, win]);
+
+  if (series.length < 2) return null;
+
+  const first = series[0].y;
+  const last = series[series.length - 1].y;
+  const bp = Math.round((last - first) * 100);
+
+  return (
+    <div className="bg-slate-800 rounded-lg border border-slate-700 p-3 space-y-2">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-baseline gap-2">
+          <span className="text-[10px] uppercase tracking-wide text-slate-400">
+            {TENOR_LABEL[tenor] ?? tenor} history
+          </span>
+          <span className="font-mono text-slate-100">{last.toFixed(2)}%</span>
+          <span className={`text-[10px] font-mono ${bp > 0 ? "text-red-400" : bp < 0 ? "text-emerald-400" : "text-slate-400"}`}>
+            {bp > 0 ? "+" : ""}{bp}bp over {win === "MAX" ? "the full series" : win}
+          </span>
+        </div>
+        <div className="flex gap-1">
+          {available.map((t) => (
+            <button key={t} onClick={() => setTenor(t)}
+              className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                t === tenor ? "bg-blue-500 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}>
+              {TENOR_LABEL[t] ?? t}
+            </button>
+          ))}
+          <span className="w-2" />
+          {(Object.keys(WINDOW_DAYS) as Window[]).map((w) => (
+            <button key={w} onClick={() => setWin(w)}
+              className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                w === win ? "bg-blue-500 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}>
+              {w}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="h-56">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={series} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}>
+            <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+            <XAxis dataKey="label" stroke="#64748b" tick={{ fontSize: 9 }} minTickGap={24} />
+            <YAxis stroke="#64748b" tick={{ fontSize: 9 }} domain={["auto", "auto"]}
+                   tickFormatter={(v) => `${Number(v).toFixed(1)}%`} />
+            <Tooltip
+              contentStyle={{ background: "#0f172a", border: "1px solid #334155", fontSize: 11 }}
+              labelStyle={{ color: "#94a3b8" }}
+              formatter={(v) => [`${Number(v).toFixed(2)}%`, TENOR_LABEL[tenor] ?? tenor]} />
+            <ReferenceLine y={first} stroke="#475569" strokeDasharray="3 3" />
+            <Line type="monotone" dataKey="y" stroke="#60a5fa" strokeWidth={1.6} dot={false} isAnimationActive={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="text-[9px] text-slate-600">
+        Dashed line marks the level at the start of the window. {series.length} sessions shown
+        of {history.length} retained.
+      </div>
+    </div>
   );
 }
 
@@ -127,6 +215,8 @@ export default function TreasuryYieldsPanel() {
           <CurveLine curve={data.latest.yields} tenors={tenors} />
         </div>
       </div>
+
+      <YieldHistory history={data.history} />
 
       <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-x-auto">
         <table className="w-full text-xs min-w-[420px]">
