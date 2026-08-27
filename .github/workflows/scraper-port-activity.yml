@@ -21,7 +21,10 @@ jobs:
     # mid-retry (they surfaced as a confusing "cancelled", froze port_activity —
     # e.g. 2026-07-29 ran 15.3 min then timed out). 30 min lets all 3 attempts
     # complete so a genuine source outage fails cleanly instead of timing out.
-    timeout-minutes: 30
+    # The scraper self-limits to an 18-min fetch budget, so this only needs to
+    # cover that plus the commit/push. Generous headroom on purpose: being killed
+    # here means losing everything the run fetched.
+    timeout-minutes: 40
     permissions:
       contents: write
 
