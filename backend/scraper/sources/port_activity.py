@@ -64,11 +64,18 @@ _PAGE = 2000
 
 # Minimum spacing between requests, and per-request read timeout. See _pace().
 _THROTTLE_S = 1.5
-_TIMEOUT_S = 60
+_TIMEOUT_S = 45
 _last_request = 0.0
 
 # How many passes over the still-failing ports before giving up on a run.
-_PASSES = 3
+_PASSES = 2
+
+# Stop starting new ports after this long, so the run always reaches the commit
+# step instead of being killed by the job timeout with nothing written. Ports
+# not reached keep their existing data and are picked up by the next run — with
+# retention in place, successive runs accumulate rather than starting over.
+_BUDGET_S = 18 * 60
+_deadline = 0.0
 
 _HEADERS = {
     "User-Agent": (
@@ -125,7 +132,9 @@ def _get(params: dict) -> dict:
     import requests
 
     last_err: Exception | None = None
-    for attempt in range(4):
+    # Few attempts on purpose: when the service is throttling, a long per-request
+    # retry chain burns the run's whole budget. Recovery is the pass-level retry.
+    for attempt in range(3):
         try:
             _pace()
             resp = requests.get(_BASE, params=params, headers=_HEADERS, timeout=_TIMEOUT_S)
@@ -272,9 +281,17 @@ def _fetch_pass(specs: list[dict], fresh: dict[str, dict]) -> list[dict]:
     """Fetch one pass over `specs`, writing each success into `fresh` and its
     per-port file. Returns the specs that still need retrying.
     """
+    import time
+
     still: list[dict] = []
-    for spec in specs:
+    for i, spec in enumerate(specs):
         key = spec["key"]
+        if time.monotonic() > _deadline:
+            # Out of budget — bank what we have rather than get killed mid-run.
+            print(f"[port_activity] time budget reached; deferring "
+                  f"{len(specs) - i} port(s) to the next run")
+            still.extend(specs[i:])
+            break
         try:
             portid = spec.get("portid")
             portname = None
@@ -327,15 +344,18 @@ def run() -> dict | None:
     """
     import time
 
+    global _deadline
+    _deadline = time.monotonic() + _BUDGET_S
+
     fresh: dict[str, dict] = {}   # key → meta, fetched successfully this run
     pending = list(PORTS)
     for attempt in range(_PASSES):
-        if not pending:
+        if not pending or time.monotonic() > _deadline:
             break
         if attempt:
             # Throttling is the usual reason a port fails, so back off and let
             # the service recover rather than losing the port for a whole week.
-            pause = 60 * attempt
+            pause = 45 * attempt
             print(f"[port_activity] retrying {len(pending)} port(s) in {pause}s "
                   f"(pass {attempt + 1}/{_PASSES})")
             time.sleep(pause)
