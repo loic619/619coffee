@@ -140,6 +140,29 @@ def fetch_curve(existing: list[dict] | None = None) -> dict | None:
         print(f"  [treasury] merged series short (<{_MIN_SESSIONS}) — adding {this_year - 1}")
         rows.extend(_fetch_year(this_year - 1))
 
+    return shape_curve(rows)
+
+
+def shape_curve(rows: list[dict]) -> dict | None:
+    """Dedupe, sort and wrap raw session rows into the published payload.
+
+    Shared with backfill_treasury_yields so the one-off deep fetch and the daily
+    path cannot drift into producing different shapes for the same file.
+
+    RETENTION IS DELIBERATELY UNBOUNDED. This used to end `hist[-500:]`, roughly
+    two years at ~250 sessions/yr, which would have silently eaten a 10-year
+    backfill on the very next daily export — the same trap the per-contract
+    price archive documents ("retention must cover the span fetched here, or the
+    next nightly trim deletes the work"). Yields are a permanent historical
+    record: a 2016 print is as true in 2030 as it was the day it was published,
+    and re-fetching a decade to recover a window we chose to throw away would be
+    absurd. test_history_is_never_truncated pins this so it cannot be
+    reintroduced as a "cleanup".
+
+    Cost of keeping everything: ~190 bytes/session, so a decade is ~480 KB and
+    2030 lands near ~670 KB. The macro page fetches the file whole; if that ever
+    becomes the problem, split `latest` from `history` rather than trimming.
+    """
     if not rows:
         return None
 
@@ -161,5 +184,5 @@ def fetch_curve(existing: list[dict] | None = None) -> dict | None:
             "spread_2s10s": _spread(ys, "2y", "10y"),
             "spread_3m10y": _spread(ys, "3m", "10y"),
         },
-        "history": hist[-500:],
+        "history": hist,
     }

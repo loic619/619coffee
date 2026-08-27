@@ -1,0 +1,71 @@
+name: "Z – Backfill: US Treasury yield curve to 10y (manual)"
+
+# One-off/manual: deepen frontend/public/data/treasury_yields.json past the two
+# years the daily export happened to land on. Treasury serves one year per XML
+# request and the published years never change, so the daily path deliberately
+# fetches only the CURRENT year (re-fetching both cost 37 s, 42% of the whole
+# static export). That keeps the file fresh but can never make it deeper — this
+# does, by walking the feed backwards and merging.
+#
+# Re-runnable and safe: the existing history is loaded FIRST and preserved, so a
+# year that fails to answer costs nothing. Fetched rows are merged after it, so
+# a revised print supersedes a stale one.
+#
+# A run that fetches NOTHING exits 3 rather than going green — the per-contract
+# price backfill in this repo reported success while writing zero cells, and the
+# verdict belongs on rows fetched, not on the absence of an exception.
+#
+# RETENTION: shape_curve keeps history unbounded, on purpose. It used to end
+# `hist[-500:]` (~2 years), which would have deleted eight of the ten years this
+# fetches on the very next daily export. test_history_is_never_truncated and a
+# structural AST check pin that removal so it cannot return as a "cleanup".
+
+on:
+  workflow_dispatch:
+    inputs:
+      years:
+        description: "Years of history to fetch, including the current one"
+        required: false
+        default: "10"
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      # Its OWN lane. Sharing a group is what this repo moved away from on
+      # 2026-08-14: GitHub queues exactly ONE pending run per group, so a third
+      # arrival cancels the one waiting and discards its fetched data. Push
+      # serialisation is the commit-data action's job.
+      group: backfill-treasury-yields
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --quiet requests
+
+      - name: Span before
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          p = pathlib.Path("frontend/public/data/treasury_yields.json")
+          if not p.exists():
+              print("no existing file"); raise SystemExit
+          h = json.loads(p.read_text())["history"]
+          print(f"before: {len(h)} sessions  {h[0]['date']} -> {h[-1]['date']}")
+          PY
+
+      - name: Backfill the curve
+        env:
+          PYTHONPATH: backend
+        run: python backend/scraper/backfill_treasury_yields.py --years "${{ inputs.years || '10' }}"
+
+      - name: Commit
+        uses: ./.github/actions/commit-data
+        with:
+          files: frontend/public/data/treasury_yields.json
+          message: "data: Treasury yield curve backfill to 10y [skip ci]"
