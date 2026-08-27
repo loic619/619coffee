@@ -66,19 +66,19 @@
       "market": "NY",
       "severity": "info",
       "score": 1,
-      "magnitude": "small",
+      "magnitude": "large",
       "text": "KC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
     },
     {
-      "id": "CS4",
-      "name": "Contango Relief",
+      "id": "CS1",
+      "name": "Backwardation Incentive",
       "category": "CS",
       "categoryLabel": "Curve Structure",
       "market": "LDN",
       "severity": "info",
-      "score": 0,
-      "magnitude": "large",
-      "text": "RC in contango while roasters add coverage — forward prices cheaper than spot, incentivizes forward buying. Normal and sustainable."
+      "score": 1,
+      "magnitude": "small",
+      "text": "RC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
     },
     {
       "id": "SP2",
@@ -716,8 +716,19 @@
           "market": "LDN",
           "severity": "info",
           "score": 1,
-          "magnitude": "small",
+          "magnitude": "large",
           "text": "RC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
+        },
+        {
+          "id": "CS5",
+          "name": "Deepening Inversion",
+          "category": "CS",
+          "categoryLabel": "Curve Structure",
+          "market": "LDN",
+          "severity": "alert",
+          "score": 2,
+          "magnitude": "large",
+          "text": "RC backwardation deepening while roasters are under-covered (<25th pct) — cost of forward coverage increasing week-on-week, amplifying squeeze risk. Cross-check against roll window."
         },
         {
           "id": "SP2",
@@ -729,10 +740,21 @@
           "score": 0,
           "magnitude": "medium",
           "text": "Funds collapsing spread positions — may signal transition to outright directional positioning. Watch which direction longs and shorts move next."
+        },
+        {
+          "id": "SP3",
+          "name": "Spreading vs Inversion",
+          "category": "SP",
+          "categoryLabel": "Spreading",
+          "market": "LDN",
+          "severity": "warn",
+          "score": 0,
+          "magnitude": "large",
+          "text": "Spreading OI increasing while backwardation deepens — funds likely harvesting backwardation premium. Not a directional signal but confirms curve structure is attracting capital."
         }
       ],
       "scoreNY": 0,
-      "scoreLDN": 9,
+      "scoreLDN": 10,
       "priceNY": 296.45,
       "priceLDN": 3658
     },
@@ -1003,15 +1025,15 @@
           "text": "RC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
-          "id": "CS5",
-          "name": "Deepening Inversion",
+          "id": "CS6",
+          "name": "Inversion Easing",
           "category": "CS",
           "categoryLabel": "Curve Structure",
           "market": "LDN",
-          "severity": "alert",
-          "score": 2,
+          "severity": "warn",
+          "score": -1,
           "magnitude": "large",
-          "text": "RC backwardation deepening while roasters are under-covered (<25th pct) — cost of forward coverage increasing week-on-week, amplifying squeeze risk. Cross-check against roll window."
+          "text": "RC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
         },
         {
           "id": "SP2",
@@ -1023,21 +1045,10 @@
           "score": 0,
           "magnitude": "medium",
           "text": "Funds collapsing spread positions — may signal transition to outright directional positioning. Watch which direction longs and shorts move next."
-        },
-        {
-          "id": "SP3",
-          "name": "Spreading vs Inversion",
-          "category": "SP",
-          "categoryLabel": "Spreading",
-          "market": "LDN",
-          "severity": "warn",
-          "score": 0,
-          "magnitude": "large",
-          "text": "Spreading OI increasing while backwardation deepens — funds likely harvesting backwardation premium. Not a directional signal but confirms curve structure is attracting capital."
         }
       ],
       "scoreNY": 5,
-      "scoreLDN": -2,
+      "scoreLDN": -3,
       "priceNY": 317.6,
       "priceLDN": 3872
     },
@@ -1228,15 +1239,15 @@
           "text": "KC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
-          "id": "CS6",
-          "name": "Inversion Easing",
+          "id": "CS5",
+          "name": "Deepening Inversion",
           "category": "CS",
           "categoryLabel": "Curve Structure",
           "market": "NY",
-          "severity": "warn",
-          "score": -1,
+          "severity": "alert",
+          "score": 2,
           "magnitude": "large",
-          "text": "KC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
+          "text": "KC backwardation deepening while roasters are under-covered (<25th pct) — cost of forward coverage increasing week-on-week, amplifying squeeze risk. Cross-check against roll window."
         },
         {
           "id": "CS1",
@@ -1246,19 +1257,19 @@
           "market": "LDN",
           "severity": "info",
           "score": 1,
-          "magnitude": "large",
+          "magnitude": "medium",
           "text": "RC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
-          "id": "CS6",
-          "name": "Inversion Easing",
+          "id": "CS5",
+          "name": "Deepening Inversion",
           "category": "CS",
           "categoryLabel": "Curve Structure",
           "market": "LDN",
-          "severity": "warn",
-          "score": -1,
+          "severity": "alert",
+          "score": 2,
           "magnitude": "large",
-          "text": "RC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
+          "text": "RC backwardation deepening while roasters are under-covered (<25th pct) — cost of forward coverage increasing week-on-week, amplifying squeeze risk. Cross-check against roll window."
         },
         {
           "id": "SP2",
@@ -1287,10 +1298,21 @@
             }
           ],
           "text": "Spreading OI increasing without directional price move — funds positioning across the curve. Often precedes a decisive directional move; the calendar-spread direction hints which way."
+        },
+        {
+          "id": "SP3",
+          "name": "Spreading vs Inversion",
+          "category": "SP",
+          "categoryLabel": "Spreading",
+          "market": "LDN",
+          "severity": "warn",
+          "score": 0,
+          "magnitude": "large",
+          "text": "Spreading OI increasing while backwardation deepens — funds likely harvesting backwardation premium. Not a directional signal but confirms curve structure is attracting capital."
         }
       ],
-      "scoreNY": 1,
-      "scoreLDN": -1,
+      "scoreNY": 2,
+      "scoreLDN": 0,
       "priceNY": 326.1,
       "priceLDN": 3849
     },
@@ -1429,15 +1451,15 @@
           "text": "KC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
-          "id": "CS5",
-          "name": "Deepening Inversion",
+          "id": "CS6",
+          "name": "Inversion Easing",
           "category": "CS",
           "categoryLabel": "Curve Structure",
           "market": "NY",
-          "severity": "alert",
-          "score": 2,
+          "severity": "warn",
+          "score": -1,
           "magnitude": "large",
-          "text": "KC backwardation deepening while roasters are under-covered (<25th pct) — cost of forward coverage increasing week-on-week, amplifying squeeze risk. Cross-check against roll window."
+          "text": "KC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
         },
         {
           "id": "CS1",
@@ -1447,19 +1469,19 @@
           "market": "LDN",
           "severity": "info",
           "score": 1,
-          "magnitude": "large",
+          "magnitude": "medium",
           "text": "RC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
-          "id": "CS5",
-          "name": "Deepening Inversion",
+          "id": "CS6",
+          "name": "Inversion Easing",
           "category": "CS",
           "categoryLabel": "Curve Structure",
           "market": "LDN",
-          "severity": "alert",
-          "score": 2,
-          "magnitude": "large",
-          "text": "RC backwardation deepening while roasters are under-covered (<25th pct) — cost of forward coverage increasing week-on-week, amplifying squeeze risk. Cross-check against roll window."
+          "severity": "warn",
+          "score": -1,
+          "magnitude": "medium",
+          "text": "RC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
         },
         {
           "id": "SP1",
@@ -1477,21 +1499,10 @@
             }
           ],
           "text": "Spreading OI increasing without directional price move — funds positioning across the curve. Often precedes a decisive directional move; the calendar-spread direction hints which way."
-        },
-        {
-          "id": "SP3",
-          "name": "Spreading vs Inversion",
-          "category": "SP",
-          "categoryLabel": "Spreading",
-          "market": "LDN",
-          "severity": "warn",
-          "score": 0,
-          "magnitude": "large",
-          "text": "Spreading OI increasing while backwardation deepens — funds likely harvesting backwardation premium. Not a directional signal but confirms curve structure is attracting capital."
         }
       ],
-      "scoreNY": 2,
-      "scoreLDN": -1,
+      "scoreNY": 1,
+      "scoreLDN": -2,
       "priceNY": 322.1,
       "priceLDN": 3818
     },
@@ -1672,7 +1683,7 @@
           "market": "NY",
           "severity": "info",
           "score": 1,
-          "magnitude": "small",
+          "magnitude": "large",
           "text": "KC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
@@ -1683,7 +1694,7 @@
           "market": "NY",
           "severity": "alert",
           "score": 2,
-          "magnitude": "medium",
+          "magnitude": "large",
           "text": "KC backwardation deepening while roasters are under-covered (<25th pct) — cost of forward coverage increasing week-on-week, amplifying squeeze risk. Cross-check against roll window."
         },
         {
@@ -1694,7 +1705,7 @@
           "market": "LDN",
           "severity": "info",
           "score": 1,
-          "magnitude": "large",
+          "magnitude": "small",
           "text": "RC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
@@ -1705,7 +1716,7 @@
           "market": "LDN",
           "severity": "warn",
           "score": -1,
-          "magnitude": "large",
+          "magnitude": "small",
           "text": "RC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
         },
         {
@@ -1733,11 +1744,11 @@
           "market": "NY",
           "severity": "warn",
           "score": 0,
-          "magnitude": "small",
+          "magnitude": "large",
           "text": "Spreading OI increasing while backwardation deepens — funds likely harvesting backwardation premium. Not a directional signal but confirms curve structure is attracting capital."
         }
       ],
-      "scoreNY": 1,
+      "scoreNY": 2,
       "scoreLDN": 1,
       "priceNY": 317.3,
       "priceLDN": 3877
@@ -1895,6 +1906,17 @@
           "text": "KC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
+          "id": "CS6",
+          "name": "Inversion Easing",
+          "category": "CS",
+          "categoryLabel": "Curve Structure",
+          "market": "NY",
+          "severity": "warn",
+          "score": -1,
+          "magnitude": "large",
+          "text": "KC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
+        },
+        {
           "id": "CS1",
           "name": "Backwardation Incentive",
           "category": "CS",
@@ -1902,19 +1924,19 @@
           "market": "LDN",
           "severity": "info",
           "score": 1,
-          "magnitude": "large",
+          "magnitude": "medium",
           "text": "RC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
-          "id": "CS5",
-          "name": "Deepening Inversion",
+          "id": "CS6",
+          "name": "Inversion Easing",
           "category": "CS",
           "categoryLabel": "Curve Structure",
           "market": "LDN",
-          "severity": "alert",
-          "score": 2,
-          "magnitude": "large",
-          "text": "RC backwardation deepening while roasters are under-covered (<25th pct) — cost of forward coverage increasing week-on-week, amplifying squeeze risk. Cross-check against roll window."
+          "severity": "warn",
+          "score": -1,
+          "magnitude": "medium",
+          "text": "RC backwardation losing strength — reduces incentive for longs to hold, may trigger gradual long liquidation. Check if easing coincides with roll window."
         },
         {
           "id": "SP1",
@@ -1934,17 +1956,6 @@
           "text": "Spreading OI increasing without directional price move — funds positioning across the curve. Often precedes a decisive directional move; the calendar-spread direction hints which way."
         },
         {
-          "id": "SP3",
-          "name": "Spreading vs Inversion",
-          "category": "SP",
-          "categoryLabel": "Spreading",
-          "market": "NY",
-          "severity": "warn",
-          "score": 0,
-          "magnitude": "large",
-          "text": "Spreading OI increasing while backwardation deepens — funds likely harvesting backwardation premium. Not a directional signal but confirms curve structure is attracting capital."
-        },
-        {
           "id": "SP1",
           "name": "Spreading Increase",
           "category": "SP",
@@ -1960,21 +1971,10 @@
             }
           ],
           "text": "Spreading OI increasing without directional price move — funds positioning across the curve. Often precedes a decisive directional move; the calendar-spread direction hints which way."
-        },
-        {
-          "id": "SP3",
-          "name": "Spreading vs Inversion",
-          "category": "SP",
-          "categoryLabel": "Spreading",
-          "market": "LDN",
-          "severity": "warn",
-          "score": 0,
-          "magnitude": "large",
-          "text": "Spreading OI increasing while backwardation deepens — funds likely harvesting backwardation premium. Not a directional signal but confirms curve structure is attracting capital."
         }
       ],
       "scoreNY": -4,
-      "scoreLDN": 1,
+      "scoreLDN": 0,
       "priceNY": 308.8,
       "priceLDN": 3853
     },
@@ -2190,15 +2190,26 @@
           "text": "KC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
-          "id": "CS4",
-          "name": "Contango Relief",
+          "id": "CS1",
+          "name": "Backwardation Incentive",
           "category": "CS",
           "categoryLabel": "Curve Structure",
           "market": "LDN",
           "severity": "info",
-          "score": 0,
-          "magnitude": "large",
-          "text": "RC in contango while roasters add coverage — forward prices cheaper than spot, incentivizes forward buying. Normal and sustainable."
+          "score": 1,
+          "magnitude": "small",
+          "text": "RC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
+        },
+        {
+          "id": "CS5",
+          "name": "Deepening Inversion",
+          "category": "CS",
+          "categoryLabel": "Curve Structure",
+          "market": "LDN",
+          "severity": "alert",
+          "score": 2,
+          "magnitude": "small",
+          "text": "RC backwardation deepening while roasters are under-covered (<25th pct) — cost of forward coverage increasing week-on-week, amplifying squeeze risk. Cross-check against roll window."
         },
         {
           "id": "SP2",
@@ -2294,19 +2305,19 @@
           "market": "NY",
           "severity": "info",
           "score": 1,
-          "magnitude": "small",
+          "magnitude": "large",
           "text": "KC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
-          "id": "CS4",
-          "name": "Contango Relief",
+          "id": "CS1",
+          "name": "Backwardation Incentive",
           "category": "CS",
           "categoryLabel": "Curve Structure",
           "market": "LDN",
           "severity": "info",
-          "score": 0,
-          "magnitude": "large",
-          "text": "RC in contango while roasters add coverage — forward prices cheaper than spot, incentivizes forward buying. Normal and sustainable."
+          "score": 1,
+          "magnitude": "small",
+          "text": "RC curve in backwardation — front premium rewards long holders, supportive of bullish positioning. Verify that roll yield exceeds the risk-free rate to confirm the incentive is real."
         },
         {
           "id": "SP2",
@@ -2326,5 +2337,5 @@
       "priceLDN": 3777
     }
   ],
-  "generatedAt": "2026-08-26T13:45:55.742Z"
+  "generatedAt": "2026-08-27T00:30:36.565Z"
 }
