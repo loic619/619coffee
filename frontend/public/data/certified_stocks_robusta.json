@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-26T10:47:46+00:00",
-  "as_of": "2026-08-25",
+  "generated_at": "2026-08-27T09:26:07+00:00",
+  "as_of": "2026-08-26",
   "snapshots": [
     {
       "date": "2025-05-28",
@@ -6245,23 +6245,49 @@
         "NOR": 0,
         "ROT": 0
       }
+    },
+    {
+      "date": "2026-08-26",
+      "cut_off_date": "2026-08-25",
+      "total_lots_certified": 4926,
+      "total_bags_60kg_equivalent": 821000,
+      "non_tend_lots": 2,
+      "suspended_lots": 0,
+      "lots_graded_today": 0,
+      "lots_sold_today": 0,
+      "lots_bought_today": 0,
+      "tenders_today": 0,
+      "by_port_lots": {
+        "ANT": 3503,
+        "LON": 1393,
+        "TRI": 24,
+        "FEL": 6,
+        "AMS": 0,
+        "BAR": 0,
+        "BRE": 0,
+        "HAM": 0,
+        "LEH": 0,
+        "LIV": 0,
+        "NOR": 0,
+        "ROT": 0
+      }
     }
   ],
   "latest_detail": {
     "stock_report": {
-      "cut_off_date": "2026-08-24",
+      "cut_off_date": "2026-08-25",
       "ports": [
         {
           "port_id": "ANT",
           "port_name": "Antwerp",
-          "with_val_cert": 3505,
+          "with_val_cert": 3503,
           "non_tend": 2,
           "suspended": 0
         },
         {
           "port_id": "LON",
           "port_name": "London",
-          "with_val_cert": 1407,
+          "with_val_cert": 1393,
           "non_tend": 0,
           "suspended": 0
         },
@@ -6280,15 +6306,15 @@
           "suspended": 0
         },
         {
-          "port_id": "BAR",
-          "port_name": "Barcelona",
-          "with_val_cert": 1,
+          "port_id": "AMS",
+          "port_name": "Amsterdam",
+          "with_val_cert": 0,
           "non_tend": 0,
           "suspended": 0
         },
         {
-          "port_id": "AMS",
-          "port_name": "Amsterdam",
+          "port_id": "BAR",
+          "port_name": "Barcelona",
           "with_val_cert": 0,
           "non_tend": 0,
           "suspended": 0
@@ -6337,12 +6363,12 @@
         }
       ],
       "grand_total": {
-        "with_val_cert": 4943,
+        "with_val_cert": 4926,
         "non_tend": 2,
         "suspended": 0
       }
     },
-    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260825_112351.csv"
+    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260826_103533.csv"
   },
   "recent_activity": {
     "gradings": [
@@ -13584,6 +13610,16 @@
           "sold": 0,
           "bought": 0
         }
+      },
+      {
+        "date": "2026-08-26",
+        "report_date": "2026-08-26",
+        "delivery_date": "2026-08-26",
+        "members": [],
+        "grand_total": {
+          "sold": 0,
+          "bought": 0
+        }
       }
     ],
     "tenders": [
@@ -17175,6 +17211,41 @@
           "retender_substitutions": 0,
           "retender_substitutions_month": 0
         }
+      },
+      {
+        "date": "2026-08-26",
+        "report_date": "2026-08-26",
+        "delivery_period": "2026-09",
+        "business_date": "2026-08-26",
+        "by_origin": [],
+        "totals_today": {
+          "originals": 0,
+          "originals_month": 0,
+          "retenders": 0,
+          "retenders_month": 0
+        },
+        "grand_totals": {
+          "originals": 0,
+          "originals_month": 0,
+          "retenders": 0,
+          "retenders_month": 0,
+          "originals_rejected": 0,
+          "originals_rejected_month": 0,
+          "retenders_rejected": 0,
+          "retenders_rejected_month": 0,
+          "originals_withdrawn": 0,
+          "originals_withdrawn_month": 0,
+          "retenders_withdrawn": 0,
+          "retenders_withdrawn_month": 0,
+          "originals_substituted": 0,
+          "originals_substituted_month": 0,
+          "retenders_substituted": 0,
+          "retenders_substituted_month": 0,
+          "original_substitutions": 0,
+          "original_substitutions_month": 0,
+          "retender_substitutions": 0,
+          "retender_substitutions_month": 0
+        }
       }
     ],
     "grading_overview": [
@@ -17520,6 +17591,13 @@
         "queue_lots": 0,
         "forecast_lots": 112,
         "total_pending_lots": 112
+      },
+      {
+        "date": "2026-08-26",
+        "report_date": "2026-08-26",
+        "queue_lots": 0,
+        "forecast_lots": 50,
+        "total_pending_lots": 50
       }
     ],
     "infested_warrants": []
@@ -31275,7 +31353,7 @@
       "max": 27067,
       "max_date": "2011-07-11",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-26",
       "observations": 3173,
       "locked": true
     },
@@ -31285,7 +31363,7 @@
       "max": 6169,
       "max_date": "2010-01-11",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-26",
       "observations": 2855,
       "locked": true
     },
@@ -31295,7 +31373,7 @@
       "max": 5320,
       "max_date": "2019-07-24",
       "first_seen": "2009-03-23",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-26",
       "observations": 3172,
       "locked": true
     },
@@ -31305,7 +31383,7 @@
       "max": 2870,
       "max_date": "2011-08-08",
       "first_seen": "2009-03-23",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-26",
       "observations": 2274,
       "locked": true
     },
@@ -31315,17 +31393,17 @@
       "max": 2672,
       "max_date": "2021-03-23",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-26",
       "observations": 2366,
       "locked": true
     },
     "BAR": {
-      "min": 1,
-      "min_date": "2022-01-21",
+      "min": 0,
+      "min_date": "2026-08-26",
       "max": 2399,
       "max_date": "2015-08-03",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-26",
       "observations": 3173,
       "locked": true
     },
@@ -31345,7 +31423,7 @@
       "max": 494,
       "max_date": "2025-05-13",
       "first_seen": "2023-11-01",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-26",
       "observations": 927,
       "locked": true
     },
@@ -31365,7 +31443,7 @@
       "max": 341,
       "max_date": "2017-11-22",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-26",
       "observations": 2626,
       "locked": true
     },
@@ -31375,7 +31453,7 @@
       "max": 302,
       "max_date": "2015-08-03",
       "first_seen": "2009-09-21",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-26",
       "observations": 2281,
       "locked": true
     },
@@ -31385,7 +31463,7 @@
       "max": 184,
       "max_date": "2009-11-02",
       "first_seen": "2009-06-01",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-26",
       "observations": 1975,
       "locked": true
     },
@@ -31395,7 +31473,7 @@
       "max": 177,
       "max_date": "2023-05-22",
       "first_seen": "2009-04-06",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-26",
       "observations": 1146,
       "locked": true
     },
@@ -31415,7 +31493,7 @@
       "max": 0,
       "max_date": "2026-05-27",
       "first_seen": "2026-05-27",
-      "last_seen": "2026-08-25",
+      "last_seen": "2026-08-26",
       "observations": 58,
       "locked": true
     }
