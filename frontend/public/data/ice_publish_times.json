@@ -536,7 +536,7 @@
   }
  },
  "rate_limits": {
-  "runs": 3,
+  "runs": 4,
   "runs_with_429": 0,
   "total_429": 0,
   "total_retry_after_s": 0,
@@ -595,14 +595,31 @@
     "requests": 460,
     "wait_publicdocs_s": 14.0,
     "wait_marketdata_s": 1557.0
+   },
+   {
+    "at": "2026-08-27T10:31:11+00:00",
+    "sweep_day": "2026-08-26",
+    "outcome": "completed",
+    "http_429": 0,
+    "http_404": 35,
+    "retry_after_count": 0,
+    "retry_after_total_s": 0,
+    "retry_after_max_s": 0,
+    "throttle_bumps": 0,
+    "aborted_by_429": false,
+    "sweep_gets": 0,
+    "resumed_from": null,
+    "requests": 57,
+    "wait_publicdocs_s": 14.0,
+    "wait_marketdata_s": 250.0
    }
   ]
  },
  "runs": {
-  "count": 333,
+  "count": 334,
   "note": null,
   "outcomes": {
-   "success": 230,
+   "success": 231,
    "cancelled": 10,
    "timeout": 39,
    "queue_cancelled": 46,
@@ -610,23 +627,10 @@
    "failure": 1,
    "unknown": 1
   },
-  "billed_minutes_total": 9300,
+  "billed_minutes_total": 9331,
   "billed_minutes_mean": 27.9,
-  "with_telemetry": 9,
+  "with_telemetry": 10,
   "recent": [
-   {
-    "id": 31641902353,
-    "date": "2026-08-12",
-    "started": "2026-08-12T21:18:24Z",
-    "event": "workflow_run",
-    "conclusion": "success",
-    "attempt": 1,
-    "job_seconds": 3279,
-    "billed_minutes": 55,
-    "last_step": "Complete job",
-    "outcome": "success",
-    "telemetry": null
-   },
    {
     "id": 31663142862,
     "date": "2026-08-13",
@@ -1474,6 +1478,30 @@
     "date": "2026-08-27",
     "started": "2026-08-27T08:58:06Z",
     "event": "workflow_dispatch",
+    "conclusion": "success",
+    "attempt": 1,
+    "job_seconds": 1850,
+    "billed_minutes": 31,
+    "last_step": "Complete job",
+    "outcome": "success",
+    "telemetry": {
+     "http_429": 0,
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 0,
+     "http_404": 35,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 250.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 33063028249,
+    "date": "2026-08-27",
+    "started": "2026-08-27T10:26:16Z",
+    "event": "schedule",
     "conclusion": null,
     "attempt": 1,
     "job_seconds": null,
@@ -1485,11 +1513,11 @@
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
-     "sweep_gets": 354,
-     "http_404": 438,
+     "sweep_gets": 0,
+     "http_404": 35,
      "resumed_from": null,
      "wait_publicdocs_s": 14.0,
-     "wait_marketdata_s": 1557.0,
+     "wait_marketdata_s": 250.0,
      "wait_retry_after_s": 0
     }
    }
