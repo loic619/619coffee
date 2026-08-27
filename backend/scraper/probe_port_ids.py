@@ -142,7 +142,7 @@ def main() -> int:
     for iso3 in _COUNTRIES:
         rows = _with_daily_data(iso3)
         print(f"{iso3}: {len(rows)} port(s) reporting")
-        for p, n in rows[:25]:
+        for p, n in rows:
             print(f"    {p:10} {n}")
         print()
 
