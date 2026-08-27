@@ -60,6 +60,40 @@ class TestFrontSpread:
         assert F.front_spread(None) is None
 
 
+class TestSpreadAsPercent:
+    """The % view divides by the FRONT price, and must agree in sign."""
+
+    def test_percent_is_the_spread_over_the_front_price(self):
+        out = F.front_spread({"RCU26": {"price": 4000.0}, "RCX26": {"price": 3900.0}})
+        assert out["spread"] == 100.0
+        assert out["front_price"] == 4000.0
+        assert out["spread_pct"] == 2.5           # 100 / 4000
+
+    def test_contango_stays_negative_in_percent(self):
+        out = F.front_spread({"RCU26": {"price": 3200.0}, "RCX26": {"price": 3238.0}})
+        assert out["spread"] < 0 and out["spread_pct"] < 0
+        assert out["spread_pct"] == round(100 * -38.0 / 3200.0, 4)
+
+    def test_the_same_absolute_spread_is_a_different_percent_at_a_different_price(self):
+        # This is the entire reason the % view exists. 40 $/t on a 1,500 market
+        # is a curve; on a 5,600 market it is noise. The absolute figure cannot
+        # tell them apart.
+        cheap = F.front_spread({"RCU26": {"price": 1500.0}, "RCX26": {"price": 1460.0}})
+        dear = F.front_spread({"RCU26": {"price": 5600.0}, "RCX26": {"price": 5560.0}})
+        assert cheap["spread"] == dear["spread"] == 40.0
+        assert cheap["spread_pct"] > 2.6 and dear["spread_pct"] < 0.8
+
+    def test_the_denominator_is_never_zero_or_negative(self):
+        # front_spread only admits prices > 0, so no board can reach the
+        # division with a zero or negative front. Pin it: a bogus 0 front would
+        # otherwise blow up the export for every market.
+        board = {"KCU26": {"price": 0}, "KCZ26": {"price": -5},
+                 "KCH27": {"price": 321.25}, "KCK27": {"price": 318.0}}
+        out = F.front_spread(board)
+        assert out["front"] == "KCH27" and out["front_price"] == 321.25
+        assert out["spread_pct"] == round(100 * 3.25 / 321.25, 4)
+
+
 class TestMonthlyMean:
     def test_averages_the_month_rather_than_taking_month_end(self):
         # Month-end sits in the front contract's thin final days; one bad print
@@ -72,6 +106,26 @@ class TestMonthlyMean:
         out = F.monthly_mean_spread(daily)
         assert out["2026-06"] == 110.0
         assert out["2026-07"] == 5.0
+
+    def test_percent_month_averages_the_daily_RATIO_not_the_ratio_of_averages(self):
+        # A month where the spread is steady but the price level halves. Mean
+        # of the daily percentages is (1 + 2) / 2 = 1.5%. Dividing the mean
+        # spread by the mean price gives 20 / 1500 = 1.33% — a different
+        # number, and the wrong one, because it lets the high-priced days
+        # dominate a ratio that is meant to describe each day equally.
+        daily = {
+            "2026-06-01": {"spread": 20.0, "spread_pct": 1.0},   # 20 / 2000
+            "2026-06-15": {"spread": 20.0, "spread_pct": 2.0},   # 20 / 1000
+        }
+        assert F.monthly_mean_spread(daily, "spread_pct")["2026-06"] == 1.5
+        assert F.monthly_mean_spread(daily)["2026-06"] == 20.0
+
+    def test_skips_days_missing_the_requested_field(self):
+        daily = {"2026-06-01": {"spread": 10.0},                 # no pct
+                 "2026-06-02": {"spread": 12.0, "spread_pct": 3.0},
+                 "2026-06-03": None}
+        assert F.monthly_mean_spread(daily, "spread_pct") == {"2026-06": 3.0}
+        assert F.monthly_mean_spread(daily) == {"2026-06": 11.0}
 
 
 class TestMonthEndStocks:
@@ -128,6 +182,16 @@ class TestAnalyse:
     def test_declines_to_correlate_a_tiny_sample(self):
         assert F.spearman([1, 2, 3], [3, 2, 1]) is None
 
+    def test_can_run_the_same_check_on_the_percent_series(self):
+        # The % view is a second series, not a redrawing of the first, so the
+        # split-half check has to be available on it — a result that only
+        # survives in one unit is a result about the unit.
+        pts = [{"month": f"2021-{i:02d}", "stocks_k_bags": i * 100,
+                "spread": 50 - i, "spread_pct": i - 50}
+               for i in range(1, 13)]
+        assert F.analyse(pts, "spread")["spearman"] < -0.9
+        assert F.analyse(pts, "spread_pct")["spearman"] > 0.9
+
 
 class TestExportedPayload:
     """Guards on the file the frontend actually reads."""
@@ -147,6 +211,14 @@ class TestExportedPayload:
         assert "front minus deferred" in out["sign_convention"]
         assert out["markets"]["arabica"]["latest"]["spread"] == 35.9
         assert out["markets"]["robusta"]["latest"]["spread"] == -38.0
+        # The % axis is driven off `latest`/`points`, so the front price and the
+        # percentage have to reach the file — they cannot be derived from a
+        # spread alone, which is why this is exported rather than computed in
+        # the browser.
+        ara = out["markets"]["arabica"]["latest"]
+        assert ara["front_price"] == 371.4
+        assert ara["spread_pct"] == round(100 * 35.9 / 371.4, 4)
+        assert out["markets"]["robusta"]["latest"]["spread_pct"] < 0
         # No stocks files in tmp_path, so no paired points — must not crash.
         assert out["markets"]["arabica"]["points"] == []
 
