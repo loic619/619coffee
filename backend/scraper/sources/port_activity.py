@@ -70,21 +70,29 @@ _HEADERS = {
     )
 }
 
-# Curated coffee export gateways. Either pin an exact `portid` (most reliable)
-# or give a `match` substring + `iso3` and let the scraper resolve the portid.
-# `note` explains the coffee relevance; `label`/`country` are display strings.
+# Curated coffee export gateways.
+#
+# `portid` is pinned wherever it is known — resolving by name at runtime is an
+# extra network round-trip that can fail and, historically, did: a broken
+# resolve wiped ten ports from the site. Ports without a known id give `match`
+# (a name substring, or a list of aliases to try in order) + `iso3`, and the id
+# is resolved once on the runner; pin it here afterwards.
 PORTS: list[dict] = [
-    {"key": "hcmc",          "portid": "port2085",        "label": "Ho Chi Minh City", "country": "Vietnam",   "note": "Vietnam robusta export gateway (Cat Lai / Saigon New Port)"},
-    {"key": "santos",        "match": "SANTOS",           "iso3": "BRA", "label": "Santos",          "country": "Brazil",     "note": "World's largest coffee export port (arabica)"},
-    {"key": "vitoria",       "match": "VITORIA",          "iso3": "BRA", "label": "Vitória",         "country": "Brazil",     "note": "Espírito Santo conilon/robusta & arabica export port"},
-    {"key": "buenaventura",  "match": "BUENAVENTURA",     "iso3": "COL", "label": "Buenaventura",    "country": "Colombia",   "note": "Colombia's main Pacific coffee export port"},
-    {"key": "cartagena_co",  "match": "CARTAGENA",        "iso3": "COL", "label": "Cartagena",       "country": "Colombia",   "note": "Colombia Caribbean coffee export port"},
-    {"key": "panjang",       "match": "PANJANG",          "iso3": "IDN", "label": "Panjang",         "country": "Indonesia",  "note": "Lampung robusta export port"},
-    {"key": "tanjungpriok",  "match": "TANJUNG PRIOK",    "iso3": "IDN", "label": "Tanjung Priok",   "country": "Indonesia",  "note": "Jakarta — Indonesia's largest port"},
-    {"key": "cortes",        "match": "CORTES",           "iso3": "HND", "label": "Puerto Cortés",   "country": "Honduras",   "note": "Honduras' main coffee export port"},
-    {"key": "quetzal",       "match": "QUETZAL",          "iso3": "GTM", "label": "Puerto Quetzal",  "country": "Guatemala",  "note": "Guatemala Pacific coffee export port"},
-    {"key": "djibouti",      "match": "DJIBOUTI",         "iso3": "DJI", "label": "Djibouti",        "country": "Djibouti",   "note": "Outlet for landlocked Ethiopia's coffee"},
-    {"key": "mombasa",       "match": "MOMBASA",          "iso3": "KEN", "label": "Mombasa",         "country": "Kenya",      "note": "Outlet for Uganda/East-Africa coffee"},
+    {"key": "hcmc",          "portid": "port2085", "label": "Ho Chi Minh City", "country": "Vietnam",   "note": "Vietnam robusta export gateway (Cat Lai / Saigon New Port)"},
+    {"key": "santos",        "portid": "port1160", "label": "Santos",          "country": "Brazil",     "note": "World's largest coffee export port (arabica)"},
+    {"key": "vitoria",       "portid": "port1368", "label": "Vitória",         "country": "Brazil",     "note": "Espírito Santo conilon/robusta & arabica export port"},
+    {"key": "buenaventura",  "portid": "port183",  "label": "Buenaventura",    "country": "Colombia",   "note": "Colombia's main Pacific coffee export port"},
+    {"key": "cartagena_co",  "portid": "port218",  "label": "Cartagena",       "country": "Colombia",   "note": "Colombia Caribbean coffee export port"},
+    {"key": "panjang",       "portid": "port881",  "label": "Panjang",         "country": "Indonesia",  "note": "Lampung robusta export port"},
+    {"key": "tanjungpriok",  "portid": "port514",  "label": "Tanjung Priok",   "country": "Indonesia",  "note": "Jakarta — Indonesia's largest port"},
+    {"key": "cortes",        "portid": "port1036", "label": "Puerto Cortés",   "country": "Honduras",   "note": "Honduras' main coffee export port"},
+    {"key": "quetzal",       "portid": "port1057", "label": "Puerto Quetzal",  "country": "Guatemala",  "note": "Guatemala Pacific coffee export port"},
+    {"key": "djibouti",      "portid": "port294",  "label": "Djibouti",        "country": "Djibouti",   "note": "Outlet for landlocked Ethiopia's coffee"},
+    {"key": "mombasa",       "portid": "port757",  "label": "Mombasa",         "country": "Kenya",      "note": "Main outlet for landlocked Uganda's coffee"},
+    # Resolved on first run, then pin the id above.
+    {"key": "mangalore",     "match": ["NEW MANGALORE", "MANGALORE"], "iso3": "IND", "label": "New Mangalore", "country": "India",    "note": "Karnataka robusta/arabica — India's main coffee export port"},
+    {"key": "kochi",         "match": ["COCHIN", "KOCHI"],            "iso3": "IND", "label": "Kochi",         "country": "India",    "note": "Kerala coffee & spice export port"},
+    {"key": "dar",           "match": ["DAR ES SALAAM"],              "iso3": "TZA", "label": "Dar es Salaam", "country": "Tanzania", "note": "Secondary outlet for Uganda/Great-Lakes coffee"},
 ]
 
 
@@ -119,17 +127,31 @@ def _get(params: dict) -> dict:
     raise RuntimeError(f"request failed after retries: {last_err}")
 
 
-def _resolve_portid(match: str, iso3: str) -> tuple[str, str] | None:
+def _resolve_portid(match: str | list[str], iso3: str) -> tuple[str, str] | None:
     """Resolve a (portid, portname) for a name substring within a country.
+
+    `match` may be a list of aliases, tried in order, so a port that PortWatch
+    spells differently than we do ('COCHIN' vs 'KOCHI') still resolves.
 
     Picks the candidate with the highest recent activity when several match,
     so 'SANTOS' resolves to the main port rather than a tiny berth.
     """
+    for alias in [match] if isinstance(match, str) else match:
+        found = _resolve_one(alias, iso3)
+        if found:
+            return found
+    return None
+
+
+def _resolve_one(match: str, iso3: str) -> tuple[str, str] | None:
     where = f"UPPER(portname) LIKE '%{match.upper()}%' AND ISO3='{iso3}'"
     payload = _get({
         "where": where,
         "outFields": "portid,portname",
         "returnDistinctValues": "true",
+        # ArcGIS rejects returnDistinctValues unless geometry is off. Omitting
+        # this is what broke every name-resolved port and emptied the site.
+        "returnGeometry": "false",
         "f": "json",
     })
     feats = payload.get("features", [])
@@ -218,8 +240,8 @@ def run() -> dict | None:
     Each port → `<key>.json` (metadata + series); `index.json` lists the ports
     without their series. Returns the index payload (None if nothing fetched).
     """
-    index_ports: list[dict] = []
-    written_files: set[str] = set()
+    fresh: dict[str, dict] = {}   # key → meta, fetched successfully this run
+    failed: list[str] = []
     for spec in PORTS:
         key = spec["key"]
         try:
@@ -229,13 +251,17 @@ def run() -> dict | None:
                 resolved = _resolve_portid(spec["match"], spec["iso3"])
                 if not resolved:
                     print(f"[port_activity] {key}: no portid match for "
-                          f"'{spec['match']}' / {spec['iso3']} — skipped")
+                          f"{spec['match']} / {spec['iso3']} — skipped")
+                    failed.append(key)
                     continue
                 portid, portname = resolved
+                print(f"[port_activity] {key}: resolved → {portid} ({portname}) "
+                      f"— pin this id in PORTS")
 
             series = _fetch_series(portid)
             if not series:
                 print(f"[port_activity] {key} ({portid}): no rows — skipped")
+                failed.append(key)
                 continue
 
             meta = {
@@ -248,19 +274,38 @@ def run() -> dict | None:
                 "start": series[0]["date"],
                 "end": series[-1]["date"],
             }
-            index_ports.append(meta)
+            fresh[key] = meta
 
             _OUT_DIR.mkdir(parents=True, exist_ok=True)
             _write_json(_OUT_DIR / f"{key}.json", {**meta, "vessel_types": _TYPES, "series": series})
-            written_files.add(f"{key}.json")
             print(f"[port_activity] {key} ({portid}): {len(series)} days "
                   f"{series[0]['date']}→{series[-1]['date']}")
         except Exception as e:  # noqa: BLE001 — one port must not sink the rest
             print(f"[port_activity] {key}: ERROR — {e}")
+            failed.append(key)
 
-    if not index_ports:
+    if not fresh:
         print("[port_activity] No ports fetched — retaining existing files")
         return None
+
+    # A port that failed this run keeps the data it already has: reuse its
+    # previous index entry so a transient outage can't drop it from the site.
+    # (Deleting on failure is what silently emptied the port list before.)
+    previous = {}
+    try:
+        prior = json.loads((_OUT_DIR / "index.json").read_text(encoding="utf-8"))
+        previous = {p["key"]: p for p in prior.get("ports", [])}
+    except Exception:  # noqa: BLE001 — no/unreadable index is fine on first run
+        pass
+
+    index_ports, retained = [], []
+    for spec in PORTS:  # config order, so the dropdown is stable
+        key = spec["key"]
+        if key in fresh:
+            index_ports.append(fresh[key])
+        elif key in previous and (_OUT_DIR / f"{key}.json").exists():
+            index_ports.append(previous[key])
+            retained.append(key)
 
     index = {
         "updated": datetime.now(UTC).isoformat(timespec="seconds"),
@@ -277,16 +322,20 @@ def run() -> dict | None:
 
     _OUT_DIR.mkdir(parents=True, exist_ok=True)
     _write_json(_OUT_DIR / "index.json", index)
-    written_files.add("index.json")
 
-    # Drop stale per-port files (ports removed from config) so the committed
-    # directory always reflects exactly the current port set.
+    # Prune only files whose port was deliberately removed from PORTS — never
+    # because a fetch failed, which would delete good data on a transient error.
+    keep = {f"{s['key']}.json" for s in PORTS} | {"index.json"}
     for old in _OUT_DIR.glob("*.json"):
-        if old.name not in written_files:
+        if old.name not in keep:
             old.unlink()
-            print(f"[port_activity] removed stale {old.name}")
+            print(f"[port_activity] removed de-configured {old.name}")
 
-    print(f"[port_activity] wrote {len(index_ports)} ports → {_OUT_DIR}")
+    if retained:
+        print(f"[port_activity] WARNING retained previous data for: {', '.join(retained)}")
+    if failed:
+        print(f"[port_activity] WARNING {len(failed)} port(s) failed: {', '.join(failed)}")
+    print(f"[port_activity] wrote {len(fresh)} fresh, {len(index_ports)} total → {_OUT_DIR}")
     return index
 
 

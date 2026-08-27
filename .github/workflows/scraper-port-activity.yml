@@ -35,11 +35,20 @@ jobs:
       - name: Install Python dependencies
         run: pip install requests
 
+      # Exit codes: 0 = all ports fetched, 2 = data written but some port has no
+      # data at all, 1 = nothing written (retryable). Exit 2 must NOT abort the
+      # job here — the data we did get still needs committing; the gate step at
+      # the end fails the run instead.
       - name: Run PortWatch port-activity scraper (3 attempts)
+        id: scrape
         working-directory: backend
         run: |
           for attempt in 1 2 3; do
-            python -m scraper.run_port_activity && break
+            python -m scraper.run_port_activity; rc=$?
+            if [ $rc -eq 0 ] || [ $rc -eq 2 ]; then
+              echo "incomplete=$([ $rc -eq 2 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             [ $attempt -lt 3 ] && echo "Attempt $attempt failed, retrying in 5m..." && sleep 300 || exit 1
           done
 
@@ -63,6 +72,15 @@ jobs:
             echo "push attempt $attempt failed (concurrent push?); retrying in $((5*attempt))s…"; sleep $((5 * attempt))
           done
           [ "$ok" = 1 ] || { echo "push failed after 5 attempts"; exit 1; }
+
+      # Runs after the commit so partial data still publishes, but a port that
+      # produced nothing at all (bad match string / dead portid) still fails the
+      # run and alerts, rather than silently disappearing from the site.
+      - name: Gate — every configured port has data
+        if: steps.scrape.outputs.incomplete == 'true'
+        run: |
+          echo "::error::A configured port produced no data — see the scraper log for which."
+          exit 1
 
       - name: Notify on failure
         if: failure()
