@@ -37,10 +37,12 @@ _OUT_DIR = (
     / "frontend" / "public" / "data" / "port_activity"
 )
 
-_BASE = (
-    "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/ArcGIS/rest/services/"
-    "Daily_Ports_Data/FeatureServer/0/query"
-)
+_ORG = "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/ArcGIS/rest/services"
+_BASE = f"{_ORG}/Daily_Ports_Data/FeatureServer/0/query"
+# The static port list (~2,065 rows). Name lookups belong here, never in the
+# daily table. Note the two are NOT interchangeable: an id present here can have
+# no rows in the daily table at all.
+_PORTS_TABLE = f"{_ORG}/PortWatch_ports_database/FeatureServer/0"
 
 # Only fetch from this year forward — keeps the committed JSON to a sane size
 # while still covering the 1m/3m/6m/YTD/1y/All zoom levels with multiple years.
@@ -93,22 +95,38 @@ _HEADERS = {
 # (a name substring, or a list of aliases to try in order) + `iso3`, and the id
 # is resolved once on the runner; pin it here afterwards.
 PORTS: list[dict] = [
-    {"key": "hcmc",          "portid": "port2085", "label": "Ho Chi Minh City", "country": "Vietnam",   "note": "Vietnam robusta export gateway (Cat Lai / Saigon New Port)"},
-    {"key": "santos",        "portid": "port1160", "label": "Santos",          "country": "Brazil",     "note": "World's largest coffee export port (arabica)"},
-    {"key": "vitoria",       "portid": "port1368", "label": "Vitória",         "country": "Brazil",     "note": "Espírito Santo conilon/robusta & arabica export port"},
-    {"key": "buenaventura",  "portid": "port183",  "label": "Buenaventura",    "country": "Colombia",   "note": "Colombia's main Pacific coffee export port"},
-    {"key": "cartagena_co",  "portid": "port218",  "label": "Cartagena",       "country": "Colombia",   "note": "Colombia Caribbean coffee export port"},
-    {"key": "panjang",       "portid": "port881",  "label": "Panjang",         "country": "Indonesia",  "note": "Lampung robusta export port"},
-    {"key": "tanjungpriok",  "portid": "port514",  "label": "Tanjung Priok",   "country": "Indonesia",  "note": "Jakarta — Indonesia's largest port"},
-    {"key": "cortes",        "portid": "port1036", "label": "Puerto Cortés",   "country": "Honduras",   "note": "Honduras' main coffee export port"},
-    {"key": "quetzal",       "portid": "port1057", "label": "Puerto Quetzal",  "country": "Guatemala",  "note": "Guatemala Pacific coffee export port"},
-    {"key": "djibouti",      "portid": "port294",  "label": "Djibouti",        "country": "Djibouti",   "note": "Outlet for landlocked Ethiopia's coffee"},
-    {"key": "mombasa",       "portid": "port757",  "label": "Mombasa",         "country": "Kenya",      "note": "Main outlet for landlocked Uganda's coffee"},
-    # Resolved on first run, then pin the id above.
-    {"key": "mangalore",     "match": ["NEW MANGALORE", "MANGALORE"], "iso3": "IND", "label": "New Mangalore", "country": "India",    "note": "Karnataka robusta/arabica — India's main coffee export port"},
-    {"key": "kochi",         "match": ["COCHIN", "KOCHI"],            "iso3": "IND", "label": "Kochi",         "country": "India",    "note": "Kerala coffee & spice export port"},
-    {"key": "dar",           "match": ["DAR ES SALAAM"],              "iso3": "TZA", "label": "Dar es Salaam", "country": "Tanzania", "note": "Secondary outlet for Uganda/Great-Lakes coffee"},
+    {"key": "hcmc",         "portid": "port2085", "label": "Ho Chi Minh City", "country": "Vietnam",  "note": "Vietnam robusta export gateway (Cat Lai / Saigon New Port)"},
+    {"key": "santos",       "portid": "port1160", "label": "Santos",           "country": "Brazil",   "note": "World's largest coffee export port (arabica)"},
+    {"key": "vitoria",      "portid": "port1368", "label": "Vitória",          "country": "Brazil",   "note": "Espírito Santo conilon/robusta & arabica export port"},
+    {"key": "mangalore",    "portid": "port811",  "label": "New Mangalore",    "country": "India",    "note": "Karnataka robusta/arabica — India's main coffee export port"},
+    {"key": "kochi",        "portid": "port583",  "label": "Kochi",            "country": "India",    "note": "Kerala coffee & spice export port (Cochin)"},
+    {"key": "barranquilla", "portid": "port120",  "label": "Barranquilla",     "country": "Colombia", "note": "Colombia Caribbean gateway — the only coffee-relevant Colombian port PortWatch still publishes"},
+    # Still fetches, but the source stopped publishing it after 2026-02-22, so
+    # the series is frozen. Kept for the 2021-2026 history it already carries.
+    {"key": "djibouti",     "portid": "port294",  "label": "Djibouti",         "country": "Djibouti", "note": "Outlet for landlocked Ethiopia's coffee — source frozen after 2026-02-22"},
 ]
+
+# Ports PortWatch dropped from Daily_Ports_Data, verified 2026-08-27 by the 0.22
+# probe. The ids are still correct in PortWatch_ports_database and resolve fine
+# there — the daily table simply has no rows for them any more, not even the
+# 2021-2026 history it served in June. Nothing on our side can recover this.
+#
+# Whole countries now report zero ports on the latest published day: Honduras,
+# Guatemala, Kenya, Djibouti. Colombia is down to 4 ports (Buenaventura and
+# Cartagena both gone) and Indonesia to 64 (Panjang and Tanjung Priok gone).
+#
+# Kept here rather than deleted so this is not rediscovered from scratch, and so
+# restoring one is a copy back into PORTS if IMF ever republishes them.
+COVERAGE_DROPPED: dict[str, str] = {
+    "port183":  "Buenaventura, Colombia — Colombia's main Pacific coffee port",
+    "port218":  "Cartagena, Colombia",
+    "port881":  "Panjang, Indonesia — the Lampung robusta port",
+    "port514":  "Tanjung Priok, Indonesia — Jakarta",
+    "port1036": "Puerto Cortés, Honduras — no Honduran port is published at all",
+    "port1057": "Puerto Quetzal, Guatemala — no Guatemalan port is published at all",
+    "port757":  "Mombasa, Kenya — no Kenyan port is published at all; was Uganda's outlet",
+    "port278":  "Dar Es Salaam, Tanzania — Uganda's secondary outlet",
+}
 
 
 def _pace() -> None:
@@ -176,16 +194,32 @@ def _resolve_portid(match: str | list[str], iso3: str) -> tuple[str, str] | None
 
 
 def _resolve_one(match: str, iso3: str) -> tuple[str, str] | None:
-    where = f"UPPER(portname) LIKE '%{match.upper()}%' AND ISO3='{iso3}'"
-    payload = _get({
-        "where": where,
-        "outFields": "portid,portname",
-        "returnDistinctValues": "true",
-        # ArcGIS rejects returnDistinctValues unless geometry is off. Omitting
-        # this is what broke every name-resolved port and emptied the site.
-        "returnGeometry": "false",
-        "f": "json",
-    })
+    """Look the name up in the small ports reference table.
+
+    Never query names against Daily_Ports_Data: a LIKE there scans ~2,065 ports
+    x ~2,000 days and times out, which is what actually killed the unpinned
+    ports rather than any spelling mismatch.
+
+    A hit here only means the port EXISTS — PortWatch publishes ids in the ports
+    table that carry no daily rows at all (see COVERAGE_DROPPED), so the caller
+    still has to treat an empty series as a failure.
+    """
+    import requests
+
+    _pace()
+    resp = requests.get(
+        f"{_PORTS_TABLE}/query",
+        params={
+            "where": f"UPPER(portname) LIKE '%{match.upper()}%' AND ISO3='{iso3}'",
+            "outFields": "portid,portname",
+            "returnGeometry": "false",
+            "f": "json",
+        },
+        headers=_HEADERS,
+        timeout=_TIMEOUT_S,
+    )
+    resp.raise_for_status()
+    payload = resp.json()
     feats = payload.get("features", [])
     cands = [
         (f["attributes"]["portid"], f["attributes"]["portname"])
