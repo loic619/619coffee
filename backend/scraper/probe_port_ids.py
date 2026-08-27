@@ -108,17 +108,21 @@ def _has_data(portid: str) -> str:
 
 
 def _with_daily_data(iso3: str) -> list[tuple[str, str]]:
-    """Which ports in this country still appear in the DAILY table this year?
+    """Which ports in this country reported on the latest published day?
 
-    One distinct-query per country rather than probing each port: Indonesia
-    alone has 101 ports. This is the list we can actually chart.
+    Scoped to ONE day on purpose. A distinct-over-the-year query per country is
+    a large scan and times the job out; a single date is a handful of rows and
+    answers the same question — who is in the daily table right now, and under
+    which portid. If the ids here differ from the ports database, the two tables
+    have diverged, which would explain the "missing" ports far better than the
+    IMF dropping Tanjung Priok and Mombasa.
     """
     try:
         payload = _get({
-            "where": f"ISO3='{iso3}' AND year>=2026",
+            "where": f"ISO3='{iso3}' AND year=2026 AND month=8 AND day=21",
             "outFields": "portid,portname",
-            "returnDistinctValues": "true",
             "returnGeometry": "false",
+            "resultRecordCount": 200,
             "f": "json",
         })
         seen = {
@@ -134,10 +138,10 @@ def _with_daily_data(iso3: str) -> list[tuple[str, str]]:
 def main() -> int:
     # The question that actually matters now: PortWatch dropped daily coverage
     # for most of our ports, so which ports in these countries still have data?
-    print("=== ports WITH daily rows in 2026, per country ===\n")
+    print("=== ports reporting on 2026-08-21 (the latest published day) ===\n")
     for iso3 in _COUNTRIES:
         rows = _with_daily_data(iso3)
-        print(f"{iso3}: {len(rows)} port(s) with 2026 daily data")
+        print(f"{iso3}: {len(rows)} port(s) reporting")
         for p, n in rows[:25]:
             print(f"    {p:10} {n}")
         print()
