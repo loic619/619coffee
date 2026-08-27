@@ -14,7 +14,7 @@ anything:
      row count, latest date)?
   2. What id(s) does the port's *name* resolve to today?
 
-Run via workflow 0.19 (dispatch-only), then pin the answers in PORTS.
+Run via workflow 0.22 (dispatch-only), then pin the answers in PORTS.
 
     cd backend && python -m scraper.probe_port_ids
 """
