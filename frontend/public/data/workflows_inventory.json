@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-27T10:19:12.588952Z",
-  "count": 87,
+  "generated_at": "2026-08-27T11:04:43.951461Z",
+  "count": 88,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -537,6 +537,17 @@
       "workflow_run_deps": [],
       "concurrency_group": "scraper-ice-certified-stocks",
       "timeout_minutes": 30
+    },
+    {
+      "file": "probe-port-ids.yml",
+      "name": "0.19 \u2013 Probe PortWatch port ids (diagnostic)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 15
     },
     {
       "file": "quant-currency-index.yml",
@@ -1194,6 +1205,11 @@
         "version": "0.19"
       },
       {
+        "file": "probe-port-ids.yml",
+        "name": "0.19 \u2013 Probe PortWatch port ids (diagnostic)",
+        "version": "0.19"
+      },
+      {
         "file": "probe-ice-stock-pace.yml",
         "name": "0.20 \u2013 Probe: ICE sequential pace (is 3s/req accepted?)",
         "version": "0.20"
@@ -1290,7 +1306,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 24,
+    "uncovered_workflows_count": 25,
     "stale_curation_count": 0
   }
 }
