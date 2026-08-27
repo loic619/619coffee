@@ -128,11 +128,22 @@ def archive_span(archive: dict) -> dict[str, tuple[str, str] | None]:
     return out
 
 
-async def _api(pg, url: str, tries: int = 4):
+async def _api(pg, url: str, tries: int = 4) -> tuple[dict | None, str | None]:
+    """Fetch one API URL. Returns (payload, reason it failed) — exactly one set.
+
+    Carrying the reason out matters more than it looks. Barchart answers a
+    refused session with an ordinary HTTP status, and a caller that only sees
+    `None` cannot tell "this contract has no data" from "we are being turned
+    away". That is precisely how the 2026-08-27 run logged `no history` for all
+    110 contracts — including the front month, which was trading that day — and
+    still reported success.
+    """
+    reason = "no attempt made"
     for i in range(tries):
         try:
             res = await pg.evaluate(_JS_FETCH, url)
-        except Exception:
+        except Exception as e:                    # noqa: BLE001 — reported, not swallowed
+            reason = f"evaluate failed ({type(e).__name__})"
             try:
                 await pg.goto(INIT_URL, wait_until="domcontentloaded", timeout=45_000)
                 await pg.wait_for_timeout(2_000)
@@ -141,11 +152,41 @@ async def _api(pg, url: str, tries: int = 4):
             continue
         status = res.get("__status") if isinstance(res, dict) else None
         if status is None:
-            return res
+            return res, None
+        reason = f"HTTP {status}"
         if status != 429 and status < 500:
-            return None
+            return None, reason
         await asyncio.sleep(20 * (i + 1))
-    return None
+    return None, reason
+
+
+# Consecutive identical failures that mean "the source is refusing us" rather
+# than "these contracts have no data". Past this, stop: grinding the rest of
+# the board against a host that is turning us away is both useless and rude.
+_MAX_CONSECUTIVE_FAILURES = 8
+
+
+def backfill_verdict(contracts_with_rows: int, total_added: int,
+                     failures: dict[str, int]) -> tuple[int, str]:
+    """Exit code and summary for a completed sweep.
+
+    The distinction this exists to draw: **zero new cells is not failure**. A
+    re-run over an already-deep archive legitimately writes nothing, because
+    merge_prices fills gaps only. What is failure is fetching nothing at all —
+    no contract returning a single row — and the two look identical if you only
+    count cells written. Judge on rows fetched, report on cells written.
+    """
+    if contracts_with_rows == 0:
+        return 3, (f"FAILED — not one contract returned data. Reasons: {dict(failures)}. "
+                   "That is the source refusing us, not an empty board. "
+                   "The archive was NOT modified.")
+    msg = (f"{contracts_with_rows} contracts returned data; "
+           f"wrote {total_added} new price cells")
+    if total_added == 0:
+        msg += " (archive already covered this span — nothing to fill)"
+    if failures:
+        msg += f"; partial failures: {dict(failures)}"
+    return 0, msg
 
 
 def host_reachable(timeout: float = 15.0) -> bool:
@@ -182,6 +223,12 @@ async def run(years: int, today: date) -> int:
     end_year = today.year + 1          # contracts listed into next year
 
     total_added = 0
+    contracts_with_rows = 0
+    failures: dict[str, int] = {}
+    streak_reason: str | None = None
+    streak = 0
+    aborted = False
+
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(headless=True, args=["--no-sandbox"])
         pg = await (await browser.new_context()).new_page()
@@ -189,23 +236,48 @@ async def run(years: int, today: date) -> int:
         await pg.wait_for_timeout(3_000)
 
         for market in ("arabica", "robusta"):
+            if aborted:
+                break
             for sym in contracts_for_span(market, start_year, end_year):
-                payload = await _api(pg, f"{BASE}/historical/get?symbol={sym}&type=eod")
+                payload, err = await _api(pg, f"{BASE}/historical/get?symbol={sym}&type=eod")
                 by_date = parse_eod(payload)
-                if not by_date:
-                    print(f"[backfill-prices] {sym}: no history")
-                    continue
-                added = merge_prices(archive, market, sym, by_date)
-                total_added += added
-                print(f"[backfill-prices] {sym}: {len(by_date)} rows, {added} new cells")
-                await asyncio.sleep(1.0)          # be polite; Barchart throttles
+                if by_date:
+                    contracts_with_rows += 1
+                    streak, streak_reason = 0, None
+                    added = merge_prices(archive, market, sym, by_date)
+                    total_added += added
+                    print(f"[backfill-prices] {sym}: {len(by_date)} rows, {added} new cells")
+                else:
+                    reason = err or "empty payload"
+                    failures[reason] = failures.get(reason, 0) + 1
+                    print(f"[backfill-prices] {sym}: no history ({reason})")
+                    streak = streak + 1 if reason == streak_reason else 1
+                    streak_reason = reason
+                    if streak >= _MAX_CONSECUTIVE_FAILURES:
+                        print(f"[backfill-prices] ABORT — {streak} consecutive failures, "
+                              f"all '{reason}'. The source is refusing us; the rest of the "
+                              f"board would fail the same way.")
+                        aborted = True
+                        break
+                # Be polite on EVERY path. Sleeping only after a success means a
+                # total failure sweeps the whole board at full rate — which is
+                # how the 2026-08-27 run got through 110 contracts in 7 seconds.
+                await asyncio.sleep(1.0)
 
         await browser.close()
+
+    code, summary = backfill_verdict(contracts_with_rows, total_added, failures)
+    if code:
+        # Nothing was fetched, so there is nothing to write. Leaving the file
+        # untouched keeps a failed sweep from rewriting the app's deepest price
+        # history for no reason.
+        print(f"[backfill-prices] {summary}")
+        return code
 
     ARCHIVE_FILE.write_text(
         json.dumps(archive, separators=(",", ":")), encoding="utf-8")
     print(f"[backfill-prices] after: {archive_span(archive)}")
-    print(f"[backfill-prices] wrote {total_added} new price cells")
+    print(f"[backfill-prices] {summary}")
     return 0
 
 

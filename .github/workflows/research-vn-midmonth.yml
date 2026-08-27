@@ -25,7 +25,13 @@ on:
 jobs:
   study:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # 45 was not enough: the 2026-08-27 run was still downloading bulletins when
+    # the cap killed it at 44m30s, losing the whole crawl. The URL search is now
+    # ordered by the naming convention learned from the first month that
+    # resolves — about a 4x cut on the misses — but the host answers at roughly
+    # one request a second and 24 months is still a long walk. Headroom, not a
+    # target: a healthy run should finish well inside this.
+    timeout-minutes: 120
     concurrency:
       group: research-vn-midmonth
       cancel-in-progress: false

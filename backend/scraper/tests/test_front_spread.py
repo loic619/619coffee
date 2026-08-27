@@ -334,6 +334,58 @@ class TestContractPriceBackfill:
         from backend.scraper.fetch_oi_json import ARCHIVE_MAX_DAYS
         assert ARCHIVE_MAX_DAYS >= 261 * 10
 
+    def test_a_refused_fetch_reports_its_status_instead_of_looking_empty(self):
+        # The 2026-08-27 run logged "no history" for all 110 contracts — the
+        # live front month included — because a non-ok status was flattened to
+        # None and became indistinguishable from a contract with no data.
+        import asyncio
+
+        from backend.scraper import backfill_contract_prices as B
+
+        class RefusedPage:
+            async def evaluate(self, js, url):
+                return {"__status": 403}
+
+        payload, reason = asyncio.run(B._api(RefusedPage(), "http://x"))
+        assert payload is None
+        assert reason == "HTTP 403"
+
+    def test_a_successful_fetch_reports_no_reason(self):
+        import asyncio
+
+        from backend.scraper import backfill_contract_prices as B
+
+        class OkPage:
+            async def evaluate(self, js, url):
+                return {"data": [{"date": "2020-03-02", "close": 112.5}]}
+
+        payload, reason = asyncio.run(B._api(OkPage(), "http://x"))
+        assert reason is None
+        assert B.parse_eod(payload) == {"2020-03-02": 112.5}
+
+    def test_fetching_nothing_at_all_is_a_FAILURE_not_a_green_run(self):
+        # The defect that made the first real run useless: it wrote zero cells,
+        # exited 0, and the workflow went green.
+        from backend.scraper import backfill_contract_prices as B
+        code, msg = B.backfill_verdict(0, 0, {"HTTP 403": 110})
+        assert code == 3
+        assert "HTTP 403" in msg and "NOT modified" in msg
+
+    def test_zero_new_cells_is_fine_when_rows_actually_came_back(self):
+        # A re-run over an already-deep archive legitimately fills nothing,
+        # because merge_prices only writes gaps. Judging on cells written would
+        # make every second run red; judge on rows fetched instead.
+        from backend.scraper import backfill_contract_prices as B
+        code, msg = B.backfill_verdict(110, 0, {})
+        assert code == 0
+        assert "already covered" in msg
+
+    def test_a_partial_sweep_succeeds_but_says_what_it_missed(self):
+        from backend.scraper import backfill_contract_prices as B
+        code, msg = B.backfill_verdict(95, 4200, {"HTTP 404": 15})
+        assert code == 0
+        assert "4200 new price cells" in msg and "HTTP 404" in msg
+
     def test_backfill_aborts_before_touching_the_archive_when_barchart_is_denied(
             self, monkeypatch, tmp_path):
         # The archive is the app's deepest price history. A run that cannot
