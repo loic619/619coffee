@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T13:45:55+00:00",
+  "generated_at": "2026-08-27T12:10:01+00:00",
   "ruleset_version": "iphm-v3",
   "origins": {
     "colombia": {
@@ -27,7 +27,7 @@
           "market_impact": "Potential false flowering or dropped blossoms. Harvest delay.",
           "triggers": {
             "spei_3": -2.32,
-            "forecast_7d_rain": 91.5
+            "forecast_7d_rain": 135.1
           }
         }
       ]
@@ -40,11 +40,12 @@
           "name": "Severe Defoliation / Bean Shrinkage",
           "severity": "critical",
           "timeframe": "current",
-          "market_impact": "Irreversible yield reduction likely. Bean size shrinkage.",
+          "market_impact": "Irreversible yield reduction likely. Bean size shrinkage. (held — recovery thresholds not yet met)",
           "triggers": {
-            "vhi": 32.88,
-            "spei_3": -1.61
-          }
+            "spei_3": -1.41,
+            "vhi": 32.88
+          },
+          "status": "recovering"
         }
       ]
     },
@@ -140,70 +141,70 @@
   "state": {
     "colombia|Antioquia|drought_stress_watch": {
       "first_seen": "2026-08-16",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "active": true
     },
     "colombia|Caldas|drought_stress_watch": {
       "first_seen": "2026-08-23",
-      "last_seen": "2026-08-26"
+      "last_seen": "2026-08-27"
     },
     "colombia|Caldas|blossom_drop": {
       "first_seen": "2026-08-11",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "active": true
     },
     "uganda|Mt Elgon|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-26"
+      "last_seen": "2026-08-27"
     },
     "uganda|Mt Elgon|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-26"
+      "last_seen": "2026-08-27"
     },
     "uganda|Mt Elgon|severe_defoliation": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "active": true
     },
     "ethiopia|Sidama/Yirgacheffe|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-26"
+      "last_seen": "2026-08-27"
     },
     "ethiopia|Sidama/Yirgacheffe|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "active": true
     },
     "ethiopia|Jimma|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "active": true
     },
     "ethiopia|Kaffa|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-26"
+      "last_seen": "2026-08-27"
     },
     "ethiopia|Kaffa|drought_stress_alert": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-26"
+      "last_seen": "2026-08-27"
     },
     "ethiopia|Kaffa|severe_defoliation": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "active": true
     },
     "ethiopia|Harrar|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "active": true
     },
     "ethiopia|Harrar|drought_stress_alert": {
       "first_seen": "2026-08-23",
-      "last_seen": "2026-08-26"
+      "last_seen": "2026-08-27"
     },
     "vn|Lam Dong|drought_stress_watch": {
       "first_seen": "2026-08-06",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "active": true
     }
   }
