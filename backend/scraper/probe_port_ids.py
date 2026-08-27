@@ -107,7 +107,41 @@ def _has_data(portid: str) -> str:
         return f"ERROR {type(e).__name__}"
 
 
+def _with_daily_data(iso3: str) -> list[tuple[str, str]]:
+    """Which ports in this country still appear in the DAILY table this year?
+
+    One distinct-query per country rather than probing each port: Indonesia
+    alone has 101 ports. This is the list we can actually chart.
+    """
+    try:
+        payload = _get({
+            "where": f"ISO3='{iso3}' AND year>=2026",
+            "outFields": "portid,portname",
+            "returnDistinctValues": "true",
+            "returnGeometry": "false",
+            "f": "json",
+        })
+        seen = {
+            (f["attributes"].get("portid"), f["attributes"].get("portname"))
+            for f in payload.get("features", [])
+            if f.get("attributes", {}).get("portid")
+        }
+        return sorted(seen, key=lambda t: t[1] or "")
+    except Exception as e:  # noqa: BLE001
+        return [("ERROR", str(e)[:60])]
+
+
 def main() -> int:
+    # The question that actually matters now: PortWatch dropped daily coverage
+    # for most of our ports, so which ports in these countries still have data?
+    print("=== ports WITH daily rows in 2026, per country ===\n")
+    for iso3 in _COUNTRIES:
+        rows = _with_daily_data(iso3)
+        print(f"{iso3}: {len(rows)} port(s) with 2026 daily data")
+        for p, n in rows[:25]:
+            print(f"    {p:10} {n}")
+        print()
+
     print(f"=== ports per country from {_PORTS_TABLE} ===\n")
     for iso3 in _COUNTRIES:
         try:
