@@ -7,6 +7,12 @@ name: "Z – Backfill: per-contract prices to 10y (manual)"
 # Re-runnable and safe: merge_prices() fills GAPS only and never overwrites a
 # price the nightly job captured from the live board.
 #
+# A run that fetches NOTHING now fails (exit 3) instead of going green. The
+# first real run, 2026-08-27, logged "no history" for all 110 contracts —
+# including the front month, which was trading that day — wrote zero cells and
+# reported success. The verdict is judged on rows fetched, not cells written,
+# so a legitimate re-run over an already-deep archive still passes.
+#
 # Retention: fetch_oi_json.ARCHIVE_MAX_DAYS must cover the span fetched here,
 # or the next nightly _trim_archive deletes the work. It is set to 10y, and a
 # test pins it at >= the backfill span so the two cannot drift apart.

@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import statistics
 import sys
 from pathlib import Path
@@ -110,6 +111,41 @@ def k1_candidate_urls(data_year: int, data_month: int) -> list[str]:
             seen.add(u)
             out.append(u)
     return out
+
+
+# The stem of a k1 bulletin: '2026-t6k1-2x(vn-sb).pdf'. Three of its parts vary
+# in ways we cannot predict but Customs keeps CONSISTENT across nearby months —
+# the 't'/'T' case, whether the month is zero-padded, and the case of the
+# '(vn-sb)' suffix.
+_STEM_RE = re.compile(r"/(\d{4})-([tT])(\d{1,2})k1-2x(\([^)]*\))\.pdf$")
+
+
+def stem_signature(url: str) -> tuple[str, bool, str] | None:
+    """(t-case, month-zero-padded, suffix-case) for a bulletin URL."""
+    m = _STEM_RE.search(url or "")
+    if not m:
+        return None
+    return (m.group(2), len(m.group(3)) == 2, m.group(4))
+
+
+def prioritise(urls: list[str], signature: tuple[str, bool, str] | None) -> list[str]:
+    """Put the naming convention that already worked at the front of the queue.
+
+    `k1_candidate_urls` is a 448-URL cross-product per month: two publication
+    windows x t/T x m/mm x two suffix cases x 28 days. Only ONE of the four
+    stem variants is ever real, so before any month resolves we are searching
+    four times more URLs than exist. Once one month answers, the other three
+    variants are known dead — and searching them anyway is what turned a
+    24-month study into a two-hour crawl that the runner killed at 45 minutes.
+
+    This reorders rather than filters: the dead variants stay at the back, so a
+    month where Customs did change convention still resolves, just later.
+    """
+    if signature is None:
+        return urls
+    match = [u for u in urls if stem_signature(u) == signature]
+    rest = [u for u in urls if stem_signature(u) != signature]
+    return match + rest
 
 
 def months_back(n: int, today_year: int, today_month: int) -> list[tuple[int, int]]:
@@ -279,9 +315,14 @@ def host_reachable(timeout: float = 15.0) -> bool:
         return False
 
 
-def fetch_k1(year: int, month: int) -> dict | None:
-    """First k1 bulletin that answers, parsed to the coffee row."""
-    for url in k1_candidate_urls(year, month):
+def fetch_k1(year: int, month: int,
+             signature: tuple[str, bool, str] | None = None) -> dict | None:
+    """First k1 bulletin that answers, parsed to the coffee row.
+
+    `signature` is the stem convention a previous month resolved to; it only
+    reorders the search, never restricts it.
+    """
+    for url in prioritise(k1_candidate_urls(year, month), signature):
         body = _try_download_pdf(url)
         if not body:
             continue
@@ -305,15 +346,23 @@ def main(n_months: int, today_year: int, today_month: int) -> int:
 
     pairs: list[dict] = []
     missing: list[str] = []
+    # Learned from the first month that resolves, then reused to order every
+    # later month's search. Without it each month pays for all four stem
+    # variants when only one is real.
+    signature: tuple[str, bool, str] | None = None
     for (y, m) in months_back(n_months, today_year, today_month):
         key = f"{y}-{m:02d}"
         if key not in full:
             continue
-        row = fetch_k1(y, m)
+        row = fetch_k1(y, m, signature)
         if not row:
             missing.append(key)
             print(f"[vn-midmonth] {key}: no k1 bulletin found")
             continue
+        if signature is None:
+            signature = stem_signature(row["url"])
+            if signature:
+                print(f"[vn-midmonth] naming convention learned from {key}: {signature}")
         k1_t = float(row.get("period_qty_tonnes") or 0.0)
         full_t = full[key]
         if k1_t <= 0 or full_t <= 0:

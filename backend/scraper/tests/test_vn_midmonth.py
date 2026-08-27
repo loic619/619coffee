@@ -248,3 +248,41 @@ class TestHalfMonthAudit:
         cache = json.loads(_CACHE_PATH.read_text(encoding="utf-8"))
         out = R.half_month_audit(cache.get("monthly", []))
         assert out["clean"], f"half-month figures in the monthly series: {out['suspect_months']}"
+
+
+class TestSearchOrdering:
+    """The 45-minute timeout was a search-cost problem, not a slow-host problem."""
+
+    def _url(self, tcase="t", month="6", suffix="(vn-sb)"):
+        return (f"https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/7/22/"
+                f"2026-{tcase}{month}k1-2x{suffix}.pdf")
+
+    def test_reads_the_naming_convention_off_a_url_that_worked(self):
+        assert R.stem_signature(self._url()) == ("t", False, "(vn-sb)")
+        assert R.stem_signature(self._url("T", "06", "(VN-SB)")) == ("T", True, "(VN-SB)")
+
+    def test_ignores_urls_that_are_not_k1_bulletins(self):
+        assert R.stem_signature("https://x/2026-t6k2-2x(vn-sb).pdf") is None
+        assert R.stem_signature("") is None
+        assert R.stem_signature(None) is None
+
+    def test_the_known_good_variant_is_searched_first(self):
+        urls = R.k1_candidate_urls(2026, 6)
+        sig = ("T", True, "(VN-SB)")
+        out = R.prioritise(urls, sig)
+        # Every URL of the learned variant comes before every other one.
+        n_match = sum(1 for u in urls if R.stem_signature(u) == sig)
+        assert n_match > 0
+        assert all(R.stem_signature(u) == sig for u in out[:n_match])
+
+    def test_reordering_never_DROPS_a_candidate(self):
+        # A month where Customs changed convention must still resolve — the
+        # dead variants move to the back, they are not filtered out.
+        urls = R.k1_candidate_urls(2026, 6)
+        out = R.prioritise(urls, ("T", True, "(VN-SB)"))
+        assert sorted(out) == sorted(urls)
+        assert len(out) == len(urls)
+
+    def test_no_signature_leaves_the_order_untouched(self):
+        urls = R.k1_candidate_urls(2026, 6)
+        assert R.prioritise(urls, None) == urls
