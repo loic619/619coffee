@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T16:48:00.654018Z",
+  "generated_at": "2026-08-27T05:26:33.117236Z",
   "count": 86,
   "workflows": [
     {
@@ -621,7 +621,7 @@
       "crons": [],
       "workflow_run_deps": [],
       "concurrency_group": null,
-      "timeout_minutes": 45
+      "timeout_minutes": 120
     },
     {
       "file": "scraper-annual-un-wpp.yml",
