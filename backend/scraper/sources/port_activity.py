@@ -62,6 +62,14 @@ _OUT_FIELDS = ",".join(_FIELDS)
 # ArcGIS FeatureServers cap each page; paginate with resultOffset.
 _PAGE = 2000
 
+# Minimum spacing between requests, and per-request read timeout. See _pace().
+_THROTTLE_S = 1.5
+_TIMEOUT_S = 60
+_last_request = 0.0
+
+# How many passes over the still-failing ports before giving up on a run.
+_PASSES = 3
+
 _HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -96,6 +104,20 @@ PORTS: list[dict] = [
 ]
 
 
+def _pace() -> None:
+    """Space out requests. Firing ~45 queries back-to-back gets this service to
+    throttle: it starts returning empty pages and then timing out, which reads
+    as 'no rows' rather than as an error. Politeness here is load-bearing.
+    """
+    import time
+
+    global _last_request
+    wait = _THROTTLE_S - (time.monotonic() - _last_request)
+    if wait > 0:
+        time.sleep(wait)
+    _last_request = time.monotonic()
+
+
 def _get(params: dict) -> dict:
     """GET the query endpoint with light retries. Raises on persistent failure."""
     import time
@@ -105,7 +127,8 @@ def _get(params: dict) -> dict:
     last_err: Exception | None = None
     for attempt in range(4):
         try:
-            resp = requests.get(_BASE, params=params, headers=_HEADERS, timeout=40)
+            _pace()
+            resp = requests.get(_BASE, params=params, headers=_HEADERS, timeout=_TIMEOUT_S)
             # Don't burn retries on permanent client errors (403/404/...) — only
             # transient ones (429 rate-limit, 5xx) and network faults are worth it.
             if resp.status_code in (400, 401, 403, 404, 410):
@@ -190,9 +213,14 @@ def _fetch_series(portid: str) -> list[dict]:
     which can be smaller than what we request — so we page until the server
     stops setting `exceededTransferLimit`, advancing by the rows it actually
     returns (never by the requested page size).
+
+    Raises if the server promised more rows and then returned an empty page:
+    under throttling that looked like a clean finish and silently wrote a
+    truncated series (Djibouti once published 6 months short this way).
     """
     rows: list[dict] = []
     offset = 0
+    more_expected = False
     while True:
         payload = _get({
             "where": f"portid='{portid}' AND year>={_START_YEAR}",
@@ -205,6 +233,11 @@ def _fetch_series(portid: str) -> list[dict]:
         })
         feats = payload.get("features", [])
         if not feats:
+            if more_expected:
+                raise RuntimeError(
+                    f"truncated at {len(rows)} rows: server set exceededTransferLimit "
+                    "then returned an empty page (throttled?)"
+                )
             break
         for f in feats:
             a = f.get("attributes", {})
@@ -217,7 +250,8 @@ def _fetch_series(portid: str) -> list[dict]:
                     point[f"{m}_{t}"] = _num(a.get(f"{m}_{t}"))
             rows.append(point)
         offset += len(feats)
-        if not payload.get("exceededTransferLimit", False):
+        more_expected = bool(payload.get("exceededTransferLimit", False))
+        if not more_expected:
             break
     return rows
 
@@ -234,15 +268,12 @@ def _write_json(path: Path, obj) -> None:
     safe_write_json(path, obj, indent=None, separators=(",", ":"))
 
 
-def run() -> dict | None:
-    """Fetch all configured ports and write per-port files + an index.
-
-    Each port → `<key>.json` (metadata + series); `index.json` lists the ports
-    without their series. Returns the index payload (None if nothing fetched).
+def _fetch_pass(specs: list[dict], fresh: dict[str, dict]) -> list[dict]:
+    """Fetch one pass over `specs`, writing each success into `fresh` and its
+    per-port file. Returns the specs that still need retrying.
     """
-    fresh: dict[str, dict] = {}   # key → meta, fetched successfully this run
-    failed: list[str] = []
-    for spec in PORTS:
+    still: list[dict] = []
+    for spec in specs:
         key = spec["key"]
         try:
             portid = spec.get("portid")
@@ -251,8 +282,8 @@ def run() -> dict | None:
                 resolved = _resolve_portid(spec["match"], spec["iso3"])
                 if not resolved:
                     print(f"[port_activity] {key}: no portid match for "
-                          f"{spec['match']} / {spec['iso3']} — skipped")
-                    failed.append(key)
+                          f"{spec['match']} / {spec['iso3']}")
+                    still.append(spec)
                     continue
                 portid, portname = resolved
                 print(f"[port_activity] {key}: resolved → {portid} ({portname}) "
@@ -260,8 +291,10 @@ def run() -> dict | None:
 
             series = _fetch_series(portid)
             if not series:
-                print(f"[port_activity] {key} ({portid}): no rows — skipped")
-                failed.append(key)
+                # Usually throttling rather than a genuinely empty port, so this
+                # is retried rather than silently accepted as "no data".
+                print(f"[port_activity] {key} ({portid}): no rows")
+                still.append(spec)
                 continue
 
             meta = {
@@ -282,7 +315,32 @@ def run() -> dict | None:
                   f"{series[0]['date']}→{series[-1]['date']}")
         except Exception as e:  # noqa: BLE001 — one port must not sink the rest
             print(f"[port_activity] {key}: ERROR — {e}")
-            failed.append(key)
+            still.append(spec)
+    return still
+
+
+def run() -> dict | None:
+    """Fetch all configured ports and write per-port files + an index.
+
+    Each port → `<key>.json` (metadata + series); `index.json` lists the ports
+    without their series. Returns the index payload (None if nothing fetched).
+    """
+    import time
+
+    fresh: dict[str, dict] = {}   # key → meta, fetched successfully this run
+    pending = list(PORTS)
+    for attempt in range(_PASSES):
+        if not pending:
+            break
+        if attempt:
+            # Throttling is the usual reason a port fails, so back off and let
+            # the service recover rather than losing the port for a whole week.
+            pause = 60 * attempt
+            print(f"[port_activity] retrying {len(pending)} port(s) in {pause}s "
+                  f"(pass {attempt + 1}/{_PASSES})")
+            time.sleep(pause)
+        pending = _fetch_pass(pending, fresh)
+    failed = [s["key"] for s in pending]
 
     if not fresh:
         print("[port_activity] No ports fetched — retaining existing files")

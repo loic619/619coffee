@@ -44,7 +44,10 @@ jobs:
         working-directory: backend
         run: |
           for attempt in 1 2 3; do
-            python -m scraper.run_port_activity; rc=$?
+            # `set +e` matters: this step runs under `bash -e`, which would abort
+            # on the non-zero exit before rc is ever inspected — that swallowed a
+            # successful partial run once already.
+            set +e; python -m scraper.run_port_activity; rc=$?; set -e
             if [ $rc -eq 0 ] || [ $rc -eq 2 ]; then
               echo "incomplete=$([ $rc -eq 2 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
               exit 0
