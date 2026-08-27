@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-26T04:10:53+00:00",
+ "generated_at": "2026-08-27T14:06:48+00:00",
  "counts": {
   "CRIT": 0,
   "WARN": 0,
@@ -15,12 +15,12 @@
   {
    "grade": "INFO",
    "check": "active factors",
-   "message": "in the model: kc_after_rc_diff, days_since_roll (1172 trainable rows)",
+   "message": "in the model: kc_after_rc_diff, days_since_roll (1173 trainable rows)",
    "features": [
     "kc_after_rc_diff",
     "days_since_roll"
    ],
-   "n_train": 1172
+   "n_train": 1173
   },
   {
    "grade": "INFO",
@@ -29,33 +29,33 @@
    "curve": [
     {
      "band": 0.06,
-     "acted_n": 558,
-     "acted_accuracy": 0.6021505376344086,
-     "coverage": 0.6065217391304348
+     "acted_n": 559,
+     "acted_accuracy": 0.6010733452593918,
+     "coverage": 0.6069489685124865
     },
     {
      "band": 0.08,
-     "acted_n": 434,
-     "acted_accuracy": 0.631336405529954,
-     "coverage": 0.4717391304347826
+     "acted_n": 435,
+     "acted_accuracy": 0.6298850574712643,
+     "coverage": 0.4723127035830619
     },
     {
      "band": 0.1,
      "acted_n": 348,
      "acted_accuracy": 0.6379310344827587,
-     "coverage": 0.3782608695652174
+     "coverage": 0.3778501628664495
     },
     {
      "band": 0.12,
      "acted_n": 274,
      "acted_accuracy": 0.6788321167883211,
-     "coverage": 0.29782608695652174
+     "coverage": 0.2975027144408252
     },
     {
      "band": 0.15,
      "acted_n": 180,
      "acted_accuracy": 0.7166666666666667,
-     "coverage": 0.1956521739130435
+     "coverage": 0.19543973941368079
     }
    ]
   },
@@ -64,40 +64,40 @@
    "check": "dormant factor",
    "message": "brent_overnight: held out by design (regime tag, not a coefficient)",
    "feature": "brent_overnight",
-   "coverage": 1513
+   "coverage": 1514
   },
   {
    "grade": "INFO",
    "check": "dormant factor",
-   "message": "cci_overnight: coverage 318, joint-trainable 211, joint-trainable rows gate binds (211/252), ETA ~8w",
+   "message": "cci_overnight: coverage 319, joint-trainable 212, joint-trainable rows gate binds (212/252), ETA ~8w",
    "feature": "cci_overnight",
-   "coverage": 318,
-   "joint": 211,
+   "coverage": 319,
+   "joint": 212,
    "eta": "~8w"
   },
   {
    "grade": "INFO",
    "check": "dormant factor",
-   "message": "b3_close_gap: coverage 3, joint-trainable 3, coverage gate binds (3/40), ETA ~148w",
+   "message": "b3_close_gap: coverage 4, joint-trainable 4, coverage gate binds (4/40), ETA ~108w",
    "feature": "b3_close_gap",
-   "coverage": 3,
-   "joint": 3,
-   "eta": "~148w"
+   "coverage": 4,
+   "joint": 4,
+   "eta": "~108w"
   },
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "intraday_kc_rc_15min: fresh (2026-08-25)",
+   "message": "intraday_kc_rc_15min: fresh (2026-08-26)",
    "input": "intraday_kc_rc_15min",
-   "last": "2026-08-25",
+   "last": "2026-08-26",
    "stale_sessions": 1
   },
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "fx_intraday_snapshots: fresh (2026-08-26)",
+   "message": "fx_intraday_snapshots: fresh (2026-08-27)",
    "input": "fx_intraday_snapshots",
-   "last": "2026-08-26",
+   "last": "2026-08-27",
    "stale_sessions": 0
   },
   {
@@ -106,14 +106,14 @@
    "message": "b3_kc_close_snapshots: fresh (2026-08-25)",
    "input": "b3_kc_close_snapshots",
    "last": "2026-08-25",
-   "stale_sessions": 1
+   "stale_sessions": 2
   },
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "brent_intraday_anchors: fresh (2026-08-26)",
+   "message": "brent_intraday_anchors: fresh (2026-08-27)",
    "input": "brent_intraday_anchors",
-   "last": "2026-08-26",
+   "last": "2026-08-27",
    "stale_sessions": 0
   },
   {
@@ -130,7 +130,7 @@
    "band": 0.1,
    "acted_n": 348,
    "acted_accuracy": 0.6379310344827587,
-   "coverage": 0.3782608695652174
+   "coverage": 0.3778501628664495
   }
  ]
 }
