@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T11:04:43.951461Z",
+  "generated_at": "2026-08-27T11:08:58.999446Z",
   "count": 88,
   "workflows": [
     {
@@ -540,7 +540,7 @@
     },
     {
       "file": "probe-port-ids.yml",
-      "name": "0.19 \u2013 Probe PortWatch port ids (diagnostic)",
+      "name": "0.22 \u2013 Probe PortWatch port ids (diagnostic)",
       "triggers": [
         "workflow_dispatch"
       ],
@@ -1205,11 +1205,6 @@
         "version": "0.19"
       },
       {
-        "file": "probe-port-ids.yml",
-        "name": "0.19 \u2013 Probe PortWatch port ids (diagnostic)",
-        "version": "0.19"
-      },
-      {
         "file": "probe-ice-stock-pace.yml",
         "name": "0.20 \u2013 Probe: ICE sequential pace (is 3s/req accepted?)",
         "version": "0.20"
@@ -1218,6 +1213,11 @@
         "file": "backfill-weather-history.yml",
         "name": "0.21 \u2013 Backfill weather history from the Open-Meteo archive",
         "version": "0.21"
+      },
+      {
+        "file": "probe-port-ids.yml",
+        "name": "0.22 \u2013 Probe PortWatch port ids (diagnostic)",
+        "version": "0.22"
       },
       {
         "file": "build-oni-history.yml",
