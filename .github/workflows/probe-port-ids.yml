@@ -1,0 +1,28 @@
+name: "0.19 – Probe PortWatch port ids (diagnostic)"
+
+# Dispatch-only. Answers whether the ids pinned in port_activity.PORTS are still
+# correct, after most of them started returning zero rows in Aug 2026 while a
+# name lookup resolved New Mangalore to port811 — an id that used to be Panjang.
+# Writes nothing and commits nothing; read the output and pin the answers.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install requests
+
+      - name: Probe port ids
+        working-directory: backend
+        run: python -m scraper.probe_port_ids
