@@ -342,3 +342,45 @@ class TestSearchOrdering:
     def test_no_signature_leaves_the_order_untouched(self):
         urls = R.k1_candidate_urls(2026, 6)
         assert R.prioritise(urls, None) == urls
+
+
+class TestStructuralGuard:
+    """Days 1-15 are a subset of the month. The arithmetic cannot exceed it."""
+
+    def _p(self, month, k1, full):
+        return {"month": month, "k1_tonnes": k1, "full_tonnes": full,
+                "ratio": round(k1 / full, 4)}
+
+    def test_a_first_half_larger_than_its_month_is_rejected(self):
+        # The real 2026-07 pair from the first successful run.
+        assert R.pair_defect(self._p("2026-07", 175431, 147890)) is not None
+
+    def test_an_ordinary_pair_passes(self):
+        assert R.pair_defect(self._p("2026-06", 57983, 126436)) is None
+
+    def test_exactly_one_is_allowed_through(self):
+        # A first half equal to the month is odd but not impossible: a month
+        # whose second half exported nothing. Only ABOVE 1.0 is arithmetic.
+        assert R.pair_defect(self._p("x", 100, 100)) is None
+
+    def test_the_bad_pair_is_kept_and_flagged_not_dropped(self):
+        pairs = [self._p("2026-06", 57983, 126436), self._p("2026-07", 175431, 147890)]
+        usable, defective = R.split_pairs(pairs)
+        assert [p["month"] for p in usable] == ["2026-06"]
+        assert [p["month"] for p in defective] == ["2026-07"]
+        # Both still carry their flag, so the payload can show every month.
+        assert pairs[0]["valid"] is True and pairs[0]["defect"] is None
+        assert pairs[1]["valid"] is False and "impossible" in pairs[1]["defect"]
+
+    def test_stats_exclude_the_impossible_pair_and_say_so(self):
+        # This is the whole point. Including 1.186 moved the mean to 0.4997 —
+        # "almost exactly half", the most quotable and most wrong answer — and
+        # inflated the stdev from 0.066 to 0.157, hiding the real consistency.
+        good = [self._p(f"2025-{i:02d}", 47, 100) for i in range(1, 12)]
+        stats_clean = R.ratio_stats([dict(p) for p in good])
+        stats_dirty = R.ratio_stats([dict(p) for p in good] + [self._p("2026-07", 175431, 147890)])
+        assert stats_clean["n"] == stats_dirty["n"] == 11      # bad one not counted
+        assert stats_dirty["mean"] == stats_clean["mean"]      # and not averaged in
+        assert stats_dirty["excluded_n"] == 1
+        assert stats_dirty["excluded"][0]["month"] == "2026-07"
+        assert stats_clean["excluded_n"] == 0

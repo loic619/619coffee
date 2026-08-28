@@ -1,0 +1,373 @@
+{
+  "question": "Does Vietnam Customs' mid-month (k1) bulletin represent ~half the full month?",
+  "method": "ratio = k1 period quantity / full-month period quantity, per data month",
+  "note": "Every month the crawl paired is here, including the one that is arithmetically impossible. Defective months are flagged, drawn, and excluded from the statistics — not dropped.",
+  "months_requested": 28,
+  "months_paired": 25,
+  "months_missing_k1": [
+    "2025-08"
+  ],
+  "stats": {
+    "n": 24,
+    "mean": 0.4711,
+    "median": 0.4651,
+    "stdev": 0.0645,
+    "min": 0.3322,
+    "max": 0.6623,
+    "spread": 0.3301,
+    "tolerance": 0.1,
+    "within_tolerance": 13,
+    "within_tolerance_pct": 54.2,
+    "half_inside_observed_range": true,
+    "verdict": "doubling is NOT reliable — the mid-month share is too variable",
+    "excluded_n": 1,
+    "excluded": [
+      {
+        "month": "2026-07",
+        "ratio": 1.1862,
+        "defect": "first half (175,431 t) exceeds the full month (147,890 t) — impossible; the first half is a subset of the month"
+      }
+    ]
+  },
+  "points": [
+    {
+      "month": "2024-04",
+      "ratio": 0.5312,
+      "pct": 53.12,
+      "k1_tonnes": 80781.0,
+      "full_tonnes": 152073.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2024/4/19/2024-t4k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2024-05",
+      "ratio": 0.5262,
+      "pct": 52.62,
+      "k1_tonnes": 41758.0,
+      "full_tonnes": 79358.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2024/5/20/2024-T5K1-1X(VN-SB).pdf"
+    },
+    {
+      "month": "2024-07",
+      "ratio": 0.4162,
+      "pct": 41.62,
+      "k1_tonnes": 32041.0,
+      "full_tonnes": 76982.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2024/7/18/2024-T7K1-1X(VN-SB).pdf"
+    },
+    {
+      "month": "2024-08",
+      "ratio": 0.4842,
+      "pct": 48.42,
+      "k1_tonnes": 36903.0,
+      "full_tonnes": 76214.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2024/8/20/2024-T08K1-1X(VN-SB).pdf"
+    },
+    {
+      "month": "2024-09",
+      "ratio": 0.4166,
+      "pct": 41.66,
+      "k1_tonnes": 21398.0,
+      "full_tonnes": 51369.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2024/9/18/2024-t9k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2024-10",
+      "ratio": 0.4732,
+      "pct": 47.32,
+      "k1_tonnes": 21489.0,
+      "full_tonnes": 45412.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2024/10/18/2024-t10k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2024-11",
+      "ratio": 0.3322,
+      "pct": 33.22,
+      "k1_tonnes": 20933.0,
+      "full_tonnes": 63019.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2024/11/20/2024-T11K1-1X(VN-SB).pdf"
+    },
+    {
+      "month": "2024-12",
+      "ratio": 0.3789,
+      "pct": 37.89,
+      "k1_tonnes": 48371.0,
+      "full_tonnes": 127655.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2024/12/20/2024-T12K1-1X(VN-SB).pdf"
+    },
+    {
+      "month": "2025-01",
+      "ratio": 0.5509,
+      "pct": 55.09,
+      "k1_tonnes": 73818.0,
+      "full_tonnes": 134005.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2025/1/20/2025-t1k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2025-02",
+      "ratio": 0.4401,
+      "pct": 44.01,
+      "k1_tonnes": 74737.0,
+      "full_tonnes": 169832.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2025/2/19/2025-t2k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2025-03",
+      "ratio": 0.5184,
+      "pct": 51.84,
+      "k1_tonnes": 93898.0,
+      "full_tonnes": 181115.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2025/3/18/2025-t3k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2025-04",
+      "ratio": 0.5016,
+      "pct": 50.16,
+      "k1_tonnes": 83572.0,
+      "full_tonnes": 166606.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2025/4/18/2025-t4k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2025-05",
+      "ratio": 0.447,
+      "pct": 44.7,
+      "k1_tonnes": 66503.0,
+      "full_tonnes": 148762.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2025/5/20/2025-T5K1-1X(VN-SB).pdf"
+    },
+    {
+      "month": "2025-06",
+      "ratio": 0.4641,
+      "pct": 46.41,
+      "k1_tonnes": 54751.0,
+      "full_tonnes": 117983.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2025/6/18/2025-t6k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2025-07",
+      "ratio": 0.4846,
+      "pct": 48.46,
+      "k1_tonnes": 49420.0,
+      "full_tonnes": 101979.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2025/7/18/2025-t7k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2025-09",
+      "ratio": 0.4618,
+      "pct": 46.18,
+      "k1_tonnes": 37454.0,
+      "full_tonnes": 81099.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2025/9/17/2025-t9k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2025-10",
+      "ratio": 0.503,
+      "pct": 50.3,
+      "k1_tonnes": 34364.0,
+      "full_tonnes": 68316.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2025/10/20/2025-t10k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2025-11",
+      "ratio": 0.4244,
+      "pct": 42.44,
+      "k1_tonnes": 37693.0,
+      "full_tonnes": 88812.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2025/11/18/2025-T11K1-1X(VN-SB).pdf"
+    },
+    {
+      "month": "2025-12",
+      "ratio": 0.416,
+      "pct": 41.6,
+      "k1_tonnes": 76118.0,
+      "full_tonnes": 182967.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2025/12/18/2025-T12K1-1X(VN-SB).pdf"
+    },
+    {
+      "month": "2026-02",
+      "ratio": 0.6623,
+      "pct": 66.23,
+      "k1_tonnes": 94271.0,
+      "full_tonnes": 142337.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/2/24/2026-t2k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2026-03",
+      "ratio": 0.426,
+      "pct": 42.6,
+      "k1_tonnes": 94560.0,
+      "full_tonnes": 221975.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/3/18/2026-T3K1-1X(VN-SB).pdf"
+    },
+    {
+      "month": "2026-04",
+      "ratio": 0.5236,
+      "pct": 52.36,
+      "k1_tonnes": 99424.0,
+      "full_tonnes": 189894.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/4/17/2026-t4k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2026-05",
+      "ratio": 0.466,
+      "pct": 46.6,
+      "k1_tonnes": 66642.0,
+      "full_tonnes": 143009.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/5/20/2026-t5k1-1x(vn-sb).pdf"
+    },
+    {
+      "month": "2026-06",
+      "ratio": 0.4586,
+      "pct": 45.86,
+      "k1_tonnes": 57983.0,
+      "full_tonnes": 126436.0,
+      "valid": true,
+      "defect": null,
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/6/19/2026-T6K1-1X(VN-SB).pdf"
+    },
+    {
+      "month": "2026-07",
+      "ratio": 1.1862,
+      "pct": 118.62,
+      "k1_tonnes": 175431.0,
+      "full_tonnes": 147890.0,
+      "valid": false,
+      "defect": "first half (175,431 t) exceeds the full month (147,890 t) — impossible; the first half is a subset of the month",
+      "url": "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/7/17/2026-T7K1-1X(VN-SB).pdf"
+    }
+  ],
+  "by_year": [
+    {
+      "year": "2024",
+      "n": 8,
+      "mean": 0.4448,
+      "median": 0.4449,
+      "min": 0.3322,
+      "max": 0.5312
+    },
+    {
+      "year": "2025",
+      "n": 11,
+      "mean": 0.4738,
+      "median": 0.4641,
+      "min": 0.416,
+      "max": 0.5509
+    },
+    {
+      "year": "2026",
+      "n": 5,
+      "mean": 0.5073,
+      "median": 0.466,
+      "min": 0.426,
+      "max": 0.6623
+    }
+  ],
+  "histogram": [
+    {
+      "lo": 0.25,
+      "hi": 0.3,
+      "mid": 0.275,
+      "count": 0
+    },
+    {
+      "lo": 0.3,
+      "hi": 0.35,
+      "mid": 0.325,
+      "count": 1
+    },
+    {
+      "lo": 0.35,
+      "hi": 0.4,
+      "mid": 0.375,
+      "count": 1
+    },
+    {
+      "lo": 0.4,
+      "hi": 0.45,
+      "mid": 0.425,
+      "count": 7
+    },
+    {
+      "lo": 0.45,
+      "hi": 0.5,
+      "mid": 0.475,
+      "count": 7
+    },
+    {
+      "lo": 0.5,
+      "hi": 0.55,
+      "mid": 0.525,
+      "count": 6
+    },
+    {
+      "lo": 0.55,
+      "hi": 0.6,
+      "mid": 0.575,
+      "count": 1
+    },
+    {
+      "lo": 0.6,
+      "hi": 0.65,
+      "mid": 0.625,
+      "count": 0
+    },
+    {
+      "lo": 0.65,
+      "hi": 0.7,
+      "mid": 0.675,
+      "count": 1
+    },
+    {
+      "lo": 0.7,
+      "hi": 0.75,
+      "mid": 0.725,
+      "count": 0
+    }
+  ],
+  "bin_width": 0.05
+}
