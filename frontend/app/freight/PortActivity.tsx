@@ -34,14 +34,20 @@ type PortActivityIndex = {
 
 export default function PortActivity() {
   const [portKey, setPortKey] = useState<string>("");
-  const [metric, setMetric] = useState<MetricKey>("portcalls");
+  // Defaults aimed at the coffee question: container exports are the flow
+  // that matters at these ports, so open on that rather than on all vessel
+  // types and total port calls.
+  const [metric, setMetric] = useState<MetricKey>("export");
   // Both views are seasonal calendar overlays: "daily" = per-day; "cumulative"
-  // = running total from Jan 1. Default: daily.
-  const [view, setView] = useState<"daily" | "cumulative">("daily");
+  // = running total from Jan 1. Cumulative reads better on open — raw daily
+  // export tonnage is spiky, so the running total shows the season's pace.
+  const [view, setView] = useState<"daily" | "cumulative">("cumulative");
   // Right-hand month chart: how many months back from the latest data month.
   const [monthOffset, setMonthOffset] = useState(0);
-  // Which vessel types are shown — toggled via the chips below. Default: all.
-  const [activeTypes, setActiveTypes] = useState<VesselTypeKey[]>([...VESSEL_TYPE_KEYS]);
+  // Which vessel types are shown — toggled via the chips below. Container
+  // only by default; the other types are noise for a coffee read, and the
+  // Reset control restores all five.
+  const [activeTypes, setActiveTypes] = useState<VesselTypeKey[]>(["container"]);
   // Per-port series fetched lazily and cached so re-selecting a port is instant.
   const [portCache, setPortCache] = useState<Record<string, Port>>({});
 
