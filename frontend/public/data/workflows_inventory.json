@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-28T05:36:12.809802Z",
-  "count": 90,
+  "generated_at": "2026-08-28T05:46:33.741873Z",
+  "count": 91,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -515,6 +515,17 @@
       "workflow_run_deps": [],
       "concurrency_group": "acaphe-poll",
       "timeout_minutes": 8
+    },
+    {
+      "file": "probe-ibge-geo.yml",
+      "name": "0.24 \u2013 Probe IBGE municipality geometry (diagnostic)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 20
     },
     {
       "file": "probe-ice-stock-access.yml",
@@ -1250,6 +1261,11 @@
         "version": "0.23"
       },
       {
+        "file": "probe-ibge-geo.yml",
+        "name": "0.24 \u2013 Probe IBGE municipality geometry (diagnostic)",
+        "version": "0.24"
+      },
+      {
         "file": "build-oni-history.yml",
         "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
         "version": "0.6"
@@ -1341,7 +1357,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 27,
+    "uncovered_workflows_count": 28,
     "stale_curation_count": 0
   }
 }
