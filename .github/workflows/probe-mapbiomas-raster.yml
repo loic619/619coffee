@@ -1,0 +1,30 @@
+name: "0.26 – Probe MapBiomas coverage rasters (diagnostic)"
+
+# Dispatch-only. Option A is now "derive coffee polygons in CI from the raster".
+# Before writing that pipeline, find out where the GeoTIFFs are, how big a year
+# of Brazil is, and — the load-bearing question — whether they are Cloud
+# Optimised, so rasterio can read just the coffee states over HTTP instead of
+# downloading a multi-gigabyte national mosaic.
+# Writes nothing and commits nothing.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install requests rasterio numpy
+
+      - name: Probe MapBiomas rasters
+        working-directory: backend
+        run: python -m scraper.probe_mapbiomas_raster
