@@ -216,14 +216,57 @@ def full_month_series() -> dict[str, float]:
     return out
 
 
+def pair_defect(pair: dict) -> str | None:
+    """Why a paired month cannot be a real first-half share, or None if it can.
+
+    A structural check, not a plausibility band. Days 1-15 are a SUBSET of the
+    month, so the first-half tonnage cannot exceed the full month's — whatever
+    the tonnages happen to be. That makes this stronger than the magnitude
+    guard in `extract_coffee_row_any_language`, which only knows roughly what a
+    Vietnamese month looks like and happily passed the one bad pair here.
+
+    It matters because the bad pair was not merely noise. On the first
+    successful run, 2026-07 came back at 1.186 and single-handedly moved the
+    mean from 0.471 to 0.4997 — landing on "almost exactly half", the most
+    quotable and most wrong answer the study could have produced — while
+    inflating the standard deviation from 0.066 to 0.157 and so hiding how
+    consistent the real series is. One impossible point faked the headline and
+    concealed the finding at the same time.
+
+    Defective pairs are excluded from the statistics and KEPT in the payload,
+    flagged, so the page can show them. Dropping them silently would be its own
+    kind of dishonesty.
+    """
+    r = pair.get("ratio")
+    if not isinstance(r, (int, float)) or r <= 0:
+        return "ratio missing or non-positive"
+    if r > 1.0:
+        return (f"first half ({pair.get('k1_tonnes'):,.0f} t) exceeds the full month "
+                f"({pair.get('full_tonnes'):,.0f} t) — impossible; the first half is a "
+                f"subset of the month")
+    return None
+
+
+def split_pairs(pairs: list[dict]) -> tuple[list[dict], list[dict]]:
+    """(usable, defective), each pair tagged in place with `valid`/`defect`."""
+    ok, bad = [], []
+    for p in pairs:
+        d = pair_defect(p)
+        p["valid"] = d is None
+        p["defect"] = d
+        (ok if d is None else bad).append(p)
+    return ok, bad
+
+
 def ratio_stats(pairs: list[dict]) -> dict:
-    """Summarise k1/full ratios.
+    """Summarise k1/full ratios over the STRUCTURALLY VALID pairs only.
 
     Deliberately reports dispersion before the mean. A mean of 0.50 with a
     range of 0.30-0.70 does NOT license doubling the mid-month number, and a
     report that leads on the mean invites exactly that mistake.
     """
-    ratios = [p["ratio"] for p in pairs if p.get("ratio")]
+    usable, defective = split_pairs(pairs)
+    ratios = [p["ratio"] for p in usable if p.get("ratio")]
     if len(ratios) < 3:
         return {"n": len(ratios), "verdict": "insufficient data — need at least 3 paired months"}
     mean = statistics.mean(ratios)
@@ -252,6 +295,11 @@ def ratio_stats(pairs: list[dict]) -> dict:
         "within_tolerance_pct": round(100 * within / len(ratios), 1),
         "half_inside_observed_range": half_plausible,
         "verdict": verdict,
+        # Never silently. A reader has to be able to see that months were set
+        # aside, how many, and why — and find them in `pairs`, still there.
+        "excluded_n": len(defective),
+        "excluded": [{"month": p["month"], "ratio": p.get("ratio"), "defect": p["defect"]}
+                     for p in defective],
     }
 
 

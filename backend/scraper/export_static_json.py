@@ -60,6 +60,7 @@ from scraper.exporters.supply import (
     export_vn_coffee_imports,
     export_vn_export_by_destination,
 )
+from scraper.exporters.vn_midmonth import export_vn_midmonth
 
 
 def _exporters(db):
@@ -130,6 +131,7 @@ def _exporters(db):
         ("oi_fnd_chart",          lambda: export_oi_fnd_chart(db)),
         ("futures_price_history", lambda: export_futures_price_history(db)),
         ("front_spread",          lambda: export_front_spread()),
+        ("vn_midmonth",           lambda: export_vn_midmonth()),
         ("cot",                   lambda: export_cot(db)),
         ("macro_cot",             lambda: export_macro_cot(db)),
         ("freight",               lambda: export_freight(db)),

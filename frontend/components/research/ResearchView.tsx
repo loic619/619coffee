@@ -55,6 +55,7 @@ import { BY_ID } from "./factor-map/nodes";
 import { nodesForArticle } from "./factor-map/articleNodes";
 import HondurasProfile from "./origins/HondurasProfile";
 import CertStocksSpread from "./CertStocksSpread";
+import VnMidMonth from "./VnMidMonth";
 
 // Top-level research categories. Each groups several articles/tools, which render
 // stacked as collapsible cards on the category page.
@@ -1807,6 +1808,7 @@ const BODY: Record<string, React.ReactNode> = {
   "frost-risk-why-radiative-frost-is-the-trade-that-mat": <FrostRiskMethodology />,
   "honduras-origin-country-profile": <HondurasProfile />,
   "cert-stocks-and-the-front-spread": <CertStocksSpread />,
+  "vietnam-mid-month-customs-bulletin": <VnMidMonth />,
   "origin-logistics-the-fobbing-cost-model": <OriginLogistics />,
   "destination-in-store-cost": <DestinationInstore />,
   "freight-port-activity-how-the-numbers-are-built": <FreightMethodology />,
