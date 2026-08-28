@@ -171,6 +171,24 @@ function ExecutiveSummary({ selectedIds }: { selectedIds: string[] }) {
 
 const ReportCanvas = forwardRef<HTMLDivElement>(function ReportCanvas(_props, ref) {
   const selectedIds = useReportStore((s) => s.selectedIds);
+  const setOrder = useReportStore((s) => s.setOrder);
+
+  /**
+   * Reorder a chart WITHIN its category block. The block's ids are a
+   * subsequence of selectedIds, so we rearrange that subsequence and write it
+   * back into the same slots — cross-category order (fixed by
+   * REPORT_CATEGORIES) is untouched. Lets you re-tick a chart and lift it back
+   * to 2nd/3rd place instead of having to clear the whole cart.
+   */
+  const moveWithin = (groupIds: string[], from: number, to: number) => {
+    if (to < 0 || to >= groupIds.length || from === to) return;
+    const nextGroup = [...groupIds];
+    const [moved] = nextGroup.splice(from, 1);
+    nextGroup.splice(to, 0, moved);
+    const member = new Set(groupIds);
+    let j = 0;
+    setOrder(selectedIds.map((id) => (member.has(id) ? nextGroup[j++] : id)));
+  };
 
   return (
     // Fixed ~A4 content width (700px) at ALL viewports — the parent is
@@ -235,7 +253,7 @@ const ReportCanvas = forwardRef<HTMLDivElement>(function ReportCanvas(_props, re
               {/* flex-wrap so half-width visuals pack two-up; gap-3 (12px) →
                   half = calc(50% - 6px) keeps the pair flush. */}
               <div className="flex flex-wrap items-start gap-3">
-                {g.ids.map((id) => {
+                {g.ids.map((id, idx) => {
                   const def = REPORT_BY_ID[id];
                   if (!def) return null;
                   const Visual = def.Component;
@@ -250,9 +268,33 @@ const ReportCanvas = forwardRef<HTMLDivElement>(function ReportCanvas(_props, re
                     >
                       <div className="flex items-baseline justify-between gap-2 px-2.5 py-1.5 border-b border-slate-800 bg-slate-900/60">
                         <h2 className="text-xs font-semibold tracking-tight text-slate-200">{def.label}</h2>
-                        <span className="shrink-0 text-[8.5px] uppercase tracking-wider text-slate-500">
-                          {def.group ? `${def.group}${def.subgroup ? ` · ${def.subgroup}` : ""}` : g.cat}
-                        </span>
+                        <div className="flex items-baseline gap-2 shrink-0">
+                          {/* Reorder within this section (screen only). */}
+                          <div className="print:hidden flex items-center gap-0.5">
+                            <button
+                              onClick={() => moveWithin(g.ids, idx, 0)}
+                              disabled={idx === 0}
+                              title="Move to top of section"
+                              className="px-1 rounded text-[10px] leading-4 text-slate-500 enabled:hover:text-slate-200 enabled:hover:bg-slate-800 disabled:opacity-25"
+                            >⤒</button>
+                            <button
+                              onClick={() => moveWithin(g.ids, idx, idx - 1)}
+                              disabled={idx === 0}
+                              title="Move up"
+                              className="px-1 rounded text-[10px] leading-4 text-slate-500 enabled:hover:text-slate-200 enabled:hover:bg-slate-800 disabled:opacity-25"
+                            >↑</button>
+                            <button
+                              onClick={() => moveWithin(g.ids, idx, idx + 1)}
+                              disabled={idx === g.ids.length - 1}
+                              title="Move down"
+                              className="px-1 rounded text-[10px] leading-4 text-slate-500 enabled:hover:text-slate-200 enabled:hover:bg-slate-800 disabled:opacity-25"
+                            >↓</button>
+                            <span className="ml-0.5 text-[8.5px] font-mono text-slate-600">{idx + 1}/{g.ids.length}</span>
+                          </div>
+                          <span className="text-[8.5px] uppercase tracking-wider text-slate-500">
+                            {def.group ? `${def.group}${def.subgroup ? ` · ${def.subgroup}` : ""}` : g.cat}
+                          </span>
+                        </div>
                       </div>
                       <div className="p-2 overflow-x-auto">
                         <Visual isReportMode />

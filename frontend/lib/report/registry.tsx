@@ -942,6 +942,38 @@ export const REPORT_PRESETS: ReportPreset[] = [
     ],
   },
   {
+    id: "vietnam",
+    label: "Vietnam",
+    description:
+      "Vietnam-focused robusta report — export pace & destinations, S&D, weather " +
+      "and analogs, ENSO, the HCM logistics chain, plus the London/robusta market " +
+      "context (RM quotes, COT, forecast, certified stocks, farmgate)",
+    // Ordered as the report reads within each category block.
+    ids: [
+      // Price — robusta market context (both markets render; RM is the read)
+      "daily_quotes",                    // RM front month
+      "cot_overview",                    // London positioning
+      "options_tiles",                   // RM options book
+      "origin_farmgate_prices",          // includes VN robusta farmgate
+      // Freight — the Vietnam export chain
+      "port_activity",                   // Ho Chi Minh City vessel calls
+      "origin_freight_costs",            // VN→EU corridor vs BR→EU
+      // Supply — Vietnam itself
+      "vietnam_monthly_volume",
+      "vietnam_cumulative_pace",
+      "vietnam_annual_volume",
+      "vietnam_destination",
+      "vietnam_supply_demand",
+      "vietnam_weather_pack",
+      "vietnam_weather_analogs",
+      "enso_divergence",                 // ENSO drives VN rainfall
+      // Demand — robusta deliverable stocks
+      "certified_stocks_period_robusta",
+      // Macro
+      "robusta_forecast",
+    ],
+  },
+  {
     id: "brazil",
     label: "Brazil",
     description: "All Brazil visuals — exports, supply & demand, weather and analogs",
