@@ -48,6 +48,7 @@ import DeliveryProcessMethodology from "./methodology/DeliveryProcessMethodology
 import { AlwaysOpen, ResearchCard, type Tone } from "./methodology/prose";
 import IcePublishTimes from "./admin/IcePublishTimes";
 import { ARTICLES, CAT_LABEL, type Article } from "@/lib/research/catalog";
+import { DEFAULT_SORT, SORT_OPTIONS, datedCount, optionById, sortArticles } from "@/lib/research/sort";
 import { applyOverrides, type Override, type OverrideMap } from "@/lib/research/overrides";
 import EditPanel from "./EditPanel";
 import FactorMap, { FactorMapLegend } from "./factor-map/FactorMap";
@@ -1884,14 +1885,21 @@ function ListView({ sel, setSel, cat, setCat, list: all, editing, onEdit }: {
   editing: boolean; onEdit?: () => void;
 }) {
   const [q, setQ] = useState("");
+  const [sortId, setSortId] = useState(DEFAULT_SORT.id);
+  const sort = optionById(sortId);
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return all.filter(a => {
+    const filtered = all.filter(a => {
       if (cat !== "all" && a.cat !== cat) return false;
       if (!needle) return true;
       return `${a.title} ${a.subtitle ?? ""} ${a.kicker ?? ""}`.toLowerCase().includes(needle);
     });
-  }, [q, cat, all]);
+    return sortArticles(filtered, sort.key, sort.dir);
+  }, [q, cat, all, sort.key, sort.dir]);
+  // Publication dates only reach back to the repository's first commit, so a
+  // third of the catalogue has none. Say how many the current sort can actually
+  // order rather than letting the rest look like the oldest articles.
+  const dated = useMemo(() => datedCount(list, sort.key), [list, sort.key]);
   const current = all.find(a => a.id === sel) ?? all[0];
 
   return (
@@ -1909,14 +1917,40 @@ function ListView({ sel, setSel, cat, setCat, list: all, editing, onEdit }: {
             </button>
           ))}
         </div>
+        <div className="mb-2">
+          <select value={sortId} onChange={e => setSortId(e.target.value)}
+            aria-label="Sort research"
+            className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] text-slate-300 focus:border-slate-500 focus:outline-none">
+            {SORT_OPTIONS.map(o => (
+              <option key={o.id} value={o.id}>{o.label}</option>
+            ))}
+          </select>
+          {/* Only when it changes the reading. A silent third of the list with
+              no publication date would otherwise look like the oldest work. */}
+          {dated < list.length && (
+            <div className="mt-1 text-[10px] leading-tight text-slate-500">
+              {dated} of {list.length} have a {sort.key === "published" ? "publication" : "revision"} date
+              {" — "}the rest are listed last, not oldest.
+            </div>
+          )}
+        </div>
         <div className="max-h-[70vh] divide-y divide-slate-800 overflow-y-auto rounded-lg border border-slate-800">
-          {list.map(a => (
-            <button key={a.id} onClick={() => setSel(a.id)}
-              className={`flex w-full items-baseline gap-2 px-3 py-1.5 text-left hover:bg-slate-900/60 ${
-                sel === a.id ? "bg-slate-800/70" : ""}`}>
-              <span className="truncate text-xs text-slate-200">{a.title}</span>
-            </button>
-          ))}
+          {list.map(a => {
+            const d = sort.key === "published" ? a.published : a.updated;
+            return (
+              <button key={a.id} onClick={() => setSel(a.id)}
+                className={`flex w-full items-baseline gap-2 px-3 py-1.5 text-left hover:bg-slate-900/60 ${
+                  sel === a.id ? "bg-slate-800/70" : ""}`}>
+                <span className="min-w-0 flex-1 truncate text-xs text-slate-200">{a.title}</span>
+                {/* The value being sorted on, shown — ordering a list by a date
+                    the reader cannot see just looks arbitrary. */}
+                <span className={`shrink-0 font-mono text-[10px] tabular-nums ${
+                  d ? "text-slate-500" : "text-slate-700"}`}>
+                  {d ?? "—"}
+                </span>
+              </button>
+            );
+          })}
           {!list.length && <div className="px-3 py-6 text-center text-xs text-slate-600">No match.</div>}
         </div>
       </div>
