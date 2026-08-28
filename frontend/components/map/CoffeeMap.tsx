@@ -20,7 +20,8 @@ import {
 } from "@/lib/mapFlows";
 import { useUrlState } from "@/lib/useUrlState";
 import {
-  areaByGeocode, cropColor, formatHa, CROP_BUCKETS, type CropArea,
+  areaByGeocode, cropColor, footprintColor, formatHa, CROP_BUCKETS,
+  FOOTPRINT_BUCKETS, type CropArea, type CoffeeFootprint,
 } from "@/lib/cropLayer";
 
 // The slider's default and upper bound. Overwritten by the data once loaded —
@@ -298,8 +299,14 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
   // Both files are ~1 MB together, so they load only when the layer is enabled.
   const cropLayerRef = useRef<LeafletLayerGroup | null>(null);
   const cropShapesRef = useRef<Map<string, LeafletPath>>(new Map());
+  // Three states rather than a second overlay: "muni" is the municipality
+  // aggregate, "fields" is the raster-derived ~1.1 km footprint. Stacking both
+  // would put two ramps of the same variable on top of each other, which reads
+  // as noise — they answer the same question at different resolutions.
   const [cropOn, setCropOn] = useUrlState<string>("crop", "off", (raw) =>
-    ["on", "off"].includes(raw) ? raw : "off");
+    ["muni", "fields", "off"].includes(raw) ? raw : "off");
+  const footprintLayerRef = useRef<LeafletLayerGroup | null>(null);
+  const [footprint, setFootprint] = useState<CoffeeFootprint | null>(null);
   const [cropYear, setCropYear] = useUrlState<number>("cropyear", CROP_LATEST_YEAR);
   // Read inside tooltip callbacks and the build effect so neither has to be
   // torn down and rebuilt when the slider moves.
@@ -887,7 +894,7 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
   // Fetch only when the layer is first switched on: the two files are ~1 MB
   // together and most map sessions never open this layer.
   useEffect(() => {
-    if (cropOn !== "on" || cropArea || cropLoading) return;
+    if (cropOn !== "muni" || cropArea || cropLoading) return;
     setCropLoading(true);
     Promise.all([
       fetch("/data/coffee_crop_area.json").then((r) => r.json()),
@@ -908,7 +915,7 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    if (cropOn !== "on" || !cropArea || !cropGeo) {
+    if (cropOn !== "muni" || !cropArea || !cropGeo) {
       if (cropLayerRef.current) {
         cropLayerRef.current.remove();
         cropLayerRef.current = null;
@@ -973,6 +980,76 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
       shape.setStyle({ fillColor: fill ?? "#000000", fillOpacity: fill ? 0.75 : 0 });
     });
   }, [cropYear, cropArea]);
+
+  // Footprint: fetched on demand like the choropleth, and only for its view.
+  useEffect(() => {
+    if (cropOn !== "fields" || footprint || cropLoading) return;
+    setCropLoading(true);
+    fetch("/data/coffee_footprint.json")
+      .then((r) => r.json())
+      .then((f: CoffeeFootprint) => setFootprint(f))
+      .catch((e) => console.error("[footprint] load failed:", e))
+      .finally(() => setCropLoading(false));
+  }, [cropOn, footprint, cropLoading]);
+
+  // 51k cells is far too many Leaflet shapes to hold at once, so only the ones
+  // in view are drawn and the set is rebuilt on move. Zoomed out the grid is
+  // finer than the screen anyway, so it renders as a density wash — which is
+  // the honest reading of 1.1 km cells at country scale.
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const clear = () => {
+      if (footprintLayerRef.current) {
+        footprintLayerRef.current.remove();
+        footprintLayerRef.current = null;
+      }
+    };
+    if (cropOn !== "fields" || !footprint) { clear(); return; }
+
+    let cancelled = false;
+    let redraw: (() => void) | null = null;
+
+    import("leaflet").then((L) => {
+      const Leaflet = (L as unknown as { default?: typeof L }).default ?? L;
+      if (cancelled) return;
+      const cell = footprint.cell_degrees;
+      // One canvas for the whole layer — 51k individual SVG paths would not
+      // survive a pan.
+      const renderer = Leaflet.canvas({ padding: 0.3 });
+
+      redraw = () => {
+        if (cancelled) return;
+        clear();
+        const b = map.getBounds().pad(0.25);
+        const group = Leaflet.layerGroup();
+        let drawn = 0;
+        for (const [lon, lat, ha] of footprint.cells) {
+          if (lat < b.getSouth() || lat > b.getNorth() ||
+              lon < b.getWest() || lon > b.getEast()) continue;
+          Leaflet.rectangle(
+            [[lat, lon], [lat + cell, lon + cell]],
+            { renderer, stroke: false, fillColor: footprintColor(ha),
+              fillOpacity: 0.8, interactive: false },
+          ).addTo(group);
+          if (++drawn > 12000) break;  // hard ceiling on a single frame
+        }
+        group.addTo(map);
+        (group as unknown as { bringToBack?: () => void }).bringToBack?.();
+        footprintLayerRef.current = group;
+      };
+
+      redraw();
+      map.on("moveend zoomend", redraw);
+    });
+
+    return () => {
+      cancelled = true;
+      if (redraw) map.off("moveend zoomend", redraw);
+      clear();
+    };
+  }, [cropOn, footprint]);
 
   // ── In-transit boats (trade-flow engine) ──────────────────────────────────
   // One 🚢 ≈ 25 kt estimated on the water for a lane; boats glide along the
@@ -1156,21 +1233,24 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
         <div style={{ marginTop: 4, background: "#1e293b", border: "1px solid #475569", borderRadius: 4, padding: "3px 6px", fontFamily: "monospace" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <span style={{ fontSize: 9, color: "#64748b" }}>Coffee crop 🌱</span>
-            {(["on", "off"] as const).map((v) => (
-              <button key={v} onClick={() => setCropOn(v)}
-                style={{ fontSize: 9, padding: "2px 6px", borderRadius: 3, cursor: "pointer", fontFamily: "monospace",
+            {([["muni", "Municipality"], ["fields", "Fields"], ["off", "Off"]] as const).map(([v, label]) => (
+              <button key={v} onClick={() => setCropOn(v)} title={
+                v === "muni" ? "Coffee area per municipality, 1985–2025"
+                : v === "fields" ? "Where coffee sits, from the 30 m raster"
+                : "Hide"}
+                style={{ fontSize: 9, padding: "2px 5px", borderRadius: 3, cursor: "pointer", fontFamily: "monospace",
                   border: "1px solid " + (cropOn === v ? "#3987e5" : "transparent"),
                   background: cropOn === v ? "#0f172a" : "transparent",
                   color: cropOn === v ? "#9ec5f4" : "#94a3b8" }}>
-                {v === "on" ? "On" : "Off"}
+                {label}
               </button>
             ))}
-            {cropOn === "on" && cropLoading && (
+            {cropOn !== "off" && cropLoading && (
               <span style={{ fontSize: 8, color: "#64748b" }}>loading…</span>
             )}
           </div>
 
-          {cropOn === "on" && cropArea && (
+          {cropOn === "muni" && cropArea && (
             <>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
                 <input
@@ -1202,8 +1282,27 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
               </div>
             </>
           )}
+
+          {cropOn === "fields" && footprint && (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 0, marginTop: 4 }}>
+                {FOOTPRINT_BUCKETS.map((b) => (
+                  <div key={b.color} style={{ width: 24, height: 7, background: b.color }} />
+                ))}
+                <span style={{ fontSize: 8, color: "#64748b", marginLeft: 5 }}>
+                  ha per 1.1 km cell
+                </span>
+              </div>
+              <div style={{ fontSize: 8, color: "#475569", marginTop: 3, maxWidth: 190, lineHeight: 1.3 }}>
+                {footprint.year} · {footprint.cells.length.toLocaleString()} cells ·
+                {" "}{(footprint.total_ha / 1e6).toFixed(2)} M ha. Binned from the
+                30 m classification — shows where coffee sits, not field outlines.
+              </div>
+            </>
+          )}
         </div>
 
+        {/* (fields legend rendered inside the crop control above) */}
         {/* In-transit boats toggle */}
         <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 4, background: "#1e293b", border: "1px solid #475569", borderRadius: 4, padding: "3px 6px", fontFamily: "monospace" }}>
           <span style={{ fontSize: 9, color: "#64748b" }}>In transit 🚢</span>

@@ -48,6 +48,35 @@ export function cropColor(ha: number): string | null {
   return CROP_BUCKETS[CROP_BUCKETS.length - 1].color;
 }
 
+// ── Footprint (raster-derived ~1.1 km cells) ────────────────────────────────
+// A cell tops out around 120 ha, versus ~41,000 for a whole municipality, so
+// it needs its own breaks. Same hue ramp on purpose: the two views are shown
+// one at a time, never stacked, so "brighter = more coffee" carries across
+// both rather than competing for the reader's attention.
+export type CoffeeFootprint = {
+  updated: string;
+  source: string;
+  year: number;
+  cell_degrees: number;
+  total_ha: number;
+  note: string;
+  cells: [number, number, number][]; // [lon, lat, hectares] — SW corner
+};
+
+export const FOOTPRINT_BUCKETS: { max: number; color: string }[] = [
+  { max: 10, color: "#184f95" },
+  { max: 25, color: "#256abf" },
+  { max: 45, color: "#3987e5" },
+  { max: 70, color: "#6da7ec" },
+  { max: 95, color: "#9ec5f4" },
+  { max: Infinity, color: "#cde2fb" },
+];
+
+export function footprintColor(ha: number): string {
+  for (const b of FOOTPRINT_BUCKETS) if (ha <= b.max) return b.color;
+  return FOOTPRINT_BUCKETS[FOOTPRINT_BUCKETS.length - 1].color;
+}
+
 export function formatHa(ha: number): string {
   if (ha >= 1000) return `${(ha / 1000).toFixed(ha >= 10_000 ? 0 : 1)}k ha`;
   return `${Math.round(ha)} ha`;
