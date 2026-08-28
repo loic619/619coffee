@@ -110,27 +110,71 @@ def _probe_drive() -> None:
 
     body = head + r.content
     r.close()
-    print(f"  → {len(body) / 1e6:.1f} MB xlsx/zip")
+    print(f"  → {len(body) / 1e6:.1f} MB archive")
 
-    # The decisive question: does it carry a municipality column?
+    # It is a zip, not a workbook — list what is inside before parsing anything.
+    import zipfile
+
     import pandas as pd
 
     try:
-        xls = pd.ExcelFile(io.BytesIO(body))
+        zf = zipfile.ZipFile(io.BytesIO(body))
     except Exception as e:  # noqa: BLE001
-        print(f"  cannot open as workbook: {e}")
+        print(f"  not a readable zip: {e}")
+        return
+    entries = zf.infolist()
+    print(f"  archive contents ({len(entries)}):")
+    for info in entries:
+        print(f"    {info.filename}  {info.file_size / 1e6:.1f} MB uncompressed")
+
+    # Inspect the biggest member — that is the data table.
+    target = max(entries, key=lambda i: i.file_size)
+    print(f"\n  inspecting {target.filename} …")
+    raw = zf.read(target)
+
+    if target.filename.lower().endswith((".csv", ".txt")):
+        df = pd.read_csv(io.BytesIO(raw), nrows=200_000)
+        _describe(df, target.filename)
+        return
+
+    try:
+        xls = pd.ExcelFile(io.BytesIO(raw))
+    except Exception as e:  # noqa: BLE001
+        print(f"  cannot open {target.filename}: {e}")
         return
     print(f"  sheets: {xls.sheet_names}")
     for sheet in xls.sheet_names:
-        try:
-            df = pd.read_excel(xls, sheet_name=sheet, nrows=5)
-        except Exception:  # noqa: BLE001
+        if not re.search(r"coverage|cobertura", sheet, re.I):
             continue
-        cols = [str(c) for c in df.columns]
-        muni = [c for c in cols if re.search(r"munic|city|cidade|geocod", c, re.I)]
-        print(f"    [{sheet}] {len(cols)} cols; municipality-ish: {muni or 'none'}")
-        if muni:
-            print(f"      columns: {cols[:16]}")
+        print(f"  reading sheet {sheet} (this is the large one) …")
+        df = pd.read_excel(xls, sheet_name=sheet)
+        _describe(df, sheet)
+        break
+
+
+def _describe(df, label: str) -> None:
+    """Columns, municipality granularity, and how much coffee is in here."""
+    import re
+
+    cols = [str(c) for c in df.columns]
+    muni = [c for c in cols if re.search(r"munic|city|cidade|geocod", c, re.I)]
+    print(f"  [{label}] {len(df):,} rows x {len(cols)} cols")
+    print(f"    columns: {cols[:14]}")
+    print(f"    municipality column(s): {muni or 'NONE'}")
+    if "class" not in cols:
+        return
+    coffee = df[df["class"] == _COFFEE_CLASS]
+    print(f"    class {_COFFEE_CLASS} rows: {len(coffee):,}")
+    if coffee.empty or not muni:
+        return
+    key = muni[0]
+    print(f"    municipalities with coffee: {coffee[key].nunique():,}")
+    if "y2025" in cols:
+        top = (coffee.groupby(key)["y2025"].sum()
+               .sort_values(ascending=False).head(10))
+        print("    top municipalities by 2025 coffee area (ha):")
+        for name, ha in top.items():
+            print(f"      {str(name)[:32]:34} {ha:10,.0f}")
 
 
 def _probe_coverage() -> None:
