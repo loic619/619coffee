@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import type { LayerGroup as LeafletLayerGroup, Map as LeafletMap, Marker as LeafletMarker, TileLayer } from "leaflet";
+import type { LayerGroup as LeafletLayerGroup, Map as LeafletMap, Marker as LeafletMarker, Path as LeafletPath, TileLayer } from "leaflet";
+import type { GeoJsonObject } from "geojson";
 import { PORTS, HUB_PORTS, ROUTES, BASEMAPS } from "@/lib/mapData";
 import { cachedFetchStatic } from "@/lib/api";
 import type { CountryPin, FactoryPin, NewsItem } from "@/lib/api";
@@ -18,6 +19,13 @@ import {
   type FreightRoute,
 } from "@/lib/mapFlows";
 import { useUrlState } from "@/lib/useUrlState";
+import {
+  areaByGeocode, cropColor, formatHa, CROP_BUCKETS, type CropArea,
+} from "@/lib/cropLayer";
+
+// The slider's default and upper bound. Overwritten by the data once loaded —
+// this only has to be sane before the first fetch resolves.
+const CROP_LATEST_YEAR = 2025;
 
 // Curved arc (quadratic bezier sampled to a polyline) between two [lat,lng]
 // points, so import-flow lines fan out instead of overlapping.
@@ -285,6 +293,22 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
   const freightFlowLayerRef = useRef<LeafletLayerGroup | null>(null);
   const [freightFlow, setFreightFlow] = useUrlState<string>("fflows", "off", (raw) =>
     ["off", "on"].includes(raw) ? raw : "off");
+  // Coffee crop area (MapBiomas class 46) as a municipality choropleth, with a
+  // year slider so expansion is visible over time rather than as a snapshot.
+  // Both files are ~1 MB together, so they load only when the layer is enabled.
+  const cropLayerRef = useRef<LeafletLayerGroup | null>(null);
+  const cropShapesRef = useRef<Map<string, LeafletPath>>(new Map());
+  const [cropOn, setCropOn] = useUrlState<string>("crop", "off", (raw) =>
+    ["on", "off"].includes(raw) ? raw : "off");
+  const [cropYear, setCropYear] = useUrlState<number>("cropyear", CROP_LATEST_YEAR);
+  // Read inside tooltip callbacks and the build effect so neither has to be
+  // torn down and rebuilt when the slider moves.
+  const cropYearRef = useRef(cropYear);
+  cropYearRef.current = cropYear;
+  const [cropArea, setCropArea] = useState<CropArea | null>(null);
+  const [cropGeo, setCropGeo] = useState<GeoJsonObject | null>(null);
+  const [cropLoading, setCropLoading] = useState(false);
+
   const [originPrices, setOriginPrices] = useState<OriginPrice[]>([]);
   const [freightData, setFreightData] = useState<{ routes: FreightRoute[] } | null>(null);
 
@@ -859,6 +883,97 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
     return () => { cancelled = true; };
   }, [freightFlow, freightData]);
 
+  // ── Coffee crop area (MapBiomas class 46) ─────────────────────────────────
+  // Fetch only when the layer is first switched on: the two files are ~1 MB
+  // together and most map sessions never open this layer.
+  useEffect(() => {
+    if (cropOn !== "on" || cropArea || cropLoading) return;
+    setCropLoading(true);
+    Promise.all([
+      fetch("/data/coffee_crop_area.json").then((r) => r.json()),
+      fetch("/data/coffee_crop_geo.json").then((r) => r.json()),
+    ])
+      .then(([area, geo]: [CropArea, GeoJsonObject]) => {
+        setCropArea(area);
+        setCropGeo(geo);
+      })
+      .catch((e) => console.error("[crop] load failed:", e))
+      .finally(() => setCropLoading(false));
+  }, [cropOn, cropArea, cropLoading]);
+
+  // Build the polygons once per data load, not per year. Restyling on the year
+  // slider happens in the effect below — rebuilding ~1,585 paths on every tick
+  // would make the slider crawl.
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (cropOn !== "on" || !cropArea || !cropGeo) {
+      if (cropLayerRef.current) {
+        cropLayerRef.current.remove();
+        cropLayerRef.current = null;
+        cropShapesRef.current.clear();
+      }
+      return;
+    }
+    if (cropLayerRef.current) return; // already built
+
+    let cancelled = false;
+    import("leaflet").then((L) => {
+      const Leaflet = (L as unknown as { default?: typeof L }).default ?? L;
+      if (cancelled || cropLayerRef.current) return;
+
+      const byCode = areaByGeocode(cropArea, cropYearRef.current);
+      const names = new Map(cropArea.municipalities.map((m) => [m.geocode, m]));
+      const shapes = new Map<string, LeafletPath>();
+
+      const gj = Leaflet.geoJSON(cropGeo, {
+        style: (feature) => {
+          const ha = byCode.get(String(feature?.properties?.g)) ?? 0;
+          const fill = cropColor(ha);
+          return {
+            color: "#0f172a", weight: 0.3, opacity: 0.8,
+            fillColor: fill ?? "#000000",
+            fillOpacity: fill ? 0.75 : 0,
+          };
+        },
+        onEachFeature: (feature, layer) => {
+          const code = String(feature?.properties?.g);
+          shapes.set(code, layer as LeafletPath);
+          const m = names.get(code);
+          // Bound once; the content is read at hover time so it follows the
+          // slider without rebinding every tooltip on each tick.
+          (layer as LeafletPath).bindTooltip(() => {
+            const idx = cropArea.years.indexOf(cropYearRef.current);
+            const ha = m?.series[idx] ?? 0;
+            return `<b>${m?.name ?? code}</b>${m?.uf ? ` (${m.uf})` : ""}<br/>` +
+                   `${cropYearRef.current}: ${formatHa(ha)}`;
+          }, { sticky: true });
+        },
+      });
+
+      // Underneath the pins and arcs — this is context, not the subject.
+      gj.addTo(map);
+      gj.bringToBack?.();
+      cropLayerRef.current = gj as unknown as LeafletLayerGroup;
+      cropShapesRef.current = shapes;
+    });
+    return () => { cancelled = true; };
+  }, [cropOn, cropArea, cropGeo]);
+
+  // Year slider: restyle in place. O(n) setStyle calls, no layer teardown —
+  // rebuilding ~1,585 paths on every tick would make the slider crawl.
+  useEffect(() => {
+    if (!cropArea || !cropShapesRef.current.size) return;
+    const byCode = areaByGeocode(cropArea, cropYear);
+    // forEach rather than for..of — the build target predates Map iteration.
+    cropShapesRef.current.forEach((shape, code) => {
+      const ha = byCode.get(code) ?? 0;
+      const fill = cropColor(ha);
+      shape.setStyle({ fillColor: fill ?? "#000000", fillOpacity: fill ? 0.75 : 0 });
+    });
+  }, [cropYear, cropArea]);
+
   // ── In-transit boats (trade-flow engine) ──────────────────────────────────
   // One 🚢 ≈ 25 kt estimated on the water for a lane; boats glide along the
   // real sea-lane waypoints, one full crossing ≈ transit-days at 1 s/day.
@@ -1035,6 +1150,58 @@ export default function CoffeeMap({ onPinClick, countries, factories, news, hidd
               {v === "on" ? "On" : "Off"}
             </button>
           ))}
+        </div>
+
+        {/* Coffee crop area (MapBiomas) — toggle, year slider, legend */}
+        <div style={{ marginTop: 4, background: "#1e293b", border: "1px solid #475569", borderRadius: 4, padding: "3px 6px", fontFamily: "monospace" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 9, color: "#64748b" }}>Coffee crop 🌱</span>
+            {(["on", "off"] as const).map((v) => (
+              <button key={v} onClick={() => setCropOn(v)}
+                style={{ fontSize: 9, padding: "2px 6px", borderRadius: 3, cursor: "pointer", fontFamily: "monospace",
+                  border: "1px solid " + (cropOn === v ? "#3987e5" : "transparent"),
+                  background: cropOn === v ? "#0f172a" : "transparent",
+                  color: cropOn === v ? "#9ec5f4" : "#94a3b8" }}>
+                {v === "on" ? "On" : "Off"}
+              </button>
+            ))}
+            {cropOn === "on" && cropLoading && (
+              <span style={{ fontSize: 8, color: "#64748b" }}>loading…</span>
+            )}
+          </div>
+
+          {cropOn === "on" && cropArea && (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+                <input
+                  type="range"
+                  min={cropArea.years[0]}
+                  max={cropArea.years[cropArea.years.length - 1]}
+                  value={cropYear}
+                  onChange={(e) => setCropYear(Number(e.target.value))}
+                  style={{ width: 148, accentColor: "#3987e5", cursor: "pointer" }}
+                  aria-label="Coffee crop year"
+                />
+                <span style={{ fontSize: 10, color: "#e2e8f0", minWidth: 28 }}>{cropYear}</span>
+              </div>
+
+              {/* Sequential ramp: one hue, dark→light, magnitude only. */}
+              <div style={{ display: "flex", alignItems: "center", gap: 0, marginTop: 3 }}>
+                {CROP_BUCKETS.map((b) => (
+                  <div key={b.label} title={`${b.label} ha`}
+                    style={{ width: 24, height: 7, background: b.color }} />
+                ))}
+                <span style={{ fontSize: 8, color: "#64748b", marginLeft: 5 }}>
+                  &lt;100 → 15k+ ha
+                </span>
+              </div>
+
+              <div style={{ fontSize: 8, color: "#475569", marginTop: 3, maxWidth: 190, lineHeight: 1.3 }}>
+                Satellite footprint, not a production census — under-detects
+                shaded/young coffee. Source: MapBiomas C11.
+              </div>
+            </>
+          )}
         </div>
 
         {/* In-transit boats toggle */}
