@@ -1,0 +1,66 @@
+name: "1.24 – Coffee Crop Area (MapBiomas)"
+
+# MapBiomas publishes one collection per year, so this is a yearly refresh with
+# a manual trigger for when a new collection lands. It downloads ~78 MB and
+# parses a 78 MB workbook, so it is deliberately infrequent.
+
+on:
+  schedule:
+    # 1st of September, 04:37 UTC — MapBiomas collections land around Aug/Sep.
+    # 37 to dodge the GH cron skip on :00 marks.
+    - cron: '37 4 1 9 *'
+  workflow_dispatch:
+
+concurrency:
+  group: scraper-mapbiomas-coffee
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install requests pandas openpyxl
+
+      - name: Export coffee crop area
+        working-directory: backend
+        run: python -m scraper.run_mapbiomas_coffee
+
+      - name: Commit coffee crop area if changed
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data/coffee_crop_area.json
+          if git diff --cached --quiet; then
+            echo "No changes."
+            exit 0
+          fi
+          git commit -m "data: update coffee crop area (MapBiomas) [skip ci]"
+          # Other workflows also push to main between checkout and push.
+          ok=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" && git push; then ok=1; break; fi
+            echo "push attempt $attempt failed (concurrent push?); retrying in $((5*attempt))s…"; sleep $((5 * attempt))
+          done
+          [ "$ok" = 1 ] || { echo "push failed after 5 attempts"; exit 1; }
+
+      - name: Notify on failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=🚨 ${{ github.workflow }} failed — $(date -u +'%Y-%m-%d %H:%M UTC') — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
