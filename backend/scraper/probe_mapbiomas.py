@@ -5,23 +5,28 @@ Goal: area in hectares of MapBiomas class 46 (Coffee / Café), by region, by yea
 (1985→present), so the map can show where coffee is grown and how that footprint
 moves over time.
 
-Probe v1 established (2026-08-28), against the live site:
+Established so far, against the live site:
 
-  * The statistics page links two spreadsheets directly:
-      MAPBIOMAS_BRAZIL-COL.11-BIOME_STATE.xlsx                  17.9 MB
-      MAPBIOMAS_BRAZIL-COVERAGE_STATISTIC_COL.11-AMACRO_...xlsx  0.1 MB
-    So the current release is Collection 11.
-  * There is no usable public GraphQL: /api/graphql 404s and /graphql returns
-    the SPA's HTML shell.
-  * The page mentions drive.google.com, so the municipality-level table is
-    probably behind a Drive link that a file-extension regex cannot see.
+  v1  Current release is Collection 11. The statistics page links
+      MAPBIOMAS_BRAZIL-COL.11-BIOME_STATE.xlsx (17.9 MB) and a small AMACRO
+      extract. There is no usable public GraphQL — /api/graphql 404s and
+      /graphql returns the SPA shell, so the spreadsheet is the route.
 
-v2 answers the two questions that decide what can actually be built:
+  v2  BIOME_STATE.xlsx sheets: READ_ME, COVERAGE_11, TRANSITION_11, PIVOT_*,
+      METADATA, LEGEND_CODE. COVERAGE_11 is wide:
+        ID, country, biome, region, state, class, class_level_0..4, y1985..y2025
+      One row per (biome, region, state, class), one column per year — exactly
+      the shape needed. It also surfaced a Drive link that may be the
+      municipality-level table:
+        https://drive.google.com/uc?id=1otOqymHuixvkRGVl65zTTNyfaHo46Gqk
 
-  1. What is inside BIOME_STATE.xlsx — sheet names, columns, and whether class
-     46 is present per state per year. That is the fallback data layer.
-  2. Is there a municipality-level table? Dump every outbound link on the page
-     (not just ones ending in a file extension) so Drive/other hosts show up.
+v3 closes the last two gaps before the exporter is written:
+
+  1. Does the Drive file give municipality granularity? That is the difference
+     between "Minas grew 12%" and naming the municipalities that grew.
+  2. Do class 46 rows actually exist, and are the magnitudes credible? v2's
+     "coffee found" hit was a false positive — it matched ID=46, not class=46.
+     Brazil's coffee area is roughly 1.8-2.2 M ha, so the totals are checkable.
 
 Writes nothing. Run via workflow 0.23 (dispatch-only).
 
@@ -30,7 +35,6 @@ Writes nothing. Run via workflow 0.23 (dispatch-only).
 from __future__ import annotations
 
 import io
-import re
 import sys
 import time
 
@@ -43,44 +47,59 @@ _HEADERS = {
     "Accept-Language": "en,pt-BR;q=0.9",
 }
 
-_STATS_PAGE = "https://brasil.mapbiomas.org/en/estatisticas/"
 _BIOME_STATE_XLSX = (
     "https://brasil.mapbiomas.org/wp-content/uploads/sites/3/2026/08/"
     "MAPBIOMAS_BRAZIL-COL.11-BIOME_STATE.xlsx"
 )
-
-_HREF_RE = re.compile(r'href=["\']([^"\']+)["\']', re.I)
-# Links worth a human look: downloads, drive, or anything naming a region level.
-_INTERESTING = re.compile(
-    r"drive\.google|docs\.google|storage\.googleapis|dropbox|"
-    r"munic|city|cidade|download|estatistic|statistic|\.xlsx|\.csv|\.zip", re.I)
+_DRIVE_ID = "1otOqymHuixvkRGVl65zTTNyfaHo46Gqk"
+_COFFEE_CLASS = 46
 
 
-def _get(url: str, timeout: int = 120):
+def _get(url: str, timeout: int = 180, **kw):
     import requests
 
     time.sleep(1.0)
-    return requests.get(url, headers=_HEADERS, timeout=timeout, allow_redirects=True)
+    return requests.get(url, headers=_HEADERS, timeout=timeout,
+                        allow_redirects=True, **kw)
 
 
-def _dump_links() -> None:
-    """Every outbound link on the statistics page, so nothing is missed."""
+def _probe_drive() -> None:
+    """What is behind the Drive link — and is it per-municipality?"""
+    import requests
+
+    url = f"https://drive.google.com/uc?id={_DRIVE_ID}&export=download"
     try:
-        r = _get(_STATS_PAGE, timeout=45)
+        r = _get(url, timeout=120, stream=True)
     except Exception as e:  # noqa: BLE001
-        print(f"  page fetch failed: {e}")
+        print(f"  fetch failed: {e}")
         return
-    links = {h for h in _HREF_RE.findall(r.text) if _INTERESTING.search(h)}
-    print(f"  {len(links)} interesting link(s) on {_STATS_PAGE}")
-    for h in sorted(links):
-        print(f"    {h}")
+
+    ctype = r.headers.get("Content-Type", "?")
+    size = r.headers.get("Content-Length", "?")
+    disp = r.headers.get("Content-Disposition", "")
+    print(f"  {r.status_code}  {ctype}  {size} bytes")
+    if disp:
+        print(f"  filename: {disp}")
+
+    head = r.raw.read(2048, decode_content=True) or b""
+    # Drive serves an HTML interstitial for big files instead of the bytes.
+    if b"<html" in head[:200].lower() or "text/html" in ctype:
+        print("  → HTML interstitial (Drive virus-scan confirm page), not the file.")
+        text = head.decode("utf-8", "replace")
+        for marker in ("confirm=", "uuid=", "download-form", "filename"):
+            if marker in text:
+                print(f"     mentions {marker}")
+        print("     A confirm token round-trip would be needed to fetch it.")
+    else:
+        print(f"  → binary payload, first bytes: {head[:8]!r} "
+              f"({'xlsx/zip' if head[:2] == b'PK' else 'unknown'})")
+    r.close()
 
 
-def _inspect_xlsx() -> None:
-    """Sheet names, columns, and whether coffee (class 46) is actually in here."""
+def _probe_coverage() -> None:
+    """Confirm class 46 exists, at what granularity, and sanity-check totals."""
     import pandas as pd
 
-    print(f"  downloading {_BIOME_STATE_XLSX.rsplit('/', 1)[-1]} …")
     try:
         r = _get(_BIOME_STATE_XLSX)
         r.raise_for_status()
@@ -89,47 +108,46 @@ def _inspect_xlsx() -> None:
         return
     print(f"  {len(r.content) / 1e6:.1f} MB downloaded")
 
-    buf = io.BytesIO(r.content)
-    try:
-        xls = pd.ExcelFile(buf)
-    except Exception as e:  # noqa: BLE001
-        print(f"  cannot open workbook: {e}")
+    df = pd.read_excel(io.BytesIO(r.content), sheet_name="COVERAGE_11")
+    print(f"  COVERAGE_11: {len(df):,} rows x {df.shape[1]} cols")
+
+    years = [c for c in df.columns if str(c).startswith("y") and str(c)[1:].isdigit()]
+    print(f"  year columns: {years[0]} → {years[-1]} ({len(years)} years)")
+
+    coffee = df[df["class"] == _COFFEE_CLASS]
+    print(f"  class {_COFFEE_CLASS} rows: {len(coffee):,}")
+    if coffee.empty:
+        print("  !! no coffee rows — check the class code against LEGEND_CODE")
+        print(f"  distinct classes: {sorted(df['class'].dropna().unique())[:40]}")
         return
 
-    print(f"  sheets: {xls.sheet_names}")
-    for sheet in xls.sheet_names[:6]:
-        try:
-            df = pd.read_excel(xls, sheet_name=sheet, nrows=400)
-        except Exception as e:  # noqa: BLE001
-            print(f"  [{sheet}] unreadable: {e}")
-            continue
-        print(f"\n  [{sheet}] {df.shape[0]}+ rows sampled, {df.shape[1]} cols")
-        print(f"    columns: {list(df.columns)[:18]}")
+    label_cols = [c for c in ("class_level_2", "class_level_3", "class_level_4")
+                  if c in coffee.columns]
+    for c in label_cols:
+        print(f"  {c}: {coffee[c].dropna().unique()[:3]}")
 
-        # Is coffee here? Look for the class id and the label in any column.
-        for col in df.columns:
-            vals = df[col].astype(str)
-            if vals.str.contains(r"^(?:46|Coffee|Caf[eé])$", case=False,
-                                 regex=True, na=False).any():
-                sample = df[vals.str.contains(r"^(?:46|Coffee|Caf[eé])$",
-                                              case=False, regex=True, na=False)]
-                print(f"    ✓ coffee found in column '{col}' — "
-                      f"{len(sample)} row(s) in sample")
-                with __import__("pandas").option_context("display.width", 200,
-                                                         "display.max_columns", 14):
-                    print(sample.head(3).to_string()[:900])
-                break
+    # Sanity check: Brazil's coffee area is roughly 1.8-2.2 M ha.
+    print("\n  Brazil coffee area (M ha):")
+    for y in ("y1985", "y2000", "y2015", "y2020", "y2024", "y2025"):
+        if y in coffee.columns:
+            print(f"    {y[1:]}  {coffee[y].sum() / 1e6:.2f}")
+
+    print("\n  top states by 2025 coffee area (ha):")
+    top = (coffee.groupby("state")["y2025"].sum()
+           .sort_values(ascending=False).head(8))
+    for state, ha in top.items():
+        print(f"    {state:22} {ha:12,.0f}")
+
+    print(f"\n  granularity available here: {sorted(coffee['state'].unique())[:5]} …"
+          f" ({coffee['state'].nunique()} states, no municipality column)")
 
 
 def main() -> int:
-    print("=== every interesting link on the statistics page ===")
-    _dump_links()
+    print("=== Drive link — municipality table? ===")
+    _probe_drive()
 
-    print("\n=== inside BIOME_STATE.xlsx ===")
-    _inspect_xlsx()
-
-    print("\nDecides: municipality table if a link exists; otherwise state-level "
-          "from this workbook, which is still every Brazilian coffee region.")
+    print("\n=== COVERAGE_11 — coffee rows and magnitudes ===")
+    _probe_coverage()
     return 0
 
 
