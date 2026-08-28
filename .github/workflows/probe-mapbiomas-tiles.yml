@@ -1,0 +1,29 @@
+name: "0.25 – Probe MapBiomas tile endpoint (diagnostic)"
+
+# Dispatch-only. Option A (the 30 m raster overlay) needs a tile URL, and
+# guessing already failed once: the GeoServer that turns up in search is the
+# deforestation-alerts product, not the coverage collection. This asks the
+# MapBiomas platform's own JS bundles what they call, which is by definition
+# the right answer. Writes nothing and commits nothing.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install requests
+
+      - name: Probe MapBiomas tiles
+        working-directory: backend
+        run: python -m scraper.probe_mapbiomas_tiles
