@@ -34,7 +34,10 @@ concurrency:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # 120, not 30: the question worth answering is whether a FULL-LENGTH sweep
+    # draws a 429, and a full window is 1,920 candidates — ~100 min at 3s. A
+    # 30-min cap could only ever re-measure the short burst we already have.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
