@@ -1,0 +1,28 @@
+name: "0.23 – Probe MapBiomas statistics (diagnostic)"
+
+# Dispatch-only. Discovers how to obtain MapBiomas coffee (class 46) area per
+# municipality per year, which is the data behind the planned crop layer on the
+# map tab. MapBiomas is unreachable from the dev sandbox, so this runs here.
+# Writes nothing and commits nothing — read the output, then build the exporter.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install requests
+
+      - name: Probe MapBiomas
+        working-directory: backend
+        run: python -m scraper.probe_mapbiomas
