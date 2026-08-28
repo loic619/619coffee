@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-28T05:51:33.377611Z",
-  "count": 91,
+  "generated_at": "2026-08-28T06:03:18.012586Z",
+  "count": 92,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -548,6 +548,17 @@
       "workflow_run_deps": [],
       "concurrency_group": "scraper-ice-certified-stocks",
       "timeout_minutes": 120
+    },
+    {
+      "file": "probe-mapbiomas-tiles.yml",
+      "name": "0.25 \u2013 Probe MapBiomas tile endpoint (diagnostic)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 15
     },
     {
       "file": "probe-mapbiomas.yml",
@@ -1266,6 +1277,11 @@
         "version": "0.24"
       },
       {
+        "file": "probe-mapbiomas-tiles.yml",
+        "name": "0.25 \u2013 Probe MapBiomas tile endpoint (diagnostic)",
+        "version": "0.25"
+      },
+      {
         "file": "build-oni-history.yml",
         "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
         "version": "0.6"
@@ -1357,7 +1373,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 28,
+    "uncovered_workflows_count": 29,
     "stale_curation_count": 0
   }
 }
