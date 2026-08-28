@@ -36,9 +36,16 @@ def export_freight(db) -> None:
             .first()
         )
         latest[idx] = row
+        # `<=`, not `<`. A strict comparison skips the observation dated exactly
+        # seven days back — which is the ideal comparison point — and silently
+        # falls through to one 9-14 days old, while the brief still says "w/w".
+        # Replayed over the committed history this misstated the change on 9 of
+        # 18 observations, e.g. +19.4% reported where the true 7-day move was
+        # +8.3%. The index is only scraped Fri/Sun, so an exact-7-day hit is
+        # common rather than a corner case.
         row2 = (
             db.query(FreightRate)
-            .filter(FreightRate.index_code == idx, FreightRate.date < cutoff_wk)
+            .filter(FreightRate.index_code == idx, FreightRate.date <= cutoff_wk)
             .order_by(FreightRate.date.desc())
             .first()
         )
@@ -58,6 +65,10 @@ def export_freight(db) -> None:
             routes.append({
                 "id": route_id, "from": from_, "to": to,
                 "rate": rate, "prev": prev_rate, "unit": "USD/FEU", "proxy": is_proxy,
+                # The date `prev` actually came from. Observations are Fri/Sun
+                # only, so the span is not always seven days and consumers
+                # should say what they are comparing rather than assume w/w.
+                "prev_date": prev_row.date.isoformat() if prev_row else None,
             })
 
         fbx11_rows = (
