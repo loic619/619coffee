@@ -1,0 +1,29 @@
+name: "0.24 – Probe IBGE municipality geometry (diagnostic)"
+
+# Dispatch-only. coffee_crop_area.json is keyed by IBGE geocode but the repo has
+# no geometry, so the map cannot draw the crop layer yet. This measures what the
+# geometry would actually cost — polygons for a true choropleth, or centroids
+# for graduated circles — before anything is committed or the UI is wired.
+# Writes nothing and commits nothing.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install requests
+
+      - name: Probe IBGE geometry
+        working-directory: backend
+        run: python -m scraper.probe_ibge_geo
