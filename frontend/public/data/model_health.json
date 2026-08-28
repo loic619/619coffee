@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-27T14:29:40+00:00",
+ "generated_at": "2026-08-28T15:17:38+00:00",
  "counts": {
   "CRIT": 0,
   "WARN": 0,
@@ -9,18 +9,18 @@
   {
    "grade": "INFO",
    "check": "SHAP identity",
-   "message": "exact \u2014 residual 2.8e-17",
-   "residual": 2.7755575615628914e-17
+   "message": "exact \u2014 residual 0.0e+00",
+   "residual": 0.0
   },
   {
    "grade": "INFO",
    "check": "active factors",
-   "message": "in the model: kc_after_rc_diff, days_since_roll (1173 trainable rows)",
+   "message": "in the model: kc_after_rc_diff, days_since_roll (1174 trainable rows)",
    "features": [
     "kc_after_rc_diff",
     "days_since_roll"
    ],
-   "n_train": 1173
+   "n_train": 1174
   },
   {
    "grade": "INFO",
@@ -29,33 +29,33 @@
    "curve": [
     {
      "band": 0.06,
-     "acted_n": 559,
-     "acted_accuracy": 0.6010733452593918,
-     "coverage": 0.6069489685124865
+     "acted_n": 560,
+     "acted_accuracy": 0.6017857142857143,
+     "coverage": 0.6073752711496746
     },
     {
      "band": 0.08,
      "acted_n": 435,
      "acted_accuracy": 0.6298850574712643,
-     "coverage": 0.4723127035830619
+     "coverage": 0.4718004338394794
     },
     {
      "band": 0.1,
      "acted_n": 348,
      "acted_accuracy": 0.6379310344827587,
-     "coverage": 0.3778501628664495
+     "coverage": 0.3774403470715835
     },
     {
      "band": 0.12,
      "acted_n": 274,
      "acted_accuracy": 0.6788321167883211,
-     "coverage": 0.2975027144408252
+     "coverage": 0.29718004338394793
     },
     {
      "band": 0.15,
      "acted_n": 180,
      "acted_accuracy": 0.7166666666666667,
-     "coverage": 0.19543973941368079
+     "coverage": 0.19522776572668113
     }
    ]
   },
@@ -64,15 +64,15 @@
    "check": "dormant factor",
    "message": "brent_overnight: held out by design (regime tag, not a coefficient)",
    "feature": "brent_overnight",
-   "coverage": 1514
+   "coverage": 1515
   },
   {
    "grade": "INFO",
    "check": "dormant factor",
-   "message": "cci_overnight: coverage 319, joint-trainable 212, joint-trainable rows gate binds (212/252), ETA ~8w",
+   "message": "cci_overnight: coverage 320, joint-trainable 213, joint-trainable rows gate binds (213/252), ETA ~8w",
    "feature": "cci_overnight",
-   "coverage": 319,
-   "joint": 212,
+   "coverage": 320,
+   "joint": 213,
    "eta": "~8w"
   },
   {
@@ -87,17 +87,17 @@
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "intraday_kc_rc_15min: fresh (2026-08-26)",
+   "message": "intraday_kc_rc_15min: fresh (2026-08-27)",
    "input": "intraday_kc_rc_15min",
-   "last": "2026-08-26",
+   "last": "2026-08-27",
    "stale_sessions": 1
   },
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "fx_intraday_snapshots: fresh (2026-08-27)",
+   "message": "fx_intraday_snapshots: fresh (2026-08-28)",
    "input": "fx_intraday_snapshots",
-   "last": "2026-08-27",
+   "last": "2026-08-28",
    "stale_sessions": 0
   },
   {
@@ -106,14 +106,14 @@
    "message": "b3_kc_close_snapshots: fresh (2026-08-25)",
    "input": "b3_kc_close_snapshots",
    "last": "2026-08-25",
-   "stale_sessions": 2
+   "stale_sessions": 3
   },
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "brent_intraday_anchors: fresh (2026-08-27)",
+   "message": "brent_intraday_anchors: fresh (2026-08-28)",
    "input": "brent_intraday_anchors",
-   "last": "2026-08-27",
+   "last": "2026-08-28",
    "stale_sessions": 0
   },
   {
@@ -126,11 +126,11 @@
   {
    "grade": "INFO",
    "check": "walk-forward",
-   "message": "acted 63.8% on 348 calls (37.8% coverage) at band \u00b10.1",
+   "message": "acted 63.8% on 348 calls (37.7% coverage) at band \u00b10.1",
    "band": 0.1,
    "acted_n": 348,
    "acted_accuracy": 0.6379310344827587,
-   "coverage": 0.3778501628664495
+   "coverage": 0.3774403470715835
   }
  ]
 }
