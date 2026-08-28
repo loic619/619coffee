@@ -1,19 +1,27 @@
 """
 probe_mapbiomas.py — discover how to get MapBiomas coffee-area statistics.
 
-Goal: area in hectares of MapBiomas class 46 (Coffee / Café), per municipality,
-per year (1985→present), so the map can show where coffee is grown and how that
-footprint has moved.
+Goal: area in hectares of MapBiomas class 46 (Coffee / Café), by region, by year
+(1985→present), so the map can show where coffee is grown and how that footprint
+moves over time.
 
-Why a probe rather than just writing the scraper: MapBiomas is unreachable from
-the dev sandbox, and the last time a source was assumed rather than verified
-(PortWatch) it cost a day. So this run answers, against the real site:
+Probe v1 established (2026-08-28), against the live site:
 
-  1. Which statistics/download pages exist and respond.
-  2. What downloadable files they link to (name, size, type) — MapBiomas
-     publishes area-by-class-by-municipality-by-year, but the file naming and
-     hosting are not documented anywhere I can reach.
-  3. Whether the platform exposes a JSON API that would beat a 100 MB xlsx.
+  * The statistics page links two spreadsheets directly:
+      MAPBIOMAS_BRAZIL-COL.11-BIOME_STATE.xlsx                  17.9 MB
+      MAPBIOMAS_BRAZIL-COVERAGE_STATISTIC_COL.11-AMACRO_...xlsx  0.1 MB
+    So the current release is Collection 11.
+  * There is no usable public GraphQL: /api/graphql 404s and /graphql returns
+    the SPA's HTML shell.
+  * The page mentions drive.google.com, so the municipality-level table is
+    probably behind a Drive link that a file-extension regex cannot see.
+
+v2 answers the two questions that decide what can actually be built:
+
+  1. What is inside BIOME_STATE.xlsx — sheet names, columns, and whether class
+     46 is present per state per year. That is the fallback data layer.
+  2. Is there a municipality-level table? Dump every outbound link on the page
+     (not just ones ending in a file extension) so Drive/other hosts show up.
 
 Writes nothing. Run via workflow 0.23 (dispatch-only).
 
@@ -21,6 +29,7 @@ Writes nothing. Run via workflow 0.23 (dispatch-only).
 """
 from __future__ import annotations
 
+import io
 import re
 import sys
 import time
@@ -34,87 +43,93 @@ _HEADERS = {
     "Accept-Language": "en,pt-BR;q=0.9",
 }
 
-# Pages that plausibly list the statistics downloads, in both languages — the
-# English paths sometimes redirect to Portuguese ones.
-_PAGES = [
-    "https://brasil.mapbiomas.org/en/estatisticas/",
-    "https://brasil.mapbiomas.org/estatisticas/",
-    "https://brasil.mapbiomas.org/en/downloads/",
-    "https://brasil.mapbiomas.org/downloads/",
-    "https://brasil.mapbiomas.org/en/colecoes-mapbiomas/",
-]
+_STATS_PAGE = "https://brasil.mapbiomas.org/en/estatisticas/"
+_BIOME_STATE_XLSX = (
+    "https://brasil.mapbiomas.org/wp-content/uploads/sites/3/2026/08/"
+    "MAPBIOMAS_BRAZIL-COL.11-BIOME_STATE.xlsx"
+)
 
-# Endpoints worth a look for a JSON alternative to a huge spreadsheet.
-_API_CANDIDATES = [
-    "https://plataforma.mapbiomas.org/api/graphql",
-    "https://plataforma.mapbiomas.org/graphql",
-    "https://api.mapbiomas.org/graphql",
-]
-
-_FILE_RE = re.compile(r'https?://[^\s"\'<>]+\.(?:xlsx|xls|csv|zip|json)', re.I)
+_HREF_RE = re.compile(r'href=["\']([^"\']+)["\']', re.I)
+# Links worth a human look: downloads, drive, or anything naming a region level.
+_INTERESTING = re.compile(
+    r"drive\.google|docs\.google|storage\.googleapis|dropbox|"
+    r"munic|city|cidade|download|estatistic|statistic|\.xlsx|\.csv|\.zip", re.I)
 
 
-def _get(url: str, timeout: int = 45):
+def _get(url: str, timeout: int = 120):
     import requests
 
     time.sleep(1.0)
     return requests.get(url, headers=_HEADERS, timeout=timeout, allow_redirects=True)
 
 
-def _head(url: str) -> str:
-    """Size and type of a candidate download, without pulling the whole file."""
-    import requests
-
+def _dump_links() -> None:
+    """Every outbound link on the statistics page, so nothing is missed."""
     try:
-        time.sleep(0.5)
-        r = requests.head(url, headers=_HEADERS, timeout=30, allow_redirects=True)
-        size = r.headers.get("Content-Length")
-        mb = f"{int(size) / 1e6:.1f} MB" if size and size.isdigit() else "unknown size"
-        return f"{r.status_code} {r.headers.get('Content-Type', '?')} {mb}"
+        r = _get(_STATS_PAGE, timeout=45)
     except Exception as e:  # noqa: BLE001
-        return f"HEAD failed: {type(e).__name__}"
+        print(f"  page fetch failed: {e}")
+        return
+    links = {h for h in _HREF_RE.findall(r.text) if _INTERESTING.search(h)}
+    print(f"  {len(links)} interesting link(s) on {_STATS_PAGE}")
+    for h in sorted(links):
+        print(f"    {h}")
+
+
+def _inspect_xlsx() -> None:
+    """Sheet names, columns, and whether coffee (class 46) is actually in here."""
+    import pandas as pd
+
+    print(f"  downloading {_BIOME_STATE_XLSX.rsplit('/', 1)[-1]} …")
+    try:
+        r = _get(_BIOME_STATE_XLSX)
+        r.raise_for_status()
+    except Exception as e:  # noqa: BLE001
+        print(f"  download failed: {e}")
+        return
+    print(f"  {len(r.content) / 1e6:.1f} MB downloaded")
+
+    buf = io.BytesIO(r.content)
+    try:
+        xls = pd.ExcelFile(buf)
+    except Exception as e:  # noqa: BLE001
+        print(f"  cannot open workbook: {e}")
+        return
+
+    print(f"  sheets: {xls.sheet_names}")
+    for sheet in xls.sheet_names[:6]:
+        try:
+            df = pd.read_excel(xls, sheet_name=sheet, nrows=400)
+        except Exception as e:  # noqa: BLE001
+            print(f"  [{sheet}] unreadable: {e}")
+            continue
+        print(f"\n  [{sheet}] {df.shape[0]}+ rows sampled, {df.shape[1]} cols")
+        print(f"    columns: {list(df.columns)[:18]}")
+
+        # Is coffee here? Look for the class id and the label in any column.
+        for col in df.columns:
+            vals = df[col].astype(str)
+            if vals.str.contains(r"^(?:46|Coffee|Caf[eé])$", case=False,
+                                 regex=True, na=False).any():
+                sample = df[vals.str.contains(r"^(?:46|Coffee|Caf[eé])$",
+                                              case=False, regex=True, na=False)]
+                print(f"    ✓ coffee found in column '{col}' — "
+                      f"{len(sample)} row(s) in sample")
+                with __import__("pandas").option_context("display.width", 200,
+                                                         "display.max_columns", 14):
+                    print(sample.head(3).to_string()[:900])
+                break
 
 
 def main() -> int:
-    found: dict[str, str] = {}
+    print("=== every interesting link on the statistics page ===")
+    _dump_links()
 
-    print("=== statistics / download pages ===")
-    for url in _PAGES:
-        try:
-            r = _get(url)
-            hits = set(_FILE_RE.findall(r.text))
-            print(f"  {r.status_code}  {url}  ({len(r.text) // 1024} KB, "
-                  f"{len(hits)} file link(s))")
-            for h in hits:
-                found[h] = ""
-            # Surface where the assets are hosted even if the regex misses them.
-            for host in ("storage.googleapis.com", "drive.google.com",
-                         "amazonaws.com", "/wp-content/"):
-                if host in r.text:
-                    print(f"        mentions {host}")
-        except Exception as e:  # noqa: BLE001
-            print(f"  ERROR {url} — {type(e).__name__}: {e}")
+    print("\n=== inside BIOME_STATE.xlsx ===")
+    _inspect_xlsx()
 
-    print(f"\n=== {len(found)} candidate download(s) ===")
-    # Coffee lives in the land-cover ("cobertura") tables; surface those first.
-    ranked = sorted(found, key=lambda u: (
-        0 if re.search(r"cobertura|coverage|munic", u, re.I) else 1, u))
-    for url in ranked[:40]:
-        print(f"  {url}")
-        print(f"      {_head(url)}")
-
-    print("\n=== JSON API candidates ===")
-    for url in _API_CANDIDATES:
-        try:
-            r = _get(url, timeout=25)
-            print(f"  {r.status_code}  {url}  {r.headers.get('Content-Type', '?')}")
-            if r.status_code < 400:
-                print(f"      {r.text[:200]}")
-        except Exception as e:  # noqa: BLE001
-            print(f"  ERROR {url} — {type(e).__name__}")
-
-    print("\nNext: pick the smallest file that carries class 46 by municipality "
-          "by year, and build the exporter against it.")
+    print("\nDecides: municipality table if a link exists; otherwise state-level "
+          "from this workbook, which is still every Brazilian coffee region.")
     return 0
 
 
