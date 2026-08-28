@@ -783,14 +783,25 @@ def _exports_block(daily: dict | None, vn_supply: dict | None,
 # ── Certified stocks ─────────────────────────────────────────────────────────
 
 def _arabica_origin_top(snapshot: dict, n: int = 3) -> list[str]:
-    """Top-n contributing origins by bags in the latest snapshot.
-    Reads from sections.total_certified.by_origin which is keyed by origin
-    name → {total, ...}."""
-    sections = snapshot.get("sections") or {}
-    by_origin = (sections.get("total_certified") or {}).get("by_origin") or {}
-    pairs = [(name, (info or {}).get("total") or 0) for name, info in by_origin.items()]
-    pairs.sort(key=lambda x: x[1], reverse=True)
-    return [name for name, _ in pairs[:n] if _]
+    """Top-n origins of the coffee that went through grading TODAY.
+
+    Since June 2026 the ICE report carries a per-origin grading matrix
+    (passed_by_origin / failed_by_origin), which is what "the origins that
+    were graded" actually means. Before that only the standing stock
+    composition was available, so fall back to sections.total_certified
+    .by_origin — the origins already in the warehouses, which is a different
+    question and only stands in when the real answer is not published.
+    """
+    graded: dict[str, int] = {}
+    for key in ("passed_by_origin", "failed_by_origin"):
+        for name, info in (snapshot.get(key) or {}).items():
+            graded[name] = graded.get(name, 0) + ((info or {}).get("total") or 0)
+    if not graded:
+        sections = snapshot.get("sections") or {}
+        by_origin = (sections.get("total_certified") or {}).get("by_origin") or {}
+        graded = {name: ((info or {}).get("total") or 0) for name, info in by_origin.items()}
+    pairs = sorted(graded.items(), key=lambda x: x[1], reverse=True)
+    return [name for name, total in pairs[:n] if total]
 
 
 def _port_decreases(prev_by_port: dict, cur_by_port: dict) -> list[tuple[str, int]]:
@@ -835,20 +846,26 @@ def _cert_arabica_section(doc: dict | None) -> str:
         return ""
     cur = snaps[-1]
     prev = snaps[-2] if len(snaps) >= 2 else None
-    graded = cur.get("passed_today_bags") or 0
+    # The xls publishes the two OUTCOMES of the day's grading; the number that
+    # went through it is their sum. Reading passed_today_bags as "graded" made
+    # the line report 320 graded and 1,280 passed on 2026-08-27 — more passed
+    # than graded, which cannot happen.
+    passed = cur.get("passed_today_bags") or 0
     failed = cur.get("failed_today_bags") or 0
+    graded = passed + failed
     total  = cur.get("total_bags") or 0
     origins = _arabica_origin_top(cur)
     report_date = cur.get("report_date") or cur.get("date") or ""
 
     lines = [f"<b>New York</b>: {report_date}{_staleness_tag(report_date)}"]
-    if graded or failed:
+    if graded:
         # Only list top origins when ACTUAL grading happened today — that's
         # when the origin attribution is meaningful (which countries supplied
         # the bags that were graded). On a no-grading day, the list is just
         # noise about what's already sitting in the warehouses.
         origin_str = f" · top origins {', '.join(origins)}" if origins else ""
-        lines.append(f"· Grading: {graded:,} bags graded, {failed:,} passed{origin_str}")
+        lines.append(f"· Grading: {graded:,} bags graded, {passed:,} passed, "
+                     f"{failed:,} failed{origin_str}")
     else:
         lines.append("· Grading: none")
 
@@ -876,7 +893,7 @@ def _cert_robusta_section(doc: dict | None) -> str:
 
     lines = [
         f"<b>London</b>: {report_date}{_staleness_tag(report_date)}",
-        f"Grading: {graded:,} lots graded",
+        f"· Grading: {graded:,} lots graded",
     ]
     if prev and prev.get("total_lots_certified") is not None:
         delta = total - prev["total_lots_certified"]

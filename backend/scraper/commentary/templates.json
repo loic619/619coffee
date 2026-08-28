@@ -1,7 +1,7 @@
 {
   "_comment": "Jinja2 templates for the news-tab commentary badges. Each scraper builds a context dict and calls scraper.commentary.render(event_type, ctx). Text is plain English, factual only — no directional labels (no 'bullish/bearish', no 'moderate/strong'). Conditional blocks use Jinja `{% if %}` so optional numbers degrade cleanly when the source didn't expose them.",
 
-  "ice_certified_stocks": "{{ market }} certified stocks shifted by {{ delta_signed }} {{ units }} today, bringing global visible exchange inventory to {{ total }} {{ units }}.{% if grading_delta %} {{ grading_delta }} lots graded.{% endif %}{% if decert_delta and port %} {{ decert_delta }} lots decertified in {{ port }}.{% endif %}",
+  "ice_certified_stocks": "{{ market }} certified stocks shifted by {{ delta_signed }} {{ units }} today, bringing global visible exchange inventory to {{ total }} {{ units }}.{% if grading_delta %} {{ grading_delta }} {{ units }} graded.{% endif %}{% if decert_delta and port %} {{ decert_delta }} {{ units }} decertified in {{ port }}.{% endif %}",
 
   "physical_price": "{{ origin }} physical cash price adjusted by {{ phys_delta_signed }} {{ currency }}/ton today while {{ benchmark }} moved by {{ futures_delta_signed }} USD/ton. {{ ratio }}% of the market change has gone into the local price.",
 

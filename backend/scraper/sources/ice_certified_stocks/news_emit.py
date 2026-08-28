@@ -47,16 +47,19 @@ def compute_arabica_commentary(snapshots: list[dict]) -> tuple[str, str] | None:
     if cur_total is None or prev_total is None:
         return None
     delta = cur_total - prev_total
-    grading = cur.get("passed_today_bags") or 0
-    decert  = cur.get("failed_today_bags") or 0
+    # Both scalars are OUTCOMES of the day's grading — passed_today_bags is
+    # not "the amount graded" and failed_today_bags is not decertification.
+    # Reading them that way had the line quote the passed count as the graded
+    # total (320 rather than 1,600 on 2026-08-27).
+    grading = (cur.get("passed_today_bags") or 0) + (cur.get("failed_today_bags") or 0)
     text = render("ice_certified_stocks", {
         "market":        "KC Arabica",
         "delta_signed":  signed(delta),
         "units":         "bags",
         "total":         thousep(cur_total),
         "grading_delta": grading,
-        "decert_delta":  decert,
-        "port":          None,   # per-port decert not yet wired — clause stays hidden
+        "decert_delta":  0,      # per-port decert not yet wired — clause stays hidden
+        "port":          None,
     })
     return cur["date"], text
 
