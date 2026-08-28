@@ -1,10 +1,20 @@
 """research_vn_midmonth.py — is Vietnam's mid-month customs bulletin half a month?
 
-Vietnam Customs publishes twice per month. In their filename scheme the period
-marker is `k1` or `k2`:
+Vietnam Customs publishes a first-half ("kỳ 1", k1) export bulletin covering
+days 1-15, alongside the monthly series the app already scrapes:
 
-    k1  data through the 15th          e.g. 2026-t6k1-2x(vn-sb).pdf
-    k2  full-month cumulative          e.g. 2026-t6k2-2x(vn-sb).pdf
+    first half   2026-T8K1-1X(TA-SB).pdf   report type 1X  ← what this reads
+    full month   2026-t8k2-2x(vn-sb).pdf   report type 2x  ← already scraped
+
+The two are DIFFERENT TABLES, not two editions of one. `1X` is *biểu 1* (table
+one) of the fortnight release — the alternate filename `ta_bieu1_ky-xk.pdf`
+spells it out: biểu 1, kỳ (period), xk = xuất khẩu, exports. Searching for `2x`
+filenames with a k1 marker, as this module first did, looks for a file that
+does not exist, which is why it once ran for two hours and found nothing.
+
+`TA` is the English edition and `VN` the Vietnamese one; both are tried, and
+the coffee row is matched in either language here rather than by changing the
+full-month parser, which works and is left alone.
 
 The trade reads the k1 number early and wants to annualise it — the standing
 assumption being "double it and you have the month". This script measures
@@ -19,12 +29,19 @@ number and a dispersion on it — a mean ratio is only useful if it is STABLE,
 so the report leads on spread and on how often doubling would have misled you
 by more than a stated tolerance.
 
-Where the k1 bulletins come from: the SAME portal page the monthly scraper
-already reads (customs.gov.vn pageId=441, enumerated through the bridge
-servlet). k1 and k2 sit side by side in that listing — both stamped '2x' and
-both carrying the same '{year}-t{month}' month code, which is why the monthly
-scraper now filters k1 out explicitly. Enumerating beats predicting URLs: the
-listing gives the real filename rather than a guess at one.
+Where the k1 bulletins come from: predicted directly on files.customs.gov.vn,
+under /CustomsCMS/TONG_CUC/{year}/{month}/{day}/. Every confirmed bulletin was
+published INSIDE its own data month, between the 17th and the 20th, so the
+search is small and lands early — see `_PUB_DAYS` and `k1_stems`, both derived
+from real URLs rather than guessed at.
+
+One month in six is posted under `ta_bieu1_ky-xk.pdf`, which carries no date at
+all and is findable only by the directory holding it. That form is in the
+candidate list, and `stem_signature` deliberately returns None for it: there is
+no convention in it worth learning.
+
+This does NOT touch the full-month path. That scraper works, keeps its own
+Vietnamese-only parser, and is left exactly as it is.
 
 Network note: the portal and files.customs.gov.vn must be reachable. Some
 sandboxed environments deny them by network policy; the production scraper
@@ -35,6 +52,7 @@ reaches them fine, which is where this is meant to run.
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import re
 import statistics
@@ -49,11 +67,12 @@ from backend.scraper.sources.vn_coffee_export import (  # noqa: E402
     _FILES_HOST,
     _PORTAL_URL,
     _download_pdf,
-    _extract_coffee_row,
     _fetch_publication_list,
     _is_2x,
+    _parse_vn_number,
     _period_marker,
     _period_to_month,
+    _strip_accents,
     _try_download_pdf,
 )
 
@@ -76,52 +95,76 @@ def shift(year: int, month: int, by: int) -> tuple[int, int]:
     return y, m
 
 
-def k1_candidate_urls(data_year: int, data_month: int) -> list[str]:
-    """Predicted URLs for one month's k1 (through-the-15th) export bulletin.
+# Publication days observed on real first-half bulletins: 17, 17, 18, 18, 19,
+# 20 — every one inside the DATA month, none in the following one. Ordered by
+# observed frequency so the first request usually hits.
+_PUB_DAYS = [18, 17, 19, 20, 21, 22, 16, 23, 24, 25, 15, 26, 27, 28]
 
-    Same fan-out as the full-month predictor in vn_coffee_export, with the
-    period marker inserted. k1 publishes EARLIER than the full month — inside
-    the same month for late-window days, or early the following month — so the
-    publication window is shifted back by one relative to the k2 predictor.
+
+def k1_stems(data_year: int, data_month: int) -> list[str]:
+    """Filename forms seen on real first-half ("kỳ 1") export bulletins.
+
+    Two things here were wrong before and account for the study never finding a
+    single file:
+
+      * The report type is **1X**, not 2x. `2x` is the monthly
+        export-by-commodity bulletin; the fortnight series is a different table.
+        The alternate filename `ta_bieu1_ky-xk.pdf` spells it out — *biểu 1*
+        (table 1), *kỳ* (period), *xk* = xuất khẩu (exports).
+      * Case is consistent across the WHOLE filename — `2026-T8K1-1X(TA-SB)` or
+        `2026-t5k1-1x(ta-sb)`, never mixed. Toggling the prefix, the month
+        format and the suffix independently generated mostly impossible names
+        and quadrupled the search for nothing.
+
+    `TA` is tiếng Anh, the English edition; `VN` the Vietnamese one. Both are
+    tried because only the English URLs are confirmed, and the two editions
+    label the coffee row differently — see `extract_coffee_row_any_language`.
+    """
+    out: list[str] = []
+    for mm in dict.fromkeys((str(data_month), f"{data_month:02d}")):
+        for lang in ("TA", "VN"):
+            upper = f"{data_year}-T{mm}K1-1X({lang}-SB).pdf"
+            out.append(upper)
+            out.append(upper.lower())
+    # One month in six published under a fixed descriptive name carrying no
+    # date at all, so it can only be found by the directory it sits in.
+    out += ["ta_bieu1_ky-xk.pdf", "vn_bieu1_ky-xk.pdf"]
+    return list(dict.fromkeys(out))
+
+
+def k1_candidate_urls(data_year: int, data_month: int) -> list[str]:
+    """Predicted URLs for one month's first-half (days 1-15) export bulletin.
+
+    Ordered so the likeliest combination is tried first: the data month's own
+    directory, around the 18th, under the dated uppercase English stem.
     """
     pub_windows = [
-        shift(data_year, data_month, 0),   # published late in the data month
-        shift(data_year, data_month, 1),   # or early the next
+        shift(data_year, data_month, 0),   # every observed bulletin is here
+        shift(data_year, data_month, 1),   # kept as a fallback for late months
     ]
-    # k1 lands around the 20th-25th of its own month, or the first week of the
-    # next. Ordered by plausibility so the first hit is usually within a few
-    # requests rather than the full cross-product.
-    day_order = [
-        22, 23, 21, 24, 20, 25, 26, 19, 27, 18, 28, 17, 16,
-        5, 6, 7, 8, 4, 9, 10, 3, 11, 12, 2, 13, 14, 1, 15,
-    ]
+    stems = k1_stems(data_year, data_month)
     urls: list[str] = []
     for pub_year, pub_month in pub_windows:
-        for tprefix in ("t", "T"):
-            for mfmt in (str(data_month), f"{data_month:02d}"):
-                for suffix in ("(vn-sb)", "(VN-SB)"):
-                    stem = f"{data_year}-{tprefix}{mfmt}k1-2x{suffix}.pdf"
-                    for d in day_order:
-                        urls.append(
-                            f"{_FILES_HOST}/CustomsCMS/TONG_CUC/{pub_year}/{pub_month}/{d}/{stem}")
-    seen: set[str] = set()
-    out: list[str] = []
-    for u in urls:
-        if u not in seen:
-            seen.add(u)
-            out.append(u)
-    return out
+        for d in _PUB_DAYS:
+            for stem in stems:
+                urls.append(
+                    f"{_FILES_HOST}/CustomsCMS/TONG_CUC/{pub_year}/{pub_month}/{d}/{stem}")
+    return list(dict.fromkeys(urls))
 
 
-# The stem of a k1 bulletin: '2026-t6k1-2x(vn-sb).pdf'. Three of its parts vary
-# in ways we cannot predict but Customs keeps CONSISTENT across nearby months —
-# the 't'/'T' case, whether the month is zero-padded, and the case of the
-# '(vn-sb)' suffix.
-_STEM_RE = re.compile(r"/(\d{4})-([tT])(\d{1,2})k1-2x(\([^)]*\))\.pdf$")
+# The stem of a first-half bulletin: '2026-T8K1-1X(TA-SB).pdf'. Two things vary
+# between months but stay consistent across nearby ones — the case of the whole
+# filename, and which language edition is posted.
+_STEM_RE = re.compile(r"/(\d{4})-([tT])(\d{1,2})[kK]1-1[xX]\(([^)]*)\)\.pdf$")
 
 
 def stem_signature(url: str) -> tuple[str, bool, str] | None:
-    """(t-case, month-zero-padded, suffix-case) for a bulletin URL."""
+    """(case, month-zero-padded, language-suffix) for a bulletin URL.
+
+    None for the undated `ta_bieu1_ky-xk.pdf` form, which carries no convention
+    worth learning — a month that resolves to it teaches us nothing, so the
+    search order for later months is left as it was.
+    """
     m = _STEM_RE.search(url or "")
     if not m:
         return None
@@ -131,14 +174,13 @@ def stem_signature(url: str) -> tuple[str, bool, str] | None:
 def prioritise(urls: list[str], signature: tuple[str, bool, str] | None) -> list[str]:
     """Put the naming convention that already worked at the front of the queue.
 
-    `k1_candidate_urls` is a 448-URL cross-product per month: two publication
-    windows x t/T x m/mm x two suffix cases x 28 days. Only ONE of the four
-    stem variants is ever real, so before any month resolves we are searching
-    four times more URLs than exist. Once one month answers, the other three
-    variants are known dead — and searching them anyway is what turned a
-    24-month study into a two-hour crawl that the runner killed at 45 minutes.
+    `k1_candidate_urls` still fans out over two publication windows, fourteen
+    plausible days and ten stem forms. Customs keeps the convention stable
+    across nearby months, so once one month answers, the stem that worked is
+    worth trying first for every later month — on the six confirmed URLs this
+    moves July's hit from position 11 to position 2.
 
-    This reorders rather than filters: the dead variants stay at the back, so a
+    This reorders rather than filters: the other forms stay at the back, so a
     month where Customs did change convention still resolves, just later.
     """
     if signature is None:
@@ -291,7 +333,7 @@ async def harvest_k1_via_portal(page) -> dict[str, dict]:
         if not body:
             print(f"[vn-midmonth] {month}: k1 PDF download failed")
             continue
-        row = _extract_coffee_row(body)
+        row = extract_coffee_row_any_language(body)
         if row:
             row["url"] = url
             out[month] = row
@@ -315,6 +357,63 @@ def host_reachable(timeout: float = 15.0) -> bool:
         return False
 
 
+# Vietnam's monthly coffee exports have run roughly 50k-260k t over the cached
+# span, so a first half sits somewhere around 15k-200k. The band is deliberately
+# wide: it is not a forecast, it is a magnitude check that catches a thousands
+# separator read as a decimal point — 147.890 t instead of 147,890 t — which is
+# the one parse error that would otherwise sail through as a plausible ratio.
+K1_TONNES_RANGE = (5_000.0, 400_000.0)
+
+# The English edition labels the row "Coffee"; the Vietnamese one "Cà phê",
+# which _strip_accents flattens to "ca phe". The full-month scraper only needs
+# the Vietnamese form and is deliberately left alone, so the bilingual matcher
+# lives here.
+_COFFEE_ANY_RX = re.compile(r"\b(ca\s*phe|coffee)\b", re.IGNORECASE)
+
+
+def extract_coffee_row_any_language(pdf_bytes: bytes) -> dict | None:
+    """Coffee tonnage cells from a first-half bulletin, either language edition.
+
+    Same column layout as the monthly 2x table, which the fortnight table
+    shares: [3] is the period quantity, [7] the year-to-date cumulative.
+
+    Deliberately a separate function rather than a change to the full-month
+    parser: that path works and is not to be disturbed.
+    """
+    try:
+        import pdfplumber
+    except ImportError:
+        print("[vn-midmonth] pdfplumber not installed")
+        return None
+    try:
+        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+            for pg in pdf.pages:
+                for table in (pg.extract_tables() or []):
+                    for row in table:
+                        if not row or len(row) < 4:
+                            continue
+                        label = _strip_accents(row[1] or "").lower()
+                        if not _COFFEE_ANY_RX.search(label):
+                            continue
+                        raw = [c if c is not None else "" for c in row]
+                        nums = [_parse_vn_number(c) for c in raw]
+                        period = round(nums[3] if len(nums) > 3 else 0.0, 1)
+                        if not (K1_TONNES_RANGE[0] <= period <= K1_TONNES_RANGE[1]):
+                            print(f"[vn-midmonth] coffee row found but {period} t is outside "
+                                  f"{K1_TONNES_RANGE} — refusing it rather than recording a "
+                                  f"misparsed number")
+                            return None
+                        return {
+                            "period_qty_tonnes": period,
+                            "ytd_cum_qty_tonnes": round(nums[7] if len(nums) > 7 else 0.0, 1),
+                            "raw_row": [str(c).strip() if c else "" for c in raw],
+                        }
+        return None
+    except Exception as e:                       # noqa: BLE001 — reported, not swallowed
+        print(f"[vn-midmonth] PDF parse error: {e}")
+        return None
+
+
 def fetch_k1(year: int, month: int,
              signature: tuple[str, bool, str] | None = None) -> dict | None:
     """First k1 bulletin that answers, parsed to the coffee row.
@@ -326,7 +425,7 @@ def fetch_k1(year: int, month: int,
         body = _try_download_pdf(url)
         if not body:
             continue
-        row = _extract_coffee_row(body)
+        row = extract_coffee_row_any_language(body)
         if row:
             row["url"] = url
             return row

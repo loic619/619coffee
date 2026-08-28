@@ -35,18 +35,24 @@ class TestMonthsBack:
 
 
 class TestK1Urls:
-    def test_every_url_carries_the_k1_marker_and_the_export_type(self):
+    def test_every_dated_url_carries_the_k1_marker_and_the_1X_export_type(self):
         urls = R.k1_candidate_urls(2026, 6)
         assert urls, "predictor produced nothing"
         for u in urls:
-            assert "k1-2x" in u, u          # k1 = through the 15th; 2x = exports
-            assert "k2" not in u
+            stem = u.rsplit("/", 1)[1]
+            if not stem.lower().startswith("2026-"):
+                continue                    # the undated ta_bieu1_ky-xk.pdf form
+            low = stem.lower()
+            assert "k1-1x" in low, stem     # k1 = days 1-15; 1X = fortnight exports
+            assert "k2" not in low
 
     def test_names_the_data_month_not_the_publication_month(self):
         for u in R.k1_candidate_urls(2026, 6):
             stem = u.rsplit("/", 1)[1]
-            assert stem.startswith("2026-t6k1") or stem.startswith("2026-T6k1") \
-                or stem.startswith("2026-t06k1") or stem.startswith("2026-T06k1"), stem
+            if not stem.lower().startswith("2026-"):
+                continue
+            low = stem.lower()
+            assert low.startswith("2026-t6k1") or low.startswith("2026-t06k1"), stem
 
     def test_searches_both_the_data_month_and_the_next(self):
         # k1 for June can publish late in June or early in July.
@@ -250,25 +256,75 @@ class TestHalfMonthAudit:
         assert out["clean"], f"half-month figures in the monthly series: {out['suspect_months']}"
 
 
+class TestKnownRealBulletins:
+    """Pinned to first-half bulletin URLs confirmed to exist.
+
+    The study ran twice for a combined three hours and found nothing, because
+    it searched for report type `2x`. The fortnight export table is `1X`. These
+    six URLs are the ground truth that mistake could not survive.
+    """
+
+    KNOWN = [
+        (2026, 8, "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/8/18/2026-T8K1-1X(TA-SB).pdf"),
+        (2026, 7, "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/7/17/2026-T7K1-1X(TA-SB).pdf"),
+        (2026, 6, "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/6/19/ta_bieu1_ky-xk.pdf"),
+        (2026, 5, "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/5/20/2026-t5k1-1x(ta-sb).pdf"),
+        (2026, 4, "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/4/17/2026-t4k1-1x(ta-sb).pdf"),
+        (2026, 3, "https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/3/18/2026-T3K1-1X(TA-SB).pdf"),
+    ]
+
+    def test_every_confirmed_bulletin_is_generated(self):
+        for y, m, url in self.KNOWN:
+            assert url in R.k1_candidate_urls(y, m), f"{y}-{m:02d} not generated"
+
+    def test_confirmed_bulletins_are_found_EARLY_not_just_eventually(self):
+        # Generating the URL somewhere in 280 candidates is not enough at one
+        # request a second across 24 months. Ordering is what makes it finish.
+        for y, m, url in self.KNOWN:
+            assert R.k1_candidate_urls(y, m).index(url) < 40
+
+    def test_the_undated_filename_form_is_covered(self):
+        # 2026-06 published as ta_bieu1_ky-xk.pdf, with no date in the name at
+        # all — findable only via the directory it sits in.
+        assert "ta_bieu1_ky-xk.pdf" in R.k1_stems(2026, 6)
+
+    def test_never_searches_the_monthly_report_type(self):
+        # 2x is the full-month by-commodity table. Looking for it here is the
+        # original bug, and it must not creep back.
+        for u in R.k1_candidate_urls(2026, 8):
+            assert "2x" not in u.lower()
+
+    def test_filename_case_is_consistent_never_mixed(self):
+        # Real names are all-upper or all-lower. Toggling parts independently
+        # generated impossible names like t5K1-1X(ta-sb).
+        for stem in R.k1_stems(2026, 8):
+            if stem.startswith("2026"):
+                body = stem.split(".pdf")[0]
+                assert body == body.upper() or body == body.lower()
+
+
 class TestSearchOrdering:
     """The 45-minute timeout was a search-cost problem, not a slow-host problem."""
 
-    def _url(self, tcase="t", month="6", suffix="(vn-sb)"):
-        return (f"https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/7/22/"
-                f"2026-{tcase}{month}k1-2x{suffix}.pdf")
+    def _url(self, tcase="t", month="6", suffix="ta-sb"):
+        k = "K1-1X" if tcase == "T" else "k1-1x"
+        return (f"https://files.customs.gov.vn/CustomsCMS/TONG_CUC/2026/6/18/"
+                f"2026-{tcase}{month}{k}({suffix}).pdf")
 
     def test_reads_the_naming_convention_off_a_url_that_worked(self):
-        assert R.stem_signature(self._url()) == ("t", False, "(vn-sb)")
-        assert R.stem_signature(self._url("T", "06", "(VN-SB)")) == ("T", True, "(VN-SB)")
+        assert R.stem_signature(self._url()) == ("t", False, "ta-sb")
+        assert R.stem_signature(self._url("T", "06", "VN-SB")) == ("T", True, "VN-SB")
 
-    def test_ignores_urls_that_are_not_k1_bulletins(self):
+    def test_ignores_urls_that_are_not_first_half_bulletins(self):
+        # k2 is the full-month table, and 2x is the wrong report type entirely.
         assert R.stem_signature("https://x/2026-t6k2-2x(vn-sb).pdf") is None
+        assert R.stem_signature("https://x/2026-t6k1-2x(vn-sb).pdf") is None
         assert R.stem_signature("") is None
         assert R.stem_signature(None) is None
 
     def test_the_known_good_variant_is_searched_first(self):
         urls = R.k1_candidate_urls(2026, 6)
-        sig = ("T", True, "(VN-SB)")
+        sig = ("T", True, "VN-SB")
         out = R.prioritise(urls, sig)
         # Every URL of the learned variant comes before every other one.
         n_match = sum(1 for u in urls if R.stem_signature(u) == sig)
@@ -279,7 +335,7 @@ class TestSearchOrdering:
         # A month where Customs changed convention must still resolve — the
         # dead variants move to the back, they are not filtered out.
         urls = R.k1_candidate_urls(2026, 6)
-        out = R.prioritise(urls, ("T", True, "(VN-SB)"))
+        out = R.prioritise(urls, ("T", True, "VN-SB"))
         assert sorted(out) == sorted(urls)
         assert len(out) == len(urls)
 
