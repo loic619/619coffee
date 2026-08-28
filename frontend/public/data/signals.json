@@ -1,8 +1,30 @@
 {
   "date": "2026-08-18",
-  "scoreNY": 0,
-  "scoreLDN": 2,
+  "scoreNY": -4,
+  "scoreLDN": 0,
   "signals": [
+    {
+      "id": "CP3",
+      "name": "Bullish De-hedging",
+      "category": "CP",
+      "categoryLabel": "Producer",
+      "market": "NY",
+      "severity": "warn",
+      "score": 2,
+      "magnitude": "small",
+      "text": "Producers lifting hedges into rising price — signals expectation of further upside."
+    },
+    {
+      "id": "CP4",
+      "name": "Defensive De-hedging",
+      "category": "CP",
+      "categoryLabel": "Producer",
+      "market": "LDN",
+      "severity": "info",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "Producers covering shorts on weakness — normal deleveraging, low conviction."
+    },
     {
       "id": "CP5",
       "name": "Producer Exhaustion",
@@ -15,6 +37,28 @@
       "text": "Producers near fully hedged (>75th pct, 52-week) — limited additional selling capacity from this actor."
     },
     {
+      "id": "CR4",
+      "name": "Unusual Liquidation",
+      "category": "CR",
+      "categoryLabel": "Roaster",
+      "market": "NY",
+      "severity": "warn",
+      "score": -2,
+      "magnitude": "large",
+      "text": "Roasters reducing coverage into rising price — may signal demand destruction or blend substitution toward Robusta."
+    },
+    {
+      "id": "CR1",
+      "name": "Normal Coverage",
+      "category": "CR",
+      "categoryLabel": "Roaster",
+      "market": "LDN",
+      "severity": "info",
+      "score": 0,
+      "magnitude": "large",
+      "text": "Roasters adding coverage into price weakness — standard buying flow."
+    },
+    {
       "id": "CI1",
       "name": "Commercial Convergence Bullish",
       "category": "CI",
@@ -24,6 +68,56 @@
       "score": 3,
       "magnitude": "large",
       "text": "Both commercials aligned bullish — strong fundamental demand signal."
+    },
+    {
+      "id": "ML5",
+      "name": "Fund Long Exit",
+      "category": "ML",
+      "categoryLabel": "MM Longs",
+      "market": "NY",
+      "severity": "warn",
+      "score": -2,
+      "magnitude": "small",
+      "links": [
+        {
+          "label": "Global Flow",
+          "href": "#cot-section-1"
+        }
+      ],
+      "text": "Funds reducing longs despite rising price — may reflect lack of conviction or profit taking after a strong rally."
+    },
+    {
+      "id": "ML4",
+      "name": "Fund Long Liquidation",
+      "category": "ML",
+      "categoryLabel": "MM Longs",
+      "market": "LDN",
+      "severity": "info",
+      "score": -1,
+      "magnitude": "large",
+      "text": "Funds reducing longs into falling price — bearish momentum, trend following."
+    },
+    {
+      "id": "MS3",
+      "name": "Contrarian Fund Shorting",
+      "category": "MS",
+      "categoryLabel": "MM Shorts",
+      "market": "NY",
+      "severity": "warn",
+      "score": -2,
+      "magnitude": "small",
+      "text": "Funds shorting into rising price — contrarian positioning, betting on reversal."
+    },
+    {
+      "id": "MS1",
+      "name": "Fund Bearish Entry",
+      "category": "MS",
+      "categoryLabel": "MM Shorts",
+      "market": "LDN",
+      "severity": "info",
+      "score": -1,
+      "magnitude": "large",
+      "text": "Funds building shorts into price weakness — conviction depends on magnitude of the move."
     },
     {
       "id": "MI2",
@@ -46,6 +140,28 @@
       "score": -2,
       "magnitude": "large",
       "text": "Funds reducing longs and adding shorts simultaneously — strong bearish conviction."
+    },
+    {
+      "id": "MPI5",
+      "name": "Divergence Signal",
+      "category": "MPI",
+      "categoryLabel": "MM × Producer",
+      "market": "NY",
+      "severity": "warn",
+      "score": -1,
+      "magnitude": "small",
+      "text": "Funds reducing longs while producers lift hedges into rising price — neither actor convinced by the rally. Check if funds are near historical max (profit taking) or early in rally (lack of conviction)."
+    },
+    {
+      "id": "MRI6",
+      "name": "Roaster Coverage Opportunity",
+      "category": "MRI",
+      "categoryLabel": "MM × Roaster",
+      "market": "LDN",
+      "severity": "info",
+      "score": 1,
+      "magnitude": "large",
+      "text": "Funds reducing while roasters opportunistically add coverage into weakness — puts a floor under the price decline."
     },
     {
       "id": "TC2",
@@ -2243,6 +2359,28 @@
       "date": "2026-08-18",
       "signals": [
         {
+          "id": "CP3",
+          "name": "Bullish De-hedging",
+          "category": "CP",
+          "categoryLabel": "Producer",
+          "market": "NY",
+          "severity": "warn",
+          "score": 2,
+          "magnitude": "small",
+          "text": "Producers lifting hedges into rising price — signals expectation of further upside."
+        },
+        {
+          "id": "CP4",
+          "name": "Defensive De-hedging",
+          "category": "CP",
+          "categoryLabel": "Producer",
+          "market": "LDN",
+          "severity": "info",
+          "score": 0,
+          "magnitude": "medium",
+          "text": "Producers covering shorts on weakness — normal deleveraging, low conviction."
+        },
+        {
           "id": "CP5",
           "name": "Producer Exhaustion",
           "category": "CP",
@@ -2254,6 +2392,28 @@
           "text": "Producers near fully hedged (>75th pct, 52-week) — limited additional selling capacity from this actor."
         },
         {
+          "id": "CR4",
+          "name": "Unusual Liquidation",
+          "category": "CR",
+          "categoryLabel": "Roaster",
+          "market": "NY",
+          "severity": "warn",
+          "score": -2,
+          "magnitude": "large",
+          "text": "Roasters reducing coverage into rising price — may signal demand destruction or blend substitution toward Robusta."
+        },
+        {
+          "id": "CR1",
+          "name": "Normal Coverage",
+          "category": "CR",
+          "categoryLabel": "Roaster",
+          "market": "LDN",
+          "severity": "info",
+          "score": 0,
+          "magnitude": "large",
+          "text": "Roasters adding coverage into price weakness — standard buying flow."
+        },
+        {
           "id": "CI1",
           "name": "Commercial Convergence Bullish",
           "category": "CI",
@@ -2263,6 +2423,56 @@
           "score": 3,
           "magnitude": "large",
           "text": "Both commercials aligned bullish — strong fundamental demand signal."
+        },
+        {
+          "id": "ML5",
+          "name": "Fund Long Exit",
+          "category": "ML",
+          "categoryLabel": "MM Longs",
+          "market": "NY",
+          "severity": "warn",
+          "score": -2,
+          "magnitude": "small",
+          "links": [
+            {
+              "label": "Global Flow",
+              "href": "#cot-section-1"
+            }
+          ],
+          "text": "Funds reducing longs despite rising price — may reflect lack of conviction or profit taking after a strong rally."
+        },
+        {
+          "id": "ML4",
+          "name": "Fund Long Liquidation",
+          "category": "ML",
+          "categoryLabel": "MM Longs",
+          "market": "LDN",
+          "severity": "info",
+          "score": -1,
+          "magnitude": "large",
+          "text": "Funds reducing longs into falling price — bearish momentum, trend following."
+        },
+        {
+          "id": "MS3",
+          "name": "Contrarian Fund Shorting",
+          "category": "MS",
+          "categoryLabel": "MM Shorts",
+          "market": "NY",
+          "severity": "warn",
+          "score": -2,
+          "magnitude": "small",
+          "text": "Funds shorting into rising price — contrarian positioning, betting on reversal."
+        },
+        {
+          "id": "MS1",
+          "name": "Fund Bearish Entry",
+          "category": "MS",
+          "categoryLabel": "MM Shorts",
+          "market": "LDN",
+          "severity": "info",
+          "score": -1,
+          "magnitude": "large",
+          "text": "Funds building shorts into price weakness — conviction depends on magnitude of the move."
         },
         {
           "id": "MI2",
@@ -2285,6 +2495,28 @@
           "score": -2,
           "magnitude": "large",
           "text": "Funds reducing longs and adding shorts simultaneously — strong bearish conviction."
+        },
+        {
+          "id": "MPI5",
+          "name": "Divergence Signal",
+          "category": "MPI",
+          "categoryLabel": "MM × Producer",
+          "market": "NY",
+          "severity": "warn",
+          "score": -1,
+          "magnitude": "small",
+          "text": "Funds reducing longs while producers lift hedges into rising price — neither actor convinced by the rally. Check if funds are near historical max (profit taking) or early in rally (lack of conviction)."
+        },
+        {
+          "id": "MRI6",
+          "name": "Roaster Coverage Opportunity",
+          "category": "MRI",
+          "categoryLabel": "MM × Roaster",
+          "market": "LDN",
+          "severity": "info",
+          "score": 1,
+          "magnitude": "large",
+          "text": "Funds reducing while roasters opportunistically add coverage into weakness — puts a floor under the price decline."
         },
         {
           "id": "TC2",
@@ -2331,11 +2563,11 @@
           "text": "Funds collapsing spread positions — may signal transition to outright directional positioning. Watch which direction longs and shorts move next."
         }
       ],
-      "scoreNY": 0,
-      "scoreLDN": 2,
-      "priceNY": 315.7,
-      "priceLDN": 3777
+      "scoreNY": -4,
+      "scoreLDN": 0,
+      "priceNY": 332.45,
+      "priceLDN": 3739
     }
   ],
-  "generatedAt": "2026-08-27T13:06:27.709Z"
+  "generatedAt": "2026-08-28T05:09:22.237Z"
 }
