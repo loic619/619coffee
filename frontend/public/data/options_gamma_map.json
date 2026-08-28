@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T13:06:15.587287Z",
+  "generated_at": "2026-08-28T14:36:22.915151Z",
   "method": {
     "gamma": "Black-76 from each board's stored per-strike IV, settlement and DTE; gamma = phi(d1)/(F*sigma*sqrt(T)).",
     "convention": "Naive dealer-side GEX: dealers long calls, short puts — net = gamma_c*OI_c − gamma_p*OI_p per strike. A convention, not an observation.",
@@ -1872,67 +1872,88 @@
         },
         {
           "date": "2026-08-26",
-          "net_lots_per_1pct": 82.9,
-          "gross_lots_per_1pct": 1599.7
+          "net_lots_per_1pct": 57.5,
+          "gross_lots_per_1pct": 1637.5
+        },
+        {
+          "date": "2026-08-27",
+          "net_lots_per_1pct": -121.8,
+          "gross_lots_per_1pct": 1760.1
         }
       ],
       "live": {
         "front": "KCZ26",
-        "future": 322.15,
-        "dte": 79,
+        "future": 309.65,
+        "dte": 78,
         "boards": [
           {
             "u": "KCZ26",
-            "dte": 79
+            "dte": 78
           },
           {
             "u": "KCH27",
-            "dte": 170
+            "dte": 169
           },
           {
             "u": "KCK27",
-            "dte": 226
+            "dte": 225
           }
         ],
-        "spot_net_lots_per_1pct": 113.9,
-        "flip_price": 313.14,
-        "flip_pct": -2.8,
+        "spot_net_lots_per_1pct": -91.3,
+        "flip_price": 316.2,
+        "flip_pct": 2.12,
         "by_strike": [
           {
+            "strike": 250.0,
+            "net_lots_per_1pct": -95.0
+          },
+          {
+            "strike": 252.5,
+            "net_lots_per_1pct": -0.5
+          },
+          {
+            "strike": 255.0,
+            "net_lots_per_1pct": -4.4
+          },
+          {
+            "strike": 257.5,
+            "net_lots_per_1pct": 0.0
+          },
+          {
             "strike": 260.0,
-            "net_lots_per_1pct": -53.7
+            "net_lots_per_1pct": -64.3
           },
           {
             "strike": 262.5,
-            "net_lots_per_1pct": -0.3
+            "net_lots_per_1pct": -0.4
           },
           {
             "strike": 265.0,
-            "net_lots_per_1pct": -22.3
+            "net_lots_per_1pct": -27.1
           },
           {
             "strike": 267.5,
-            "net_lots_per_1pct": -0.3
+            "net_lots_per_1pct": -0.4
           },
           {
             "strike": 270.0,
-            "net_lots_per_1pct": -21.3
+            "net_lots_per_1pct": -28.7
           },
           {
             "strike": 272.5,
-            "net_lots_per_1pct": -0.0
+            "net_lots_per_1pct": -0.1
           },
           {
             "strike": 275.0,
-            "net_lots_per_1pct": -4.8
+            "net_lots_per_1pct": -6.3
           },
           {
             "strike": 277.5,
-            "net_lots_per_1pct": 0.9
+            "net_lots_per_1pct": 1.0
           },
           {
             "strike": 280.0,
-            "net_lots_per_1pct": -29.2
+            "net_lots_per_1pct": -33.0
           },
           {
             "strike": 282.5,
@@ -1940,23 +1961,23 @@
           },
           {
             "strike": 285.0,
-            "net_lots_per_1pct": 1.6
+            "net_lots_per_1pct": 2.6
           },
           {
             "strike": 287.5,
-            "net_lots_per_1pct": -0.6
-          },
-          {
-            "strike": 290.0,
-            "net_lots_per_1pct": -15.3
-          },
-          {
-            "strike": 292.5,
             "net_lots_per_1pct": -0.7
           },
           {
+            "strike": 290.0,
+            "net_lots_per_1pct": -22.2
+          },
+          {
+            "strike": 292.5,
+            "net_lots_per_1pct": -4.5
+          },
+          {
             "strike": 295.0,
-            "net_lots_per_1pct": -6.6
+            "net_lots_per_1pct": -7.1
           },
           {
             "strike": 297.5,
@@ -1964,7 +1985,7 @@
           },
           {
             "strike": 300.0,
-            "net_lots_per_1pct": 27.4
+            "net_lots_per_1pct": 23.3
           },
           {
             "strike": 302.5,
@@ -1972,7 +1993,7 @@
           },
           {
             "strike": 305.0,
-            "net_lots_per_1pct": 4.0
+            "net_lots_per_1pct": -0.7
           },
           {
             "strike": 307.5,
@@ -1980,15 +2001,15 @@
           },
           {
             "strike": 310.0,
-            "net_lots_per_1pct": -7.9
+            "net_lots_per_1pct": -9.8
           },
           {
             "strike": 312.5,
-            "net_lots_per_1pct": 0.0
+            "net_lots_per_1pct": 0.1
           },
           {
             "strike": 315.0,
-            "net_lots_per_1pct": -19.3
+            "net_lots_per_1pct": -19.5
           },
           {
             "strike": 317.5,
@@ -1996,7 +2017,7 @@
           },
           {
             "strike": 320.0,
-            "net_lots_per_1pct": 22.5
+            "net_lots_per_1pct": 21.5
           },
           {
             "strike": 322.5,
@@ -2004,7 +2025,7 @@
           },
           {
             "strike": 325.0,
-            "net_lots_per_1pct": 54.7
+            "net_lots_per_1pct": 53.9
           },
           {
             "strike": 327.5,
@@ -2012,7 +2033,7 @@
           },
           {
             "strike": 330.0,
-            "net_lots_per_1pct": 14.4
+            "net_lots_per_1pct": 19.5
           },
           {
             "strike": 332.5,
@@ -2020,7 +2041,7 @@
           },
           {
             "strike": 335.0,
-            "net_lots_per_1pct": 11.1
+            "net_lots_per_1pct": 10.7
           },
           {
             "strike": 337.5,
@@ -2028,7 +2049,7 @@
           },
           {
             "strike": 340.0,
-            "net_lots_per_1pct": 27.4
+            "net_lots_per_1pct": 26.9
           },
           {
             "strike": 342.5,
@@ -2036,15 +2057,15 @@
           },
           {
             "strike": 345.0,
-            "net_lots_per_1pct": 9.3
+            "net_lots_per_1pct": 8.8
           },
           {
             "strike": 347.5,
-            "net_lots_per_1pct": 0.7
+            "net_lots_per_1pct": 0.6
           },
           {
             "strike": 350.0,
-            "net_lots_per_1pct": 42.4
+            "net_lots_per_1pct": 30.6
           },
           {
             "strike": 352.5,
@@ -2052,7 +2073,7 @@
           },
           {
             "strike": 355.0,
-            "net_lots_per_1pct": 0.6
+            "net_lots_per_1pct": 1.4
           },
           {
             "strike": 357.5,
@@ -2060,7 +2081,7 @@
           },
           {
             "strike": 360.0,
-            "net_lots_per_1pct": 54.4
+            "net_lots_per_1pct": 49.9
           },
           {
             "strike": 362.5,
@@ -2068,378 +2089,358 @@
           },
           {
             "strike": 365.0,
-            "net_lots_per_1pct": 4.0
+            "net_lots_per_1pct": 3.3
           },
           {
             "strike": 367.5,
-            "net_lots_per_1pct": 0.1
-          },
-          {
-            "strike": 370.0,
-            "net_lots_per_1pct": 28.4
-          },
-          {
-            "strike": 372.5,
-            "net_lots_per_1pct": 0.4
-          },
-          {
-            "strike": 375.0,
-            "net_lots_per_1pct": 33.7
-          },
-          {
-            "strike": 377.5,
             "net_lots_per_1pct": 0.2
           },
           {
-            "strike": 380.0,
-            "net_lots_per_1pct": 32.0
-          },
-          {
-            "strike": 385.0,
-            "net_lots_per_1pct": 3.2
+            "strike": 370.0,
+            "net_lots_per_1pct": 24.6
           }
         ],
         "grid": [
           {
             "pct": -15.0,
-            "price": 273.83,
-            "net_lots_per_1pct": -633.5
+            "price": 263.2,
+            "net_lots_per_1pct": -867.4
           },
           {
             "pct": -14.5,
-            "price": 275.44,
-            "net_lots_per_1pct": -605.7
+            "price": 264.75,
+            "net_lots_per_1pct": -842.0
           },
           {
             "pct": -14.0,
-            "price": 277.05,
-            "net_lots_per_1pct": -577.8
+            "price": 266.3,
+            "net_lots_per_1pct": -816.3
           },
           {
             "pct": -13.5,
-            "price": 278.66,
-            "net_lots_per_1pct": -549.9
+            "price": 267.85,
+            "net_lots_per_1pct": -790.3
           },
           {
             "pct": -13.0,
-            "price": 280.27,
-            "net_lots_per_1pct": -521.9
+            "price": 269.4,
+            "net_lots_per_1pct": -764.0
           },
           {
             "pct": -12.5,
-            "price": 281.88,
-            "net_lots_per_1pct": -494.0
+            "price": 270.94,
+            "net_lots_per_1pct": -737.5
           },
           {
             "pct": -12.0,
-            "price": 283.49,
-            "net_lots_per_1pct": -466.2
+            "price": 272.49,
+            "net_lots_per_1pct": -710.8
           },
           {
             "pct": -11.5,
-            "price": 285.1,
-            "net_lots_per_1pct": -438.5
+            "price": 274.04,
+            "net_lots_per_1pct": -683.9
           },
           {
             "pct": -11.0,
-            "price": 286.71,
-            "net_lots_per_1pct": -410.9
+            "price": 275.59,
+            "net_lots_per_1pct": -656.9
           },
           {
             "pct": -10.5,
-            "price": 288.32,
-            "net_lots_per_1pct": -383.4
+            "price": 277.14,
+            "net_lots_per_1pct": -629.8
           },
           {
             "pct": -10.0,
-            "price": 289.94,
-            "net_lots_per_1pct": -356.2
+            "price": 278.69,
+            "net_lots_per_1pct": -602.7
           },
           {
             "pct": -9.5,
-            "price": 291.55,
-            "net_lots_per_1pct": -329.2
+            "price": 280.23,
+            "net_lots_per_1pct": -575.5
           },
           {
             "pct": -9.0,
-            "price": 293.16,
-            "net_lots_per_1pct": -302.4
+            "price": 281.78,
+            "net_lots_per_1pct": -548.3
           },
           {
             "pct": -8.5,
-            "price": 294.77,
-            "net_lots_per_1pct": -276.0
+            "price": 283.33,
+            "net_lots_per_1pct": -521.2
           },
           {
             "pct": -8.0,
-            "price": 296.38,
-            "net_lots_per_1pct": -249.8
+            "price": 284.88,
+            "net_lots_per_1pct": -494.1
           },
           {
             "pct": -7.5,
-            "price": 297.99,
-            "net_lots_per_1pct": -223.9
+            "price": 286.43,
+            "net_lots_per_1pct": -467.2
           },
           {
             "pct": -7.0,
-            "price": 299.6,
-            "net_lots_per_1pct": -198.4
+            "price": 287.97,
+            "net_lots_per_1pct": -440.4
           },
           {
             "pct": -6.5,
-            "price": 301.21,
-            "net_lots_per_1pct": -173.2
+            "price": 289.52,
+            "net_lots_per_1pct": -413.7
           },
           {
             "pct": -6.0,
-            "price": 302.82,
-            "net_lots_per_1pct": -148.4
+            "price": 291.07,
+            "net_lots_per_1pct": -387.2
           },
           {
             "pct": -5.5,
-            "price": 304.43,
-            "net_lots_per_1pct": -124.1
+            "price": 292.62,
+            "net_lots_per_1pct": -360.9
           },
           {
             "pct": -5.0,
-            "price": 306.04,
-            "net_lots_per_1pct": -100.1
+            "price": 294.17,
+            "net_lots_per_1pct": -334.8
           },
           {
             "pct": -4.5,
-            "price": 307.65,
-            "net_lots_per_1pct": -76.6
+            "price": 295.72,
+            "net_lots_per_1pct": -309.0
           },
           {
             "pct": -4.0,
-            "price": 309.26,
-            "net_lots_per_1pct": -53.5
+            "price": 297.26,
+            "net_lots_per_1pct": -283.5
           },
           {
             "pct": -3.5,
-            "price": 310.87,
-            "net_lots_per_1pct": -30.9
+            "price": 298.81,
+            "net_lots_per_1pct": -258.3
           },
           {
             "pct": -3.0,
-            "price": 312.49,
-            "net_lots_per_1pct": -8.7
+            "price": 300.36,
+            "net_lots_per_1pct": -233.3
           },
           {
             "pct": -2.5,
-            "price": 314.1,
-            "net_lots_per_1pct": 13.0
+            "price": 301.91,
+            "net_lots_per_1pct": -208.7
           },
           {
             "pct": -2.0,
-            "price": 315.71,
-            "net_lots_per_1pct": 34.2
+            "price": 303.46,
+            "net_lots_per_1pct": -184.5
           },
           {
             "pct": -1.5,
-            "price": 317.32,
-            "net_lots_per_1pct": 54.9
+            "price": 305.01,
+            "net_lots_per_1pct": -160.6
           },
           {
             "pct": -1.0,
-            "price": 318.93,
-            "net_lots_per_1pct": 75.1
+            "price": 306.55,
+            "net_lots_per_1pct": -137.1
           },
           {
             "pct": -0.5,
-            "price": 320.54,
-            "net_lots_per_1pct": 94.7
+            "price": 308.1,
+            "net_lots_per_1pct": -114.0
           },
           {
             "pct": 0.0,
-            "price": 322.15,
-            "net_lots_per_1pct": 113.9
+            "price": 309.65,
+            "net_lots_per_1pct": -91.3
           },
           {
             "pct": 0.5,
-            "price": 323.76,
-            "net_lots_per_1pct": 132.5
+            "price": 311.2,
+            "net_lots_per_1pct": -69.0
           },
           {
             "pct": 1.0,
-            "price": 325.37,
-            "net_lots_per_1pct": 150.6
+            "price": 312.75,
+            "net_lots_per_1pct": -47.1
           },
           {
             "pct": 1.5,
-            "price": 326.98,
-            "net_lots_per_1pct": 168.2
+            "price": 314.29,
+            "net_lots_per_1pct": -25.7
           },
           {
             "pct": 2.0,
-            "price": 328.59,
-            "net_lots_per_1pct": 185.3
+            "price": 315.84,
+            "net_lots_per_1pct": -4.7
           },
           {
             "pct": 2.5,
-            "price": 330.2,
-            "net_lots_per_1pct": 201.8
+            "price": 317.39,
+            "net_lots_per_1pct": 15.8
           },
           {
             "pct": 3.0,
-            "price": 331.81,
-            "net_lots_per_1pct": 217.8
+            "price": 318.94,
+            "net_lots_per_1pct": 35.8
           },
           {
             "pct": 3.5,
-            "price": 333.43,
-            "net_lots_per_1pct": 233.3
+            "price": 320.49,
+            "net_lots_per_1pct": 55.4
           },
           {
             "pct": 4.0,
-            "price": 335.04,
-            "net_lots_per_1pct": 248.3
+            "price": 322.04,
+            "net_lots_per_1pct": 74.5
           },
           {
             "pct": 4.5,
-            "price": 336.65,
-            "net_lots_per_1pct": 262.7
+            "price": 323.58,
+            "net_lots_per_1pct": 93.2
           },
           {
             "pct": 5.0,
-            "price": 338.26,
-            "net_lots_per_1pct": 276.6
+            "price": 325.13,
+            "net_lots_per_1pct": 111.3
           },
           {
             "pct": 5.5,
-            "price": 339.87,
-            "net_lots_per_1pct": 290.0
+            "price": 326.68,
+            "net_lots_per_1pct": 129.0
           },
           {
             "pct": 6.0,
-            "price": 341.48,
-            "net_lots_per_1pct": 302.8
+            "price": 328.23,
+            "net_lots_per_1pct": 146.2
           },
           {
             "pct": 6.5,
-            "price": 343.09,
-            "net_lots_per_1pct": 315.2
+            "price": 329.78,
+            "net_lots_per_1pct": 162.9
           },
           {
             "pct": 7.0,
-            "price": 344.7,
-            "net_lots_per_1pct": 327.1
+            "price": 331.33,
+            "net_lots_per_1pct": 179.1
           },
           {
             "pct": 7.5,
-            "price": 346.31,
-            "net_lots_per_1pct": 338.4
+            "price": 332.87,
+            "net_lots_per_1pct": 194.8
           },
           {
             "pct": 8.0,
-            "price": 347.92,
-            "net_lots_per_1pct": 349.3
+            "price": 334.42,
+            "net_lots_per_1pct": 210.0
           },
           {
             "pct": 8.5,
-            "price": 349.53,
-            "net_lots_per_1pct": 359.6
+            "price": 335.97,
+            "net_lots_per_1pct": 224.8
           },
           {
             "pct": 9.0,
-            "price": 351.14,
-            "net_lots_per_1pct": 369.5
+            "price": 337.52,
+            "net_lots_per_1pct": 239.1
           },
           {
             "pct": 9.5,
-            "price": 352.75,
-            "net_lots_per_1pct": 378.9
+            "price": 339.07,
+            "net_lots_per_1pct": 252.8
           },
           {
             "pct": 10.0,
-            "price": 354.37,
-            "net_lots_per_1pct": 387.9
+            "price": 340.62,
+            "net_lots_per_1pct": 266.1
           },
           {
             "pct": 10.5,
-            "price": 355.98,
-            "net_lots_per_1pct": 396.4
+            "price": 342.16,
+            "net_lots_per_1pct": 278.9
           },
           {
             "pct": 11.0,
-            "price": 357.59,
-            "net_lots_per_1pct": 404.4
+            "price": 343.71,
+            "net_lots_per_1pct": 291.3
           },
           {
             "pct": 11.5,
-            "price": 359.2,
-            "net_lots_per_1pct": 412.0
+            "price": 345.26,
+            "net_lots_per_1pct": 303.2
           },
           {
             "pct": 12.0,
-            "price": 360.81,
-            "net_lots_per_1pct": 419.2
+            "price": 346.81,
+            "net_lots_per_1pct": 314.6
           },
           {
             "pct": 12.5,
-            "price": 362.42,
-            "net_lots_per_1pct": 425.9
+            "price": 348.36,
+            "net_lots_per_1pct": 325.5
           },
           {
             "pct": 13.0,
-            "price": 364.03,
-            "net_lots_per_1pct": 432.2
+            "price": 349.9,
+            "net_lots_per_1pct": 336.0
           },
           {
             "pct": 13.5,
-            "price": 365.64,
-            "net_lots_per_1pct": 438.1
+            "price": 351.45,
+            "net_lots_per_1pct": 346.1
           },
           {
             "pct": 14.0,
-            "price": 367.25,
-            "net_lots_per_1pct": 443.6
+            "price": 353.0,
+            "net_lots_per_1pct": 355.7
           },
           {
             "pct": 14.5,
-            "price": 368.86,
-            "net_lots_per_1pct": 448.8
+            "price": 354.55,
+            "net_lots_per_1pct": 364.8
           },
           {
             "pct": 15.0,
-            "price": 370.47,
-            "net_lots_per_1pct": 453.5
+            "price": 356.1,
+            "net_lots_per_1pct": 373.6
           }
         ],
         "walls": [
           {
-            "strike": 325.0,
-            "net_lots_per_1pct": 54.7
-          },
-          {
-            "strike": 360.0,
-            "net_lots_per_1pct": 54.4
+            "strike": 250.0,
+            "net_lots_per_1pct": -95.0
           },
           {
             "strike": 260.0,
-            "net_lots_per_1pct": -53.7
+            "net_lots_per_1pct": -64.3
+          },
+          {
+            "strike": 325.0,
+            "net_lots_per_1pct": 53.9
           }
         ],
-        "date": "2026-08-26"
+        "date": "2026-08-27"
       },
       "regime": {
-        "n": 372,
+        "n": 373,
         "start": "2025-03-04",
-        "end": "2026-08-26",
-        "n_pos": 69,
+        "end": "2026-08-27",
+        "n_pos": 70,
         "n_neg": 278,
-        "absret_next_pos": 2.333,
+        "absret_next_pos": 2.318,
         "absret_next_neg": 1.71,
-        "absret_t": -2.55,
+        "absret_t": -2.52,
         "tercile": {
-          "k": 110,
-          "absret_low_gex": 1.482,
-          "absret_high_gex": 2.202,
-          "t": -3.79
+          "k": 111,
+          "absret_low_gex": 1.5,
+          "absret_high_gex": 2.194,
+          "t": -3.66
         },
         "autocorr_pos_gex": {
-          "n": 69,
-          "r": -0.281,
+          "n": 70,
+          "r": -0.28,
           "t": -2.4
         },
         "autocorr_neg_gex": {
@@ -3685,45 +3686,50 @@
           "date": "2026-08-26",
           "net_lots_per_1pct": -78.0,
           "gross_lots_per_1pct": 957.4
+        },
+        {
+          "date": "2026-08-27",
+          "net_lots_per_1pct": -120.2,
+          "gross_lots_per_1pct": 999.2
         }
       ],
       "live": {
         "front": "RMX26",
-        "future": 3614,
-        "dte": 56,
+        "future": 3555,
+        "dte": 55,
         "boards": [
           {
             "u": "RMX26",
-            "dte": 56
+            "dte": 55
           },
           {
             "u": "RMF27",
-            "dte": 112
+            "dte": 111
           },
           {
             "u": "RMH27",
-            "dte": 175
+            "dte": 174
           }
         ],
-        "spot_net_lots_per_1pct": -71.9,
-        "flip_price": 3709.69,
-        "flip_pct": 2.65,
+        "spot_net_lots_per_1pct": -114.7,
+        "flip_price": 3696.7,
+        "flip_pct": 3.99,
         "by_strike": [
           {
             "strike": 2900.0,
-            "net_lots_per_1pct": -5.7
+            "net_lots_per_1pct": -6.5
           },
           {
             "strike": 3000.0,
-            "net_lots_per_1pct": -30.2
+            "net_lots_per_1pct": -34.4
           },
           {
             "strike": 3050.0,
-            "net_lots_per_1pct": -7.6
+            "net_lots_per_1pct": -8.7
           },
           {
             "strike": 3100.0,
-            "net_lots_per_1pct": -7.2
+            "net_lots_per_1pct": -8.2
           },
           {
             "strike": 3125.0,
@@ -3739,11 +3745,11 @@
           },
           {
             "strike": 3200.0,
-            "net_lots_per_1pct": -11.0
+            "net_lots_per_1pct": -12.4
           },
           {
             "strike": 3250.0,
-            "net_lots_per_1pct": -6.8
+            "net_lots_per_1pct": -7.6
           },
           {
             "strike": 3275.0,
@@ -3751,7 +3757,7 @@
           },
           {
             "strike": 3300.0,
-            "net_lots_per_1pct": -23.1
+            "net_lots_per_1pct": -25.5
           },
           {
             "strike": 3325.0,
@@ -3759,11 +3765,11 @@
           },
           {
             "strike": 3350.0,
-            "net_lots_per_1pct": -5.7
+            "net_lots_per_1pct": -6.2
           },
           {
             "strike": 3400.0,
-            "net_lots_per_1pct": -36.1
+            "net_lots_per_1pct": -38.9
           },
           {
             "strike": 3450.0,
@@ -3771,7 +3777,7 @@
           },
           {
             "strike": 3500.0,
-            "net_lots_per_1pct": -74.2
+            "net_lots_per_1pct": -77.9
           },
           {
             "strike": 3550.0,
@@ -3783,7 +3789,7 @@
           },
           {
             "strike": 3600.0,
-            "net_lots_per_1pct": -6.0
+            "net_lots_per_1pct": -6.1
           },
           {
             "strike": 3625.0,
@@ -3791,7 +3797,7 @@
           },
           {
             "strike": 3650.0,
-            "net_lots_per_1pct": -34.1
+            "net_lots_per_1pct": -34.5
           },
           {
             "strike": 3675.0,
@@ -3799,7 +3805,7 @@
           },
           {
             "strike": 3700.0,
-            "net_lots_per_1pct": -21.6
+            "net_lots_per_1pct": -18.6
           },
           {
             "strike": 3725.0,
@@ -3811,11 +3817,11 @@
           },
           {
             "strike": 3800.0,
-            "net_lots_per_1pct": 21.4
+            "net_lots_per_1pct": 21.1
           },
           {
             "strike": 3850.0,
-            "net_lots_per_1pct": 26.6
+            "net_lots_per_1pct": 25.9
           },
           {
             "strike": 3875.0,
@@ -3823,7 +3829,7 @@
           },
           {
             "strike": 3900.0,
-            "net_lots_per_1pct": 11.5
+            "net_lots_per_1pct": 11.1
           },
           {
             "strike": 3950.0,
@@ -3831,7 +3837,7 @@
           },
           {
             "strike": 4000.0,
-            "net_lots_per_1pct": 90.1
+            "net_lots_per_1pct": 84.7
           },
           {
             "strike": 4025.0,
@@ -3843,19 +3849,19 @@
           },
           {
             "strike": 4075.0,
-            "net_lots_per_1pct": 0.9
+            "net_lots_per_1pct": 0.8
           },
           {
             "strike": 4100.0,
-            "net_lots_per_1pct": 1.5
+            "net_lots_per_1pct": 3.2
           },
           {
             "strike": 4125.0,
-            "net_lots_per_1pct": 7.2
+            "net_lots_per_1pct": 6.6
           },
           {
             "strike": 4150.0,
-            "net_lots_per_1pct": 1.1
+            "net_lots_per_1pct": 1.0
           },
           {
             "strike": 4175.0,
@@ -3863,350 +3869,346 @@
           },
           {
             "strike": 4200.0,
-            "net_lots_per_1pct": 17.1
-          },
-          {
-            "strike": 4300.0,
-            "net_lots_per_1pct": 0.3
+            "net_lots_per_1pct": 15.2
           }
         ],
         "grid": [
           {
             "pct": -15.0,
-            "price": 3071.9,
-            "net_lots_per_1pct": -370.5
+            "price": 3021.75,
+            "net_lots_per_1pct": -389.4
           },
           {
             "pct": -14.5,
-            "price": 3089.97,
-            "net_lots_per_1pct": -367.5
+            "price": 3039.53,
+            "net_lots_per_1pct": -388.3
           },
           {
             "pct": -14.0,
-            "price": 3108.04,
-            "net_lots_per_1pct": -364.0
+            "price": 3057.3,
+            "net_lots_per_1pct": -386.6
           },
           {
             "pct": -13.5,
-            "price": 3126.11,
-            "net_lots_per_1pct": -359.9
+            "price": 3075.07,
+            "net_lots_per_1pct": -384.2
           },
           {
             "pct": -13.0,
-            "price": 3144.18,
-            "net_lots_per_1pct": -355.1
+            "price": 3092.85,
+            "net_lots_per_1pct": -381.2
           },
           {
             "pct": -12.5,
-            "price": 3162.25,
-            "net_lots_per_1pct": -349.7
+            "price": 3110.62,
+            "net_lots_per_1pct": -377.6
           },
           {
             "pct": -12.0,
-            "price": 3180.32,
-            "net_lots_per_1pct": -343.8
+            "price": 3128.4,
+            "net_lots_per_1pct": -373.3
           },
           {
             "pct": -11.5,
-            "price": 3198.39,
-            "net_lots_per_1pct": -337.2
+            "price": 3146.18,
+            "net_lots_per_1pct": -368.3
           },
           {
             "pct": -11.0,
-            "price": 3216.46,
-            "net_lots_per_1pct": -330.1
+            "price": 3163.95,
+            "net_lots_per_1pct": -362.7
           },
           {
             "pct": -10.5,
-            "price": 3234.53,
-            "net_lots_per_1pct": -322.4
+            "price": 3181.72,
+            "net_lots_per_1pct": -356.5
           },
           {
             "pct": -10.0,
-            "price": 3252.6,
-            "net_lots_per_1pct": -314.1
+            "price": 3199.5,
+            "net_lots_per_1pct": -349.7
           },
           {
             "pct": -9.5,
-            "price": 3270.67,
-            "net_lots_per_1pct": -305.4
+            "price": 3217.28,
+            "net_lots_per_1pct": -342.2
           },
           {
             "pct": -9.0,
-            "price": 3288.74,
-            "net_lots_per_1pct": -296.1
+            "price": 3235.05,
+            "net_lots_per_1pct": -334.2
           },
           {
             "pct": -8.5,
-            "price": 3306.81,
-            "net_lots_per_1pct": -286.3
+            "price": 3252.83,
+            "net_lots_per_1pct": -325.6
           },
           {
             "pct": -8.0,
-            "price": 3324.88,
-            "net_lots_per_1pct": -276.1
+            "price": 3270.6,
+            "net_lots_per_1pct": -316.4
           },
           {
             "pct": -7.5,
-            "price": 3342.95,
-            "net_lots_per_1pct": -265.5
+            "price": 3288.38,
+            "net_lots_per_1pct": -306.7
           },
           {
             "pct": -7.0,
-            "price": 3361.02,
-            "net_lots_per_1pct": -254.4
+            "price": 3306.15,
+            "net_lots_per_1pct": -296.5
           },
           {
             "pct": -6.5,
-            "price": 3379.09,
-            "net_lots_per_1pct": -242.9
+            "price": 3323.93,
+            "net_lots_per_1pct": -285.7
           },
           {
             "pct": -6.0,
-            "price": 3397.16,
-            "net_lots_per_1pct": -231.1
+            "price": 3341.7,
+            "net_lots_per_1pct": -274.6
           },
           {
             "pct": -5.5,
-            "price": 3415.23,
-            "net_lots_per_1pct": -218.9
+            "price": 3359.47,
+            "net_lots_per_1pct": -262.9
           },
           {
             "pct": -5.0,
-            "price": 3433.3,
-            "net_lots_per_1pct": -206.5
+            "price": 3377.25,
+            "net_lots_per_1pct": -250.9
           },
           {
             "pct": -4.5,
-            "price": 3451.37,
-            "net_lots_per_1pct": -193.7
+            "price": 3395.02,
+            "net_lots_per_1pct": -238.5
           },
           {
             "pct": -4.0,
-            "price": 3469.44,
-            "net_lots_per_1pct": -180.8
+            "price": 3412.8,
+            "net_lots_per_1pct": -225.7
           },
           {
             "pct": -3.5,
-            "price": 3487.51,
-            "net_lots_per_1pct": -167.6
+            "price": 3430.57,
+            "net_lots_per_1pct": -212.6
           },
           {
             "pct": -3.0,
-            "price": 3505.58,
-            "net_lots_per_1pct": -154.2
+            "price": 3448.35,
+            "net_lots_per_1pct": -199.3
           },
           {
             "pct": -2.5,
-            "price": 3523.65,
-            "net_lots_per_1pct": -140.7
+            "price": 3466.12,
+            "net_lots_per_1pct": -185.6
           },
           {
             "pct": -2.0,
-            "price": 3541.72,
-            "net_lots_per_1pct": -127.1
+            "price": 3483.9,
+            "net_lots_per_1pct": -171.8
           },
           {
             "pct": -1.5,
-            "price": 3559.79,
-            "net_lots_per_1pct": -113.3
+            "price": 3501.67,
+            "net_lots_per_1pct": -157.7
           },
           {
             "pct": -1.0,
-            "price": 3577.86,
-            "net_lots_per_1pct": -99.5
+            "price": 3519.45,
+            "net_lots_per_1pct": -143.5
           },
           {
             "pct": -0.5,
-            "price": 3595.93,
-            "net_lots_per_1pct": -85.7
+            "price": 3537.22,
+            "net_lots_per_1pct": -129.2
           },
           {
             "pct": 0.0,
-            "price": 3614.0,
-            "net_lots_per_1pct": -71.9
+            "price": 3555.0,
+            "net_lots_per_1pct": -114.7
           },
           {
             "pct": 0.5,
-            "price": 3632.07,
-            "net_lots_per_1pct": -58.1
+            "price": 3572.77,
+            "net_lots_per_1pct": -100.2
           },
           {
             "pct": 1.0,
-            "price": 3650.14,
-            "net_lots_per_1pct": -44.4
+            "price": 3590.55,
+            "net_lots_per_1pct": -85.7
           },
           {
             "pct": 1.5,
-            "price": 3668.21,
-            "net_lots_per_1pct": -30.8
+            "price": 3608.32,
+            "net_lots_per_1pct": -71.2
           },
           {
             "pct": 2.0,
-            "price": 3686.28,
-            "net_lots_per_1pct": -17.3
+            "price": 3626.1,
+            "net_lots_per_1pct": -56.7
           },
           {
             "pct": 2.5,
-            "price": 3704.35,
-            "net_lots_per_1pct": -3.9
+            "price": 3643.87,
+            "net_lots_per_1pct": -42.3
           },
           {
             "pct": 3.0,
-            "price": 3722.42,
-            "net_lots_per_1pct": 9.3
+            "price": 3661.65,
+            "net_lots_per_1pct": -27.9
           },
           {
             "pct": 3.5,
-            "price": 3740.49,
-            "net_lots_per_1pct": 22.4
+            "price": 3679.42,
+            "net_lots_per_1pct": -13.7
           },
           {
             "pct": 4.0,
-            "price": 3758.56,
-            "net_lots_per_1pct": 35.2
+            "price": 3697.2,
+            "net_lots_per_1pct": 0.4
           },
           {
             "pct": 4.5,
-            "price": 3776.63,
-            "net_lots_per_1pct": 47.8
+            "price": 3714.97,
+            "net_lots_per_1pct": 14.3
           },
           {
             "pct": 5.0,
-            "price": 3794.7,
-            "net_lots_per_1pct": 60.2
+            "price": 3732.75,
+            "net_lots_per_1pct": 28.0
           },
           {
             "pct": 5.5,
-            "price": 3812.77,
-            "net_lots_per_1pct": 72.3
+            "price": 3750.52,
+            "net_lots_per_1pct": 41.5
           },
           {
             "pct": 6.0,
-            "price": 3830.84,
-            "net_lots_per_1pct": 84.1
+            "price": 3768.3,
+            "net_lots_per_1pct": 54.8
           },
           {
             "pct": 6.5,
-            "price": 3848.91,
-            "net_lots_per_1pct": 95.6
+            "price": 3786.07,
+            "net_lots_per_1pct": 67.8
           },
           {
             "pct": 7.0,
-            "price": 3866.98,
-            "net_lots_per_1pct": 106.8
+            "price": 3803.85,
+            "net_lots_per_1pct": 80.5
           },
           {
             "pct": 7.5,
-            "price": 3885.05,
-            "net_lots_per_1pct": 117.7
+            "price": 3821.62,
+            "net_lots_per_1pct": 92.9
           },
           {
             "pct": 8.0,
-            "price": 3903.12,
-            "net_lots_per_1pct": 128.2
+            "price": 3839.4,
+            "net_lots_per_1pct": 105.0
           },
           {
             "pct": 8.5,
-            "price": 3921.19,
-            "net_lots_per_1pct": 138.4
+            "price": 3857.17,
+            "net_lots_per_1pct": 116.8
           },
           {
             "pct": 9.0,
-            "price": 3939.26,
-            "net_lots_per_1pct": 148.3
+            "price": 3874.95,
+            "net_lots_per_1pct": 128.2
           },
           {
             "pct": 9.5,
-            "price": 3957.33,
-            "net_lots_per_1pct": 157.7
+            "price": 3892.72,
+            "net_lots_per_1pct": 139.3
           },
           {
             "pct": 10.0,
-            "price": 3975.4,
-            "net_lots_per_1pct": 166.9
+            "price": 3910.5,
+            "net_lots_per_1pct": 150.0
           },
           {
             "pct": 10.5,
-            "price": 3993.47,
-            "net_lots_per_1pct": 175.6
+            "price": 3928.28,
+            "net_lots_per_1pct": 160.3
           },
           {
             "pct": 11.0,
-            "price": 4011.54,
-            "net_lots_per_1pct": 184.0
+            "price": 3946.05,
+            "net_lots_per_1pct": 170.2
           },
           {
             "pct": 11.5,
-            "price": 4029.61,
-            "net_lots_per_1pct": 191.9
+            "price": 3963.82,
+            "net_lots_per_1pct": 179.8
           },
           {
             "pct": 12.0,
-            "price": 4047.68,
-            "net_lots_per_1pct": 199.5
+            "price": 3981.6,
+            "net_lots_per_1pct": 188.9
           },
           {
             "pct": 12.5,
-            "price": 4065.75,
-            "net_lots_per_1pct": 206.7
+            "price": 3999.38,
+            "net_lots_per_1pct": 197.7
           },
           {
             "pct": 13.0,
-            "price": 4083.82,
-            "net_lots_per_1pct": 213.6
+            "price": 4017.15,
+            "net_lots_per_1pct": 206.0
           },
           {
             "pct": 13.5,
-            "price": 4101.89,
-            "net_lots_per_1pct": 220.0
+            "price": 4034.93,
+            "net_lots_per_1pct": 213.9
           },
           {
             "pct": 14.0,
-            "price": 4119.96,
-            "net_lots_per_1pct": 226.1
+            "price": 4052.7,
+            "net_lots_per_1pct": 221.4
           },
           {
             "pct": 14.5,
-            "price": 4138.03,
-            "net_lots_per_1pct": 231.8
+            "price": 4070.47,
+            "net_lots_per_1pct": 228.6
           },
           {
             "pct": 15.0,
-            "price": 4156.1,
-            "net_lots_per_1pct": 237.1
+            "price": 4088.25,
+            "net_lots_per_1pct": 235.3
           }
         ],
         "walls": [
           {
             "strike": 4000.0,
-            "net_lots_per_1pct": 90.1
+            "net_lots_per_1pct": 84.7
           },
           {
             "strike": 3500.0,
-            "net_lots_per_1pct": -74.2
+            "net_lots_per_1pct": -77.9
           },
           {
             "strike": 3400.0,
-            "net_lots_per_1pct": -36.1
+            "net_lots_per_1pct": -38.9
           }
         ],
-        "date": "2026-08-26"
+        "date": "2026-08-27"
       },
       "regime": {
-        "n": 245,
+        "n": 246,
         "start": "2025-09-10",
-        "end": "2026-08-26",
+        "end": "2026-08-27",
         "n_pos": 43,
-        "n_neg": 202,
+        "n_neg": 203,
         "absret_next_pos": 1.576,
-        "absret_next_neg": 1.825,
-        "absret_t": 1.13,
+        "absret_next_neg": 1.817,
+        "absret_t": 1.09,
         "tercile": {
           "k": 68,
           "absret_low_gex": 1.839,
-          "absret_high_gex": 1.972,
-          "t": -0.49
+          "absret_high_gex": 1.943,
+          "t": -0.38
         },
         "autocorr_pos_gex": {
           "n": 43,
@@ -4214,7 +4216,7 @@
           "t": -1.61
         },
         "autocorr_neg_gex": {
-          "n": 202,
+          "n": 203,
           "r": -0.137,
           "t": -1.96
         }
