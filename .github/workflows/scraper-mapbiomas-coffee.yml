@@ -36,12 +36,19 @@ jobs:
         working-directory: backend
         run: python -m scraper.run_mapbiomas_coffee
 
+      # Boundaries for exactly the municipalities the step above emitted, so the
+      # two files can never disagree about which municipalities exist.
+      - name: Export coffee municipality geometry
+        working-directory: backend
+        run: python -m scraper.run_coffee_geo
+
       - name: Commit coffee crop area if changed
         run: |
           set -e
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add frontend/public/data/coffee_crop_area.json
+          git add frontend/public/data/coffee_crop_area.json \
+                  frontend/public/data/coffee_crop_geo.json
           if git diff --cached --quiet; then
             echo "No changes."
             exit 0
