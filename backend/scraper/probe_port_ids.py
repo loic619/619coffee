@@ -29,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scraper.sources.port_activity import PORTS, _HEADERS, _START_YEAR, _get
+from scraper.sources.port_activity import _HEADERS, _START_YEAR, PORTS, _get
 
 _ORG = "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/ArcGIS/rest/services"
 _PORTS_TABLE = "PortWatch_ports_database"
