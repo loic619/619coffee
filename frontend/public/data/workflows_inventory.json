@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-28T05:14:03.975541Z",
-  "count": 89,
+  "generated_at": "2026-08-28T05:36:12.809802Z",
+  "count": 90,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -909,6 +909,20 @@
       "timeout_minutes": 12
     },
     {
+      "file": "scraper-mapbiomas-coffee.yml",
+      "name": "1.24 \u2013 Coffee Crop Area (MapBiomas)",
+      "triggers": [
+        "schedule",
+        "workflow_dispatch"
+      ],
+      "crons": [
+        "37 4 1 9 *"
+      ],
+      "workflow_run_deps": [],
+      "concurrency_group": "scraper-mapbiomas-coffee",
+      "timeout_minutes": 30
+    },
+    {
       "file": "scraper-monthly-br-fertilizer.yml",
       "name": "3.3.2 \u2013 Monthly Scraper \u00b7 Brazil Fertilizer (Comex)",
       "triggers": [
@@ -1266,6 +1280,11 @@
         "version": "1.18"
       },
       {
+        "file": "scraper-mapbiomas-coffee.yml",
+        "name": "1.24 \u2013 Coffee Crop Area (MapBiomas)",
+        "version": "1.24"
+      },
+      {
         "file": "b3-kc-close.yml",
         "name": "1.6 \u2013 B3 at KC close + final fechamento",
         "version": "1.6"
@@ -1322,7 +1341,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 26,
+    "uncovered_workflows_count": 27,
     "stale_curation_count": 0
   }
 }
