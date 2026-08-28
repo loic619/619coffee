@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-28T06:14:32.838640Z",
-  "count": 93,
+  "generated_at": "2026-08-28T06:22:08.985116Z",
+  "count": 94,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -730,6 +730,20 @@
       "timeout_minutes": 15
     },
     {
+      "file": "scraper-coffee-footprint.yml",
+      "name": "1.25 \u2013 Coffee Footprint (MapBiomas raster)",
+      "triggers": [
+        "schedule",
+        "workflow_dispatch"
+      ],
+      "crons": [
+        "43 5 8 9 *"
+      ],
+      "workflow_run_deps": [],
+      "concurrency_group": "scraper-coffee-footprint",
+      "timeout_minutes": 60
+    },
+    {
       "file": "scraper-coffee-imports.yml",
       "name": "3.8 \u2013 Coffee Imports (UN Comtrade)",
       "triggers": [
@@ -1333,6 +1347,11 @@
         "version": "1.24"
       },
       {
+        "file": "scraper-coffee-footprint.yml",
+        "name": "1.25 \u2013 Coffee Footprint (MapBiomas raster)",
+        "version": "1.25"
+      },
+      {
         "file": "b3-kc-close.yml",
         "name": "1.6 \u2013 B3 at KC close + final fechamento",
         "version": "1.6"
@@ -1389,7 +1408,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 30,
+    "uncovered_workflows_count": 31,
     "stale_curation_count": 0
   }
 }
