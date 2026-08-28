@@ -59,13 +59,29 @@ def _fresh(ts: str | None, days: float, now: dt.datetime) -> bool:
     return d is not None and (now - d).total_seconds() <= days * 86400
 
 
-def _arrow(cur: float | None, prev: float | None) -> str:
+def _arrow(cur: float | None, prev: float | None, span: str = "w/w") -> str:
     if cur is None or prev is None or prev == 0:
         return ""
     pct = (cur - prev) / abs(prev) * 100
     if abs(pct) < 0.05:
-        return " (= w/w)"
-    return f" ({'+' if pct >= 0 else ''}{pct:.1f}% w/w)"
+        return f" (= {span})"
+    return f" ({'+' if pct >= 0 else ''}{pct:.1f}% {span})"
+
+
+def _span_label(updated: str | None, prev_date: str | None) -> str:
+    """Say what the comparison actually spans.
+
+    The freight index is only scraped Fri/Sun, so the previous observation is
+    not always seven days back. Calling a 12-day move "w/w" overstates the
+    weekly pace, so anything outside a 6-8 day window names its real span.
+    """
+    if not updated or not prev_date:
+        return "w/w"
+    try:
+        days = (dt.date.fromisoformat(updated) - dt.date.fromisoformat(prev_date)).days
+    except ValueError:
+        return "w/w"
+    return "w/w" if 6 <= days <= 8 else f"vs {days}d ago"
 
 
 def _yoy(cur: float | None, prev: float | None) -> str:
@@ -222,8 +238,10 @@ def compose_freight(now: dt.datetime) -> str | None:
     for r in d.get("routes") or []:
         if r.get("rate") is None:
             continue
+        span = _span_label(d.get("updated"), r.get("prev_date"))
         lines.append(f"• {r.get('from','?')}→{r.get('to','?')}: "
-                     f"{_fmt(r['rate'])} {r.get('unit','')}{_arrow(r.get('rate'), r.get('prev'))}")
+                     f"{_fmt(r['rate'])} {r.get('unit','')}"
+                     f"{_arrow(r.get('rate'), r.get('prev'), span)}")
     if not lines:
         return None
     return f"🚢 Freight rates ({d.get('updated')}):\n" + "\n".join(lines)
