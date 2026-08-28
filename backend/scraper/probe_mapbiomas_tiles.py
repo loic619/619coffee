@@ -42,12 +42,16 @@ _HEADERS = {
 
 _APP = "https://plataforma.mapbiomas.org"
 
+# shared-geoserver is the one their own app calls, found in the JS bundle. It
+# serves GeoWebCache tiles (pre-rendered, cache-friendly) rather than raw WMS.
 _CAPS = [
+    "https://shared-geoserver.mapbiomas.org/geoserver/wms",
     "https://maps.alerta.mapbiomas.org/geoserver/wms",
-    "https://geoserver.mapbiomas.org/geoserver/wms",
-    "https://mapbiomas.org/geoserver/wms",
-    "https://brasil.mapbiomas.org/geoserver/wms",
 ]
+_WMTS_CAPS = (
+    "https://shared-geoserver.mapbiomas.org/geoserver/gwc/service/wmts"
+    "?REQUEST=GetCapabilities"
+)
 
 # What a tile source looks like in a bundled SPA.
 _PATTERNS = [
@@ -117,8 +121,26 @@ def main() -> int:
         except Exception as e:  # noqa: BLE001
             print(f"    capabilities failed: {type(e).__name__}")
 
-    print("\nDecides: a stable WMS/XYZ URL means Option A is a small Leaflet "
-          "change; signed Earth-Engine URLs mean it is not.")
+    print("\n=== WMTS layers on shared-geoserver (the app's own tile source) ===")
+    try:
+        caps = _get(_WMTS_CAPS, timeout=120)
+        print(f"  {caps.status_code}  {len(caps.text) // 1024} KB")
+        ids = re.findall(r"<ows:Identifier>([^<]+)</ows:Identifier>", caps.text)
+        layers = [i for i in ids if ":" in i or "mapbiomas" in i.lower()]
+        print(f"  {len(layers)} layer identifier(s)")
+        for name in layers[:60]:
+            print(f"    {name}")
+        # What we actually need: land cover / coverage, ideally per year.
+        want = [n for n in layers
+                if re.search(r"cobertura|coverage|lulc|colecao|collection|uso", n, re.I)]
+        print(f"\n  coverage/LULC candidates: {want or 'NONE'}")
+        matrix = sorted(set(re.findall(r"<TileMatrixSet>([^<]+)</TileMatrixSet>", caps.text)))
+        print(f"  tile matrix sets: {matrix[:8]}")
+    except Exception as e:
+        print(f"  WMTS capabilities failed: {type(e).__name__} — {e}")
+
+    print("\nDecides: a coverage layer here means Option A is a small Leaflet "
+          "change against a cached tile service.")
     return 0
 
 
