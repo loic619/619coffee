@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-27T10:31:08+00:00",
-  "as_of": "2026-08-26",
+  "generated_at": "2026-08-28T12:12:20+00:00",
+  "as_of": "2026-08-27",
   "snapshots": [
     {
       "date": "2025-05-28",
@@ -6271,16 +6271,42 @@
         "NOR": 0,
         "ROT": 0
       }
+    },
+    {
+      "date": "2026-08-27",
+      "cut_off_date": "2026-08-26",
+      "total_lots_certified": 4921,
+      "total_bags_60kg_equivalent": 820167,
+      "non_tend_lots": 2,
+      "suspended_lots": 0,
+      "lots_graded_today": 0,
+      "lots_sold_today": 3000,
+      "lots_bought_today": 3000,
+      "tenders_today": 3000,
+      "by_port_lots": {
+        "ANT": 3498,
+        "LON": 1393,
+        "TRI": 24,
+        "FEL": 6,
+        "AMS": 0,
+        "BAR": 0,
+        "BRE": 0,
+        "HAM": 0,
+        "LEH": 0,
+        "LIV": 0,
+        "NOR": 0,
+        "ROT": 0
+      }
     }
   ],
   "latest_detail": {
     "stock_report": {
-      "cut_off_date": "2026-08-25",
+      "cut_off_date": "2026-08-26",
       "ports": [
         {
           "port_id": "ANT",
           "port_name": "Antwerp",
-          "with_val_cert": 3503,
+          "with_val_cert": 3498,
           "non_tend": 2,
           "suspended": 0
         },
@@ -6363,12 +6389,12 @@
         }
       ],
       "grand_total": {
-        "with_val_cert": 4926,
+        "with_val_cert": 4921,
         "non_tend": 2,
         "suspended": 0
       }
     },
-    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260826_103533.csv"
+    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260827_103049.csv"
   },
   "recent_activity": {
     "gradings": [
@@ -13620,6 +13646,85 @@
           "sold": 0,
           "bought": 0
         }
+      },
+      {
+        "date": "2026-08-27",
+        "report_date": "2026-08-27",
+        "delivery_date": "2026-08-27",
+        "members": [
+          {
+            "code": "ADU",
+            "rows": [
+              {
+                "origin": "Brazilian Conillon",
+                "sold": 0,
+                "bought": 9
+              },
+              {
+                "origin": "Indonesia",
+                "sold": 0,
+                "bought": 16
+              }
+            ],
+            "total_sold": 0,
+            "total_bought": 25
+          },
+          {
+            "code": "FIM",
+            "rows": [
+              {
+                "origin": "Brazilian Conillon",
+                "sold": 0,
+                "bought": 413
+              },
+              {
+                "origin": "Indonesia",
+                "sold": 0,
+                "bought": 450
+              }
+            ],
+            "total_sold": 0,
+            "total_bought": 863
+          },
+          {
+            "code": "ICS",
+            "rows": [
+              {
+                "origin": "Brazilian Conillon",
+                "sold": 1822,
+                "bought": 1388
+              },
+              {
+                "origin": "Indonesia",
+                "sold": 1178,
+                "bought": 690
+              }
+            ],
+            "total_sold": 3000,
+            "total_bought": 2078
+          },
+          {
+            "code": "MFL",
+            "rows": [
+              {
+                "origin": "Brazilian Conillon",
+                "sold": 0,
+                "bought": 12
+              },
+              {
+                "origin": "Indonesia",
+                "sold": 0,
+                "bought": 22
+              }
+            ],
+            "total_sold": 0,
+            "total_bought": 34
+          }
+        ],
+        "grand_total": {
+          "sold": 3000,
+          "bought": 3000
+        }
       }
     ],
     "tenders": [
@@ -17227,6 +17332,56 @@
         "grand_totals": {
           "originals": 0,
           "originals_month": 0,
+          "retenders": 0,
+          "retenders_month": 0,
+          "originals_rejected": 0,
+          "originals_rejected_month": 0,
+          "retenders_rejected": 0,
+          "retenders_rejected_month": 0,
+          "originals_withdrawn": 0,
+          "originals_withdrawn_month": 0,
+          "retenders_withdrawn": 0,
+          "retenders_withdrawn_month": 0,
+          "originals_substituted": 0,
+          "originals_substituted_month": 0,
+          "retenders_substituted": 0,
+          "retenders_substituted_month": 0,
+          "original_substitutions": 0,
+          "original_substitutions_month": 0,
+          "retender_substitutions": 0,
+          "retender_substitutions_month": 0
+        }
+      },
+      {
+        "date": "2026-08-27",
+        "report_date": "2026-08-27",
+        "delivery_period": "2026-09",
+        "business_date": "2026-08-27",
+        "by_origin": [
+          {
+            "origin": "Brazilian Conillon",
+            "originals_today": 1822,
+            "originals_month": 1822,
+            "retenders_today": 0,
+            "retenders_month": 0
+          },
+          {
+            "origin": "Indonesia",
+            "originals_today": 1178,
+            "originals_month": 1178,
+            "retenders_today": 0,
+            "retenders_month": 0
+          }
+        ],
+        "totals_today": {
+          "originals": 3000,
+          "originals_month": 3000,
+          "retenders": 0,
+          "retenders_month": 0
+        },
+        "grand_totals": {
+          "originals": 3000,
+          "originals_month": 3000,
           "retenders": 0,
           "retenders_month": 0,
           "originals_rejected": 0,
@@ -31353,7 +31508,7 @@
       "max": 27067,
       "max_date": "2011-07-11",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "observations": 3173,
       "locked": true
     },
@@ -31363,7 +31518,7 @@
       "max": 6169,
       "max_date": "2010-01-11",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "observations": 2855,
       "locked": true
     },
@@ -31373,7 +31528,7 @@
       "max": 5320,
       "max_date": "2019-07-24",
       "first_seen": "2009-03-23",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "observations": 3172,
       "locked": true
     },
@@ -31383,7 +31538,7 @@
       "max": 2870,
       "max_date": "2011-08-08",
       "first_seen": "2009-03-23",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "observations": 2274,
       "locked": true
     },
@@ -31393,7 +31548,7 @@
       "max": 2672,
       "max_date": "2021-03-23",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "observations": 2366,
       "locked": true
     },
@@ -31403,7 +31558,7 @@
       "max": 2399,
       "max_date": "2015-08-03",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "observations": 3173,
       "locked": true
     },
@@ -31423,7 +31578,7 @@
       "max": 494,
       "max_date": "2025-05-13",
       "first_seen": "2023-11-01",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "observations": 927,
       "locked": true
     },
@@ -31443,7 +31598,7 @@
       "max": 341,
       "max_date": "2017-11-22",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "observations": 2626,
       "locked": true
     },
@@ -31453,7 +31608,7 @@
       "max": 302,
       "max_date": "2015-08-03",
       "first_seen": "2009-09-21",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "observations": 2281,
       "locked": true
     },
@@ -31463,7 +31618,7 @@
       "max": 184,
       "max_date": "2009-11-02",
       "first_seen": "2009-06-01",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "observations": 1975,
       "locked": true
     },
@@ -31473,7 +31628,7 @@
       "max": 177,
       "max_date": "2023-05-22",
       "first_seen": "2009-04-06",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "observations": 1146,
       "locked": true
     },
@@ -31493,7 +31648,7 @@
       "max": 0,
       "max_date": "2026-05-27",
       "first_seen": "2026-05-27",
-      "last_seen": "2026-08-26",
+      "last_seen": "2026-08-27",
       "observations": 58,
       "locked": true
     }
