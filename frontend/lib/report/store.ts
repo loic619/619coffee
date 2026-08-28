@@ -26,6 +26,11 @@ interface ReportState {
   /** Drop the user's override for a note so the auto-generated comment returns
    *  (a stored "" means "deliberately blank" and survives until reset). */
   resetComment: (id: string) => void;
+  /** Replace the selection ORDER (same membership) — the canvas computes the
+   *  new arrangement so it can reorder within a category group. Guarded: any
+   *  id not already selected is ignored, and missing ones are appended, so a
+   *  stale caller can never drop or duplicate a chart. */
+  setOrder: (ids: string[]) => void;
   clear: () => void;
 }
 
@@ -72,6 +77,14 @@ export const useReportStore = create<ReportState>()(
           return { selectedIds: s.selectedIds.filter((x) => !drop.has(x)), comments: rest };
         }),
       setComment: (id, text) => set((s) => ({ comments: { ...s.comments, [id]: text } })),
+      setOrder: (ids) =>
+        set((s) => {
+          const have = new Set(s.selectedIds);
+          const next = ids.filter((id) => have.has(id));
+          const seen = new Set(next);
+          for (const id of s.selectedIds) if (!seen.has(id)) next.push(id);
+          return { selectedIds: next };
+        }),
       resetComment: (id) =>
         set((s) => {
           const rest = { ...s.comments };
