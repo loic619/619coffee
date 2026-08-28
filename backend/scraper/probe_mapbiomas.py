@@ -64,36 +64,73 @@ def _get(url: str, timeout: int = 180, **kw):
 
 
 def _probe_drive() -> None:
-    """What is behind the Drive link — and is it per-municipality?"""
+    """Resolve the Drive file past the confirm page — is it per-municipality?
+
+    Large Drive files answer the plain uc?export=download URL with a virus-scan
+    interstitial. The real bytes come from drive.usercontent.google.com once the
+    hidden form fields (confirm token + uuid) are replayed.
+    """
+    import re
+
     import requests
 
+    s = requests.Session()
+    s.headers.update(_HEADERS)
     url = f"https://drive.google.com/uc?id={_DRIVE_ID}&export=download"
     try:
-        r = _get(url, timeout=120, stream=True)
+        r = s.get(url, timeout=60, allow_redirects=True)
     except Exception as e:  # noqa: BLE001
         print(f"  fetch failed: {e}")
         return
+    print(f"  step 1: {r.status_code} {r.headers.get('Content-Type', '?')}")
 
-    ctype = r.headers.get("Content-Type", "?")
-    size = r.headers.get("Content-Length", "?")
-    disp = r.headers.get("Content-Disposition", "")
-    print(f"  {r.status_code}  {ctype}  {size} bytes")
-    if disp:
-        print(f"  filename: {disp}")
+    if "text/html" in r.headers.get("Content-Type", ""):
+        fields = dict(re.findall(
+            r'name="([^"]+)"\s+value="([^"]*)"', r.text))
+        action = re.search(r'action="([^"]+)"', r.text)
+        name = re.search(r'<span class="uc-name-size"><a[^>]*>([^<]+)</a>', r.text)
+        print(f"  form fields: {list(fields)}")
+        print(f"  file name:   {name.group(1) if name else '?'}")
+        if not action:
+            print("  no form action — cannot resolve")
+            return
+        try:
+            r = s.get(action.group(1), params=fields, timeout=180, stream=True)
+        except Exception as e:  # noqa: BLE001
+            print(f"  step 2 failed: {e}")
+            return
+        print(f"  step 2: {r.status_code} {r.headers.get('Content-Type', '?')} "
+              f"{r.headers.get('Content-Length', '?')} bytes")
 
-    head = r.raw.read(2048, decode_content=True) or b""
-    # Drive serves an HTML interstitial for big files instead of the bytes.
-    if b"<html" in head[:200].lower() or "text/html" in ctype:
-        print("  → HTML interstitial (Drive virus-scan confirm page), not the file.")
-        text = head.decode("utf-8", "replace")
-        for marker in ("confirm=", "uuid=", "download-form", "filename"):
-            if marker in text:
-                print(f"     mentions {marker}")
-        print("     A confirm token round-trip would be needed to fetch it.")
-    else:
-        print(f"  → binary payload, first bytes: {head[:8]!r} "
-              f"({'xlsx/zip' if head[:2] == b'PK' else 'unknown'})")
+    head = r.raw.read(4096, decode_content=True) or b""
+    if head[:2] != b"PK":
+        print(f"  not a zip/xlsx payload: {head[:60]!r}")
+        r.close()
+        return
+
+    body = head + r.content
     r.close()
+    print(f"  → {len(body) / 1e6:.1f} MB xlsx/zip")
+
+    # The decisive question: does it carry a municipality column?
+    import pandas as pd
+
+    try:
+        xls = pd.ExcelFile(io.BytesIO(body))
+    except Exception as e:  # noqa: BLE001
+        print(f"  cannot open as workbook: {e}")
+        return
+    print(f"  sheets: {xls.sheet_names}")
+    for sheet in xls.sheet_names:
+        try:
+            df = pd.read_excel(xls, sheet_name=sheet, nrows=5)
+        except Exception:  # noqa: BLE001
+            continue
+        cols = [str(c) for c in df.columns]
+        muni = [c for c in cols if re.search(r"munic|city|cidade|geocod", c, re.I)]
+        print(f"    [{sheet}] {len(cols)} cols; municipality-ish: {muni or 'none'}")
+        if muni:
+            print(f"      columns: {cols[:16]}")
 
 
 def _probe_coverage() -> None:
