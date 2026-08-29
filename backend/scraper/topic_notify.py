@@ -239,12 +239,28 @@ def compose_freight(now: dt.datetime) -> str | None:
         if r.get("rate") is None:
             continue
         span = _span_label(d.get("updated"), r.get("prev_date"))
+        # Mark derived routes. Only the Vietnam lanes have a matching FBX index;
+        # the rest are one index scaled by a constant, so quoting them like
+        # measured rates overstates what is known. The Freight page already
+        # shows this with "~est."; the brief did not, which is where the
+        # doubt about the numbers started.
+        est = " ~est" if r.get("proxy") else ""
         lines.append(f"• {r.get('from','?')}→{r.get('to','?')}: "
-                     f"{_fmt(r['rate'])} {r.get('unit','')}"
+                     f"{_fmt(r['rate'])} {r.get('unit','')}{est}"
                      f"{_arrow(r.get('rate'), r.get('prev'), span)}")
     if not lines:
         return None
-    return f"🚢 Freight rates ({d.get('updated')}):\n" + "\n".join(lines)
+    out = f"🚢 Freight rates ({d.get('updated')}):\n" + "\n".join(lines)
+    # Say once, at the bottom, why the estimated lanes always move together —
+    # identical percentages look like corroboration and are not.
+    routes = d.get("routes") or []
+    est_n = sum(1 for r in routes if r.get("proxy"))
+    if est_n:
+        idx = {(r.get("basis") or {}).get("index") for r in routes if r.get("proxy")}
+        idx = ", ".join(sorted(i for i in idx if i))
+        out += (f"\n~est = scaled from {idx or 'an FBX index'}; no index covers "
+                "these lanes, so they move together by construction.")
+    return out
 
 
 # Origin list length: keep adding suppliers largest-first until they explain

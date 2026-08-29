@@ -11,9 +11,25 @@ from scraper.validate_export import (
     validate_freight,
 )
 
+# Probe 0.27 enumerated all twelve FBX tradelanes. They are China<->NAWC,
+# China<->NAEC, China<->N.Europe, China<->Med, NAEC<->N.Europe, and Europe->SAEC
+# / Europe->SAWC. Two facts follow, and they bound what this file can honestly
+# claim:
+#
+#   * There is NO South America -> Europe lane. FBX24/26 run Europe -> South
+#     America, the import direction; coffee leaves on the unpublished leg.
+#   * There are no Africa and no Caribbean lanes at all.
+#
+# So only the Vietnam routes have a genuinely matching index. The rest are one
+# index scaled by a constant picked at some past date, which means they share a
+# single signal: their percentage moves are identical by construction, not by
+# corroboration. `proxy` marks those so consumers can say so out loud.
+#
+# vn-ham is a proxy too — Hamburg is Rotterdam x 1.02, not its own quote. It was
+# previously flagged False, which understated how much of this table is derived.
 ROUTE_CONFIG = [
     ("vn-eu",  "Ho Chi Minh", "Rotterdam",   "FBX11", 1.00, False),
-    ("vn-ham", "Ho Chi Minh", "Hamburg",     "FBX11", 1.02, False),
+    ("vn-ham", "Ho Chi Minh", "Hamburg",     "FBX11", 1.02, True),
     ("vn-us",  "Ho Chi Minh", "Los Angeles", "FBX01", 1.00, False),
     ("br-eu",  "Santos",      "Rotterdam",   "FBX11", 0.58, True),
     ("co-eu",  "Cartagena",   "Rotterdam",   "FBX11", 0.55, True),
@@ -69,6 +85,10 @@ def export_freight(db) -> None:
                 # only, so the span is not always seven days and consumers
                 # should say what they are comparing rather than assume w/w.
                 "prev_date": prev_row.date.isoformat() if prev_row else None,
+                # Which index this came from and how it was scaled, so a reader
+                # can see that five routes share one signal rather than guessing
+                # why their percentages always match.
+                "basis": {"index": index, "multiplier": mult},
             })
 
         fbx11_rows = (
