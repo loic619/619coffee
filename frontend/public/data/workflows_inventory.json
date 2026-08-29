@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-28T06:22:08.985116Z",
-  "count": 94,
+  "generated_at": "2026-08-29T02:57:07.103150Z",
+  "count": 95,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -515,6 +515,17 @@
       "workflow_run_deps": [],
       "concurrency_group": "acaphe-poll",
       "timeout_minutes": 8
+    },
+    {
+      "file": "probe-fbx-lanes.yml",
+      "name": "0.27 \u2013 Probe FBX tradelanes (diagnostic)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 15
     },
     {
       "file": "probe-ibge-geo.yml",
@@ -1312,6 +1323,11 @@
         "version": "0.26"
       },
       {
+        "file": "probe-fbx-lanes.yml",
+        "name": "0.27 \u2013 Probe FBX tradelanes (diagnostic)",
+        "version": "0.27"
+      },
+      {
         "file": "build-oni-history.yml",
         "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
         "version": "0.6"
@@ -1408,7 +1424,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 31,
+    "uncovered_workflows_count": 32,
     "stale_curation_count": 0
   }
 }
