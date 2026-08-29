@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T14:36:22.915151Z",
+  "generated_at": "2026-08-29T09:23:44.494855Z",
   "method": {
     "gamma": "Black-76 from each board's stored per-strike IV, settlement and DTE; gamma = phi(d1)/(F*sigma*sqrt(T)).",
     "convention": "Naive dealer-side GEX: dealers long calls, short puts — net = gamma_c*OI_c − gamma_p*OI_p per strike. A convention, not an observation.",
@@ -2424,14 +2424,14 @@
         "date": "2026-08-27"
       },
       "regime": {
-        "n": 373,
+        "n": 374,
         "start": "2025-03-04",
         "end": "2026-08-27",
         "n_pos": 70,
-        "n_neg": 278,
+        "n_neg": 279,
         "absret_next_pos": 2.318,
-        "absret_next_neg": 1.71,
-        "absret_t": -2.52,
+        "absret_next_neg": 1.706,
+        "absret_t": -2.54,
         "tercile": {
           "k": 111,
           "absret_low_gex": 1.5,
@@ -2444,9 +2444,9 @@
           "t": -2.4
         },
         "autocorr_neg_gex": {
-          "n": 278,
+          "n": 279,
           "r": -0.022,
-          "t": -0.37
+          "t": -0.36
         }
       }
     },
@@ -4196,19 +4196,19 @@
         "date": "2026-08-27"
       },
       "regime": {
-        "n": 246,
+        "n": 247,
         "start": "2025-09-10",
         "end": "2026-08-27",
         "n_pos": 43,
-        "n_neg": 203,
+        "n_neg": 204,
         "absret_next_pos": 1.576,
-        "absret_next_neg": 1.817,
-        "absret_t": 1.09,
+        "absret_next_neg": 1.811,
+        "absret_t": 1.07,
         "tercile": {
-          "k": 68,
-          "absret_low_gex": 1.839,
-          "absret_high_gex": 1.943,
-          "t": -0.38
+          "k": 69,
+          "absret_low_gex": 1.812,
+          "absret_high_gex": 1.926,
+          "t": -0.42
         },
         "autocorr_pos_gex": {
           "n": 43,
@@ -4216,9 +4216,9 @@
           "t": -1.61
         },
         "autocorr_neg_gex": {
-          "n": 203,
+          "n": 204,
           "r": -0.137,
-          "t": -1.96
+          "t": -1.97
         }
       }
     }

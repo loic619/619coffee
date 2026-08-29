@@ -8,7 +8,12 @@
       "rate": 4641,
       "prev": 5009,
       "unit": "USD/FEU",
-      "proxy": false
+      "proxy": false,
+      "prev_date": "2026-08-21",
+      "basis": {
+        "index": "FBX11",
+        "multiplier": 1.0
+      }
     },
     {
       "id": "vn-ham",
@@ -17,7 +22,12 @@
       "rate": 4734,
       "prev": 5109,
       "unit": "USD/FEU",
-      "proxy": false
+      "proxy": true,
+      "prev_date": "2026-08-21",
+      "basis": {
+        "index": "FBX11",
+        "multiplier": 1.02
+      }
     },
     {
       "id": "vn-us",
@@ -26,7 +36,12 @@
       "rate": 7491,
       "prev": 7422,
       "unit": "USD/FEU",
-      "proxy": false
+      "proxy": false,
+      "prev_date": "2026-08-21",
+      "basis": {
+        "index": "FBX01",
+        "multiplier": 1.0
+      }
     },
     {
       "id": "br-eu",
@@ -35,7 +50,12 @@
       "rate": 2692,
       "prev": 2905,
       "unit": "USD/FEU",
-      "proxy": true
+      "proxy": true,
+      "prev_date": "2026-08-21",
+      "basis": {
+        "index": "FBX11",
+        "multiplier": 0.58
+      }
     },
     {
       "id": "co-eu",
@@ -44,7 +64,12 @@
       "rate": 2553,
       "prev": 2755,
       "unit": "USD/FEU",
-      "proxy": true
+      "proxy": true,
+      "prev_date": "2026-08-21",
+      "basis": {
+        "index": "FBX11",
+        "multiplier": 0.55
+      }
     },
     {
       "id": "et-eu",
@@ -53,7 +78,12 @@
       "rate": 3249,
       "prev": 3506,
       "unit": "USD/FEU",
-      "proxy": true
+      "proxy": true,
+      "prev_date": "2026-08-21",
+      "basis": {
+        "index": "FBX11",
+        "multiplier": 0.7
+      }
     },
     {
       "id": "br-us",
@@ -62,17 +92,15 @@
       "rate": 4406,
       "prev": 4240,
       "unit": "USD/FEU",
-      "proxy": true
+      "proxy": true,
+      "prev_date": "2026-08-21",
+      "basis": {
+        "index": "FBX03",
+        "multiplier": 0.45
+      }
     }
   ],
   "history": [
-    {
-      "date": "2026-06-05",
-      "vn-eu": 2970,
-      "br-eu": 1722,
-      "et-eu": 2079,
-      "vn-us": 4841
-    },
     {
       "date": "2026-06-06",
       "vn-eu": 4087,
