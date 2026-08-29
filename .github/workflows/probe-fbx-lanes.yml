@@ -1,0 +1,30 @@
+name: "0.27 – Probe FBX tradelanes (diagnostic)"
+
+# Dispatch-only. freight.json shows seven routes but only three FBX indices sit
+# behind them — five are China→N.Europe scaled by a constant, which is the wrong
+# trade AND the wrong direction for coffee leaving Brazil. This asks Freightos
+# which lanes actually exist, so the fix is based on their published coverage
+# rather than on what search happened to surface.
+# Writes nothing and commits nothing.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install requests
+
+      - name: Probe FBX lanes
+        working-directory: backend
+        run: python -m scraper.probe_fbx_lanes
