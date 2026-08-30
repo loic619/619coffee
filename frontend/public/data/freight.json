@@ -1,15 +1,15 @@
 {
-  "updated": "2026-08-28",
+  "updated": "2026-08-30",
   "routes": [
     {
       "id": "vn-eu",
       "from": "Ho Chi Minh",
       "to": "Rotterdam",
       "rate": 4641,
-      "prev": 5009,
+      "prev": 4699,
       "unit": "USD/FEU",
       "proxy": false,
-      "prev_date": "2026-08-21",
+      "prev_date": "2026-08-23",
       "basis": {
         "index": "FBX11",
         "multiplier": 1.0
@@ -20,10 +20,10 @@
       "from": "Ho Chi Minh",
       "to": "Hamburg",
       "rate": 4734,
-      "prev": 5109,
+      "prev": 4793,
       "unit": "USD/FEU",
       "proxy": true,
-      "prev_date": "2026-08-21",
+      "prev_date": "2026-08-23",
       "basis": {
         "index": "FBX11",
         "multiplier": 1.02
@@ -33,11 +33,11 @@
       "id": "vn-us",
       "from": "Ho Chi Minh",
       "to": "Los Angeles",
-      "rate": 7491,
-      "prev": 7422,
+      "rate": 7621,
+      "prev": 7491,
       "unit": "USD/FEU",
       "proxy": false,
-      "prev_date": "2026-08-21",
+      "prev_date": "2026-08-23",
       "basis": {
         "index": "FBX01",
         "multiplier": 1.0
@@ -48,10 +48,10 @@
       "from": "Santos",
       "to": "Rotterdam",
       "rate": 2692,
-      "prev": 2905,
+      "prev": 2725,
       "unit": "USD/FEU",
       "proxy": true,
-      "prev_date": "2026-08-21",
+      "prev_date": "2026-08-23",
       "basis": {
         "index": "FBX11",
         "multiplier": 0.58
@@ -62,10 +62,10 @@
       "from": "Cartagena",
       "to": "Rotterdam",
       "rate": 2553,
-      "prev": 2755,
+      "prev": 2584,
       "unit": "USD/FEU",
       "proxy": true,
-      "prev_date": "2026-08-21",
+      "prev_date": "2026-08-23",
       "basis": {
         "index": "FBX11",
         "multiplier": 0.55
@@ -76,10 +76,10 @@
       "from": "Djibouti",
       "to": "Rotterdam",
       "rate": 3249,
-      "prev": 3506,
+      "prev": 3289,
       "unit": "USD/FEU",
       "proxy": true,
-      "prev_date": "2026-08-21",
+      "prev_date": "2026-08-23",
       "basis": {
         "index": "FBX11",
         "multiplier": 0.7
@@ -90,10 +90,10 @@
       "from": "Santos",
       "to": "New York",
       "rate": 4406,
-      "prev": 4240,
+      "prev": 4309,
       "unit": "USD/FEU",
       "proxy": true,
-      "prev_date": "2026-08-21",
+      "prev_date": "2026-08-23",
       "basis": {
         "index": "FBX03",
         "multiplier": 0.45
@@ -101,13 +101,6 @@
     }
   ],
   "history": [
-    {
-      "date": "2026-06-06",
-      "vn-eu": 4087,
-      "br-eu": 2371,
-      "et-eu": 2861,
-      "vn-us": 4836
-    },
     {
       "date": "2026-06-07",
       "vn-eu": 4076,
@@ -261,6 +254,13 @@
       "br-eu": 2692,
       "et-eu": 3249,
       "vn-us": 7491
+    },
+    {
+      "date": "2026-08-30",
+      "vn-eu": 4641,
+      "br-eu": 2692,
+      "et-eu": 3249,
+      "vn-us": 7621
     }
   ]
 }

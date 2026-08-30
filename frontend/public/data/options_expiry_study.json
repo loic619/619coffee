@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T09:23:43.940273Z",
+  "generated_at": "2026-08-30T08:33:27.113847Z",
   "method": {
     "expiry_rules": "KC: 2nd Friday of the month preceding the contract month (ICE US ch.8). RC/RM: 3rd Wednesday (ICE Europe spec).",
     "oi_dating": "contract_prices_archive stores OI one key-day late; the series is re-dated back one session and the jump window is [E-1, E+2].",
@@ -9,7 +9,7 @@
   "historical": {
     "arabica": {
       "root": "KC",
-      "n_events": 24,
+      "n_events": 25,
       "events": [
         {
           "expiry": "2021-11-12",
@@ -442,47 +442,65 @@
           "jump_vs_typical": 29.7,
           "price_at_expiry": 257.2,
           "contract": "KCN26"
+        },
+        {
+          "expiry": "2026-08-14",
+          "expiry_session": "2026-08-14",
+          "pre5_pct": 0.76,
+          "day_pct": 1.5,
+          "post1_pct": 2.07,
+          "post3_pct": 6.33,
+          "post5_pct": 6.11,
+          "pre_absmove": 1.37,
+          "post_absmove": 2.18,
+          "oi_before": 13220,
+          "oi_jump": -9882,
+          "oi_jump_pct": -74.75,
+          "typical_daily_doi": 1463.5,
+          "jump_vs_typical": 6.8,
+          "price_at_expiry": 338.1,
+          "contract": "KCU26"
         }
       ],
       "day": {
-        "n": 24,
-        "mean": 0.09,
-        "median": -0.17,
-        "t": 0.16
+        "n": 25,
+        "mean": 0.14,
+        "median": 0.13,
+        "t": 0.28
       },
       "post3": {
-        "n": 24,
-        "mean": 0.41,
-        "median": 1.19,
-        "t": 0.39
+        "n": 25,
+        "mean": 0.65,
+        "median": 1.2,
+        "t": 0.63
       },
       "post5": {
-        "n": 24,
-        "mean": 0.27,
-        "median": -1.23,
-        "t": 0.22
+        "n": 25,
+        "mean": 0.51,
+        "median": -0.55,
+        "t": 0.42
       },
       "absmove_ratio": {
-        "n": 24,
-        "mean": 1.2,
-        "median": 1.05,
-        "t": 9.29
+        "n": 25,
+        "mean": 1.22,
+        "median": 1.11,
+        "t": 9.73
       },
       "absmove_excess": {
-        "n": 24,
-        "mean": 0.2,
-        "median": 0.05,
-        "t": 1.56
+        "n": 25,
+        "mean": 0.22,
+        "median": 0.11,
+        "t": 1.74
       },
       "prepost": {
-        "n": 24,
-        "corr": 0.396,
-        "continuation_pct": 62.5
+        "n": 25,
+        "corr": 0.363,
+        "continuation_pct": 64.0
       },
       "roll_collapse": {
-        "n": 24,
-        "mean_abs_pct": 66.46,
-        "median_abs_pct": 65.34
+        "n": 25,
+        "mean_abs_pct": 66.79,
+        "median_abs_pct": 65.79
       }
     },
     "robusta": {
