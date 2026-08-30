@@ -1,5 +1,58 @@
 [
   {
+    "id": 10526,
+    "title": "CONAB Production Cost Conilon \u2013 2026/27",
+    "body": null,
+    "source": "CONAB Custos Conilon",
+    "category": "supply",
+    "lat": null,
+    "lng": null,
+    "tags": [
+      "conab",
+      "supply",
+      "brazil",
+      "cost",
+      "conilon"
+    ],
+    "meta": "{\"season\": \"2026/27\", \"total_brl_per_bag\": 649.57263, \"prev_total_brl_per_bag\": 649.57263, \"brl_usd\": 5.0, \"components_brl\": [{\"label\": \"Labor\", \"brl\": 216.58, \"color\": \"#22c55e\"}, {\"label\": \"Admin\", \"brl\": 13.63, \"color\": \"#475569\"}, {\"label\": \"Inputs\", \"brl\": 108.3, \"color\": \"#3b82f6\"}, {\"label\": \"Mechanization\", \"brl\": 1.76, \"color\": \"#f59e0b\"}, {\"label\": \"Land rent\", \"brl\": 4.94, \"color\": \"#8b5cf6\"}], \"inputs_detail_brl\": [], \"source_label\": \"CONAB Custos Conilon Aug 2026\"}",
+    "pub_date": "2026-08-30T17:28:46.673329"
+  },
+  {
+    "id": 10525,
+    "title": "CONAB Production Cost Arabica \u2013 2026/27",
+    "body": null,
+    "source": "CONAB Custos",
+    "category": "supply",
+    "lat": null,
+    "lng": null,
+    "tags": [
+      "conab",
+      "supply",
+      "brazil",
+      "cost",
+      "arabica"
+    ],
+    "meta": "{\"season\": \"2026/27\", \"total_brl_per_bag\": 1113.46796, \"prev_total_brl_per_bag\": 1113.46796, \"brl_usd\": 5.0, \"components_brl\": [{\"label\": \"Mechanization\", \"brl\": 49.05, \"color\": \"#f59e0b\"}, {\"label\": \"Labor\", \"brl\": 453.98, \"color\": \"#22c55e\"}, {\"label\": \"Admin\", \"brl\": 28.3, \"color\": \"#475569\"}, {\"label\": \"Inputs\", \"brl\": 217.03, \"color\": \"#3b82f6\"}, {\"label\": \"Land rent\", \"brl\": 59.97, \"color\": \"#8b5cf6\"}], \"inputs_detail_brl\": [], \"source_label\": \"CONAB Custos Arabica Aug 2026\"}",
+    "pub_date": "2026-08-30T17:28:42.124544"
+  },
+  {
+    "id": 10524,
+    "title": "CONAB Acreage Yield \u2013 2026/27",
+    "body": null,
+    "source": "CONAB Safra",
+    "category": "supply",
+    "lat": null,
+    "lng": null,
+    "tags": [
+      "conab",
+      "supply",
+      "brazil",
+      "acreage"
+    ],
+    "meta": "{\"season\": \"2026/27\", \"harvested_area_kha\": 1940.3, \"prev_area_kha\": 1940.3, \"yield_bags_ha\": 34.38, \"prev_yield_bags_ha\": 34.38, \"source_label\": \"CONAB Safra Aug 2026\"}",
+    "pub_date": "2026-08-30T17:28:32.461194"
+  },
+  {
     "id": 10523,
     "title": "Ethiopia Agronomic Status \u2013 2026-08-30",
     "body": "Agronomic Status Update: Ethiopia (Harrar) is currently flagged as at drought risk. Forecasted rainfall of 29mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 35.5.",
@@ -3993,63 +4046,5 @@
     ],
     "meta": "https://sprudge.com/what-is-the-true-water-cost-of-a-cup-of-coffee-1276145.html",
     "pub_date": "2026-08-21T16:46:45"
-  },
-  {
-    "id": 10126,
-    "title": "Amea\u00e7a do El Ni\u00f1o \u00e0 safra de caf\u00e9 do Vietn\u00e3 n\u00e3o deve ser subestimada, diz associa\u00e7\u00e3o",
-    "body": "S\u00c3O PAULO, 21 Ago (Reuters) - A safra de caf\u00e9 robusta do Vietn\u00e3 para 2026/27 poder\u00e1 registrar um ligeiro aumento na produ\u00e7\u00e3o, embora a amea\u00e7a representada...",
-    "source": "Not\u00edcias Agr\u00edcolas",
-    "category": "supply",
-    "lat": null,
-    "lng": null,
-    "tags": [
-      "news",
-      "noticias_agricolas",
-      "cafe"
-    ],
-    "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426790-ameaca-do-el-nino-a-safra-de-cafe-do-vietna-nao-deve-ser-subestimada-diz-associacao.html",
-    "pub_date": "2026-08-21T14:24:00"
-  },
-  {
-    "id": 10127,
-    "title": "El Ni\u00f1o, e n\u00e3o terremoto, afetar\u00e1 safra de caf\u00e9 da Col\u00f4mbia, diz l\u00edder do setor",
-    "body": "Por Luis Jaime Acosta BOGOT\u00c1, 21 Ago (Reuters) - A safra de caf\u00e9 da Col\u00f4mbia escapou do impacto de um forte terremoto que atingiu regi\u00f5es agr\u00edcolas em toda...",
-    "source": "Not\u00edcias Agr\u00edcolas",
-    "category": "supply",
-    "lat": null,
-    "lng": null,
-    "tags": [
-      "news",
-      "noticias_agricolas",
-      "cafe"
-    ],
-    "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/426778-el-nino-e-nao-terremoto-afetara-safra-de-cafe-da-colombia-diz-lider-do-setor.html",
-    "pub_date": "2026-08-21T12:54:00"
-  },
-  {
-    "id": 10113,
-    "title": "Ethiopia Agronomic Status \u2013 2026-08-21",
-    "body": "Agronomic Status Update: Ethiopia (Sidama/Yirgacheffe, Jimma, Limu, Kaffa, Harrar) is currently flagged as normal.",
-    "source": "Open-Meteo + NOAA STAR",
-    "category": "supply",
-    "lat": 9.15,
-    "lng": 40.49,
-    "tags": [
-      "weather",
-      "ethiopia",
-      "agronomic",
-      "auto-commentary"
-    ],
-    "meta": "{\"origin\": \"ethiopia\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Ethiopia (Sidama/Yirgacheffe, Jimma, Limu, Kaffa, Harrar) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-08-21T02:57:29.347053",
-    "commentary": {
-      "text": "Agronomic Status Update: Ethiopia (Sidama/Yirgacheffe, Jimma, Limu, Kaffa, Harrar) is currently flagged as normal.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Neutral",
-    "sentiment_confidence": 75.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "Ethiopia: no regions flagged at risk"
   }
 ]

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T08:33:28.773417Z",
+  "generated_at": "2026-08-30T17:37:57.484583Z",
   "method": {
     "iv": "ATM IV per session: mean of call/put IVs on the strikes bracketing the settlement, from the boards archive (Black-76-implied from settlement premiums where the vendor serves no IV).",
     "rv": "Annualized close-to-close vol of the SAME contract's settlements over the next 21 sessions (per-contract archive; RM underlyings map to RC futures).",
