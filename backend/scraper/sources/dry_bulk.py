@@ -114,6 +114,30 @@ def fetch_latest() -> dict | None:
         return None
 
 
+def fetch_or_refresh() -> dict | None:
+    """What the exporter should call: cache if usable, otherwise a live fetch.
+
+    `backend/scraper/cache/` is gitignored, so the file this scraper writes does
+    not survive from the daily scrape job to the export job — different runner,
+    fresh checkout. The effect was silent: dry_bulk ran and reported success
+    every day, `fetch_latest()` returned None in the export job every day, and
+    farmer_economics.json shipped with no `dry_bulk` block at all, so the
+    Freight page said "not yet available" indefinitely. Same failure mode the
+    us_cpi exporter already documents, same fix — fall back to fetching.
+
+    Falls back to a stale cache if the live fetch also fails: an old price
+    labelled with its own date beats no panel.
+    """
+    cached = fetch_latest()
+    if cached:
+        try:
+            if (date.today() - date.fromisoformat(cached["last_date"])).days <= 5:
+                return cached
+        except Exception:  # noqa: BLE001
+            pass
+    return _fetch_bdry() or cached
+
+
 if __name__ == "__main__":
     import asyncio
     import sys

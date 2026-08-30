@@ -433,7 +433,7 @@ function ReconcilePanel({ bundle, ccs }: { bundle: SdBundle; ccs: CcsDoc }) {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-1 text-[10px]">
           <Row k="Our consensus, 16 origins" v={ours} />
-          <Row k="+ rest of world (CCS “Others”)" v={tail} muted />
+          <Row k={'+ rest of world (CCS "Others")'} v={tail} muted />
           <Row k="= on comparable scope" v={comparable} rule />
           <Row k="CCS published world" v={world} />
           <Row k="Difference" v={residual} rule accent />

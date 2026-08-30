@@ -5,7 +5,7 @@ export default function FreightMethodology() {
   return (
     <Paper
       tone="violet"
-      updated="2026-07-14"
+      updated="2026-08-30"
       kicker="Freight · Methodology"
       title="Freight & port activity — how the numbers are built"
       subtitle="Container route estimates, the dry-bulk fertilizer proxy, and satellite port throughput"
@@ -21,9 +21,17 @@ export default function FreightMethodology() {
       <H2>1 · Container freight — the FBX-multiplier route model</H2>
       <P>
         Coffee ships in 40-ft containers, but no public daily index exists for most coffee export lanes
-        (Santos→Rotterdam, Djibouti→Rotterdam, …). The Freightos Baltic Index (FBX) publishes only a handful of major
-        lanes, nearly all East-Asia origin. The model takes the three FBX lanes that <em>are</em> public and treats each
-        coffee corridor as a <strong>scaled version of the closest FBX lane</strong>.
+        (Santos→Rotterdam, Djibouti→Rotterdam, …). We asked Freightos directly rather than assuming: harvesting the lane
+        list off its own index page returns <strong>twelve tradelanes, and only twelve</strong> — China ⇄ NA West Coast,
+        China ⇄ NA East Coast, China ⇄ North Europe, China ⇄ Mediterranean, NA East Coast ⇄ North Europe, and Europe →
+        South America East/West Coast. There is <strong>no South America → Europe lane</strong> (FBX24/26 run the import
+        direction, the opposite of the way coffee moves), <strong>nothing out of Africa</strong> and nothing in the
+        Caribbean. Coffee leaves on legs Freightos does not publish.
+      </P>
+      <P>
+        All twelve are now scraped and stored — FBX is the only container-freight source available here, and a spot
+        index not captured on the day is gone — and the full set is shown on the Freight tab under <strong>FBX
+        Tradelanes</strong>, unscaled and as published. Three of them carry the coffee corridor model:
       </P>
       <UL>
         <LI><strong>FBX11</strong> — China/East Asia → North Europe. The workhorse base.</LI>
@@ -34,13 +42,15 @@ export default function FreightMethodology() {
         Vietnam routes are treated as <em>direct</em> (Vietnam ≈ China sailing dynamics, multiplier ≈ 1). South-American
         and African lanes have no equivalent index, so they ride FBX11 as a <strong>directional proxy</strong>, scaled
         down by a fixed multiplier and flagged <Code>~est</Code> so the user knows it is an estimate rather than a
-        measurement.
+        measurement. Note what that implies: four corridors share a single signal, so their percentage moves are
+        identical <em>by construction</em>, not because two sources agree. Hamburg is Rotterdam × 1.02 and is flagged
+        the same way.
       </P>
       <RefTable
         head={["Route", "Index", "Mult.", "Proxy"]}
         rows={[
           ["Ho Chi Minh → Rotterdam", "FBX11", "×1.00", "—"],
-          ["Ho Chi Minh → Hamburg", "FBX11", "×1.02", "—"],
+          ["Ho Chi Minh → Hamburg", "FBX11", "×1.02", "~est"],
           ["Ho Chi Minh → Los Angeles", "FBX01", "×1.00", "—"],
           ["Santos → Rotterdam", "FBX11", "×0.58", "~est"],
           ["Cartagena → Rotterdam", "FBX11", "×0.55", "~est"],
@@ -51,11 +61,15 @@ export default function FreightMethodology() {
       <P>The rate and its weekly change come straight off the index:</P>
       <Fml>{`rate  = round( latest_FBX_rate × multiplier )      [USD/FEU]
 prev  = round( prev_FBX_rate   × multiplier )      (else prev = rate → 0 change)
-prev_FBX = most recent FBX print strictly older than 7 days`}</Fml>
+prev_FBX = most recent FBX print dated 7 or more days back`}</Fml>
       <P>
-        Using &ldquo;strictly older than 7 days&rdquo; (rather than exactly −7d) absorbs weekends, holidays and scraper
-        gaps. The history chart carries a <strong>84-day (12-week)</strong> window for four routes (the three FBX11
-        coffee lanes plus VN→LA); the table carries all seven.
+        The comparison is <Code>date &lt;= today − 7</Code>, not <Code>&lt;</Code>. The strict version skipped the print
+        dated exactly seven days back — the ideal comparison point — and fell through to one 9–14 days old while the
+        brief still called it &ldquo;w/w&rdquo;; replayed over the stored history it misstated the change on 9 of 18
+        observations. Because the index is only scraped Fri &amp; Sun, an exact-7-day hit is the common case, not a
+        corner case. Each route also publishes the <Code>prev_date</Code> it actually compared against, so the span is
+        stated rather than assumed. The history chart carries an <strong>84-day (12-week)</strong> window for all seven
+        routes.
       </P>
       <Highlight>
         <strong>Cadence &amp; a known data-shape caveat.</strong> Freight is scraped <strong>Fridays &amp; Sundays
@@ -91,9 +105,12 @@ WoW = (last / close[-5]  − 1) × 100      (~5 trading days  ≈ 1 week)
       <H2>3 · Port activity — IMF PortWatch (satellite AIS)</H2>
       <P>
         Rates tell you cost; port activity tells you <strong>physical flow</strong>. The model pulls IMF PortWatch&rsquo;s
-        daily dataset (built on UN Global Platform AIS satellite tracking) for eleven hand-picked coffee export gateways
-        — Ho Chi Minh, Santos, Vitória, Buenaventura, Cartagena, Panjang, Tanjung Priok, Puerto Cortés, Puerto Quetzal,
-        Djibouti (outlet for landlocked Ethiopia) and Mombasa.
+        daily dataset (built on UN Global Platform AIS satellite tracking) for the coffee export gateways it still
+        covers — Ho Chi Minh, Santos, Vitória, Mangalore, Kochi, Barranquilla, and Djibouti (outlet for landlocked
+        Ethiopia). PortWatch rebuilt <Code>Daily_Ports_Data</Code> around a smaller port set during 2026 and stopped
+        publishing eight gateways we previously tracked, Buenaventura, Cartagena, Panjang, Tanjung Priok, Puerto Cortés,
+        Puerto Quetzal, Mombasa and Dar es Salaam among them; Djibouti&rsquo;s series is frozen after 2026-02-22 for the
+        same reason. Those are recorded in <Code>COVERAGE_DROPPED</Code> rather than quietly deleted.
       </P>
       <UL>
         <LI><strong>Three metrics</strong> — port calls (vessel-arrival count), import and export (estimated trade
