@@ -228,3 +228,26 @@ def test_stale_tag_stripping_leaves_the_sent_message_untouched(monkeypatch, stat
     monkeypatch.setattr(sys, "argv", ["x", "certified"])
     assert t.main() == 0
     assert sent == [text] and "(3d old)" in sent[0]
+
+
+# ── the B3 header date must never be borrowed by a staler line ───────────────
+# One header covers two markets that settle independently. On 2026-08-30 the
+# conilon file had advanced (a weekend row) while arabica had not, so Friday's
+# arabica close was published under "B3 close — 2026-08-30". A stale number
+# wearing a fresh date is worse than no date, so the line says its own.
+
+def _doc(*rows):
+    return {"history": [{"date": d, "front_price": p, "front_month": "Sep '26"}
+                        for d, p in rows]}
+
+
+def test_b3_line_flags_itself_when_older_than_the_header():
+    doc = _doc(("2026-08-27", 401.95), ("2026-08-28", 404.95))
+    line = t._b3_line(doc, "Arábica 4/5 (ICF)", "US$", header_day="2026-08-30")
+    assert "as of 2026-08-28" in line
+
+
+def test_b3_line_stays_clean_when_it_matches_the_header():
+    doc = _doc(("2026-08-27", 401.95), ("2026-08-28", 404.95))
+    line = t._b3_line(doc, "Arábica 4/5 (ICF)", "US$", header_day="2026-08-28")
+    assert "as of" not in line

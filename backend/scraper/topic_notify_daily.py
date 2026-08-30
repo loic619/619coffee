@@ -311,8 +311,14 @@ LB_PER_SACA = 60 / 0.45359237
 SACAS_PER_TONNE = 1000 / 60
 
 
+def _b3_last_date(doc: dict | None) -> str | None:
+    hist = (doc or {}).get("history") or []
+    return hist[-1].get("date") if hist else None
+
+
 def _b3_line(doc: dict | None, label: str, sym: str,
-             usd_per_brl: float | None = None) -> str | None:
+             usd_per_brl: float | None = None,
+             header_day: str | None = None) -> str | None:
     """One B3 market's close: front contract, price, and the day's move with
     that move restated in the market's reference unit.
 
@@ -340,8 +346,15 @@ def _b3_line(doc: dict | None, label: str, sym: str,
         else:
             conv = ""
         move = f" {arrow}{chg:+,.2f} ({chg / prev * 100:+.1f}%){conv}"
+    # One header covers both markets, but the two files settle independently
+    # and can end on different days. When this line is older than the header,
+    # say so on the line itself — otherwise the reader sees a stale close
+    # wearing a fresh date, which is worse than seeing no date at all. Observed
+    # 2026-08-30: Friday's arabica close printed under a Sunday header.
+    own = last.get("date")
+    asof = f" <i>(as of {own})</i>" if header_day and own and own != header_day else ""
     return (f"• {label} {sym} {px:,.2f}/saca"
-            f" ({last.get('front_month', '?')}){move}")
+            f" ({last.get('front_month', '?')}){move}{asof}")
 
 
 def compose_b3(now: dt.datetime) -> str | None:
@@ -356,8 +369,9 @@ def compose_b3(now: dt.datetime) -> str | None:
     day = _b3_key() or "?"
     # Conilon's USD/t conversion needs the session's rate, not today's.
     usd_per_brl = b._fx_close_on(b.load("fx_history.json"), "BRL=X", day)
-    lines = [x for x in (_b3_line(ara, "Arábica 4/5 (ICF)", "US$"),
-                         _b3_line(con, "Conilon 7/8 (CNL)", "R$", usd_per_brl)) if x]
+    lines = [x for x in (_b3_line(ara, "Arábica 4/5 (ICF)", "US$", header_day=day),
+                         _b3_line(con, "Conilon 7/8 (CNL)", "R$", usd_per_brl,
+                                  header_day=day)) if x]
     if not lines:
         return None
     return f"🇧🇷 <b>B3 close — {day}</b>\n" + "\n".join(lines)

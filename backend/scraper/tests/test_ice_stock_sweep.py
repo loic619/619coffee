@@ -153,3 +153,13 @@ def test_late_release_notice_names_the_day_and_window(monkeypatch, capsys):
     O._notify_late_release(date(2026, 8, 25))
     out = capsys.readouterr().out
     assert "LATE RELEASE" in out and "2026-08-25" in out and "10:29" in out
+
+
+def test_sweep_candidate_count_covers_the_final_minute():
+    """The range is inclusive of MINUTES, so [10:29 … 11:00] ends at 11:00:59.
+    Reading the bound as an instant undercounts by 59 and made the miss alert
+    claim a window 59 seconds smaller than the one actually walked."""
+    from scraper.sources.ice_certified_stocks import orchestrate as o
+    (lo_h, lo_m), (hi_h, hi_m) = o.STOCK_REPORT_SWEEP_RANGE
+    expected = ((hi_h * 60 + hi_m) - (lo_h * 60 + lo_m) + 1) * 60
+    assert o._sweep_candidate_count() == expected

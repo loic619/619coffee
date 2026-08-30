@@ -334,6 +334,18 @@ def _save_cursor(d: date, last_tried: str | None) -> None:
         print(f"  ! cursor write failed: {e}")
 
 
+def _sweep_candidate_count() -> int:
+    """Seconds in the sweep window.
+
+    STOCK_REPORT_SWEEP_RANGE is an inclusive range of MINUTES, so the last
+    minute contributes all 60 of its seconds — [10:29 … 11:00] ends at
+    11:00:59, not 11:00:00. Treating the bound as an instant undercounts by 59
+    and gives 1,861 where the sweep really walks 1,920.
+    """
+    (lo_h, lo_m), (hi_h, hi_m) = STOCK_REPORT_SWEEP_RANGE
+    return (hi_h * 3600 + hi_m * 60 + 59) - (lo_h * 3600 + lo_m * 60) + 1
+
+
 def _notify_late_release(day: date) -> None:
     """Say so when the sweep covered its whole window and the report was not in
     it. The window is deliberately narrow, so this is a designed outcome, not a
@@ -346,9 +358,19 @@ def _notify_late_release(day: date) -> None:
     chat = os.environ.get("TELEGRAM_CHAT_ID")
     lo, hi = STOCK_REPORT_SWEEP_RANGE
     win = f"{lo[0]:02d}:{lo[1]:02d}–{hi[0]:02d}:{hi[1]:02d}"
+    # Report the WINDOW first, with the GET count as a subordinate detail.
+    # Printing sweep_gets alone read as though the sweep had stopped short \u2014
+    # the first of these said "1870 seconds checked" against a 1,920-second
+    # window, which looks like a run that gave up 50 short. It had not: tier 1
+    # covers ~50 candidates before the sweep starts and the sweep does not
+    # re-request them. That the window was fully covered is the load-bearing
+    # fact: it is what makes "did not publish here" a conclusion rather than a
+    # timeout, and it is exactly what the narrow window was chosen to buy.
+    candidates = _sweep_candidate_count()
     text = (f"\u26a0\ufe0f ICE robusta stock report \u2014 missed, late release\n"
-            f"{day.isoformat()} did not publish inside {win} UTC "
-            f"({_RUN_STATS['sweep_gets']} seconds checked).\n"
+            f"{day.isoformat()} did not publish inside {win} UTC.\n"
+            f"Swept the full window \u2014 {candidates:,} candidate seconds "
+            f"({_RUN_STATS['sweep_gets']:,} requests after tier-1 overlap).\n"
             f"Add the publish time on the Admin research page to backfill it.")
     print(f"[robusta] LATE RELEASE — {day} not in {win}")
     if not tok or not chat:
