@@ -35,10 +35,23 @@ type FreightRoute = {
   proxy: boolean;
 };
 
+// One published FBX tradelane, straight from the index — no multiplier, no
+// derivation. Distinct from FreightRoute, which is a coffee corridor that may
+// be an estimate scaled off one of these.
+type FbxIndex = {
+  code: string;
+  name: string;
+  rate: number;
+  date: string;
+  prev: number | null;
+  prev_date: string | null;
+};
+
 export type FreightData = {
   updated: string;
   routes: FreightRoute[];
   history: Record<string, number | string>[];
+  indices?: FbxIndex[];
 };
 
 interface DryBulkData {
@@ -123,6 +136,78 @@ function BdryPanel({ data }: { data: DryBulkData }) {
       <div className="text-[9px] text-slate-500 italic border-t border-slate-800 pt-2">
         Rising {data.ticker} → tighter dry bulk freight → higher CIF fertilizer cost into Brazil.
         Tracks Capesize + Supramax freight futures. Source: {data.source}.
+      </div>
+    </div>
+  );
+}
+
+// The twelve lanes Freightos publishes, as published. None of them is a coffee
+// corridor — FBX has no South America → Europe leg and nothing out of Africa —
+// so this sits below the route table rather than replacing it: it is the raw
+// source, useful for seeing whether a move in the coffee estimates is a real
+// ocean-freight move or an artefact of the one index they are scaled from.
+function FbxIndexTable({ indices }: { indices: FbxIndex[] }) {
+  const rows = useMemo(
+    () => [...indices].sort((a, b) => a.code.localeCompare(b.code)),
+    [indices],
+  );
+
+  return (
+    <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="px-4 py-2 bg-slate-800 border-b border-slate-700">
+        <span className="text-xs font-semibold text-slate-300">FBX Tradelanes — All Published Indices</span>
+        <span className="text-[10px] text-slate-500 ml-3">40ft container · Freightos Baltic Index</span>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs font-mono">
+          <thead>
+            <tr className="text-slate-500 bg-slate-800/40">
+              <th className="text-left px-4 py-2">Index</th>
+              <th className="text-left px-4 py-2">Lane</th>
+              <th className="text-right px-4 py-2">Rate</th>
+              <th className="text-right px-4 py-2">Prev</th>
+              <th className="text-right px-4 py-2">Chg</th>
+              <th className="text-right px-4 py-2 whitespace-nowrap">As of</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => {
+              const chg = r.prev == null ? null : r.rate - r.prev;
+              const pct = r.prev ? (chg! / r.prev) * 100 : null;
+              // Freight is a cost: falling is the friendly direction.
+              const chgColor = chg == null ? "text-slate-600" : chg <= 0 ? "text-emerald-400" : "text-red-400";
+              return (
+                <tr key={r.code} className="border-t border-slate-800 text-slate-300">
+                  <td className="px-4 py-2 text-slate-400">{r.code}</td>
+                  <td className="px-4 py-2 font-sans">{r.name}</td>
+                  <td className="px-4 py-2 text-right font-bold text-sky-300">
+                    ${r.rate.toLocaleString("en-US")}
+                  </td>
+                  <td className="px-4 py-2 text-right text-slate-500">
+                    {r.prev == null ? "—" : `$${r.prev.toLocaleString("en-US")}`}
+                  </td>
+                  <td className={`px-4 py-2 text-right font-bold ${chgColor}`}>
+                    {chg == null ? "—" : `${chg >= 0 ? "+" : ""}${chg.toLocaleString("en-US")}`}
+                    {pct != null && (
+                      <span className="ml-1 text-[9px] font-normal opacity-70">
+                        {pct >= 0 ? "+" : ""}{pct.toFixed(1)}%
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2 text-right text-slate-500 whitespace-nowrap">{r.date}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="px-4 py-2 border-t border-slate-800 text-[9px] text-slate-500 italic">
+        Every lane FBX publishes. None covers a coffee export corridor — there is no South America → Europe
+        and no African index — so the corridors above marked <span className="not-italic">~est.</span> are these
+        numbers scaled, not quotes. Prev is the most recent observation at least seven days old; the index is
+        scraped Fri &amp; Sun, so the comparison span varies.
       </div>
     </div>
   );
@@ -216,6 +301,11 @@ export default function FreightClient({ data }: Props) {
           </table>
         )}
       </div>
+
+      {/* Every published FBX lane, unscaled */}
+      {data?.indices && data.indices.length > 0 && (
+        <FbxIndexTable indices={data.indices} />
+      )}
 
       {/* Port activity — IMF PortWatch */}
       <PortActivity />

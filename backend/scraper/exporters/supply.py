@@ -57,10 +57,15 @@ _FERT_CONFIG = {
 
 
 def _load_dry_bulk_cache() -> dict | None:
-    """Read dry_bulk.json cache written by dry_bulk scraper."""
+    """BDRY for the fertilizer block — cache first, live fetch if it is missing.
+
+    The cache is gitignored and so never reaches this job in CI; see
+    dry_bulk.fetch_or_refresh() for why that made the panel permanently empty
+    while the scraper reported success daily.
+    """
     try:
-        from scraper.sources.dry_bulk import fetch_latest
-        return fetch_latest()
+        from scraper.sources.dry_bulk import fetch_or_refresh
+        return fetch_or_refresh()
     except Exception:
         return None
 

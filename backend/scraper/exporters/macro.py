@@ -38,8 +38,30 @@ ROUTE_CONFIG = [
 ]
 
 
+def _fbx_names() -> dict[str, str]:
+    """code → published lane name, or {} if the scraper module cannot be imported.
+
+    Imported lazily: the exporter runs in jobs that do not install the scraper's
+    Playwright dependencies, and a missing name is cosmetic — it must never take
+    freight.json down with it.
+    """
+    try:
+        from scraper.sources.freightos import FBX_NAMES
+        return dict(FBX_NAMES)
+    except Exception:  # noqa: BLE001
+        return {}
+
+
 def export_freight(db) -> None:
-    indices   = {cfg[3] for cfg in ROUTE_CONFIG}
+    # Every index in the table, not just the ones ROUTE_CONFIG references. The
+    # scraper now captures all twelve FBX lanes; publishing only the three the
+    # route table uses would leave the other nine accumulating in the database
+    # and visible nowhere.
+    known_codes = set(_fbx_names())
+    stored_codes = {
+        code for (code,) in db.query(FreightRate.index_code).distinct().all() if code
+    }
+    indices   = sorted(known_codes | stored_codes | {cfg[3] for cfg in ROUTE_CONFIG})
     cutoff_wk = date.today() - timedelta(days=7)
     cutoff_84 = date.today() - timedelta(days=84)
 
@@ -68,7 +90,7 @@ def export_freight(db) -> None:
         prev[idx] = row2
 
     if all(v is None for v in latest.values()):
-        result = {"updated": date.today().isoformat(), "routes": [], "history": []}
+        result = {"updated": date.today().isoformat(), "routes": [], "history": [], "indices": []}
     else:
         routes = []
         for route_id, from_, to, index, mult, is_proxy in ROUTE_CONFIG:
@@ -91,27 +113,45 @@ def export_freight(db) -> None:
                 "basis": {"index": index, "multiplier": mult},
             })
 
-        fbx11_rows = (
-            db.query(FreightRate)
-            .filter(FreightRate.index_code == "FBX11", FreightRate.date >= cutoff_84)
-            .order_by(FreightRate.date.asc()).all()
-        )
-        fbx01_rows = (
-            db.query(FreightRate)
-            .filter(FreightRate.index_code == "FBX01", FreightRate.date >= cutoff_84)
-            .order_by(FreightRate.date.asc()).all()
-        )
+        # One 84-day window per index, fetched once and reused for both the
+        # route history and the per-index series below.
+        window: dict[str, list] = {}
+        for idx in indices:
+            window[idx] = (
+                db.query(FreightRate)
+                .filter(FreightRate.index_code == idx, FreightRate.date >= cutoff_84)
+                .order_by(FreightRate.date.asc()).all()
+            )
+
+        # Driven by ROUTE_CONFIG rather than a hardcoded FBX11/FBX01 pair, which
+        # silently left vn-ham, co-eu and br-us out of the history chart even
+        # though the route table quoted them.
         history_by_date: dict = {}
-        for row in fbx11_rows:
-            d = row.date.isoformat()
-            history_by_date.setdefault(d, {"date": d})
-            history_by_date[d]["vn-eu"] = round(row.rate * 1.00)
-            history_by_date[d]["br-eu"] = round(row.rate * 0.58)
-            history_by_date[d]["et-eu"] = round(row.rate * 0.70)
-        for row in fbx01_rows:
-            d = row.date.isoformat()
-            history_by_date.setdefault(d, {"date": d})
-            history_by_date[d]["vn-us"] = round(row.rate * 1.00)
+        for route_id, _from, _to, index, mult, _proxy in ROUTE_CONFIG:
+            for row in window.get(index, []):
+                d = row.date.isoformat()
+                history_by_date.setdefault(d, {"date": d})
+                history_by_date[d][route_id] = round(row.rate * mult)
+
+        names = _fbx_names()
+        index_out = []
+        for idx in indices:
+            row = latest.get(idx)
+            if row is None:
+                continue
+            prev_row = prev.get(idx)
+            index_out.append({
+                "code": idx,
+                "name": names.get(idx, idx),
+                "rate": round(row.rate),
+                "date": row.date.isoformat(),
+                "prev": round(prev_row.rate) if prev_row else None,
+                "prev_date": prev_row.date.isoformat() if prev_row else None,
+                "history": [
+                    {"date": r.date.isoformat(), "rate": round(r.rate)}
+                    for r in window.get(idx, [])
+                ],
+            })
 
         updated = max(
             (r.date for r in latest.values() if r is not None),
@@ -122,11 +162,16 @@ def export_freight(db) -> None:
             "updated": updated,
             "routes":  routes,
             "history": sorted(history_by_date.values(), key=lambda x: x["date"]),
+            # Every FBX lane we hold, coffee-relevant or not. None of these is a
+            # coffee corridor — FBX publishes no South America -> Europe and no
+            # African lane — so they are presented as indices, not as routes.
+            "indices": index_out,
         }
 
     path = OUT_DIR / "freight.json"
     written = safe_write_json(path, result, validate_freight)
-    print(f"  freight.json → written:{written} {len(result.get('routes', []))} routes, {len(result.get('history', []))} history rows")
+    print(f"  freight.json → written:{written} {len(result.get('routes', []))} routes, "
+          f"{len(result.get('indices', []))} FBX indices, {len(result.get('history', []))} history rows")
 
 
 def export_retail_cpi(db) -> None:
