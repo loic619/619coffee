@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T02:57:07.103150Z",
+  "generated_at": "2026-08-30T17:27:44.606398Z",
   "count": 95,
   "workflows": [
     {
@@ -984,9 +984,13 @@
       "file": "scraper-monthly-br-fertilizer.yml",
       "name": "3.3.2 \u2013 Monthly Scraper \u00b7 Brazil Fertilizer (Comex)",
       "triggers": [
+        "schedule",
         "workflow_dispatch"
       ],
-      "crons": [],
+      "crons": [
+        "37 7 12 * *",
+        "37 7 20 * *"
+      ],
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 30
@@ -1006,9 +1010,13 @@
       "file": "scraper-monthly-conab.yml",
       "name": "3.3.1 \u2013 Monthly Scraper \u00b7 CONAB (Brazil supply)",
       "triggers": [
+        "schedule",
         "workflow_dispatch"
       ],
-      "crons": [],
+      "crons": [
+        "37 6 12 * *",
+        "37 6 20 * *"
+      ],
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 30
