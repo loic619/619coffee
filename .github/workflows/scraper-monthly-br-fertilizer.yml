@@ -1,9 +1,21 @@
 name: "3.3.2 – Monthly Scraper · Brazil Fertilizer (Comex)"
 
 on:
-  # Cron removed 2026-08: triggered by '1.17 - Source Sentinel' on publication-day
-  # detection (probes the source site daily in its release window). Manual dispatch
-  # remains; the sentinel also verifies ingestion and alarms if a release is missed.
+  # Primary trigger is '1.17 - Source Sentinel', which watches the MDIC Comex
+  # CSV and dispatches this workflow on publication day.
+  #
+  # The cron below is a SAFETY NET, restored 2026-08-30 — see the sibling note
+  # in scraper-monthly-conab.yml. Same failure: detection has never fired
+  # (`comex` sentinel state is last_found: null, signal: null,
+  # confirmed: "2026-07"), so fertilizer_comex went 48 days stale. Here the
+  # sentinel was explicit about it, posting "MDIC Comex bulk import CSV: still
+  # undetected 21d past its window — the probe pattern may be broken; run the
+  # scraper manually". That instruction should not need a human.
+  #
+  # Offset an hour from CONAB's so two Playwright-class jobs do not contend.
+  schedule:
+    - cron: '37 7 12 * *'
+    - cron: '37 7 20 * *'
   workflow_dispatch:
 
 jobs:

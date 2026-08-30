@@ -1,9 +1,26 @@
 name: "3.3.1 – Monthly Scraper · CONAB (Brazil supply)"
 
 on:
-  # Cron removed 2026-08: triggered by '1.17 - Source Sentinel' on publication-day
-  # detection (probes the source site daily in its release window). Manual dispatch
-  # remains; the sentinel also verifies ingestion and alarms if a release is missed.
+  # Primary trigger is '1.17 - Source Sentinel': it probes the source daily in
+  # its release window and dispatches this workflow the day CONAB publishes,
+  # which is days earlier than any fixed date could be.
+  #
+  # The cron below is a SAFETY NET, restored 2026-08-30. Removing it outright
+  # in August made detection the only path to the data, and detection has never
+  # once fired: the sentinel state for `conab` still reads last_found: null,
+  # signal: null, confirmed: "2026-07". It correctly raised both overdue_alerted
+  # and blind_alerted for August — so the alarm worked and nothing listened,
+  # because an alarm cannot fetch anything. conab_costs and conab_safra went 48
+  # days stale as a result.
+  #
+  # Two dates, not one, because a monthly cron has no second chance: GitHub
+  # skips schedules on this repo (every scheduled workflow silently missed
+  # 2026-08-27) and a skipped monthly fire loses the whole month. The 20th is a
+  # no-op when the 12th worked — run_monthly upserts by month, so a re-run of
+  # an already-ingested release changes nothing.
+  schedule:
+    - cron: '37 6 12 * *'
+    - cron: '37 6 20 * *'
   workflow_dispatch:
 
 jobs:
