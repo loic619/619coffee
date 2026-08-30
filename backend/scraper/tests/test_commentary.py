@@ -35,8 +35,8 @@ def test_ice_with_grading_and_decert():
     })
     assert text == (
         "KC Arabica certified stocks shifted by -2,400 bags today, bringing "
-        "global visible exchange inventory to 842,100 bags. 12 lots graded. "
-        "8 lots decertified in Antwerp."
+        "global visible exchange inventory to 842,100 bags. 12 bags graded. "
+        "8 bags decertified in Antwerp."
     )
 
 

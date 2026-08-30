@@ -147,6 +147,43 @@ def test_brief_certified_stocks_block(fixture_data_dir):
     assert "3,864 lots" in out
 
 
+def test_brief_grading_line_is_arithmetically_sound(fixture_data_dir):
+    """Graded = passed + failed, and passed can never exceed graded.
+
+    The layout fixture only carries no-grading days, so the action-day branch
+    of the New York block went unexercised and shipped reading
+    passed_today_bags as the graded total while labelling failed_today_bags
+    "passed" — "320 bags graded, 1,280 passed" on 2026-08-27. Pinned here with
+    the real snapshot shape from that session.
+    """
+    import re
+
+    from telegram.handlers.brief import _cert_arabica_section
+
+    doc = {"snapshots": [
+        {"date": "2026-08-26", "total_bags": 224617, "passed_today_bags": 0,
+         "failed_today_bags": 0, "by_port": {"NY": 1379, "NOLA": 10949}},
+        {"date": "2026-08-27", "report_date": "2026-08-27", "total_bags": 224011,
+         "passed_today_bags": 320, "failed_today_bags": 1280,
+         "by_port": {"NY": 739, "NOLA": 10023},
+         "passed_by_origin": {"Brazil": {"total": 320, "by_port": {"NY": 320}}},
+         "failed_by_origin": {"Brazil":   {"total": 640, "by_port": {"NY": 640}},
+                              "Tanzania": {"total": 640, "by_port": {"NOLA": 640}}},
+         "sections": {"total_certified": {"by_origin": {"Honduras": {"total": 100000}}}}},
+    ]}
+    line = next(ln for ln in _cert_arabica_section(doc).split("\n") if "Grading:" in ln)
+
+    graded, passed, failed = (int(n.replace(",", "")) for n in
+                              re.findall(r"([\d,]+) bags graded, ([\d,]+) passed, ([\d,]+) failed",
+                                         line)[0])
+    assert graded == passed + failed == 1600
+    assert passed <= graded
+
+    # Origins are the ones graded today, not the biggest holders in store.
+    assert "Brazil" in line and "Tanzania" in line
+    assert "Honduras" not in line
+
+
 def test_vn_mtd_rain_wording_when_seed_available(tmp_path, monkeypatch):
     """`_vn_mtd_rain` returns (MTD mean across regions, 10y average of the same
     first-of-month → yesterday window across recent years)."""

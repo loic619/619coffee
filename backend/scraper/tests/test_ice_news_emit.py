@@ -24,7 +24,10 @@ def test_arabica_delta_renders_factual_line():
     # The signed delta, total, and grading clause should all be present.
     assert "KC Arabica certified stocks shifted by -2,400 bags today" in text
     assert "842,100 bags" in text
-    assert "12 lots graded" in text
+    # Graded = passed + failed (12 + 8). Quoting passed_today_bags alone read
+    # as "12 graded" on a day 20 bags went through grading, and the unit word
+    # said "lots" on an arabica line denominated in bags.
+    assert "20 bags graded" in text
 
 
 def test_arabica_no_grading_drops_clause():
@@ -35,7 +38,7 @@ def test_arabica_no_grading_drops_clause():
     ]
     _, text = compute_arabica_commentary(snapshots)
     assert "+500 bags" in text
-    assert "lots graded" not in text
+    assert "graded" not in text
     assert "decertified" not in text
 
 
