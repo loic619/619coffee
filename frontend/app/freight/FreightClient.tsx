@@ -60,22 +60,51 @@ interface DryBulkData {
   mom_pct: number | null; wow_pct: number | null;
   week52_low: number | null; week52_high: number | null;
   series: { date: string; close: number }[];
+  first_date?: string;
+  adjusted?: boolean;
   source: string;
 }
 
 interface Props { data: FreightData | null; }
 
+// BDRY history is free from Yahoo, so the series now runs five years rather than
+// six months. That makes the window a choice: 6M keeps the old read, 5Y shows
+// where the current level sits against the 2021 spike and the 2023 trough.
+const BDRY_RANGES = [
+  { key: "6m", label: "6M", days: 186 },
+  { key: "1y", label: "1Y", days: 366 },
+  { key: "5y", label: "5Y", days: null },
+] as const;
+type BdryRangeKey = (typeof BDRY_RANGES)[number]["key"];
+
 function BdryPanel({ data }: { data: DryBulkData }) {
-  const chartData = useMemo(() => {
+  const [range, setRange] = useState<BdryRangeKey>("1y");
+
+  const windowed = useMemo(() => {
     const s = data.series;
+    const days = BDRY_RANGES.find((r) => r.key === range)?.days;
+    if (!days || s.length === 0) return s;
+    // Cut from the newest point, not from today, so a stale export still draws
+    // a full window instead of an empty one.
+    const floor = Date.parse(s[s.length - 1].date) - days * 86_400_000;
+    return s.filter((p) => Date.parse(p.date) >= floor);
+  }, [data, range]);
+
+  const chartData = useMemo(() => {
+    const s = windowed;
+    if (s.length === 0) return [];
+    // Past a year, "MM-DD" labels repeat every January and read as a loop.
+    const spanDays = (Date.parse(s[s.length - 1].date) - Date.parse(s[0].date)) / 86_400_000;
+    const fmt = (d: string) => (spanDays > 400 ? d.slice(0, 7) : d.slice(5));
     const step = Math.max(1, Math.floor(s.length / 26));
     const sampled: { label: string; close: number }[] = [];
     for (let i = 0; i < s.length; i += step)
-      sampled.push({ label: s[i].date.slice(5), close: s[i].close });
-    if (sampled[sampled.length - 1]?.label !== s[s.length - 1].date.slice(5))
-      sampled.push({ label: s[s.length - 1].date.slice(5), close: s[s.length - 1].close });
+      sampled.push({ label: fmt(s[i].date), close: s[i].close });
+    const lastLabel = fmt(s[s.length - 1].date);
+    if (sampled[sampled.length - 1]?.label !== lastLabel)
+      sampled.push({ label: lastLabel, close: s[s.length - 1].close });
     return sampled;
-  }, [data]);
+  }, [windowed]);
 
   const momColor = data.mom_pct == null ? "#64748b" : data.mom_pct >= 0 ? "#22c55e" : "#ef4444";
   const wowColor = data.wow_pct == null ? "#64748b" : data.wow_pct >= 0 ? "#22c55e" : "#ef4444";
@@ -108,6 +137,30 @@ function BdryPanel({ data }: { data: DryBulkData }) {
           <div className="relative h-2 bg-slate-800 rounded-full">
             <div className="absolute h-full bg-blue-500/30 rounded-full" style={{ width: `${w52Pos}%` }} />
             <div className="absolute w-2 h-2 bg-blue-400 rounded-full top-0 -translate-x-1/2" style={{ left: `${Math.min(98, w52Pos)}%` }} />
+          </div>
+        </div>
+      )}
+
+      {data.series.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="text-[8px] text-slate-600 font-mono">
+            {data.first_date && `series from ${data.first_date}`}
+            {data.adjusted && <span className="ml-1">· split-adjusted</span>}
+          </div>
+          <div className="flex gap-1">
+            {BDRY_RANGES.map((r) => (
+              <button
+                key={r.key}
+                onClick={() => setRange(r.key)}
+                className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors ${
+                  range === r.key
+                    ? "bg-blue-500/20 border-blue-500/50 text-blue-300"
+                    : "bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
           </div>
         </div>
       )}

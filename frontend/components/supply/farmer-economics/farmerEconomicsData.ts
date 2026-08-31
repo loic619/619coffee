@@ -248,6 +248,8 @@ export interface FarmerEconomicsData {
       week52_low: number | null;
       week52_high: number | null;
       series: { date: string; close: number }[];
+      first_date?: string;
+      adjusted?: boolean;
       source: string;
     } | null;
     next_application: string;

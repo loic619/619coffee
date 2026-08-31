@@ -108,6 +108,20 @@ WoW = (last / close[-5]  − 1) × 100      (~5 trading days  ≈ 1 week)
         fertilizer block. Caveat: BDRY is an ETF on futures, exposed to roll yield and equity-market noise — a proxy for
         cost <em>pressure</em>, not a freight rate.
       </P>
+      <P>
+        Unlike FBX, this history is <strong>free</strong>, so the series runs <strong>five years</strong> rather than
+        the six months it used to — 6M / 1Y / 5Y on the panel — and the current level can be read against the 2021
+        spike instead of floating without context. It uses Yahoo&rsquo;s <strong>split-adjusted</strong> close: BDRY is
+        an ETF and has had reverse splits, which put a step into the raw close that is an artefact of share count, not
+        of freight, and would show as a cliff over a window this long. The newest point is identical either way
+        (adjustments only look backwards), so the headline price is unaffected.
+      </P>
+      <P className="text-[11px] text-slate-500">
+        A cross-job caveat worth recording, because it hid for months: the scraper writes to{" "}
+        <Code>backend/scraper/cache/</Code>, which is gitignored, so in CI the file never reached the export job and{" "}
+        <Code>farmer_economics.json</Code> shipped with no <Code>dry_bulk</Code> block while every job reported
+        success. The exporter now falls back to a live fetch, then to a stale cache, rather than to nothing.
+      </P>
 
       <H2>3 · Port activity — IMF PortWatch (satellite AIS)</H2>
       <P>
