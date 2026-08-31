@@ -364,9 +364,9 @@ def test_decert_line_is_always_rendered(monkeypatch):
     'nothing was decertified' — which is how New York looked while London
     showed a figure on the same message."""
     same = {"ANT": 100, "HOU": 50}
-    assert brief._decert_line(same, same, "bags") == "· Decertified: none"
+    assert brief._decert_line(brief._port_decreases(same, same), "bags") == "· Decertified: none"
     # No prior snapshot to compare against is still an explicit answer.
-    assert brief._decert_line(None, same, "bags") == "· Decertified: none"
+    assert brief._decert_line(brief._port_decreases(None, same), "bags") == "· Decertified: none"
 
 
 def test_decert_sums_every_port_that_fell(monkeypatch):
@@ -376,16 +376,25 @@ def test_decert_sums_every_port_that_fell(monkeypatch):
     cur  = {"NOLA": 250,  "HOU": 75,  "NY": 6,   "ANT": 43,  "MIAMI": 10}
     assert brief._port_decreases(prev, cur) == [
         ("NOLA", 750), ("HOU", 525), ("NY", 494), ("ANT", 357)]
-    line = brief._decert_line(prev, cur, "bags")
+    line = brief._decert_line(brief._port_decreases(prev, cur), "bags")
     assert line == "· Decertified: 2,126 bags across 4 ports (most NOLA 750)"
 
 
 def test_decert_keeps_the_simple_wording_for_a_single_port():
-    line = brief._decert_line({"LON": 120, "ANT": 50}, {"LON": 103, "ANT": 50}, "lots")
+    line = brief._decert_line(brief._port_decreases({"LON": 120, "ANT": 50}, {"LON": 103, "ANT": 50}), "lots")
     assert line == "· Decertified: 17 lots in LON"
 
 
 def test_decert_ignores_ports_that_gained():
     """A port taking delivery must not net off another port's decertification."""
-    line = brief._decert_line({"ANT": 100, "HOU": 100}, {"ANT": 40, "HOU": 900}, "bags")
+    line = brief._decert_line(brief._port_decreases({"ANT": 100, "HOU": 100}, {"ANT": 40, "HOU": 900}), "bags")
     assert line == "· Decertified: 60 bags in ANT"
+
+
+def test_decert_is_gross_of_grading_inflow_at_the_port():
+    """Bags passing grading at a port enter its stock the same session, so a
+    port that took in 320 and reads flat on the day decertified 320 — netting
+    the two hid it and broke stock_change = passed − decertified."""
+    drops = brief._port_decreases({"NY": 400}, {"NY": 400}, {"NY": 320})
+    assert drops == [("NY", 320)]
+    assert brief._decert_line(drops, "bags") == "· Decertified: 320 bags in NY"
