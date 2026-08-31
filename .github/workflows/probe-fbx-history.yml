@@ -1,0 +1,33 @@
+name: "0.28 – Probe FBX history access (diagnostic)"
+
+# Dispatch-only. The scraper captures one current value per lane twice a week,
+# so the stored series starts whenever we first scraped that lane — today, for
+# nine of the twelve. Every FBX page draws a chart from real history, so the
+# history reaches the browser; this asks whether it arrives in a form we can
+# read, by recording what the page itself fetches rather than guessing endpoint
+# names. Writes nothing and commits nothing.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install playwright
+
+      - name: Install Playwright browser
+        run: sudo rm -f /etc/apt/sources.list.d/*microsoft* /etc/apt/sources.list.d/*azure* || true; playwright install chromium --with-deps || playwright install chromium
+
+      - name: Probe FBX history access
+        working-directory: backend
+        run: python -m scraper.probe_fbx_history
