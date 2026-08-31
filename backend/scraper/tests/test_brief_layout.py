@@ -148,40 +148,63 @@ def test_brief_certified_stocks_block(fixture_data_dir):
 
 
 def test_brief_grading_line_is_arithmetically_sound(fixture_data_dir):
-    """Graded = passed + failed, and passed can never exceed graded.
+    """Graded = passed + failed, and the stocks delta prints its own identity.
 
     The layout fixture only carries no-grading days, so the action-day branch
     of the New York block went unexercised and shipped reading
     passed_today_bags as the graded total while labelling failed_today_bags
     "passed" — "320 bags graded, 1,280 passed" on 2026-08-27. Pinned here with
-    the real snapshot shape from that session.
+    the real snapshot pair from that session: NY 419→739 is exactly the 320
+    passed entering, NOLA −926 is the decert, and −606 = +320 − 926.
     """
-    import re
-
     from telegram.handlers.brief import _cert_arabica_section
 
     doc = {"snapshots": [
         {"date": "2026-08-26", "total_bags": 224617, "passed_today_bags": 0,
-         "failed_today_bags": 0, "by_port": {"NY": 1379, "NOLA": 10949}},
+         "failed_today_bags": 0, "by_port": {"NY": 419, "NOLA": 10949, "ANT": 157251}},
         {"date": "2026-08-27", "report_date": "2026-08-27", "total_bags": 224011,
          "passed_today_bags": 320, "failed_today_bags": 1280,
-         "by_port": {"NY": 739, "NOLA": 10023},
+         "by_port": {"NY": 739, "NOLA": 10023, "ANT": 157251},
          "passed_by_origin": {"Brazil": {"total": 320, "by_port": {"NY": 320}}},
          "failed_by_origin": {"Brazil":   {"total": 640, "by_port": {"NY": 640}},
                               "Tanzania": {"total": 640, "by_port": {"NOLA": 640}}},
          "sections": {"total_certified": {"by_origin": {"Honduras": {"total": 100000}}}}},
     ]}
-    line = next(ln for ln in _cert_arabica_section(doc).split("\n") if "Grading:" in ln)
+    out = _cert_arabica_section(doc)
 
-    graded, passed, failed = (int(n.replace(",", "")) for n in
-                              re.findall(r"([\d,]+) bags graded, ([\d,]+) passed, ([\d,]+) failed",
-                                         line)[0])
-    assert graded == passed + failed == 1600
-    assert passed <= graded
+    assert "1,600 bags graded, 320 passed, 1,280 failed" in out
+    # The delta shows its own arithmetic — the line that used to read as a
+    # contradiction ("how is it −606 with 320 passed?") now answers itself.
+    assert "· Stocks: 224,011 bags (-606 = +320 passed -926 decertified)" in out
+    assert "· Decertified: 926 bags in NOLA" in out
 
     # Origins are the ones graded today, not the biggest holders in store.
-    assert "Brazil" in line and "Tanzania" in line
-    assert "Honduras" not in line
+    assert "Brazil" in out and "Tanzania" in out
+    assert "Honduras" not in out
+
+
+def test_brief_decert_is_gross_of_same_day_grading(fixture_data_dir):
+    """A port that passes grading AND sheds stock in one session must report
+    the GROSS outflow: prev + passed_here − cur. Netting the two hid the
+    decert behind the inflow and broke stock_change = passed − decertified.
+    Here NY takes in 320 passed but only rises 200 → it decertified 120.
+    """
+    from telegram.handlers.brief import _cert_arabica_section
+
+    doc = {"snapshots": [
+        {"date": "2026-08-26", "total_bags": 224617, "passed_today_bags": 0,
+         "failed_today_bags": 0, "by_port": {"NY": 419, "NOLA": 10949}},
+        {"date": "2026-08-27", "report_date": "2026-08-27", "total_bags": 223891,
+         "passed_today_bags": 320, "failed_today_bags": 1280,
+         "by_port": {"NY": 619, "NOLA": 10023},
+         "passed_by_origin": {"Brazil": {"total": 320, "by_port": {"NY": 320}}},
+         "failed_by_origin": {"Brazil": {"total": 1280, "by_port": {"NY": 1280}}}},
+    ]}
+    out = _cert_arabica_section(doc)
+
+    # 926 (NOLA) + 120 (NY, masked by the +320 inflow) = 1,046 gross.
+    assert "· Decertified: 1,046 bags across 2 ports (most NOLA 926)" in out
+    assert "(-726 = +320 passed -1,046 decertified)" in out
 
 
 def test_vn_mtd_rain_wording_when_seed_available(tmp_path, monkeypatch):

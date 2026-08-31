@@ -804,22 +804,33 @@ def _arabica_origin_top(snapshot: dict, n: int = 3) -> list[str]:
     return [name for name, total in pairs[:n] if total]
 
 
-def _port_decreases(prev_by_port: dict, cur_by_port: dict) -> list[tuple[str, int]]:
-    """Every port that lost stock day-over-day, largest drop first.
+def _port_decreases(prev_by_port: dict, cur_by_port: dict,
+                    passed_by_port: dict | None = None) -> list[tuple[str, int]]:
+    """Every port that shed stock day-over-day, largest outflow first — GROSS.
 
     Neither exchange publishes decertification directly, so it is inferred
-    from per-port stock falling. Reading only the single largest port
-    understates it badly: on 42 of the last 59 arabica sessions MORE THAN ONE
-    port dropped (2026-08-18: NOLA -750, but -2,126 across four ports), so
-    the caller sums these rather than quoting the biggest.
+    per port as prev + passed_grading_here − cur. The passed term matters:
+    bags that pass grading at a port enter its stock the same session, so a
+    port that took in 320 and reads −100 on the day actually decertified 420.
+    Netting the two understated decerts at any port that both graded and shed
+    stock in one session — and broke the daily identity
+    stock_change = passed − decertified, which is how it was noticed.
+
+    Reading only the single largest port also understates it: on 42 of the
+    last 59 arabica sessions MORE THAN ONE port dropped (2026-08-18: NOLA
+    −750, but −2,126 across four ports), so the caller sums these rather
+    than quoting the biggest.
     """
     if not prev_by_port or not cur_by_port:
         return []
-    drops = [(p, (prev_by_port.get(p) or 0) - (cur_by_port.get(p) or 0)) for p in cur_by_port]
+    passed_by_port = passed_by_port or {}
+    ports = set(prev_by_port) | set(cur_by_port)
+    drops = [(p, (prev_by_port.get(p) or 0) + (passed_by_port.get(p) or 0)
+                 - (cur_by_port.get(p) or 0)) for p in ports]
     return sorted([(p, d) for p, d in drops if d > 0], key=lambda t: -t[1])
 
 
-def _decert_line(prev_by_port: dict | None, cur_by_port: dict | None, unit: str) -> str:
+def _decert_line(drops: list[tuple[str, int]], unit: str) -> str:
     """The decertified line, ALWAYS rendered.
 
     Omitting it on a quiet day made "nothing was decertified" look identical
@@ -827,7 +838,6 @@ def _decert_line(prev_by_port: dict | None, cur_by_port: dict | None, unit: str)
     York was silent while London showed a figure. An explicit "none" answers
     the question instead of leaving it open.
     """
-    drops = _port_decreases(prev_by_port or {}, cur_by_port or {})
     if not drops:
         return "· Decertified: none"
     total = sum(d for _, d in drops)
@@ -836,6 +846,32 @@ def _decert_line(prev_by_port: dict | None, cur_by_port: dict | None, unit: str)
         return f"· Decertified: {total:,} {unit} in {top_port}"
     return (f"· Decertified: {total:,} {unit} across {len(drops)} ports "
             f"(most {top_port} {top_mag:,})")
+
+
+def _stocks_line(total: int, prev_total: int | None, unit: str,
+                 passed: int, decert: int) -> str:
+    """Stocks level with the day's change SHOWN AS ITS OWN ARITHMETIC.
+
+    A bare "(−606)" next to "320 passed" and "926 decertified" reads as a
+    contradiction until you notice failed bags never enter the pool and do
+    the subtraction yourself. Printing the identity — change = passed in −
+    decertified out (± other, for report gaps and per-port rounding) — makes
+    the line answer the question it used to raise.
+    """
+    if prev_total is None:
+        return f"· Stocks: {total:,} {unit}"
+    delta = total - prev_total
+    if not passed and not decert:
+        return f"· Stocks: {total:,} {unit} ({_sign(delta, ',d')})"
+    other = delta - passed + decert
+    parts = []
+    if passed:
+        parts.append(f"+{passed:,} passed")
+    if decert:
+        parts.append(f"-{decert:,} decertified")
+    if other:
+        parts.append(f"{other:+,} other")
+    return f"· Stocks: {total:,} {unit} ({_sign(delta, ',d')} = {' '.join(parts)})"
 
 
 def _cert_arabica_section(doc: dict | None) -> str:
@@ -869,13 +905,18 @@ def _cert_arabica_section(doc: dict | None) -> str:
     else:
         lines.append("· Grading: none")
 
-    if prev and prev.get("total_bags") is not None:
-        delta = total - prev["total_bags"]
-        lines.append(f"· Stocks: {total:,} bags ({_sign(delta, ',d')})")
-    else:
-        lines.append(f"· Stocks: {total:,} bags")
-
-    lines.append(_decert_line(prev.get("by_port") if prev else {}, cur.get("by_port"), "bags"))
+    # Where the passed bags landed, port by port (matrix reports, June 2026+).
+    # Pre-matrix days carry only the scalar; decert then reads as the net drop
+    # and the balance line's "other" term absorbs the unattributed inflow.
+    passed_at: dict[str, int] = {}
+    for info in (cur.get("passed_by_origin") or {}).values():
+        for port, bags in ((info or {}).get("by_port") or {}).items():
+            if bags:
+                passed_at[port] = passed_at.get(port, 0) + bags
+    drops = _port_decreases((prev or {}).get("by_port") or {}, cur.get("by_port") or {}, passed_at)
+    prev_total = prev.get("total_bags") if prev else None
+    lines.append(_stocks_line(total, prev_total, "bags", passed, sum(d for _, d in drops)))
+    lines.append(_decert_line(drops, "bags"))
     return "\n".join(lines)
 
 
@@ -895,12 +936,23 @@ def _cert_robusta_section(doc: dict | None) -> str:
         f"<b>London</b>: {report_date}{_staleness_tag(report_date)}",
         f"· Grading: {graded:,} lots graded",
     ]
-    if prev and prev.get("total_lots_certified") is not None:
-        delta = total - prev["total_lots_certified"]
-        lines.append(f"· Stocks: {total:,} lots ({_sign(delta, ',d')})")
-    else:
-        lines.append(f"· Stocks: {total:,} lots")
-    lines.append(_decert_line(prev.get("by_port_lots") if prev else {}, cur.get("by_port_lots"), "lots"))
+    # Only TENDERABLE lots enter certified stock — lots_graded_today includes
+    # the fails, which never do. Per-port passed comes from the gradings feed
+    # for the snapshot's own date, mirroring the dashboard's decert inference.
+    passed_at: dict[str, int] = {}
+    for g in (doc.get("recent_activity") or {}).get("gradings") or []:
+        if g.get("date") != cur.get("date"):
+            continue
+        for e in g.get("entries") or []:
+            if e.get("tenderable") is False:
+                continue
+            port = e.get("port") or "?"
+            passed_at[port] = passed_at.get(port, 0) + (e.get("lots") or 0)
+    drops = _port_decreases((prev or {}).get("by_port_lots") or {}, cur.get("by_port_lots") or {}, passed_at)
+    prev_total = prev.get("total_lots_certified") if prev else None
+    lines.append(_stocks_line(total, prev_total, "lots", sum(passed_at.values()),
+                              sum(d for _, d in drops)))
+    lines.append(_decert_line(drops, "lots"))
     return "\n".join(lines)
 
 
