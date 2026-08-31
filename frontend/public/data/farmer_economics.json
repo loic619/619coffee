@@ -1,7 +1,7 @@
 {
   "country": "brazil",
   "season": "2026/27",
-  "scraped_at": "2026-08-30T18:17:52.145927Z",
+  "scraped_at": "2026-08-31T08:33:40.605909Z",
   "cost": {
     "total_usd_per_bag": 222.7,
     "yoy_pct": 0.0,
@@ -148,15 +148,15 @@
     "source_label": "CONAB Safra Aug 2026"
   },
   "weather": {
-    "scraped_at": "2026-08-30T06:35:10.770648Z",
+    "scraped_at": "2026-08-31T07:00:11.165409Z",
     "regions": [
       {
         "name": "Sul de Minas",
         "frost": "NONE",
         "frost_detail": null,
         "drought": "HIGH",
-        "csi_30d": 102.8,
-        "csi_60d": 189.9,
+        "csi_30d": 103.8,
+        "csi_60d": 191.9,
         "csi_30d_level": "H",
         "csi_60d_level": "H"
       },
@@ -165,21 +165,21 @@
         "frost": "NONE",
         "frost_detail": null,
         "drought": "HIGH",
-        "csi_30d": 142.7,
-        "csi_60d": 259.8,
+        "csi_30d": 143.4,
+        "csi_60d": 261.8,
         "csi_30d_level": "H",
         "csi_60d_level": "H",
         "rain_mtd_mm": 22.9,
         "rain_hist_min": 0.0,
-        "rain_hist_max": 29.6
+        "rain_hist_max": 32.4
       },
       {
         "name": "Paran\u00e1",
         "frost": "NONE",
         "frost_detail": null,
         "drought": "LOW",
-        "csi_30d": 81.8,
-        "csi_60d": 150.9,
+        "csi_30d": 78.7,
+        "csi_60d": 148.2,
         "csi_30d_level": "H",
         "csi_60d_level": "H"
       },
@@ -188,8 +188,8 @@
         "frost": "NONE",
         "frost_detail": null,
         "drought": "MED",
-        "csi_30d": 90.8,
-        "csi_60d": 169.4,
+        "csi_30d": 90.1,
+        "csi_60d": 171.1,
         "csi_30d_level": "H",
         "csi_60d_level": "H"
       }
@@ -205,7 +205,6 @@
           "-",
           "-",
           "-",
-          "-",
           "L",
           "-",
           "-",
@@ -219,6 +218,7 @@
           "L",
           "-",
           "L",
+          "-",
           "-",
           "-",
           "-",
@@ -284,7 +284,6 @@
           "-",
           "-",
           "-",
-          "-",
           "L",
           "-",
           "-",
@@ -292,6 +291,7 @@
           "L",
           "L",
           "L",
+          "-",
           "-",
           "-",
           "-",
@@ -359,28 +359,15 @@
         "region": "Sul de Minas",
         "days": [
           {
-            "date": "2026-08-30",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 13.6,
-            "air_min_c": 17.0,
-            "dew_c": 14.2,
-            "cloud_pct": 15.9,
-            "wind_kmh": 9.4,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
             "date": "2026-08-31",
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 14.9,
-            "air_min_c": 18.0,
-            "dew_c": 14.4,
-            "cloud_pct": 19.2,
-            "wind_kmh": 15.9,
+            "canopy_c": 16.4,
+            "air_min_c": 18.8,
+            "dew_c": 16.4,
+            "cloud_pct": 32.5,
+            "wind_kmh": 16.2,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -389,11 +376,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 17.2,
-            "air_min_c": 17.2,
-            "dew_c": 14.1,
-            "cloud_pct": 64.5,
-            "wind_kmh": 27.9,
+            "canopy_c": 17.1,
+            "air_min_c": 17.3,
+            "dew_c": 14.8,
+            "cloud_pct": 72.5,
+            "wind_kmh": 27.3,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -402,11 +389,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 11.2,
-            "air_min_c": 13.5,
-            "dew_c": 12.0,
-            "cloud_pct": 25.5,
-            "wind_kmh": 13.9,
+            "canopy_c": 12.9,
+            "air_min_c": 14.6,
+            "dew_c": 13.1,
+            "cloud_pct": 24.5,
+            "wind_kmh": 16.6,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -416,383 +403,9 @@
             "frost_type": "none",
             "severity": null,
             "canopy_c": 7.8,
-            "air_min_c": 10.4,
-            "dew_c": 11.1,
-            "cloud_pct": 1.2,
-            "wind_kmh": 9.3,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-04",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 9.0,
-            "air_min_c": 11.9,
-            "dew_c": 13.4,
-            "cloud_pct": 13.1,
-            "wind_kmh": 14.0,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-05",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 17.3,
-            "air_min_c": 17.3,
-            "dew_c": 18.1,
-            "cloud_pct": 81.8,
-            "wind_kmh": 8.5,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-06",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 12.4,
-            "air_min_c": 12.4,
-            "dew_c": 12.0,
-            "cloud_pct": 99.9,
-            "wind_kmh": 16.7,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-07",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 11.9,
-            "air_min_c": 12.0,
-            "dew_c": 8.5,
-            "cloud_pct": 98.7,
-            "wind_kmh": 17.8,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-08",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 12.3,
-            "air_min_c": 12.3,
-            "dew_c": 10.3,
-            "cloud_pct": 99.5,
-            "wind_kmh": 16.6,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-09",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 13.3,
-            "air_min_c": 13.3,
-            "dew_c": 12.3,
-            "cloud_pct": 92.4,
-            "wind_kmh": 15.3,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-10",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 13.0,
-            "air_min_c": 13.1,
-            "dew_c": 13.3,
-            "cloud_pct": 99.1,
-            "wind_kmh": 10.8,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-11",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 16.0,
-            "air_min_c": 16.0,
-            "dew_c": 16.6,
-            "cloud_pct": 93.4,
-            "wind_kmh": 10.3,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-12",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 17.3,
-            "air_min_c": 17.3,
-            "dew_c": 17.9,
-            "cloud_pct": 97.7,
-            "wind_kmh": 9.6,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          }
-        ]
-      },
-      {
-        "region": "Cerrado",
-        "days": [
-          {
-            "date": "2026-08-30",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 17.8,
-            "air_min_c": 20.2,
-            "dew_c": 14.6,
-            "cloud_pct": 9.3,
-            "wind_kmh": 16.2,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-08-31",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 18.2,
-            "air_min_c": 20.8,
-            "dew_c": 13.8,
-            "cloud_pct": 8.2,
-            "wind_kmh": 17.6,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-01",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 18.2,
-            "air_min_c": 21.4,
-            "dew_c": 12.4,
-            "cloud_pct": 40.8,
-            "wind_kmh": 25.2,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-02",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 16.1,
-            "air_min_c": 18.6,
-            "dew_c": 14.1,
-            "cloud_pct": 11.5,
-            "wind_kmh": 13.5,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-03",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 13.3,
-            "air_min_c": 15.3,
-            "dew_c": 12.5,
-            "cloud_pct": 0.1,
-            "wind_kmh": 13.5,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-04",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 16.9,
-            "air_min_c": 19.2,
-            "dew_c": 14.0,
-            "cloud_pct": 5.6,
-            "wind_kmh": 14.7,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-05",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 19.0,
-            "air_min_c": 20.1,
-            "dew_c": 17.5,
-            "cloud_pct": 32.2,
-            "wind_kmh": 15.4,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-06",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 19.9,
-            "air_min_c": 20.0,
-            "dew_c": 19.2,
-            "cloud_pct": 90.9,
-            "wind_kmh": 12.3,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-07",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 17.0,
-            "air_min_c": 17.6,
-            "dew_c": 15.0,
-            "cloud_pct": 67.4,
-            "wind_kmh": 17.6,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-08",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 16.0,
-            "air_min_c": 16.1,
-            "dew_c": 15.0,
-            "cloud_pct": 93.4,
-            "wind_kmh": 20.6,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-09",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 17.8,
-            "air_min_c": 17.9,
-            "dew_c": 14.5,
-            "cloud_pct": 55.9,
-            "wind_kmh": 17.2,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-10",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 18.5,
-            "air_min_c": 18.5,
-            "dew_c": 15.2,
-            "cloud_pct": 58.1,
-            "wind_kmh": 15.4,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-11",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 19.4,
-            "air_min_c": 19.4,
-            "dew_c": 16.4,
-            "cloud_pct": 55.7,
-            "wind_kmh": 17.2,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-12",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 18.3,
-            "air_min_c": 18.6,
-            "dew_c": 18.2,
-            "cloud_pct": 47.5,
-            "wind_kmh": 12.9,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          }
-        ]
-      },
-      {
-        "region": "Paran\u00e1",
-        "days": [
-          {
-            "date": "2026-08-30",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 15.9,
-            "air_min_c": 20.8,
-            "dew_c": 19.8,
-            "cloud_pct": 24.9,
-            "wind_kmh": 18.4,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-08-31",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 16.2,
-            "air_min_c": 19.1,
-            "dew_c": 19.9,
-            "cloud_pct": 74.9,
-            "wind_kmh": 15.9,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-01",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 14.7,
-            "air_min_c": 16.7,
-            "dew_c": 16.8,
-            "cloud_pct": 65.0,
-            "wind_kmh": 22.2,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-02",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 9.6,
-            "air_min_c": 12.7,
+            "air_min_c": 11.3,
             "dew_c": 11.9,
-            "cloud_pct": 18.2,
-            "wind_kmh": 11.0,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
-            "date": "2026-09-03",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 7.4,
-            "air_min_c": 10.9,
-            "dew_c": 11.8,
-            "cloud_pct": 3.1,
+            "cloud_pct": 3.2,
             "wind_kmh": 11.9,
             "hours_below_0": 0,
             "hours_below_hard": 0
@@ -802,11 +415,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 11.2,
-            "air_min_c": 15.6,
-            "dew_c": 15.9,
-            "cloud_pct": 66.3,
-            "wind_kmh": 11.7,
+            "canopy_c": 8.7,
+            "air_min_c": 12.1,
+            "dew_c": 12.5,
+            "cloud_pct": 8.2,
+            "wind_kmh": 14.0,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -815,11 +428,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 13.6,
-            "air_min_c": 16.2,
-            "dew_c": 16.8,
-            "cloud_pct": 73.7,
-            "wind_kmh": 9.9,
+            "canopy_c": 11.6,
+            "air_min_c": 14.7,
+            "dew_c": 15.9,
+            "cloud_pct": 40.8,
+            "wind_kmh": 21.2,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -828,11 +441,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 10.1,
-            "air_min_c": 12.4,
-            "dew_c": 5.1,
-            "cloud_pct": 25.5,
-            "wind_kmh": 21.3,
+            "canopy_c": 10.6,
+            "air_min_c": 10.9,
+            "dew_c": 14.0,
+            "cloud_pct": 61.0,
+            "wind_kmh": 19.3,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -841,11 +454,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 6.5,
-            "air_min_c": 8.7,
-            "dew_c": 6.7,
-            "cloud_pct": 14.1,
-            "wind_kmh": 17.0,
+            "canopy_c": 9.0,
+            "air_min_c": 10.1,
+            "dew_c": 7.6,
+            "cloud_pct": 35.4,
+            "wind_kmh": 24.1,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -854,11 +467,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 13.1,
-            "air_min_c": 13.4,
-            "dew_c": 12.1,
-            "cloud_pct": 84.0,
-            "wind_kmh": 13.6,
+            "canopy_c": 9.7,
+            "air_min_c": 10.8,
+            "dew_c": 8.9,
+            "cloud_pct": 12.0,
+            "wind_kmh": 19.5,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -867,11 +480,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 15.3,
-            "air_min_c": 15.3,
-            "dew_c": 16.4,
-            "cloud_pct": 97.0,
-            "wind_kmh": 10.8,
+            "canopy_c": 9.0,
+            "air_min_c": 11.4,
+            "dew_c": 10.0,
+            "cloud_pct": 26.5,
+            "wind_kmh": 15.1,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -880,11 +493,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 17.4,
-            "air_min_c": 17.4,
-            "dew_c": 18.9,
-            "cloud_pct": 99.8,
-            "wind_kmh": 10.5,
+            "canopy_c": 10.5,
+            "air_min_c": 12.2,
+            "dew_c": 10.7,
+            "cloud_pct": 73.7,
+            "wind_kmh": 10.8,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -893,11 +506,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 18.0,
-            "air_min_c": 18.0,
-            "dew_c": 19.1,
-            "cloud_pct": 99.7,
-            "wind_kmh": 5.6,
+            "canopy_c": 14.9,
+            "air_min_c": 15.6,
+            "dew_c": 12.7,
+            "cloud_pct": 63.0,
+            "wind_kmh": 16.1,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -906,11 +519,398 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
+            "canopy_c": 15.7,
+            "air_min_c": 15.7,
+            "dew_c": 12.9,
+            "cloud_pct": 99.1,
+            "wind_kmh": 15.8,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-13",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 13.9,
+            "air_min_c": 14.5,
+            "dew_c": 10.7,
+            "cloud_pct": 98.4,
+            "wind_kmh": 11.7,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          }
+        ]
+      },
+      {
+        "region": "Cerrado",
+        "days": [
+          {
+            "date": "2026-08-31",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 17.6,
+            "air_min_c": 21.0,
+            "dew_c": 13.6,
+            "cloud_pct": 16.5,
+            "wind_kmh": 17.1,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-01",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 18.3,
+            "air_min_c": 20.1,
+            "dew_c": 13.5,
+            "cloud_pct": 51.4,
+            "wind_kmh": 31.3,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-02",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 16.6,
+            "air_min_c": 18.6,
+            "dew_c": 15.1,
+            "cloud_pct": 25.3,
+            "wind_kmh": 12.8,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-03",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 13.0,
+            "air_min_c": 15.8,
+            "dew_c": 13.4,
+            "cloud_pct": 0.0,
+            "wind_kmh": 11.9,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-04",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 13.3,
+            "air_min_c": 16.3,
+            "dew_c": 14.2,
+            "cloud_pct": 4.8,
+            "wind_kmh": 14.3,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-05",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
             "canopy_c": 15.3,
-            "air_min_c": 17.0,
-            "dew_c": 15.5,
-            "cloud_pct": 81.8,
+            "air_min_c": 17.8,
+            "dew_c": 14.2,
+            "cloud_pct": 18.1,
+            "wind_kmh": 16.5,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-06",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 21.0,
+            "air_min_c": 21.4,
+            "dew_c": 17.1,
+            "cloud_pct": 41.3,
+            "wind_kmh": 13.6,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-07",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 19.0,
+            "air_min_c": 19.9,
+            "dew_c": 14.5,
+            "cloud_pct": 51.9,
+            "wind_kmh": 16.3,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-08",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 17.8,
+            "air_min_c": 18.5,
+            "dew_c": 13.9,
+            "cloud_pct": 34.0,
+            "wind_kmh": 19.3,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-09",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 17.2,
+            "air_min_c": 18.1,
+            "dew_c": 12.7,
+            "cloud_pct": 3.4,
+            "wind_kmh": 18.6,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-10",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 16.1,
+            "air_min_c": 18.3,
+            "dew_c": 11.4,
+            "cloud_pct": 17.2,
+            "wind_kmh": 18.3,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-11",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 16.5,
+            "air_min_c": 20.0,
+            "dew_c": 13.5,
+            "cloud_pct": 33.4,
             "wind_kmh": 14.9,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-12",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 20.8,
+            "air_min_c": 21.0,
+            "dew_c": 16.3,
+            "cloud_pct": 97.5,
+            "wind_kmh": 16.9,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-13",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 15.7,
+            "air_min_c": 16.5,
+            "dew_c": 17.3,
+            "cloud_pct": 98.0,
+            "wind_kmh": 14.8,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          }
+        ]
+      },
+      {
+        "region": "Paran\u00e1",
+        "days": [
+          {
+            "date": "2026-08-31",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 16.7,
+            "air_min_c": 18.6,
+            "dew_c": 19.6,
+            "cloud_pct": 60.0,
+            "wind_kmh": 16.5,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-01",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 16.8,
+            "air_min_c": 18.6,
+            "dew_c": 17.5,
+            "cloud_pct": 62.8,
+            "wind_kmh": 23.1,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-02",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 9.6,
+            "air_min_c": 13.1,
+            "dew_c": 13.4,
+            "cloud_pct": 3.0,
+            "wind_kmh": 10.2,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-03",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 7.5,
+            "air_min_c": 12.2,
+            "dew_c": 12.5,
+            "cloud_pct": 0.4,
+            "wind_kmh": 7.3,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-04",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 12.2,
+            "air_min_c": 16.2,
+            "dew_c": 15.5,
+            "cloud_pct": 50.5,
+            "wind_kmh": 11.1,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-05",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 16.6,
+            "air_min_c": 18.0,
+            "dew_c": 15.4,
+            "cloud_pct": 85.3,
+            "wind_kmh": 15.3,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-06",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 10.6,
+            "air_min_c": 12.3,
+            "dew_c": 5.1,
+            "cloud_pct": 10.8,
+            "wind_kmh": 17.0,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-07",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 6.7,
+            "air_min_c": 9.3,
+            "dew_c": 6.9,
+            "cloud_pct": 4.6,
+            "wind_kmh": 17.5,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-08",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 9.4,
+            "air_min_c": 11.6,
+            "dew_c": 11.3,
+            "cloud_pct": 23.8,
+            "wind_kmh": 12.9,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-09",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 15.2,
+            "air_min_c": 15.9,
+            "dew_c": 14.7,
+            "cloud_pct": 77.7,
+            "wind_kmh": 15.4,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-10",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 15.8,
+            "air_min_c": 18.0,
+            "dew_c": 18.2,
+            "cloud_pct": 82.7,
+            "wind_kmh": 25.3,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-11",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 16.2,
+            "air_min_c": 16.4,
+            "dew_c": 17.2,
+            "cloud_pct": 98.2,
+            "wind_kmh": 13.3,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-12",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 12.8,
+            "air_min_c": 12.9,
+            "dew_c": 11.3,
+            "cloud_pct": 93.7,
+            "wind_kmh": 16.4,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-13",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 11.9,
+            "air_min_c": 13.0,
+            "dew_c": 11.5,
+            "cloud_pct": 39.0,
+            "wind_kmh": 12.1,
             "hours_below_0": 0,
             "hours_below_hard": 0
           }
@@ -920,28 +920,15 @@
         "region": "Esp\u00edrito Santo",
         "days": [
           {
-            "date": "2026-08-30",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 16.8,
-            "air_min_c": 19.0,
-            "dew_c": 18.7,
-            "cloud_pct": 48.8,
-            "wind_kmh": 9.6,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
             "date": "2026-08-31",
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 16.3,
-            "air_min_c": 18.5,
+            "canopy_c": 15.5,
+            "air_min_c": 17.6,
             "dew_c": 17.1,
-            "cloud_pct": 27.8,
-            "wind_kmh": 11.5,
+            "cloud_pct": 43.1,
+            "wind_kmh": 11.8,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -950,11 +937,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 17.3,
-            "air_min_c": 18.8,
-            "dew_c": 18.1,
-            "cloud_pct": 45.2,
-            "wind_kmh": 18.1,
+            "canopy_c": 16.6,
+            "air_min_c": 18.3,
+            "dew_c": 17.8,
+            "cloud_pct": 44.4,
+            "wind_kmh": 13.8,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -963,11 +950,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 17.0,
-            "air_min_c": 17.0,
-            "dew_c": 17.0,
-            "cloud_pct": 71.7,
-            "wind_kmh": 27.7,
+            "canopy_c": 17.1,
+            "air_min_c": 17.1,
+            "dew_c": 17.3,
+            "cloud_pct": 75.2,
+            "wind_kmh": 22.5,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -977,10 +964,10 @@
             "frost_type": "none",
             "severity": null,
             "canopy_c": 11.9,
-            "air_min_c": 14.3,
-            "dew_c": 13.6,
-            "cloud_pct": 30.5,
-            "wind_kmh": 24.9,
+            "air_min_c": 14.4,
+            "dew_c": 13.5,
+            "cloud_pct": 18.3,
+            "wind_kmh": 20.2,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -989,11 +976,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 11.6,
-            "air_min_c": 14.1,
-            "dew_c": 14.5,
-            "cloud_pct": 39.2,
-            "wind_kmh": 11.3,
+            "canopy_c": 10.3,
+            "air_min_c": 14.4,
+            "dew_c": 15.8,
+            "cloud_pct": 16.5,
+            "wind_kmh": 15.2,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -1002,11 +989,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 13.1,
-            "air_min_c": 17.0,
-            "dew_c": 16.7,
-            "cloud_pct": 25.0,
-            "wind_kmh": 16.3,
+            "canopy_c": 15.3,
+            "air_min_c": 18.6,
+            "dew_c": 19.0,
+            "cloud_pct": 18.6,
+            "wind_kmh": 11.6,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -1015,11 +1002,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 14.2,
-            "air_min_c": 14.2,
-            "dew_c": 15.2,
-            "cloud_pct": 99.4,
-            "wind_kmh": 28.1,
+            "canopy_c": 14.9,
+            "air_min_c": 14.9,
+            "dew_c": 19.4,
+            "cloud_pct": 97.8,
+            "wind_kmh": 36.7,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -1028,11 +1015,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 13.1,
-            "air_min_c": 13.1,
-            "dew_c": 11.3,
+            "canopy_c": 14.3,
+            "air_min_c": 14.3,
+            "dew_c": 11.1,
             "cloud_pct": 100.0,
-            "wind_kmh": 26.7,
+            "wind_kmh": 32.9,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -1041,11 +1028,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 13.1,
-            "air_min_c": 13.2,
-            "dew_c": 11.8,
-            "cloud_pct": 99.2,
-            "wind_kmh": 15.1,
+            "canopy_c": 13.3,
+            "air_min_c": 13.7,
+            "dew_c": 11.6,
+            "cloud_pct": 98.2,
+            "wind_kmh": 17.5,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -1054,11 +1041,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 15.0,
-            "air_min_c": 15.0,
-            "dew_c": 12.8,
-            "cloud_pct": 81.8,
-            "wind_kmh": 12.1,
+            "canopy_c": 9.8,
+            "air_min_c": 12.4,
+            "dew_c": 11.8,
+            "cloud_pct": 38.7,
+            "wind_kmh": 13.4,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -1067,11 +1054,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 14.6,
-            "air_min_c": 14.7,
-            "dew_c": 14.9,
-            "cloud_pct": 92.5,
-            "wind_kmh": 15.3,
+            "canopy_c": 9.5,
+            "air_min_c": 12.5,
+            "dew_c": 13.4,
+            "cloud_pct": 41.2,
+            "wind_kmh": 14.8,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -1080,11 +1067,11 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 11.9,
-            "air_min_c": 14.9,
-            "dew_c": 15.6,
-            "cloud_pct": 59.7,
-            "wind_kmh": 18.8,
+            "canopy_c": 15.1,
+            "air_min_c": 16.1,
+            "dew_c": 15.1,
+            "cloud_pct": 37.5,
+            "wind_kmh": 11.6,
             "hours_below_0": 0,
             "hours_below_hard": 0
           },
@@ -1093,11 +1080,24 @@
             "risk": "-",
             "frost_type": "none",
             "severity": null,
-            "canopy_c": 17.9,
-            "air_min_c": 19.3,
-            "dew_c": 18.8,
-            "cloud_pct": 62.6,
-            "wind_kmh": 13.4,
+            "canopy_c": 15.7,
+            "air_min_c": 15.7,
+            "dew_c": 15.6,
+            "cloud_pct": 71.0,
+            "wind_kmh": 25.9,
+            "hours_below_0": 0,
+            "hours_below_hard": 0
+          },
+          {
+            "date": "2026-09-13",
+            "risk": "-",
+            "frost_type": "none",
+            "severity": null,
+            "canopy_c": 15.4,
+            "air_min_c": 15.4,
+            "dew_c": 12.7,
+            "cloud_pct": 99.0,
+            "wind_kmh": 23.0,
             "hours_below_0": 0,
             "hours_below_hard": 0
           }
@@ -1118,7 +1118,6 @@
           "H",
           "H",
           "H",
-          "H",
           "M",
           "L",
           "M",
@@ -1174,14 +1173,15 @@
           "M",
           "M",
           "M",
-          "L",
-          "L",
           "M",
           "M",
           "M",
           "M",
-          "L",
-          "L"
+          "M",
+          "M",
+          "M",
+          "M",
+          "M"
         ]
       },
       {
@@ -1197,7 +1197,6 @@
           "H",
           "H",
           "H",
-          "H",
           "M",
           "M",
           "H",
@@ -1250,24 +1249,24 @@
           "H",
           "H",
           "H",
-          "M",
+          "H",
+          "H",
+          "H",
+          "H",
           "H",
           "H",
           "M",
-          "H",
-          "M",
-          "L",
           "M",
           "M",
           "M",
-          "M"
+          "M",
+          "L"
         ]
       },
       {
         "region": "Paran\u00e1",
         "days": [
           "L",
-          "L",
           "-",
           "-",
           "L",
@@ -1329,23 +1328,23 @@
           "-",
           "-",
           "-",
-          "L",
-          "L",
-          "-",
-          "-",
-          "L",
-          "L",
-          "L",
           "-",
           "-",
           "-",
+          "-",
+          "-",
+          "-",
+          "L",
+          "L",
+          "-",
+          "L",
+          "L",
           "L"
         ]
       },
       {
         "region": "Esp\u00edrito Santo",
         "days": [
-          "L",
           "M",
           "M",
           "M",
@@ -1412,7 +1411,8 @@
           "M",
           "M",
           "M",
-          "M",
+          "L",
+          "H",
           "M",
           "M",
           "M",
@@ -1426,13 +1426,6 @@
       {
         "region": "Sul de Minas",
         "days": [
-          {
-            "date": "2026-07-01",
-            "vpd": 1.57,
-            "precip_prob": 0,
-            "soil_moisture": 0.23,
-            "drought_risk": "H"
-          },
           {
             "date": "2026-07-02",
             "vpd": 1.52,
@@ -1841,121 +1834,121 @@
           },
           {
             "date": "2026-08-29",
-            "vpd": 2.9,
+            "vpd": 2.88,
             "precip_prob": 27,
             "soil_moisture": 0.256,
             "drought_risk": "M"
           },
           {
             "date": "2026-08-30",
-            "vpd": 3.3,
-            "precip_prob": 30,
+            "vpd": 3.32,
+            "precip_prob": 6,
             "soil_moisture": 0.253,
             "drought_risk": "M"
           },
           {
             "date": "2026-08-31",
-            "vpd": 3.34,
-            "precip_prob": 13,
-            "soil_moisture": 0.25,
+            "vpd": 2.92,
+            "precip_prob": 35,
+            "soil_moisture": 0.246,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-01",
-            "vpd": 2.83,
-            "precip_prob": 98,
-            "soil_moisture": 0.251,
+            "vpd": 2.6,
+            "precip_prob": 100,
+            "soil_moisture": 0.246,
             "drought_risk": "L"
           },
           {
             "date": "2026-09-02",
-            "vpd": 1.69,
-            "precip_prob": 78,
-            "soil_moisture": 0.257,
+            "vpd": 1.63,
+            "precip_prob": 71,
+            "soil_moisture": 0.254,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-03",
             "vpd": 1.96,
-            "precip_prob": 0,
-            "soil_moisture": 0.253,
-            "drought_risk": "M"
-          },
-          {
-            "date": "2026-09-04",
-            "vpd": 2.63,
-            "precip_prob": 45,
+            "precip_prob": 1,
             "soil_moisture": 0.25,
             "drought_risk": "M"
           },
           {
+            "date": "2026-09-04",
+            "vpd": 2.48,
+            "precip_prob": 29,
+            "soil_moisture": 0.246,
+            "drought_risk": "M"
+          },
+          {
             "date": "2026-09-05",
-            "vpd": 1.15,
-            "precip_prob": 82,
-            "soil_moisture": 0.259,
-            "drought_risk": "L"
+            "vpd": 1.58,
+            "precip_prob": 71,
+            "soil_moisture": 0.244,
+            "drought_risk": "M"
           },
           {
             "date": "2026-09-06",
-            "vpd": 0.58,
-            "precip_prob": 57,
-            "soil_moisture": 0.264,
-            "drought_risk": "L"
+            "vpd": 1.69,
+            "precip_prob": 50,
+            "soil_moisture": 0.249,
+            "drought_risk": "M"
           },
           {
             "date": "2026-09-07",
-            "vpd": 0.65,
-            "precip_prob": 29,
-            "soil_moisture": 0.233,
+            "vpd": 1.4,
+            "precip_prob": 16,
+            "soil_moisture": 0.248,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-08",
-            "vpd": 0.9,
-            "precip_prob": 39,
+            "vpd": 1.59,
+            "precip_prob": 33,
             "soil_moisture": 0.233,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-09",
-            "vpd": 0.79,
-            "precip_prob": 59,
+            "vpd": 1.67,
+            "precip_prob": 48,
             "soil_moisture": 0.233,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-10",
-            "vpd": 1.39,
-            "precip_prob": 53,
+            "vpd": 2.2,
+            "precip_prob": 65,
             "soil_moisture": 0.233,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-11",
-            "vpd": 0.55,
-            "precip_prob": 47,
+            "vpd": 2.36,
+            "precip_prob": 64,
             "soil_moisture": 0.233,
-            "drought_risk": "L"
+            "drought_risk": "M"
           },
           {
             "date": "2026-09-12",
-            "vpd": 0.49,
-            "precip_prob": 37,
+            "vpd": 1.06,
+            "precip_prob": 48,
             "soil_moisture": 0.233,
-            "drought_risk": "L"
+            "drought_risk": "M"
+          },
+          {
+            "date": "2026-09-13",
+            "vpd": 1.06,
+            "precip_prob": 34,
+            "soil_moisture": 0.233,
+            "drought_risk": "M"
           }
         ]
       },
       {
         "region": "Cerrado",
         "days": [
-          {
-            "date": "2026-07-01",
-            "vpd": 1.93,
-            "precip_prob": 0,
-            "soil_moisture": 0.222,
-            "drought_risk": "H"
-          },
           {
             "date": "2026-07-02",
             "vpd": 1.86,
@@ -2371,114 +2364,114 @@
           },
           {
             "date": "2026-08-30",
-            "vpd": 3.6,
-            "precip_prob": 4,
+            "vpd": 3.57,
+            "precip_prob": 0,
             "soil_moisture": 0.212,
             "drought_risk": "H"
           },
           {
             "date": "2026-08-31",
-            "vpd": 3.8,
-            "precip_prob": 2,
-            "soil_moisture": 0.21,
+            "vpd": 3.64,
+            "precip_prob": 0,
+            "soil_moisture": 0.211,
             "drought_risk": "H"
           },
           {
             "date": "2026-09-01",
-            "vpd": 4.09,
-            "precip_prob": 46,
-            "soil_moisture": 0.208,
+            "vpd": 3.65,
+            "precip_prob": 72,
+            "soil_moisture": 0.21,
             "drought_risk": "H"
           },
           {
             "date": "2026-09-02",
-            "vpd": 2.7,
-            "precip_prob": 53,
-            "soil_moisture": 0.208,
-            "drought_risk": "M"
+            "vpd": 2.44,
+            "precip_prob": 83,
+            "soil_moisture": 0.214,
+            "drought_risk": "H"
           },
           {
             "date": "2026-09-03",
-            "vpd": 3.17,
-            "precip_prob": 10,
-            "soil_moisture": 0.206,
+            "vpd": 3.06,
+            "precip_prob": 4,
+            "soil_moisture": 0.21,
             "drought_risk": "H"
           },
           {
             "date": "2026-09-04",
-            "vpd": 3.54,
-            "precip_prob": 20,
-            "soil_moisture": 0.204,
+            "vpd": 3.38,
+            "precip_prob": 8,
+            "soil_moisture": 0.207,
             "drought_risk": "H"
           },
           {
             "date": "2026-09-05",
-            "vpd": 2.7,
-            "precip_prob": 75,
-            "soil_moisture": 0.206,
-            "drought_risk": "M"
+            "vpd": 3.91,
+            "precip_prob": 32,
+            "soil_moisture": 0.207,
+            "drought_risk": "H"
           },
           {
             "date": "2026-09-06",
-            "vpd": 1.55,
-            "precip_prob": 67,
-            "soil_moisture": 0.209,
+            "vpd": 2.05,
+            "precip_prob": 70,
+            "soil_moisture": 0.212,
             "drought_risk": "H"
           },
           {
             "date": "2026-09-07",
-            "vpd": 1.21,
-            "precip_prob": 59,
+            "vpd": 2.22,
+            "precip_prob": 41,
+            "soil_moisture": 0.21,
+            "drought_risk": "H"
+          },
+          {
+            "date": "2026-09-08",
+            "vpd": 2.0,
+            "precip_prob": 39,
             "soil_moisture": 0.233,
             "drought_risk": "M"
           },
           {
-            "date": "2026-09-08",
-            "vpd": 1.25,
-            "precip_prob": 54,
-            "soil_moisture": 0.233,
-            "drought_risk": "L"
-          },
-          {
             "date": "2026-09-09",
-            "vpd": 1.75,
-            "precip_prob": 35,
+            "vpd": 2.2,
+            "precip_prob": 37,
             "soil_moisture": 0.233,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-10",
-            "vpd": 2.01,
-            "precip_prob": 47,
+            "vpd": 2.66,
+            "precip_prob": 53,
             "soil_moisture": 0.233,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-11",
-            "vpd": 2.68,
-            "precip_prob": 45,
+            "vpd": 3.42,
+            "precip_prob": 46,
             "soil_moisture": 0.233,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-12",
-            "vpd": 2.33,
-            "precip_prob": 35,
+            "vpd": 2.2,
+            "precip_prob": 47,
             "soil_moisture": 0.233,
             "drought_risk": "M"
+          },
+          {
+            "date": "2026-09-13",
+            "vpd": 0.47,
+            "precip_prob": 36,
+            "soil_moisture": 0.233,
+            "drought_risk": "L"
           }
         ]
       },
       {
         "region": "Paran\u00e1",
         "days": [
-          {
-            "date": "2026-07-01",
-            "vpd": 1.43,
-            "precip_prob": 0,
-            "soil_moisture": 0.299,
-            "drought_risk": "L"
-          },
           {
             "date": "2026-07-02",
             "vpd": 1.48,
@@ -2894,99 +2887,106 @@
           },
           {
             "date": "2026-08-30",
-            "vpd": 2.41,
-            "precip_prob": 84,
-            "soil_moisture": 0.298,
+            "vpd": 2.27,
+            "precip_prob": 96,
+            "soil_moisture": 0.3,
             "drought_risk": "-"
           },
           {
             "date": "2026-08-31",
-            "vpd": 1.8,
-            "precip_prob": 75,
-            "soil_moisture": 0.303,
+            "vpd": 1.89,
+            "precip_prob": 84,
+            "soil_moisture": 0.309,
             "drought_risk": "-"
           },
           {
             "date": "2026-09-01",
-            "vpd": 0.96,
+            "vpd": 1.21,
             "precip_prob": 100,
-            "soil_moisture": 0.31,
+            "soil_moisture": 0.325,
             "drought_risk": "-"
           },
           {
             "date": "2026-09-02",
-            "vpd": 1.47,
+            "vpd": 1.5,
             "precip_prob": 0,
-            "soil_moisture": 0.309,
-            "drought_risk": "L"
+            "soil_moisture": 0.325,
+            "drought_risk": "-"
           },
           {
             "date": "2026-09-03",
-            "vpd": 1.71,
-            "precip_prob": 4,
-            "soil_moisture": 0.306,
-            "drought_risk": "L"
+            "vpd": 1.78,
+            "precip_prob": 12,
+            "soil_moisture": 0.322,
+            "drought_risk": "-"
           },
           {
             "date": "2026-09-04",
-            "vpd": 1.32,
-            "precip_prob": 74,
-            "soil_moisture": 0.305,
+            "vpd": 1.54,
+            "precip_prob": 62,
+            "soil_moisture": 0.318,
             "drought_risk": "-"
           },
           {
             "date": "2026-09-05",
-            "vpd": 1.11,
-            "precip_prob": 71,
-            "soil_moisture": 0.307,
+            "vpd": 1.31,
+            "precip_prob": 57,
+            "soil_moisture": 0.327,
             "drought_risk": "-"
           },
           {
             "date": "2026-09-06",
-            "vpd": 1.56,
-            "precip_prob": 29,
-            "soil_moisture": 0.305,
-            "drought_risk": "L"
+            "vpd": 1.72,
+            "precip_prob": 24,
+            "soil_moisture": 0.328,
+            "drought_risk": "-"
           },
           {
             "date": "2026-09-07",
-            "vpd": 1.45,
-            "precip_prob": 17,
-            "soil_moisture": 0.233,
-            "drought_risk": "L"
+            "vpd": 1.52,
+            "precip_prob": 10,
+            "soil_moisture": 0.325,
+            "drought_risk": "-"
           },
           {
             "date": "2026-09-08",
-            "vpd": 1.15,
-            "precip_prob": 52,
+            "vpd": 1.59,
+            "precip_prob": 48,
             "soil_moisture": 0.233,
             "drought_risk": "L"
           },
           {
             "date": "2026-09-09",
-            "vpd": 0.83,
-            "precip_prob": 81,
+            "vpd": 1.72,
+            "precip_prob": 78,
             "soil_moisture": 0.233,
-            "drought_risk": "-"
+            "drought_risk": "L"
           },
           {
             "date": "2026-09-10",
-            "vpd": 0.37,
-            "precip_prob": 61,
+            "vpd": 0.29,
+            "precip_prob": 78,
             "soil_moisture": 0.233,
             "drought_risk": "-"
           },
           {
             "date": "2026-09-11",
-            "vpd": 0.23,
-            "precip_prob": 46,
+            "vpd": 1.11,
+            "precip_prob": 60,
             "soil_moisture": 0.233,
-            "drought_risk": "-"
+            "drought_risk": "L"
           },
           {
             "date": "2026-09-12",
-            "vpd": 1.17,
-            "precip_prob": 46,
+            "vpd": 1.54,
+            "precip_prob": 35,
+            "soil_moisture": 0.233,
+            "drought_risk": "L"
+          },
+          {
+            "date": "2026-09-13",
+            "vpd": 1.65,
+            "precip_prob": 31,
             "soil_moisture": 0.233,
             "drought_risk": "L"
           }
@@ -2995,13 +2995,6 @@
       {
         "region": "Esp\u00edrito Santo",
         "days": [
-          {
-            "date": "2026-07-01",
-            "vpd": 0.84,
-            "precip_prob": 67,
-            "soil_moisture": 0.242,
-            "drought_risk": "L"
-          },
           {
             "date": "2026-07-02",
             "vpd": 1.35,
@@ -3418,98 +3411,105 @@
           {
             "date": "2026-08-30",
             "vpd": 1.58,
-            "precip_prob": 0,
+            "precip_prob": 4,
             "soil_moisture": 0.238,
             "drought_risk": "M"
           },
           {
             "date": "2026-08-31",
-            "vpd": 1.9,
+            "vpd": 1.75,
             "precip_prob": 0,
-            "soil_moisture": 0.235,
+            "soil_moisture": 0.239,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-01",
-            "vpd": 2.21,
-            "precip_prob": 12,
-            "soil_moisture": 0.232,
+            "vpd": 2.08,
+            "precip_prob": 5,
+            "soil_moisture": 0.235,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-02",
-            "vpd": 1.14,
-            "precip_prob": 81,
+            "vpd": 0.94,
+            "precip_prob": 84,
             "soil_moisture": 0.236,
             "drought_risk": "L"
           },
           {
             "date": "2026-09-03",
-            "vpd": 1.71,
-            "precip_prob": 0,
+            "vpd": 1.7,
+            "precip_prob": 2,
             "soil_moisture": 0.234,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-04",
-            "vpd": 1.75,
-            "precip_prob": 5,
+            "vpd": 1.83,
+            "precip_prob": 16,
             "soil_moisture": 0.23,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-05",
-            "vpd": 2.44,
-            "precip_prob": 71,
-            "soil_moisture": 0.23,
+            "vpd": 2.22,
+            "precip_prob": 62,
+            "soil_moisture": 0.227,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-06",
-            "vpd": 0.87,
-            "precip_prob": 73,
-            "soil_moisture": 0.25,
-            "drought_risk": "M"
+            "vpd": 0.78,
+            "precip_prob": 78,
+            "soil_moisture": 0.225,
+            "drought_risk": "L"
           },
           {
             "date": "2026-09-07",
-            "vpd": 0.54,
-            "precip_prob": 50,
-            "soil_moisture": 0.233,
-            "drought_risk": "M"
+            "vpd": 0.58,
+            "precip_prob": 65,
+            "soil_moisture": 0.23,
+            "drought_risk": "H"
           },
           {
             "date": "2026-09-08",
-            "vpd": 0.83,
-            "precip_prob": 34,
+            "vpd": 0.9,
+            "precip_prob": 21,
             "soil_moisture": 0.233,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-09",
-            "vpd": 1.11,
-            "precip_prob": 43,
+            "vpd": 1.26,
+            "precip_prob": 35,
             "soil_moisture": 0.233,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-10",
-            "vpd": 1.07,
-            "precip_prob": 45,
+            "vpd": 1.36,
+            "precip_prob": 37,
             "soil_moisture": 0.233,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-11",
-            "vpd": 1.44,
-            "precip_prob": 45,
+            "vpd": 1.54,
+            "precip_prob": 42,
             "soil_moisture": 0.233,
             "drought_risk": "M"
           },
           {
             "date": "2026-09-12",
-            "vpd": 1.48,
-            "precip_prob": 29,
+            "vpd": 1.06,
+            "precip_prob": 44,
+            "soil_moisture": 0.233,
+            "drought_risk": "M"
+          },
+          {
+            "date": "2026-09-13",
+            "vpd": 1.0,
+            "precip_prob": 37,
             "soil_moisture": 0.233,
             "drought_risk": "M"
           }
@@ -3519,31 +3519,31 @@
     "current_conditions": [
       {
         "region": "Sul de Minas",
-        "temp_c": 24.8,
-        "dew_point_c": 13.7,
-        "cloud_cover_pct": 7.2,
-        "wind_speed_kmh": 7.6
+        "temp_c": 24.2,
+        "dew_point_c": 13.0,
+        "cloud_cover_pct": 14.7,
+        "wind_speed_kmh": 6.4
       },
       {
         "region": "Cerrado",
-        "temp_c": 26.3,
-        "dew_point_c": 13.0,
-        "cloud_cover_pct": 3.0,
-        "wind_speed_kmh": 20.3
+        "temp_c": 26.4,
+        "dew_point_c": 13.8,
+        "cloud_cover_pct": 4.3,
+        "wind_speed_kmh": 11.4
       },
       {
         "region": "Paran\u00e1",
-        "temp_c": 25.9,
-        "dew_point_c": 16.8,
-        "cloud_cover_pct": 3.4,
-        "wind_speed_kmh": 10.3
+        "temp_c": 26.1,
+        "dew_point_c": 16.7,
+        "cloud_cover_pct": 3.5,
+        "wind_speed_kmh": 7.8
       },
       {
         "region": "Esp\u00edrito Santo",
-        "temp_c": 23.2,
-        "dew_point_c": 17.5,
-        "cloud_cover_pct": 74.3,
-        "wind_speed_kmh": 11.5
+        "temp_c": 25.0,
+        "dew_point_c": 16.0,
+        "cloud_cover_pct": 45.2,
+        "wind_speed_kmh": 5.7
       }
     ]
   },
@@ -3661,7 +3661,7 @@
       }
     ],
     "historical_stat": "El Ni\u00f1o years avg. Brazil arabica output \u22124.2% vs neutral",
-    "last_updated": "2026-08-30"
+    "last_updated": "2026-08-31"
   },
   "fertilizer": {
     "items": [
@@ -4734,7 +4734,7 @@
         }
       ],
       "source": "Yahoo Finance / Breakwave Advisors",
-      "scraped_at": "2026-08-30T18:17:52.256492Z"
+      "scraped_at": "2026-08-31T08:33:40.662766Z"
     },
     "next_application": "May\u2013Jun"
   }

@@ -1,6 +1,6 @@
 {
   "country": "uganda",
-  "scraped_at": "2026-08-30T18:18:04.184683+00:00",
+  "scraped_at": "2026-08-31T08:33:57.046086+00:00",
   "exports": {
     "source": "UCDA Monthly Reports",
     "last_updated": "2026-06",
@@ -797,7 +797,7 @@
   },
   "ucda_price": {
     "usd_cwt": 172.59,
-    "as_of": "2026-08-30",
+    "as_of": "2026-08-31",
     "grade": "Screen 15",
     "grades": {
       "Screen 15": 172.59,
@@ -806,7 +806,7 @@
     }
   },
   "weather": {
-    "scraped_at": "2026-08-30T06:40:39.931676Z",
+    "scraped_at": "2026-08-31T07:05:39.066099Z",
     "regions": [
       {
         "name": "Greater Masaka",
@@ -848,12 +848,12 @@
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH",
         "rain_mtd_mm": 118.8,
-        "rain_hist_min": 334.0,
-        "rain_hist_max": 695.5
+        "rain_hist_min": 347.0,
+        "rain_hist_max": 711.3
       },
       {
         "name": "West Nile",
-        "drought": "LOW",
+        "drought": "MED",
         "csi_30d": 0.094,
         "csi_60d": 0.046,
         "csi_30d_level": "LOW",
@@ -977,10 +977,10 @@
           "M",
           "M",
           "M",
+          "L",
+          "L",
+          "L",
           "M",
-          "L",
-          "L",
-          "L",
           "M",
           "M",
           "M",
@@ -1080,7 +1080,7 @@
           "M",
           "M",
           "M",
-          "H",
+          "M",
           "M",
           "M"
         ]
@@ -1119,9 +1119,9 @@
           "M",
           "M",
           "M",
+          "L",
+          "L",
           "M",
-          "L",
-          "L",
           "M",
           "M",
           "M",
@@ -1184,7 +1184,6 @@
           "M",
           "M",
           "M",
-          "M",
           "L",
           "L",
           "L",
@@ -1218,6 +1217,7 @@
           "L",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1236,7 +1236,6 @@
           "-",
           "-",
           "-",
-          "-",
           "L",
           "L",
           "M",
@@ -1295,10 +1294,11 @@
           "L",
           "L",
           "M",
-          "L",
           "M",
           "M",
-          "L"
+          "M",
+          "M",
+          "M"
         ]
       },
       {
@@ -1315,7 +1315,6 @@
           "M",
           "M",
           "M",
-          "M",
           "L",
           "-",
           "L",
@@ -1355,6 +1354,7 @@
           "M",
           "M",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1504,7 +1504,7 @@
       }
     ],
     "historical_stat": "El Nino years: Uganda coffee output -10 to -20% vs neutral (UCDA)",
-    "last_updated": "2026-08-30"
+    "last_updated": "2026-08-31"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Feb",

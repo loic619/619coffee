@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T18:18:27.320002+00:00",
+  "generated_at": "2026-08-31T08:34:21.132086+00:00",
   "meta": {
     "adders_usd": 58.0,
     "container_mt": 21.6,
@@ -32,7 +32,7 @@
     "vietnam": {
       "name": "Vietnam Robusta FAQ G2",
       "market": "RC",
-      "fobbing_usd": 102.1,
+      "fobbing_usd": 102.3,
       "fobbing_fixed": 55.0,
       "fobbing_pct": 1.29,
       "fobbing_model": 4,
@@ -12935,6 +12935,18 @@
           "rc": 3529.0,
           "differential": 227.1,
           "parity_gap": -500.0,
+          "tenderable": false
+        },
+        {
+          "date": "2026-08-31",
+          "farmgate_usd": 3669.3,
+          "fobbing": 102.3,
+          "at_port": 3771.7,
+          "freight": 214.9,
+          "tendering": 4044.5,
+          "rc": 3529.0,
+          "differential": 242.7,
+          "parity_gap": -515.5,
           "tenderable": false
         }
       ]
@@ -27011,6 +27023,18 @@
         },
         {
           "date": "2026-08-30",
+          "farmgate_usd": 3805.0,
+          "fobbing": 268.4,
+          "at_port": 4073.4,
+          "freight": 150.4,
+          "tendering": 4281.8,
+          "rc": 3529.0,
+          "differential": 544.4,
+          "parity_gap": -752.8,
+          "tenderable": false
+        },
+        {
+          "date": "2026-08-31",
           "farmgate_usd": 3805.0,
           "fobbing": 268.4,
           "at_port": 4073.4,
