@@ -19,7 +19,20 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-_YAHOO_URL  = "https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?range=6mo&interval=1d"
+# Five years, not six months. Unlike FBX — whose back series is locked behind a
+# subscription, so ours is only ever what we accumulate — Yahoo serves BDRY
+# history for free on the same call, and a six-month window was leaving
+# year-over-year context on the table for nothing.
+#
+# includeAdjustedClose matters at this length: BDRY is an ETF and has had
+# reverse splits, which put a step change into the raw `close` series that is
+# an artefact of share count, not of freight. The adjusted series removes it.
+# The most recent point is identical either way (adjustments are backward-
+# looking), so the headline price on the panel is unaffected.
+_YAHOO_URL = (
+    "https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+    "?range=5y&interval=1d&includeAdjustedClose=true"
+)
 _CACHE_PATH = Path(__file__).resolve().parents[1] / "cache" / "dry_bulk.json"
 
 _TICKER = "BDRY"
@@ -43,9 +56,20 @@ def _fetch_bdry() -> dict | None:
         ts      = result["timestamp"]
         closes  = result["indicators"]["quote"][0]["close"]
 
+        # Split-adjusted where Yahoo provides it; raw close otherwise. Over a
+        # five-year window an unadjusted reverse split would show as a cliff
+        # that reads like a freight collapse and is nothing of the sort.
+        adj = None
+        try:
+            adj = result["indicators"]["adjclose"][0]["adjclose"]
+        except (KeyError, IndexError, TypeError):
+            adj = None
+        prices = adj if adj and len(adj) == len(ts) else closes
+        adjusted = prices is adj
+
         # Build daily series — skip nulls
         series = []
-        for t, c in zip(ts, closes):
+        for t, c in zip(ts, prices):
             if c is None:
                 continue
             series.append({
@@ -74,6 +98,10 @@ def _fetch_bdry() -> dict | None:
             "week52_low":    meta.get("fiftyTwoWeekLow"),
             "week52_high":   meta.get("fiftyTwoWeekHigh"),
             "series":        series,
+            # So a consumer can say what it is drawing rather than assume the
+            # window, and can tell an adjusted series from a raw one.
+            "first_date":    series[0]["date"],
+            "adjusted":      adjusted,
             "source":        "Yahoo Finance / Breakwave Advisors",
             "scraped_at":    datetime.utcnow().isoformat() + "Z",
         }
