@@ -63,7 +63,21 @@ def export_freight(db) -> None:
     }
     indices   = sorted(known_codes | stored_codes | {cfg[3] for cfg in ROUTE_CONFIG})
     cutoff_wk = date.today() - timedelta(days=7)
-    cutoff_84 = date.today() - timedelta(days=84)
+    # Publish the whole stored series, not a rolling 84-day slice.
+    #
+    # There is no anonymous route to Freightos' own history — probes 0.28 and
+    # 0.29 captured every response on the lane pages and the public index site
+    # and found no series endpoint, no chart element (0 canvas, 0 chart svg) and
+    # no export link; the page carries one current number and nothing else. So
+    # the only FBX history that will ever exist here is the one we accumulate,
+    # which makes throwing away everything older than twelve weeks the wrong
+    # default. Whatever we have collected is now published, and the frontend
+    # picks the window it wants to draw.
+    #
+    # The five-year bound is a size guard, not a data decision: it caps
+    # freight.json's growth long before it matters (twelve lanes at two prints a
+    # week is ~1,250 rows a year) while sitting far beyond anything stored.
+    cutoff_hist = date.today() - timedelta(days=365 * 5)
 
     latest, prev = {}, {}
     for idx in indices:
@@ -113,13 +127,13 @@ def export_freight(db) -> None:
                 "basis": {"index": index, "multiplier": mult},
             })
 
-        # One 84-day window per index, fetched once and reused for both the
-        # route history and the per-index series below.
+        # One window per index, fetched once and reused for both the route
+        # history and the per-index series below.
         window: dict[str, list] = {}
         for idx in indices:
             window[idx] = (
                 db.query(FreightRate)
-                .filter(FreightRate.index_code == idx, FreightRate.date >= cutoff_84)
+                .filter(FreightRate.index_code == idx, FreightRate.date >= cutoff_hist)
                 .order_by(FreightRate.date.asc()).all()
             )
 
@@ -170,8 +184,16 @@ def export_freight(db) -> None:
 
     path = OUT_DIR / "freight.json"
     written = safe_write_json(path, result, validate_freight)
+    hist = result.get("history", [])
+    span = f"{hist[0]['date']}..{hist[-1]['date']}" if hist else "none"
     print(f"  freight.json → written:{written} {len(result.get('routes', []))} routes, "
-          f"{len(result.get('indices', []))} FBX indices, {len(result.get('history', []))} history rows")
+          f"{len(result.get('indices', []))} FBX indices, {len(hist)} history rows ({span})")
+    # Per-lane depth, so a lane that quietly stops accumulating is visible in
+    # the job log rather than only in the chart months later.
+    for entry in result.get("indices", []):
+        h = entry.get("history") or []
+        if h:
+            print(f"    {entry['code']:6} {len(h):>4} rows  {h[0]['date']}..{h[-1]['date']}")
 
 
 def export_retail_cpi(db) -> None:

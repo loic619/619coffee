@@ -68,15 +68,22 @@ prev_FBX = most recent FBX print dated 7 or more days back`}</Fml>
         brief still called it &ldquo;w/w&rdquo;; replayed over the stored history it misstated the change on 9 of 18
         observations. Because the index is only scraped Fri &amp; Sun, an exact-7-day hit is the common case, not a
         corner case. Each route also publishes the <Code>prev_date</Code> it actually compared against, so the span is
-        stated rather than assumed. The history chart carries an <strong>84-day (12-week)</strong> window for all seven
-        routes.
+        stated rather than assumed.
       </P>
       <Highlight>
-        <strong>Cadence &amp; a known data-shape caveat.</strong> Freight is scraped <strong>Fridays &amp; Sundays
-        only</strong> — verified over three months, FBX prints essentially never moved Mon–Thu. Each run captures a{" "}
-        <em>single current value</em>, so the stored history is a step function that holds flat between scrapes rather
-        than a true daily series. (A richer full-history capture was designed but not shipped.) Read levels and weekly
-        changes, not intra-week wiggles.
+        <strong>Cadence, and why the archive is the only archive.</strong> Freight is scraped <strong>Fridays &amp;
+        Sundays only</strong> — verified over three months, FBX prints essentially never moved Mon–Thu. Each run
+        captures a <em>single current value</em>, so the stored series is a step function that holds flat between
+        scrapes rather than a true daily series. Read levels and weekly changes, not intra-week wiggles.
+        <br /><br />
+        Two probes went looking for the back history rather than assuming it was out of reach. They captured{" "}
+        <em>every</em> network response on the lane pages and on the public <Code>fbx.freightos.com</Code> site, and
+        found no series endpoint, no export link, and — from the DOM, not by inference — <strong>no chart element at
+        all</strong> (0 <Code>&lt;canvas&gt;</Code>, 0 chart <Code>&lt;svg&gt;</Code>). The page carries one current
+        number and nothing more; the history lives behind a Freightos subscription. So the series here is the only one
+        that will ever exist for these lanes, which is why <Code>freight.json</Code> publishes the{" "}
+        <strong>entire stored record</strong> rather than a rolling window, and the chart&rsquo;s 3M / 1Y / All control
+        chooses the view instead of the exporter choosing it for you.
       </Highlight>
       <P className="text-[11px] text-slate-500">
         The same route table is consumed by the Research → <strong>Destination In-store</strong> tab, which reads the
