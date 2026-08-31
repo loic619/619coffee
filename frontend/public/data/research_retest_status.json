@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-24T09:01:31Z",
+ "generated_at": "2026-08-31T16:08:09Z",
  "note": "Parked research hypotheses and the data each is waiting on. Maintained by scraper/research_retest_watch.py; alerts fire when a counter crosses its threshold.",
  "watches": [
   {
@@ -16,10 +16,10 @@
   {
    "key": "cci_trainable",
    "label": "cci_overnight — trainable rows (real activation bar)",
-   "n": 209,
+   "n": 214,
    "threshold": 252,
    "unit": "labelled sessions carrying CCI",
-   "pct": 82.9,
+   "pct": 84.9,
    "mature": false,
    "parked_because": "Cleared its 40-session COVERAGE gate on 2026-07-29 but has far less history than the model; admitting it would truncate listwise training. The 2026-08-20 backfill took it 51 → 207 trainable rows and made a real test possible — and it came back NULL: corr +0.05 (t 0.75, n 207), sign rule 50.2% vs a 53.1% baseline, and zero walk-forward marginal over kc_after+dsr on matched OOS dates. Expect this one to be rejected.",
    "action": "Re-run the marginal at 252 and, unless it has changed character, RETIRE the feature rather than activating it — the 2026-08 read at n=207 found nothing, and the encouraging n=51 signal before it was small-sample noise."
@@ -27,10 +27,10 @@
   {
    "key": "b3_close_gap",
    "label": "b3_close_gap — enough captures to TEST",
-   "n": 2,
+   "n": 4,
    "threshold": 40,
    "unit": "sessions captured (gap present)",
-   "pct": 5.0,
+   "pct": 10.0,
    "mature": false,
    "parked_because": "The model's own B3 construction (post-KC-close window, PR #697) ships dormant. 40 captures is its COVERAGE gate — enough to run a first walk-forward marginal, NOT enough to join the model (see the trainable-rows watch below). Accrual restarts 2026-08-20: the at-KC-close capture had never fired — GitHub's cron drift landed every run one minute past the guard window.",
    "action": "Grade it here, long before it can activate: walk-forward marginal of b3_close_gap vs kc_after+dsr on matched OOS dates, then update the research card's B3 section with the verdict. cci_overnight is the cautionary tale — promising at n=51, worthless at n=207."
@@ -38,10 +38,10 @@
   {
    "key": "b3_trainable",
    "label": "b3_close_gap — trainable rows (real activation bar)",
-   "n": 1,
+   "n": 4,
    "threshold": 252,
    "unit": "labelled sessions carrying the gap",
-   "pct": 0.4,
+   "pct": 1.6,
    "mature": false,
    "parked_because": "Since #719 an optional feature must ALSO leave 252 trainable rows, so 40 captures does not deploy it — roughly 384 calendar sessions do. This watch existed as a 40-session 'LIVE MODEL activation gate' until 2026-08-20, which was the pre-#719 behaviour: it would have announced activation at ~10% of the real bar.",
    "action": "At 252, re-run the marginal on the full sample and decide activate vs retire — the coverage-gate test above is the early read, this is the one that matters."
@@ -49,10 +49,10 @@
   {
    "key": "cnl_sessions",
    "label": "Conilon (B3 CNL) late-close factor",
-   "n": 13,
+   "n": 19,
    "threshold": 300,
    "unit": "sessions accrued",
-   "pct": 4.3,
+   "pct": 6.3,
    "mature": false,
    "parked_because": "B3 exposes no CNL history; the accumulator started 2026-08.",
    "action": "Run the cnl_after_rc construction in open_direction_factors — the London-side B3 test."
@@ -60,10 +60,10 @@
   {
    "key": "rc_last_hour",
    "label": "London's own last hour (rc_last_1630)",
-   "n": 87,
+   "n": 92,
    "threshold": 250,
    "unit": "harvest sessions with the anchor",
-   "pct": 34.8,
+   "pct": 36.8,
    "mature": false,
    "parked_because": "The 16:30 anchor was never stored; added to the refresher 2026-08 (which backfilled its window to 2025-09).",
    "action": "Repeat the pre-hedging drift test on RC's own last hour, not KC's."
@@ -71,10 +71,10 @@
   {
    "key": "icf_matched",
    "label": "B3 arabica after-KC residual",
-   "n": 205,
+   "n": 210,
    "threshold": 400,
    "unit": "matched OOS days",
-   "pct": 51.2,
+   "pct": 52.5,
    "mature": false,
    "parked_because": "Rejected at the gate (+0.5pp marginal) on 200 matched days.",
    "action": "Re-run the matched-window gate; specifically the harvest-only cell (r +0.13, t 1.66)."
@@ -82,10 +82,10 @@
   {
    "key": "b3_tail",
    "label": "B3 wrong-way tail (fade candidate)",
-   "n": 22,
+   "n": 23,
    "threshold": 40,
    "unit": "sessions at |z| >= 2",
-   "pct": 55.0,
+   "pct": 57.5,
    "mature": false,
    "parked_because": "27.3% sign accuracy on 22 days — inverted read only z ~ 1.3.",
    "action": "Re-test the FADE of strong B3 moves against the bucket's own blind baseline."
@@ -93,10 +93,10 @@
   {
    "key": "flow_cot",
    "label": "Options flow → next-week COT lead",
-   "n": 33,
+   "n": 34,
    "threshold": 60,
    "unit": "aligned COT weeks",
-   "pct": 55.0,
+   "pct": 56.7,
    "mature": false,
    "parked_because": "r 0.401 (t 2.36) survived its controls but is 1 of 16 tests.",
    "action": "Re-run the lead partial; bar is t ~ 3, or t ~ 2.5 with a nonzero return transfer."
@@ -126,10 +126,10 @@
   {
    "key": "vn_physical",
    "label": "Vietnam physical overnight",
-   "n": 103,
+   "n": 110,
    "threshold": 300,
    "unit": "rows accrued",
-   "pct": 34.3,
+   "pct": 36.7,
    "mature": false,
    "parked_because": "Timing verified viable; only ~50 days existed in 2026-07.",
    "action": "Walk-forward the VN fresh-morning change as an open-direction feature."
@@ -137,10 +137,10 @@
   {
    "key": "cert_robusta",
    "label": "Certified robusta stocks as a feature",
-   "n": 298,
+   "n": 307,
    "threshold": 350,
    "unit": "days of history",
-   "pct": 85.1,
+   "pct": 87.7,
    "mature": false,
    "parked_because": "Only ~13 months existed — exploratory windows too small.",
    "action": "Re-open the certified-stocks feature battery for the open-direction model."
