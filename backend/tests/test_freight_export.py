@@ -87,6 +87,37 @@ def test_history_covers_every_route_not_just_two_indices(db, out_dir):
         assert route_id in latest, f"{route_id} missing from the history series"
 
 
+def test_history_is_not_truncated_to_a_rolling_84_days(db, out_dir):
+    """FBX history only exists because we accumulate it — see probes 0.28/0.29.
+
+    Nothing anonymous serves the back series, so an export that dropped
+    everything older than twelve weeks was discarding the only copy that will
+    ever exist.
+    """
+    today = date.today()
+    for i in (400, 200, 90, 30, 0):     # one row well outside the old window
+        db.add(FreightRate(index_code="FBX11", date=today - timedelta(days=i),
+                           rate=4000.0 + i))
+    db.commit()
+    export_freight(db)
+
+    dates = [r["date"] for r in _read(out_dir)["history"]]
+    assert (today - timedelta(days=400)).isoformat() in dates
+    assert len(dates) == 5
+
+
+def test_history_is_still_bounded(db, out_dir):
+    """The five-year cap is a size guard; rows beyond it are dropped."""
+    today = date.today()
+    db.add(FreightRate(index_code="FBX11", date=today, rate=4000.0))
+    db.add(FreightRate(index_code="FBX11", date=today - timedelta(days=365 * 6), rate=1.0))
+    db.commit()
+    export_freight(db)
+
+    dates = [r["date"] for r in _read(out_dir)["history"]]
+    assert dates == [today.isoformat()]
+
+
 def test_empty_database_writes_an_empty_indices_list(db, out_dir):
     export_freight(db)
     # safe_write_json rejects an empty routes list, so nothing lands on disk —

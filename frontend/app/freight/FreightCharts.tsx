@@ -18,12 +18,22 @@ const CHART_LINES = [
 ];
 
 export function FreightHistoryChart({ history }: { history: Record<string, number | string>[] }) {
+  // The series can now span years rather than a fixed twelve weeks, so "MM-DD"
+  // ticks would repeat each January and read as a loop. Past roughly seven
+  // months, label by month-and-year instead.
+  const first = String(history[0]?.date ?? "");
+  const last = String(history[history.length - 1]?.date ?? "");
+  const spanDays =
+    first && last ? (Date.parse(last) - Date.parse(first)) / 86_400_000 : 0;
+  const longRange = spanDays > 210;
+
   return (
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={history} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
         <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false}
-          tickFormatter={(v: string) => v.slice(5)} />
+          minTickGap={longRange ? 44 : 8}
+          tickFormatter={(v: string) => (longRange ? v.slice(0, 7) : v.slice(5))} />
         <YAxis tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} width={50}
           tickFormatter={(v: number) => `$${(v / 1000).toFixed(1)}k`} />
         <Tooltip

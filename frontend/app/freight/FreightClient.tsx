@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import PageHeader from "@/components/PageHeader";
 import { useFetchJson } from "@/lib/useFetchJson";
@@ -213,11 +213,41 @@ function FbxIndexTable({ indices }: { indices: FbxIndex[] }) {
   );
 }
 
+// freight.json now carries the whole stored series rather than a rolling 84-day
+// slice, so the window becomes a reading choice instead of an export constant.
+const RANGES = [
+  { key: "3m", label: "3M", days: 93 },
+  { key: "1y", label: "1Y", days: 366 },
+  { key: "all", label: "All", days: null },
+] as const;
+type RangeKey = (typeof RANGES)[number]["key"];
+
 export default function FreightClient({ data }: Props) {
   const { data: farmerEcon, loading: dryLoading, error: dryError } =
     useFetchJson<{ fertilizer?: { dry_bulk?: DryBulkData } }>("/data/farmer_economics.json");
   const dryBulk: DryBulkData | null = farmerEcon?.fertilizer?.dry_bulk ?? null;
   const dryLoaded = !dryLoading || dryError !== null;
+
+  // 1Y is the window these indices are normally read over; All is one click
+  // away for anyone who wants the full accumulated record.
+  const [range, setRange] = useState<RangeKey>("1y");
+
+  const history = useMemo(() => {
+    const rows = data?.history ?? [];
+    const days = RANGES.find((r) => r.key === range)?.days;
+    if (!days || rows.length === 0) return rows;
+    // Cut relative to the newest row, not to today — a stale export should
+    // still show a full window rather than an empty chart.
+    const newest = Date.parse(String(rows[rows.length - 1].date));
+    const floor = newest - days * 86_400_000;
+    return rows.filter((r) => Date.parse(String(r.date)) >= floor);
+  }, [data, range]);
+
+  const totalSpan = useMemo(() => {
+    const rows = data?.history ?? [];
+    if (rows.length < 2) return null;
+    return `${String(rows[0].date)} → ${String(rows[rows.length - 1].date)}`;
+  }, [data]);
 
   return (
     <div className="h-full overflow-y-auto">
@@ -230,11 +260,33 @@ export default function FreightClient({ data }: Props) {
 
       {/* Container freight chart */}
       <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
-        <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">
-          Freight Rate Evolution — USD / FEU
+        <div className="flex items-start justify-between gap-4 mb-1">
+          <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">
+            Freight Rate Evolution — USD / FEU
+          </div>
+          {data && data.history.length > 0 && (
+            <div className="flex gap-1 shrink-0">
+              {RANGES.map((r) => (
+                <button
+                  key={r.key}
+                  onClick={() => setRange(r.key)}
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors ${
+                    range === r.key
+                      ? "bg-sky-500/20 border-sky-500/50 text-sky-300"
+                      : "bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         {data?.updated && (
-          <div className="text-[10px] text-slate-500 mb-3">Last updated: {data.updated}</div>
+          <div className="text-[10px] text-slate-500 mb-3">
+            Last updated: {data.updated}
+            {totalSpan && <span className="ml-2 text-slate-600">· stored {totalSpan}</span>}
+          </div>
         )}
 
         {(!data || data.history.length === 0) && (
@@ -243,8 +295,8 @@ export default function FreightClient({ data }: Props) {
           </div>
         )}
 
-        {data && data.history.length > 0 && (
-          <FreightHistoryChart history={data.history} />
+        {data && history.length > 0 && (
+          <FreightHistoryChart history={history} />
         )}
       </div>
 
