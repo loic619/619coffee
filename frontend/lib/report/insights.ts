@@ -835,13 +835,144 @@ const weatherPack = (origin: string, label: string): Builder => async () => {
     flag: zone !== "within",
   };
 };
-const weatherAnalogs = (origin: string, label: string): Builder => async () => {
-  const d = await load<{ analogs?: { year?: number | string }[] }>(`/data/weather_analogs_${origin}.json`);
-  const an = d?.analogs; if (!an?.length) return null;
-  const yrs = an.slice(0, 3).map((a) => a.year).filter(Boolean);
+/** Vietnam river flow — the Jan–Apr irrigation constraint in the Central
+ *  Highlands. Basins are reported as % vs TBNN (the multi-year normal), so the
+ *  read is "how many basins are short, and is the forecast easing or not". */
+const vnWaterLevels: Builder = async () => {
+  interface River { river?: string; station?: string; tbnn_pct?: number | null; forecast_tbnn_pct?: number | null; signal?: string }
+  const d = await load<{ rivers?: River[]; bulletin_date?: string | null; has_live_data?: boolean }>("/data/vn_water_levels.json");
+  const rivers = (d?.rivers ?? []).filter((r) => typeof r.tbnn_pct === "number");
+  if (!rivers.length) return null;
+
+  const short = rivers.filter((r) => r.signal === "critical" || r.signal === "low");
+  // Deepest deficit anchors the note — that basin is the binding constraint.
+  const worst = [...rivers].sort((a, b) => (a.tbnn_pct ?? 0) - (b.tbnn_pct ?? 0))[0];
+  const facts: Fact[] = [
+    {
+      label: `Basins below normal${d?.bulletin_date ? ` (bulletin ${d.bulletin_date})` : ""}`,
+      value: `**${short.length} of ${rivers.length}** — ${short.length ? short.map((r) => r.river).join(", ") : "none"}`,
+    },
+    { label: "Deepest deficit", value: `**${worst.river}** at **${pct(worst.tbnn_pct ?? null)}** vs TBNN${worst.station ? ` (${worst.station})` : ""}` },
+  ];
+  if (typeof worst.forecast_tbnn_pct === "number") {
+    const easing = worst.forecast_tbnn_pct > (worst.tbnn_pct ?? 0);
+    facts.push({ label: "Forecast", value: `**${pct(worst.forecast_tbnn_pct)}** vs TBNN — ${easing ? "easing" : "deepening"}` });
+  }
+  const critical = rivers.filter((r) => r.signal === "critical").length;
   return {
-    facts: [{ label: `${label} closest analogs`, value: `**${yrs.join(", ")}**` }],
+    facts,
+    read: critical
+      ? `${critical} basin${critical > 1 ? "s" : ""} critical — irrigation water is the binding constraint on the next robusta crop.`
+      : short.length
+      ? "Flow below normal but not critical — watch through the Jan–Apr dry season."
+      : "Basins at or above normal — no irrigation constraint priced in.",
+    flag: critical > 0,
   };
+};
+
+/** Vietnam farmer economics — the grower's margin is what decides whether
+ *  farmgate coffee gets sold or held, so the note is cost vs the FAQ spot. */
+const vnFarmerEconomics: Builder = async () => {
+  const d = await load<{
+    cost_robusta?: { total_usd_per_ton?: number; total_usd_per_ton_excl_family?: number; yoy_pct?: number; season_label?: string; components?: { label?: string; usd?: number; share?: number }[] };
+    acreage?: { thousand_ha?: number; yoy_pct?: number };
+    yield?: { bags_per_ha?: number; yoy_pct?: number };
+  }>("/data/vn_farmer_economics.json");
+  const c = d?.cost_robusta;
+  const cost = c?.total_usd_per_ton;
+  if (cost == null) return null;
+
+  const spotFile = await load<{ vn_faq?: { usd_per_mt?: number } }>("/data/vn_physical_prices.json");
+  const spot = spotFile?.vn_faq?.usd_per_mt;
+
+  const facts: Fact[] = [
+    {
+      label: `Cost of production${c?.season_label ? ` (${c.season_label})` : ""}`,
+      value: `**$${n0(cost)}/t** full cost${c?.total_usd_per_ton_excl_family != null ? `, **$${n0(c.total_usd_per_ton_excl_family)}/t** excl. family labour` : ""}${c?.yoy_pct != null ? ` (**${pct(c.yoy_pct)}** YoY)` : ""}`,
+    },
+  ];
+  let read: string | undefined;
+  let flag = false;
+  if (spot != null) {
+    const margin = spot - cost;
+    const mult = cost ? spot / cost : null;
+    facts.push({
+      label: "Grower margin vs VN FAQ spot",
+      value: `spot **$${n0(spot)}/t** → margin **${margin >= 0 ? "+" : "−"}$${n0(Math.abs(margin))}/t**${mult ? ` (**${mult.toFixed(2)}×** cost)` : ""}`,
+    });
+    if (margin <= 0) { read = "Spot below full cost — growers hold rather than sell, tightening near-term offers."; flag = true; }
+    else if (mult && mult >= 1.6) read = "Margin well above cost — growers have every incentive to keep selling into the rally.";
+    else read = "Positive but unexceptional margin — selling stays price-sensitive.";
+  }
+  const top = (c?.components ?? []).slice().sort((a, b) => (b.usd ?? 0) - (a.usd ?? 0))[0];
+  if (top?.label && top.share != null) {
+    facts.push({ label: "Largest cost block", value: `**${top.label}** — **${(top.share * 100).toFixed(0)}%** of full cost` });
+  }
+  const ha = d?.acreage?.thousand_ha, yld = d?.yield?.bags_per_ha;
+  if (ha != null || yld != null) {
+    const bits: string[] = [];
+    if (ha != null) bits.push(`**${n1(ha)}k ha**${d?.acreage?.yoy_pct != null ? ` (${pct(d.acreage.yoy_pct)})` : ""}`);
+    if (yld != null) bits.push(`**${n1(yld)} bags/ha**${d?.yield?.yoy_pct != null ? ` (${pct(d.yield.yoy_pct)})` : ""}`);
+    facts.push({ label: "Acreage · yield", value: bits.join(" · ") });
+  }
+  return { facts, read, flag };
+};
+
+const weatherAnalogs = (origin: string, label: string): Builder => async () => {
+  // The file keys the matches as `top_analogs` (ranked by distance) and carries
+  // the ensemble outcome separately — the years alone say nothing, so the note
+  // pairs them with what those analogue crops actually did.
+  interface Analog { year?: number | string; same_cycle_yoy_detrended_pct?: number | null }
+  interface Ensemble { mean_pct?: number; median_pct?: number; n?: number; ci95_lo?: number; ci95_hi?: number }
+  const d = await load<{
+    top_analogs?: Analog[];
+    ensemble_same_cycle?: Ensemble;
+    current_crop_year?: number | string;
+  }>(`/data/weather_analogs_${origin}.json`);
+  const an = d?.top_analogs;
+  if (!an?.length) return null;
+
+  const top = an.slice(0, 3).filter((a) => a.year != null);
+  if (!top.length) return null;
+  const facts: Fact[] = [{
+    label: `${label} closest analogs`,
+    value: top
+      .map((a) => {
+        const y = a.same_cycle_yoy_detrended_pct;
+        return `**${a.year}**${typeof y === "number" ? ` (crop ${pct(y)})` : ""}`;
+      })
+      .join(", "),
+  }];
+
+  const e = d?.ensemble_same_cycle;
+  let read: string | undefined;
+  let flag = false;
+  if (e && typeof e.mean_pct === "number") {
+    facts.push({
+      label: `Analog-implied crop${d?.current_crop_year ? ` ${d.current_crop_year}` : ""}`,
+      value: `**${pct(e.mean_pct)}** detrended YoY${e.n ? ` (n=${e.n})` : ""}${
+        typeof e.ci95_lo === "number" && typeof e.ci95_hi === "number"
+          ? `, 95% CI [${pct(e.ci95_lo)}, ${pct(e.ci95_hi)}]`
+          : ""
+      }`,
+    });
+    // A CI entirely one side of zero is the only case the analogs actually call.
+    const oneSided = typeof e.ci95_lo === "number" && typeof e.ci95_hi === "number"
+      && (e.ci95_lo > 0 || e.ci95_hi < 0);
+    if (e.mean_pct <= -5) {
+      read = oneSided
+        ? `Analog years point to a smaller ${label} crop — the whole confidence interval sits below trend.`
+        : `Analogs lean to a smaller ${label} crop, but the spread still straddles trend.`;
+      flag = oneSided;
+    } else if (e.mean_pct >= 5) {
+      read = oneSided
+        ? `Analog years point to a bigger ${label} crop — the whole interval sits above trend.`
+        : `Analogs lean to a bigger ${label} crop, but the spread still straddles trend.`;
+    } else {
+      read = "This season's weather signature has no directional crop message — analogs land near trend.";
+    }
+  }
+  return { facts, read, flag };
 };
 
 // ── ENSO ──────────────────────────────────────────────────────────────────────
@@ -1676,8 +1807,10 @@ const INSIGHTS: Record<string, Builder> = {
   vietnam_annual_volume: vietnamAnnual,
   vietnam_destination: vietnamDest,
   vietnam_supply_demand: supplyDemand("vietnam", "Vietnam"),
+  vietnam_farmer_economics: vnFarmerEconomics,
   vietnam_weather_analogs: weatherAnalogs("vietnam", "Vietnam"),
   vietnam_weather_pack: weatherPack("vn", "Vietnam"),
+  vietnam_water_levels: vnWaterLevels,
   colombia_weather_pack: weatherPack("colombia", "Colombia"),
   honduras_weather_pack: weatherPack("honduras", "Honduras"),
   ethiopia_weather_pack: weatherPack("ethiopia", "Ethiopia"),

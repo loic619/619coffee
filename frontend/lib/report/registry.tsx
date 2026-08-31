@@ -421,8 +421,28 @@ export const REPORT_REGISTRY: ReportChartDef[] = [
     group: "Vietnam",
     subgroup: "Supply & Demand",
     category: "Supply",
-    description: "USDA PSD balance: production, exports, domestic use and ending stocks.",
+    description: "Crop-year balance (Oct–Sep): USDA PSD backbone, realised customs exports and the USDA/MAE/ICO production spread.",
     Component: dynamic(() => import("@/components/report/charts/SupplyDemandReports").then((m) => ({ default: m.VietnamSupplyDemand })), { ssr: false, loading }),
+    width: "full",
+  },
+  {
+    id: "vietnam_farmer_economics",
+    label: "Vietnam — Farmer Economics",
+    group: "Vietnam",
+    subgroup: "Supply & Demand",
+    category: "Supply",
+    description: "Robusta production cost vs VN FAQ spot (grower margin), plus acreage and yield.",
+    Component: dynamic(() => import("@/components/supply/VietnamFarmerEconomics"), { ssr: false, loading }),
+    width: "full",
+  },
+  {
+    id: "vietnam_water_levels",
+    label: "Vietnam — River Flow (irrigation water)",
+    group: "Vietnam",
+    subgroup: "Weather",
+    category: "Supply",
+    description: "Central Highlands basin flow vs the multi-year normal (TBNN) — the Jan–Apr irrigation constraint.",
+    Component: dynamic(() => import("@/components/supply/VnWaterLevels"), { ssr: false, loading }),
     width: "full",
   },
   {
@@ -945,9 +965,10 @@ export const REPORT_PRESETS: ReportPreset[] = [
     id: "vietnam",
     label: "Vietnam",
     description:
-      "Vietnam-focused robusta report — export pace & destinations, S&D, weather " +
-      "and analogs, ENSO, the HCM logistics chain, plus the London/robusta market " +
-      "context (RM quotes, COT, forecast, certified stocks, farmgate)",
+      "Vietnam-focused robusta report — export pace & destinations, the " +
+      "crop-year S&D and grower margin, weather, river flow, analogs and ENSO, the " +
+      "HCM logistics chain, plus the London/robusta market context (RM quotes, COT, " +
+      "options, forecast, certified stocks, farmgate)",
     // Ordered as the report reads within each category block.
     ids: [
       // Price — robusta market context (both markets render; RM is the read)
@@ -964,7 +985,9 @@ export const REPORT_PRESETS: ReportPreset[] = [
       "vietnam_annual_volume",
       "vietnam_destination",
       "vietnam_supply_demand",
+      "vietnam_farmer_economics",        // grower margin, acreage, yield
       "vietnam_weather_pack",
+      "vietnam_water_levels",            // Jan–Apr irrigation constraint
       "vietnam_weather_analogs",
       "enso_divergence",                 // ENSO drives VN rainfall
       // Demand — robusta deliverable stocks
