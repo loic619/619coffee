@@ -1,0 +1,138 @@
+name: "9.11 – Claude fix queue (ACTIONS_ISSUES.md)"
+
+# Works down ACTIONS_ISSUES.md by priority, ONE pull request at a time.
+#
+# Guard rails, in order of importance:
+#   1. One open PR at a time. If an auto-fix PR is still open, this run exits
+#      without doing anything. Loic's review is the pacing mechanism.
+#   2. Never touches repo settings, secrets, or branch protection — items marked
+#      (human-only) in the log are skipped and left for him.
+#   3. Never edits scraped data, never runs a scraper, never force-pushes, and
+#      never touches a pre-existing claude/* branch (see CLAUDE.md).
+#   4. Capped turns + job timeout, so a confused run costs a few minutes, not an
+#      afternoon.
+#
+# Weekdays at 06:00 UTC (13:00 Asia/Saigon) — half an hour after the watcher
+# (9.10) has refreshed the queue, so it always works from a current log.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      issue_id:
+        description: "Force a specific issue ID from ACTIONS_ISSUES.md (e.g. C3). Blank = next by priority."
+        required: false
+        type: string
+
+concurrency:
+  group: claude-fix-queue
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+  actions: read
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Cheap pre-flight: if an auto-fix PR is already open, stop before
+      # spending a single token.
+      - name: Check for an open auto-fix PR
+        id: gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Defensive: never let a missing label or a transient API hiccup
+          # fail the gate. On any error we report 1 (= "something may be open")
+          # so the queue holds rather than opening a second PR.
+          open=$(gh pr list --state open --label auto-fix --json number --jq 'length' 2>/dev/null) || open=1
+          [ -n "$open" ] || open=1
+          echo "open_prs=$open" >> "$GITHUB_OUTPUT"
+          if [ "$open" != "0" ]; then
+            echo "::notice::$open auto-fix PR(s) still open — skipping this run."
+          fi
+
+      - name: Work the queue
+        if: steps.gate.outputs.open_prs == '0'
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        with:
+          # Workload identity federation — NO secret stored in this repo.
+          # The action swaps the workflow's GitHub OIDC token for a short-lived
+          # Anthropic token at run time. Get these two values from the Claude
+          # Console: Settings -> Workload identity -> Connect workload -> GitHub
+          # Actions. The wizard creates the service account and federation rule.
+          anthropic_federation_rule_id: fdrl_REPLACE_ME
+          anthropic_organization_id: REPLACE_ME
+          claude_args: --max-turns 40
+          prompt: |
+            You maintain this repo's GitHub Actions health. Your work queue is
+            ACTIONS_ISSUES.md at the repo root. Fix EXACTLY ONE issue this run,
+            open a pull request for it, and stop.
+
+            Requested issue ID (blank means choose): "${{ github.event.inputs.issue_id }}"
+
+            ## Choosing the issue
+            If an ID was requested, do that one. Otherwise take the highest-priority
+            OPEN item — status `[ ]` or `[~]`, P1 before P2 before P3, and within a
+            priority the lowest ID. SKIP any item whose row contains "(human-only)":
+            those need repo settings or credentials you do not have. Skip `[x]` and
+            `[?]` rows. If every remaining item is human-only or done, open no PR —
+            just report that in the job log and exit successfully.
+
+            ## Doing the work
+            Read the issue's Cause and Proposed fix columns. Implement the proposed
+            fix. If while implementing you conclude the proposed fix is wrong, DO NOT
+            improvise something larger: make the smallest correct change you can
+            defend, and explain the divergence in the PR body so Loic can judge it.
+
+            Verify before you open anything:
+              - `cd backend && ruff check .` must pass
+              - `cd backend && python -m pytest -q` must pass
+              - any workflow YAML you touched must parse: `python -c "import yaml,sys; yaml.safe_load(open(p))"`
+              - if you changed a cron, state in the PR body what it now fires and when, in UTC and in Asia/Saigon
+
+            ## Hard limits — do not cross these
+              - Do NOT modify anything under frontend/public/data/ or data/ — that is
+                scraped output, not source.
+              - Do NOT run a scraper, backfill, or anything that writes data.
+              - Do NOT touch secrets, tokens, or .github/workflows/claude-fix-queue.yml itself.
+              - Do NOT force-push, reset, or delete any branch. Leave every pre-existing
+                claude/* branch untouched.
+              - Do NOT merge, approve, or close a PR. Loic does that.
+              - Touch only the files the chosen issue actually requires.
+
+            ## Delivering
+            Follow CLAUDE.md: cut a new branch from current origin/main named for the
+            change (e.g. `claude/c3-activity-refresh-cron`), never the session name.
+            In the SAME commit, tick that issue's status box in ACTIONS_ISSUES.md from
+            `[ ]` to `[x]` (or `[~]` if you only closed part of it) and update the
+            `Last reviewed` date.
+
+            Open a PR against main with:
+              - title: `fix(actions): <issue ID> — <short description>`
+              - label: `auto-fix`  (create the label if it does not exist)
+              - body: what the issue was in plain language (Loic is not a developer —
+                lead with the effect, keep the technical detail below it), what you
+                changed, how you verified it, and anything you were unsure about.
+
+            Finally, send Loic a short Telegram message using TELEGRAM_BOT_TOKEN
+            and TELEGRAM_CHAT_ID from the environment: which issue you fixed, in
+            one plain-language sentence, and the PR link for him to review. If you
+            opened no PR, send nothing.
+
+            Then stop. One issue, one PR, per run.

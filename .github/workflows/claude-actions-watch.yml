@@ -1,0 +1,152 @@
+name: "9.10 – Claude Actions watch (daily health review)"
+
+# The CHECKING agent. Runs entirely in GitHub Actions — no laptop, no human.
+#
+# Every morning it reviews what the repo's Actions actually did in the last day,
+# and writes what it finds into ACTIONS_ISSUES.md, which it commits to main.
+# That file is the ONLY handoff to the fixing agent (9.11): the watcher writes
+# the queue, the fixer works it. Neither ever talks to a person to proceed.
+#
+# It runs INSIDE Actions, so unlike an outside reviewer it can read real run
+# logs via `gh` — it never has to infer a failure from run counts.
+#
+# It fixes nothing. Read-only on code; its single write is the issue log.
+# Keeping watching and fixing in separate runs is deliberate: the reviewer that
+# grades yesterday's merge must not be the one that wrote it.
+#
+# 05:30 UTC = 12:30 Asia/Saigon. After the overnight scrapers, the 1.4 export
+# and 0.17's 06:10 activity rebuild are all long settled for the prior day.
+
+on:
+  schedule:
+    - cron: '30 5 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: claude-actions-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: write      # commits ACTIONS_ISSUES.md
+  actions: read        # reads run history and logs
+  pull-requests: read
+  id-token: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Review yesterday and update the issue log
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        with:
+          # Workload identity federation — NO secret stored in this repo.
+          # The action swaps the workflow's GitHub OIDC token for a short-lived
+          # Anthropic token at run time. Get these two values from the Claude
+          # Console: Settings -> Workload identity -> Connect workload -> GitHub
+          # Actions. The wizard creates the service account and federation rule.
+          anthropic_federation_rule_id: fdrl_REPLACE_ME
+          anthropic_organization_id: REPLACE_ME
+          claude_args: --max-turns 40
+          prompt: |
+            You are the health reviewer for this repo's GitHub Actions. You fix
+            nothing. You produce one thing: an accurate, current ACTIONS_ISSUES.md
+            at the repo root, committed to main. The fixing agent (workflow 9.11)
+            reads that file as its work queue, so what you write IS the handoff —
+            an issue you describe vaguely becomes a fix attempted vaguely.
+
+            ## Your tools
+            You are running inside Actions, so `gh` is authenticated. Use it:
+              gh run list --limit 200 --json name,conclusion,event,createdAt,databaseId,workflowName
+              gh run view <id> --log-failed     # the actual error — always read this before judging a failure
+            Also available in the repo:
+              frontend/public/data/workflow_activity.json  (7-day run record, rebuilt 06:10 UTC by 0.17)
+              frontend/public/data/health.json             (per-scraper / per-exporter freshness stamps)
+              data/source_sentinels.json                   (per-source detection state; last_found:null = never detected)
+              .github/workflows/*.yml                      (~97 definitions)
+
+            ## What to check, in order
+            1. IS MAIN GREEN? Run the repo's own gates yourself:
+                 pip install ruff==0.15.11 && (cd backend && ruff check .)
+                 (cd backend && python -m pytest -q)
+               plus the smart-quote grep from lint-smart-quotes.yml.
+               A red main is ALWAYS the top finding — a broken gate here has sat
+               red for days before (see A3), because a red check does not block a
+               merge unless branch protection is on.
+            2. FAILURES. Every workflow that failed since your last run. Read the
+               failed log with `gh run view --log-failed` before you characterise
+               it. Never call something "flaky" you have not read the error for.
+               When a CI job fails at a high rate, check whether main itself is
+               red rather than blaming the branches.
+            3. KNOCK-ON PROBLEMS — what run status alone hides. A workflow green
+               but its health.json stamp not advancing; a scraper that ran and
+               wrote nothing; runs killed by concurrency; a scheduled day with no
+               run; push contention between the data-committing workflows; and
+               workflow_dispatch counts far exceeding schedule counts, which means
+               a cron is throttled and something is silently compensating.
+            4. RELEVANCE. Whether the data still earns its keep. Be honest about
+               the ~97-declared / ~66-ran gap: most of it is legitimately idle
+               monthly, weekly and annual jobs. Only flag genuinely spent
+               one-shots, duplicates, and cadences that no longer match the source.
+            5. IMPROVEMENTS. Concrete and small. Name the file and the change.
+
+            ## Writing the log
+            Keep ACTIONS_ISSUES.md's existing structure exactly: sections A–E, one
+            row per issue, columns for plain-language impact / cause / proposed fix,
+            status boxes and P1–P3 priorities.
+              - Tick `[x]` anything you can verify is now fixed, and say how you verified it.
+              - Add new findings as new rows in the right section with the next free ID.
+              - Promote an E-section watch item to a real issue when it trips.
+              - Update the `Last reviewed` date.
+              - Loic is NOT a developer. The impact column must be ordinary language
+                describing the effect on him; keep the technical detail in the cause
+                column. Write the proposed fix precisely enough that another agent
+                can implement it without rediscovering the diagnosis.
+              - Mark an item ***(human-only)*** if it needs repo settings, credentials,
+                or a genuine strategy choice. Those are Loic's, not an agent's.
+              - Do NOT remove or rewrite `[x]` history. The log is a record.
+
+            Commit ACTIONS_ISSUES.md directly to main with message
+            `chore(actions): daily health review [skip ci]`. That file is the only
+            thing you may write. Change nothing else — no code, no workflows, no data.
+
+            ## Reporting to Loic
+            After committing, send a Telegram summary using TELEGRAM_BOT_TOKEN and
+            TELEGRAM_CHAT_ID from the environment: lead with the single thing most
+            worth acting on, then what changed in the log, then what the fixer has
+            queued. Plain language, a few lines, no markdown tables. If nothing is
+            wrong and nothing changed, send two lines saying so — do not invent
+            findings to fill the message.
+
+            ## Standing context — do not re-report as news
+            - 9.2 Backend Lint's 63/127 failures (25–31 Aug) were NOT flakiness: main
+              carried one ruff I001 unsorted import in backend/scraper/probe_port_ids.py
+              from bd481087 (#772) to 32862bb6 (#802), failing every push and every PR
+              for three days while ~25 commits shipped. Logged as A3, closed.
+            - 9.3 Smart-quote guard failures are genuine PR-branch catches; main stayed
+              clean. Not incidents.
+            - 1.5 Check Data Pipeline Freshness failures are the alarm working. Report
+              what it is alarming ABOUT, never the failure itself.
+
+      - name: Telegram on watcher failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=🚨 9.10 Actions watch failed — the health review did not run today. https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
