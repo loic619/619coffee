@@ -53,13 +53,12 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         with:
-          # Workload identity federation — NO secret stored in this repo.
-          # The action swaps the workflow's GitHub OIDC token for a short-lived
-          # Anthropic token at run time. Get these two values from the Claude
-          # Console: Settings -> Workload identity -> Connect workload -> GitHub
-          # Actions. The wizard creates the service account and federation rule.
-          anthropic_federation_rule_id: fdrl_REPLACE_ME
-          anthropic_organization_id: REPLACE_ME
+          # Subscription OAuth token, generated once with `claude setup-token`
+          # and stored as the repo secret CLAUDE_CODE_OAUTH_TOKEN. It authorises
+          # model requests against Loic's Claude plan only — it is not an API key
+          # and cannot be used to spend money. Valid one year; regenerate and
+          # replace the secret before it expires.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: --max-turns 40
           prompt: |
             You are the health reviewer for this repo's GitHub Actions. You fix
