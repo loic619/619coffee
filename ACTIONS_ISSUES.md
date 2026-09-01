@@ -1,6 +1,6 @@
 # GitHub Actions — open issues log
 
-**Repo:** `loic619/619coffee` · **Opened:** 2026-09-01 · **Last reviewed:** 2026-09-02
+**Repo:** `loic619/619coffee` · **Opened:** 2026-09-01 · **Last reviewed:** 2026-09-02 (queue view added)
 **Evidence window:** 2026-08-25 → 2026-09-01 · audited 2026-09-02 (`frontend/public/data/workflow_activity.json`)
 
 > **How this file works.** Two Claude Code **Routines** keep it current — they
@@ -21,6 +21,25 @@
 > or merged — your review sets the pace. Items marked ***(human-only)*** are
 > skipped: they need repo settings or a decision from you, which no agent should
 > make on your behalf.
+
+---
+
+## Next up
+
+*Rebuilt by the watch routine on every run — if this disagrees with the tables below, the tables win.*
+
+| | Issue | Why it's next |
+|---|-------|---------------|
+| **In flight** | — | No `auto-fix` PR open. |
+| **1st** | **B1** · P1 | Repair CONAB / MDIC Comex detection. Highest-priority item the agent is allowed to touch. |
+| **2nd** | **A2** · P2 | Pin ruff. |
+| **3rd** | **B2** · P2 | Let the sentinel dispatch its own scraper. |
+| **4th** | **C2** · P2 | Count the rescue dispatches. |
+| then | **D1 · D2 · D3** · P3 | Housekeeping. |
+
+**Waiting on you — the agent will never take these:** **A1** (branch protection; still the highest-value item in this file) · **C1** (pick a polling strategy).
+
+**Not in the queue:** A3, A4, B4, C3 closed · B3 watching.
 
 ---
 
@@ -55,7 +74,7 @@
 |----|--------|----------------------------------------|-------|--------------|
 | **C1** | `[ ]` **P1** *(human-only — pick an option first)* | Your live-quote poller is scheduled to run ~360 times a week. It actually got **45 scheduled runs — about 12%**. The feed only stayed alive because a rescue mechanism fired **241 emergency runs** to cover the gap. It works, but you are running on the backup generator full-time and the main power has been out for weeks. | GitHub Actions silently throttles high-frequency crons on this repo (documented twice before in `poll-acaphe-quotes.yml`: June and August). The `1.8` freshness checker compensates by dispatching the poller whenever quotes go stale. | Two options, pick one: **(a)** accept the rescue path as the primary mechanism and rewrite the cron down to a low, reliable heartbeat — stop pretending the 15-minute schedule works; **(b)** move the polling loop to a single long-running job (one run that sleeps and polls) instead of many short cron ticks, which GitHub throttles far less. Either way, the current setup hides its own failure. |
 | **C2** | `[ ]` **P2** | That rescue mechanism is a single point of failure holding up your most time-sensitive feed, and if it breaks the failure is silent. | `check-live-quotes.yml` self-heals by calling the GitHub API (`actions/workflows/poll-acaphe-quotes.yml/dispatches`), which needs `actions:write`. If the token, permission or API call breaks, the poller drops to its real ~12% cron rate and nothing announces it. | Add a cheap tripwire: alert if scheduled-run count over 24h falls below a floor, or if `1.8` issues more than N rescues in a day. Right now nobody is counting the rescues. |
-| **C3** | `[ ]` **P3** | Your 08:00 daily debrief reads a run-record file that is ~19 hours old, so it can't see yesterday afternoon or evening. | `0.17 – Refresh Workflow Activity` rebuilds `workflow_activity.json` only at 06:10 UTC; the debrief runs at 01:00 UTC. | Add a second cron to `build-workflow-activity.yml`: `- cron: '40 0 * * *'`. Two lines, makes every morning brief complete. |
+| **C3** | `[x]` **P3** | *(Closed 2 Sep — solved by rescheduling, not by code.)* The daily review used to read a run-record file that was ~19 hours old, so it could not see the previous afternoon. It now reads one that is twenty minutes old. | The 08:00 Cowork debrief this row was written for no longer exists. Its replacement, the **Actions health watch** routine, runs at 13:30 Asia/Saigon = 06:20 UTC — *after* workflow 0.17 rebuilds `workflow_activity.json` at 06:10 UTC. | No action. The proposed `00:40 UTC` cron on `build-workflow-activity.yml` is **not** needed; do not add it. |
 
 ---
 
@@ -81,9 +100,9 @@
 
 ## Suggested order of work
 
-1. **A1** — 5 minutes in repo settings, and it prevents the whole class of problem in section A.
-2. **C3** — two lines, makes every subsequent daily debrief trustworthy.
-3. **A2** — one-line pin, removes a source of surprise red builds.
-4. **B1 / B2** — the real data-loss risk; the crons are holding for now, so this is important but not urgent.
-5. **C1 / C2** — decide the polling strategy properly rather than leaving the backup path load-bearing.
-6. **D1–D3** — one housekeeping pass whenever you want a clean board.
+The agent works the **Next up** queue at the top on its own. This section is what *you* do, and it is short by design.
+
+1. **A1** — five minutes in repo settings. It prevents the whole class of problem in section A, and it matters more now that something other than you opens pull requests: without required checks, a red check on an agent's PR is only a red icon.
+2. **C1** — pick (a) or (b). The agent is blocked on this and will stay blocked until you choose.
+
+Everything else is queued. Your job on those is to read one pull request at a time and merge or reject it.
