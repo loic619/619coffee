@@ -787,17 +787,82 @@ const indoDest: Builder = async () => {
   };
 };
 
-// ── Producer S&D (demand_stocks.json) ─────────────────────────────────────────
-const supplyDemand = (key: string, label: string): Builder => async () => {
+// ── Producer S&D (demand_stocks.json + the origin's balance sheet) ────────────
+/**
+ * The S&D card headlines the HOUSE number for the focus season: the analyst
+ * "Final" typed in the crop-estimate editor when there is one, otherwise the
+ * average of the published sources. The note has to lead with that same figure
+ * or the two disagree on the page — previously the note quoted only the raw
+ * USDA PSD row, in kt, against a card headlining the house call in M bags.
+ *
+ * `balance` locates the origin's multi-source seed: Vietnam nests it under
+ * `balance_sheet` in vn_farmer_economics.json, the other origins ship a
+ * top-level br/id/ug_balance_sheet.json. Absent → the note degrades to the
+ * plain USDA balance it always produced.
+ */
+interface SdSeason { season: string; forecast: boolean; production: Record<string, number>; production_final?: number }
+interface SdBalance { sources?: { key: string; label: string }[]; seasons?: SdSeason[] }
+const MBAGS_PER_KT = 1 / 60; // 1 kt of green coffee = 16.67k bags = 0.01667 M bags
+
+const supplyDemand = (
+  key: string,
+  label: string,
+  balance?: { url: string; path?: "balance_sheet" },
+): Builder => async () => {
   const d = await load<{ producers?: Record<string, { latest_year?: string | number; latest_production_mt?: number; latest_exports_mt?: number; latest_stocks_mt?: number }> }>("/data/demand_stocks.json");
   const p = d?.producers?.[key]; if (!p) return null;
   const facts: Fact[] = [];
+
+  // ── The house call, matching the card's focus season and its own maths ──
+  if (balance) {
+    const raw = await load<Record<string, unknown>>(balance.url);
+    const bs = (balance.path ? raw?.[balance.path] : raw) as SdBalance | undefined;
+    const seasons = bs?.seasons ?? [];
+    // Card focus = the LAST forecast season, else the last season on file.
+    const focus = [...seasons].reverse().find((s) => s.forecast) ?? seasons[seasons.length - 1];
+    const vals = (bs?.sources ?? [])
+      .map((s) => ({ label: s.label, mBags: focus?.production?.[s.key] }))
+      .filter((s): s is { label: string; mBags: number } => Number.isFinite(s.mBags));
+
+    if (focus && vals.length) {
+      const avg = vals.reduce((a, s) => a + s.mBags, 0) / vals.length;
+      const isFinal = focus.production_final != null;
+      const house = isFinal ? (focus.production_final as number) : avg;
+      const lo = Math.min(...vals.map((v) => v.mBags));
+      const hi = Math.max(...vals.map((v) => v.mBags));
+      const usda = vals.find((v) => v.label.toUpperCase() === "USDA")?.mBags;
+
+      // Fixed 1dp everywhere so the note's figures line up character-for-
+      // character with the card's own toFixed(1) equation strip.
+      const m1 = (v: number) => v.toFixed(1);
+      const how = isFinal
+        ? "analyst final"
+        : `average of ${vals.length} source${vals.length > 1 ? "s" : ""} (${m1(lo)}–${m1(hi)}M)`;
+      const vsUsda = usda != null && Math.abs(house - usda) >= 0.05
+        ? `, **${m1(Math.abs(house - usda))}M ${house < usda ? "below" : "above"}** USDA's ${m1(usda)}M`
+        : usda != null ? ", in line with USDA" : "";
+      facts.push({
+        label: `${label} crop ${focus.season}${focus.forecast ? " (f)" : ""}`,
+        value: `**${m1(house)}M bags** — ${how}${vsUsda}`,
+      });
+    }
+  }
+
+  // ── The USDA PSD backbone the rest of the card's rows are built on ──
   const bits: string[] = [];
   if (p.latest_production_mt != null) bits.push(`production **${n1(p.latest_production_mt / 1000)} kt**`);
   if (p.latest_exports_mt != null) bits.push(`exports **${n1(p.latest_exports_mt / 1000)} kt**`);
   if (p.latest_stocks_mt != null) bits.push(`ending stocks **${n1(p.latest_stocks_mt / 1000)} kt**`);
-  if (!bits.length) return null;
-  facts.push({ label: `${label} PSD (${p.latest_year ?? "latest"})`, value: bits.join(", ") });
+  if (!bits.length && !facts.length) return null;
+  if (bits.length) {
+    // Spell the unit conversion out — the card is in M bags, PSD ships tonnes,
+    // and the two looked like different crops until you did the division.
+    const asMBags = p.latest_production_mt != null
+      ? ` (production = **${((p.latest_production_mt / 1000) * MBAGS_PER_KT).toFixed(1)}M bags**)`
+      : "";
+    facts.push({ label: `USDA PSD backbone · MY${p.latest_year ?? "latest"}`, value: `${bits.join(", ")}${asMBags}` });
+  }
+
   let read: string | undefined; let flag = false;
   if (p.latest_stocks_mt != null && p.latest_exports_mt) {
     const cover = (p.latest_stocks_mt / p.latest_exports_mt) * 100;
@@ -1797,7 +1862,7 @@ const INSIGHTS: Record<string, Builder> = {
   brazil_type_share: brazilTypeShare,
   brazil_yoy_type: brazilYoyType,
   brazil_seasonality: brazilSeasonality,
-  brazil_supply_demand: supplyDemand("brazil", "Brazil"),
+  brazil_supply_demand: supplyDemand("brazil", "Brazil", { url: "/data/br_balance_sheet.json" }),
   brazil_weather_analogs: weatherAnalogs("brazil", "Brazil"),
   brazil_weather_pack: weatherPack("brazil", "Brazil"),
   brazil_weather_risk: brazilWeatherRisk,
@@ -1806,7 +1871,7 @@ const INSIGHTS: Record<string, Builder> = {
   vietnam_cumulative_pace: vietnamPace,
   vietnam_annual_volume: vietnamAnnual,
   vietnam_destination: vietnamDest,
-  vietnam_supply_demand: supplyDemand("vietnam", "Vietnam"),
+  vietnam_supply_demand: supplyDemand("vietnam", "Vietnam", { url: "/data/vn_farmer_economics.json", path: "balance_sheet" }),
   vietnam_farmer_economics: vnFarmerEconomics,
   vietnam_weather_analogs: weatherAnalogs("vietnam", "Vietnam"),
   vietnam_weather_pack: weatherPack("vn", "Vietnam"),
