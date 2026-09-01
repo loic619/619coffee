@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { DataHealthBar } from "@/components/DataHealthBar";
 import VietnamExportPanel from "@/components/supply/VietnamExportPanel";
 import DestinationChart from "@/components/supply/VietnamTab/DestinationChart";
-import CoffeeImportsPanel from "@/components/supply/VietnamTab/CoffeeImportsPanel";
 import VietnamFarmerEconomics from "@/components/supply/VietnamFarmerEconomics";
 import VnWeatherCharts from "@/components/supply/VnWeatherCharts";
 import VnWaterLevels   from "@/components/supply/VnWaterLevels";
@@ -223,10 +222,6 @@ export default function VietnamTab() {
             </h2>
             <DestinationChart />
           </div>
-
-          {/* Coffee imports (national, 1N bulletins) — renders once the
-              vn_fertilizer piggyback harvest lands its first cache. */}
-          <CoffeeImportsPanel />
 
         </div>
       )}

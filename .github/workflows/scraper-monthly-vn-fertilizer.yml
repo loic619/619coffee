@@ -70,8 +70,6 @@ jobs:
           mkdir -p backend/scraper/cache
           # backend/scraper/cache/ is .gitignored locally; force-add the files.
           git add -f backend/scraper/cache/vn_fertilizer.json || echo "  (vn_fertilizer.json not added)"
-          # Coffee-imports piggyback (national 'Cà phê' row from the same 1n PDFs).
-          git add -f backend/scraper/cache/vn_coffee_imports.json || echo "  (vn_coffee_imports.json not added)"
           if git diff --cached --quiet; then
             echo "No cache changes."
           else
