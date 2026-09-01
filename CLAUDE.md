@@ -24,9 +24,11 @@ the branch choice is settled.
 `ruff` and `pytest` run on every PR. Both must be green before merging.
 
 A red check on a file your diff never touched is usually inherited from `main`
-(e.g. the `probe_port_ids.py` import order that arrived with #778 and broke
-ruff on every branch cut after it). Fix it as its own commit, say so in the PR,
-and carry on — it is not a reason to stop and ask.
+(e.g. the `probe_port_ids.py` import order that arrived with #772 and broke
+ruff on every branch cut after it — ruff-bisected in the #814 review; #799's
+"inherited from #778" was a misdiagnosis, so don't trust that anchor). Fix it
+as its own commit, say so in the PR, and carry on — it is not a reason to stop
+and ask.
 
 ## Verifying frontend changes
 
