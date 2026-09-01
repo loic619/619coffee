@@ -888,36 +888,6 @@ def export_vn_export_by_destination() -> None:
     except Exception as e:
         print(f"  vn_export_by_destination.json → FAILED: {e}")
 
-
-def export_vn_coffee_imports() -> None:
-    """Publish the national coffee-import series harvested from the Customs 1n
-    bulletins by the vn_fertilizer job (see _COFFEE_CACHE_PATH there). The 5N
-    by-country table carries no coffee line, so national is the only import
-    figure the customs bulletins publish."""
-    try:
-        cache_path = ROOT / "scraper" / "cache" / "vn_coffee_imports.json"
-        if not cache_path.exists():
-            print("  vn_coffee_imports.json → skipped (cache not yet harvested)")
-            return
-        cache = json.loads(cache_path.read_text(encoding="utf-8"))
-        monthly = cache.get("monthly") or []
-        data = {
-            "source": cache.get("source", "Vietnam Customs 1n bulletins"),
-            "unit": cache.get("unit", "tonnes"),
-            "note": ("National imports only — the customs bulletins do not "
-                     "publish a by-country split for coffee imports."),
-            "monthly": monthly,
-        }
-        path = OUT_DIR / "vn_coffee_imports.json"
-        safe_write_json(
-            path, data,
-            lambda d: (True, "ok") if d.get("monthly") else (False, "no months"),
-        )
-        print(f"  vn_coffee_imports.json → {len(monthly)} months")
-    except Exception as e:
-        print(f"  vn_coffee_imports.json → FAILED: {e}")
-
-
 def export_colombia(db) -> None:
     try:
         from scraper.export_colombia import export_colombia as _export_colombia

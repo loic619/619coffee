@@ -40,14 +40,6 @@ _BRIDGE_URL = (
     "&site=https://tongcuc.customs.gov.vn/"
 )
 _CACHE_PATH = Path(__file__).resolve().parents[2] / "scraper" / "cache" / "vn_fertilizer.json"
-# Coffee IMPORTS piggyback. VERIFIED (probe, Jul-2026): the current 1n
-# bulletins do NOT carry a 'Cà phê' row — the 1n uses the same 'main imports'
-# commodity nomenclature as the 5N (also coffee-free), so coffee imports fold
-# into 'Other' throughout the customs monthly bulletins. The extraction below
-# is kept as a dormant hook: it costs nothing per run, and if customs ever
-# adds coffee to the import nomenclature the series starts automatically.
-# (Real VN coffee-import data would need ITC/Comtrade or GDVC data services.)
-_COFFEE_CACHE_PATH = _CACHE_PATH.parent / "vn_coffee_imports.json"
 
 # Vietnamese sub-type name → output field (cumulative tons → kt)
 _VN_FERT_MAP: dict[str, str] = {
@@ -57,10 +49,6 @@ _VN_FERT_MAP: dict[str, str] = {
     "phân sa":    "as_kt",
     "phân npk":   "npk_kt",
 }
-
-# Match 'cà phê' accent-insensitively (bulletins are properly accented, but
-# normalize to be safe — same convention as vn_coffee_export).
-_COFFEE_RX = re.compile(r"\bca\s*phe\b", re.IGNORECASE)
 
 # YTD cumulative quantity column index
 _CUM_COL = 5
@@ -172,62 +160,6 @@ def _extract_fert_cumulative(pdf_bytes: bytes) -> dict[str, float]:
     except Exception as e:
         logger.warning(f"[vn_fertilizer] PDF parse error: {e}")
         return {}
-
-
-def _extract_coffee_cumulative(pdf_bytes: bytes) -> dict[str, float] | None:
-    """Pull the 1n bulletin's national 'Cà phê' row → YTD cumulative import
-    quantity (tonnes, col 5) and value (USD, col 6). None when absent or on
-    any parse surprise — coffee must never break the fertilizer harvest."""
-    try:
-        import unicodedata
-
-        import pdfplumber
-        strip = lambda s: "".join(c for c in unicodedata.normalize("NFD", s)  # noqa: E731
-                                  if unicodedata.category(c) != "Mn")
-        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-            for pg in pdf.pages:
-                for table in (pg.extract_tables() or []):
-                    for row in table:
-                        if not row or len(row) < 6:
-                            continue
-                        commodity = strip(row[1] or "").lower()
-                        if not _COFFEE_RX.search(commodity):
-                            continue
-                        return {
-                            "ytd_tonnes": _parse_vn_number(row[5] if len(row) > 5 else None),
-                            "ytd_usd":    _parse_vn_number(row[6] if len(row) > 6 else None),
-                        }
-        return None
-    except Exception as e:
-        logger.warning(f"[vn_fertilizer] coffee parse error: {e}")
-        return None
-
-
-def derive_coffee_monthly(cum: dict[str, dict[str, float]]) -> list[dict]:
-    """k2 cumulative YTD → monthly imports, mirroring _derive_monthly's
-    year-boundary reset. A first list month that isn't January can't yield a
-    true monthly figure (its cumulative is YTD) — tonnes/value stay None."""
-    months = sorted(cum)
-    rows: list[dict] = []
-    for i, month in enumerate(months):
-        c = cum[month]
-        year_start = month.endswith("-01")
-        if i > 0 and months[i - 1][:4] == month[:4]:
-            p = cum[months[i - 1]]
-            tonnes = max(0.0, round(c["ytd_tonnes"] - p["ytd_tonnes"], 1))
-            usd    = max(0.0, round(c["ytd_usd"] - p["ytd_usd"], 0))
-        elif year_start:
-            tonnes, usd = c["ytd_tonnes"], c["ytd_usd"]
-        else:
-            tonnes = usd = None    # YTD only — no prior month to diff against
-        rows.append({
-            "month":      month,
-            "tonnes":     tonnes,
-            "value_usd":  usd,
-            "ytd_tonnes": c["ytd_tonnes"],
-            "ytd_usd":    c["ytd_usd"],
-        })
-    return rows
 
 
 # ── portal helpers ──────────────────────────────────────────────────────────────
@@ -470,11 +402,8 @@ async def run(page, db) -> None:  # noqa: ARG001
                 else:
                     print(f"[vn_fertilizer] {month}: PDF download failed — skipping")
 
-        # Parse each PDF. The same bytes feed two extractions: fertilizer
-        # sub-types (this scraper's job) and the national coffee import row
-        # (dormant piggyback — see the note at _COFFEE_CACHE_PATH).
+        # Parse each PDF for the fertilizer sub-types.
         cumulative: dict[str, dict[str, float]] = {}
-        coffee_cum: dict[str, dict[str, float]] = {}
         for month, pdf_bytes in sorted(pdf_by_month.items()):
             fert = _extract_fert_cumulative(pdf_bytes)
             if not fert:
@@ -482,13 +411,8 @@ async def run(page, db) -> None:  # noqa: ARG001
             else:
                 cumulative[month] = fert
                 print(f"[vn_fertilizer] {month}: {fert}")
-            coffee = _extract_coffee_cumulative(pdf_bytes)
-            if coffee:
-                coffee_cum[month] = coffee
-                print(f"[vn_fertilizer] {month}: coffee imports ytd "
-                      f"{coffee['ytd_tonnes']:.0f} t / {coffee['ytd_usd']:.0f} USD")
 
-        if not cumulative and not coffee_cum:
+        if not cumulative:
             print("[vn_fertilizer] No data extracted — retaining cache")
             return
 
@@ -501,32 +425,6 @@ async def run(page, db) -> None:  # noqa: ARG001
             }
             _CACHE_PATH.write_text(json.dumps(cache, indent=2, ensure_ascii=False), encoding="utf-8")
             print(f"[vn_fertilizer] Done. {len(monthly)} months written to cache.")
-
-        if coffee_cum:
-            # Merge over previously-cached coffee months so the series keeps
-            # its history even when the portal list rotates older bulletins out.
-            merged_cum = dict(coffee_cum)
-            try:
-                if _COFFEE_CACHE_PATH.exists():
-                    prior = json.loads(_COFFEE_CACHE_PATH.read_text(encoding="utf-8"))
-                    for r in prior.get("monthly", []):
-                        merged_cum.setdefault(r["month"], {
-                            "ytd_tonnes": r.get("ytd_tonnes", 0.0),
-                            "ytd_usd":    r.get("ytd_usd", 0.0),
-                        })
-            except (json.JSONDecodeError, OSError):
-                pass
-            coffee_monthly = derive_coffee_monthly(merged_cum)
-            _COFFEE_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-            _COFFEE_CACHE_PATH.write_text(json.dumps({
-                "scraped_at": datetime.utcnow().isoformat() + "Z",
-                "source": ("Vietnam Customs 1n (all-trader imports by commodity) "
-                           "k2 bulletins — national 'Cà phê' row; monthly = "
-                           "diff of YTD cumulatives"),
-                "unit": "tonnes",
-                "monthly": coffee_monthly,
-            }, indent=2, ensure_ascii=False), encoding="utf-8")
-            print(f"[vn_fertilizer] Coffee imports: {len(coffee_monthly)} months written.")
 
     except Exception as e:
         print(f"[vn_fertilizer] FAILED: {e} — retaining cache")
