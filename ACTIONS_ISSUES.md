@@ -1,23 +1,26 @@
 # GitHub Actions — open issues log
 
-**Repo:** `loic619/619coffee` · **Opened:** 2026-09-01 · **Last reviewed:** 2026-09-01
-**Evidence window:** 2026-08-25 → 2026-09-01 (`frontend/public/data/workflow_activity.json`)
+**Repo:** `loic619/619coffee` · **Opened:** 2026-09-01 · **Last reviewed:** 2026-09-02
+**Evidence window:** 2026-08-25 → 2026-09-01 · audited 2026-09-02 (`frontend/public/data/workflow_activity.json`)
 
-> **How this file works.** Commit it at the repo root. The daily Cowork task
-> "619coffee — Daily Actions debrief" (08:00 Asia/Saigon) reads it, ticks off
-> anything it can verify as fixed, updates the *Last reviewed* date, and appends
-> new findings. So we never re-derive the same problem twice.
+> **How this file works.** Two Claude Code **Routines** keep it current — they
+> run on Anthropic's cloud, not in this repo, so there is no workflow here to
+> look for. **619coffee — Actions health watch** (daily 13:30 Asia/Saigon) reviews
+> what the Actions actually did, ticks off what it can verify, appends new
+> findings, updates the *Last reviewed* date, and commits the result to `main`.
+> So we never re-derive the same problem twice.
 >
 > **Status key:** `[ ]` open · `[~]` partly fixed, root cause still open · `[x]` done · `[?]` watch, not yet a problem
 >
 > Priority is **P1** (silently loses or corrupts data) · **P2** (weakens a safety net) · **P3** (housekeeping).
 >
-> **This file is also a work queue.** The workflow `9.11 – Claude fix queue`
-> reads it on weekday mornings, takes the highest-priority open item, fixes it on
-> a branch, ticks the box in the same commit, and opens one pull request labelled
-> `auto-fix`. It will not start another until that PR is closed or merged — your
-> review sets the pace. Items marked ***(human-only)*** are skipped: they need
-> repo settings or a decision from you, which no agent should make on your behalf.
+> **This file is also a work queue.** The second routine, **619coffee — Actions
+> fix queue** (weekdays 14:30 Asia/Saigon), takes the highest-priority open item,
+> fixes it on a branch, ticks the box in the same commit, and opens one pull
+> request labelled `auto-fix`. It will not start another until that PR is closed
+> or merged — your review sets the pace. Items marked ***(human-only)*** are
+> skipped: they need repo settings or a decision from you, which no agent should
+> make on your behalf.
 
 ---
 
@@ -25,11 +28,13 @@
 
 | ID | Status | What it means for you (plain language) | Cause | Proposed fix |
 |----|--------|----------------------------------------|-------|--------------|
-| **A1** | `[ ]` **P1** *(human-only)* | Your lint check went red and **nothing stopped**. About 25 commits shipped to `main` over three days while the gate was failing, and it only went green again because someone happened to fix the line by accident inside an unrelated PR. The check is a smoke alarm with no one in the building. | The workflows run on every PR, but they are not **required status checks** in branch protection on `main`. A red result is just a red icon — GitHub still lets the merge through. | In GitHub → Settings → Branches → `main`, mark **9.1 CI Tests**, **9.2 Backend Lint** and **9.3 Smart-quote guard** as required checks. Five minutes, no code. |
+| **A1** | `[ ]` **P1** *(human-only)* | Your gates go red and **nothing stops**. This has now happened twice in one week. Backend Lint was red for three days while **39 pull requests merged** over it (A3); the smart-quote guard was red for five days while **48 merged** (A4). Both went green again by accident, inside PRs aimed at something else. The checks are smoke alarms with no one in the building. | The workflows run on every PR, but they are not **required status checks** in branch protection on `main`. A red result is just a red icon — GitHub still lets the merge through. | In GitHub → Settings → Branches → `main`, mark **9.1 CI Tests**, **9.2 Backend Lint** and **9.3 Smart-quote guard** as required checks. Five minutes, no code. This is the single highest-value item in this file: A3 and A4 are both symptoms of it. |
 | **A2** | `[ ]` **P2** | A tool you don't control can turn your build red overnight, for reasons you never chose. | `lint-backend.yml` runs `pip install --quiet ruff` with **no version pin**. Ruff ships new rules frequently; the next release can start flagging code that was fine yesterday. | Pin it: `pip install ruff==0.15.11`, and bump the version deliberately when you want the new rules. |
-| **A3** | `[x]` **P1** | *(Resolved 30 Aug)* Backend Lint failed 63 of 127 runs — not flaky, genuinely broken. | A single unsorted import block (`I001`) in `backend/scraper/probe_port_ids.py`, on `main` from `bd481087` (27 Aug, #772) to `32862bb6` (29 Aug, #802). Every push run **and** every PR run failed on that one line. | Fixed incidentally in `ec1bc457` (#799, 30 Aug). Closed — but A1 is what stops it recurring. |
+| **A3** | `[x]` **P1** | *(Resolved 30 Aug)* Backend Lint failed 63 of 127 runs — not flaky, genuinely broken. | A single unsorted import block (`I001`) in `backend/scraper/probe_port_ids.py`, red on `main` from `bd481087` (27 Aug, #772) through `32862bb6` (29 Aug, #802). Every push run **and** every PR run failed on that one line, and 39 PRs merged over it. **On the introducing commit:** #799's message and a review both attribute it to #778, but the file was *created* by #772 (`git log --diff-filter=A`) already carrying `PORTS, _get, _START_YEAR`, and full-repo ruff flips PASS→FAIL[I001] exactly across `bd481087^ → bd481087`. #778 later reshaped that same line (adding `_HEADERS`); it did not introduce the violation. | Fixed incidentally in `ec1bc457` (#799, 30 Aug) — a one-line reorder folded into an unrelated PR. Closed. A1 is what stops it recurring. |
 
-**Note on 9.3 Smart-quote guard:** its 20 failures in the window are **not** a problem. `main` stayed clean throughout; every failure was the guard correctly catching a smart quote on a PR branch before it landed. Working as designed — don't chase it.
+| **A4** | `[x]` **P1** | *(Resolved 31 Aug — corrected 2 Sep)* The smart-quote guard's 20 failures were **not** the guard doing its job on bad branches. A smart quote was sitting on `main` itself for five days, so the guard went red on innocent branches whose diffs never touched the file. **This is a second instance of A1**, not a non-event. | A typographic quote in `frontend/components/supply/SupplySDTab.tsx` landed with `1afb2660` (#763, 26 Aug) and stayed until `a98835ec` (#803, 31 Aug). Verified by scanning `main` at each commit across the window. | Fixed in #803. Closed. Verify with `git log -S'“' -- frontend/components/supply/SupplySDTab.tsx`. |
+
+**Correction, 2 Sep.** The first version of this file asserted the opposite — that `main` stayed clean and the guard was working as designed, so "don't chase it." That was wrong, and it was wrong for a mechanical reason worth recording: the check used `grep -P '[\x{2018}...]'`, which **errors out** in this environment rather than matching, and the surrounding loop read a non-zero exit as "no hits". Every "clean" it reported was a false negative from a broken detector. Two lessons, both now standing rules for the watch routine: **positive-control any detector before trusting a negative result**, and treat "no action needed" rows as claims to verify, not conclusions — the errors in this file have lived in the dismissals, not the alarms.
 
 ---
 
