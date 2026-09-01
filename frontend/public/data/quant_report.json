@@ -1,132 +1,132 @@
 {
   "currency_index": {
-    "scraped_at": "2026-09-01T00:44:31.842444+00:00",
-    "index_value": 103.433952,
-    "daily_delta_i": 0.0,
-    "daily_delta_pct": 0.0,
-    "zscore": 0.196263,
-    "zscore_mean": 103.127131,
-    "zscore_std": 1.563312,
+    "scraped_at": "2026-09-01T23:28:43.941503+00:00",
+    "index_value": 103.445083,
+    "daily_delta_i": 0.000108,
+    "daily_delta_pct": 0.010761,
+    "zscore": 0.203354,
+    "zscore_mean": 103.127175,
+    "zscore_std": 1.563321,
     "currencies": [
       {
         "ticker": "BRL=X",
         "name": "Brazilian Real",
         "type": "export",
         "weight": 0.395,
-        "daily_chg": -0.0,
-        "contribution": -0.0
+        "daily_chg": 0.213091,
+        "contribution": 0.000842
       },
       {
         "ticker": "VND=X",
         "name": "Vietnamese Dong",
         "type": "export",
         "weight": 0.222,
-        "daily_chg": -0.0,
-        "contribution": -0.0
+        "daily_chg": -0.04859,
+        "contribution": -0.000108
       },
       {
         "ticker": "COP=X",
         "name": "Colombian Peso",
         "type": "export",
         "weight": 0.118,
-        "daily_chg": -0.0,
-        "contribution": -0.0
+        "daily_chg": -0.594125,
+        "contribution": -0.000701
       },
       {
         "ticker": "ETB=X",
         "name": "Ethiopian Birr",
         "type": "export",
         "weight": 0.066,
-        "daily_chg": -0.0,
-        "contribution": -0.0
+        "daily_chg": 1.302434,
+        "contribution": 0.00086
       },
       {
         "ticker": "IDR=X",
         "name": "Indonesian Rupiah",
         "type": "export",
         "weight": 0.064,
-        "daily_chg": -0.0,
-        "contribution": -0.0
+        "daily_chg": 0.098484,
+        "contribution": 6.3e-05
       },
       {
         "ticker": "UGX=X",
         "name": "Ugandan Shilling",
         "type": "export",
         "weight": 0.056,
-        "daily_chg": -0.0,
-        "contribution": -0.0
+        "daily_chg": -0.329273,
+        "contribution": -0.000184
       },
       {
         "ticker": "HNL=X",
         "name": "Honduran Lempira",
         "type": "export",
         "weight": 0.044,
-        "daily_chg": -0.0,
-        "contribution": -0.0
+        "daily_chg": -0.048176,
+        "contribution": -2.1e-05
       },
       {
         "ticker": "PEN=X",
         "name": "Peruvian Sol",
         "type": "export",
         "weight": 0.035,
-        "daily_chg": -0.0,
-        "contribution": -0.0
+        "daily_chg": 0.269919,
+        "contribution": 9.4e-05
       },
       {
         "ticker": "EURUSD=X",
         "name": "Euro",
         "type": "import",
         "weight": 0.673,
-        "daily_chg": 0.0,
-        "contribution": -0.0
+        "daily_chg": 0.10599,
+        "contribution": -0.000713
       },
       {
         "ticker": "JPY=X",
         "name": "Japanese Yen",
         "type": "import",
         "weight": 0.095,
-        "daily_chg": -0.0,
-        "contribution": 0.0
+        "daily_chg": -0.047614,
+        "contribution": 4.5e-05
       },
       {
         "ticker": "CHF=X",
         "name": "Swiss Franc",
         "type": "import",
         "weight": 0.052,
-        "daily_chg": -0.0,
-        "contribution": 0.0
+        "daily_chg": -0.100197,
+        "contribution": 5.2e-05
       },
       {
         "ticker": "CNY=X",
         "name": "Chinese Yuan",
         "type": "import",
         "weight": 0.052,
-        "daily_chg": -0.0,
-        "contribution": 0.0
+        "daily_chg": 0.017518,
+        "contribution": -9e-06
       },
       {
         "ticker": "CAD=X",
         "name": "Canadian Dollar",
         "type": "import",
         "weight": 0.046,
-        "daily_chg": -0.0,
-        "contribution": 0.0
+        "daily_chg": 0.143183,
+        "contribution": -6.6e-05
       },
       {
         "ticker": "KRW=X",
         "name": "South Korean Won",
         "type": "import",
         "weight": 0.045,
-        "daily_chg": -0.0,
-        "contribution": 0.0
+        "daily_chg": 0.137655,
+        "contribution": -6.2e-05
       },
       {
         "ticker": "GBP=X",
         "name": "British Pound",
         "type": "import",
         "weight": 0.038,
-        "daily_chg": -0.0,
-        "contribution": 0.0
+        "daily_chg": -0.042691,
+        "contribution": 1.6e-05
       }
     ],
     "history": [
@@ -248,11 +248,11 @@
       },
       {
         "date": "2026-09-01",
-        "value": 103.433952
+        "value": 103.445083
       }
     ]
   },
-  "scraped_at": "2026-09-01T00:45:12.653242Z",
+  "scraped_at": "2026-09-01T23:28:43.941503+00:00",
   "sentiment": {
     "available": true,
     "scraped_at": "2026-09-01T00:45:11.563430Z",
@@ -274,8 +274,8 @@
         ]
       },
       {
-        "headline": "Colheita de café 26/27 do Brasil alcança 97%, diz Safras",
-        "source": "Notícias Agrícolas",
+        "headline": "Colheita de caf\u00e9 26/27 do Brasil alcan\u00e7a 97%, diz Safras",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
         "confidence": 70.0,
         "tags": [
@@ -284,7 +284,7 @@
         ]
       },
       {
-        "headline": "Perk & Recs: A Curated Selection Of Coffees From The Sprudge Roaster’s Village",
+        "headline": "Perk & Recs: A Curated Selection Of Coffees From The Sprudge Roaster\u2019s Village",
         "source": "Sprudge",
         "sentiment": "Neutral",
         "confidence": 95.0,
@@ -302,8 +302,8 @@
         ]
       },
       {
-        "headline": "Resiliência climática do café robusta é um \"mito da internet\", diz pesquisador",
-        "source": "Notícias Agrícolas",
+        "headline": "Resili\u00eancia clim\u00e1tica do caf\u00e9 robusta \u00e9 um \"mito da internet\", diz pesquisador",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
         "confidence": 85.0,
         "tags": [
@@ -312,8 +312,8 @@
         ]
       },
       {
-        "headline": "Cecafé revisa para cima dados parciais da exportação de agosto em 1,23 mi sacas",
-        "source": "Notícias Agrícolas",
+        "headline": "Cecaf\u00e9 revisa para cima dados parciais da exporta\u00e7\u00e3o de agosto em 1,23 mi sacas",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
         "confidence": 80.0,
         "tags": [
@@ -322,8 +322,8 @@
         ]
       },
       {
-        "headline": "Exportações mundiais de café verde aumentaram 0,8% em junho, diz OIC",
-        "source": "Notícias Agrícolas",
+        "headline": "Exporta\u00e7\u00f5es mundiais de caf\u00e9 verde aumentaram 0,8% em junho, diz OIC",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bearish",
         "confidence": 75.0,
         "tags": [
@@ -350,7 +350,7 @@
         ]
       },
       {
-        "headline": "NY-Based Colombian Coffee Roaster Devoción Partners With Colombia’s FNC To Support Coffee Growers After The August Earthquake",
+        "headline": "NY-Based Colombian Coffee Roaster Devoci\u00f3n Partners With Colombia\u2019s FNC To Support Coffee Growers After The August Earthquake",
         "source": "Sprudge",
         "sentiment": "Neutral",
         "confidence": 70.0,
@@ -359,8 +359,8 @@
         ]
       },
       {
-        "headline": "Maquinários agrícolas ganham destaque na 21ª Fecon",
-        "source": "Notícias Agrícolas",
+        "headline": "Maquin\u00e1rios agr\u00edcolas ganham destaque na 21\u00aa Fecon",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
         "confidence": 80.0,
         "tags": [
@@ -369,8 +369,8 @@
         ]
       },
       {
-        "headline": "Café tomba mais de 3% em Nova York nesta 5ª, produtor recua e trava o mercado físico no Brasil",
-        "source": "Notícias Agrícolas",
+        "headline": "Caf\u00e9 tomba mais de 3% em Nova York nesta 5\u00aa, produtor recua e trava o mercado f\u00edsico no Brasil",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bearish",
         "confidence": 90.0,
         "tags": [
@@ -379,7 +379,7 @@
         ]
       },
       {
-        "headline": "Coffee Design: Joe Coffee Company’s Call Time By Jordan Fisher",
+        "headline": "Coffee Design: Joe Coffee Company\u2019s Call Time By Jordan Fisher",
         "source": "Sprudge",
         "sentiment": "Neutral",
         "confidence": 95.0,
@@ -397,8 +397,8 @@
         ]
       },
       {
-        "headline": "Preços do café caem mais de 4% em NY nesta 4ª (26) com perspectiva de aumento da oferta de café no Brasil",
-        "source": "Notícias Agrícolas",
+        "headline": "Pre\u00e7os do caf\u00e9 caem mais de 4% em NY nesta 4\u00aa (26) com perspectiva de aumento da oferta de caf\u00e9 no Brasil",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bearish",
         "confidence": 95.0,
         "tags": [
@@ -407,8 +407,8 @@
         ]
       },
       {
-        "headline": "Feira Cocatrel de Negócios traz operação Barter como condição especial e vantajosa de pagamento",
-        "source": "Notícias Agrícolas",
+        "headline": "Feira Cocatrel de Neg\u00f3cios traz opera\u00e7\u00e3o Barter como condi\u00e7\u00e3o especial e vantajosa de pagamento",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
         "confidence": 80.0,
         "tags": [
@@ -417,8 +417,8 @@
         ]
       },
       {
-        "headline": "Cooperados da Cooxupé chegam a 87,5% da colheita de café",
-        "source": "Notícias Agrícolas",
+        "headline": "Cooperados da Cooxup\u00e9 chegam a 87,5% da colheita de caf\u00e9",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
         "confidence": 70.0,
         "tags": [
@@ -436,7 +436,7 @@
         ]
       },
       {
-        "headline": "This Weekend, Coffee Collective Is Taking Over London’s Rosslyn Coffee",
+        "headline": "This Weekend, Coffee Collective Is Taking Over London\u2019s Rosslyn Coffee",
         "source": "Sprudge",
         "sentiment": "Neutral",
         "confidence": 95.0,
@@ -445,8 +445,8 @@
         ]
       },
       {
-        "headline": "Café/Cepea: Colheita do arábica avança, mas qualidade dos lotes preocupa",
-        "source": "Notícias Agrícolas",
+        "headline": "Caf\u00e9/Cepea: Colheita do ar\u00e1bica avan\u00e7a, mas qualidade dos lotes preocupa",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bullish",
         "confidence": 75.0,
         "tags": [
@@ -455,8 +455,8 @@
         ]
       },
       {
-        "headline": "Café perde força em NY nesta 3ª (25), com realização de lucros após disparada da véspera",
-        "source": "Notícias Agrícolas",
+        "headline": "Caf\u00e9 perde for\u00e7a em NY nesta 3\u00aa (25), com realiza\u00e7\u00e3o de lucros ap\u00f3s disparada da v\u00e9spera",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Bearish",
         "confidence": 85.0,
         "tags": [
@@ -465,8 +465,8 @@
         ]
       },
       {
-        "headline": "Morre Onofre Lacerda, referência e pioneiro dos cafés especiais do Caparaó, aos 80 anos",
-        "source": "Notícias Agrícolas",
+        "headline": "Morre Onofre Lacerda, refer\u00eancia e pioneiro dos caf\u00e9s especiais do Capara\u00f3, aos 80 anos",
+        "source": "Not\u00edcias Agr\u00edcolas",
         "sentiment": "Neutral",
         "confidence": 95.0,
         "tags": [
@@ -743,7 +743,7 @@
             "ret": 0.98
           }
         ],
-        "label": "KC · NY Arabica"
+        "label": "KC \u00b7 NY Arabica"
       },
       "robusta": {
         "n": 35,
@@ -929,7 +929,7 @@
             "ret": -2.72
           }
         ],
-        "label": "RC · London Robusta"
+        "label": "RC \u00b7 London Robusta"
       }
     }
   },
@@ -969,7 +969,7 @@
         "usd_per_ton": null,
         "phi": 0.5924169267806978,
         "detail": {
-          "text": "KC 17:30 312.20 → 18:30 314.00 ¢/lb"
+          "text": "KC 17:30 312.20 \u2192 18:30 314.00 \u00a2/lb"
         }
       },
       {
@@ -981,13 +981,13 @@
         "usd_per_ton": null,
         "phi": -0.21137854744688686,
         "detail": {
-          "text": "day 1 of the bi-monthly front-contract cycle — gaps historically tilt down mid-cycle (~day 10), up late-cycle"
+          "text": "day 1 of the bi-monthly front-contract cycle \u2014 gaps historically tilt down mid-cycle (~day 10), up late-cycle"
         }
       }
     ],
     "target": {
       "kind": "overnight_gap",
-      "definition": "RC first-bar open ÷ prior 17:30-London close − 1; roll days excluded",
+      "definition": "RC first-bar open \u00f7 prior 17:30-London close \u2212 1; roll days excluded",
       "abstain_band": 0.1
     },
     "model": {
@@ -1000,7 +1000,7 @@
         {
           "name": "cci_overnight",
           "state": "absent",
-          "reason": "series unavailable — the builder returned nothing (missing dependency or unreadable source), NOT a data-accrual wait",
+          "reason": "series unavailable \u2014 the builder returned nothing (missing dependency or unreadable source), NOT a data-accrual wait",
           "coverage": 0,
           "coverage_gate": 40,
           "trainable_rows": 0,
