@@ -369,13 +369,13 @@
         {
           "month": "2026-08",
           "stocks_k_bags": 223.98,
-          "spread": 25.6925,
-          "spread_pct": 7.3922
+          "spread": 26.0119,
+          "spread_pct": 7.4889
         }
       ],
       "analysis": {
         "n": 61,
-        "spearman": -0.6398,
+        "spearman": -0.6402,
         "first_half": {
           "span": [
             "2021-08",
@@ -388,7 +388,7 @@
             "2024-02",
             "2026-08"
           ],
-          "spearman": -0.7766
+          "spearman": -0.7782
         },
         "holds_in_both_halves": true
       },
@@ -412,12 +412,12 @@
         "holds_in_both_halves": true
       },
       "latest": {
-        "date": "2026-08-28",
-        "spread": 33.0,
-        "spread_pct": 9.5417,
+        "date": "2026-08-31",
+        "spread": 32.4,
+        "spread_pct": 9.4213,
         "front": "KCU26",
         "second": "KCZ26",
-        "front_price": 345.85
+        "front_price": 343.9
       }
     },
     "robusta": {
@@ -787,13 +787,13 @@
         {
           "month": "2026-08",
           "stocks_k_bags": 819.17,
-          "spread": -0.9,
-          "spread_pct": -0.0327
+          "spread": 1.9524,
+          "spread_pct": 0.0493
         }
       ],
       "analysis": {
         "n": 61,
-        "spearman": -0.4095,
+        "spearman": -0.4091,
         "first_half": {
           "span": [
             "2021-08",
@@ -806,13 +806,13 @@
             "2024-02",
             "2026-08"
           ],
-          "spearman": 0.2677
+          "spearman": 0.2706
         },
         "holds_in_both_halves": false
       },
       "analysis_pct": {
         "n": 61,
-        "spearman": -0.3583,
+        "spearman": -0.358,
         "first_half": {
           "span": [
             "2021-08",
@@ -825,16 +825,16 @@
             "2024-02",
             "2026-08"
           ],
-          "spearman": 0.2077
+          "spearman": 0.2105
         },
         "holds_in_both_halves": false
       },
       "latest": {
-        "date": "2026-08-28",
-        "spread": -37.0,
-        "spread_pct": -1.0596,
+        "date": "2026-08-31",
+        "spread": 59.0,
+        "spread_pct": 1.6896,
         "front": "RCU26",
-        "second": "RCX26",
+        "second": "RCH28",
         "front_price": 3492.0
       }
     }

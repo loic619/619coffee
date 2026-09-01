@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T13:16:53.586527Z",
+  "generated_at": "2026-09-01T08:00:22.358098Z",
   "method": {
     "iv": "ATM IV per session: mean of call/put IVs on the strikes bracketing the settlement, from the boards archive (Black-76-implied from settlement premiums where the vendor serves no IV).",
     "rv": "Annualized close-to-close vol of the SAME contract's settlements over the next 21 sessions (per-contract archive; RM underlyings map to RC futures).",
@@ -9,17 +9,17 @@
   "markets": {
     "arabica": {
       "spread_now": {
-        "date": "2026-08-28",
-        "spread": -0.8,
+        "date": "2026-08-31",
+        "spread": -0.7,
         "percentile": 43.0,
-        "n": 564
+        "n": 565
       },
       "all": {
-        "n": 1628,
+        "n": 1631,
         "start": "2024-06-03",
-        "end": "2026-07-30",
+        "end": "2026-07-31",
         "mean_iv": 32.4,
-        "mean_rv": 33.8,
+        "mean_rv": 33.9,
         "mean_vrp": -1.4,
         "median_vrp": 0.2,
         "share_positive": 51.4,
@@ -30,44 +30,44 @@
       },
       "by_bucket": {
         "near": {
-          "n": 10,
+          "n": 11,
           "start": "2026-07-17",
-          "end": "2026-07-30",
-          "mean_iv": 47.2,
-          "mean_rv": 38.4,
-          "mean_vrp": 8.8,
-          "median_vrp": 10.5,
+          "end": "2026-07-31",
+          "mean_iv": 47.4,
+          "mean_rv": 39.0,
+          "mean_vrp": 8.3,
+          "median_vrp": 9.4,
           "share_positive": 100.0,
           "n_blocks": 1,
           "t_blocks": null,
           "first_half_vrp": 12.9,
-          "second_half_vrp": 4.7
+          "second_half_vrp": 4.5
         },
         "mid": {
-          "n": 127,
+          "n": 128,
           "start": "2026-03-09",
-          "end": "2026-07-30",
-          "mean_iv": 37.7,
-          "mean_rv": 46.0,
+          "end": "2026-07-31",
+          "mean_iv": 37.8,
+          "mean_rv": 45.9,
           "mean_vrp": -8.2,
           "median_vrp": 5.5,
-          "share_positive": 63.8,
+          "share_positive": 64.1,
           "n_blocks": 7,
           "t_blocks": -0.62,
-          "first_half_vrp": 5.9,
-          "second_half_vrp": -22.2
+          "first_half_vrp": 5.2,
+          "second_half_vrp": -21.5
         },
         "far": {
-          "n": 1491,
+          "n": 1492,
           "start": "2024-06-03",
-          "end": "2026-07-30",
-          "mean_iv": 31.8,
+          "end": "2026-07-31",
+          "mean_iv": 31.9,
           "mean_rv": 32.8,
           "mean_vrp": -0.9,
           "median_vrp": -0.0,
           "share_positive": 50.0,
-          "n_blocks": 71,
-          "t_blocks": -1.54,
+          "n_blocks": 72,
+          "t_blocks": -1.5,
           "first_half_vrp": -2.6,
           "second_half_vrp": 0.8
         }
@@ -4416,46 +4416,54 @@
           "iv": 48.9,
           "rv_fwd": 46.3,
           "vrp": 2.6
+        },
+        {
+          "date": "2026-07-31",
+          "contract": "KCZ26",
+          "dte": 105,
+          "iv": 49.0,
+          "rv_fwd": 45.7,
+          "vrp": 3.3
         }
       ],
       "life_matched": null,
       "latest": {
         "KCZ26": {
-          "date": "2026-08-28",
-          "dte": 77,
-          "iv": 45.5,
-          "rv_trailing": 46.3
+          "date": "2026-08-31",
+          "dte": 74,
+          "iv": 45.0,
+          "rv_trailing": 45.7
         },
         "KCH27": {
-          "date": "2026-08-28",
-          "dte": 168,
-          "iv": 40.6,
-          "rv_trailing": 42.4
+          "date": "2026-08-31",
+          "dte": 165,
+          "iv": 40.4,
+          "rv_trailing": 41.9
         },
         "KCK27": {
-          "date": "2026-08-28",
-          "dte": 224,
-          "iv": 38.9,
-          "rv_trailing": 40.2
+          "date": "2026-08-31",
+          "dte": 221,
+          "iv": 38.7,
+          "rv_trailing": 39.6
         }
       }
     },
     "robusta": {
       "spread_now": {
-        "date": "2026-08-28",
-        "spread": 4.6,
-        "percentile": 59.0,
-        "n": 387
+        "date": "2026-08-31",
+        "spread": 4.9,
+        "percentile": 61.0,
+        "n": 388
       },
       "all": {
-        "n": 1035,
+        "n": 1036,
         "start": "2025-01-28",
-        "end": "2026-07-30",
+        "end": "2026-07-31",
         "mean_iv": 37.1,
         "mean_rv": 34.5,
         "mean_vrp": 2.6,
         "median_vrp": 4.2,
-        "share_positive": 67.3,
+        "share_positive": 67.4,
         "n_blocks": 50,
         "t_blocks": 1.71,
         "first_half_vrp": 0.3,
@@ -4463,14 +4471,14 @@
       },
       "by_bucket": {
         "near": {
-          "n": 98,
+          "n": 99,
           "start": "2026-04-22",
-          "end": "2026-07-30",
+          "end": "2026-07-31",
           "mean_iv": 35.9,
           "mean_rv": 35.4,
-          "mean_vrp": 0.5,
+          "mean_vrp": 0.6,
           "median_vrp": 4.0,
-          "share_positive": 68.4,
+          "share_positive": 68.7,
           "n_blocks": 5,
           "t_blocks": 0.24,
           "first_half_vrp": -4.1,
@@ -7601,6 +7609,14 @@
           "iv": 37.6,
           "rv_fwd": 32.2,
           "vrp": 5.4
+        },
+        {
+          "date": "2026-07-31",
+          "contract": "RMU26",
+          "dte": 19,
+          "iv": 37.9,
+          "rv_fwd": 32.2,
+          "vrp": 5.7
         }
       ],
       "life_matched": {
@@ -7619,21 +7635,21 @@
           "rv_trailing": 23.3
         },
         "RMX26": {
-          "date": "2026-08-28",
-          "dte": 54,
-          "iv": 37.1,
+          "date": "2026-08-31",
+          "dte": 51,
+          "iv": 37.5,
           "rv_trailing": 32.5
         },
         "RMF27": {
-          "date": "2026-08-28",
-          "dte": 110,
-          "iv": 36.4,
+          "date": "2026-08-31",
+          "dte": 107,
+          "iv": 36.6,
           "rv_trailing": 31.6
         },
         "RMH27": {
-          "date": "2026-08-28",
-          "dte": 173,
-          "iv": 35.8,
+          "date": "2026-08-31",
+          "dte": 170,
+          "iv": 35.9,
           "rv_trailing": 30.9
         }
       }
