@@ -101,6 +101,23 @@
    "requests": 1178,
    "wait_publicdocs_s": 14.0,
    "wait_marketdata_s": 3711.0
+  },
+  {
+   "at": "2026-09-01T09:22:58+00:00",
+   "sweep_day": "2026-08-31",
+   "outcome": "completed",
+   "http_429": 0,
+   "http_404": 1950,
+   "retry_after_count": 0,
+   "retry_after_total_s": 0,
+   "retry_after_max_s": 0,
+   "throttle_bumps": 0,
+   "aborted_by_429": false,
+   "sweep_gets": 1870,
+   "resumed_from": null,
+   "requests": 1976,
+   "wait_publicdocs_s": 14.0,
+   "wait_marketdata_s": 6105.0
   }
  ]
 }

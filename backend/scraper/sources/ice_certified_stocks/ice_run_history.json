@@ -4181,23 +4181,71 @@
    "date": "2026-08-31",
    "started": "2026-08-31T07:09:58Z",
    "event": "workflow_run",
-   "conclusion": null,
+   "conclusion": "success",
    "attempt": 1,
-   "job_seconds": null,
-   "billed_minutes": 0,
-   "last_step": "Rebuild the run-outcome history",
-   "outcome": "unknown"
+   "job_seconds": 4027,
+   "billed_minutes": 68,
+   "last_step": "Complete job",
+   "outcome": "success"
   },
   {
    "id": 33369994943,
    "date": "2026-08-31",
    "started": "2026-08-31T07:48:19Z",
    "event": "workflow_run",
-   "conclusion": null,
+   "conclusion": "success",
+   "attempt": 1,
+   "job_seconds": 16,
+   "billed_minutes": 1,
+   "last_step": "Complete job",
+   "outcome": "success"
+  },
+  {
+   "id": 33440534035,
+   "date": "2026-08-31",
+   "started": "2026-08-31T21:16:58Z",
+   "event": "workflow_run",
+   "conclusion": "success",
+   "attempt": 1,
+   "job_seconds": 12,
+   "billed_minutes": 1,
+   "last_step": "Complete job",
+   "outcome": "success"
+  },
+  {
+   "id": 33474079462,
+   "date": "2026-09-01",
+   "started": "2026-09-01T05:33:52Z",
+   "event": "schedule",
+   "conclusion": "cancelled",
+   "attempt": 1,
+   "job_seconds": 7215,
+   "billed_minutes": 121,
+   "last_step": "Complete job",
+   "outcome": "timeout"
+  },
+  {
+   "id": 33477535000,
+   "date": "2026-09-01",
+   "started": "2026-09-01T06:25:30Z",
+   "event": "workflow_run",
+   "conclusion": "cancelled",
    "attempt": 1,
    "job_seconds": null,
    "billed_minutes": 0,
    "last_step": null,
+   "outcome": "queue_cancelled"
+  },
+  {
+   "id": 33479679856,
+   "date": "2026-09-01",
+   "started": "2026-09-01T06:54:58Z",
+   "event": "workflow_run",
+   "conclusion": null,
+   "attempt": 1,
+   "job_seconds": null,
+   "billed_minutes": 0,
+   "last_step": "Rebuild the run-outcome history",
    "outcome": "unknown"
   }
  ]

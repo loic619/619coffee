@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T08:14:31+00:00",
+  "generated_at": "2026-09-01T09:22:55+00:00",
   "as_of": "2026-08-28",
   "snapshots": [
     {
@@ -9871,6 +9871,51 @@
           "non_tenderable_month": 0,
           "lots_graded_today": 112,
           "lots_graded_month": 879
+        }
+      },
+      {
+        "date": "2026-08-31",
+        "url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/gradings/gradrc_260831-1.txt",
+        "report_date": "2026-08-31",
+        "report_time": "17:28",
+        "panel_date": "2026-08-31",
+        "panel_time": "08:00",
+        "entries": [
+          {
+            "section": "CONTINENTAL LOTS",
+            "origin": "Brazilian Conillon",
+            "port": "ANT",
+            "class": 1,
+            "tenderable": true,
+            "allowance_cts_lb": 0.0,
+            "lots": 26
+          },
+          {
+            "section": "CONTINENTAL LOTS",
+            "origin": "Brazilian Conillon",
+            "port": "ANT",
+            "class": 2,
+            "tenderable": true,
+            "allowance_cts_lb": -30.0,
+            "lots": 38
+          },
+          {
+            "section": "CONTINENTAL LOTS",
+            "origin": "Brazilian Conillon",
+            "port": "ANT",
+            "class": 3,
+            "tenderable": true,
+            "allowance_cts_lb": -60.0,
+            "lots": 5
+          }
+        ],
+        "summary": {
+          "tenderable_today": 69,
+          "tenderable_month": 948,
+          "non_tenderable_today": 0,
+          "non_tenderable_month": 0,
+          "lots_graded_today": 69,
+          "lots_graded_month": 948
         }
       }
     ],
