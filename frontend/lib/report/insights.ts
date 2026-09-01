@@ -835,9 +835,12 @@ const supplyDemand = (
       // Fixed 1dp everywhere so the note's figures line up character-for-
       // character with the card's own toFixed(1) equation strip.
       const m1 = (v: number) => v.toFixed(1);
+      // "House number" is the reader-facing name for the figure the card
+      // displays, in either mode — the code calls the typed variant an
+      // "analyst final", but that is an internal label, not the concept.
       const how = isFinal
-        ? "analyst final"
-        : `average of ${vals.length} source${vals.length > 1 ? "s" : ""} (${m1(lo)}–${m1(hi)}M)`;
+        ? "house number (typed)"
+        : `house number (avg of ${vals.length} source${vals.length > 1 ? "s" : ""}, ${m1(lo)}–${m1(hi)}M)`;
       const vsUsda = usda != null && Math.abs(house - usda) >= 0.05
         ? `, **${m1(Math.abs(house - usda))}M ${house < usda ? "below" : "above"}** USDA's ${m1(usda)}M`
         : usda != null ? ", in line with USDA" : "";
