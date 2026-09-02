@@ -28,15 +28,26 @@ interface DataPoint {
 function buildSeries(raw: Record<string, number>): DataPoint[] {
   const sorted = Object.keys(raw).sort();
 
-  // Pass 1 — trailing 12-month average (EUR millions) per period.
+  // Pass 1 — trailing 12-CALENDAR-MONTH average (EUR millions) per period.
+  //
+  // Taking the last 12 *records* is not the same thing when the series has a
+  // hole. 2018-02 is missing, so every window from 2018-03 to 2019-01 reached
+  // back thirteen calendar months and still divided by twelve — eleven points
+  // overstated or understated by up to 2.0%, silently, on a line labelled
+  // "12-mo avg". Address the months by name and return null when one is
+  // absent: a visible gap is honest, an average over the wrong span is not.
   const ma12By: Record<string, number | null> = {};
-  sorted.forEach((period, i) => {
-    if (i >= 11) {
-      const slice = sorted.slice(i - 11, i + 1).map(k => raw[k]);
-      ma12By[period] = +(slice.reduce((a, b) => a + b, 0) / 12 / 1000).toFixed(2);
-    } else {
-      ma12By[period] = null;
+  sorted.forEach(period => {
+    const [y, m] = period.split("-").map(Number);
+    let sum = 0;
+    for (let back = 0; back < 12; back++) {
+      let mm = m - back, yy = y;
+      while (mm < 1) { mm += 12; yy -= 1; }
+      const v = raw[`${yy}-${String(mm).padStart(2, "0")}`];
+      if (v == null) { sum = NaN; break; }
+      sum += v;
     }
+    ma12By[period] = Number.isNaN(sum) ? null : +(sum / 12 / 1000).toFixed(2);
   });
 
   // Pass 2 — YoY is the change in the 12-mo average vs the same month a year
