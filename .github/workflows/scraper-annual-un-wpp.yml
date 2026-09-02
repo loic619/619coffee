@@ -1,8 +1,14 @@
-name: "3.7 – Annual Scraper · UN WPP age structure"
+name: "3.7 – Annual Scraper · UN WPP age structure + World Bank population"
 
-# UN World Population Prospects is revised ~once a year (the revision lands
-# mid-year). Running it monthly was ~11 wasted runs/year, so it lives in its
-# own annual job. Runs on 15 July; manual dispatch covers off-cycle revisions.
+# Population sources revised ~once a year: UN World Population Prospects (the
+# revision lands mid-year) and World Bank SP.POP.TOTL. Running them monthly was
+# ~11 wasted runs/year each, so they share this annual job. Runs on 15 July;
+# manual dispatch covers off-cycle revisions.
+#
+# Both write a gitignored cache that export_static_json reads, so the scrape and
+# the export MUST stay in this one job — a cache written on one runner does not
+# exist on the next. That is why demand_stocks.json carried populations: null
+# while every other workflow that rebuilds it ran the export alone.
 on:
   schedule:
     - cron: '0 3 15 7 *'   # 15 July, 03:00 UTC
@@ -89,7 +95,7 @@ jobs:
           branch="${GITHUB_REF_NAME}"
           git diff --cached --quiet \
             && echo "No changes." \
-            || (git commit -m "data: annual UN-WPP update [skip ci]" \
+            || (git commit -m "data: annual population update (UN WPP + World Bank) [skip ci]" \
                 && git pull --rebase --autostash --strategy-option=theirs origin "$branch" \
                 && git push origin "HEAD:$branch")
 

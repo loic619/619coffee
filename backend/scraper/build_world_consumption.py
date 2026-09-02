@@ -90,15 +90,27 @@ def _ico(ds: dict | None) -> dict | None:
 
 
 def _usda(ds: dict | None) -> dict | None:
+    """USDA's newest year, labelled with the season it actually is.
+
+    PSD labels a marketing year by the year it BEGINS — Market_Year 2026 is
+    2026/27 — so deriving the season as `year-1/year` put USDA's 2026/27
+    forecast on this chart as "2025/26", one season early, next to ICO and CCS
+    actuals for the real 2025/26. The exporter now publishes the season string
+    directly; the arithmetic here only survives as a fallback for older files.
+    """
     wc = (ds or {}).get("world_consumption") or {}
-    mt = wc.get("tracked_consumption_mt")
+    mt = wc.get("latest_consumption_mt") or wc.get("tracked_consumption_mt")
     if not mt:
         return None
-    year = wc.get("tracked_latest_year")
-    season = f"{int(year) - 1}/{str(int(year))[-2:]}" if str(year).isdigit() else None
+    season = wc.get("latest_marketing_year")
+    if not season:
+        year = wc.get("tracked_latest_year")
+        season = f"{int(year)}/{str(int(year) + 1)[-2:]}" if str(year).isdigit() else None
+    n = wc.get("latest_countries") or wc.get("tracked_countries", "?")
+    forecast = " (forecast)" if wc.get("latest_is_forecast") else ""
     return {"key": "usda", "label": "USDA PSD", "season": season,
             "m_bags": round(mt / MT_PER_M_BAGS, 1),
-            "note": f"Summed across {wc.get('tracked_countries', '?')} tracked consuming markets"}
+            "note": f"Summed across {n} tracked consuming markets{forecast}"}
 
 
 def build() -> dict:

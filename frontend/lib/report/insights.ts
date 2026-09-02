@@ -1329,11 +1329,11 @@ const kaffee: Builder = async () => {
 
 // ── Demand — consumption & imports ────────────────────────────────────────────
 const worldConsumption: Builder = async () => {
-  const d = await load<{ world_consumption?: { tracked_consumption_mt?: number; tracked_countries?: number; tracked_latest_year?: number | string; tracked_vs_ico_pct?: number } }>("/data/demand_stocks.json");
+  const d = await load<{ world_consumption?: { tracked_consumption_mt?: number; tracked_countries?: number; tracked_marketing_year?: string; tracked_latest_year?: number | string; tracked_vs_ico_pct?: number } }>("/data/demand_stocks.json");
   const w = d?.world_consumption; if (!w?.tracked_consumption_mt) return null;
   return {
     facts: [
-      { label: `World consumption (${w.tracked_latest_year ?? "latest"})`, value: `**${n1(w.tracked_consumption_mt / 1e6)} M tonnes** across ${w.tracked_countries ?? "—"} countries${w.tracked_vs_ico_pct != null ? ` (**${w.tracked_vs_ico_pct.toFixed(0)}%** of ICO reference)` : ""}` },
+      { label: `World consumption (${w.tracked_marketing_year ?? w.tracked_latest_year ?? "latest"})`, value: `**${n1(w.tracked_consumption_mt / 1e6)} M tonnes** across ${w.tracked_countries ?? "—"} countries${w.tracked_vs_ico_pct != null ? ` (**${w.tracked_vs_ico_pct.toFixed(0)}%** of ICO reference)` : ""}` },
     ],
   };
 };

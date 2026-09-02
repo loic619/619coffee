@@ -60,6 +60,9 @@ export const FEED_META: Record<string, FeedMeta> = {
   ecf:                  { label: "ECF stocks",       category: "Demand & stocks",  thresholdDays: 70, dataThresholdDays: 140 }, // Apr data publishes ~mid-Jun; worst-case data age pre-refresh ~4.5mo
   psd_coffee:           { label: "USDA PSD",         category: "Demand & stocks",  thresholdDays: 210 },
   ajca:                 { label: "AJCA Japan",       category: "Demand & stocks",  thresholdDays: 70 },
+  // World Bank SP.POP.TOTL — annual (job runs 15 Jul). Matches the 400*24h in
+  // check-scrapers-freshness.yml; anything shorter alerts for eleven months.
+  population:           { label: "World Bank pop.",   category: "Demand & stocks",  thresholdDays: 400 },
   ice_certified_daily:       { label: "ICE certified daily",   category: "Demand & stocks", thresholdDays: 4 },
   ice_arabica_ageing:        { label: "ICE arabica ageing",    category: "Demand & stocks", thresholdDays: 40 },
   ice_robusta_age_allowance: { label: "ICE robusta age-allow.", category: "Demand & stocks", thresholdDays: 40 },

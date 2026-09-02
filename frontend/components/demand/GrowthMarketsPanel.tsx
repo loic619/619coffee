@@ -30,9 +30,20 @@ interface CohortCountry {
   annual: { year: number; pop_18plus: number; median_age?: number | null }[];
 }
 
+// The coverage the exporter computed on MATCHED seasons. The panel must not
+// re-derive one: `act` here is the latest USDA year (a forecast), and dividing
+// it by an ICO total two seasons older read 100% and left a NEGATIVE remainder
+// to be described as "markets USDA PSD does not break out".
+interface WorldCoverage {
+  ico_reference?:         { world_consumption_mt?: number; marketing_year?: string };
+  tracked_consumption_mt?: number;
+  tracked_marketing_year?: string | null;
+  tracked_vs_ico_pct?:     number | null;
+}
+
 interface DemandStocks {
   growth_markets?: GrowthMarket[];
-  world_consumption?: { ico_reference?: { world_consumption_mt?: number } } | null;
+  world_consumption?: WorldCoverage | null;
   populations?: { source: string; last_updated: string };
   age_cohort_18plus?: { countries: Record<string, CohortCountry> };
 }
@@ -204,10 +215,10 @@ function backtest(seriesList: MarketSeries[], H: number): {
   return { rows, actual, pred, errPct: (pred / actual - 1) * 100, mape };
 }
 
-function DemandProjection({ markets, cohorts, icoWorldMt }: {
+function DemandProjection({ markets, cohorts, coverage }: {
   markets: GrowthMarket[];
   cohorts: Record<string, CohortCountry>;
-  icoWorldMt?: number | null;
+  coverage?: WorldCoverage | null;
 }) {
   // Only markets we can both join (have a cohort) and that carry consumption.
   const adultsByShort = new Map<string, Record<number, number>>();
@@ -226,6 +237,15 @@ function DemandProjection({ markets, cohorts, icoWorldMt }: {
   const seriesList = joinable
     .map(m => computeSeries(m, adultsByShort.get(m.short)!, cohorts[MARKET_ISO3[m.short] ?? ""]))
     .filter((s): s is MarketSeries => s != null);
+  // Matched-season coverage, straight from the exporter — never recomputed
+  // against `act`, which is a later (forecast) year than the ICO reference.
+  const ico = coverage?.ico_reference?.world_consumption_mt;
+  const cov = (ico && coverage?.tracked_consumption_mt && coverage?.tracked_vs_ico_pct != null)
+    ? { icoKt: ico / 1000, trackedKt: coverage.tracked_consumption_mt / 1000,
+        pct: coverage.tracked_vs_ico_pct,
+        season: coverage.tracked_marketing_year ?? coverage.ico_reference?.marketing_year ?? "" }
+    : null;
+
   if (!seriesList.length) return null;
 
   const isAgg = sel === AGG;
@@ -479,7 +499,7 @@ function DemandProjection({ markets, cohorts, icoWorldMt }: {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <Stat label="Markets" value={`${seriesList.length}`} sub="summed" />
           <Stat label={`Demand ${ly}`} value={`${Math.round(act).toLocaleString()} kt`}
-            sub={icoWorldMt ? `${(act * 1000 / icoWorldMt * 100).toFixed(0)}% of ICO world` : "actual"} tone="text-amber-300" />
+            sub={cov ? `${cov.pct.toFixed(0)}% of ICO world in ${cov.season}` : "USDA latest"} tone="text-amber-300" />
           <Stat label="2050 demand · flat" value={`${Math.round(base2050).toLocaleString()} kt`} sub={pct(base2050 / act - 1)} />
           <Stat label="2050 demand · S-curve" value={`${Math.round(trend2050).toLocaleString()} kt`} sub={pct(trend2050 / act - 1)} tone="text-slate-100" />
         </div>
@@ -496,10 +516,13 @@ function DemandProjection({ markets, cohorts, icoWorldMt }: {
 
       <div className="text-[9px] text-slate-500 italic">
         {isAgg
-          ? <>Top-line = Σ of all {seriesList.length} joinable markets&rsquo; capped projections
-              {icoWorldMt ? <> — {Math.round(act).toLocaleString()} kt of the ICO world reference
-              {" "}{Math.round(icoWorldMt / 1000).toLocaleString()} kt ({(act * 1000 / icoWorldMt * 100).toFixed(0)}%);
-              the remainder is markets USDA PSD does not break out.</> : "."} Each market bends its per-adult intensity toward its own ceiling K then scales by projected 18+ population; the flat case holds {ly} intensity. Per-market ceilings &amp; logic: Research → Demand modelling.</>
+          ? <>Top-line = Σ of all {seriesList.length} joinable markets&rsquo; capped projections —
+              {" "}{Math.round(act).toLocaleString()} kt at {ly}, USDA&rsquo;s newest year and a forecast.
+              {cov ? <> ICO&rsquo;s last published world total is {Math.round(cov.icoKt).toLocaleString()} kt
+              for {cov.season}; on that same season these markets sum to
+              {" "}{Math.round(cov.trackedKt).toLocaleString()} kt, or {cov.pct.toFixed(1)}% of it — the
+              remaining {Math.round(cov.icoKt - cov.trackedKt).toLocaleString()} kt is markets USDA PSD
+              does not break out. The two figures are different seasons and do not net.</> : null} Each market bends its per-adult intensity toward its own ceiling K then scales by projected 18+ population; the flat case holds {ly} intensity. Per-market ceilings &amp; logic: Research → Demand modelling.</>
           : <>Intensity = USDA domestic consumption ÷ UN WPP 18+ population (true {unit} per drinking-age adult, vs {s.perCapitaKg?.toFixed(2) ?? "—"} kg per total head).
               Flat case holds {ly} intensity and scales by projected adults; dotted case bends intensity from the {s.y0}–{ly} growth rate ({(s.g * 100).toFixed(1)}%/yr) toward the saturation ceiling K = {s.K.toFixed(1)} kg/adult via a logistic g·(1−i/K) — see Research → Demand modelling.</>}
       </div>
@@ -578,7 +601,7 @@ export default function GrowthMarketsPanel() {
           <h2 className="text-lg font-bold text-white">World Coffee Demand</h2>
           <p className="text-xs text-slate-400">
             Every market USDA tracks — {rows.length} countries, mature to emerging to origin ·
-            USDA PSD ÷ World Bank population
+            USDA PSD{rows.some(r => r.per_capita_kg != null) ? " ÷ World Bank population" : ""}
           </p>
         </div>
         <div className="text-[10px] font-mono text-slate-400">
@@ -595,6 +618,17 @@ export default function GrowthMarketsPanel() {
         <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
           Per-Capita Consumption (kg/person/yr)
         </div>
+        {/* An empty <BarChart> renders a blank framed box that looks like a
+            broken chart rather than missing data — which is exactly how this
+            read while the World Bank population feed was absent and all 49
+            markets carried population: null. Say so instead. */}
+        {perCapRanked.length === 0 ? (
+          <div className="text-[10px] text-slate-500 italic py-6 text-center">
+            No population denominator loaded, so per-capita cannot be computed.
+            Consumption comes from USDA PSD; the divisor is World Bank
+            SP.POP.TOTL, refreshed by the annual population job.
+          </div>
+        ) : (
         <div style={{ height: Math.max(220, perCapRanked.length * 18 + 30) }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={perCapRanked} layout="vertical" margin={{ top: 0, right: 12, left: 4, bottom: 0 }}>
@@ -606,6 +640,7 @@ export default function GrowthMarketsPanel() {
             </BarChart>
           </ResponsiveContainer>
         </div>
+        )}
       </div>
 
       {/* Growth decomposition: demography vs behaviour, and whether it is speeding up */}
@@ -667,7 +702,7 @@ export default function GrowthMarketsPanel() {
       {/* Demand projection — joins consumption with the 18+ cohort */}
       {data.age_cohort_18plus?.countries && (
         <DemandProjection markets={rows} cohorts={data.age_cohort_18plus.countries}
-          icoWorldMt={data.world_consumption?.ico_reference?.world_consumption_mt ?? null} />
+          coverage={data.world_consumption ?? null} />
       )}
 
       {/* How each market brews — the grams-per-cup lever on import demand */}
