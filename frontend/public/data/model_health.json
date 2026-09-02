@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-01T08:51:40+00:00",
+ "generated_at": "2026-09-02T07:52:39+00:00",
  "counts": {
   "CRIT": 0,
   "WARN": 0,
@@ -64,14 +64,14 @@
    "check": "dormant factor",
    "message": "brent_overnight: held out by design (regime tag, not a coefficient)",
    "feature": "brent_overnight",
-   "coverage": 1517
+   "coverage": 1518
   },
   {
    "grade": "INFO",
    "check": "dormant factor",
-   "message": "cci_overnight: coverage 322, joint-trainable 214, joint-trainable rows gate binds (214/252), ETA ~8w",
+   "message": "cci_overnight: coverage 323, joint-trainable 214, joint-trainable rows gate binds (214/252), ETA ~8w",
    "feature": "cci_overnight",
-   "coverage": 322,
+   "coverage": 323,
    "joint": 214,
    "eta": "~8w"
   },
@@ -87,33 +87,33 @@
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "intraday_kc_rc_15min: fresh (2026-08-31)",
+   "message": "intraday_kc_rc_15min: fresh (2026-09-01)",
    "input": "intraday_kc_rc_15min",
-   "last": "2026-08-31",
+   "last": "2026-09-01",
    "stale_sessions": 1
   },
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "fx_intraday_snapshots: fresh (2026-09-01)",
+   "message": "fx_intraday_snapshots: fresh (2026-09-02)",
    "input": "fx_intraday_snapshots",
-   "last": "2026-09-01",
+   "last": "2026-09-02",
    "stale_sessions": 0
   },
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "b3_kc_close_snapshots: fresh (2026-08-31)",
+   "message": "b3_kc_close_snapshots: fresh (2026-09-01)",
    "input": "b3_kc_close_snapshots",
-   "last": "2026-08-31",
+   "last": "2026-09-01",
    "stale_sessions": 1
   },
   {
    "grade": "INFO",
    "check": "input freshness",
-   "message": "brent_intraday_anchors: fresh (2026-09-01)",
+   "message": "brent_intraday_anchors: fresh (2026-09-02)",
    "input": "brent_intraday_anchors",
-   "last": "2026-09-01",
+   "last": "2026-09-02",
    "stale_sessions": 0
   },
   {
