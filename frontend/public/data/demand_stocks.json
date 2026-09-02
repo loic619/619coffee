@@ -65518,16 +65518,22 @@
     }
   },
   "world_consumption": {
-    "tracked_consumption_mt": 10678140,
+    "tracked_consumption_mt": 9742320,
     "tracked_countries": 49,
+    "tracked_year": "2023",
+    "tracked_marketing_year": "2023/24",
+    "tracked_vs_ico_pct": 91.7,
     "tracked_latest_year": "2026",
+    "latest_consumption_mt": 10678140,
+    "latest_countries": 49,
+    "latest_marketing_year": "2026/27",
+    "latest_is_forecast": true,
     "ico_reference": {
       "marketing_year": "2023/24",
       "world_consumption_mt": 10620000,
       "source": "ICO Coffee Market Report",
       "source_url": "https://www.ico.org/coffee-market-report.asp",
       "note": "Manually updated when ICO publishes annual statistics."
-    },
-    "tracked_vs_ico_pct": 100.5
+    }
   }
 }

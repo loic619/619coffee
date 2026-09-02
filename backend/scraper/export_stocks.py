@@ -13,6 +13,7 @@ of demand_stocks.json anymore.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -285,11 +286,50 @@ def _age_cohort(wpp_data: dict | None) -> dict | None:
     }
 
 
+# USDA PSD labels a marketing year by the calendar year it BEGINS: Market_Year
+# 2023 is the 2023/24 season. The June release adds the newest year, so a file
+# stamped June 2026 carries 2026 — the 2026/27 FORECAST, not an actual.
+def _psd_year(marketing_year: str | None) -> str | None:
+    """"2023/24" -> "2023" (the PSD Market_Year label for that season)."""
+    m = re.match(r"(\d{4})", marketing_year or "")
+    return m.group(1) if m else None
+
+
+def _season(psd_year: str | None) -> str | None:
+    """"2023" -> "2023/24"."""
+    if not psd_year or not str(psd_year).isdigit():
+        return None
+    y = int(psd_year)
+    return f"{y}/{str(y + 1)[-2:]}"
+
+
+def _sum_consumption(series: list[dict], year: str) -> tuple[int, int]:
+    """Total consumption across markets for ONE PSD market year, and how many
+    markets reported it. Reads each market's own annual series rather than its
+    headline latest value, so every country in the total is the same season."""
+    total = count = 0
+    for d in series:
+        for a in d.get("annual") or []:
+            if str(a.get("year")) != year:
+                continue
+            c = a.get("consumption_mt")
+            if c:
+                total += c
+                count += 1
+            break
+    return total, count
+
+
 def _world_consumption(psd_data: dict | None) -> dict | None:
-    """Aggregate USDA PSD consumption across all tracked markets + producers,
-    plus a manually-maintained ICO reference number for the most recent
-    marketing year. The frontend renders a coverage % so the user can see
-    how much of the world we're actually summing.
+    """USDA PSD consumption summed across all tracked markets + producers,
+    against a manually-maintained ICO world reference.
+
+    The coverage % compares LIKE SEASONS. It used to divide the sum of each
+    market's latest value — USDA's newest forecast year — by an ICO total two
+    to three seasons older, and reported 100.5%: a claim that the app tracks
+    all of world demand. Matched season-for-season the same 49 countries cover
+    91.7% of ICO 2023/24, so roughly 880 kt of world demand is NOT counted.
+    The forecast is still published alongside, labelled as one.
 
     ICO reference is updated by editing this dict when ICO publishes their
     annual statistics (typically May/June for the prior marketing year).
@@ -298,21 +338,8 @@ def _world_consumption(psd_data: dict | None) -> dict | None:
         return None
     markets   = psd_data.get("markets", {}) or {}
     producers = psd_data.get("producers", {}) or {}
-
-    total_tracked_mt = 0
-    latest_year      = None
-    countries_count  = 0
-    for d in {**markets, **producers}.values():
-        c = d.get("latest_consumption_mt")
-        if c is None:
-            continue
-        total_tracked_mt += c
-        countries_count  += 1
-        y = d.get("latest_year")
-        if y and (latest_year is None or y > latest_year):
-            latest_year = y
-
-    if total_tracked_mt <= 0:
+    series    = list({**markets, **producers}.values())
+    if not series:
         return None
 
     # ICO published "Total World Consumption" — marketing year 2023/24,
@@ -325,14 +352,52 @@ def _world_consumption(psd_data: dict | None) -> dict | None:
         "note":                   "Manually updated when ICO publishes annual statistics.",
     }
 
-    coverage_pct = round(total_tracked_mt / ico_reference["world_consumption_mt"] * 100.0, 1)
+    latest_year = None
+    for d in series:
+        y = d.get("latest_year")
+        if y and (latest_year is None or str(y) > str(latest_year)):
+            latest_year = str(y)
+
+    # The season the coverage % is computed on — the one ICO also reports.
+    matched_year = _psd_year(ico_reference["marketing_year"])
+    matched_mt, matched_n = _sum_consumption(series, matched_year) if matched_year else (0, 0)
+    latest_mt,  latest_n  = _sum_consumption(series, latest_year) if latest_year else (0, 0)
+
+    if matched_mt <= 0:
+        # No overlap with the ICO season (PSD history too short). Report the
+        # latest sum with no coverage claim rather than a mismatched ratio.
+        if latest_mt <= 0:
+            return None
+        return {
+            "tracked_consumption_mt": latest_mt,
+            "tracked_countries":      latest_n,
+            "tracked_year":           latest_year,
+            "tracked_marketing_year": _season(latest_year),
+            "tracked_latest_year":    latest_year,
+            "latest_consumption_mt":  latest_mt,
+            "latest_marketing_year":  _season(latest_year),
+            "latest_is_forecast":     True,
+            "ico_reference":          ico_reference,
+            "tracked_vs_ico_pct":     None,
+        }
+
+    coverage_pct = round(matched_mt / ico_reference["world_consumption_mt"] * 100.0, 1)
 
     return {
-        "tracked_consumption_mt": total_tracked_mt,
-        "tracked_countries":      countries_count,
-        "tracked_latest_year":    latest_year,
-        "ico_reference":          ico_reference,
+        # Coverage basis — same season on both sides of the ratio.
+        "tracked_consumption_mt": matched_mt,
+        "tracked_countries":      matched_n,
+        "tracked_year":           matched_year,
+        "tracked_marketing_year": ico_reference["marketing_year"],
         "tracked_vs_ico_pct":     coverage_pct,
+        # USDA's newest year, published alongside and flagged as a forecast so
+        # nothing downstream can quietly compare it to the ICO actual again.
+        "tracked_latest_year":    latest_year,
+        "latest_consumption_mt":  latest_mt,
+        "latest_countries":       latest_n,
+        "latest_marketing_year":  _season(latest_year),
+        "latest_is_forecast":     bool(latest_year and matched_year and latest_year > matched_year),
+        "ico_reference":          ico_reference,
     }
 
 

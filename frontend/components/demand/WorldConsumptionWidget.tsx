@@ -9,12 +9,21 @@ interface IcoReference {
   note:                 string;
 }
 
+// `tracked_*` is the season ICO also reports, so the coverage ratio has the
+// same year on both sides. `latest_*` is USDA's newest year — a forecast, two
+// to three seasons ahead — carried separately so it can be shown without
+// being silently compared to the ICO actual.
 interface WorldConsumption {
   tracked_consumption_mt: number;
   tracked_countries:      number;
+  tracked_year:           string | null;
+  tracked_marketing_year: string | null;
   tracked_latest_year:    string | null;
+  latest_consumption_mt?: number | null;
+  latest_marketing_year?: string | null;
+  latest_is_forecast?:    boolean;
   ico_reference:          IcoReference;
-  tracked_vs_ico_pct:     number;
+  tracked_vs_ico_pct:     number | null;
 }
 
 interface DemandStocks {
@@ -41,7 +50,11 @@ export default function WorldConsumptionWidget() {
 
   const ico = wc.ico_reference;
   const delta = wc.tracked_consumption_mt - ico.world_consumption_mt;
-  const deltaPct = (delta / ico.world_consumption_mt) * 100;
+  const season = wc.tracked_marketing_year ?? wc.tracked_year ?? "—";
+  // Under-coverage is the honest reading, so the sign convention is inverted
+  // from the usual: a shortfall is amber (demand we do not see), not red, and
+  // exceeding ICO is not a win — it would mean the two disagree.
+  const short = Math.max(0, -delta);
 
   return (
     <div className="p-4">
@@ -54,8 +67,15 @@ export default function WorldConsumptionWidget() {
             {fmtMt(wc.tracked_consumption_mt)}
           </div>
           <div className="text-[9px] text-slate-500 mt-0.5">
-            {wc.tracked_countries} countries · latest year {wc.tracked_latest_year ?? "—"}
+            {wc.tracked_countries} countries · marketing year {season}
           </div>
+          {wc.latest_consumption_mt != null && wc.latest_marketing_year !== season && (
+            <div className="text-[9px] text-slate-500 mt-1 pt-1 border-t border-slate-700/70">
+              Latest USDA {wc.latest_marketing_year ?? wc.tracked_latest_year}:{" "}
+              <span className="text-slate-300 font-mono">{fmtMt(wc.latest_consumption_mt)}</span>
+              {wc.latest_is_forecast ? " (forecast)" : ""}
+            </div>
+          )}
         </div>
 
         <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
@@ -75,13 +95,19 @@ export default function WorldConsumptionWidget() {
 
         <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
           <div className="text-[10px] text-slate-400 uppercase tracking-wide">
-            Δ Tracked vs ICO World
+            Coverage — {season}
           </div>
-          <div className={`text-2xl font-bold font-mono mt-1 ${deltaPct >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-            {deltaPct >= 0 ? "+" : ""}{deltaPct.toFixed(1)}%
+          <div className={`text-2xl font-bold font-mono mt-1 ${
+            wc.tracked_vs_ico_pct == null ? "text-slate-400" : "text-amber-300"}`}>
+            {wc.tracked_vs_ico_pct == null ? "—" : `${wc.tracked_vs_ico_pct.toFixed(1)}%`}
           </div>
           <div className="text-[9px] text-slate-500 mt-0.5">
-            Coverage: {wc.tracked_vs_ico_pct.toFixed(1)}% of ICO world total ({delta >= 0 ? "+" : ""}{fmtMt(Math.abs(delta)).replace(/^/, delta >= 0 ? "" : "-")})
+            {wc.tracked_vs_ico_pct == null
+              ? "No PSD year overlaps the ICO reference season."
+              : <>{short > 0
+                    ? <>{fmtMt(short)} of world demand sits outside the tracked set</>
+                    : <>tracked total exceeds ICO by {fmtMt(Math.abs(delta))} — the two disagree</>}
+                  {" · both sides "}{season}</>}
           </div>
         </div>
       </div>
