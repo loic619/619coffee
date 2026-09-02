@@ -50,8 +50,8 @@ function SupplyPageInner() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <PageHeader
-        title="Supply Intelligence"
-        subtitle="Production & export data by origin country"
+        title="Supply"
+        subtitle="Production, exports and growing conditions by origin — plus fertilizer, ENSO and the global S&D"
         healthKeys={["weather", "enso", "fertilizer_wb", "fertilizer_comex", "freight"]}
       />
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">

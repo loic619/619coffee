@@ -4,11 +4,13 @@ import "./globals.css";
 import TabNav from "@/components/TabNav";
 import MarketTicker from "@/components/map/MarketTicker";
 import DataFetchGuard from "@/components/DataFetchGuard";
+import { PRODUCT_NAME, PRODUCT_TAGLINE } from "@/lib/brand";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Coffee Intel Dashboard",
+  title: PRODUCT_NAME,
+  description: PRODUCT_TAGLINE,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

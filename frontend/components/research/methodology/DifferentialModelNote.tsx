@@ -31,7 +31,7 @@ export default function DifferentialModelNote() {
       </P>
       <Fml>{`D_o(t) = P_o(t) + FOB_o(t) − F(t)
 
-P_o    physical price at origin, USD/t   (ticker: VN FAQ, CON T7, UGA S15…)
+P_o    physical price at origin, USD/MT  (ticker: VN FAQ, CON T7, UGA S15…)
 FOB_o  origin→vessel cost stack          (Origin-logistics research)
 F      nearby futures reference          (RC for robusta, KC for arabica)`}</Fml>
       <P>
@@ -284,7 +284,7 @@ Conversion    kg of cherry per 1 kg of green bean  ← harvest timing → ripe-c
         <LI><strong>Walk-forward only</strong>: expanding-window refits, no look-ahead in any feed (every input
           above is already published on a dated pipeline — the discipline this platform is built on).</LI>
         <LI><strong>Benchmarks to beat</strong>: (i) random walk in <Code>D</Code>; (ii) corridor-midpoint
-          reversion with no covariates; (iii) currency-only model. Metrics: MAE in USD/t at 1w/4w/8w horizons +
+          reversion with no covariates; (iii) currency-only model. Metrics: MAE in USD/MT at 1w/4w/8w horizons +
           direction hit-rate; report per origin with n, honestly gated like the parity→inflow study (the model
           panel should show &ldquo;accumulating&rdquo; until an origin&rsquo;s history supports its claims).</LI>
       </UL>

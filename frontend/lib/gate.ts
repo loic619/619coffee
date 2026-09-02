@@ -2,10 +2,17 @@
 // HMAC-signed tier cookie. Used by the edge middleware (verification + ACL),
 // /api/identify (login), and TabNav (cosmetic tab filtering).
 //
-// Tiers (one shared password each, from the env):
-//   admin (GATE_PW_ADMIN)  — everything, incl. the /admin tracking dashboard
-//   user  (GATE_PW_USER)   — everything except tracking, research, data-map
-//   basic (GATE_PW_BASIC)  — supply, demand, futures, freight only
+// Tiers (one shared password each, from the env). The product story, stated
+// by the owner on 2026-09-02, is:
+//   basic (GATE_PW_BASIC)  — a guest: any member of the public the owner has
+//                            agreed to let in. Every market tab, nothing
+//                            behind it: no Research, no Data Map, no admin.
+//   user  (GATE_PW_USER)   — a member: everything a guest sees plus Research.
+//   admin (GATE_PW_ADMIN)  — the owner: everything, incl. Data Map, the
+//                            /admin tracking dashboard, and the admin-only
+//                            functions inside Research.
+// (Before this, `basic` saw only four tabs and `user` could not open
+// Research — the config contradicted the story.)
 //
 // The passwords used to carry in-repo defaults ("colleague-gate" era). The repo
 // was public, so those three strings were world-readable for as long as it was
@@ -100,18 +107,22 @@ export async function verifyTier(cookieValue: string | undefined): Promise<Tier 
 
 // ── Route ACL (page navigations only; sub-resources are not gated) ───────────
 
-const BASIC_PREFIXES = ["/supply", "/demand", "/futures", "/freight"];
-const USER_BLOCKED = ["/research", "/data-map", "/admin"];
+// Deny-lists, not allow-lists: a new market tab is visible to everyone by
+// default, and only the owner's surfaces have to be named.
+const ADMIN_ONLY = ["/data-map", "/admin"];
+const MEMBER_AND_UP = ["/research"];
 
 export function pathAllowed(tier: Tier, pathname: string): boolean {
   if (tier === "admin") return true;
-  if (tier === "user") return !USER_BLOCKED.some((p) => pathname.startsWith(p));
-  return BASIC_PREFIXES.some((p) => pathname.startsWith(p));
+  if (ADMIN_ONLY.some((p) => pathname.startsWith(p))) return false;
+  if (tier === "user") return true;
+  return !MEMBER_AND_UP.some((p) => pathname.startsWith(p));
 }
 
-/** Where to send a tier when its requested path isn't allowed. */
-export function tierHome(tier: Tier): string {
-  return tier === "basic" ? "/futures" : "/";
+/** Where to send a tier when its requested path isn't allowed. Root is the
+ *  Daily Brief, which every tier may open. */
+export function tierHome(_tier: Tier): string {
+  return "/";
 }
 
 /** Tab hrefs a tier may see in the nav (cosmetic — middleware enforces). */

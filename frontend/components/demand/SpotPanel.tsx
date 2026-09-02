@@ -96,7 +96,7 @@ export default function SpotPanel(
         <PortSquareMap rows={rows} unit={unit} />
       </Section>
 
-      <Section title="Differential finder" hint="Price differential (cts/lb vs futures) vs offer size. Filter to find the cheapest lots.">
+      <Section title="Differential finder" hint="Price differential (¢/lb vs futures) vs offer size. Filter to find the cheapest lots.">
         <DifferentialFinder rows={rows} unit={unit} />
       </Section>
 
@@ -114,7 +114,7 @@ export default function SpotPanel(
       </div>
 
       <p className="text-[9px] text-slate-600 italic">
-        Differentials (±) are cents/lb vs the relevant futures month; outright prices show their unit.
+        Differentials (±) are ¢/lb vs the relevant futures month; outright prices show their unit.
         Volumes normalise Bags/Tons to {unit === "mt" ? "metric tonnes" : "60-kg bags"} (toggle above).
         Source: ATTE spot list (login-gated) · ECF figures from ecf-coffee.org.
       </p>
@@ -452,7 +452,7 @@ function DifferentialFinder({ rows, unit }: { rows: SpotRow[]; unit: Unit }) {
         <ScatterChart margin={{ top: 8, right: 12, left: 0, bottom: 16 }}>
           <CartesianGrid stroke="#1e293b" />
           <XAxis type="number" dataKey="x" name="differential" tick={{ fontSize: 10, fill: "#94a3b8" }}
-            label={{ value: "differential (cts/lb)", position: "insideBottom", offset: -6, fontSize: 10, fill: "#64748b" }} />
+            label={{ value: "differential (¢/lb)", position: "insideBottom", offset: -6, fontSize: 10, fill: "#64748b" }} />
           <YAxis type="number" dataKey="y" name="volume" width={48} tick={{ fontSize: 10, fill: "#94a3b8" }} />
           <ZAxis range={[28, 28]} />
           <Tooltip cursor={{ strokeDasharray: "3 3" }} contentStyle={TT} content={<FinderTip unit={unit} />} />

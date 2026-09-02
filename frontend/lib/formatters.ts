@@ -5,22 +5,37 @@
 
 export const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+// ── Units — the canonical spellings ─────────────────────────────────────────
+// Six spellings for two units were live at once (¢/lb, c/lb, cents/lb, cts/lb;
+// USD/t, USD/mt, USD/MT). In a tool where a unit mix-up is a wrong trade that
+// is the cheapest trust win there is. Display code uses these; do not spell a
+// unit inline. (Parser token lists that match SOURCE strings — e.g. the spot
+// offer unit matcher — are deliberately not routed through here.)
+export const UNIT_CENTS_LB = "¢/lb";     // ICE Arabica (KC) and NY-basis differentials
+export const UNIT_USD_MT   = "USD/MT";   // ICE Robusta (RC) and metric-tonne pricing
+
+// Number grouping is pinned to en-US everywhere. A bare toLocaleString() follows
+// the visitor's browser, so a European user saw 1.234,5 where every other
+// figure on the page assumed 1,234.5 — the same digits reading as a different
+// number depending on who is looking.
+const LOCALE = "en-US";
+
 export function fmtNum(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n)) return "—";
-  return n.toLocaleString();
+  return n.toLocaleString(LOCALE);
 }
 
 // Rounded count formatter (en-US grouping). Used for certified-stocks tile
 // readouts where decimals are noise.
 export function fmtNumRounded(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n)) return "—";
-  return Math.round(n).toLocaleString("en-US");
+  return Math.round(n).toLocaleString(LOCALE);
 }
 
 // Signed change with thousand-separators: "+150" / "-30" / "—".
 export function fmtChg(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n)) return "—";
-  return (n > 0 ? "+" : "") + n.toLocaleString();
+  return (n > 0 ? "+" : "") + n.toLocaleString(LOCALE);
 }
 
 // Signed percentage: "+1.5%" / "-0.3%" / "—".

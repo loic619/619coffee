@@ -19,7 +19,7 @@ const num        = (x: unknown) => (typeof x === "number" ? x : 0);
 
 const md = (iso: string) => { const [, m, d] = iso.split("-"); return `${MONTHS[+m - 1]} ${+d}`; };
 
-const priceAbsNY  = (v: number, signed = false) => `${signed && v >= 0 ? "+" : ""}${Math.round(v)} cents/lb`;
+const priceAbsNY  = (v: number, signed = false) => `${signed && v >= 0 ? "+" : ""}${Math.round(v)} ¢/lb`;
 const priceAbsLDN = (v: number, signed = false) =>
   signed ? `${v >= 0 ? "+" : "-"}$${Math.abs(Math.round(v))} per ton` : `$${Math.round(v)} per ton`;
 

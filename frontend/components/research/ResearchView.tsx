@@ -651,7 +651,7 @@ function CostTable({ children }: { children: React.ReactNode }) {
       <thead>
         <tr className="border-b border-slate-700 text-left text-[10px] uppercase tracking-wider text-slate-500">
           <th className="pb-1.5 pr-4">Component</th>
-          <th className="pb-1.5 pr-4 text-right">USD/t</th>
+          <th className="pb-1.5 pr-4 text-right">USD/MT</th>
           <th className="pb-1.5">Notes</th>
         </tr>
       </thead>
@@ -1483,7 +1483,7 @@ function DestinationInstore() {
 
       {/* Cross-port comparison — dynamic, all-in USD */}
       <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5">
-        <H>Cross-port comparison — freight + in-store, delivered (USD/t)</H>
+        <H>Cross-port comparison — freight + in-store, delivered (USD/MT)</H>
         <table className="w-full text-xs mt-2">
           <thead>
             <tr className="border-b border-slate-700 text-left text-[10px] uppercase tracking-wider text-slate-500">
@@ -1908,7 +1908,10 @@ function ListView({ sel, setSel, cat, setCat, list: all, editing, onEdit }: {
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search research…"
           className="mb-2 w-full rounded border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-slate-200 placeholder:text-slate-600 focus:border-slate-500 focus:outline-none" />
         <div className="mb-2 flex flex-wrap gap-1">
-          {(["all", ...CATS.map(c => c.id)] as (Cat | "all")[]).map(c => (
+          {/* A category chip only appears when it has articles the viewer can
+              see — which is how "Admin & platform" stays out of a member's
+              chip row without this component knowing about tiers. */}
+          {(["all", ...CATS.filter(c => all.some(a => a.cat === c.id)).map(c => c.id)] as (Cat | "all")[]).map(c => (
             <button key={c} onClick={() => setCat(c)}
               className={`rounded px-2 py-0.5 text-[10px] transition-colors ${
                 cat === c ? "border border-slate-700 bg-slate-800 text-amber-400"
@@ -2089,7 +2092,14 @@ export default function ResearchView({ initialTab }: { initialTab?: Cat }) {
   }, []);
 
   // What every surface reads: source values with any override laid on top.
-  const list = useMemo(() => applyOverrides(ARTICLES, overrides), [overrides]);
+  // Members may open Research now, so the "Admin & platform" category — run
+  // telemetry, the ICE backfill control, workflow internals — is withheld
+  // unless the cosmetic tier cookie says admin. Cosmetic is enough here: the
+  // one write action in that category (/api/admin/ice-publish-time) verifies
+  // the SIGNED cookie server-side, so forging `tierv` shows a form that 403s.
+  const list = useMemo(
+    () => applyOverrides(ARTICLES, overrides).filter(a => isAdmin || a.cat !== "admin"),
+    [overrides, isAdmin]);
   const sourceArticle = ARTICLES.find(a => a.id === sel);
 
   function afterSave(id: string, ov: Override | null) {

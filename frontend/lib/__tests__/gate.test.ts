@@ -59,15 +59,17 @@ describe("secret hardening", () => {
 });
 
 describe("route ACL", () => {
-  it("basic sees only supply/demand/futures/freight", () => {
-    expect(pathAllowed("basic", "/futures")).toBe(true);
-    expect(pathAllowed("basic", "/supply/brazil")).toBe(true);
+  it("basic (guest) sees every market tab but nothing behind it", () => {
+    for (const p of ["/", "/news", "/futures", "/cot", "/freight", "/supply/brazil", "/demand", "/macro", "/map"]) {
+      expect(pathAllowed("basic", p), p).toBe(true);
+    }
     expect(pathAllowed("basic", "/research")).toBe(false);
+    expect(pathAllowed("basic", "/data-map")).toBe(false);
     expect(pathAllowed("basic", "/admin")).toBe(false);
   });
-  it("user sees everything except tracking/research/data-map", () => {
+  it("user (member) adds Research, still not the owner's surfaces", () => {
     expect(pathAllowed("user", "/futures")).toBe(true);
-    expect(pathAllowed("user", "/research")).toBe(false);
+    expect(pathAllowed("user", "/research")).toBe(true);
     expect(pathAllowed("user", "/data-map")).toBe(false);
     expect(pathAllowed("user", "/admin")).toBe(false);
   });

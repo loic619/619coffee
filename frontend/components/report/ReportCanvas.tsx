@@ -14,6 +14,7 @@
  */
 import { forwardRef, useEffect, useState } from "react";
 import { REPORT_BY_ID, REPORT_CATEGORIES } from "@/lib/report/registry";
+import { PRODUCT_NAME } from "@/lib/brand";
 import { useReportStore } from "@/lib/report/store";
 import { getInsight, getExecutiveSummary } from "@/lib/report/insights";
 import Markdown from "@/lib/report/markdown";
@@ -210,7 +211,7 @@ const ReportCanvas = forwardRef<HTMLDivElement>(function ReportCanvas(_props, re
         <div className="flex items-end justify-between gap-4">
           <div>
             <div className="text-[9px] font-semibold uppercase tracking-[0.32em] text-slate-500">
-              Coffee Intel Map
+              {PRODUCT_NAME}
             </div>
             <h1 className="text-[22px] leading-7 font-semibold tracking-tight text-slate-100">
               Market Briefing

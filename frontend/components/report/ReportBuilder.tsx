@@ -12,6 +12,7 @@ import { useReactToPrint } from "react-to-print";
 import { REPORT_REGISTRY, REPORT_CATEGORIES, REPORT_PRESETS } from "@/lib/report/registry";
 import { useReportStore } from "@/lib/report/store";
 import { PRINT_CSS_LIGHT, PRINT_CSS_DARK } from "@/lib/report/printStyles";
+import { PRODUCT_NAME } from "@/lib/brand";
 import ReportCanvas from "./ReportCanvas";
 
 type PrintTheme = "light" | "dark";
@@ -57,7 +58,7 @@ export default function ReportBuilder() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const printReport = useReactToPrint({
     contentRef: canvasRef,
-    documentTitle: `Coffee Intel Map - Market Briefing - ${new Date().toISOString().slice(0, 10)}`,
+    documentTitle: `${PRODUCT_NAME} - Market Briefing - ${new Date().toISOString().slice(0, 10)}`,
     pageStyle: printTheme === "light" ? PRINT_CSS_LIGHT : PRINT_CSS_DARK,
   });
 

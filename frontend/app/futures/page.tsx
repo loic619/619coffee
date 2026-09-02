@@ -240,7 +240,7 @@ const PACKING_OPTIONS = [
 const CERT_OPTIONS = [
   { key: "eudr", label: "EUDR",                                        short: "EUDR", display: "+50 USD/MT",                        val: 50 },
   { key: "4c",   label: "4C",                                          short: "4C",   display: "+15 USD/MT",                        val: 15 },
-  { key: "rfa",  label: "RFA  (excl. 1.75 cts/lb buyer royalty fee)",  short: "RFA",  display: "+5 cts/lb · +60 USD/MT (Robusta)",  val: 60 },
+  { key: "rfa",  label: "RFA",  short: "RFA",  display: "+5 ¢/lb · +60 USD/MT (Robusta)",  val: 60 },
 ];
 
 interface ShippingMonth {

@@ -65,11 +65,17 @@ async function recordIdentity(ip: string, full: string, tier: string): Promise<v
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const form = await req.formData().catch(() => null);
+  // One `name` field. The form used to split first name / surname, which
+  // assumes a shape many of this audience's names do not have — two surnames
+  // are normal in Latin America and Iberia, and Indonesian or Ethiopian names
+  // often do not split at all. The legacy pair is still accepted so an old
+  // cached form does not bounce.
+  const name = clean(String(form?.get("name") ?? ""));
   const first = clean(String(form?.get("first") ?? ""));
   const last = clean(String(form?.get("last") ?? ""));
   const password = String(form?.get("password") ?? "").trim();
   const next = safeNext(String(form?.get("next") ?? "/"));
-  const full = [first, last].filter(Boolean).join(" ").trim();
+  const full = (name || [first, last].filter(Boolean).join(" ")).trim();
 
   const bounce = (err: string) => {
     const url = new URL("/welcome", req.url);

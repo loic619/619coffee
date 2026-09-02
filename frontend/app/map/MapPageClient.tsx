@@ -1,6 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
+import PageHeader from "@/components/PageHeader";
 import NewsSidebar from "@/components/map/NewsSidebar";
 import NewsFeed from "@/components/map/NewsFeed";
 import MapLegend from "@/components/map/MapLegend";
@@ -69,6 +70,14 @@ export default function MapPageClient() {
 
   return (
     <div className="w-full h-full flex flex-col">
+      {/* Every other tab had a header and a freshness bar; the map — until
+          September 2026 the landing page — had neither. Its purpose is stated
+          here rather than left to be inferred from the pins. */}
+      <PageHeader
+        title="Map"
+        subtitle="Where coffee is grown, shipped and roasted — origin pins, ports, factories, and the latest news placed where it happened"
+        healthKeys={["port_activity", "weather", "origin_prices"]}
+      />
       {error && (
         <div className="bg-red-900/40 border-b border-red-700 text-red-200 text-xs px-4 py-2">
           {error}

@@ -331,7 +331,7 @@ export default function SeptemberXray() {
       {data.study && data.study.rows.length >= 10 && (() => {
         const st = data.study!;
         const OUTCOME_LABEL: Record<string, [string, string]> = {
-          uz_chg: ["Δ(Sept − Dec) spread into FND", "c/lb; negative = Sept weakened vs Dec (roll pressure)"],
+          uz_chg: ["Δ(Sept − Dec) spread into FND", "¢/lb; negative = Sept weakened vs Dec (roll pressure)"],
           cert_build: ["Certified-stock build, notice month", "bags, FND−3d → FND+28d"],
           oi_rem_7: ["OI remaining at 7d before FND", "% of the 63d level"],
           oi_rem_0: ["OI remaining at FND", "% of the 63d level"],
@@ -370,7 +370,7 @@ export default function SeptemberXray() {
                     {" "}<strong className="text-amber-300">{hiRet != null && hiRet > 0 ? "+" : ""}{hiRet?.toFixed(1)}%</strong> into
                     FND vs <strong className="text-indigo-300">{loRet != null && loRet > 0 ? "+" : ""}{loRet?.toFixed(1)}%</strong> for
                     the least-crowded — the length tended to be <em>right</em> on flat price, while paying
-                    ~1 c/lb of Sept-vs-Dec slippage on the roll (see table).
+                    ~1 ¢/lb of Sept-vs-Dec slippage on the roll (see table).
                   </p>
                   {allFlipsDrew && (
                     <p>
@@ -434,7 +434,7 @@ export default function SeptemberXray() {
                     <th className="text-left pr-2 pb-1 font-medium">year (by spec net @30d)</th>
                     <th className="px-2 pb-1 text-right font-medium">MM net</th>
                     <th className="px-2 pb-1 text-right font-medium">z</th>
-                    <th className="px-2 pb-1 text-right font-medium">Δ(U−Z) c/lb</th>
+                    <th className="px-2 pb-1 text-right font-medium">Δ(U−Z) ¢/lb</th>
                     <th className="px-2 pb-1 text-right font-medium">cert Δbags</th>
                     <th className="px-2 pb-1 text-right font-medium">comm @7d</th>
                   </tr>
@@ -485,7 +485,7 @@ export default function SeptemberXray() {
           <li className="flex gap-2"><span className="text-amber-500/70">•</span><span>
             <strong>Crowded spec length is momentum, not washout fuel</strong> (event study, n=20): the most-crowded
             third of Septembers saw the U contract move <strong>+8.0%</strong> into FND vs <strong>+0.5%</strong> for
-            the least-crowded — while paying about <strong>1 c/lb</strong> of Sept-vs-Dec slippage on the roll
+            the least-crowded — while paying about <strong>1 ¢/lb</strong> of Sept-vs-Dec slippage on the roll
             (corr ≈ −0.24). Positioning extremes here mark the price regime (2018/2019 record shorts = capitulation
             lows; 2010/2014/2025 big longs = bull years) rather than predicting a reversal.
           </span></li>

@@ -1464,7 +1464,7 @@ function _classLabel(cls: GradeClass, allowance?: number | null): string {
   const sign = allowance > 0 ? "+" : "\u2212";
   // ICE quotes these in whole or half cents — drop a trailing ".0".
   const mag = Number(Math.abs(allowance).toFixed(2)).toString();
-  return `class ${name}, ${sign}${mag} cts/lb`;
+  return `class ${name}, ${sign}${mag} ¢/lb`;
 }
 
 // Robusta grading sentence. Passed lots break out per (port, class) so the

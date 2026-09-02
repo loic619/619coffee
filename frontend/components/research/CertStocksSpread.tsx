@@ -42,12 +42,12 @@ interface Payload { sign_convention: string; markets: Record<string, Mkt> }
 
 /** Which unit the spread axis is drawn in.
  *
- *  "native" is what the trade quotes — c/lb on KC, $/t on RC. "pct" is the
+ *  "native" is what the trade quotes — ¢/lb on KC, $/t on RC. "pct" is the
  *  spread as a share of the front contract's price. The second is the only one
  *  that survives a change of price level: 40 $/t against robusta at 1,500 is a
  *  real carry, the same 40 $/t at 5,600 is noise, and the absolute axis draws
  *  them at the same height. It is also the only way the two panels below can be
- *  read against each other at all — c/lb and $/t cannot share a scale. */
+ *  read against each other at all — ¢/lb and $/t cannot share a scale. */
 type Mode = "native" | "pct";
 
 /** Newest-first index → colour band. Four bands, per the recency ramp above. */
@@ -281,12 +281,12 @@ export default function CertStocksSpread() {
               lots of 10 t; converted to 60-kg bags so both panels share a unit.</LI>
             <LI><strong>Monthly average, not month-end</strong> — the front contract&rsquo;s final days are
               thin and erratic, and one bad print would move a point meant to describe a whole month.</LI>
-            <LI><strong>Two units, toggled on each chart</strong> — the market&rsquo;s own (c/lb, $/t) and the
+            <LI><strong>Two units, toggled on each chart</strong> — the market&rsquo;s own (¢/lb, $/t) and the
               spread as a <em>share of the front price</em>. The absolute figure is what the trade quotes and
               what a broker chart shows, but it is not comparable across price regimes: 40 $/t with robusta at
               1,500 is a real carry and the same 40 $/t at 5,600 is noise, and an absolute axis plots them at
               the same height. It is also the only way these two panels can be read against each other, since
-              c/lb and $/t cannot share a scale. The percentage is built from the <em>daily</em> ratio and then
+              ¢/lb and $/t cannot share a scale. The percentage is built from the <em>daily</em> ratio and then
               averaged, not from the month&rsquo;s average spread divided by its average price — the two differ
               whenever the price level moves inside the month. Both units are checked in the tables below,
               because a result that survives in only one of them is a result about the unit.</LI>
@@ -349,10 +349,10 @@ export default function CertStocksSpread() {
               a regime the market left in early 2024.</LI>
             <LI><strong>The two markets, side by side, only in %.</strong> Both boards have peaked at almost
               exactly the same backwardation in percentage terms over this sample — about 7% of the front
-              price — at absolute numbers that look nothing alike (roughly 24 c/lb on KC late in the sample,
+              price — at absolute numbers that look nothing alike (roughly 24 ¢/lb on KC late in the sample,
               roughly 205 $/t on RC in mid-2023) and in different years. Today they are at opposite ends of
               that same scale: arabica is at its own five-year percentage high while robusta sits near flat.
-              Neither statement can be made from the c/lb and $/t axes.</LI>
+              Neither statement can be made from the ¢/lb and $/t axes.</LI>
             <LI><strong>Neither</strong> is a forecast. This is a contemporaneous relationship between two
               things measured in the same month; nothing here says stocks lead the spread.</LI>
             <LI><strong>Five years, not forty.</strong> The archive starts 2021-08. A longer sample would
