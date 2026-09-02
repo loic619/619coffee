@@ -17,10 +17,15 @@ interface FactoryMix {
   note?: string;
 }
 
+// ICO's world consumption reference (kt/yr), the same 2023/24 figure the
+// coverage tile uses — kept here only to express what the tracked total is a
+// share of. Not a precise ratio: capacity and consumption are different things.
+const ICO_WORLD_KT = 10_620;
+
 const TYPE_ORDER = ["roastery", "mixed", "soluble", "capsules", "decaf"] as const;
 const TYPE_LABELS: Record<string, string> = {
   roastery: "Roasted",
-  mixed:    "Mixed",
+  mixed:    "Mixed site",
   soluble:  "Soluble",
   capsules: "Capsules",
   decaf:    "Decaf",
@@ -91,14 +96,24 @@ export default function RoastingMixPanel() {
             Consumer-side capacity structure — roasted · mixed · soluble · capsules · decaf
           </p>
         </div>
-        <div className="text-[10px] text-slate-500 font-mono">
-          {fmtKt(total)} tracked · {data.regions.length} regions
+        <div className="text-[10px] text-slate-500 font-mono text-right">
+          <div>{fmtKt(total)} tracked · {data.regions.length} regions</div>
+          {/* A bare "5.7 Mt tracked" invites being read as world capacity. It is
+              a hand-maintained plant seed, so say what it is a share OF. */}
+          {ICO_WORLD_KT > 0 && (
+            <div className="text-slate-600">
+              ≈{Math.round((total / ICO_WORLD_KT) * 100)}% of world consumption · named plants only
+            </div>
+          )}
         </div>
       </div>
 
       {/* Global type-share strip */}
       <div className="space-y-1">
-        <div className="text-[9px] text-slate-500 uppercase tracking-wide">Global share by end-product</div>
+        {/* "Mixed" is a multi-product SITE, not a product — it is the fifth of
+            capacity that a plant-level seed cannot split. Calling the strip
+            "by end-product" implied it was one. */}
+        <div className="text-[9px] text-slate-500 uppercase tracking-wide">Global share by plant output</div>
         <div className="flex h-3 rounded-sm overflow-hidden bg-slate-900 border border-slate-700">
           {globalShare.map(g => (
             <div

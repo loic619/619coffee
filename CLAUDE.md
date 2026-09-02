@@ -19,6 +19,20 @@ force-resetting history nobody has reviewed.
 This is what PRs #793–#799 did. Merging still needs a explicit go-ahead; only
 the branch choice is settled.
 
+### Exception: the audit routines' own logbooks
+
+`IMPROVEMENTS.md` and `ACTIONS_ISSUES.md` are written by two Claude Code
+Routines that run on Anthropic's cloud, not from a workflow in this repo. Their
+prompts tell them to commit their findings **straight to `main`**, which is
+correct — a PR per appended row would be pure overhead, and the previous rule
+sent one of them into unwinding a branch it should never have cut (it then
+found local `main` 23 commits stale, which is its own hazard).
+
+So, narrowly: **appending to those two files may go directly to `main`.**
+Anything else — any code, data, workflow or config change, including one those
+files propose — takes a branch and a PR like everything above. A routine that
+finds itself editing a third file has left its lane.
+
 ## CI
 
 `ruff` and `pytest` run on every PR. Both must be green before merging.
