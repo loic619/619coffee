@@ -367,3 +367,146 @@ def test_blind_link_hash_is_reported_not_swallowed(monkeypatch):
     found, signal = ss.probe_link_hash(["listing"], _FNC["href_re"], "old", None, blind)
     assert found is False and signal == "old"
     assert blind and "blind" in blind[0]
+
+
+# ── CONAB: gov.br links folders and /view paths, never bare .pdf/.xls ────────
+#
+# The old href_re required the href to END in .pdf/.xls[x]. On the safra
+# listing every link is a Plone FOLDER for one levantamento (the spreadsheet
+# lives inside it), and on the custos "Agrícolas" tab the download sits behind
+# /view. So the pattern matched nothing on either page and the probe was blind
+# from the first run — signal null, last_found null, blind_alerted 2026-09.
+_CONAB = next(s for s in ss.SOURCES if s["key"] == "conab")
+_CONAB_SAFRA = "https://www.gov.br/conab/pt-br/atuacao/informacoes-agropecuarias/safras/safra-de-cafe"
+_CONAB_CUSTOS = ("https://www.gov.br/conab/pt-br/atuacao/informacoes-agropecuarias/"
+                 "custos-de-producao/planilhas-de-custos-de-producao/copy_of_agricolas")
+_CONAB_LEVANTAMENTOS = [
+    f"{_CONAB_SAFRA}/2o-levantamento-de-cafe-2026/boletim-cafe-maio-2026.xls/view",
+    f"{_CONAB_SAFRA}/1o-levantamento-de-cafe-2026/boletim-cafe-janeiro-2026.xls/view",
+]
+_CONAB_CUSTOS_COFFEE = [
+    f"{_CONAB_CUSTOS}/serie-historica-de-custos-cafe-arabica.xlsx/view",
+    f"{_CONAB_CUSTOS}/serie-historica-de-custos-cafe-conilon.xlsx/view",
+]
+_CONAB_NOISE = [
+    f"{_CONAB_CUSTOS}/serie-historica-de-custos-soja.xlsx/view",
+    f"{_CONAB_CUSTOS}/serie-historica-de-custos-milho.xlsx/view",
+    "https://www.gov.br/conab/pt-br/assuntos/noticias",
+    "https://www.gov.br/conab/pt-br/canais_atendimento/ouvidoria",
+]
+
+
+def _page(urls):
+    return "<html>" + "".join(f'<a href="{u}">x</a>' for u in urls) + "</html>"
+
+
+def test_old_conab_pattern_was_blind_on_the_real_page():
+    """Regression anchor for B1: nothing on either page is a bare .pdf/.xls
+    href, so the retired pattern found nothing — which is why the probe never
+    fired, and (before the blind guard) never said why."""
+    import re
+    page = _page(_CONAB_LEVANTAMENTOS + _CONAB_CUSTOS_COFFEE + _CONAB_NOISE)
+    assert re.findall(r'href="([^"]+\.(?:pdf|xls[x]?))"', page) == []
+
+
+def test_conab_pattern_matches_levantamentos_and_coffee_costs():
+    import re
+    hits = set(re.findall(_CONAB["href_re"],
+                          _page(_CONAB_LEVANTAMENTOS + _CONAB_CUSTOS_COFFEE + _CONAB_NOISE)))
+    assert hits == set(_CONAB_LEVANTAMENTOS + _CONAB_CUSTOS_COFFEE)
+
+
+def test_conab_probe_fires_on_a_new_levantamento(monkeypatch):
+    have = _CONAB_LEVANTAMENTOS + _CONAB_CUSTOS_COFFEE + _CONAB_NOISE
+    _stub_get(monkeypatch, {"listing": _FakeResp(_page(have))})
+    _, baseline = ss.probe_link_hash(["listing"], _CONAB["href_re"], None)
+    assert baseline is not None
+    new = f"{_CONAB_SAFRA}/3o-levantamento-de-cafe-2026/boletim-cafe-setembro-2026.xls/view"
+    _stub_get(monkeypatch, {"listing": _FakeResp(_page(have + [new]))})
+    found, signal = ss.probe_link_hash(["listing"], _CONAB["href_re"], baseline)
+    assert found is True and signal != baseline
+
+
+def test_conab_probe_ignores_another_crops_spreadsheet(monkeypatch):
+    """The custos tab carries every crop. Hashing soja/milho too would repeat
+    the FNC false positive: a dispatch, then an ingestion alarm three days
+    later over a coffee release that never happened."""
+    have = _CONAB_LEVANTAMENTOS + _CONAB_CUSTOS_COFFEE + _CONAB_NOISE
+    _stub_get(monkeypatch, {"listing": _FakeResp(_page(have))})
+    _, baseline = ss.probe_link_hash(["listing"], _CONAB["href_re"], None)
+    moved = have + [f"{_CONAB_CUSTOS}/serie-historica-de-custos-algodao.xlsx/view"]
+    _stub_get(monkeypatch, {"listing": _FakeResp(_page(moved))})
+    assert ss.probe_link_hash(["listing"], _CONAB["href_re"], baseline) == (False, baseline)
+
+
+# ── Comex: the lastmod probe must read the file, and say so when it can't ────
+
+class _FakeHeadResp:
+    def __init__(self, status=200, headers=None):
+        self.status_code, self.headers = status, headers or {}
+
+    def close(self):
+        pass
+
+
+def _stub_validators(monkeypatch, head, get=None):
+    """head/get: _FakeHeadResp | Exception; records the verify= each call got."""
+    seen: dict = {}
+
+    def _fake(kind, resp):
+        def f(url, headers=None, timeout=None, allow_redirects=None,
+              stream=None, verify=None):
+            seen[kind] = {"verify": verify, "headers": headers or {}}
+            if isinstance(resp, Exception):
+                raise resp
+            return resp
+        return f
+    monkeypatch.setattr(ss.requests, "head", _fake("head", head))
+    monkeypatch.setattr(ss.requests, "get", _fake("get", get if get is not None
+                                                  else _FakeHeadResp(405)))
+    return seen
+
+
+def test_lastmod_signal_changes_when_the_file_grows(monkeypatch):
+    _stub_validators(monkeypatch, _FakeHeadResp(200, {"Last-Modified": "Mon, 03 Aug 2026 09:00:00 GMT",
+                                                      "Content-Length": "1000"}))
+    _, baseline = ss.probe_lastmod("http://x/IMP_2026.csv", None)
+    _stub_validators(monkeypatch, _FakeHeadResp(200, {"Last-Modified": "Tue, 01 Sep 2026 09:00:00 GMT",
+                                                      "Content-Length": "1200"}))
+    found, signal = ss.probe_lastmod("http://x/IMP_2026.csv", baseline)
+    assert found is True and signal != baseline
+
+
+def test_lastmod_falls_back_to_a_ranged_get_when_head_is_refused(monkeypatch):
+    """A 1-byte GET carries the same validators, and Content-Range's total
+    keeps the signal identical to what a working HEAD would have produced."""
+    hdrs = {"Last-Modified": "Tue, 01 Sep 2026 09:00:00 GMT", "Content-Length": "1200"}
+    _stub_validators(monkeypatch, _FakeHeadResp(200, hdrs))
+    via_head = ss._validators("http://x/IMP_2026.csv")
+    ranged = {"Last-Modified": hdrs["Last-Modified"], "Content-Length": "1",
+              "Content-Range": "bytes 0-0/1200"}
+    seen = _stub_validators(monkeypatch, _FakeHeadResp(405), _FakeHeadResp(206, ranged))
+    assert ss._validators("http://x/IMP_2026.csv") == via_head
+    assert seen["get"]["headers"].get("Range") == "bytes=0-0"
+
+
+def test_comex_probe_tolerates_the_hosts_cert_chain(monkeypatch):
+    """balanca.economia.gov.br serves an incomplete chain; verify=True made
+    every probe raise SSLError, which is why its signal stayed null. The
+    scraper that downloads the same file already passes verify=False."""
+    comex = next(s for s in ss.SOURCES if s["key"] == "comex")
+    assert comex["verify_tls"] is False
+    seen = _stub_validators(monkeypatch, _FakeHeadResp(200, {"ETag": "abc"}))
+    ss.probe_lastmod("http://x/IMP_2026.csv", None, comex["verify_tls"])
+    assert seen["head"]["verify"] is False
+
+
+def test_blind_lastmod_is_reported_not_swallowed(monkeypatch):
+    """An unreachable file used to look exactly like a quiet source — the
+    21-day overdue alarm was the only hint. Now it alerts the same day."""
+    blind: list[str] = []
+    _stub_validators(monkeypatch, ss.requests.RequestException("SSL boom"),
+                     ss.requests.RequestException("SSL boom"))
+    found, signal = ss.probe_lastmod("http://x/IMP_2026.csv", "old", True, blind)
+    assert found is False and signal == "old"
+    assert blind and "blind" in blind[0]
