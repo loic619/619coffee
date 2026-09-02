@@ -1,5 +1,7 @@
 "use client";
 import { Fragment, useEffect, useState } from "react";
+import ModelledBadge from "@/components/ModelledBadge";
+import { useDirectionHitRate } from "@/lib/useDirectionHitRate";
 
 // ── Live open-direction model output (quant_report.json["open_direction"]) ──
 // Produced PRE-OPEN (03:00 UTC) by backend/scraper/quant_model/
@@ -150,6 +152,10 @@ export default function PriceDirectionSection() {
     : dir === "Bearish" ? "text-red-400" : "text-amber-400";
   const probUp = data?.prob_up ?? 0.5;
   const probDown = data?.prob_down ?? 0.5;
+  // Live, graded record — the number a user should weigh the call against.
+  // The "Model Performance" block below shows test-split accuracy, which is
+  // fit, not track record; the badge deliberately shows only the live one.
+  const { hitRate: liveHitRate } = useDirectionHitRate();
 
   return (
     <section className="px-6 py-5 space-y-4">
@@ -157,6 +163,7 @@ export default function PriceDirectionSection() {
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded">Section 1</span>
         <h2 className="text-base font-bold text-white">Open Price Direction</h2>
+        <ModelledBadge method="ML classifier" hitRate={liveHitRate} />
         <span className="text-[10px] text-slate-500">
           Robusta · Overnight Gap (open vs prior 17:30 close) · fires pre-open 03:00 UTC
         </span>

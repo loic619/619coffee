@@ -65,7 +65,13 @@ interface DryBulkData {
   source: string;
 }
 
-interface Props { data: FreightData | null; }
+interface Props {
+  data: FreightData | null;
+  /** Where the page's numbers came from. "static" = the committed snapshot
+   *  served because the live backend was unreachable — shown in the header
+   *  so a stale rate can never pass for a live one. */
+  source?: "live" | "static";
+}
 
 // BDRY history is free from Yahoo, so the series now runs five years rather than
 // six months. That makes the window a choice: 6M keeps the old read, 5Y shows
@@ -275,7 +281,7 @@ const RANGES = [
 ] as const;
 type RangeKey = (typeof RANGES)[number]["key"];
 
-export default function FreightClient({ data }: Props) {
+export default function FreightClient({ data, source = "live" }: Props) {
   const { data: farmerEcon, loading: dryLoading, error: dryError } =
     useFetchJson<{ fertilizer?: { dry_bulk?: DryBulkData } }>("/data/farmer_economics.json");
   const dryBulk: DryBulkData | null = farmerEcon?.fertilizer?.dry_bulk ?? null;
@@ -306,8 +312,19 @@ export default function FreightClient({ data }: Props) {
     <div className="h-full overflow-y-auto">
       <PageHeader
         title="Freight"
-        subtitle="Container & dry-bulk freight indicators"
+        subtitle="Container spot rates by lane (Freightos FBX, USD/FEU) · dry-bulk index (BDRY)"
         healthKeys={["freight"]}
+        rightSlot={
+          source === "static" ? (
+            <span
+              className="rounded border border-amber-500/40 bg-amber-950/50 px-2 py-0.5 text-[10px] text-amber-200"
+              title="The live freight backend did not answer; these figures are the last committed snapshot."
+            >
+              <span className="font-bold uppercase tracking-widest">Snapshot</span>
+              <span className="text-amber-300/80"> · committed {data?.updated ?? "—"}, backend unreachable</span>
+            </span>
+          ) : undefined
+        }
       />
       <div className="p-6 space-y-4">
 

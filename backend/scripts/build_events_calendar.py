@@ -67,32 +67,111 @@ KC_MONTHS = {"H": 3, "K": 5, "N": 7, "U": 9, "Z": 12}
 RC_MONTHS = {"F": 1, "H": 3, "K": 5, "N": 7, "U": 9, "X": 11}
 
 
-def _first_biz_day(year: int, month: int) -> date:
-    """First Mon-Fri of the given month. (Holidays not adjusted — KC/RC
-    FND calculation matches the frontend's `firstNoticeDay` which also
-    ignores exchange holidays. Good enough for a watchlist.)"""
-    d = date(year, month, 1)
-    while d.weekday() >= 5:  # Sat=5, Sun=6
+# Exchange holidays — this used to be Mon–Fri only, with a note saying "good
+# enough for a watchlist". It was not: an FND that is a day off is exactly what
+# a watchlist exists to prevent. Weekend-only maths put RMF26 on 26 Dec 2025
+# (true: 24 Dec — Christmas and Boxing Day sit inside the count) and KCZ26 on
+# 20 Nov 2026 (true: 19 Nov — Thanksgiving). These rules mirror
+# frontend/lib/fnd.ts exactly; a vitest cross-check there fails the build if
+# the two ever disagree on an entry in events.json.
+
+def _easter(y: int) -> date:
+    a, b, c = y % 19, y // 100, y % 100
+    d, e, f = b // 4, b % 4, (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = c // 4, c % 4
+    l = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l) // 451
+    month = (h + l - 7 * m + 114) // 31
+    day = (h + l - 7 * m + 114) % 31 + 1
+    return date(y, month, day)
+
+
+def _nth_weekday(y: int, m: int, weekday: int, n: int) -> date:
+    """weekday: Mon=0…Sun=6. n=1 first, n=-1 last."""
+    if n > 0:
+        first = date(y, m, 1)
+        return first + timedelta(days=(weekday - first.weekday()) % 7 + 7 * (n - 1))
+    nxt = date(y + (m == 12), (m % 12) + 1, 1)
+    last = nxt - timedelta(days=1)
+    return last - timedelta(days=(last.weekday() - weekday) % 7)
+
+
+def _observed_us(d: date) -> date:
+    return d - timedelta(days=1) if d.weekday() == 5 else d + timedelta(days=1) if d.weekday() == 6 else d
+
+
+def _uk_substitute(d: date, taken: set) -> date:
+    while d.weekday() >= 5 or d in taken:
         d += timedelta(days=1)
     return d
 
 
-def _sub_biz_days(d: date, n: int) -> date:
-    """Subtract n business days (Mon-Fri)."""
+def ice_us_holidays(y: int) -> set:
+    """ICE Futures U.S. softs closures. Friday after Thanksgiving is an early
+    close, not a closure."""
+    e = _easter(y)
+    days = {
+        _observed_us(date(y, 1, 1)), _nth_weekday(y, 1, 0, 3), _nth_weekday(y, 2, 0, 3),
+        e - timedelta(days=2), _nth_weekday(y, 5, 0, -1), _observed_us(date(y, 6, 19)),
+        _observed_us(date(y, 7, 4)), _nth_weekday(y, 9, 0, 1), _nth_weekday(y, 11, 3, 4),
+        _observed_us(date(y, 12, 25)),
+    }
+    if date(y + 1, 1, 1).weekday() == 5:          # next New Year on a Saturday
+        days.add(date(y, 12, 31))
+    return days
+
+
+def ice_eu_holidays(y: int) -> set:
+    """ICE Futures Europe softs closures — England & Wales bank holidays with
+    the substitute-day rule."""
+    e = _easter(y)
+    taken: set = set()
+    taken.add(_uk_substitute(date(y, 1, 1), taken))
+    taken |= {e - timedelta(days=2), e + timedelta(days=1),
+              _nth_weekday(y, 5, 0, 1), _nth_weekday(y, 5, 0, -1), _nth_weekday(y, 8, 0, -1)}
+    taken.add(_uk_substitute(date(y, 12, 25), taken))
+    taken.add(_uk_substitute(date(y, 12, 26), taken))
+    return taken
+
+
+_HOL_CACHE: dict = {}
+
+
+def _is_biz(d: date, market: str) -> bool:
+    if d.weekday() >= 5:
+        return False
+    key = (market, d.year)
+    if key not in _HOL_CACHE:
+        _HOL_CACHE[key] = ice_us_holidays(d.year) if market == "us" else ice_eu_holidays(d.year)
+    return d not in _HOL_CACHE[key]
+
+
+def _first_biz_day(year: int, month: int, market: str = "us") -> date:
+    """First exchange business day of the month."""
+    d = date(year, month, 1)
+    while not _is_biz(d, market):
+        d += timedelta(days=1)
+    return d
+
+
+def _sub_biz_days(d: date, n: int, market: str = "us") -> date:
+    """Subtract n exchange business days."""
     out = d
     while n > 0:
         out -= timedelta(days=1)
-        if out.weekday() < 5:
+        if _is_biz(out, market):
             n -= 1
     return out
 
 
 def _fnd_kc(year: int, month: int) -> date:
-    return _sub_biz_days(_first_biz_day(year, month), 7)
+    return _sub_biz_days(_first_biz_day(year, month, "us"), 7, "us")
 
 
 def _fnd_rc(year: int, month: int) -> date:
-    return _sub_biz_days(_first_biz_day(year, month), 4)
+    return _sub_biz_days(_first_biz_day(year, month, "eu"), 4, "eu")
 
 
 def _last_biz_day(year: int, month: int) -> date:

@@ -14,6 +14,7 @@ import { FOBBING_USD, MONTHLY_CARRY_USD } from "@/lib/originCosts";
 import { PRINT_CSS_LIGHT, PRINT_CSS_DARK } from "@/lib/report/printStyles";
 import { useFetchJson } from "@/lib/useFetchJson";
 import { useUrlState } from "@/lib/useUrlState";
+import { fmtFirstNoticeDay } from "@/lib/fnd";
 
 type FuturesTab = "price" | "options" | "quotation";
 const FUTURES_TABS: FuturesTab[] = ["price", "options", "quotation"];
@@ -29,41 +30,13 @@ interface Contract {
 }
 
 // ─── First Notice Day ─────────────────────────────────────────────────────────
+// Computed in lib/fnd.ts — the single, holiday-aware source shared with the
+// events calendar. This file used to carry its own weekend-only copy, which
+// put KCZ26 a day late (Thanksgiving) and RMF26 two days late (Christmas +
+// Boxing Day). Don't reintroduce a local version.
 
-const LETTER_TO_MONTH: Record<string, number> = {
-  F:1, G:2, H:3, J:4, K:5, M:6, N:7, Q:8, U:9, V:10, X:11, Z:12,
-};
 const MONTH_ABB = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"] as const;
-
-function firstBusinessDay(year: number, month: number): Date {
-  // month is 1-indexed; returns first business day of that month
-  const d = new Date(year, month - 1, 1);
-  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
-  return d;
-}
-
-function subtractBusinessDays(date: Date, n: number): Date {
-  const d = new Date(date);
-  let remaining = n;
-  while (remaining > 0) {
-    d.setDate(d.getDate() - 1);
-    if (d.getDay() !== 0 && d.getDay() !== 6) remaining--;
-  }
-  return d;
-}
-
-function firstNoticeDay(symbol: string): string {
-  const m = symbol.match(/^(KC|RM|RC)([FGHJKMNQUVXZ])(\d{2})$/i);
-  if (!m) return "—";
-  const [, product, letter, yr] = m;
-  const monthNum = LETTER_TO_MONTH[letter.toUpperCase()];
-  if (!monthNum) return "—";
-  const year = 2000 + parseInt(yr);
-  const days = product.toUpperCase() === "KC" ? 7 : 4;
-  const fbdm = firstBusinessDay(year, monthNum);
-  const fnd  = subtractBusinessDays(fbdm, days);
-  return `${fnd.getDate()}/${fnd.getMonth() + 1}`;
-}
+const firstNoticeDay = fmtFirstNoticeDay;
 
 // ─── Futures Chain Table ──────────────────────────────────────────────────────
 

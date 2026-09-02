@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { fmtAgo } from "@/lib/formatters";
+import ModelledBadge from "@/components/ModelledBadge";
 
 interface FactorRow {
   label: string;
@@ -92,6 +93,13 @@ export default function RobustaForecastSection() {
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold uppercase tracking-widest text-purple-400 bg-purple-950/60 px-2 py-0.5 rounded">Section 2</span>
           <h2 className="text-base font-bold text-white">Robusta Futures Forecast</h2>
+          {/* R² is in-sample fit, not a hit rate — no forward predictions have
+              been graded for this model yet, and the badge says so. */}
+          <ModelledBadge
+            method="OLS regression"
+            hitRate={null}
+            note={model ? `in-sample R² ${model.r_squared.toFixed(2)}` : undefined}
+          />
           <span className="text-[10px] text-slate-500">Multi-Factor OLS · Weekly COT + DXY</span>
           {model && (
             <span className="text-[10px] text-slate-600 font-mono">R²={model.r_squared.toFixed(3)} n={model.n_obs}</span>

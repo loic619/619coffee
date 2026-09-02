@@ -1,4 +1,5 @@
 "use client";
+import ModelledBadge from "@/components/ModelledBadge";
 
 interface Factor {
   label: string;
@@ -58,6 +59,7 @@ export default function VietnamDiffSection() {
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold uppercase tracking-widest text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded">Section 4</span>
           <h2 className="text-base font-bold text-white">Vietnam Differential Forecast</h2>
+          <ModelledBadge method="multi-factor" hitRate={null} note="mock inputs" />
           <span className="text-[10px] text-slate-500">MFA · Q-Range [−5, +5] · High-variance regime</span>
         </div>
         <div className="flex items-center gap-2 mt-1 px-3 py-1.5 rounded bg-slate-900 border border-slate-700 text-[10px] text-slate-500 w-fit">

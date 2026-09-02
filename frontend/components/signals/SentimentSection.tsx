@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { fmtAgo } from "@/lib/formatters";
+import ModelledBadge from "@/components/ModelledBadge";
 import SentimentTrend from "./SentimentTrend";
 import SentimentCalibration from "./SentimentCalibration";
 
@@ -64,6 +65,10 @@ export default function SentimentSection() {
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold uppercase tracking-widest text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded">Section 5</span>
           <h2 className="text-base font-bold text-white">Coffee News Sentiment Analysis</h2>
+          {/* A classification, not a price forecast: there is nothing to
+              grade it against, so no hit-rate slot — but it is still model
+              output and must not read as a measured series. */}
+          <ModelledBadge method="NLP classification" />
           <span className="text-[10px] text-slate-500">Google Gemini · NLP classification · Confidence scoring</span>
         </div>
         <p className="text-xs text-slate-400 mt-1 max-w-3xl">

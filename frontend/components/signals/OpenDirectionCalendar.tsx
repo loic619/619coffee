@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import ModelledBadge from "@/components/ModelledBadge";
 
 // ── Prediction-vs-reality track record (open_direction_history.json) ────────
 // Every 03:00 UTC prediction is appended BEFORE the open and graded after it;
@@ -138,6 +139,11 @@ export default function OpenDirectionCalendar() {
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded">Track record</span>
         <h3 className="text-sm font-bold text-white">Prediction vs Realized Open</h3>
+        <ModelledBadge
+          method="ML classifier"
+          hitRate={stats.liveHit != null ? { value: stats.liveHit, n: stats.live.length, label: "live calls" } : null}
+        />
+
         <span className="text-[10px] text-slate-500">
           logged pre-open · graded after the open · append-only
         </span>
