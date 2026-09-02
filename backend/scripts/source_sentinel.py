@@ -17,7 +17,8 @@ as the safety net; the scrapers are idempotent so a double-run is harmless.
 Probe kinds (all ~1 s, no Playwright):
   head_month   — HEAD a deterministic month-stamped file URL (Cecafe, DANE,
                  VN customs bulletin). 200 = published.
-  lastmod      — HEAD a fixed URL; ETag/Last-Modified/Length change = new
+  lastmod      — read a fixed URL's validators (HEAD, falling back to a
+                 1-byte ranged GET); ETag/Last-Modified/size change = new
                  month appended (MDIC Comex bulk CSV).
   link_hash    — GET listing page(s), extract matching hrefs, hash the
                  sorted set; change = a new bulletin was posted (FNC, UCDA,
@@ -129,18 +130,61 @@ def probe_head_month(urls: list[str]) -> tuple[bool, str | None]:
     return False, None
 
 
-def probe_lastmod(url: str, prev_signal: str | None) -> tuple[bool, str | None]:
-    """Signal = ETag|Last-Modified|Length of a fixed URL; change = new data."""
-    try:
-        r = _head(url)
-    except requests.RequestException:
+def _total_size(r: requests.Response) -> str:
+    """Full file size: the total from Content-Range on a ranged reply,
+    else Content-Length. Keeps the signal identical whether it came from a
+    HEAD or from the 1-byte GET fallback."""
+    m = re.search(r"/(\d+)\s*$", r.headers.get("Content-Range", ""))
+    return m.group(1) if m else r.headers.get("Content-Length", "")
+
+
+def _validators(url: str, verify_tls: bool = True) -> str | None:
+    """ETag|Last-Modified|size of a fixed URL, or None if it can't be read.
+
+    Tries HEAD first, then a 1-byte ranged GET: a static file behind a CDN
+    or a plain file server may answer 403/405 to HEAD while serving the same
+    validators on a GET."""
+    attempts = (
+        lambda: requests.head(url, headers=HEADERS, timeout=TIMEOUT,
+                              allow_redirects=True, verify=verify_tls),
+        lambda: requests.get(url, headers={**HEADERS, "Range": "bytes=0-0"},
+                             timeout=TIMEOUT, allow_redirects=True, stream=True,
+                             verify=verify_tls),
+    )
+    for i, attempt in enumerate(attempts):
+        how = "HEAD" if i == 0 else "ranged GET"
+        try:
+            r = attempt()
+        except requests.RequestException as e:
+            print(f"    lastmod: {how} failed ({type(e).__name__}: {str(e)[:120]})")
+            continue
+        try:
+            if r.status_code in (200, 206):
+                return "|".join([r.headers.get("ETag", ""),
+                                 r.headers.get("Last-Modified", ""),
+                                 _total_size(r)])
+            print(f"    lastmod: {how} → HTTP {r.status_code}")
+        finally:
+            r.close()
+    return None
+
+
+def probe_lastmod(url: str, prev_signal: str | None, verify_tls: bool = True,
+                  blind: list[str] | None = None) -> tuple[bool, str | None]:
+    """Signal = ETag|Last-Modified|size of a fixed URL; change = new data.
+
+    `blind` collects a message when the URL could not be read at all — same
+    contract as probe_link_hash. Without it an unreachable target (moved URL,
+    a cert the runner rejects, HEAD refused) is indistinguishable from "the
+    source published nothing", and the only signal left is the 21-day overdue
+    alarm.
+    """
+    sig = _validators(url, verify_tls)
+    if sig is None:
+        if blind is not None:
+            blind.append("the file could not be read (HEAD and ranged GET both "
+                         "failed) — the probe is blind")
         return False, prev_signal
-    if r.status_code != 200:
-        return False, prev_signal
-    sig = "|".join([
-        r.headers.get("ETag", ""), r.headers.get("Last-Modified", ""),
-        r.headers.get("Content-Length", ""),
-    ])
     changed = prev_signal is not None and sig != prev_signal
     return changed, sig
 
@@ -333,8 +377,24 @@ SOURCES: list[dict] = [
     {
         "key": "conab", "label": "CONAB safra de café",
         "window_start": 5, "kind": "link_hash",
-        "pages": ["https://www.gov.br/conab/pt-br/atuacao/informacoes-agropecuarias/safras/safra-de-cafe"],
-        "href_re": r'href="([^"]+\.(?:pdf|xls[x]?))"',
+        # gov.br is a Plone site and NEITHER page links a file directly: the
+        # safra listing links one FOLDER per levantamento (no extension — the
+        # XLS hangs off the folder page), and the custos spreadsheets sit
+        # behind /view or /@@download paths. The old pattern required the href
+        # to END in .pdf/.xls, so it matched nothing on either page — the probe
+        # has been blind since day one (signal null, last_found never set,
+        # blind_alerted 2026-09). Key on what conab_supply.py itself keys on.
+        "pages": [
+            "https://www.gov.br/conab/pt-br/atuacao/informacoes-agropecuarias/safras/safra-de-cafe",
+            "https://www.gov.br/conab/pt-br/atuacao/informacoes-agropecuarias/"
+            "custos-de-producao/planilhas-de-custos-de-producao/copy_of_agricolas",
+        ],
+        # Two link families, both real publications: a new levantamento folder
+        # on the safra page, and a coffee cost spreadsheet on the Agrícolas
+        # tab. Coffee-only on the custos side — that page lists every crop, and
+        # hashing soja/milho too would fire the FNC false positive again.
+        "href_re": (r'(?i)href="([^"]*levantamento-de-cafe[^"]*'
+                    r'|[^"]*(?:caf[eé]|ar[áa]bica|conilon)[^"]*\.xls[x]?[^"]*)"'),
         "workflows": ["scraper-monthly-conab.yml"],
         "verify": {"kind": "health_ts", "keys": ["conab_costs", "conab_safra"]},
     },
@@ -343,6 +403,12 @@ SOURCES: list[dict] = [
         "window_start": 8, "kind": "lastmod",
         # The current year's file gains a month in place — Last-Modified moves.
         "url": lambda pub: f"https://balanca.economia.gov.br/balanca/bd/comexstat-bd/ncm/IMP_{pub.year}.csv",
+        # This host ships an incomplete cert chain that GitHub runners reject —
+        # comex_fertilizer.py already downloads this very file with
+        # verify=False for that reason, and the probe (which did not) has never
+        # produced a signal. Public, unauthenticated bulk file; the probe only
+        # reads response headers.
+        "verify_tls": False,
         "workflows": ["scraper-monthly-br-fertilizer.yml"],
         "verify": {"kind": "health_ts", "keys": ["fertilizer_comex"]},
     },
@@ -579,7 +645,8 @@ def run(today: dt.date, dry: bool, verify_only: bool = False) -> int:
         if src["kind"] == "head_month":
             found, signal = probe_head_month(src["urls"](today))
         elif src["kind"] == "lastmod":
-            found, signal = probe_lastmod(src["url"](today), prev_signal)
+            found, signal = probe_lastmod(src["url"](today), prev_signal,
+                                          src.get("verify_tls", True), blind)
         elif src["kind"] == "pdf_upload":
             found, signal = probe_pdf_upload(src["pages"], src["post_re"],
                                              src["data_file"], src.get("headers"))
