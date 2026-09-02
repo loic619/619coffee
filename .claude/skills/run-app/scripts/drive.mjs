@@ -68,12 +68,12 @@ page.on('pageerror', e => errors.push('pageerror: ' + e.message));
 page.on('response', r => { if (r.status() >= 400) errors.push(`${r.status()} ${r.url().replace(BASE, '')}`); });
 
 // ── Gate ────────────────────────────────────────────────────────────────────
-// /welcome posts to /api/identify. Name is free-form; the password must match
-// GATE_PW_USER on the server (see SKILL.md).
+// /welcome posts to /api/identify. One free-form `name` field since Sept 2026
+// (it was first/last before); the password must match GATE_PW_USER on the
+// server (see SKILL.md).
 await page.goto(`${BASE}/welcome`, { waitUntil: 'domcontentloaded' });
 if (page.url().includes('/welcome')) {
-  await page.fill('input[name="first"]', 'Claude');
-  await page.fill('input[name="last"]', 'Agent');
+  await page.fill('input[name="name"]', 'Claude Agent');
   await page.fill('input[name="password"]', process.env.APP_ACCESS ?? '');
   await page.click('button');
   await page.waitForTimeout(2000);

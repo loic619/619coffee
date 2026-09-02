@@ -101,9 +101,12 @@ page component for the key it actually reads, and check the `url:` line the
 driver prints against what rendered.
 - `/research/<tab>`
 
-Tiers matter: signing in with the **user** code lands on `/map` and may not be
-allowed everywhere. If a page redirects unexpectedly, that's `pathAllowed()` in
-`lib/gate.ts`, not a bug in your change.
+Tiers matter: signing in with the **user** code lands on `/news` (the Daily
+Brief is the landing since Sept 2026) and can open everything except
+`/data-map` and `/admin`; a **basic** code additionally cannot open
+`/research`. If a page redirects unexpectedly, that's `pathAllowed()` in
+`lib/gate.ts`, not a bug in your change. The gate form has ONE `name` field
+(it was first/surname before) — `drive.mjs` already fills it.
 
 ## Gotchas that cost real time
 
