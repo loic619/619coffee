@@ -33,7 +33,6 @@ from datetime import UTC, datetime
 
 from scraper.db import get_session, upsert_news_item
 from scraper.sources import ajca as _ajca
-from scraper.sources import population as _population
 from scraper.sources import psd_coffee as _psd_coffee
 from scraper.sources import usda_gain_pdf as _usda_gain_pdf
 
@@ -67,10 +66,10 @@ async def run_monthly() -> None:
         sources = [
             ("ajca",          lambda p: _ajca.run(p, db)),
             ("usda_gain_pdf", lambda p: _usda_gain_pdf.run(p, db)),
-            # World Bank SP.POP.TOTL updates ~annually — moved here from the
-            # daily scraper (2026-08 Actions-efficiency pass): a monthly fetch
-            # is still 12× the source's cadence, with zero daily overhead.
-            ("population",    lambda p: _population.run(p, db)),
+            # population moved to annual_scraper (2026-09): World Bank
+            # SP.POP.TOTL is revised about once a year, so eleven of twelve
+            # monthly runs re-fetched identical numbers and re-stamped the
+            # freshness to "today" — the same reasoning that moved un_wpp_age.
         ]
         # FORCE_PSD=1 bypasses the semi-annual gate — needed when the
         # producer roster in psd_coffee._PRODUCERS grows mid-cycle and the

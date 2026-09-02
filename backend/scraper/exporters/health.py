@@ -102,6 +102,14 @@ def export_health(db, *, exporters_published_at: dict[str, str] | None = None) -
     item = db.query(NewsItem).filter(NewsItem.source == "PSD Coffee").order_by(NewsItem.pub_date.desc()).first()
     scrapers["psd_coffee"] = _ts(item.pub_date) if item else None
 
+    # World Bank population (annual, from DB — the cache file is gitignored and
+    # doesn't survive cross-job, same as PSD above). It had NO health row at
+    # all, which is how demand_stocks.json shipped populations: null without
+    # anyone noticing — the demand tab's per-capita chart silently rendered an
+    # empty box and all 49 markets showed "—".
+    item = db.query(NewsItem).filter(NewsItem.source == "World Bank").order_by(NewsItem.pub_date.desc()).first()
+    scrapers["population"] = _ts(item.pub_date) if item else None
+
     # Vietnam Robusta retail price (giacaphe.com via vietnam.py scraper).
     # Tracked separately from vietnam_exports (the supply scraper) — the price
     # scraper failed silently between Apr 23 and May 14 2026 without anyone

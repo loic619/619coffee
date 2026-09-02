@@ -109,6 +109,11 @@ jobs:
               # clears the normal Jun→Dec gap yet still flags a genuinely missed
               # publish within ~4 weeks.
               "psd_coffee":       210 * 24,  # USDA PSD (semi-annual: Jun & Dec)
+              # World Bank SP.POP.TOTL is revised about once a year and the job
+              # that fetches it runs on 15 July, so anything under a year cries
+              # wolf for eleven months. 400 days clears the annual cycle plus a
+              # late-revision buffer, while still catching a wholly missed year.
+              "population":       400 * 24,  # World Bank population (annual, 15 Jul)
               # Monthly trade-stats sources (published mid-month for the prior
               # month; scraped once a month). One missed-cycle buffer, like the
               # other monthly feeds above.
