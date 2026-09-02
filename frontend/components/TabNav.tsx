@@ -15,6 +15,7 @@ const TABS = [
   { href: "/supply",  label: "Supply" },
   { href: "/demand",  label: "Demand" },
   { href: "/macro",   label: "Macro" },
+  { href: "/signals", label: "Signals" },
   { href: "/map",     label: "Map" },
   // Research is for `user` (members) and up; Data Map is admin-only. The tier
   // filter below hides what a tier may not open (lib/gate.ts pathAllowed) and

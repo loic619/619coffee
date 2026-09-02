@@ -16,23 +16,62 @@ const TotalExportsTab = dynamic(() => import("@/components/supply/TotalExportsTa
 const SupplyEnsoTab  = dynamic(() => import("@/components/supply/SupplyEnsoTab"),  { ssr: false });
 const SupplySDTab    = dynamic(() => import("@/components/supply/SupplySDTab"),    { ssr: false });
 
-const TABS = [
-  { id: "brazil",       label: "Brazil",       available: true  },
-  { id: "colombia",     label: "Colombia",     available: true  },
-  { id: "honduras",     label: "Honduras",     available: true  },
-  { id: "ethiopia",     label: "Ethiopia",     available: true  },
-  { id: "vietnam",      label: "Vietnam",      available: true  },
-  { id: "indonesia",    label: "Indonesia",    available: true  },
-  { id: "uganda",       label: "Uganda",       available: true  },
-  { id: "total",        label: "Total",        available: true  },
-  { id: "fertilizers",  label: "Fertilizers",  available: true  },
-  { id: "enso",         label: "ENSO",         available: true  },
-  { id: "sd",           label: "S&D",          available: true  },
+/**
+ * Two selectors, not one row of eleven pills.
+ *
+ * Eleven pills wrapped to three rows on a phone before any content appeared,
+ * and they listed origins and cross-cutting views (Total, Fertilizers, ENSO,
+ * S&D) as if they were the same kind of thing. Origins are ordered by export
+ * volume — the list reads as a hierarchy — and `depth` states how much each
+ * tab actually holds, because a flat row promised a parity the content does
+ * not deliver: Brazil has a dozen panels, Indonesia has one.
+ */
+type Depth = "deep" | "standard" | "light";
+
+const ORIGINS = [
+  { id: "brazil",    label: "Brazil",    depth: "deep"     as Depth },
+  { id: "vietnam",   label: "Vietnam",   depth: "standard" as Depth },
+  { id: "colombia",  label: "Colombia",  depth: "standard" as Depth },
+  { id: "indonesia", label: "Indonesia", depth: "light"    as Depth },
+  { id: "ethiopia",  label: "Ethiopia",  depth: "standard" as Depth },
+  { id: "honduras",  label: "Honduras",  depth: "standard" as Depth },
+  { id: "uganda",    label: "Uganda",    depth: "deep"     as Depth },
 ] as const;
 
-type TabId = typeof TABS[number]["id"];
+const CROSS = [
+  { id: "total",       label: "All origins",  depth: "standard" as Depth },
+  { id: "sd",          label: "S&D balance",  depth: "deep"     as Depth },
+  { id: "enso",        label: "ENSO",         depth: "standard" as Depth },
+  { id: "fertilizers", label: "Fertilizers",  depth: "deep"     as Depth },
+] as const;
 
-const VALID_TAB_IDS = TABS.map(t => t.id) as readonly string[];
+type TabId = typeof ORIGINS[number]["id"] | typeof CROSS[number]["id"];
+const VALID_TAB_IDS: readonly string[] = [...ORIGINS, ...CROSS].map(t => t.id);
+
+const DEPTH_DOT: Record<Depth, { cls: string; title: string }> = {
+  deep:     { cls: "bg-emerald-400",  title: "Deep coverage — several panels and history" },
+  standard: { cls: "bg-slate-400",    title: "Standard coverage — exports plus one or two views" },
+  light:    { cls: "bg-slate-600",    title: "Light coverage — a single panel so far" },
+};
+
+function Pill({ id, label, depth, active, onClick, accent }: {
+  id: string; label: string; depth: Depth; active: boolean; onClick: () => void; accent?: string;
+}) {
+  const d = DEPTH_DOT[depth];
+  return (
+    <button
+      key={id}
+      onClick={onClick}
+      title={d.title}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+        active ? (accent ?? "bg-slate-700 text-slate-100") : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+      }`}
+    >
+      <span className={`inline-block w-1.5 h-1.5 rounded-full ${d.cls}`} aria-hidden />
+      {label}
+    </button>
+  );
+}
 
 export default function SupplyPage() {
   return (
@@ -52,34 +91,32 @@ function SupplyPageInner() {
       <PageHeader
         title="Supply"
         subtitle="Production, exports and growing conditions by origin — plus fertilizer, ENSO and the global S&D"
-        healthKeys={["weather", "enso", "fertilizer_wb", "fertilizer_comex", "freight"]}
+        healthKeys={["brazil_exports", "vietnam_exports", "colombia_exports", "weather", "enso", "fertilizer_wb", "fertilizer_comex"]}
       />
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
 
-        {/* Sub-tabs */}
-        <div className="flex gap-1 bg-slate-900 border border-slate-700 rounded-lg p-1 w-fit flex-wrap">
-          {TABS.map(t => (
-            <button
-              key={t.id}
-              onClick={() => t.available && setTab(t.id)}
-              disabled={!t.available}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                tab === t.id
-                  ? t.id === "fertilizers"
-                    ? "bg-emerald-800 text-emerald-100"
-                    : "bg-slate-700 text-slate-100"
-                  : t.available
-                  ? "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
-                  : "text-slate-600 cursor-not-allowed"
-              }`}
-            >
-              {t.label}
-              {!t.available && (
-                <span className="ml-1 text-[8px] text-slate-600 align-middle">soon</span>
-              )}
-            </button>
-          ))}
+        <div className="flex flex-col sm:flex-row sm:items-start gap-2">
+          <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-lg p-1 flex-wrap">
+            <span className="px-2 text-[10px] uppercase tracking-wider text-slate-500 select-none">Origin</span>
+            {ORIGINS.map(t => (
+              <Pill key={t.id} id={t.id} label={t.label} depth={t.depth}
+                    active={tab === t.id} onClick={() => setTab(t.id)} />
+            ))}
+          </div>
+          <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-lg p-1 flex-wrap">
+            <span className="px-2 text-[10px] uppercase tracking-wider text-slate-500 select-none">Across origins</span>
+            {CROSS.map(t => (
+              <Pill key={t.id} id={t.id} label={t.label} depth={t.depth}
+                    active={tab === t.id} onClick={() => setTab(t.id)}
+                    accent={t.id === "fertilizers" ? "bg-emerald-800 text-emerald-100" : undefined} />
+            ))}
+          </div>
         </div>
+        <p className="text-[10px] text-slate-600 -mt-3">
+          Dot = depth of coverage: <span className="text-emerald-400">●</span> deep ·
+          <span className="text-slate-400"> ●</span> standard ·
+          <span className="text-slate-600"> ●</span> light. Origins in export-volume order.
+        </p>
 
         {/* Content */}
         {tab === "brazil"      && <BrazilTab />}

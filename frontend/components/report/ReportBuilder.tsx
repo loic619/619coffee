@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
 import { REPORT_REGISTRY, REPORT_CATEGORIES, REPORT_PRESETS } from "@/lib/report/registry";
 import { useReportStore } from "@/lib/report/store";
-import { PRINT_CSS_LIGHT, PRINT_CSS_DARK } from "@/lib/report/printStyles";
+import { PRINT_CSS_LIGHT, PRINT_CSS_DARK, REPORT_FONTS, fontCss, type ReportFontId } from "@/lib/report/printStyles";
 import { PRODUCT_NAME } from "@/lib/brand";
 import ReportCanvas from "./ReportCanvas";
 
@@ -54,12 +54,15 @@ export default function ReportBuilder() {
   // on-screen look. The hook reads the latest options each render, so flipping
   // this swaps the injected print stylesheet.
   const [printTheme, setPrintTheme] = useState<PrintTheme>("light");
+  // Typeface for the briefing — applied to the preview and the PDF alike, so
+  // the customer-facing document can match the house style it is sent under.
+  const [font, setFont] = useState<ReportFontId>("sans");
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const printReport = useReactToPrint({
     contentRef: canvasRef,
     documentTitle: `${PRODUCT_NAME} - Market Briefing - ${new Date().toISOString().slice(0, 10)}`,
-    pageStyle: printTheme === "light" ? PRINT_CSS_LIGHT : PRINT_CSS_DARK,
+    pageStyle: `${printTheme === "light" ? PRINT_CSS_LIGHT : PRINT_CSS_DARK}\n${fontCss(font)}`,
   });
 
   const count = mounted ? selectedIds.length : 0;
@@ -74,6 +77,23 @@ export default function ReportBuilder() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {/* Typeface */}
+          <div className="flex items-center rounded-md border border-slate-700 overflow-hidden" role="group" aria-label="Report typeface">
+            {(Object.keys(REPORT_FONTS) as ReportFontId[]).map((id) => (
+              <button
+                key={id}
+                onClick={() => setFont(id)}
+                aria-pressed={font === id}
+                title={REPORT_FONTS[id].hint}
+                style={{ fontFamily: REPORT_FONTS[id].stack }}
+                className={`px-2 py-1.5 text-[10px] font-medium uppercase tracking-wider transition-colors ${
+                  font === id ? "bg-slate-800 text-amber-400" : "text-slate-500 hover:text-slate-300"
+                }`}
+              >
+                {REPORT_FONTS[id].label}
+              </button>
+            ))}
+          </div>
           {/* PDF theme toggle */}
           <div className="flex items-center rounded-md border border-slate-700 overflow-hidden" role="group" aria-label="PDF theme">
             {(["light", "dark"] as PrintTheme[]).map((t) => (
@@ -216,7 +236,7 @@ export default function ReportBuilder() {
         {/* The preview canvas (also the print target). Fixed ~A4 width inside,
             so allow horizontal scroll on narrow screens. */}
         <div className="rounded-lg border border-slate-800 bg-slate-950 p-4 min-h-[200px] overflow-x-auto">
-          <ReportCanvas ref={canvasRef} />
+          <ReportCanvas ref={canvasRef} fontFamily={REPORT_FONTS[font].stack} />
         </div>
       </div>
     </section>

@@ -7,23 +7,19 @@ import FertilizerInputsPanel from "@/components/macro/FertilizerInputsPanel";
 import FreightContextPanel from "@/components/macro/FreightContextPanel";
 import InflationSection from "@/components/macro/InflationSection";
 import TreasuryYieldsPanel from "@/components/macro/TreasuryYieldsPanel";
-import PriceDirectionSection from "@/components/signals/PriceDirectionSection";
-import OpenDirectionCalendar from "@/components/signals/OpenDirectionCalendar";
-import RobustaForecastSection from "@/components/signals/RobustaForecastSection";
-import VietnamDiffSection from "@/components/signals/VietnamDiffSection";
-import SentimentSection from "@/components/signals/SentimentSection";
 
-// Origin Farmgate Prices was moved to /futures (Price tab) — physical pricing
-// now sits next to the futures chain. The derived signals & forecasts (ML
-// price-direction, robusta regression, Vietnam differential and the news
-// sentiment / calibration block) were folded in here from the former standalone
-// Signals tab, so all the analytical/macro reads live in one place.
+// Macro is the OBSERVED context: FX, inflation, rates, cross-commodity,
+// fertilizer inputs and a freight summary — numbers measured from a market or
+// a statistics office. The derived signals (ML direction call, OLS forecast,
+// NLP sentiment) that were folded in here in August now live on /signals, so
+// a reader can tell at the tab level which numbers were measured and which
+// were predicted. Origin farmgate prices sit on /futures next to the chain.
 export default function MacroPage() {
   return (
     <div className="flex flex-col h-full overflow-y-auto bg-slate-950">
       <PageHeader
         title="Macro"
-        subtitle="FX · inflation · cross-commodity · freight · derived signals · NLP news sentiment"
+        subtitle="Observed context — FX, inflation, rates, cross-commodity, fertilizer inputs and freight"
         healthKeys={["macro_cot", "freight", "quant_currency_index", "us_cpi", "retail_cpi", "fx_history", "treasury_yields"]}
       />
       <div className="flex flex-col divide-y divide-slate-800">
@@ -34,12 +30,6 @@ export default function MacroPage() {
         <TreasuryYieldsPanel />
         <FertilizerInputsPanel />
         <FreightContextPanel />
-        {/* Derived signals & forecasts (formerly the standalone Signals tab). */}
-        <PriceDirectionSection />
-        <OpenDirectionCalendar />
-        <RobustaForecastSection />
-        <VietnamDiffSection />
-        <SentimentSection />
       </div>
     </div>
   );

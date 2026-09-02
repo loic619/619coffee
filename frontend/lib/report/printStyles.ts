@@ -13,6 +13,29 @@
  *   doesn't strip backgrounds.
  */
 
+// ── Typeface ─────────────────────────────────────────────────────────────────
+// A briefing that goes to a customer should be able to look like that
+// customer's other documents. Three stacks, all resolvable without a webfont
+// so the PDF prints identically on any machine: the app's own sans, a book
+// serif, and a monospace for the tabular-heavy packages. The stack is applied
+// to #report-canvas on screen (preview) and in the print sheet (PDF), so what
+// you see is what prints.
+export type ReportFontId = "sans" | "serif" | "mono";
+
+export const REPORT_FONTS: Record<ReportFontId, { label: string; stack: string; hint: string }> = {
+  sans:  { label: "Sans",  stack: `Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`,
+           hint: "Matches the screen — clean, modern" },
+  serif: { label: "Serif", stack: `Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Times New Roman", serif`,
+           hint: "Reads like a research note or a bank's morning report" },
+  mono:  { label: "Mono",  stack: `ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace`,
+           hint: "Column-aligned figures — for number-dense packages" },
+};
+
+export function fontCss(id: ReportFontId): string {
+  // Figures stay tabular in every face so columns keep aligning.
+  return `#report-canvas, #report-canvas * { font-family: ${REPORT_FONTS[id].stack} !important; }`;
+}
+
 const PAGE = `@page { size: A4; margin: 12mm; }`;
 const EXACT = `html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }`;
 

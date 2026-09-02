@@ -170,7 +170,13 @@ function ExecutiveSummary({ selectedIds }: { selectedIds: string[] }) {
   );
 }
 
-const ReportCanvas = forwardRef<HTMLDivElement>(function ReportCanvas(_props, ref) {
+interface ReportCanvasProps {
+  /** CSS font stack for the whole briefing; the print sheet applies the same
+   *  one, so the preview is what prints. */
+  fontFamily?: string;
+}
+
+const ReportCanvas = forwardRef<HTMLDivElement, ReportCanvasProps>(function ReportCanvas({ fontFamily }, ref) {
   const selectedIds = useReportStore((s) => s.selectedIds);
   const setOrder = useReportStore((s) => s.setOrder);
 
@@ -202,7 +208,7 @@ const ReportCanvas = forwardRef<HTMLDivElement>(function ReportCanvas(_props, re
       ref={ref}
       id="report-canvas"
       className="bg-slate-950 text-slate-100 mx-auto w-[700px]"
-      style={{ fontVariantNumeric: "tabular-nums" }}
+      style={{ fontVariantNumeric: "tabular-nums", fontFamily }}
     >
       {/* Masthead — editorial two-tier: grey kicker, strong title, right-set
           date, then the classic thick+thin double rule. The masthead-rule class
