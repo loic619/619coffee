@@ -1,6 +1,6 @@
 {
   "country": "ethiopia",
-  "scraped_at": "2026-09-01T07:59:49.057406Z",
+  "scraped_at": "2026-09-02T07:19:53.497537Z",
   "exports": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-01",
@@ -361,14 +361,14 @@
         "csi_30d_level": "OK",
         "csi_60d_level": "LOW",
         "rain_mtd_mm": 42.3,
-        "rain_hist_min": 0.3,
-        "rain_hist_max": 16.1
+        "rain_hist_min": 1.2,
+        "rain_hist_max": 25.4
       },
       {
         "name": "Harrar",
         "drought": "MED",
-        "csi_30d": 0.514,
-        "csi_60d": 0.746,
+        "csi_30d": 0.56,
+        "csi_60d": 0.77,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
       },
@@ -376,7 +376,7 @@
         "name": "Kaffa",
         "drought": "MED",
         "csi_30d": 0.84,
-        "csi_60d": 0.77,
+        "csi_60d": 0.794,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
       },
@@ -475,7 +475,6 @@
         "days": [
           "-",
           "-",
-          "-",
           "M",
           "M",
           "M",
@@ -539,7 +538,8 @@
           "M",
           "M",
           "M",
-          "-"
+          "M",
+          "M"
         ]
       },
       {
@@ -547,7 +547,6 @@
         "days": [
           "-",
           "-",
-          "-",
           "M",
           "M",
           "M",
@@ -591,6 +590,7 @@
           "L",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -733,7 +733,7 @@
       }
     ],
     "historical_stat": "El Nino years: Ethiopia coffee output -5 to -15% vs neutral; worst impacts in eastern highlands",
-    "last_updated": "2026-09-01"
+    "last_updated": "2026-09-02"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Jan",
