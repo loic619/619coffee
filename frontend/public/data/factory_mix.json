@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-02T07:28:21.188679Z",
+  "generated_at": "2026-09-02T11:24:32.198302Z",
   "source": "backend/seed/factories.json",
   "note": "Consumer-side capacity only (mills excluded). Capacity in kilo-tonnes/year, parsed best-effort.",
   "total_kt": 5731.1,
@@ -57,13 +57,24 @@
     },
     {
       "name": "Africa",
-      "total_kt": 276.5,
+      "total_kt": 196.5,
       "by_type": {
-        "roastery": 140.5,
+        "roastery": 90.5,
         "soluble": 0.0,
         "capsules": 0.0,
         "decaf": 0.0,
-        "mixed": 136.0
+        "mixed": 106.0
+      }
+    },
+    {
+      "name": "Middle East",
+      "total_kt": 106.0,
+      "by_type": {
+        "roastery": 56.0,
+        "soluble": 0.0,
+        "capsules": 0.0,
+        "decaf": 0.0,
+        "mixed": 50.0
       }
     },
     {
@@ -75,17 +86,6 @@
         "capsules": 0.0,
         "decaf": 0.0,
         "mixed": 0.0
-      }
-    },
-    {
-      "name": "Middle East",
-      "total_kt": 26.0,
-      "by_type": {
-        "roastery": 6.0,
-        "soluble": 0.0,
-        "capsules": 0.0,
-        "decaf": 0.0,
-        "mixed": 20.0
       }
     }
   ]
