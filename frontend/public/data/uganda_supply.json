@@ -1,6 +1,6 @@
 {
   "country": "uganda",
-  "scraped_at": "2026-09-03T02:53:58.560115+00:00",
+  "scraped_at": "2026-09-03T07:23:15.311553+00:00",
   "exports": {
     "source": "UCDA Monthly Reports",
     "last_updated": "2026-06",
@@ -797,7 +797,7 @@
   },
   "ucda_price": {
     "usd_cwt": 168.33,
-    "as_of": "2026-09-02",
+    "as_of": "2026-09-03",
     "grade": "Screen 15",
     "grades": {
       "Screen 15": 168.33,
@@ -806,7 +806,7 @@
     }
   },
   "weather": {
-    "scraped_at": "2026-09-01T06:21:53.505000Z",
+    "scraped_at": "2026-09-03T05:50:45.507336Z",
     "regions": [
       {
         "name": "Greater Masaka",
@@ -844,10 +844,10 @@
         "name": "Mt Elgon",
         "drought": "MED",
         "csi_30d": 0.98,
-        "csi_60d": 0.606,
+        "csi_60d": 0.63,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH",
-        "rain_mtd_mm": 1.9,
+        "rain_mtd_mm": 2.3,
         "rain_hist_min": 11.6,
         "rain_hist_max": 81.8
       },
@@ -855,7 +855,7 @@
         "name": "West Nile",
         "drought": "MED",
         "csi_30d": 0.094,
-        "csi_60d": 0.046,
+        "csi_60d": 0.07,
         "csi_30d_level": "LOW",
         "csi_60d_level": "LOW"
       },
@@ -873,8 +873,8 @@
         "region": "Greater Masaka",
         "days": [
           "-",
-          "-",
-          "-",
+          "M",
+          "M",
           "M",
           "M",
           "M",
@@ -945,7 +945,6 @@
         "region": "Central",
         "days": [
           "-",
-          "-",
           "M",
           "M",
           "M",
@@ -978,6 +977,7 @@
           "L",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1017,7 +1017,7 @@
         "region": "Western",
         "days": [
           "-",
-          "-",
+          "M",
           "M",
           "M",
           "M",
@@ -1089,7 +1089,6 @@
         "region": "Busoga",
         "days": [
           "-",
-          "-",
           "M",
           "M",
           "M",
@@ -1153,6 +1152,7 @@
           "M",
           "M",
           "M",
+          "L",
           "M",
           "M"
         ]
@@ -1161,7 +1161,6 @@
         "region": "Mt Elgon",
         "days": [
           "-",
-          "-",
           "M",
           "M",
           "M",
@@ -1215,6 +1214,7 @@
           "L",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1233,7 +1233,6 @@
         "region": "West Nile",
         "days": [
           "-",
-          "-",
           "L",
           "L",
           "M",
@@ -1296,7 +1295,8 @@
           "M",
           "M",
           "M",
-          "L",
+          "-",
+          "-",
           "-",
           "-"
         ]
@@ -1305,7 +1305,6 @@
         "region": "Rwenzori",
         "days": [
           "-",
-          "-",
           "M",
           "M",
           "M",
@@ -1352,6 +1351,7 @@
           "M",
           "M",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1504,7 +1504,7 @@
       }
     ],
     "historical_stat": "El Nino years: Uganda coffee output -10 to -20% vs neutral (UCDA)",
-    "last_updated": "2026-09-02"
+    "last_updated": "2026-09-03"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Feb",
