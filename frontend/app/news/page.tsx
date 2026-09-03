@@ -14,7 +14,10 @@
  * the strip under the header lists them as anchors. Each section degrades
  * gracefully when its data file is missing.
  */
+import { useState } from "react";
 import PageHeader from "@/components/PageHeader";
+import NewBadge from "@/components/NewBadge";
+import { NEWS_SECTION_FEEDS } from "@/lib/notify";
 import FreshnessGrid from "@/components/news/FreshnessGrid";
 import UpcomingCalendar from "@/components/news/UpcomingCalendar";
 import RiskRadar from "@/components/news/RiskRadar";
@@ -37,6 +40,9 @@ function Anchor({ id, children }: { id: string; children: React.ReactNode }) {
 }
 
 export default function NewsPage() {
+  // Section badges clear when the section link is clicked (anchors do not
+  // change the route, so a click is the visit).
+  const [seenSection, setSeenSection] = useState<string | null>(null);
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <PageHeader
@@ -63,9 +69,13 @@ export default function NewsPage() {
             <a
               key={s.id}
               href={`#${s.id}`}
-              className="shrink-0 rounded px-2.5 py-1 text-[11px] text-slate-400 hover:text-white hover:bg-slate-800 whitespace-nowrap"
+              onClick={() => setSeenSection(s.id)}
+              className="inline-flex items-center gap-1.5 shrink-0 rounded px-2.5 py-1 text-[11px] text-slate-400 hover:text-white hover:bg-slate-800 whitespace-nowrap"
             >
               {s.label}
+              {NEWS_SECTION_FEEDS[s.id] && (
+                <NewBadge scope={`news:${s.id}`} keys={NEWS_SECTION_FEEDS[s.id]} active={seenSection === s.id} />
+              )}
             </a>
           ))}
         </div>
