@@ -404,11 +404,16 @@ def build_vn_water_levels(db=None) -> dict:
     return out
 
 
-def backfill(start: str, end: str | None = None, delay: float = 0.3) -> dict:
+def backfill(start: str, end: str | None = None, delay: float = 0.3,
+             budget_s: float = 50 * 60) -> dict:
     """Walk the archive by date over [start, end] and fill every bulletin found.
 
     Dates already in the history are skipped, so a re-run only costs the HEAD
-    requests. Nothing on file is ever overwritten. Returns a summary."""
+    requests. Nothing on file is ever overwritten. The file is saved after
+    every parsed bulletin and the walk stops once `budget_s` has elapsed, so a
+    slow archive host (misses can take the full HEAD timeout) leaves the
+    bulletins found so far on disk for the commit step rather than nothing —
+    re-run from where it stopped. Returns a summary."""
     if not HAS_PDFPLUMBER:
         raise RuntimeError("pdfplumber is required for the backfill")
     end_d = date.fromisoformat(end) if end else date.today()
@@ -417,7 +422,21 @@ def backfill(start: str, end: str | None = None, delay: float = 0.3) -> dict:
     have = {e["date"] for e in history}
     d = date.fromisoformat(start)
     found = parsed = empty = 0
+    t0 = time.monotonic()
+    stopped_at: str | None = None
+
+    def _save() -> None:
+        existing["history"] = history
+        existing.setdefault("source", "NCHMF – Bản tin dự báo nguồn nước thời hạn ngắn")
+        existing.setdefault("rivers", [])
+        existing["updated"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        safe_write_json(OUT_PATH, existing, ensure_ascii=False)
+
     while d <= end_d:
+        if time.monotonic() - t0 > budget_s:
+            stopped_at = d.isoformat()
+            print(f"[backfill] time budget reached at {stopped_at}; re-run with start={stopped_at}")
+            break
         if d.isoformat() not in have:
             for url in pdf_url_candidates(d):
                 if not _head_ok(url):
@@ -433,23 +452,21 @@ def backfill(start: str, end: str | None = None, delay: float = 0.3) -> dict:
                 if rivers:
                     history = upsert_history(history, history_entry(d, rivers, url))
                     parsed += 1
+                    _save()
                     print(f"    {d}: " + ", ".join(
                         f"{rv['river']} {rv.get('tbnn_pct'):+.0f}%" if rv.get("tbnn_pct") is not None
-                        else f"{rv['river']} ?" for rv in rivers))
+                        else f"{rv['river']} ?" for rv in rivers), flush=True)
                 else:
                     empty += 1
-                    print(f"    {d}: bulletin found, no coffee rivers parsed")
+                    print(f"    {d}: bulletin found, no coffee rivers parsed", flush=True)
                 break
             time.sleep(delay)
         d += timedelta(days=1)
 
-    existing["history"] = history
-    existing.setdefault("source", "NCHMF – Bản tin dự báo nguồn nước thời hạn ngắn")
-    existing.setdefault("rivers", [])
-    existing["updated"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-    safe_write_json(OUT_PATH, existing, ensure_ascii=False)
+    _save()
     summary = {"found": found, "parsed": parsed, "empty": empty, "history": len(history),
-               "span": [history[0]["date"], history[-1]["date"]] if history else None}
+               "span": [history[0]["date"], history[-1]["date"]] if history else None,
+               "stopped_at": stopped_at}
     print(f"[backfill] {summary}")
     return summary
 

@@ -60,6 +60,37 @@ def test_build_appends_to_history_and_keeps_it_across_runs(tmp_path, monkeypatch
     assert doc["rivers"][0]["signal"] == "critical"
 
 
+def test_backfill_saves_as_it_goes_and_stops_on_its_time_budget(tmp_path, monkeypatch):
+    out = tmp_path / "vn_water_levels.json"
+    monkeypatch.setattr(m, "OUT_PATH", out)
+    monkeypatch.setattr(m, "HAS_PDFPLUMBER", True)
+    monkeypatch.setattr(m, "parse_bulletin", lambda _b: [dict(r) for r in RIVERS])
+    monkeypatch.setattr(m.time, "sleep", lambda _s: None)
+    # Only the 2nd and 4th of the month exist, under the newer archive root.
+    hits = {"2026/8/2/", "2026/8/4/"}
+    monkeypatch.setattr(m, "_head_ok", lambda url, timeout=10: "thuyvan2" in url and any(h in url for h in hits))
+
+    class _Resp:
+        content = b"%PDF"
+        def raise_for_status(self): pass
+    monkeypatch.setattr(m.requests, "get", lambda *a, **k: _Resp())
+
+    # A clock that runs out after the third day is examined.
+    ticks = iter([0, 0, 0, 0, 10_000, 10_000])
+    monkeypatch.setattr(m.time, "monotonic", lambda: next(ticks, 10_000))
+    s = m.backfill("2026-08-01", "2026-08-10", budget_s=100)
+    assert s["parsed"] == 1 and s["stopped_at"] == "2026-08-04"
+    saved = json.loads(out.read_text())
+    assert [e["date"] for e in saved["history"]] == ["2026-08-02"]
+    assert saved["history"][0]["pdf_url"].startswith("https://kttv.gov.vn/upload/thuyvan2/2026/8/2/")
+
+    # Re-run from where it stopped: the 2nd is skipped (on file), the 4th is added.
+    monkeypatch.setattr(m.time, "monotonic", lambda: 0)
+    s = m.backfill("2026-08-04", "2026-08-10", budget_s=100)
+    assert s["parsed"] == 1 and s["stopped_at"] is None
+    assert [e["date"] for e in json.loads(out.read_text())["history"]] == ["2026-08-02", "2026-08-04"]
+
+
 def test_build_without_a_bulletin_keeps_the_last_one_on_file(tmp_path, monkeypatch):
     out = tmp_path / "vn_water_levels.json"
     out.write_text(json.dumps({"history": [m.history_entry(dt.date(2026, 8, 22), RIVERS, "u")]}))
