@@ -1,3 +1,4 @@
+import { KC_CENTS_TO_USD_MT } from "@/lib/units";
 /**
  * originPrices.ts
  *
@@ -59,7 +60,7 @@ function parseVndKg(localStr: string): number | null {
  *  are wired up — diff them against KC, not RC.
  */
 export function kcCentsToUsdMt(cents: number): number {
-  return cents * 22.0462;
+  return cents * KC_CENTS_TO_USD_MT;
 }
 
 function fmtDiff(usdPhys: number, benchmarkUsdMt: number): { diff: string; color: string } {

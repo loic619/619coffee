@@ -48,6 +48,7 @@ export const CAT_LABEL: Record<Cat, string> = {
 };
 
 export const ARTICLES: Article[] = [
+  { id: "threshold-alerts-tell-me-when", cat: "admin", title: "Threshold alerts — tell me when", subtitle: "The rules that page the admin channel when a published number crosses a line, what each is watching now, and whether it is armed", kicker: "Platform · alerting", tone: "slate", updated: "2026-09-03", published: "2026-09-03", body: "ThresholdAlerts" },
   { id: "when-ice-publishes-the-robusta-stock-report", cat: "admin", title: "When ICE publishes the robusta stock report", subtitle: "56 observed publish seconds, and what they cost us to guess \u2014 the distribution behind workflow 1.13's runtime", kicker: "Platform \u00b7 scraper economics", tone: "slate", updated: "2026-08-25", published: "2026-08-26", body: "IcePublishTimes" },
   { id: "are-swap-dealers-commercials-or-speculators", cat: "quant", title: "Are swap dealers commercials or speculators?", subtitle: "Three behavioural tests on the disaggregated COT — both contracts, long and short legs kept separate", kicker: "COT · cohort identity", tone: "amber", updated: "2026-08-14", published: "2026-08-15", body: "CotSwapIdentity" },
   { id: "intraweek-cot-nowcast-methodology", cat: "quant", title: "Intraweek COT nowcast — methodology", subtitle: "Bridging the weekly COT report with a daily positioning estimate", kicker: "COT · positioning", tone: "amber", updated: "2026-07-14", published: null, body: "IntraweekMethodology" },

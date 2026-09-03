@@ -47,6 +47,7 @@ import DemandDataMethodology from "./methodology/DemandDataMethodology";
 import DeliveryProcessMethodology from "./methodology/DeliveryProcessMethodology";
 import { AlwaysOpen, ResearchCard, type Tone } from "./methodology/prose";
 import IcePublishTimes from "./admin/IcePublishTimes";
+import ThresholdAlerts from "./admin/ThresholdAlerts";
 import { ARTICLES, CAT_LABEL, type Article } from "@/lib/research/catalog";
 import { DEFAULT_SORT, SORT_OPTIONS, datedCount, optionById, sortArticles } from "@/lib/research/sort";
 import { applyOverrides, type Override, type OverrideMap } from "@/lib/research/overrides";
@@ -1782,6 +1783,7 @@ in & out (transit) = decerted bags whose cohort was graded in-window`}</Fml>
 // article can be opened on its own rather than with its four siblings.
 const BODY: Record<string, React.ReactNode> = {
   "when-ice-publishes-the-robusta-stock-report": <IcePublishTimes />,
+  "threshold-alerts-tell-me-when": <ThresholdAlerts />,
   "are-swap-dealers-commercials-or-speculators": <CotSwapIdentity />,
   "intraweek-cot-nowcast-methodology": <IntraweekMethodology />,
   "cot-backtest-report": <CotBacktestReport />,

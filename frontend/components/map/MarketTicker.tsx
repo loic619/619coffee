@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { cachedFetchStatic } from "@/lib/api";
 import { fobbingUsdMt } from "@/lib/originCosts";
+import { KC_CENTS_TO_USD_MT } from "@/lib/units";
 
 type TickerCategory = "futures" | "physical" | "fx";
 
@@ -82,9 +83,8 @@ interface ChainData {
   arabica: { contracts: ChainContract[] } | null;
 }
 
-// KC arabica ¢/lb → USD/MT (1 MT = 2204.62 lb, 1¢ = $0.01). Physical labels that
-// are Arabica and therefore quote their N±diff against NY 'C' (KC), not RC.
-const KC_CENTS_TO_USD_MT = 2204.62 / 100;
+// Physical labels that are Arabica and therefore quote their N±diff against
+// NY 'C' (KC), not RC. The ¢/lb → USD/MT factor comes from lib/units.
 const ARABICA_PHYSICAL = new Set(["GT SHB"]);
 
 // ── Component ─────────────────────────────────────────────────────────────────

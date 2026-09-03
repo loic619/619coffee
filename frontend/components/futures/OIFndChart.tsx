@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { useContract } from "@/lib/useContract";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import type { TooltipContentProps } from "recharts/types/component/Tooltip";
@@ -139,12 +140,16 @@ export default function OIFndChart({ market, height = 320 }: { market: "robusta"
   const title = isRobusta ? "LDN OI Evolution to FND" : "NY OI Evolution to FND";
   const accent = isRobusta ? "bg-emerald-900/60" : "bg-indigo-900/60";
 
+  const [picked] = useContract();
   if (!series.length) return null;
 
   const today = new Date().toISOString().slice(0, 10);
-  const nextSymbol = series
+  // Highlight the contract the reader picked on the chain table if it is one
+  // of ours; otherwise the next-FND contract, as before.
+  const pickedHere = picked && series.some(s => s.symbol.toUpperCase() === picked) ? picked : null;
+  const nextSymbol = pickedHere ?? (series
     .filter(s => s.fnd && s.fnd >= today)
-    .sort((a, b) => (a.fnd ?? "").localeCompare(b.fnd ?? ""))[0]?.symbol ?? null;
+    .sort((a, b) => (a.fnd ?? "").localeCompare(b.fnd ?? ""))[0]?.symbol ?? null);
 
   const spreadLegend = spread ? `${spread.frontLabel}–${spread.nextLabel} spread` : "";
   const spreadUnit   = isRobusta ? "$/t" : "¢/lb";
@@ -155,7 +160,7 @@ export default function OIFndChart({ market, height = 320 }: { market: "robusta"
   // their ~10 legend rows crowded the plot (worst in the compact PDF).
   const nextLabel = series.find((s) => s.symbol === nextSymbol)?.label ?? null;
   const legendItems: { id: string; value: string; color: string }[] = [
-    ...(nextLabel ? [{ id: "next", value: `${nextLabel} · next FND`, color: NEXT_CONTRACT_COLOR }] : []),
+    ...(nextLabel ? [{ id: "next", value: `${nextLabel} · ${pickedHere ? "selected" : "next FND"}`, color: NEXT_CONTRACT_COLOR }] : []),
     { id: "past", value: "Past contracts", color: "#64748b" },
     ...(spread ? [{ id: "spread", value: spreadLegend, color: SPREAD_COLOR }] : []),
   ];

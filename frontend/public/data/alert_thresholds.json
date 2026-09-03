@@ -1,0 +1,78 @@
+{
+  "checked_at": "2026-09-03T07:16:25+00:00",
+  "delivery": "admin Telegram channel",
+  "rules": [
+    {
+      "id": "kc-front-above-400",
+      "metric": "kc_front",
+      "op": ">",
+      "threshold": 400.0,
+      "label": "KC front settles above 400 \u00a2/lb",
+      "current": 341.9,
+      "as_of": "2026-08-27",
+      "condition": false,
+      "armed": true,
+      "last_fired": null
+    },
+    {
+      "id": "kc-front-below-280",
+      "metric": "kc_front",
+      "op": "<",
+      "threshold": 280.0,
+      "label": "KC front settles below 280 \u00a2/lb",
+      "current": 341.9,
+      "as_of": "2026-08-27",
+      "condition": false,
+      "armed": true,
+      "last_fired": null
+    },
+    {
+      "id": "rc-front-above-4000",
+      "metric": "rc_front",
+      "op": ">",
+      "threshold": 4000.0,
+      "label": "RC front settles above 4,000 USD/MT",
+      "current": 3518.0,
+      "as_of": "2026-08-27",
+      "condition": false,
+      "armed": true,
+      "last_fired": null
+    },
+    {
+      "id": "rc-front-below-3000",
+      "metric": "rc_front",
+      "op": "<",
+      "threshold": 3000.0,
+      "label": "RC front settles below 3,000 USD/MT",
+      "current": 3518.0,
+      "as_of": "2026-08-27",
+      "condition": false,
+      "armed": true,
+      "last_fired": null
+    },
+    {
+      "id": "kc-cert-below-200k",
+      "metric": "kc_cert_bags",
+      "op": "<",
+      "threshold": 200000.0,
+      "label": "ICE certified arabica stocks fall below 200,000 bags",
+      "current": 223762.0,
+      "as_of": "2026-09-02",
+      "condition": false,
+      "armed": true,
+      "last_fired": null
+    },
+    {
+      "id": "rc-cert-below-4000",
+      "metric": "rc_cert_lots",
+      "op": "<",
+      "threshold": 4000.0,
+      "label": "ICE certified robusta stocks fall below 4,000 lots",
+      "current": 4956.0,
+      "as_of": "2026-09-01",
+      "condition": false,
+      "armed": true,
+      "last_fired": null
+    }
+  ]
+}

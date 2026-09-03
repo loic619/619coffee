@@ -1,11 +1,16 @@
 "use client";
 import type { Contract } from "./types";
+import { usePriceUnit } from "@/lib/usePriceUnit";
+import { KC_CENTS_TO_USD_MT, UNIT_LABEL, unitDecimals } from "@/lib/units";
 
 // ─── KC/RC ¢/lb middle panel ──────────────────────────────────────────────────
 
 const KC_TO_RC_LETTER: Record<string, string> = { H:"H", K:"K", N:"N", U:"U", Z:"F" };
 
 export default function KcRcCentsPanel({ arabica, robusta }: { arabica: Contract[]; robusta: Contract[] }) {
+  // The spread is KC − RC on one basis. Which basis is the reader's choice.
+  const [display] = usePriceUnit();
+  const spreadDec = unitDecimals(display);
   // Key: letter+2-digit-year e.g. "K26", "F27"
   const rcByKey = new Map<string, number>();
   robusta.forEach(c => {
@@ -30,7 +35,7 @@ export default function KcRcCentsPanel({ arabica, robusta }: { arabica: Contract
             <th className="px-1 sm:px-1.5 py-1 text-left whitespace-nowrap">Pair</th>
             <th className="px-1 sm:px-1.5 py-1 text-right whitespace-nowrap">
               <span className="sm:hidden">×</span>
-              <span className="hidden sm:inline">¢/lb (×)</span>
+              <span className="hidden sm:inline">{UNIT_LABEL[display]} (×)</span>
             </th>
           </tr>
         </thead>
@@ -46,8 +51,10 @@ export default function KcRcCentsPanel({ arabica, robusta }: { arabica: Contract
             // Guard against a 0/absent RC leg (far months print 0) — otherwise
             // the ratio is Infinity, which both misleads and widens the column.
             const hasRc    = rc != null && rc > 0;
-            const spread   = hasRc ? c.last - rc / 22.046 : null;
-            const ratio    = hasRc ? (c.last * 22.046 / rc).toFixed(2) : null;
+            const spread   = hasRc
+              ? (display === "cents_lb" ? c.last - rc / KC_CENTS_TO_USD_MT : c.last * KC_CENTS_TO_USD_MT - rc)
+              : null;
+            const ratio    = hasRc ? (c.last * KC_CENTS_TO_USD_MT / rc).toFixed(2) : null;
             const rcSym    = `RC${rcLetter}${rcYr}`;
             const isFront  = i === 0;
             return (
@@ -62,7 +69,7 @@ export default function KcRcCentsPanel({ arabica, robusta }: { arabica: Contract
                   {ratio != null && spread != null ? (
                     <>
                       <span className="sm:hidden">×{ratio}</span>
-                      <span className="hidden sm:inline">{spread.toFixed(1)} (×{ratio})</span>
+                      <span className="hidden sm:inline">{spread.toFixed(spreadDec)} (×{ratio})</span>
                     </>
                   ) : "—"}
                 </td>

@@ -1,0 +1,62 @@
+name: "1.18 – Threshold alerts (admin Telegram)"
+
+# "Tell me when." Checks data/alert_thresholds.json against the freshly
+# exported numbers after every 1.4 export and posts to the admin Telegram
+# channel when a rule's condition BECOMES true. Edge-triggered: one message per
+# crossing, re-armed when the condition clears (state in data/alert_state.json).
+# The channel is admin-only and nothing in the app links to it; Research ·
+# Admin shows the rules and their state read-only.
+
+on:
+  workflow_run:
+    workflows: ["1.4 – Export and Publish Static JSON"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: "Evaluate and print only — no Telegram, no commit"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+concurrency:
+  group: threshold-alerts
+  cancel-in-progress: false
+
+jobs:
+  check:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      # ref: main — a workflow_run fire checks out the SHA that triggered it,
+      # which predates the export commit we are here to read.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install --quiet requests
+
+      - name: Evaluate rules
+        working-directory: backend
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          PYTHONPATH=. python -m scraper.threshold_alerts ${{ inputs.dry == 'true' && '--dry' || '' }}
+
+      - name: Commit state
+        if: inputs.dry != 'true'
+        uses: ./.github/actions/commit-data
+        with:
+          files: |
+            data/alert_state.json
+            frontend/public/data/alert_thresholds.json
+          message: "data: threshold-alert state [skip ci]"

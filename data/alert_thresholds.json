@@ -1,0 +1,22 @@
+{
+  "_schema": {
+    "description": "Admin threshold alerts. Each rule watches one published metric and posts to the admin Telegram channel the moment the condition becomes true; it then stays quiet until the condition has been false again (re-armed), so a level that sits above a line does not fire every day. Edit this file and push — the next export run applies it. Nothing in the app links to the channel.",
+    "metrics": {
+      "kc_front":        "ICE Arabica front-month settle, ¢/lb (futures_chain.json)",
+      "rc_front":        "ICE Robusta front-month settle, USD/MT (futures_chain.json)",
+      "kc_cert_bags":    "ICE certified arabica stocks, bags (certified_stocks_arabica.json)",
+      "rc_cert_lots":    "ICE certified robusta stocks, lots (certified_stocks_robusta.json)",
+      "cci":             "Coffee Currency Index level (quant_currency_index.json)"
+    },
+    "ops": [">", ">=", "<", "<="],
+    "rule_shape": {"id": "slug", "metric": "one of metrics", "op": "one of ops", "value": "number", "label": "human sentence for the message"}
+  },
+  "rules": [
+    {"id": "kc-front-above-400",   "metric": "kc_front",     "op": ">",  "value": 400,    "label": "KC front settles above 400 ¢/lb"},
+    {"id": "kc-front-below-280",   "metric": "kc_front",     "op": "<",  "value": 280,    "label": "KC front settles below 280 ¢/lb"},
+    {"id": "rc-front-above-4000",  "metric": "rc_front",     "op": ">",  "value": 4000,   "label": "RC front settles above 4,000 USD/MT"},
+    {"id": "rc-front-below-3000",  "metric": "rc_front",     "op": "<",  "value": 3000,   "label": "RC front settles below 3,000 USD/MT"},
+    {"id": "kc-cert-below-200k",   "metric": "kc_cert_bags", "op": "<",  "value": 200000, "label": "ICE certified arabica stocks fall below 200,000 bags"},
+    {"id": "rc-cert-below-4000",   "metric": "rc_cert_lots", "op": "<",  "value": 4000,   "label": "ICE certified robusta stocks fall below 4,000 lots"}
+  ]
+}

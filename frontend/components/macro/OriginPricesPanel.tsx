@@ -6,6 +6,7 @@ import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { fmtDateLabel } from "@/lib/formatters";
 import { CIF_FINANCING_RATE, FEU_MT, ORIGIN_EXPORT_COSTS, SAMPLING_GRADING_USD_MT, fobbingUsdMt } from "@/lib/originCosts";
 import { PARITY_ADDERS_USD } from "@/lib/research/certStocksParity";
+import { KC_CENTS_TO_USD_MT } from "@/lib/units";
 
 interface HistoryPoint {
   date:  string;
@@ -68,11 +69,9 @@ const UNIT_TO_MT: Record<string, number> = {
   per_kg:            1000,
   per_saca_60kg:     1000 / 60,
   per_cwt:           1000 / 45.359237,
-  cents_lb:          2204.62 / 100,
+  cents_lb:          KC_CENTS_TO_USD_MT,   // from lib/units — one definition
   per_quintal_100lb: 1000 / 45.359237,   // Guatemala café oro quintal = 100 lb
 };
-// KC arabica ¢/lb → USD/MT (1 MT = 2204.62 lb, 1¢ = $0.01).
-const KC_CENTS_TO_USD_MT = 2204.62 / 100;
 
 const FUTURES_COLOR = "#e2e8f0";
 const FUTURES_KEY   = "__futures";

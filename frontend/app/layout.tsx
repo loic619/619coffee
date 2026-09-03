@@ -4,6 +4,7 @@ import "./globals.css";
 import TabNav from "@/components/TabNav";
 import MarketTicker from "@/components/map/MarketTicker";
 import DataFetchGuard from "@/components/DataFetchGuard";
+import CommandPalette from "@/components/CommandPalette";
 import { PRODUCT_NAME, PRODUCT_TAGLINE } from "@/lib/brand";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -19,6 +20,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.className} h-full flex flex-col bg-gray-950`}>
         {/* Global retry + last-known-good fallback for /data/*.json fetches. */}
         <DataFetchGuard />
+        {/* ⌘K / Ctrl-K — go anywhere by typing. */}
+        <CommandPalette />
         <TabNav />
         <MarketTicker />
         <main className="flex-1 overflow-y-auto">{children}</main>

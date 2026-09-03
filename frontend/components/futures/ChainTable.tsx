@@ -2,6 +2,9 @@
 import { fmtNum as fmt, chgTone, fmtAsOf } from "@/lib/formatters";
 import { fmtFirstNoticeDay } from "@/lib/fnd";
 import type { ChainData } from "./types";
+import { usePriceUnit } from "@/lib/usePriceUnit";
+import { useContract } from "@/lib/useContract";
+import { UNIT_LABEL, unitDecimals, unitFactor, type PriceUnit } from "@/lib/units";
 
 // First Notice Day comes from lib/fnd.ts — the single, holiday-aware source
 // shared with the events calendar. Do not reintroduce a local copy.
@@ -11,10 +14,19 @@ const firstNoticeDay = fmtFirstNoticeDay;
 
 
 export default function ChainTable({ market, data, showAll }: { market: "arabica" | "robusta"; data: ChainData; showAll?: boolean }) {
+  // Hooks first — the early return below must not change their order.
+  const [display] = usePriceUnit();
+  const [selected, setSelected] = useContract();
   if (!data?.contracts?.length) return null;
 
   const isArabica = market === "arabica";
-  const unit   = isArabica ? "¢/lb" : "$/t";
+  // One display unit for the whole screen (UnitToggle in the header). KC is
+  // quoted in ¢/lb, RC in USD/MT; whichever the reader chose, both tables
+  // convert to it — so the two settle columns can be read against each other.
+  const native: PriceUnit = isArabica ? "cents_lb" : "usd_mt";
+  const k    = unitFactor(native, display);
+  const unit = UNIT_LABEL[display];
+  // The contract the reader picked travels to the FND chart, COT and Signals.
   const sublabel = isArabica ? "ICE NY · Arabica (KC)" : "ICE London · Robusta (RC)";
   const accent = isArabica ? "text-amber-400" : "text-emerald-400";
   // "Show all" (phone) reveals the columns otherwise hidden below `bp`; at lg+
@@ -70,19 +82,23 @@ export default function ChainTable({ market, data, showAll }: { market: "arabica
             const spread    = c.last != null && next?.last != null ? c.last - next.last : null;
             const spreadChg = c.chg != null && next?.chg != null ? c.chg - next.chg : null;
             const shortSym  = c.symbol.replace(/^(KC|RC|RM)/, "$1").slice(0, 5);
-            const dec       = isArabica ? 2 : 0;
+            const dec       = unitDecimals(display);
+            const isSel     = selected === c.symbol.toUpperCase();
             return (
-              <tr key={c.symbol} className={`border-t border-slate-700 ${i === 0 ? "text-white bg-slate-800/60" : "text-slate-300"}`}>
+              <tr key={c.symbol}
+                  onClick={() => setSelected(isSel ? null : c.symbol)}
+                  title={isSel ? "Selected — click to clear" : "Click to follow this contract across tabs"}
+                  className={`border-t border-slate-700 cursor-pointer ${i === 0 ? "text-white bg-slate-800/60" : "text-slate-300"} ${isSel ? "outline outline-1 outline-amber-500/70 bg-amber-950/30" : ""}`}>
                 <td className="px-1 sm:px-1.5 py-1.5 font-bold whitespace-nowrap">{shortSym}</td>
                 <td className={`px-1 sm:px-1.5 py-1.5 text-center text-amber-400/80 whitespace-nowrap ${hideAt("md")}`}>{firstNoticeDay(c.symbol)}</td>
                 <td className={`px-1 sm:px-1.5 py-1.5 text-center text-slate-500 whitespace-nowrap ${hideAt("lg")}`}>{fmtExpiry(c.expiry)}</td>
-                <td className={`px-1 sm:px-1.5 py-1.5 text-right font-bold ${i === 0 ? accent : ""}`}>{c.last?.toFixed(dec)}</td>
-                <td className={`px-1 sm:px-1.5 py-1.5 text-right ${chgColor}`}>{c.chg == null ? "—" : (c.chg >= 0 ? "+" : "") + c.chg.toFixed(dec)}</td>
+                <td className={`px-1 sm:px-1.5 py-1.5 text-right font-bold ${i === 0 ? accent : ""}`}>{c.last == null ? "—" : (c.last * k).toFixed(dec)}</td>
+                <td className={`px-1 sm:px-1.5 py-1.5 text-right ${chgColor}`}>{c.chg == null ? "—" : (c.chg >= 0 ? "+" : "") + (c.chg * k).toFixed(dec)}</td>
                 <td className={`px-1.5 py-1.5 text-right ${hideAt("sm")} ${spread === null ? "text-slate-600" : spread >= 0 ? "text-sky-400" : "text-orange-400"}`}>
-                  {spread !== null ? (spread >= 0 ? "+" : "") + spread.toFixed(dec) : "—"}
+                  {spread !== null ? (spread >= 0 ? "+" : "") + (spread * k).toFixed(dec) : "—"}
                 </td>
                 <td className={`px-1.5 py-1.5 text-right ${hideAt("lg")} ${spreadChg === null ? "text-slate-600" : spreadChg >= 0 ? "text-sky-400" : "text-orange-400"}`}>
-                  {spreadChg !== null ? (spreadChg >= 0 ? "+" : "") + spreadChg.toFixed(dec) : "—"}
+                  {spreadChg !== null ? (spreadChg >= 0 ? "+" : "") + (spreadChg * k).toFixed(dec) : "—"}
                 </td>
                 <td className={`px-1.5 py-1.5 text-right ${hideAt("lg")}`}>{fmt(c.oi)}</td>
                 <td className={`px-1.5 py-1.5 text-right text-slate-400 ${hideAt("lg")}`}>{fmt(c.volume)}</td>

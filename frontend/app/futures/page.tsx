@@ -12,6 +12,7 @@ import ChainTable from "@/components/futures/ChainTable";
 import KcRcCentsPanel from "@/components/futures/KcRcCentsPanel";
 import QuotationTab from "@/components/futures/QuotationTab";
 import type { ChainData } from "@/components/futures/types";
+import UnitToggle from "@/components/UnitToggle";
 import { useFetchJson } from "@/lib/useFetchJson";
 import { useUrlState } from "@/lib/useUrlState";
 
@@ -68,6 +69,7 @@ function FuturesPageInner() {
         title="Futures"
         subtitle="ICE Arabica (KC) · ICE Robusta (RC) — chain, quotation, arbitrage & origin farmgate prices"
         healthKeys={["futures", "cot", "macro_cot", "origin_prices"]}
+        rightSlot={<UnitToggle />}
       />
       <div className="p-6 space-y-4">
       {/* Tab bar */}

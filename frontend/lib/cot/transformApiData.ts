@@ -3,7 +3,9 @@ export const ARABICA_MT_FACTOR   = 17.01;
 export const ROBUSTA_MT_FACTOR   = 10.00;
 export const MARGIN_OUTRIGHT     = 6000;
 export const MARGIN_SPREAD       = 1200;
-export const CENTS_LB_TO_USD_TON = 22.0462;
+import { KC_CENTS_TO_USD_MT } from "@/lib/units";
+/** Kept as a named export for existing callers; the number lives in lib/units. */
+export const CENTS_LB_TO_USD_TON = KC_CENTS_TO_USD_MT;
 
 import type { CotRawRow, CotRawMarket, ProcessedCotRow, CotMarketPositions, CotTradersGroup, CotTradersGroupShort } from "./types";
 
