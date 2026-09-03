@@ -1,8 +1,21 @@
 {
-  "updated": "2026-09-03T13:51:20Z",
+  "updated": "2026-09-03T14:03:20Z",
   "source": "NCHMF – Bản tin dự báo nguồn nước thời hạn ngắn",
   "source_url": "https://nchmf.gov.vn/kttv/vi-VN/1/nguon-nuoc-21-18.html",
   "rivers": [
+    {
+      "river": "Dong Nai",
+      "river_vn": "Đồng Trăng",
+      "provinces": [
+        "Dak Nong",
+        "Lam Dong"
+      ],
+      "station": "Cái N,T",
+      "actual_mm3": 13.6,
+      "tbnn_pct": -46.0,
+      "forecast_tbnn_pct": -54.0,
+      "signal": "low"
+    },
     {
       "river": "Dak Bla",
       "river_vn": "ĐăkBla",
@@ -11,9 +24,9 @@
         "Kon Tum"
       ],
       "station": "Kon Tum",
-      "actual_mm3": 13.77,
-      "tbnn_pct": -80.0,
-      "forecast_tbnn_pct": -77.0,
+      "actual_mm3": 24.0,
+      "tbnn_pct": -78.0,
+      "forecast_tbnn_pct": -76.0,
       "signal": "critical"
     },
     {
@@ -23,15 +36,14 @@
         "Dak Lak"
       ],
       "station": "Giang Sơn",
-      "actual_mm3": 22.75,
-      "tbnn_pct": -60.0,
-      "forecast_tbnn_pct": -43.0,
+      "actual_mm3": 28.0,
+      "tbnn_pct": -62.0,
+      "forecast_tbnn_pct": -56.0,
       "signal": "critical"
     }
   ],
-  "bulletin_date": "2026-09-02",
+  "bulletin_date": "2026-09-01",
   "has_live_data": true,
-  "pdf_url": "https://kttv.gov.vn//upload/thuyvan2/2026/8/22/dbqg_nnhn_20260822_1500.pdf",
   "history": [
     {
       "date": "2025-01-01",
@@ -1762,5 +1774,6 @@
         }
       ]
     }
-  ]
+  ],
+  "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2026/9/1/dbqg_nnhn_20260901_1500.pdf"
 }
