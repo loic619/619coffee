@@ -1,14 +1,19 @@
-"""probe_coffeecopa.py — TEMPORARY.
+"""probe_coffeecopa.py — TEMPORARY (round 2).
 
-coffeecopa.com/tabela/ is proposed as a Brazil domestic arabica price source.
-The sandbox cannot reach it, so this runs on CI to answer the only questions
-that matter before writing a scraper: is the table in the served HTML or drawn
-by JavaScript, what grades and columns does it carry, and in what unit.
+Round 1: /tabela/ serves ONE table — headers `Qualidade | Cata | Preço` and a
+single row reading "Carregando dados...". No BRL amounts, no dates in the HTML.
+The prices are drawn client-side, and the page's own script says it refreshes
+"durante o horário comercial" and otherwise shows a fixed message; the probe ran
+04:51 BRT, outside those hours.
+
+So: find the endpoint the script calls. Dump the inline scripts around
+#tabela-precos, and try the usual WordPress data routes.
 
 Delete once the answer is known.
 """
 from __future__ import annotations
 
+import json
 import re
 import sys
 
@@ -18,56 +23,76 @@ UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
                     "(KHTML, like Gecko) Chrome/126 Safari/537.36",
       "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8"}
 
-URLS = [
-    "https://coffeecopa.com/tabela/",
-    "https://coffeecopa.com/",
-    "https://coffeecopa.com/wp-json/wp/v2/pages?search=tabela",
-]
+
+def _get(url, **kw):
+    try:
+        r = requests.get(url, headers=UA, timeout=40, **kw)
+        print(f"  GET {url} -> {r.status_code} {len(r.content)}B "
+              f"{r.headers.get('content-type','?')}")
+        return r
+    except Exception as e:                                    # noqa: BLE001
+        print(f"  GET {url} -> FAILED {type(e).__name__}: {e}")
+        return None
 
 
 def main() -> int:
-    for url in URLS:
-        print("=" * 78)
-        print(url)
-        print("=" * 78)
+    print("=" * 78)
+    print("STEP 1 — inline scripts on /tabela/")
+    print("=" * 78)
+    r = _get("https://coffeecopa.com/tabela/")
+    html = r.text if r and r.ok else ""
+    for m in re.finditer(r"<script[^>]*>([\s\S]*?)</script>", html, re.I):
+        body = m.group(1)
+        if "tabela-precos" in body or "fetch(" in body or "ajax" in body.lower():
+            print("--- script block ---")
+            print(body.strip()[:4000])
+            print("--- end ---")
+
+    print()
+    print("=" * 78)
+    print("STEP 2 — every URL the page references that could carry the data")
+    print("=" * 78)
+    cands = set(re.findall(r"https?://[^\s\"'<>]{6,160}", html))
+    for u in sorted(cands):
+        if any(k in u.lower() for k in ("json", "ajax", "api", "preco", "tabela",
+                                        "cota", "sheet", "csv", "docs.google")):
+            print(f"  candidate: {u}")
+
+    print()
+    print("=" * 78)
+    print("STEP 3 — the page object via wp-json, scripts and all")
+    print("=" * 78)
+    r = _get("https://coffeecopa.com/wp-json/wp/v2/pages?search=tabela")
+    if r and r.ok:
         try:
-            r = requests.get(url, headers=UA, timeout=45)
+            for page in r.json():
+                print(f"--- page id={page.get('id')} slug={page.get('slug')!r}")
+                content = (page.get("content") or {}).get("rendered") or ""
+                for m in re.finditer(r"<script[^>]*>([\s\S]*?)</script>", content, re.I):
+                    print(m.group(1).strip()[:4000])
         except Exception as e:                                # noqa: BLE001
-            print(f"  FAILED {type(e).__name__}: {e}")
-            continue
-        print(f"  {r.status_code}  {len(r.content)}B  {r.headers.get('content-type', '?')}")
-        if not r.ok:
-            continue
-        html = r.text
+            print(f"  json parse failed: {e}")
 
-        tables = re.findall(r"<table[\s\S]*?</table>", html, re.I)
-        print(f"  <table> elements in the served HTML: {len(tables)}")
-        for i, t in enumerate(tables[:4]):
-            rows = re.findall(r"<tr[\s\S]*?</tr>", t, re.I)
-            print(f"  --- table {i}: {len(rows)} rows")
-            for row in rows[:14]:
-                cells = re.findall(r"<t[dh][^>]*>([\s\S]*?)</t[dh]>", row, re.I)
-                clean = [re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", c)).strip() for c in cells]
-                clean = [c for c in clean if c]
-                if clean:
-                    print("      | " + " | ".join(clean))
-
-        # If the table is drawn client-side the numbers still usually ship in a
-        # bootstrapped JSON blob or a JS array — worth looking before reaching
-        # for a browser.
-        for pat, label in (
-            (r"(?:arabica|arábica|bebida|rio|dura|mole)[^<>{}\n]{0,120}", "grade words"),
-            (r"R\$\s?[\d.,]+", "BRL amounts"),
-            (r"\d{1,2}/\d{1,2}/\d{2,4}", "dates"),
-        ):
-            hits = re.findall(pat, html, re.I)
-            uniq = list(dict.fromkeys(h.strip() for h in hits))[:12]
-            print(f"  {label}: {len(hits)} hits -> {uniq}")
-
-        for key in ("wp-json", "admin-ajax", "datatables", "__NEXT_DATA__",
-                    "application/json", "var tabela", "chart"):
-            if key.lower() in html.lower():
-                print(f"  mentions {key!r}")
+    print()
+    print("=" * 78)
+    print("STEP 4 — common WordPress data routes")
+    print("=" * 78)
+    for u in ("https://coffeecopa.com/wp-admin/admin-ajax.php?action=precos",
+              "https://coffeecopa.com/wp-json/coffeecopa/v1/precos",
+              "https://coffeecopa.com/wp-json/",
+              "https://coffeecopa.com/precos.json",
+              "https://coffeecopa.com/wp-content/uploads/precos.json"):
+        rr = _get(u)
+        if rr is not None and rr.ok:
+            body = rr.text[:900]
+            print(f"    body: {body!r}")
+            if "wp-json/" in u and u.endswith("wp-json/"):
+                try:
+                    routes = [k for k in rr.json().get("routes", {})
+                              if "wp/v2" not in k and "oembed" not in k]
+                    print(f"    custom routes: {json.dumps(routes, indent=2)[:1500]}")
+                except Exception:                             # noqa: BLE001
+                    pass
     return 0
 
 
