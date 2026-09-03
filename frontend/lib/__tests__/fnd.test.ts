@@ -110,7 +110,7 @@ describe("events.json agrees with lib/fnd", () => {
 });
 
 // ── Ground truth: ICE's own expiry table ─────────────────────────────────────
-// Read from ice.com on 2026-09-03 by probe 0.21 (workflow
+// Read from ice.com on 2026-09-03 by probe 0.30 (workflow
 // probe-ice-expiry-calendar.yml), product pages 15 (Coffee "C", KC) and
 // 37089079 (Robusta, RC). This is the exchange's published First Notice Day
 // for every listed contract, not a derivation. The rules the library encodes —

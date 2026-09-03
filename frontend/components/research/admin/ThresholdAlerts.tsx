@@ -33,11 +33,11 @@ export default function ThresholdAlerts() {
         then disarms; it re-arms only after the condition has been observed false again. A market
         that sits above a line for a fortnight produces one message, not fourteen. Rules live in{" "}
         <Code>data/alert_thresholds.json</Code> — edit, push, and the next export run applies them.
-        Workflow 1.18 runs the check; state is committed alongside so a re-run never re-sends.
+        Workflow 1.26 runs the check; state is committed alongside so a re-run never re-sends.
       </P>
       <H>Current rules</H>
       {error ? (
-        <P className="text-slate-500">alert_thresholds.json has not been published yet — the first run of workflow 1.18 writes it.</P>
+        <P className="text-slate-500">alert_thresholds.json has not been published yet — the first run of workflow 1.26 writes it.</P>
       ) : !data ? (
         <P>Loading…</P>
       ) : (
@@ -59,7 +59,7 @@ export default function ThresholdAlerts() {
           </P>
         </>
       )}
-      <DataFiles files={["alert_thresholds.json"]} note="Published by workflow 1.18 after each export; rules come from data/alert_thresholds.json in the repo." />
+      <DataFiles files={["alert_thresholds.json"]} note="Published by workflow 1.26 after each export; rules come from data/alert_thresholds.json in the repo." />
     </>
   );
 }

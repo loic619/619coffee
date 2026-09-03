@@ -74,7 +74,7 @@ def test_trading_days_skip_the_contracts_own_holidays():
 
 
 # ── Ground truth: ICE's own expiry table ─────────────────────────────────────
-# Read from ice.com on 2026-09-03 by probe 0.21 (product 15 = Coffee "C",
+# Read from ice.com on 2026-09-03 by probe 0.30 (product 15 = Coffee "C",
 # 37089079 = Robusta). The exchange's published First Notice Days, not a
 # derivation. Mirrors frontend/lib/__tests__/fnd.test.ts.
 ICE_PUBLISHED_FND = {
