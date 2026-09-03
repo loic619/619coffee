@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-03T07:18:00.446760Z",
-  "count": 99,
+  "generated_at": "2026-09-03T07:45:16.529097Z",
+  "count": 100,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -517,6 +517,17 @@
       "timeout_minutes": 8
     },
     {
+      "file": "probe-coffeecopa-tabela.yml",
+      "name": "0.31 \u2013 Probe: coffeecopa.com/tabela (Rio Minas / Duro physical quotes)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 5
+    },
+    {
       "file": "probe-fbx-history.yml",
       "name": "0.28 \u2013 Probe FBX history access (diagnostic)",
       "triggers": [
@@ -562,7 +573,7 @@
     },
     {
       "file": "probe-ice-expiry-calendar.yml",
-      "name": "0.21 \u2013 Probe: ICE expiry calendar (FND ground truth)",
+      "name": "0.30 \u2013 Probe: ICE expiry calendar (FND ground truth)",
       "triggers": [
         "workflow_dispatch"
       ],
@@ -1239,7 +1250,7 @@
     },
     {
       "file": "threshold-alerts.yml",
-      "name": "1.18 \u2013 Threshold alerts (admin Telegram)",
+      "name": "1.26 \u2013 Threshold alerts (admin Telegram)",
       "triggers": [
         "workflow_dispatch",
         "workflow_run"
@@ -1353,11 +1364,6 @@
         "version": "0.21"
       },
       {
-        "file": "probe-ice-expiry-calendar.yml",
-        "name": "0.21 \u2013 Probe: ICE expiry calendar (FND ground truth)",
-        "version": "0.21"
-      },
-      {
         "file": "probe-port-ids.yml",
         "name": "0.22 \u2013 Probe PortWatch port ids (diagnostic)",
         "version": "0.22"
@@ -1398,6 +1404,16 @@
         "version": "0.29"
       },
       {
+        "file": "probe-ice-expiry-calendar.yml",
+        "name": "0.30 \u2013 Probe: ICE expiry calendar (FND ground truth)",
+        "version": "0.30"
+      },
+      {
+        "file": "probe-coffeecopa-tabela.yml",
+        "name": "0.31 \u2013 Probe: coffeecopa.com/tabela (Rio Minas / Duro physical quotes)",
+        "version": "0.31"
+      },
+      {
         "file": "build-oni-history.yml",
         "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
         "version": "0.6"
@@ -1428,11 +1444,6 @@
         "version": "1.18"
       },
       {
-        "file": "threshold-alerts.yml",
-        "name": "1.18 \u2013 Threshold alerts (admin Telegram)",
-        "version": "1.18"
-      },
-      {
         "file": "scraper-mapbiomas-coffee.yml",
         "name": "1.24 \u2013 Coffee Crop Area (MapBiomas)",
         "version": "1.24"
@@ -1441,6 +1452,11 @@
         "file": "scraper-coffee-footprint.yml",
         "name": "1.25 \u2013 Coffee Footprint (MapBiomas raster)",
         "version": "1.25"
+      },
+      {
+        "file": "threshold-alerts.yml",
+        "name": "1.26 \u2013 Threshold alerts (admin Telegram)",
+        "version": "1.26"
       },
       {
         "file": "b3-kc-close.yml",
@@ -1499,7 +1515,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 36,
+    "uncovered_workflows_count": 37,
     "stale_curation_count": 0
   }
 }

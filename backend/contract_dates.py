@@ -19,7 +19,7 @@ The rule (ICE contract specifications)
 below are RULE-BASED so they do not go stale at year end; an ad-hoc closure
 ICE announces goes in EXTRA_CLOSURES.
 
-VERIFIED against ICE's published expiry table on 2026-09-03 (probe 0.21,
+VERIFIED against ICE's published expiry table on 2026-09-03 (probe 0.30,
 product pages 15 and 37089079): both rules quoted verbatim, every listed
 contract through March 2028 matching to the day. The table is pinned in
 scraper/tests/test_contract_dates.py.

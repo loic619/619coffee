@@ -28,7 +28,7 @@
  * year end. They encode the published patterns; if ICE announces an ad-hoc
  * closure it must be added to `EXTRA_CLOSURES`.
  *
- * VERIFIED against ICE's published expiry table on 2026-09-03 (probe 0.21):
+ * VERIFIED against ICE's published expiry table on 2026-09-03 (probe 0.30):
  * both rules are quoted verbatim from the product pages, and every listed
  * contract through March 2028 matches to the day — the holiday-shifted ones
  * included. That table is pinned in lib/__tests__/fnd.test.ts, so drift fails
