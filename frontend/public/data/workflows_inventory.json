@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-03T04:15:51.532430Z",
-  "count": 98,
+  "generated_at": "2026-09-03T07:18:00.446760Z",
+  "count": 99,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -1238,6 +1238,20 @@
       "timeout_minutes": 10
     },
     {
+      "file": "threshold-alerts.yml",
+      "name": "1.18 \u2013 Threshold alerts (admin Telegram)",
+      "triggers": [
+        "workflow_dispatch",
+        "workflow_run"
+      ],
+      "crons": [],
+      "workflow_run_deps": [
+        "1.4 \u2013 Export and Publish Static JSON"
+      ],
+      "concurrency_group": "threshold-alerts",
+      "timeout_minutes": 5
+    },
+    {
       "file": "tradespread.yml",
       "name": "1.20 \u2013 Traded tape (acaphe tradespread)",
       "triggers": [
@@ -1414,6 +1428,11 @@
         "version": "1.18"
       },
       {
+        "file": "threshold-alerts.yml",
+        "name": "1.18 \u2013 Threshold alerts (admin Telegram)",
+        "version": "1.18"
+      },
+      {
         "file": "scraper-mapbiomas-coffee.yml",
         "name": "1.24 \u2013 Coffee Crop Area (MapBiomas)",
         "version": "1.24"
@@ -1480,7 +1499,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 35,
+    "uncovered_workflows_count": 36,
     "stale_curation_count": 0
   }
 }
