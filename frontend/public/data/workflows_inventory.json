@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-02T07:26:57.200743Z",
-  "count": 97,
+  "generated_at": "2026-09-03T04:09:02.232384Z",
+  "count": 98,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -559,6 +559,17 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 20
+    },
+    {
+      "file": "probe-ice-expiry-calendar.yml",
+      "name": "0.21 \u2013 Probe: ICE expiry calendar (FND ground truth)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 5
     },
     {
       "file": "probe-ice-stock-access.yml",
@@ -1328,6 +1339,11 @@
         "version": "0.21"
       },
       {
+        "file": "probe-ice-expiry-calendar.yml",
+        "name": "0.21 \u2013 Probe: ICE expiry calendar (FND ground truth)",
+        "version": "0.21"
+      },
+      {
         "file": "probe-port-ids.yml",
         "name": "0.22 \u2013 Probe PortWatch port ids (diagnostic)",
         "version": "0.22"
@@ -1464,7 +1480,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 34,
+    "uncovered_workflows_count": 35,
     "stale_curation_count": 0
   }
 }
