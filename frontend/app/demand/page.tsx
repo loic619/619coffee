@@ -30,14 +30,24 @@ import { useUrlState } from "@/lib/useUrlState";
 
 type SubTab = "certified" | "destination" | "spot" | "demand" | "imports" | "earnings" | "listed";
 
-const TABS: { id: SubTab; label: string }[] = [
-  { id: "certified",   label: "Certified stocks" },
-  { id: "destination", label: "Destination stocks" },
-  { id: "spot",        label: "Spot" },
-  { id: "demand",      label: "Consumption" },
-  { id: "imports",     label: "Imports" },
-  { id: "earnings",    label: "Earnings" },
-  { id: "listed",      label: "Listed stocks" },
+// Three of the seven are "stocks" with different meanings. The trade knows the
+// distinction cold; the labels alone do not carry it, so each tab explains
+// itself on hover.
+const TABS: { id: SubTab; label: string; hint: string }[] = [
+  { id: "certified",   label: "Certified stocks",
+    hint: "Coffee graded and certified for delivery against ICE futures — the exchange's deliverable supply, by warehouse" },
+  { id: "destination", label: "Destination stocks",
+    hint: "Green coffee held in consuming-country ports and warehouses (ECF Europe, AJCA Japan) — pipeline inventory, not exchange stock" },
+  { id: "spot",        label: "Spot",
+    hint: "Physical offers in the spot market — differentials against the futures month, by origin and grade" },
+  { id: "demand",      label: "Consumption",
+    hint: "How much coffee the world drinks, by market — USDA PSD against the ICO world reference" },
+  { id: "imports",     label: "Imports",
+    hint: "Green coffee imports by destination — EU and US customs data" },
+  { id: "earnings",    label: "Earnings",
+    hint: "Quarterly results from listed roasters and traders — volumes, margins, guidance" },
+  { id: "listed",      label: "Listed stocks",
+    hint: "Share prices of listed coffee companies — the equity market's read on demand, not coffee inventory" },
 ];
 const SUB_TABS = TABS.map((t) => t.id) as SubTab[];
 
@@ -76,6 +86,7 @@ function DemandPageInner() {
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
+            title={t.hint}
             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
               tab === t.id
                 ? "bg-slate-800 text-amber-400 border border-slate-700"

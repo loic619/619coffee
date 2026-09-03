@@ -41,6 +41,10 @@ export interface FeedMeta {
   /** Data-period window (days) for feeds whose data lags the run (publication
    *  lag of the underlying report). Used when data_asof ≠ scrapers. */
   dataThresholdDays?: number;
+  /** Feed-specific reading of the age, for feeds whose STRUCTURAL lag makes a
+   *  generic "3d" look stale to anyone who does not know the source's
+   *  rhythm. Shown in the tooltip under the age. */
+  note?: string;
 }
 
 // Cadence conventions:
@@ -50,8 +54,13 @@ export interface FeedMeta {
 //   Biannual (USDA coffee PSD, June + December): 210d.
 export const FEED_META: Record<string, FeedMeta> = {
   futures:              { label: "Barchart futures", category: "Futures",          thresholdDays: 4 },
-  cot:                  { label: "CFTC COT",         category: "COT",              thresholdDays: 11 },
-  macro_cot:            { label: "Macro COT",        category: "COT",              thresholdDays: 11 },
+  // COT is structurally three days old on the day it publishes: CFTC releases
+  // Tuesday's positions on Friday ~20:30 UTC. A chip reading "3d" or even "7d"
+  // is ON TIME; only past the next Friday is it late.
+  cot:                  { label: "CFTC COT",         category: "COT",              thresholdDays: 11,
+                          note: "Tuesday positions, published Friday ~20:30 UTC — 3–7d old is on time" },
+  macro_cot:            { label: "Macro COT",        category: "COT",              thresholdDays: 11,
+                          note: "Tuesday positions, published Friday ~20:30 UTC — 3–7d old is on time" },
   freight:              { label: "Freight rates",    category: "Freight",          thresholdDays: 9 },
   weather:              { label: "Origin weather",   category: "Weather",          thresholdDays: 3 },
   enso:                 { label: "NOAA ENSO ONI",    category: "ENSO",             thresholdDays: 35, dataThresholdDays: 45 },
@@ -213,6 +222,7 @@ export function freshnessTooltip(f: FeedFreshness): string {
   return (
     `${f.meta.label} · data as-of ${f.iso} (${freshnessLabel(f, "long")})` +
     (f.lagging ? `\npipeline last ran ${String(f.pipelineIso).slice(0, 10)}` : "") +
-    `\noverdue after ${f.thresholdDays}d`
+    `\noverdue after ${f.thresholdDays}d` +
+    (f.meta.note ? `\n${f.meta.note}` : "")
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import FeedUnavailable from "@/components/FeedUnavailable";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { DAILY_COLORS, TT_STYLE } from "./constants";
@@ -139,14 +140,17 @@ export default function DailyRegistrationSection() {
   // to Certificados below when only legacy data is present.
   const [source, setSource] = useState<CecafeSourceKey>("embarques");
 
+  // A failed fetch used to hide the section — indistinguishable from "no
+  // registrations yet". Say which it was.
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     fetch("/data/cecafe_daily.json")
-      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(setData)
-      .catch(() => {}); // section hidden if data not available
+      .catch(() => setFailed(true));
   }, []);
 
-  if (!data) return null;
+  if (!data) return failed ? <FeedUnavailable what="Brazil daily export registration" file="cecafe_daily.json" /> : null;
   const sources = normalizeSources(data);
 
   // Which sources actually have any data? Drives the toggle's availability.

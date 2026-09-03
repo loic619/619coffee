@@ -13,6 +13,7 @@
 // "Total" sums arabica + conillon + soluvel because both Cecafé tables emit
 // the three streams in parallel and the user asked for one combined figure.
 import { useEffect, useState } from "react";
+import FeedUnavailable from "@/components/FeedUnavailable";
 import { MONTH_ABBR } from "@/lib/formatters";
 import StatCard from "./StatCard";
 import { bagsToKT, normalizeSources } from "./helpers";
@@ -92,13 +93,16 @@ const _kt = (bags: number) => `${bagsToKT(bags).toFixed(1)} kt`;
 
 export default function CecafeDailyKPIs() {
   const [data, setData] = useState<DailyData | null>(null);
+  // A failed fetch used to hide the panel, which reads as "nothing to show"
+  // when it means "the feed did not load". Distinguish the two.
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     fetch("/data/cecafe_daily.json")
-      .then(r => (r.ok ? r.json() : null))
-      .then((d: DailyData | null) => d && setData(d))
-      .catch(() => { /* file absent → hide the panel */ });
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((d: DailyData | null) => (d ? setData(d) : setFailed(true)))
+      .catch(() => setFailed(true));
   }, []);
-  if (!data) return null;
+  if (!data) return failed ? <FeedUnavailable what="Cecafé daily KPIs" file="cecafe_daily.json" /> : null;
   const sources = normalizeSources(data);
 
   const embCur  = _latestMonthAndDay(sources.embarques);

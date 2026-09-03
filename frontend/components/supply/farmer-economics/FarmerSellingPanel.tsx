@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import FeedUnavailable from "@/components/FeedUnavailable";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
@@ -294,14 +295,16 @@ export default function FarmerSellingPanel() {
   const [data, setData] = useState<FarmerSellingFile | null>(null);
   const [variety, setVariety] = useState<"arabica" | "robusta">("arabica");
 
+  // The failure used to go to the console only; the reader saw a gap.
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     fetch("/data/farmer_selling_brazil.json")
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(setData)
-      .catch((err) => console.error("[FarmerSellingPanel] fetch failed:", err));
+      .catch((err) => { console.error("[FarmerSellingPanel] fetch failed:", err); setFailed(true); });
   }, []);
 
-  if (!data) return null;
+  if (!data) return failed ? <FeedUnavailable what="Farmer selling behaviour" file="farmer_selling_brazil.json" /> : null;
 
   const vd = data[variety];
   const brazil = vd.brazil;

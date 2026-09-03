@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
 interface Route {
   id:    string;
@@ -88,7 +89,15 @@ export default function FreightContextPanel() {
   return (
     <div className="p-4 space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-white">Origin Freight Costs</h2>
+        {/* This is a SUMMARY of the Freight tab, reading the same file. The
+            link makes that explicit — otherwise two surfaces on the same
+            subject look like two sources that might disagree. */}
+        <div className="flex items-baseline gap-3 flex-wrap">
+          <h2 className="text-lg font-bold text-white">Origin Freight Costs</h2>
+          <Link href="/freight" className="text-[11px] text-sky-400 hover:text-sky-300 underline underline-offset-2">
+            Full lanes, history &amp; dry bulk → Freight tab
+          </Link>
+        </div>
         <p className="text-xs text-slate-400">
           Container rates from key coffee origins. Rising freight compresses miller and roaster margins;
           the spread between VN-EU and BR-EU is a robusta-vs-arabica logistics arbitrage signal.
