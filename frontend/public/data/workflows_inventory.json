@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-03T12:26:51.598450Z",
-  "count": 99,
+  "generated_at": "2026-09-03T12:57:40.702673Z",
+  "count": 100,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -171,6 +171,17 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 20
+    },
+    {
+      "file": "backfill-vn-water-levels.yml",
+      "name": "0.31 \u2013 Backfill: VN river-flow bulletins (NCHMF archive)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": "vn-water-levels",
+      "timeout_minutes": 60
     },
     {
       "file": "backfill-weather-history.yml",
@@ -1398,6 +1409,11 @@
         "version": "0.30"
       },
       {
+        "file": "backfill-vn-water-levels.yml",
+        "name": "0.31 \u2013 Backfill: VN river-flow bulletins (NCHMF archive)",
+        "version": "0.31"
+      },
+      {
         "file": "build-oni-history.yml",
         "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
         "version": "0.6"
@@ -1499,7 +1515,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 36,
+    "uncovered_workflows_count": 37,
     "stale_curation_count": 0
   }
 }
