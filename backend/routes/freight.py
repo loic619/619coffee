@@ -1,5 +1,4 @@
 # backend/routes/freight.py
-from datetime import date, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, Response
@@ -7,9 +6,20 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import FreightRate
+
+# Single source of truth for the payload. This route used to carry its own copy
+# of ROUTE_CONFIG and the query logic, and by 2026-09 it had frozen at the
+# pre-August exporter: vn-ham flagged non-proxy, `date <` instead of `<=`, an
+# 84-day history cap, and a chart hardcoded to FBX11 + FBX01. The page silently
+# showed a different, older story depending on whether the backend was up.
+from freight_payload import ROUTE_CONFIG, build_freight_payload  # noqa: F401  (re-exported)
 
 router = APIRouter(prefix="/api/freight", tags=["freight"])
+
+
+class FreightBasis(BaseModel):
+    index: str
+    multiplier: float
 
 
 class FreightRouteResponse(BaseModel):
@@ -20,8 +30,21 @@ class FreightRouteResponse(BaseModel):
     prev: int
     unit: str
     proxy: bool
+    # Optional so an older cached payload still validates.
+    prev_date: str | None = None
+    basis: FreightBasis | None = None
 
     model_config = {"populate_by_name": True}
+
+
+class FreightIndexResponse(BaseModel):
+    code: str
+    name: str
+    rate: int
+    date: str
+    prev: int | None = None
+    prev_date: str | None = None
+    history: list[dict[str, Any]] = []
 
 
 class FreightResponse(BaseModel):
@@ -31,100 +54,12 @@ class FreightResponse(BaseModel):
     # vary (e.g. "vn-eu", "br-eu"). Keeping it as Any avoids over-specifying
     # — the frontend already types this as Record<string, number | string>.
     history: list[dict[str, Any]]
-
-# Route config: id, from, to, FBX index, multiplier, is_proxy
-ROUTE_CONFIG = [
-    ("vn-eu",  "Ho Chi Minh", "Rotterdam",   "FBX11", 1.00, False),
-    ("vn-ham", "Ho Chi Minh", "Hamburg",     "FBX11", 1.02, False),
-    ("vn-us",  "Ho Chi Minh", "Los Angeles", "FBX01", 1.00, False),
-    ("br-eu",  "Santos",      "Rotterdam",   "FBX11", 0.58, True),
-    ("co-eu",  "Cartagena",   "Rotterdam",   "FBX11", 0.55, True),
-    ("et-eu",  "Djibouti",    "Rotterdam",   "FBX11", 0.70, True),
-    ("br-us",  "Santos",      "New York",    "FBX03", 0.45, True),
-]
-
-CHART_ROUTES = {"vn-eu", "br-eu", "vn-us", "et-eu"}
-
-
-def _latest_rate(db: Session, index_code: str) -> FreightRate | None:
-    return (
-        db.query(FreightRate)
-        .filter(FreightRate.index_code == index_code)
-        .order_by(FreightRate.date.desc())
-        .first()
-    )
-
-
-def _prev_rate(db: Session, index_code: str) -> FreightRate | None:
-    cutoff = date.today() - timedelta(days=7)
-    return (
-        db.query(FreightRate)
-        .filter(FreightRate.index_code == index_code, FreightRate.date < cutoff)
-        .order_by(FreightRate.date.desc())
-        .first()
-    )
-
-
-def _history_rows(db: Session, index_code: str, days: int = 84) -> list[FreightRate]:
-    cutoff = date.today() - timedelta(days=days)
-    return (
-        db.query(FreightRate)
-        .filter(FreightRate.index_code == index_code, FreightRate.date >= cutoff)
-        .order_by(FreightRate.date.asc())
-        .all()
-    )
+    # Every published FBX lane, unscaled. Defaulted so a client reading an
+    # older response shape does not break.
+    indices: list[FreightIndexResponse] = []
 
 
 @router.get("", response_model=FreightResponse)
 def get_freight(response: Response, db: Session = Depends(get_db)):
     response.headers["Cache-Control"] = "public, max-age=300"
-    indices = {cfg[3] for cfg in ROUTE_CONFIG}
-    latest = {idx: _latest_rate(db, idx) for idx in indices}
-    prev   = {idx: _prev_rate(db, idx)   for idx in indices}
-
-    if all(v is None for v in latest.values()):
-        return {"updated": date.today().isoformat(), "routes": [], "history": []}
-
-    routes = []
-    for route_id, from_, to, index, mult, is_proxy in ROUTE_CONFIG:
-        latest_row = latest.get(index)
-        if latest_row is None:
-            continue
-        prev_row = prev.get(index)
-        rate = round(latest_row.rate * mult)
-        prev_rate = round(prev_row.rate * mult) if prev_row else rate
-        routes.append({
-            "id":    route_id,
-            "from":  from_,
-            "to":    to,
-            "rate":  rate,
-            "prev":  prev_rate,
-            "unit":  "USD/FEU",
-            "proxy": is_proxy,
-        })
-
-    fbx11_rows = _history_rows(db, "FBX11")
-    fbx01_rows = _history_rows(db, "FBX01")
-
-    history_by_date: dict[str, dict] = {}
-    for row in fbx11_rows:
-        d = row.date.isoformat()
-        if d not in history_by_date:
-            history_by_date[d] = {"date": d}
-        history_by_date[d]["vn-eu"] = round(row.rate * 1.00)
-        history_by_date[d]["br-eu"] = round(row.rate * 0.58)
-        history_by_date[d]["et-eu"] = round(row.rate * 0.70)
-    for row in fbx01_rows:
-        d = row.date.isoformat()
-        if d not in history_by_date:
-            history_by_date[d] = {"date": d}
-        history_by_date[d]["vn-us"] = round(row.rate * 1.00)
-
-    history = sorted(history_by_date.values(), key=lambda x: x["date"])
-
-    updated = max(
-        (r.date for r in latest.values() if r is not None),
-        default=date.today()
-    ).isoformat()
-
-    return {"updated": updated, "routes": routes, "history": history}
+    return build_freight_payload(db)

@@ -3,6 +3,7 @@
 // lazy-loaded (next/dynamic, ssr:false) — keeps the ~120 kB recharts bundle
 // out of the page's initial load. The header + rate table render immediately;
 // these stream in a moment later.
+import React from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ComposedChart, Bar, Area } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { VESSEL_TYPE_META } from "./vesselTypes";
@@ -18,27 +19,58 @@ const CHART_LINES = [
 ];
 
 export function FreightHistoryChart({ history }: { history: Record<string, number | string>[] }) {
-  // The series can now span years rather than a fixed twelve weeks, so "MM-DD"
-  // ticks would repeat each January and read as a loop. Past roughly seven
-  // months, label by month-and-year instead.
-  const first = String(history[0]?.date ?? "");
-  const last = String(history[history.length - 1]?.date ?? "");
+  // Time axis, not a category axis.
+  //
+  // The scrape cadence changed mid-series: near-daily through 10 Jun 2026, then
+  // Fri+Sun only once the cron was tightened. On recharts' default category
+  // axis every stored row gets an equal slice of width regardless of how many
+  // days it stands for, so the chart stopped matching the calendar:
+  //
+  //   * the last 81 of 169 days — 48% of elapsed time — occupied 19% of the
+  //     width (20 of 105 rows), while Mar-Jun took 81% of the width for 85 rows
+  //     that carry only 15 distinct consecutive values (a weekly print copied
+  //     forward onto each day it was re-scraped);
+  //   * the June step (vn-eu 2970 -> 4087) sits exactly on the seam where
+  //     spacing changes, so it rendered as a cliff;
+  //   * and it compounds — the crowded old block is frozen at 85 points while
+  //     real readings keep arriving twice a week.
+  //
+  // Plotting epoch milliseconds on a numeric axis spaces every reading by the
+  // time it actually represents. The rows already carry true dates, so this is
+  // purely a rendering fix; SeasonalChart below uses the same numeric-axis
+  // pattern.
+  const data = React.useMemo(
+    () => history.map((r) => ({ ...r, t: Date.parse(String(r.date)) })),
+    [history],
+  );
   const spanDays =
-    first && last ? (Date.parse(last) - Date.parse(first)) / 86_400_000 : 0;
+    data.length > 1 ? (data[data.length - 1].t - data[0].t) / 86_400_000 : 0;
+  // Past roughly seven months "MM-DD" repeats each January and reads as a loop.
   const longRange = spanDays > 210;
+  const fmt = (ms: number) => {
+    const d = new Date(ms);
+    const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+    return longRange
+      ? `${d.getUTCFullYear()}-${mm}`
+      : `${mm}-${String(d.getUTCDate()).padStart(2, "0")}`;
+  };
 
   return (
     <ResponsiveContainer width="100%" height={260}>
-      <LineChart data={history} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+      <LineChart data={data} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-        <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false}
-          minTickGap={longRange ? 44 : 8}
-          tickFormatter={(v: string) => (longRange ? v.slice(0, 7) : v.slice(5))} />
+        <XAxis dataKey="t" type="number" scale="time" domain={["dataMin", "dataMax"]}
+          tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false}
+          minTickGap={longRange ? 44 : 24}
+          tickFormatter={fmt} />
         <YAxis tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} width={50}
           tickFormatter={(v: number) => `$${(v / 1000).toFixed(1)}k`} />
         <Tooltip
           contentStyle={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 6, fontSize: 11 }}
           labelStyle={{ color: "#94a3b8" }}
+          // The tooltip keeps the full date — the axis abbreviates, the readout
+          // should not.
+          labelFormatter={(ms) => new Date(Number(ms)).toISOString().slice(0, 10)}
           formatter={(v: unknown) => [`$${Number(v).toLocaleString("en-US")}`, ""]}
         />
         <Legend
