@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
-import { fmtDateLabel, chgTone } from "@/lib/formatters";
+import { fmtDateLabel, fmtMonth, chgTone } from "@/lib/formatters";
 
 // Both files share this shape: brazil_b3_arabica.json (noticiasagricolas
 // republisher, US$/saca, deep backfilled history) and brazil_b3_conilon.json
@@ -62,8 +62,33 @@ interface Overlay {
   diff?:  boolean;
 }
 
-type Window = "1M" | "3M" | "6M" | "1Y" | "2Y";
-const WINDOW_DAYS: Record<Window, number> = { "1M": 30, "3M": 90, "6M": 180, "1Y": 365, "2Y": 730 };
+type Window = "1M" | "3M" | "6M" | "1Y" | "2Y" | "MAX";
+const WINDOW_DAYS: Record<Window, number> = { "1M": 30, "3M": 90, "6M": 180, "1Y": 365, "2Y": 730, "MAX": Infinity };
+
+/** Window start as an ISO string; MAX returns "" so nothing is filtered
+ *  (the Vitória physical series runs back to 2022). */
+function windowCutoff(w: Window): string {
+  const days = WINDOW_DAYS[w];
+  if (!Number.isFinite(days)) return "";
+  const c = new Date();
+  c.setDate(c.getDate() - days);
+  return c.toISOString().slice(0, 10);
+}
+
+/** Axis ticks: MM/DD over months, MMM-YY once the window spans years. */
+function axisTickFor(w: Window): (iso: string) => string {
+  const short = w === "1M" || w === "3M" || w === "6M";
+  return short ? fmtDateLabel : (iso: string) => fmtMonth(String(iso).slice(0, 7));
+}
+
+/** Tooltip heading with the year — MM/DD alone is ambiguous past 1Y. */
+function fmtTooltipDate(iso: unknown): string {
+  const s = String(iso);
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return s;
+  const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return `${parseInt(m[3], 10)} ${MON[parseInt(m[2], 10) - 1]} ${m[1]}`;
+}
 
 const TT_STYLE = { background: "#1e293b", border: "1px solid #334155", borderRadius: 6, fontSize: 10 };
 
@@ -98,12 +123,10 @@ function MarketCard({ title, doc, color, window: win, overlays, altUnit, altDefa
   // series has a value that day so the deep physical history draws even where
   // the young futures series has no points yet.
   const series = useMemo(() => {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - WINDOW_DAYS[win]);
-    const cutoffIso = cutoff.toISOString().slice(0, 10);
-    const rows = new Map<string, { date: string; label: string; [k: string]: string | number | undefined }>();
+    const cutoffIso = windowCutoff(win);
+    const rows = new Map<string, { date: string; [k: string]: string | number | undefined }>();
     const row = (date: string) => {
-      const r = rows.get(date) ?? { date, label: fmtDateLabel(date) };
+      const r = rows.get(date) ?? { date };
       rows.set(date, r);
       return r;
     };
@@ -125,11 +148,11 @@ function MarketCard({ title, doc, color, window: win, overlays, altUnit, altDefa
   const ref = diffAgainst ? shown.find(o => o.key === diffAgainst) : undefined;
   const diffSeries = useMemo(() => {
     if (!ref) return [];
-    const rows: { date: string; label: string; [k: string]: string | number | undefined }[] = [];
+    const rows: { date: string; [k: string]: string | number | undefined }[] = [];
     for (const r of series) {
       const base = r[ref.key];
       if (typeof base !== "number") continue;
-      const row: typeof rows[number] = { date: r.date, label: r.label };
+      const row: typeof rows[number] = { date: r.date };
       let any = false;
       if (typeof r.price === "number") { row.price = r.price - base; any = true; }
       for (const o of shown) {
@@ -207,10 +230,14 @@ function MarketCard({ title, doc, color, window: win, overlays, altUnit, altDefa
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={series} margin={{ top: 4, right: 6, left: -14, bottom: 0 }}>
             <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
-            <XAxis dataKey="label" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={24} />
+            {/* Keyed on the ISO date, not the MM/DD label — a shared label
+                made two rows a year apart one category and the tooltip read
+                the older one. */}
+            <XAxis dataKey="date" tickFormatter={axisTickFor(win)} stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={24} />
             <YAxis stroke="#64748b" tick={{ fontSize: 8 }} domain={["auto", "auto"]} width={44}
               tickFormatter={(v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 0 })} />
             <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+              labelFormatter={fmtTooltipDate}
               formatter={(v) => typeof v === "number" ? `${sym} ${v.toLocaleString(undefined, { minimumFractionDigits: 2 })}${suffix}` : "—"} />
             {shown.map(o => (
               <Line key={o.key} type="monotone" dataKey={o.key} name={o.name} stroke={o.color}
@@ -254,10 +281,11 @@ function MarketCard({ title, doc, color, window: win, overlays, altUnit, altDefa
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={diffSeries} margin={{ top: 4, right: 6, left: -14, bottom: 0 }}>
                 <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
-                <XAxis dataKey="label" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={24} />
+                <XAxis dataKey="date" tickFormatter={axisTickFor(win)} stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={24} />
                 <YAxis stroke="#64748b" tick={{ fontSize: 8 }} domain={["auto", "auto"]} width={44}
                   tickFormatter={(v: number) => `${v > 0 ? "+" : ""}${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
                 <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                  labelFormatter={fmtTooltipDate}
                   formatter={(v) => `${fmtDiff(v)} ${sym}${suffix}`} />
                 <ReferenceLine y={0} stroke="#64748b" strokeDasharray="3 3" />
                 {diffOverlays.map(o => (
@@ -410,7 +438,7 @@ export default function B3CoffeePanel() {
           </p>
         </div>
         <div className="flex bg-slate-800 border border-slate-700 rounded-md overflow-hidden text-[10px]">
-          {(["1M","3M","6M","1Y","2Y"] as Window[]).map(w => (
+          {(["1M","3M","6M","1Y","2Y","MAX"] as Window[]).map(w => (
             <button key={w} onClick={() => setWindow(w)}
               className={`px-2.5 py-1.5 transition ${window === w ? "bg-sky-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
               {w}
