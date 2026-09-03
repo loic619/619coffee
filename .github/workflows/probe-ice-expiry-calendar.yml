@@ -7,10 +7,11 @@ name: "0.21 – Probe: ICE expiry calendar (FND ground truth)"
 # exchange rather than against memory. ice.com is egress-blocked from the agent
 # sandbox; a runner is not.
 #
-# First run (2026-09-03) found KC's "seven business days prior" verbatim, and
-# for Robusta "fifteen calendar days preceding the first day of the delivery
-# period, next business day if not one" — NOT the four business days the repo
-# had carried since day one. Barchart is fetched as a second witness.
+# Run 2 (2026-09-03) is why the identity line exists: product 37089080, which
+# the repo had assumed was Robusta, is WHITE SUGAR. Its "fifteen calendar days"
+# rule is sugar's. The Robusta id is therefore DISCOVERED from ICE's own
+# listing page rather than hard-coded. KC's table matched lib/fnd.ts exactly,
+# holiday-shifted KCZ26 = 19 Nov included.
 
 on:
   workflow_dispatch:
@@ -24,6 +25,7 @@ jobs:
         run: |
           set -e
           UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+          get() { curl -sSL -A "$UA" --max-time 40 "$1" -o "$2" && echo "bytes: $(wc -c < "$2")"; }
           extract() {  # $1 = html file, $2 = label
             python3 - "$1" "$2" <<'PY'
           import html, re, sys
@@ -35,46 +37,48 @@ jobs:
           t = html.unescape(re.sub(r"<[^>]+>", "\n", t))
           lines = [l.strip() for l in t.splitlines() if l.strip()]
           keys = ("notice day", "last trading", "tender", "delivery period", "delivery month",
-                  "contract size", "unit of trading", "currency", "symbol", "product code",
-                  "contract series", "listing", "exchange")
+                  "contract size", "unit of trading", "contract symbol", "symbol code", "contract series")
           seen = set()
           for i, l in enumerate(lines):
               low = l.lower()
               if any(k in low for k in keys) and len(l) < 90:
-                  ctx = " | ".join(lines[i: i + 2])
+                  ctx = " | ".join(lines[i: i + 3])
                   if ctx not in seen:
-                      seen.add(ctx); print("   ", ctx[:220])
-          # Dated rows: anything that looks like a 2026/2027 date with a contract month nearby.
-          dates = [l for l in lines if re.search(r"\b(20(2[6-7]))\b", l) and len(l) < 60]
+                      seen.add(ctx); print("   ", ctx[:260])
+          dates = [l for l in lines if re.fullmatch(r"\d{1,2}/\d{1,2}/20(2[6-8])", l)]
           if dates:
-              print(f"  [{label}] dated lines ({len(dates)}):")
-              for l in dates[:60]: print("     ", l)
+              print(f"  [{label}] dated cells ({len(dates)}), in page order — read the header row on ice.com to name the columns:")
+              for j in range(0, len(dates), 6):
+                  print("     ", " | ".join(dates[j:j+6]))
           PY
           }
-          for spec in "KC|15|Coffee-C-Futures" "RC|37089080|Robusta-Coffee-Futures"; do
-            IFS='|' read -r code id slug <<< "$spec"
-            echo "=================== ICE $code ==================="
+
+          echo "=================== discover product ids from ICE's listing ==================="
+          get "https://www.ice.com/products/Futures-Options/Agriculture" listing.html
+          python3 - <<'PY' > ids.txt
+          import re
+          t = open("listing.html", encoding="utf-8", errors="replace").read()
+          for m in re.finditer(r'href="(/products/(\d+)/([^"/?#]+))"', t):
+              slug = m.group(3)
+              if re.search(r"(?i)coffee", slug):
+                  print(m.group(2), slug)
+          PY
+          sort -u ids.txt; echo
+
+          if [ ! -s ids.txt ]; then
+            echo "listing yielded no coffee products — falling back to the known KC id and a search page"
+            echo "15 Coffee-C-Futures" > ids.txt
+            get "https://www.ice.com/products?search=robusta" search.html
+            grep -oE '/products/[0-9]+/[^"/?#]*[Rr]obusta[^"/?#]*' search.html | sort -u | sed 's#/products/##; s#/# #' >> ids.txt || true
+          fi
+
+          while read -r id slug; do
+            [ -z "$id" ] && continue
+            echo "=================== ICE $slug ($id) ==================="
             for tab in "" "/expiry"; do
               url="https://www.ice.com/products/${id}/${slug}${tab}"
               echo "--- $url"
-              curl -sSL -A "$UA" --max-time 40 "$url" -o page.html || { echo "fetch failed"; continue; }
-              echo "bytes: $(wc -c < page.html)"
-              extract page.html "$code$tab"
+              get "$url" page.html || { echo "fetch failed"; continue; }
+              extract page.html "$slug$tab"
             done
-          done
-          echo "=================== Barchart (second witness) ==================="
-          for sym in RMU26 RMX26 KCZ26; do
-            url="https://www.barchart.com/futures/quotes/${sym}/profile"
-            echo "--- $url"
-            curl -sSL -A "$UA" --max-time 40 "$url" -o bc.html || { echo "fetch failed"; continue; }
-            echo "bytes: $(wc -c < bc.html)"
-            python3 - <<'PY'
-          import html, re
-          t = open("bc.html", encoding="utf-8", errors="replace").read()
-          t = html.unescape(re.sub(r"<[^>]+>", "\n", re.sub(r"<script.*?</script>", " ", t, flags=re.S | re.I)))
-          lines = [l.strip() for l in t.splitlines() if l.strip()]
-          for i, l in enumerate(lines):
-              if re.search(r"(?i)first notice|last trad|expir", l) and len(l) < 60:
-                  print("   ", " | ".join(lines[i: i + 3])[:160])
-          PY
-          done
+          done < <(sort -u ids.txt)
