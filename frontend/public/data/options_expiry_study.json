@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-02T07:28:52.374416Z",
+  "generated_at": "2026-09-03T02:54:43.698472Z",
   "method": {
     "expiry_rules": "KC: 2nd Friday of the month preceding the contract month (ICE US ch.8). RC/RM: 3rd Wednesday (ICE Europe spec).",
     "oi_dating": "contract_prices_archive stores OI one key-day late; the series is re-dated back one session and the jump window is [E-1, E+2].",
@@ -1095,19 +1095,6 @@
       "contract": "KCZ26",
       "expiry_rule": "2026-11-13",
       "countdown": [
-        {
-          "date": "2025-02-12",
-          "dte": 639,
-          "call_oi": 0,
-          "put_oi": 0,
-          "itm_call_oi": 0,
-          "itm_put_oi": 0,
-          "fut_oi": 1196,
-          "future": 300,
-          "atm_iv": 0.3444,
-          "itm_pct": null,
-          "itm_vs_fut_pct": 0.0
-        },
         {
           "date": "2025-02-13",
           "dte": 638,
@@ -6155,24 +6142,31 @@
         {
           "date": "2026-09-01",
           "dte": 73,
+          "call_oi": 45642.0,
+          "put_oi": 82556.0,
+          "itm_call_oi": 10867.0,
+          "itm_put_oi": 4081.0,
+          "fut_oi": 87474,
+          "future": 309.45,
+          "atm_iv": 0.4653,
+          "itm_pct": 11.66,
+          "itm_vs_fut_pct": 17.09
+        },
+        {
+          "date": "2026-09-02",
+          "dte": 72,
           "call_oi": null,
           "put_oi": null,
           "itm_call_oi": null,
           "itm_put_oi": null,
           "fut_oi": null,
-          "future": 309.45,
-          "atm_iv": 0.4653,
+          "future": 298.1,
+          "atm_iv": 0.4639,
           "itm_pct": null,
           "itm_vs_fut_pct": null
         }
       ],
       "max_pain_series": [
-        {
-          "date": "2026-03-17",
-          "max_pain": 300.0,
-          "future": 271.85,
-          "dist_pct": -9.38
-        },
         {
           "date": "2026-03-18",
           "max_pain": 300.0,
@@ -6862,13 +6856,24 @@
           "max_pain": 300.0,
           "future": 311.5,
           "dist_pct": 3.83
+        },
+        {
+          "date": "2026-09-01",
+          "max_pain": 300.0,
+          "future": 309.45,
+          "dist_pct": 3.15
         }
       ],
       "ladder": [
         {
+          "strike": 232.5,
+          "call_oi": 0,
+          "put_oi": 22.0
+        },
+        {
           "strike": 235.0,
           "call_oi": 56.0,
-          "put_oi": 1810.0
+          "put_oi": 1792.0
         },
         {
           "strike": 237.5,
@@ -6878,7 +6883,7 @@
         {
           "strike": 240.0,
           "call_oi": 31.0,
-          "put_oi": 4604.0
+          "put_oi": 4740.0
         },
         {
           "strike": 242.5,
@@ -6898,7 +6903,7 @@
         {
           "strike": 250.0,
           "call_oi": 364.0,
-          "put_oi": 9875.0
+          "put_oi": 8853.0
         },
         {
           "strike": 252.5,
@@ -6908,7 +6913,7 @@
         {
           "strike": 255.0,
           "call_oi": 200.0,
-          "put_oi": 590.0
+          "put_oi": 592.0
         },
         {
           "strike": 257.5,
@@ -6918,7 +6923,7 @@
         {
           "strike": 260.0,
           "call_oi": 635.0,
-          "put_oi": 5750.0
+          "put_oi": 5798.0
         },
         {
           "strike": 262.5,
@@ -6928,7 +6933,7 @@
         {
           "strike": 265.0,
           "call_oi": 263.0,
-          "put_oi": 2255.0
+          "put_oi": 2222.0
         },
         {
           "strike": 267.5,
@@ -6938,7 +6943,7 @@
         {
           "strike": 270.0,
           "call_oi": 180.0,
-          "put_oi": 2083.0
+          "put_oi": 2130.0
         },
         {
           "strike": 272.5,
@@ -6948,7 +6953,7 @@
         {
           "strike": 275.0,
           "call_oi": 557.0,
-          "put_oi": 963.0
+          "put_oi": 1042.0
         },
         {
           "strike": 277.5,
@@ -6968,7 +6973,7 @@
         {
           "strike": 285.0,
           "call_oi": 547.0,
-          "put_oi": 384.0
+          "put_oi": 412.0
         },
         {
           "strike": 287.5,
@@ -6978,7 +6983,7 @@
         {
           "strike": 290.0,
           "call_oi": 1324.0,
-          "put_oi": 2476.0
+          "put_oi": 2478.0
         },
         {
           "strike": 292.5,
@@ -6993,41 +6998,41 @@
         {
           "strike": 297.5,
           "call_oi": 60.0,
-          "put_oi": 37.0
+          "put_oi": 42.0
         },
         {
           "strike": 300.0,
-          "call_oi": 5702.0,
-          "put_oi": 4434.0
+          "call_oi": 4615.0,
+          "put_oi": 4327.0
         },
         {
           "strike": 302.5,
           "call_oi": 39.0,
-          "put_oi": 37.0
+          "put_oi": 39.0
         },
         {
           "strike": 305.0,
-          "call_oi": 391.0,
+          "call_oi": 392.0,
           "put_oi": 426.0
         },
         {
           "strike": 307.5,
-          "call_oi": 6.0,
-          "put_oi": 6.0
+          "call_oi": 79.0,
+          "put_oi": 77.0
         },
         {
           "strike": 310.0,
-          "call_oi": 676.0,
-          "put_oi": 1184.0
+          "call_oi": 682.0,
+          "put_oi": 1179.0
         },
         {
           "strike": 312.5,
-          "call_oi": 31.0,
+          "call_oi": 32.0,
           "put_oi": 27.0
         },
         {
           "strike": 315.0,
-          "call_oi": 416.0,
+          "call_oi": 421.0,
           "put_oi": 1418.0
         },
         {
@@ -7037,17 +7042,17 @@
         },
         {
           "strike": 320.0,
-          "call_oi": 1917.0,
+          "call_oi": 1921.0,
           "put_oi": 808.0
         },
         {
           "strike": 322.5,
           "call_oi": 75.0,
-          "put_oi": 1.0
+          "put_oi": 6.0
         },
         {
           "strike": 325.0,
-          "call_oi": 3067.0,
+          "call_oi": 2491.0,
           "put_oi": 242.0
         },
         {
@@ -7057,12 +7062,12 @@
         },
         {
           "strike": 330.0,
-          "call_oi": 1300.0,
+          "call_oi": 2162.0,
           "put_oi": 256.0
         },
         {
           "strike": 332.5,
-          "call_oi": 105.0,
+          "call_oi": 104.0,
           "put_oi": 44.0
         },
         {
@@ -7077,7 +7082,7 @@
         },
         {
           "strike": 340.0,
-          "call_oi": 1527.0,
+          "call_oi": 1509.0,
           "put_oi": 10.0
         },
         {
@@ -7087,7 +7092,7 @@
         },
         {
           "strike": 345.0,
-          "call_oi": 506.0,
+          "call_oi": 503.0,
           "put_oi": 0
         },
         {
@@ -7097,7 +7102,7 @@
         },
         {
           "strike": 350.0,
-          "call_oi": 1821.0,
+          "call_oi": 1810.0,
           "put_oi": 7.0
         },
         {
@@ -7117,7 +7122,7 @@
         },
         {
           "strike": 360.0,
-          "call_oi": 3186.0,
+          "call_oi": 3011.0,
           "put_oi": 0
         },
         {
@@ -7166,19 +7171,19 @@
           "put_oi": 21.0
         }
       ],
-      "ladder_date": "2026-08-31",
+      "ladder_date": "2026-09-01",
       "now": {
-        "date": "2026-08-31",
-        "dte": 74,
-        "call_oi": 46377.0,
-        "put_oi": 84186.0,
-        "itm_call_oi": 12556.0,
-        "itm_put_oi": 2897.0,
-        "fut_oi": 87463,
-        "future": 311.5,
-        "atm_iv": 0.4505,
-        "itm_pct": 11.84,
-        "itm_vs_fut_pct": 17.67
+        "date": "2026-09-01",
+        "dte": 73,
+        "call_oi": 45642.0,
+        "put_oi": 82556.0,
+        "itm_call_oi": 10867.0,
+        "itm_put_oi": 4081.0,
+        "fut_oi": 87474,
+        "future": 309.45,
+        "atm_iv": 0.4653,
+        "itm_pct": 11.66,
+        "itm_vs_fut_pct": 17.09
       }
     },
     "robusta": {
@@ -11998,24 +12003,31 @@
         {
           "date": "2026-09-01",
           "dte": 50,
+          "call_oi": 12469.0,
+          "put_oi": 17570.0,
+          "itm_call_oi": 370.0,
+          "itm_put_oi": 6114.0,
+          "fut_oi": 49939,
+          "future": 3461,
+          "atm_iv": 0.3635,
+          "itm_pct": 21.59,
+          "itm_vs_fut_pct": 12.98
+        },
+        {
+          "date": "2026-09-02",
+          "dte": 49,
           "call_oi": null,
           "put_oi": null,
           "itm_call_oi": null,
           "itm_put_oi": null,
           "fut_oi": null,
-          "future": 3461,
-          "atm_iv": 0.3635,
+          "future": 3406,
+          "atm_iv": 0.3601,
           "itm_pct": null,
           "itm_vs_fut_pct": null
         }
       ],
       "max_pain_series": [
-        {
-          "date": "2026-03-17",
-          "max_pain": 4000.0,
-          "future": 3305,
-          "dist_pct": -17.38
-        },
         {
           "date": "2026-03-18",
           "max_pain": 4000.0,
@@ -12717,6 +12729,12 @@
           "max_pain": 3650.0,
           "future": 3529,
           "dist_pct": -3.32
+        },
+        {
+          "date": "2026-09-01",
+          "max_pain": 3650.0,
+          "future": 3461,
+          "dist_pct": -5.18
         }
       ],
       "ladder": [
@@ -12733,7 +12751,7 @@
         {
           "strike": 2800.0,
           "call_oi": 0,
-          "put_oi": 400.0
+          "put_oi": 300.0
         },
         {
           "strike": 2900.0,
@@ -12773,7 +12791,7 @@
         {
           "strike": 3200.0,
           "call_oi": 0,
-          "put_oi": 602.0
+          "put_oi": 621.0
         },
         {
           "strike": 3250.0,
@@ -12788,7 +12806,7 @@
         {
           "strike": 3300.0,
           "call_oi": 0,
-          "put_oi": 1043.0
+          "put_oi": 1125.0
         },
         {
           "strike": 3325.0,
@@ -12817,7 +12835,7 @@
         },
         {
           "strike": 3550.0,
-          "call_oi": 4.0,
+          "call_oi": 100.0,
           "put_oi": 0
         },
         {
@@ -12827,7 +12845,7 @@
         },
         {
           "strike": 3600.0,
-          "call_oi": 465.0,
+          "call_oi": 558.0,
           "put_oi": 675.0
         },
         {
@@ -12837,7 +12855,7 @@
         },
         {
           "strike": 3650.0,
-          "call_oi": 150.0,
+          "call_oi": 255.0,
           "put_oi": 1350.0
         },
         {
@@ -12934,31 +12952,21 @@
           "strike": 4300.0,
           "call_oi": 20.0,
           "put_oi": 0
-        },
-        {
-          "strike": 4375.0,
-          "call_oi": 100.0,
-          "put_oi": 0
-        },
-        {
-          "strike": 4400.0,
-          "call_oi": 480.0,
-          "put_oi": 0
         }
       ],
-      "ladder_date": "2026-08-31",
+      "ladder_date": "2026-09-01",
       "now": {
-        "date": "2026-08-31",
-        "dte": 51,
-        "call_oi": 12175.0,
-        "put_oi": 17569.0,
-        "itm_call_oi": 420.0,
-        "itm_put_oi": 3364.0,
-        "fut_oi": 52934,
-        "future": 3529,
-        "atm_iv": 0.3747,
-        "itm_pct": 12.72,
-        "itm_vs_fut_pct": 7.15
+        "date": "2026-09-01",
+        "dte": 50,
+        "call_oi": 12469.0,
+        "put_oi": 17570.0,
+        "itm_call_oi": 370.0,
+        "itm_put_oi": 6114.0,
+        "fut_oi": 49939,
+        "future": 3461,
+        "atm_iv": 0.3635,
+        "itm_pct": 21.59,
+        "itm_vs_fut_pct": 12.98
       }
     }
   },

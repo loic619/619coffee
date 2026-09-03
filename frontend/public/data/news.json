@@ -1,5 +1,57 @@
 [
   {
+    "id": 10683,
+    "title": "ICE-EU RC Daily OI Snapshot \u2013 2026-09-01",
+    "body": "ICE-EU RC Open Interest changed by -892 over the last session, with +49,668 on nearby two contracts and -50,560 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.",
+    "source": "ICE",
+    "category": "futures",
+    "lat": 51.51,
+    "lng": -0.09,
+    "tags": [
+      "daily-oi",
+      "robusta",
+      "futures",
+      "auto-commentary"
+    ],
+    "meta": "{\"market\": \"robusta\", \"date\": \"2026-09-01\", \"_commentary\": {\"text\": \"ICE-EU RC Open Interest changed by -892 over the last session, with +49,668 on nearby two contracts and -50,560 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-09-02T21:10:35.636602",
+    "commentary": {
+      "text": "ICE-EU RC Open Interest changed by -892 over the last session, with +49,668 on nearby two contracts and -50,560 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Bearish",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "OI snapshot: price down, long liquidation"
+  },
+  {
+    "id": 10682,
+    "title": "IFUS KC Daily OI Snapshot \u2013 2026-09-01",
+    "body": "IFUS KC Open Interest changed by +873 over the last session, with +38,644 on nearby two contracts and -37,771 on forward contracts. Technical view: PRICE DOWN, SHORT BUILDING.",
+    "source": "ICE",
+    "category": "futures",
+    "lat": 40.74,
+    "lng": -74.05,
+    "tags": [
+      "daily-oi",
+      "arabica",
+      "futures",
+      "auto-commentary"
+    ],
+    "meta": "{\"market\": \"arabica\", \"date\": \"2026-09-01\", \"_commentary\": {\"text\": \"IFUS KC Open Interest changed by +873 over the last session, with +38,644 on nearby two contracts and -37,771 on forward contracts. Technical view: PRICE DOWN, SHORT BUILDING.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-09-02T21:10:32.606773",
+    "commentary": {
+      "text": "IFUS KC Open Interest changed by +873 over the last session, with +38,644 on nearby two contracts and -37,771 on forward contracts. Technical view: PRICE DOWN, SHORT BUILDING.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Neutral",
+    "sentiment_confidence": 62.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "OI snapshot: no decisive technical view"
+  },
+  {
     "id": 10681,
     "title": "Fertilizer Prices \u2013 2026-09",
     "body": null,
@@ -251,7 +303,10 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427401-cafe-tem-mais-um-dia-de-volatilidade-e-fecha-recuando-mais-de-3-na-bolsa-de-nova-york.html",
-    "pub_date": "2026-09-02T19:57:00"
+    "pub_date": "2026-09-02T19:57:00",
+    "sentiment": "Bearish",
+    "sentiment_confidence": 85.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10676,
@@ -267,7 +322,10 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427406-stonex-eleva-previsao-de-safra-de-cafe-do-brasil-2627-para-772-mi-sacas.html",
-    "pub_date": "2026-09-02T19:43:00"
+    "pub_date": "2026-09-02T19:43:00",
+    "sentiment": "Bearish",
+    "sentiment_confidence": 90.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10677,
@@ -283,7 +341,10 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427373-colheita-de-cafe-supera-90-entre-cooperados-da-cooxupe.html",
-    "pub_date": "2026-09-02T15:02:00"
+    "pub_date": "2026-09-02T15:02:00",
+    "sentiment": "Bearish",
+    "sentiment_confidence": 70.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10673,
@@ -298,7 +359,10 @@
       "sprudge"
     ],
     "meta": "https://sprudge.com/build-outs-of-coffee-aurora-coffee-hub-in-amman-jordan-1265150.html",
-    "pub_date": "2026-09-02T14:00:33"
+    "pub_date": "2026-09-02T14:00:33",
+    "sentiment": "Neutral",
+    "sentiment_confidence": 95.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10674,
@@ -705,7 +769,7 @@
     "meta": "https://sprudge.com/on-the-menu-iced-lemon-creme-latte-at-swadesi-cafe-1265284.html",
     "pub_date": "2026-09-01T19:35:58",
     "sentiment": "Neutral",
-    "sentiment_confidence": 90.0,
+    "sentiment_confidence": 95.0,
     "sentiment_method": "gemini"
   },
   {
@@ -757,7 +821,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427259-colheita-de-cafe-arabica-chega-a-93-no-cerrado-mineiro.html",
     "pub_date": "2026-09-01T12:25:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 85.0,
+    "sentiment_confidence": 70.0,
     "sentiment_method": "gemini"
   },
   {
@@ -775,7 +839,7 @@
     "meta": "https://sprudge.com/an-internet-myth-study-finds-robusta-may-not-be-the-answer-to-climate-change-after-all-1304058.html",
     "pub_date": "2026-09-01T12:00:57",
     "sentiment": "Bullish",
-    "sentiment_confidence": 80.0,
+    "sentiment_confidence": 65.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1168,7 +1232,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427233-cafe-arabica-fecha-estavel-em-nova-york-em-sessao-de-consolidacao-precos-no-br-acompanham.html",
     "pub_date": "2026-08-31T21:01:00",
     "sentiment": "Neutral",
-    "sentiment_confidence": 95.0,
+    "sentiment_confidence": 85.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1187,7 +1251,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427241-perspectiva-para-oferta-de-cafe-e-confortavel-apesar-de-atrasos-no-brasil-e-na-colombia-diz-rabobank.html",
     "pub_date": "2026-08-31T19:16:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 90.0,
+    "sentiment_confidence": 85.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1224,7 +1288,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427185-colheita-de-cafe-2627-do-brasil-alcanca-97-diz-safras.html",
     "pub_date": "2026-08-31T10:56:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 85.0,
+    "sentiment_confidence": 70.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2228,7 +2292,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427163-resiliencia-climatica-do-cafe-robusta-e-um-mito-da-internet-diz-pesquisador.html",
     "pub_date": "2026-08-28T20:22:00",
     "sentiment": "Bullish",
-    "sentiment_confidence": 80.0,
+    "sentiment_confidence": 65.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2247,7 +2311,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427166-cecafe-revisa-para-cima-dados-parciais-da-exportacao-de-agosto-em-123-mi-sacas.html",
     "pub_date": "2026-08-28T19:55:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 75.0,
+    "sentiment_confidence": 60.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2266,7 +2330,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427149-exportacoes-mundiais-de-cafe-verde-aumentaram-08-em-junho-diz-oic.html",
     "pub_date": "2026-08-28T16:55:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 65.0,
+    "sentiment_confidence": 75.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2284,7 +2348,7 @@
     "meta": "https://sprudge.com/summer-of-build-outs-continues-on-the-coffee-sprudgecast-1282886.html",
     "pub_date": "2026-08-28T14:00:12",
     "sentiment": "Neutral",
-    "sentiment_confidence": 95.0,
+    "sentiment_confidence": 90.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2647,7 +2711,7 @@
     "meta": "https://sprudge.com/coffee-futures-fund-is-now-accepting-applications-for-the-2027-cohort-1288293.html",
     "pub_date": "2026-08-28T12:00:31",
     "sentiment": "Neutral",
-    "sentiment_confidence": 90.0,
+    "sentiment_confidence": 95.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2775,7 +2839,7 @@
     "meta": "https://sprudge.com/ny-based-colombian-coffee-roaster-devocion-partners-with-colombias-fnc-to-support-coffee-growers-after-the-august-earthquake-1291723.html",
     "pub_date": "2026-08-27T20:29:39",
     "sentiment": "Neutral",
-    "sentiment_confidence": 70.0,
+    "sentiment_confidence": 50.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2794,7 +2858,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427093-maquinarios-agricolas-ganham-destaque-na-21-fecon.html",
     "pub_date": "2026-08-27T19:38:00",
     "sentiment": "Neutral",
-    "sentiment_confidence": 90.0,
+    "sentiment_confidence": 80.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2813,7 +2877,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427092-cafe-tomba-mais-de-3-em-nova-york-nesta-5-produtor-recua-e-trava-o-mercado-fisico-no-brasil.html",
     "pub_date": "2026-08-27T18:47:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 95.0,
+    "sentiment_confidence": 85.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2831,7 +2895,7 @@
     "meta": "https://sprudge.com/coffee-design-joe-coffee-companys-call-time-by-jordan-fisher-1278712.html",
     "pub_date": "2026-08-27T17:34:12",
     "sentiment": "Neutral",
-    "sentiment_confidence": 95.0,
+    "sentiment_confidence": 90.0,
     "sentiment_method": "gemini"
   },
   {
@@ -3005,7 +3069,7 @@
     "meta": "https://sprudge.com/learn-your-way-to-origin-with-cafe-imports-field-trip-costa-rica-1284702.html",
     "pub_date": "2026-08-27T12:00:14",
     "sentiment": "Neutral",
-    "sentiment_confidence": 95.0,
+    "sentiment_confidence": 90.0,
     "sentiment_method": "gemini"
   },
   {
@@ -3300,10 +3364,7 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427036-precos-do-cafe-caem-mais-de-4-em-ny-nesta-4-26-com-perspectiva-de-aumento-da-oferta-de-cafe-no-brasil.html",
-    "pub_date": "2026-08-26T20:12:00",
-    "sentiment": "Bearish",
-    "sentiment_confidence": 98.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-26T20:12:00"
   },
   {
     "id": 10350,
@@ -3319,10 +3380,7 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427032-feira-cocatrel-de-negocios-traz-operacao-barter-como-condicao-especial-e-vantajosa-de-pagamento.html",
-    "pub_date": "2026-08-26T19:38:00",
-    "sentiment": "Neutral",
-    "sentiment_confidence": 90.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-26T19:38:00"
   },
   {
     "id": 10351,
@@ -3338,10 +3396,7 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427008-cooperados-da-cooxupe-chegam-a-87-5-da-colheita-de-cafe.html",
-    "pub_date": "2026-08-26T15:17:00",
-    "sentiment": "Bearish",
-    "sentiment_confidence": 85.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-26T15:17:00"
   },
   {
     "id": 10344,
@@ -3356,10 +3411,7 @@
       "sprudge"
     ],
     "meta": "https://sprudge.com/a-glass-of-coffee-glassblowing-steps-into-the-coffee-spotlight-1061277.html",
-    "pub_date": "2026-08-26T14:00:49",
-    "sentiment": "Neutral",
-    "sentiment_confidence": 95.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-26T14:00:49"
   },
   {
     "id": 10345,
@@ -3374,10 +3426,7 @@
       "sprudge"
     ],
     "meta": "https://sprudge.com/this-weekend-coffee-collective-is-taking-over-londons-rosslyn-coffee-1282974.html",
-    "pub_date": "2026-08-26T12:00:25",
-    "sentiment": "Neutral",
-    "sentiment_confidence": 90.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-26T12:00:25"
   },
   {
     "id": 10352,
@@ -3931,57 +3980,5 @@
     ],
     "meta": "https://sprudge.com/barista-brawl-a-new-cooperative-trading-card-game-about-pulling-bar-shifts-1282865.html",
     "pub_date": "2026-08-25T12:00:57"
-  },
-  {
-    "id": 10279,
-    "title": "Ethiopia Agronomic Status \u2013 2026-08-25",
-    "body": "Agronomic Status Update: Ethiopia (Harrar) is currently flagged as at drought risk. Forecasted rainfall of 29mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 37.9.",
-    "source": "Open-Meteo + NOAA STAR",
-    "category": "supply",
-    "lat": 9.15,
-    "lng": 40.49,
-    "tags": [
-      "weather",
-      "ethiopia",
-      "agronomic",
-      "auto-commentary"
-    ],
-    "meta": "{\"origin\": \"ethiopia\", \"evaluation\": {\"at_risk_count\": 1, \"checked_count\": 5, \"skipped_count\": 0}, \"_commentary\": {\"text\": \"Agronomic Status Update: Ethiopia (Harrar) is currently flagged as at drought risk. Forecasted rainfall of 29mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 37.9.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-08-25T02:54:01.094343",
-    "commentary": {
-      "text": "Agronomic Status Update: Ethiopia (Harrar) is currently flagged as at drought risk. Forecasted rainfall of 29mm fails to clear the safe zone threshold while satellite VHI readings register critical vegetation stress at 37.9.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Bullish",
-    "sentiment_confidence": 75.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "Ethiopia: 1 growing region flagged at agronomic risk"
-  },
-  {
-    "id": 10278,
-    "title": "Uganda Agronomic Status \u2013 2026-08-25",
-    "body": "Agronomic Status Update: Uganda (Greater Masaka, Mt Elgon, Rwenzori) is currently flagged as normal.",
-    "source": "Open-Meteo + NOAA STAR",
-    "category": "supply",
-    "lat": 1.37,
-    "lng": 32.29,
-    "tags": [
-      "weather",
-      "uganda",
-      "agronomic",
-      "auto-commentary"
-    ],
-    "meta": "{\"origin\": \"uganda\", \"evaluation\": {\"at_risk_count\": 0, \"checked_count\": 3, \"skipped_count\": 4}, \"_commentary\": {\"text\": \"Agronomic Status Update: Uganda (Greater Masaka, Mt Elgon, Rwenzori) is currently flagged as normal.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
-    "pub_date": "2026-08-25T02:54:00.654087",
-    "commentary": {
-      "text": "Agronomic Status Update: Uganda (Greater Masaka, Mt Elgon, Rwenzori) is currently flagged as normal.",
-      "hasUpdate": true,
-      "isLatestTradingDay": true
-    },
-    "sentiment": "Neutral",
-    "sentiment_confidence": 75.0,
-    "sentiment_method": "deterministic",
-    "sentiment_reason": "Uganda: no regions flagged at risk"
   }
 ]

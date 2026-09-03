@@ -1,7 +1,7 @@
 {
   "country": "brazil",
   "season": "2026/27",
-  "scraped_at": "2026-09-02T07:28:08.249981Z",
+  "scraped_at": "2026-09-03T02:53:43.993232Z",
   "cost": {
     "total_usd_per_bag": 222.7,
     "yoy_pct": 0.0,
@@ -155,8 +155,8 @@
         "frost": "LOW",
         "frost_detail": null,
         "drought": "HIGH",
-        "csi_30d": 99.3,
-        "csi_60d": 188.5,
+        "csi_30d": 99.8,
+        "csi_60d": 189.8,
         "csi_30d_level": "H",
         "csi_60d_level": "H"
       },
@@ -165,21 +165,21 @@
         "frost": "NONE",
         "frost_detail": null,
         "drought": "HIGH",
-        "csi_30d": 142.2,
-        "csi_60d": 262.5,
+        "csi_30d": 139.1,
+        "csi_60d": 260.5,
         "csi_30d_level": "H",
         "csi_60d_level": "H",
         "rain_mtd_mm": 48.5,
         "rain_hist_min": 0.0,
-        "rain_hist_max": 4.2
+        "rain_hist_max": 7.4
       },
       {
         "name": "Paran\u00e1",
         "frost": "LOW",
         "frost_detail": null,
         "drought": "LOW",
-        "csi_30d": 72.6,
-        "csi_60d": 143.4,
+        "csi_30d": 73.1,
+        "csi_60d": 145.0,
         "csi_30d_level": "H",
         "csi_60d_level": "H"
       },
@@ -188,8 +188,8 @@
         "frost": "NONE",
         "frost_detail": null,
         "drought": "MED",
-        "csi_30d": 91.1,
-        "csi_60d": 172.7,
+        "csi_30d": 88.0,
+        "csi_60d": 170.3,
         "csi_30d_level": "H",
         "csi_60d_level": "H"
       }
@@ -359,19 +359,6 @@
         "region": "Sul de Minas",
         "days": [
           {
-            "date": "2026-09-02",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 12.2,
-            "air_min_c": 14.0,
-            "dew_c": 12.9,
-            "cloud_pct": 23.4,
-            "wind_kmh": 17.7,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
             "date": "2026-09-03",
             "risk": "-",
             "frost_type": "none",
@@ -532,19 +519,6 @@
       {
         "region": "Cerrado",
         "days": [
-          {
-            "date": "2026-09-02",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 16.7,
-            "air_min_c": 19.1,
-            "dew_c": 17.6,
-            "cloud_pct": 41.9,
-            "wind_kmh": 13.2,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
           {
             "date": "2026-09-03",
             "risk": "-",
@@ -707,19 +681,6 @@
         "region": "Paran\u00e1",
         "days": [
           {
-            "date": "2026-09-02",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 10.3,
-            "air_min_c": 13.9,
-            "dew_c": 13.2,
-            "cloud_pct": 1.5,
-            "wind_kmh": 12.0,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
-          {
             "date": "2026-09-03",
             "risk": "-",
             "frost_type": "none",
@@ -880,19 +841,6 @@
       {
         "region": "Esp\u00edrito Santo",
         "days": [
-          {
-            "date": "2026-09-02",
-            "risk": "-",
-            "frost_type": "none",
-            "severity": null,
-            "canopy_c": 16.9,
-            "air_min_c": 16.9,
-            "dew_c": 16.1,
-            "cloud_pct": 75.4,
-            "wind_kmh": 21.9,
-            "hours_below_0": 0,
-            "hours_below_hard": 0
-          },
           {
             "date": "2026-09-03",
             "risk": "-",
@@ -4169,17 +4117,13 @@
       "ticker": "BDRY",
       "name": "Breakwave Dry Bulk ETF",
       "description": "Tracks Capesize + Supramax freight futures \u00b7 proxy for bulk shipping cost pressure",
-      "last_price": 15.795,
-      "last_date": "2026-09-01",
-      "mom_pct": 17.7,
-      "wow_pct": 4.8,
+      "last_price": 16.58,
+      "last_date": "2026-09-02",
+      "mom_pct": 19.2,
+      "wow_pct": 11.9,
       "week52_low": 7.41,
-      "week52_high": 15.8,
+      "week52_high": 16.6,
       "series": [
-        {
-          "date": "2021-09-02",
-          "close": 28.26
-        },
         {
           "date": "2021-09-03",
           "close": 27.36
@@ -9181,18 +9125,26 @@
           "close": 14.82
         },
         {
+          "date": "2026-08-28",
+          "close": 15.52
+        },
+        {
           "date": "2026-08-31",
           "close": 15.47
         },
         {
           "date": "2026-09-01",
           "close": 15.795
+        },
+        {
+          "date": "2026-09-02",
+          "close": 16.58
         }
       ],
-      "first_date": "2021-09-02",
+      "first_date": "2021-09-03",
       "adjusted": true,
       "source": "Yahoo Finance / Breakwave Advisors",
-      "scraped_at": "2026-09-02T07:28:08.309899Z"
+      "scraped_at": "2026-09-03T02:53:44.060944Z"
     },
     "next_application": "May\u2013Jun"
   }

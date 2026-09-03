@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-02T07:28:45.450110+00:00",
+  "generated_at": "2026-09-03T02:54:34.004437+00:00",
   "meta": {
     "adders_usd": 58.0,
     "container_mt": 21.6,
@@ -12972,13 +12972,25 @@
           "differential": 306.9,
           "parity_gap": -579.7,
           "tenderable": false
+        },
+        {
+          "date": "2026-09-03",
+          "farmgate_usd": 3636.8,
+          "fobbing": 101.9,
+          "at_port": 3738.7,
+          "freight": 214.9,
+          "tendering": 4011.6,
+          "rc": 3406.0,
+          "differential": 332.7,
+          "parity_gap": -605.6,
+          "tenderable": false
         }
       ]
     },
     "brazil_conilon": {
       "name": "Brazil Conilon T7",
       "market": "RC",
-      "fobbing_usd": 240.6,
+      "fobbing_usd": 241.6,
       "fobbing_fixed": 62.5,
       "fobbing_pct": 5.83,
       "fobbing_model": 4,
@@ -25762,13 +25774,25 @@
           "differential": -135.9,
           "parity_gap": -46.7,
           "tenderable": false
+        },
+        {
+          "date": "2026-09-02",
+          "farmgate_usd": 3072.0,
+          "fobbing": 241.6,
+          "at_port": 3313.6,
+          "freight": 124.6,
+          "tendering": 3496.3,
+          "rc": 3406.0,
+          "differential": -92.4,
+          "parity_gap": -90.3,
+          "tenderable": false
         }
       ]
     },
     "uganda": {
       "name": "Uganda Robusta S15",
       "market": "RC",
-      "fobbing_usd": 267.6,
+      "fobbing_usd": 265.3,
       "fobbing_fixed": 142.5,
       "fobbing_pct": 3.31,
       "fobbing_model": 4,
@@ -27115,6 +27139,18 @@
           "rc": 3431.0,
           "differential": 615.5,
           "parity_gap": -823.9,
+          "tenderable": false
+        },
+        {
+          "date": "2026-09-03",
+          "farmgate_usd": 3711.0,
+          "fobbing": 265.3,
+          "at_port": 3976.4,
+          "freight": 150.4,
+          "tendering": 4184.8,
+          "rc": 3406.0,
+          "differential": 570.4,
+          "parity_gap": -778.8,
           "tenderable": false
         }
       ]

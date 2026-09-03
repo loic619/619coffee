@@ -1,6 +1,6 @@
 {
   "country": "colombia",
-  "scraped_at": "2026-09-02T07:28:17.932399Z",
+  "scraped_at": "2026-09-03T02:53:57.286534Z",
   "exports": {
     "source": "DANE + FNC (monthly) · USDA PSD (annual)",
     "last_updated": "2026-06-01",
@@ -574,7 +574,7 @@
     ]
   },
   "fnc_price": {
-    "cop_per_carga": 2200000,
+    "cop_per_carga": 2120000,
     "as_of": "2026-09-02",
     "source": "FNC"
   },
@@ -584,43 +584,43 @@
       {
         "name": "Huila",
         "drought": "NONE",
-        "csi_30d": 148.6,
-        "csi_60d": 266.5,
+        "csi_30d": 149.4,
+        "csi_60d": 269.1,
         "csi_30d_level": "H",
         "csi_60d_level": "H",
         "rain_mtd_mm": 1.3,
-        "rain_hist_min": 0.1,
-        "rain_hist_max": 19.2
+        "rain_hist_min": 0.5,
+        "rain_hist_max": 29.6
       },
       {
         "name": "Nariño",
         "drought": "HIGH",
-        "csi_30d": 107.0,
-        "csi_60d": 206.5,
+        "csi_30d": 108.2,
+        "csi_60d": 207.5,
         "csi_30d_level": "H",
         "csi_60d_level": "H"
       },
       {
         "name": "Antioquia",
         "drought": "HIGH",
-        "csi_30d": 118.0,
-        "csi_60d": 233.9,
+        "csi_30d": 118.4,
+        "csi_60d": 235.2,
         "csi_30d_level": "H",
         "csi_60d_level": "H"
       },
       {
         "name": "Cauca",
         "drought": "HIGH",
-        "csi_30d": 111.0,
-        "csi_60d": 222.1,
+        "csi_30d": 111.6,
+        "csi_60d": 223.1,
         "csi_30d_level": "H",
         "csi_60d_level": "H"
       },
       {
         "name": "Caldas",
         "drought": "MED",
-        "csi_30d": 55.5,
-        "csi_60d": 108.8,
+        "csi_30d": 52.0,
+        "csi_60d": 108.5,
         "csi_30d_level": "M",
         "csi_60d_level": "M"
       }
