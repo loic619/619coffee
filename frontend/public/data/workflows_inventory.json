@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-03T07:45:16.529097Z",
-  "count": 100,
+  "generated_at": "2026-09-03T07:50:50.897185Z",
+  "count": 101,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -526,6 +526,17 @@
       "workflow_run_deps": [],
       "concurrency_group": null,
       "timeout_minutes": 5
+    },
+    {
+      "file": "probe-coffeecopa.yml",
+      "name": "Probe: coffeecopa table (temporary)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 10
     },
     {
       "file": "probe-fbx-history.yml",
