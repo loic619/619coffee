@@ -139,6 +139,32 @@ function RecentActivity({ feeds }: { feeds: FeedFreshness[] }) {
   );
 }
 
+// Two columns: what prices are doing vs what the fundamentals are doing. A
+// feed is a "price feed" when its content is a quote or a positioning report;
+// everything else — flows, stocks, weather, climate, inputs — is research.
+const PRICE_CATEGORIES: readonly FeedCategory[] = ["Futures", "COT", "Macro", "Freight"];
+const COLUMNS: { title: string; sub: string; cats: FeedCategory[] }[] = [
+  { title: "Price feeds",    sub: "quotes, positioning, FX, freight",
+    cats: FEED_CATEGORIES.filter((c) => PRICE_CATEGORIES.includes(c)) },
+  { title: "Research feeds", sub: "supply, demand & stocks, weather, ENSO, inputs",
+    cats: FEED_CATEGORIES.filter((c) => !PRICE_CATEGORIES.includes(c)) },
+];
+
+// One hue per category, on the card border and its title, so a reader learns
+// the colour once and finds the category by it on every visit.
+const CATEGORY_COLOR: Record<FeedCategory, string> = {
+  "Futures":          "#f59e0b",
+  "COT":              "#38bdf8",
+  "Macro":            "#a78bfa",
+  "Freight":          "#2dd4bf",
+  "Weather":          "#60a5fa",
+  "Supply (origins)": "#22c55e",
+  "Demand & stocks":  "#fb7185",
+  "ENSO":             "#f97316",
+  "Fertilizer":       "#eab308",
+  "Other":            "#64748b",
+};
+
 // Chip tone: binary cascade against the feed's active threshold. Within the
 // window = neutral (mid-cycle normal); past it = rose. No gradient — overdue
 // is overdue, and the trader needs to see it.
@@ -225,21 +251,31 @@ export default function FreshnessGrid() {
         </div>
       </div>
       <RecentActivity feeds={feeds} />
-      <div className="grid grid-cols-2 gap-3">
-        {FEED_CATEGORIES.map((cat) => {
-          const list = byCategory.get(cat) ?? [];
-          if (list.length === 0) return null;
-          return (
-            <div key={cat} className="bg-slate-900 border border-slate-700 rounded-lg p-3">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-2">{cat}</div>
-              <div className="flex flex-wrap gap-1.5">
-                {list.map((f) => (
-                  <FeedChip key={f.key} f={f} />
-                ))}
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {COLUMNS.map((col) => (
+          <div key={col.title} className="space-y-3">
+            <div className="flex items-baseline gap-2 px-1">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-300">{col.title}</span>
+              <span className="text-[10px] text-slate-600">{col.sub}</span>
             </div>
-          );
-        })}
+            {col.cats.map((cat) => {
+              const list = byCategory.get(cat) ?? [];
+              if (list.length === 0) return null;
+              const color = CATEGORY_COLOR[cat];
+              return (
+                <div key={cat} className="bg-slate-900 border rounded-lg p-3"
+                  style={{ borderColor: `${color}66`, boxShadow: `inset 3px 0 0 ${color}` }}>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color }}>{cat}</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {list.map((f) => (
+                      <FeedChip key={f.key} f={f} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
       {/* tiny CSS for a calmer pulse than tailwind's default */}
       <style jsx>{`

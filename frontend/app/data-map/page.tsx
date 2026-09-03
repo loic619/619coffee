@@ -1110,7 +1110,7 @@ const ROWS: FlowMetadata[] = [
     storage: { target: "agronomic_alerts.json + flattened into signals.json" },
   },
   {
-    wf: "1.10 Weather fetch", output: "weather_analogs_brazil.json", component: "BrazilWeatherAnalogs", visual: "Supply · Brazil · analog years (production forecast)",
+    wf: "1.10 Weather fetch", output: "weather_analogs_brazil.json", component: "WeatherAnalogs / AnalogSection", visual: "Supply · Brazil · analog years (production forecast)",
     cadence: { recurrence: "tail step of 1.10", trigger: "cron" },
     transport: { method: "Euclidean distance over per-phenology-stage signatures vs historical Brazil seed" },
     storage: { target: "weather_analogs_brazil.json" },

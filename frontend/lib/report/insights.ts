@@ -1866,7 +1866,7 @@ const INSIGHTS: Record<string, Builder> = {
   brazil_yoy_type: brazilYoyType,
   brazil_seasonality: brazilSeasonality,
   brazil_supply_demand: supplyDemand("brazil", "Brazil", { url: "/data/br_balance_sheet.json" }),
-  brazil_weather_analogs: weatherAnalogs("brazil", "Brazil"),
+  brazil_analogs_ensemble: weatherAnalogs("brazil", "Brazil"),
   brazil_weather_pack: weatherPack("brazil", "Brazil"),
   brazil_weather_risk: brazilWeatherRisk,
   // Supply — Vietnam & others
@@ -1876,7 +1876,7 @@ const INSIGHTS: Record<string, Builder> = {
   vietnam_destination: vietnamDest,
   vietnam_supply_demand: supplyDemand("vietnam", "Vietnam", { url: "/data/vn_farmer_economics.json", path: "balance_sheet" }),
   vietnam_farmer_economics: vnFarmerEconomics,
-  vietnam_weather_analogs: weatherAnalogs("vietnam", "Vietnam"),
+  vietnam_analogs_ensemble: weatherAnalogs("vietnam", "Vietnam"),
   vietnam_weather_pack: weatherPack("vn", "Vietnam"),
   vietnam_water_levels: vnWaterLevels,
   colombia_weather_pack: weatherPack("colombia", "Colombia"),
