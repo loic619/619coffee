@@ -24,6 +24,7 @@
 // Grades and segments are stored as shares of their parent leg and split
 // with a largest-remainder allocator, so a reader can add a column of
 // children and land on the subtotal exactly.
+import { chgTone } from "@/lib/formatters";
 import { useEffect, useMemo, useState } from "react";
 import WorldBalanceEditor from "./WorldBalanceEditor";
 import {
@@ -535,14 +536,14 @@ export default function WorldBalanceSheet({ cropYear }: { cropYear?: string }) {
                   return (
                     <td key={c.key}
                       className={`py-1.5 px-2 text-right font-mono font-bold ${
-                        dead ? "text-slate-700" : v >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                        dead ? "text-slate-700" : chgTone(v)}`}
                       title={dead ? "Not comparable while some production is unsplit — see Arabica (all)" : undefined}>
                       {dead ? "–" : `${v >= 0 ? "+" : ""}${fmt(v)}`}
                     </td>
                   );
                 })}
                 <td className={`py-1.5 pl-2 text-right font-mono font-bold ${
-                  legTotal(sums.residual) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  chgTone(legTotal(sums.residual))}`}>
                   {legTotal(sums.residual) >= 0 ? "+" : ""}{fmt(legTotal(sums.residual))}
                 </td>
               </tr>
@@ -699,7 +700,7 @@ function RiskTable({ risks }: { risks: Risk[] }) {
             <tr className="border-t border-slate-600">
               <td className="py-1 pr-2 font-bold text-slate-200" colSpan={5}>Net expected</td>
               <td className={`py-1 pl-2 text-right font-mono font-bold ${
-                sumExp(rows) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                chgTone(sumExp(rows))}`}>
                 {sumExp(rows) >= 0 ? "+" : ""}{sumExp(rows).toFixed(2)}
               </td>
             </tr>

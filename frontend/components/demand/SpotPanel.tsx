@@ -1,4 +1,5 @@
 "use client";
+import { chgTone } from "@/lib/formatters";
 import { useEffect, useMemo, useState } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
@@ -190,7 +191,7 @@ function WowTile({ snap, unit }: { snap: Snapshot | null; unit: Unit }) {
             <span className="text-rose-400 font-mono text-sm">−{fmtVol(conv(w.out_tons), unit)}</span>
           </div>
           <div className="text-[10px] text-slate-400 mt-0.5">
-            net <span className={`font-mono ${w.net_tons >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
+            net <span className={`font-mono ${chgTone(w.net_tons)}`}>
               {w.net_tons >= 0 ? "+" : "−"}{fmtVol(conv(Math.abs(w.net_tons)), unit)} {unitLabel(unit)}
             </span>
           </div>

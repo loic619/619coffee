@@ -10,6 +10,7 @@ import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Labe
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { COUNTRY_HUB, HUB_COLORS, HUB_ORDER } from "../IndonesiaExports/constants";
+import { chgTone } from "@/lib/formatters";
 
 interface DestData {
   source: string;
@@ -285,7 +286,7 @@ export default function DestinationChart() {
             style={{ gridTemplateColumns: mode === "hub" ? "1fr auto auto" : "1fr auto" }}>
             <span className="text-slate-300 truncate">{r.label}</span>
             <span className={`text-right ${
-              r.pct === null ? "text-slate-500" : r.pct >= 0 ? "text-green-400" : "text-red-400"
+              r.pct === null ? "text-slate-500" : chgTone(r.pct)
             }`}>
               {r.pct === null ? "n/a" : `${r.pct > 0 ? "+" : ""}${r.pct}%`}
             </span>

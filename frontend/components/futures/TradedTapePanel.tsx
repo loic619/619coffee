@@ -5,7 +5,7 @@ import {
 } from "recharts";
 
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
-import { fmtDateLabel } from "@/lib/formatters";
+import { fmtDateLabel, chgTone } from "@/lib/formatters";
 
 // tradespread.json — one row per trading session, built from acaphe's traded
 // tape (fetch_tradespread.py). Volumes are LOTS; "lifted" = tick-rule
@@ -106,7 +106,7 @@ function MarketTape({ mkt, row, history }: { mkt: Mkt; row: TapeRow; history: Ta
               </div>
               <div className="flex items-center justify-between gap-1 mt-1 text-[9px] font-mono whitespace-nowrap">
                 <span className="text-emerald-400">↑ {fmtLots(c.up_volume)} lifted</span>
-                <span className={`${(c.pressure ?? 0) >= 0 ? "text-emerald-300" : "text-red-300"}`}>
+                <span className={`${chgTone((c.pressure ?? 0))}`}>
                   {c.pressure != null ? `${c.pressure > 0 ? "+" : ""}${(c.pressure * 100).toFixed(0)}%` : "—"}
                 </span>
                 <span className="text-red-400">{fmtLots(c.down_volume)} hit ↓</span>
@@ -116,7 +116,7 @@ function MarketTape({ mkt, row, history }: { mkt: Mkt; row: TapeRow; history: Ta
                 <span className="text-right">+15m {c.open15.price}</span>
                 <span>VWAP↑ {c.vwap_up ?? "—"}</span>
                 <span className="text-right">VWAP↓ {c.vwap_down ?? "—"}</span>
-                <span className={`col-span-2 ${prem != null && prem >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                <span className={`col-span-2 ${prem != null && chgTone(prem)}`}>
                   aggression premium {prem != null
                     ? `${prem > 0 ? "+" : ""}${prem.toFixed(2)} ${UNIT[mkt]}`
                     : "—"}

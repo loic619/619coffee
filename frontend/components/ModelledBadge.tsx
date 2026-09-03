@@ -45,7 +45,7 @@ export default function ModelledBadge({ method, hitRate, note, className = "" }:
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded border border-violet-500/40 bg-violet-950/50
-                  px-2 py-0.5 text-[10px] leading-4 text-violet-200 ${className}`}
+                  px-2 py-0.5 text-[11px] leading-4 text-violet-200 ${className}`}
       title="This panel's headline number is produced by a model, not observed from a market or a report."
     >
       <span className="font-bold uppercase tracking-widest">Modelled</span>

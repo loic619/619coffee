@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine, Cell } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { Market } from "./ConsumptionRanking";
+import { chgTone } from "@/lib/formatters";
 
 // Where demand growth actually comes from.
 //
@@ -171,7 +172,7 @@ export default function ConsumptionPace({ markets, cohorts }: {
                   {r.tea && <span className="text-emerald-400 mr-1">🍃</span>}{r.name}
                 </td>
                 <td className="px-1.5 py-0.5 text-right font-mono text-slate-200">{Math.round(r.consKt).toLocaleString()} kt</td>
-                <td className={`px-1.5 py-0.5 text-right font-mono ${r.total >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                <td className={`px-1.5 py-0.5 text-right font-mono ${chgTone(r.total)}`}>
                   {r.total >= 0 ? "+" : ""}{r.total.toFixed(1)}%
                 </td>
                 <td className="px-1.5 py-0.5 text-right font-mono text-slate-500">
@@ -181,7 +182,7 @@ export default function ConsumptionPace({ markets, cohorts }: {
                   {r.pace == null ? "—" : `${r.pace >= 0 ? "▲" : "▼"} ${Math.abs(r.pace).toFixed(1)}pp`}
                 </td>
                 <td className="px-1.5 py-0.5 text-right font-mono text-indigo-300">{r.popPart >= 0 ? "+" : ""}{r.popPart.toFixed(1)}%</td>
-                <td className={`px-1.5 py-0.5 text-right font-mono ${r.intenPart >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                <td className={`px-1.5 py-0.5 text-right font-mono ${chgTone(r.intenPart)}`}>
                   {r.intenPart >= 0 ? "+" : ""}{r.intenPart.toFixed(1)}%
                 </td>
               </tr>

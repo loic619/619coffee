@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, Cell } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
+import { chgTone } from "@/lib/formatters";
 
 // What the big roasters say about volume.
 //
@@ -181,7 +182,7 @@ function CompanyBlock({ c }: { c: Company }) {
                     const v = p.segments.find(s => s.segment === seg)?.volume_mix_pct;
                     return (
                       <td key={p.period} className={`px-1 py-0.5 text-right font-mono ${
-                        v == null ? "text-slate-600" : v >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                        v == null ? "text-slate-600" : chgTone(v)}`}>
                         {v == null ? "—" : `${v >= 0 ? "+" : ""}${v.toFixed(1)}`}
                       </td>
                     );

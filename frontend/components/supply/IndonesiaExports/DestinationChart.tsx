@@ -9,6 +9,7 @@ import {
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { cropYearKey, getHub, getIsland, kgToKT, monthLabel, offsetYM } from "./helpers";
 import type { CountryYear, DestWindow, SeriesKey, ViewMode } from "./types";
+import { chgTone } from "@/lib/formatters";
 
 // Stacked species split for the Total view (destination × country mode).
 // BPS gives species-level HS codes only, so the stack is arabica / robusta
@@ -423,7 +424,7 @@ export default function DestinationChart({
               style={{ gridTemplateColumns: view === "hub" ? "1fr auto auto" : "1fr auto" }}>
               <span className="text-slate-300 truncate">{r.label}</span>
               <span className={`text-right ${
-                r.pct === null ? "text-slate-500" : r.pct >= 0 ? "text-green-400" : "text-red-400"
+                r.pct === null ? "text-slate-500" : chgTone(r.pct)
               }`}>
                 {r.pct === null ? "n/a" : `${r.pct > 0 ? "+" : ""}${r.pct}%`}
               </span>

@@ -1,8 +1,9 @@
 "use client";
 import { AGRONOMY, DEMOGRAPHICS, DISTRICTS, STONEX_META, TREE_AGE } from "./stonexSurvey";
+import { chgTone } from "@/lib/formatters";
 
 const CARD = "bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3";
-const chgCls = (v: number) => (v >= 0 ? "text-emerald-400" : "text-red-400");
+const chgCls = (v: number) => (chgTone(v));
 const chgStr = (v: number) => `${v >= 0 ? "+" : ""}${v}%`;
 
 // blue→amber shading for a 0-100% agronomy adoption cell

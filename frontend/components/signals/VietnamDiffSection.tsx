@@ -1,5 +1,6 @@
 "use client";
 import ModelledBadge from "@/components/ModelledBadge";
+import { chgTone } from "@/lib/formatters";
 
 interface Factor {
   label: string;
@@ -104,7 +105,7 @@ export default function VietnamDiffSection() {
                     <QuantileBar value={f.quantile} />
                   </td>
                   <td className="px-3 py-1.5 text-right font-mono text-slate-400">{f.beta.toFixed(4)}</td>
-                  <td className={`px-3 py-1.5 text-right font-mono font-semibold ${f.contribution >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  <td className={`px-3 py-1.5 text-right font-mono font-semibold ${chgTone(f.contribution)}`}>
                     {f.contribution >= 0 ? "+" : ""}{f.contribution.toFixed(4)}
                   </td>
                 </tr>

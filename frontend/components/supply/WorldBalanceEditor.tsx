@@ -13,6 +13,7 @@
 // Same write path as the crop estimates: the password is checked server-side
 // (/api/admin/world-balance), which dispatches a workflow that re-validates,
 // commits and redeploys. Nothing is written from the browser.
+import { chgTone } from "@/lib/formatters";
 import { Fragment, useEffect, useState } from "react";
 import {
   LEGS, LEG_LABEL, LEG_TONE, LINE_BLOCKS, ORIGIN_LABELS,
@@ -625,7 +626,7 @@ export default function WorldBalanceEditor({
                         </td>
                       ))}
                       <td className={`py-1.5 pl-2 text-right font-mono font-bold ${
-                        legTotal(residual) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                        chgTone(legTotal(residual))}`}>
                         {legTotal(residual) >= 0 ? "+" : ""}{fmt(legTotal(residual))}
                       </td>
                       <td />
@@ -636,7 +637,7 @@ export default function WorldBalanceEditor({
                         supply {fmt(arabicaAll(supply))} · demand {fmt(arabicaAll(outflow))}
                       </td>
                       <td className={`py-1 pl-2 text-right font-mono font-bold text-[9px] ${
-                        arabicaAll(residual) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                        chgTone(arabicaAll(residual))}`}>
                         {arabicaAll(residual) >= 0 ? "+" : ""}{fmt(arabicaAll(residual))}
                       </td>
                       <td />

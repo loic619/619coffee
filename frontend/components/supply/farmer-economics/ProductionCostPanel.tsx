@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import type { CostData, CopLineItem } from "./farmerEconomicsData";
+import { chgTone } from "@/lib/formatters";
 
 interface Props {
   cost: CostData;
@@ -225,7 +226,7 @@ function SectionedCopView({ cost, coffeeType, country }: { cost: CostData; coffe
           {margin != null && (
             <>
               {" "}→ farmer margin ~
-              <span className={`font-bold ml-1 ${margin >= 0 ? "text-green-400" : "text-red-400"}`}>
+              <span className={`font-bold ml-1 ${chgTone(margin)}`}>
                 ${Math.round(margin).toLocaleString()}/MT
               </span>
               <span className="text-slate-600 ml-1">(vs farm gate)</span>
@@ -319,7 +320,7 @@ export default function ProductionCostPanel({ cost, coffeeType = "arabica", coun
           {margin != null && (
             <>
               {" "}→ farmer margin ~
-              <span className={`font-bold ml-1 ${margin >= 0 ? "text-green-400" : "text-red-400"}`}>
+              <span className={`font-bold ml-1 ${chgTone(margin)}`}>
                 ${margin.toFixed(1)}{marginUnit}
               </span>
             </>

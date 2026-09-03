@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import { chgTone } from "@/lib/formatters";
 
 // Domestic-consumption ranking, rebuilt.
 //
@@ -139,10 +140,10 @@ export default function ConsumptionRanking({ markets }: { markets: Market[] }) {
                     </div>
                     <span className="w-16 text-right font-mono text-slate-200 shrink-0">{fmtKt(r.curKt)}</span>
                     <Sparkbars pts={r.hist} color={g.color} />
-                    <span className={`w-16 text-right font-mono shrink-0 ${r.dKt == null ? "text-slate-600" : r.dKt >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <span className={`w-16 text-right font-mono shrink-0 ${r.dKt == null ? "text-slate-600" : chgTone(r.dKt)}`}>
                       {r.dKt == null ? "—" : `${r.dKt >= 0 ? "+" : ""}${Math.round(r.dKt * 1000).toLocaleString()} t`}
                     </span>
-                    <span className={`w-12 text-right font-mono shrink-0 ${r.dPct == null ? "text-slate-600" : r.dPct >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <span className={`w-12 text-right font-mono shrink-0 ${r.dPct == null ? "text-slate-600" : chgTone(r.dPct)}`}>
                       {r.dPct == null ? "—" : `${r.dPct >= 0 ? "+" : ""}${r.dPct.toFixed(1)}%`}
                     </span>
                   </div>

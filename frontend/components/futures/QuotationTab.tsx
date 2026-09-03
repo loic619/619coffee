@@ -4,6 +4,7 @@ import { useReactToPrint } from "react-to-print";
 import { FOBBING_USD, MONTHLY_CARRY_USD } from "@/lib/originCosts";
 import { PRINT_CSS_LIGHT, PRINT_CSS_DARK } from "@/lib/report/printStyles";
 import { MONTH_ABB, type Contract } from "./types";
+import { chgTone } from "@/lib/formatters";
 
 // ─── Quotation Tab ────────────────────────────────────────────────────────────
 
@@ -419,13 +420,13 @@ export default function QuotationTab({ contracts = [], vnFaqUsdMt }: { contracts
             <table className="text-xs font-mono w-auto">
               <thead>
                 <tr className="bg-slate-800 border-b border-slate-600">
-                  <th className="text-left px-4 py-2.5 text-slate-400 font-bold uppercase text-[10px] w-[110px] border-r border-slate-700">
+                  <th className="text-left px-4 py-2.5 text-slate-400 font-bold uppercase text-[11px] w-[110px] border-r border-slate-700">
                     Grade
                   </th>
-                  <th className="text-left px-3 py-2.5 text-slate-400 font-bold uppercase text-[10px] w-px whitespace-nowrap border-r border-slate-700">
+                  <th className="text-left px-3 py-2.5 text-slate-400 font-bold uppercase text-[11px] w-px whitespace-nowrap border-r border-slate-700">
                     Specification
                   </th>
-                  <th className="text-left px-3 py-2.5 text-slate-400 font-bold uppercase text-[10px] w-[120px] border-r border-slate-700">
+                  <th className="text-left px-3 py-2.5 text-slate-400 font-bold uppercase text-[11px] w-[120px] border-r border-slate-700">
                     Detail
                   </th>
                   {months.map((m, i) => (
@@ -479,7 +480,7 @@ export default function QuotationTab({ contracts = [], vnFaqUsdMt }: { contracts
                             const display   = fmtDiff(m.contractLetter, totalDiff);
                             const color = q.isBasis
                               ? "text-indigo-300"
-                              : totalDiff >= 0 ? "text-emerald-400" : "text-red-400";
+                              : chgTone(totalDiff);
                             return (
                               <td key={i} className={`px-3 py-2 text-center font-bold border-l border-slate-800/50 ${color}`}>
                                 {display}

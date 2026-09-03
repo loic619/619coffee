@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { chgTone } from "@/lib/formatters";
 
 interface CommodityRow {
   symbol:      string;
@@ -76,7 +77,7 @@ function computeStats(records: WeeklyRecord[], symbol: string): Stat {
 function fmtChg(v: number | null): { text: string; cls: string } {
   if (v == null) return { text: "—", cls: "text-slate-500" };
   const sign = v >= 0 ? "+" : "";
-  const cls  = v >= 0 ? "text-emerald-400" : "text-red-400";
+  const cls  = chgTone(v);
   return { text: `${sign}${v.toFixed(1)}%`, cls };
 }
 
@@ -141,7 +142,7 @@ export default function CrossCommodityPanel() {
 
       <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
         <table className="w-full text-xs">
-          <thead className="bg-slate-900 text-[10px] uppercase tracking-wide text-slate-400">
+          <thead className="bg-slate-900 text-[11px] uppercase tracking-wide text-slate-400">
             <tr>
               <th className="text-left  px-3 py-2">Commodity</th>
               <th className="text-right px-3 py-2">Last</th>

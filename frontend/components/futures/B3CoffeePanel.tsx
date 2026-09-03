@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
-import { fmtDateLabel } from "@/lib/formatters";
+import { fmtDateLabel, chgTone } from "@/lib/formatters";
 
 // Both files share this shape: brazil_b3_arabica.json (noticiasagricolas
 // republisher, US$/saca, deep backfilled history) and brazil_b3_conilon.json
@@ -154,7 +154,7 @@ function MarketCard({ title, doc, color, window: win, overlays, altUnit }: {
             <div className="text-[10px] font-mono">
               <span className="text-slate-400">{last.front_month}</span>
               {chg != null && (
-                <span className={chg >= 0 ? "text-emerald-400" : "text-red-400"}>
+                <span className={chgTone(chg)}>
                   {"  "}{chg >= 0 ? "+" : ""}{(chg * scale).toFixed(2)}{chgPct != null ? ` (${chgPct >= 0 ? "+" : ""}${chgPct.toFixed(1)}%)` : ""}
                 </span>
               )}

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { ComposedChart, Bar, BarChart, Line, XAxis, YAxis, Tooltip, Legend, ReferenceLine } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
-import { MONTH_ABBR, MONTH_ABBR as MONTHS } from "@/lib/formatters";
+import { MONTH_ABBR, MONTH_ABBR as MONTHS, chgTone } from "@/lib/formatters";
 
 type Region = "eu" | "japan" | "usa";
 
@@ -493,7 +493,7 @@ function PsdAnalyticalPanel({ eu, japan, usa }: { eu: PsdData | null; japan: Psd
           <div className="text-slate-500 text-[9px] mb-0.5">Imports {latest?.year}</div>
           <div className="font-bold" style={{ color: accent }}>{fmtThousands(latest?.imports_mt)}</div>
           {importsDelta != null && (
-            <div className={`text-[9px] ${importsDelta >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+            <div className={`text-[9px] ${chgTone(importsDelta)}`}>
               {importsDelta >= 0 ? "+" : ""}{importsDelta.toFixed(1)}% YoY
             </div>
           )}
@@ -511,7 +511,7 @@ function PsdAnalyticalPanel({ eu, japan, usa }: { eu: PsdData | null; japan: Psd
           <div className="text-slate-500 text-[9px] mb-0.5">End Stocks {latest?.year}</div>
           <div className="text-violet-300 font-bold">{fmtThousands(latest?.stocks_mt)}</div>
           {stocksDelta != null && (
-            <div className={`text-[9px] ${stocksDelta >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+            <div className={`text-[9px] ${chgTone(stocksDelta)}`}>
               {stocksDelta >= 0 ? "+" : ""}{stocksDelta.toFixed(1)}% YoY
             </div>
           )}

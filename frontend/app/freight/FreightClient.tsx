@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import PageHeader from "@/components/PageHeader";
 import { useFetchJson } from "@/lib/useFetchJson";
+import { fmtAsOf } from "@/lib/formatters";
 import PortActivity from "./PortActivity";
 
 // Charts carry the heavy recharts dependency — lazy-load them (client-only) so
@@ -354,7 +355,7 @@ export default function FreightClient({ data, source = "live" }: Props) {
         </div>
         {data?.updated && (
           <div className="text-[10px] text-slate-500 mb-3">
-            Last updated: {data.updated}
+            Last updated: {fmtAsOf(data.updated, "UTC")}
             {totalSpan && <span className="ml-2 text-slate-600">· stored {totalSpan}</span>}
           </div>
         )}

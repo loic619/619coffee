@@ -9,6 +9,7 @@ import {
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { bagsToKT, cropYearKey, getHub, monthLabel, offsetYM, toEn } from "./helpers";
 import type { CoffeeType, CountryYear, DestWindow, ViewMode } from "./types";
+import { chgTone } from "@/lib/formatters";
 
 // Stacked type-split series for the Total view (country mode): the four
 // coffee types plus an 'Unsplit' remainder so the stack always sums to the
@@ -379,7 +380,7 @@ export default function DestinationChart({
             >
               <span className="text-slate-300 truncate">{r.label}</span>
               <span className={`text-right ${
-                r.pct === null ? "text-slate-500" : r.pct >= 0 ? "text-green-400" : "text-red-400"
+                r.pct === null ? "text-slate-500" : chgTone(r.pct)
               }`}>
                 {r.pct === null ? "n/a" : `${r.pct > 0 ? "+" : ""}${r.pct}%`}
               </span>

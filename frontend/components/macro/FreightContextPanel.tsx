@@ -107,7 +107,7 @@ export default function FreightContextPanel() {
 
       <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
         <table className="w-full text-xs">
-          <thead className="bg-slate-900 text-[10px] uppercase tracking-wide text-slate-400">
+          <thead className="bg-slate-900 text-[11px] uppercase tracking-wide text-slate-400">
             <tr>
               <th className="text-left  px-3 py-2">Route</th>
               <th className="text-right px-3 py-2">Rate</th>

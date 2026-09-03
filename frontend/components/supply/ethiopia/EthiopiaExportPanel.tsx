@@ -1,7 +1,7 @@
 "use client";
 import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ReferenceLine } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
-import { MONTH_ABBR } from "@/lib/formatters";
+import { MONTH_ABBR, chgTone } from "@/lib/formatters";
 
 interface ExportMonth {
   month: string;
@@ -68,7 +68,7 @@ export default function EthiopiaExportPanel({
           <div className="text-white font-bold">{last ? toMT(last.total_k_bags).toLocaleString() : "—"}</div>
           <div className="text-[9px] text-slate-600">metric tons</div>
           {last?.yoy_pct != null && (
-            <div className={`text-[9px] font-semibold ${last.yoy_pct >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+            <div className={`text-[9px] font-semibold ${chgTone(last.yoy_pct)}`}>
               {last.yoy_pct >= 0 ? "▲" : "▼"} {Math.abs(last.yoy_pct).toFixed(1)}% YoY
             </div>
           )}

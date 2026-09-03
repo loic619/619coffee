@@ -11,6 +11,7 @@ import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { COUNTRY_HUB, HUB_COLORS, HUB_ORDER } from "../IndonesiaExports/constants";
 import { TT_STYLE, bagsToKT, type UgandaMonthlyRow } from "./helpers";
+import { chgTone } from "@/lib/formatters";
 
 type ViewMode = "country" | "hub";
 const WINDOWS = ["1M", "3M", "6M", "12M", "CYTD"] as const;
@@ -323,7 +324,7 @@ export default function UgandaDestinationChart({ monthly }: { monthly: UgandaMon
             style={{ gridTemplateColumns: mode === "hub" ? "1fr auto auto" : "1fr auto" }}>
             <span className="text-slate-300 truncate">{r.label}</span>
             <span className={`text-right ${
-              r.pct === null ? "text-slate-500" : r.pct >= 0 ? "text-green-400" : "text-red-400"
+              r.pct === null ? "text-slate-500" : chgTone(r.pct)
             }`}>
               {r.pct === null ? "n/a" : `${r.pct > 0 ? "+" : ""}${r.pct}%`}
             </span>

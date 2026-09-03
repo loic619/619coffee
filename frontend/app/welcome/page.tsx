@@ -103,10 +103,18 @@ export default function WelcomePage({
           <dt className="text-slate-400 font-medium">Guest</dt>
           <dd>Every market tab — Daily Brief, Futures, COT, Freight, Supply, Demand, Macro, Map.</dd>
           <dt className="text-slate-400 font-medium">Member</dt>
-          <dd>Everything a guest sees, plus the Research library.</dd>
+          <dd>
+            Everything a guest sees, plus the Research library — the positioning
+            studies, the model methodology and track records, and the origin deep-dives
+            behind the market view.
+          </dd>
           <dt className="text-slate-400 font-medium">Admin</dt>
           <dd>Everything, including the data map and platform controls.</dd>
         </dl>
+        <p className="mt-3 text-center text-[11px] text-slate-500">
+          Holding a guest code and want Research? Ask whoever sent you the code — access is
+          granted by invitation, not by form.
+        </p>
       </div>
     </div>
   );

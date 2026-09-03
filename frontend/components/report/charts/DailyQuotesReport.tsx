@@ -6,7 +6,7 @@
  * report uses the Barchart feed (not the ACAPHE live widget).
  */
 import { useEffect, useState } from "react";
-import { fmtNum as fmt } from "@/lib/formatters";
+import { fmtNum as fmt, chgTone } from "@/lib/formatters";
 
 interface Contract {
   contract: string; expiry: string; last: number; chg: number; oi: number; volume: number; symbol: string;
@@ -67,7 +67,7 @@ function ChainTable({ market, data }: { market: "arabica" | "robusta"; data: Cha
         </thead>
         <tbody>
           {data.contracts.map((c, i) => {
-            const chgColor = (c.chg ?? 0) >= 0 ? "text-emerald-400" : "text-red-400";
+            const chgColor = chgTone((c.chg ?? 0));
             const next = data.contracts[i + 1];
             const spread = c.last != null && next?.last != null ? c.last - next.last : null;
             const spreadChg = c.chg != null && next?.chg != null ? c.chg - next.chg : null;

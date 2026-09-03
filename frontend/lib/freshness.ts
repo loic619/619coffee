@@ -220,7 +220,7 @@ export function freshnessLabel(f: Pick<FeedFreshness, "iso" | "days">, style: "l
 export function freshnessTooltip(f: FeedFreshness): string {
   if (!f.iso) return `${f.meta.label} · no data`;
   return (
-    `${f.meta.label} · data as-of ${f.iso} (${freshnessLabel(f, "long")})` +
+    `${f.meta.label} · data as-of ${f.iso} UTC (${freshnessLabel(f, "long")})` +
     (f.lagging ? `\npipeline last ran ${String(f.pipelineIso).slice(0, 10)}` : "") +
     `\noverdue after ${f.thresholdDays}d` +
     (f.meta.note ? `\n${f.meta.note}` : "")

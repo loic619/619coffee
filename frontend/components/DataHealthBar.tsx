@@ -43,7 +43,7 @@ export function DataHealthBar({ keys }: { keys?: string[] }) {
 
   return (
     <div
-      className={`flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-1.5 rounded text-[10px] border ${
+      className={`flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-1.5 rounded text-[11px] border ${
         hasStale ? "bg-amber-950/30 border-amber-800/40" : "bg-slate-900 border-slate-800"
       }`}
     >

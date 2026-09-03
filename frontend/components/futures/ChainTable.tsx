@@ -1,5 +1,5 @@
 "use client";
-import { fmtNum as fmt } from "@/lib/formatters";
+import { fmtNum as fmt, chgTone, fmtAsOf } from "@/lib/formatters";
 import { fmtFirstNoticeDay } from "@/lib/fnd";
 import type { ChainData } from "./types";
 
@@ -38,7 +38,11 @@ export default function ChainTable({ market, data, showAll }: { market: "arabica
             <span className="hidden sm:inline font-normal">{sublabel}</span>
           </span>
         </div>
-        <span className="text-xs text-slate-500 whitespace-nowrap ml-2 hidden sm:inline">Barchart · {data.pub_date ?? ""}</span>
+        {/* The settle belongs to an exchange session, and the two tables settle
+            in different cities — say which. */}
+        <span className="text-xs text-slate-500 whitespace-nowrap ml-2 hidden sm:inline">
+          Barchart · {fmtAsOf(data.pub_date, isArabica ? "NY" : "LDN")}
+        </span>
       </div>
       {/* In "show all" the table takes its natural (max-content) width so the
           revealed OI/Vol columns overflow and the wrapper scrolls; w-full would
@@ -61,7 +65,7 @@ export default function ChainTable({ market, data, showAll }: { market: "arabica
         </thead>
         <tbody>
           {data!.contracts.map((c, i) => {
-            const chgColor  = (c.chg ?? 0) >= 0 ? "text-emerald-400" : "text-red-400";
+            const chgColor  = chgTone((c.chg ?? 0));
             const next      = data!.contracts[i + 1];
             const spread    = c.last != null && next?.last != null ? c.last - next.last : null;
             const spreadChg = c.chg != null && next?.chg != null ? c.chg - next.chg : null;

@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import SectionHeader from "./SectionHeader";
+import { chgTone } from "@/lib/formatters";
 
 interface Cohort {
   key: string; label: string;
@@ -81,7 +82,7 @@ export default function Step9OptionsBook() {
             </div>
             <div className="rounded-lg border border-slate-700 bg-slate-900 p-3">
               <div className="text-[10px] uppercase tracking-wide text-slate-400">Managed money — options net</div>
-              <div className={`font-mono text-xl font-bold ${(mm?.opt_net ?? 0) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+              <div className={`font-mono text-xl font-bold ${chgTone((mm?.opt_net ?? 0))}`}>
                 {lots(mm?.opt_net)}
               </div>
               <div className="text-[10px] text-slate-500">
@@ -119,7 +120,7 @@ export default function Step9OptionsBook() {
                     </td>
                     <td className="py-1 pr-2 text-right text-slate-300">{lots(c.fut_net)}</td>
                     <td className="py-1 pr-2 text-right text-slate-300">{lots(c.com_net)}</td>
-                    <td className={`py-1 pr-2 text-right font-bold ${c.opt_net >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <td className={`py-1 pr-2 text-right font-bold ${chgTone(c.opt_net)}`}>
                       {lots(c.opt_net)}
                     </td>
                     <td className="py-1 pr-2 text-right text-slate-500">{lots(c.opt_long)} / {lots(c.opt_short)}</td>

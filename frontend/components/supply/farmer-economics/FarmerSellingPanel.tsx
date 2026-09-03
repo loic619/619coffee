@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import FeedUnavailable from "@/components/FeedUnavailable";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
+import { chgTone } from "@/lib/formatters";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -378,7 +379,7 @@ export default function FarmerSellingPanel() {
         <div className="space-y-1.5 text-[9px]">
           <div className="flex items-center gap-2">
             <span className="text-slate-500 w-24">vs prev month</span>
-            <span className={`font-bold ${momDelta >= 0 ? "text-green-400" : "text-red-400"}`}>
+            <span className={`font-bold ${chgTone(momDelta)}`}>
               {momDelta > 0 ? "+" : ""}{momDelta} pp
             </span>
           </div>

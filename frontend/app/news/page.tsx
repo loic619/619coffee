@@ -43,6 +43,16 @@ export default function NewsPage() {
         title="Daily Brief"
         subtitle="Today's coffee intel — what changed, what's coming, what's making news"
         healthKeys={["futures", "cot", "ice_certified_daily", "news_sentiment"]}
+        rightSlot={
+          // The builder lives at the bottom (it is a tool, not the daily read)
+          // but it is the one workflow the app has, so it stays one tap away.
+          <a
+            href="#builder"
+            className="rounded border border-amber-600/50 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-300 hover:bg-amber-500/20 whitespace-nowrap"
+          >
+            Build report ↓
+          </a>
+        }
       />
       <nav
         aria-label="Sections"

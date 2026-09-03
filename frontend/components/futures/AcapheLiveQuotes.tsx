@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { chgTone, fmtStampUTC } from "@/lib/formatters";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -231,7 +232,7 @@ function MergedPhoneQuotes({ arabica, robusta }: { arabica: AcapheContract[]; ro
   const sprdColor = (n: number | null | undefined) =>
     n == null ? "text-slate-600" : n >= 0 ? "text-sky-400" : "text-orange-400";
   const chgColor = (n: number | null | undefined) =>
-    n == null ? "text-slate-600" : n >= 0 ? "text-emerald-400" : "text-red-400";
+    n == null ? "text-slate-600" : chgTone(n);
   const signed = (n: number | null | undefined, dec: number) =>
     n == null ? "—" : (n >= 0 ? "+" : "") + n.toFixed(dec);
 
@@ -357,7 +358,7 @@ function ChainTable({
             const sym      = acapheToSymbol(c.month, isArabica);
             const fnd      = calcFnd(sym);
             const expiry   = calcOptLtd(sym);
-            const chgColor = (c.change ?? 0) >= 0 ? "text-emerald-400" : "text-red-400";
+            const chgColor = chgTone((c.change ?? 0));
 
             const next      = contracts[i + 1];
             const spread    = c.last != null && next?.last != null ? c.last - next.last : null;
@@ -438,9 +439,10 @@ function VietnamPanel({ data }: { data: VietnamPrices }) {
     ...(display.pepper_faq ? [{ label: "Pepper FAQ", val: display.pepper_faq, unit: "VND/kg", color: "text-slate-300" }] : []),
   ];
 
-  const savedAt = last?.saved_at
-    ? new Date(last.saved_at).toLocaleString("en-GB", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })
-    : null;
+  // Rendered in UTC with the zone in the text. The bare toLocaleString this
+  // replaced printed the visitor's browser zone with no label — "19:23" meant
+  // three different instants to readers in Santos, London and Saigon.
+  const savedAt = last?.saved_at ? fmtStampUTC(last.saved_at) : null;
 
   return (
     <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">

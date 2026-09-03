@@ -8,6 +8,7 @@ import {
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { bagsToKT, cropYearKey } from "./helpers";
 import type { BrazilProjection, SeriesKey, VolumeSeries } from "./types";
+import { chgTone } from "@/lib/formatters";
 
 export default function CumulativePaceChart({ series, filteredSeries, typeFilter, projection }: {
   series: VolumeSeries[];
@@ -182,7 +183,7 @@ export default function CumulativePaceChart({ series, filteredSeries, typeFilter
       {pacePct !== null && (
         <div className="text-[10px] text-slate-500 mt-1">
           {currentCropKey} pace vs {prior1Key}:{" "}
-          <span className={`font-bold ${pacePct >= 0 ? "text-green-400" : "text-red-400"}`}>
+          <span className={`font-bold ${chgTone(pacePct)}`}>
             {pacePct >= 0 ? "+" : ""}{pacePct}%
           </span>{" "}
           at same crop-month

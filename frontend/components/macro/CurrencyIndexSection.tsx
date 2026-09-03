@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { chgTone } from "@/lib/formatters";
 
 interface CurrencyDetail {
   ticker: string;
@@ -116,10 +117,10 @@ export default function CurrencyIndexSection() {
                     <span className="text-[9px] px-1.5 py-0.5 rounded border text-emerald-400 bg-emerald-950/50 border-emerald-800">Export</span>
                   </td>
                   <td className="px-3 py-1.5 text-right font-mono text-slate-300">{(c.weight * 100).toFixed(1)}%</td>
-                  <td className={`px-3 py-1.5 text-right font-mono ${c.daily_chg == null ? "text-slate-500" : c.daily_chg >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  <td className={`px-3 py-1.5 text-right font-mono ${c.daily_chg == null ? "text-slate-500" : chgTone(c.daily_chg)}`}>
                     {c.daily_chg == null ? "—" : `${c.daily_chg >= 0 ? "+" : ""}${c.daily_chg.toFixed(2)}%`}
                   </td>
-                  <td className={`px-3 py-1.5 text-right font-mono font-semibold ${c.contribution == null ? "text-slate-500" : c.contribution >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  <td className={`px-3 py-1.5 text-right font-mono font-semibold ${c.contribution == null ? "text-slate-500" : chgTone(c.contribution)}`}>
                     {fmt4(c.contribution)}
                   </td>
                 </tr>
@@ -139,10 +140,10 @@ export default function CurrencyIndexSection() {
                     <span className="text-[9px] px-1.5 py-0.5 rounded border text-blue-400 bg-blue-950/50 border-blue-800">Import</span>
                   </td>
                   <td className="px-3 py-1.5 text-right font-mono text-slate-300">{(c.weight * 100).toFixed(1)}%</td>
-                  <td className={`px-3 py-1.5 text-right font-mono ${c.daily_chg == null ? "text-slate-500" : c.daily_chg >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  <td className={`px-3 py-1.5 text-right font-mono ${c.daily_chg == null ? "text-slate-500" : chgTone(c.daily_chg)}`}>
                     {c.daily_chg == null ? "—" : `${c.daily_chg >= 0 ? "+" : ""}${c.daily_chg.toFixed(2)}%`}
                   </td>
-                  <td className={`px-3 py-1.5 text-right font-mono font-semibold ${c.contribution == null ? "text-slate-500" : c.contribution >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  <td className={`px-3 py-1.5 text-right font-mono font-semibold ${c.contribution == null ? "text-slate-500" : chgTone(c.contribution)}`}>
                     {fmt4(c.contribution)}
                   </td>
                 </tr>
@@ -151,7 +152,7 @@ export default function CurrencyIndexSection() {
             <tfoot>
               <tr className="bg-slate-800/60 border-t border-slate-600">
                 <td colSpan={5} className="px-3 py-2 text-[11px] font-bold text-white">ΔI (Total Daily Index Move)</td>
-                <td className={`px-3 py-2 text-right font-mono font-bold text-base ${totalDeltaI >= 0 ? "text-emerald-300" : "text-red-300"}`}>
+                <td className={`px-3 py-2 text-right font-mono font-bold text-base ${chgTone(totalDeltaI)}`}>
                   {fmt4(totalDeltaI)}
                 </td>
               </tr>
@@ -167,7 +168,7 @@ export default function CurrencyIndexSection() {
             <div className={`text-3xl font-bold font-mono ${data.index_value == null ? "text-slate-500" : "text-white"}`}>
               {data.index_value?.toFixed(2) ?? "—"}
             </div>
-            <div className={`text-sm font-mono font-semibold ${(data.daily_delta_pct ?? 0) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+            <div className={`text-sm font-mono font-semibold ${chgTone((data.daily_delta_pct ?? 0))}`}>
               {fmt2(data.daily_delta_pct, "% today")}
             </div>
             <div className="grid grid-cols-3 gap-2 text-center pt-1">

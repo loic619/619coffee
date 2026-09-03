@@ -7,6 +7,8 @@ import React from "react";
 import { ComposedChart, Bar, Cell, Line, LabelList, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine, ErrorBar } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import CropEstimateEditor from "./CropEstimateEditor";
+import { chgTone } from "@/lib/formatters";
+import AnalystBadge from "@/components/AnalystBadge";
 
 interface AnnualRow {
   year: string;
@@ -87,7 +89,7 @@ const CARD = "bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3";
 const MT_PER_KBAG = 60;                         // 1 thousand 60-kg bags = 60 MT
 const MBAGS_PER_KBAGS = 1 / 1000;               // 1 thousand bags  = 0.001 million bags
 const kbags = (mt: number | undefined) => Math.round((mt ?? 0) / MT_PER_KBAG);
-const chgCls = (v: number) => (v >= 0 ? "text-emerald-400" : "text-red-400");
+const chgCls = (v: number) => (chgTone(v));
 
 type SDUnit = "kbags" | "tons";
 // Internal data lives in thousand 60-kg bags ("kbags"); the toggle converts to
@@ -183,8 +185,9 @@ function ProductionSpread({
         <span>
           Avg: <span className="text-slate-400 font-bold">{avg.toFixed(1)}</span>
           {finalMBags != null && (
-            <span className="ml-2" title="Analyst final — the displayed production figure">
-              Final: <span className="text-emerald-400 font-bold">{finalMBags.toFixed(1)}</span>
+            <span className="ml-2 inline-flex items-center gap-1.5">
+              Final: <span className="text-amber-300 font-bold">{finalMBags.toFixed(1)}</span>
+              <AnalystBadge sourceNote={`Source average of the estimates shown is ${avg.toFixed(1)} M bags.`} />
             </span>
           )}
         </span>

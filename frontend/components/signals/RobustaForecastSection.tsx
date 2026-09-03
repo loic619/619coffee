@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { fmtAgo } from "@/lib/formatters";
+import { fmtAgo, chgTone } from "@/lib/formatters";
 import ModelledBadge from "@/components/ModelledBadge";
 
 interface FactorRow {
@@ -163,7 +163,7 @@ export default function RobustaForecastSection() {
                       <QuantileBar value={f.quantile} />
                     </td>
                     <td className="px-3 py-1.5 text-right font-mono text-slate-400">{f.beta.toFixed(2)}</td>
-                    <td className={`px-3 py-1.5 text-right font-mono font-semibold ${f.contribution >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <td className={`px-3 py-1.5 text-right font-mono font-semibold ${chgTone(f.contribution)}`}>
                       {f.contribution >= 0 ? "+" : ""}{f.contribution.toFixed(1)}
                     </td>
                   </tr>
@@ -173,14 +173,14 @@ export default function RobustaForecastSection() {
                 <tr className="border-t border-slate-600">
                   <td colSpan={4} className="px-3 py-2 text-[11px] text-slate-400">Intercept</td>
                   <td />
-                  <td className={`px-3 py-2 text-right font-mono font-semibold ${intercept >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  <td className={`px-3 py-2 text-right font-mono font-semibold ${chgTone(intercept)}`}>
                     {intercept >= 0 ? "+" : ""}{intercept.toFixed(1)}
                   </td>
                 </tr>
                 <tr className="bg-slate-800/60">
                   <td colSpan={4} className="px-3 py-2 text-[11px] font-bold text-white">Model Output ΔP (4-week, USD/MT)</td>
                   <td />
-                  <td className={`px-3 py-2 text-right font-mono font-bold text-lg ${prediction >= 0 ? "text-emerald-300" : "text-red-300"}`}>
+                  <td className={`px-3 py-2 text-right font-mono font-bold text-lg ${chgTone(prediction)}`}>
                     {prediction >= 0 ? "+" : ""}{prediction.toFixed(1)}
                   </td>
                 </tr>
@@ -197,7 +197,7 @@ export default function RobustaForecastSection() {
                 <div className={`text-2xl font-bold ${pred.direction === "Bullish" ? "text-emerald-400" : "text-red-400"}`}>
                   {pred.direction}
                 </div>
-                <div className={`text-3xl font-mono font-bold ${pred.delta_p >= 0 ? "text-emerald-300" : "text-red-300"}`}>
+                <div className={`text-3xl font-mono font-bold ${chgTone(pred.delta_p)}`}>
                   {pred.delta_p >= 0 ? "+" : ""}{pred.delta_p.toFixed(1)}
                 </div>
                 <div className="text-[10px] text-slate-500">USD/MT expected change</div>
@@ -249,7 +249,7 @@ export default function RobustaForecastSection() {
                           style={{ width: `${(Math.abs(f.contribution) / maxContrib) * 100}%` }}
                         />
                       </div>
-                      <span className={`text-[10px] font-mono w-10 text-right ${f.contribution >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                      <span className={`text-[10px] font-mono w-10 text-right ${chgTone(f.contribution)}`}>
                         {f.contribution >= 0 ? "+" : ""}{f.contribution.toFixed(0)}
                       </span>
                     </div>

@@ -38,6 +38,48 @@ export function fmtChg(n: number | null | undefined): string {
   return (n > 0 ? "+" : "") + n.toLocaleString(LOCALE);
 }
 
+// ── Direction colour — one rule, not seventy ternaries ───────────────────────
+// Price changes used to be tinted emerald for up and red for down, the equity
+// convention where everyone is long. Coffee is not equities: a producer or an
+// exporter hedging wants price UP; a roaster or importer wants it DOWN. "KC
+// +3¢" in green told a buyer the market moved against them in the colour of
+// good news. Direction now carries NO value judgement: sky for up, amber for
+// down, slate for flat. Correctness (a hit, a miss, an edge) is a different
+// thing and keeps green/red — those are judgements, and should look like one.
+export const TONE_UP   = "text-sky-400";
+export const TONE_DOWN = "text-amber-400";
+export const TONE_FLAT = "text-slate-400";
+
+export function chgTone(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(n) || n === 0) return TONE_FLAT;
+  return n > 0 ? TONE_UP : TONE_DOWN;
+}
+
+// ── As-of stamps that name their session ─────────────────────────────────────
+// "Settle 2026-09-02" is ambiguous when ICE US settles in New York, ICE Europe
+// in London, the pipeline runs on UTC and the reader may be in Santos or
+// Hamburg. Every rendered as-of should say which session it belongs to.
+export type Session = "NY" | "LDN" | "UTC" | "BRT" | "ICT";
+const SESSION_LABEL: Record<Session, string> = {
+  NY: "NY settle", LDN: "London settle", UTC: "UTC", BRT: "São Paulo", ICT: "Vietnam",
+};
+
+export function fmtAsOf(iso: string | null | undefined, session: Session = "UTC"): string {
+  if (!iso) return "—";
+  return `${iso.slice(0, 10)} · ${SESSION_LABEL[session]}`;
+}
+
+/** A wall-clock timestamp rendered in ONE zone with the zone in the text —
+ *  never the visitor's browser zone, which is what a bare toLocaleString gives. */
+export function fmtStampUTC(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return String(iso);
+  return d.toLocaleString("en-GB", {
+    day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "UTC",
+  }) + " UTC";
+}
+
 // Signed percentage: "+1.5%" / "-0.3%" / "—".
 export function fmtPct(n: number | null | undefined, decimals = 1): string {
   if (n == null || !Number.isFinite(n)) return "—";

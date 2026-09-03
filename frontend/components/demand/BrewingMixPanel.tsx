@@ -7,6 +7,7 @@ import {
   gramsPerCup, mixShiftImpactPct, type Format,
 } from "@/lib/brewingMix";
 import type { Market } from "./ConsumptionRanking";
+import { chgTone } from "@/lib/formatters";
 
 // How a country brews, and why it moves the import bill.
 //
@@ -103,7 +104,7 @@ export default function BrewingMixPanel({ markets }: { markets: Market[] }) {
                 <td className="px-1.5 py-0.5 text-right font-mono text-sky-300">{r.oohPct.toFixed(0)}%</td>
                 <td className="px-1.5 py-0.5 text-right font-mono text-slate-300">{r.gRetail.toFixed(1)} g</td>
                 <td className="px-1.5 py-0.5 text-right font-mono text-amber-300">{r.gBlended.toFixed(1)} g</td>
-                <td className={`px-1.5 py-0.5 text-right font-mono ${r.impactKt >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                <td className={`px-1.5 py-0.5 text-right font-mono ${chgTone(r.impactKt)}`}>
                   {r.impactKt >= 0 ? "+" : ""}{r.impactKt.toFixed(0)} kt
                   <span className="text-slate-500"> ({r.impactPct >= 0 ? "+" : ""}{r.impactPct.toFixed(1)}%)</span>
                 </td>
@@ -136,7 +137,7 @@ export default function BrewingMixPanel({ markets }: { markets: Market[] }) {
             className="bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5 text-slate-200">
             {FORMATS.map(f => <option key={f} value={f}>{FORMAT_LABEL[f]}</option>)}
           </select>
-          <span className={`ml-auto font-mono ${totalImpactKt >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+          <span className={`ml-auto font-mono ${chgTone(totalImpactKt)}`}>
             Σ {totalImpactKt >= 0 ? "+" : ""}{Math.round(totalImpactKt).toLocaleString()} kt/yr
             <span className="text-slate-500"> across {rows.length} markets ({Math.round(coveredKt).toLocaleString()} kt covered)</span>
           </span>

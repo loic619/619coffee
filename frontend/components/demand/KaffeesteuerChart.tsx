@@ -4,6 +4,7 @@ import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { useState, useMemo, useEffect } from "react";
 import PinToReport from "@/components/report/PinToReport";
 import { useFetchJson } from "@/lib/useFetchJson";
+import { chgTone } from "@/lib/formatters";
 
 const YEAR_COLORS: Record<number, string> = {
   2016: "#64748b", 2017: "#6366f1", 2018: "#8b5cf6",
@@ -73,7 +74,7 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<
       <div className="font-semibold text-white mb-1">{d.label}</div>
       <div className="text-amber-300">Kaffeesteuer: <span className="font-bold">€{d.value.toFixed(2)}M</span></div>
       {d.yoy !== null && (
-        <div className={d.yoy >= 0 ? "text-emerald-400" : "text-red-400"}>
+        <div className={chgTone(d.yoy)}>
           12-mo avg YoY: {d.yoy >= 0 ? "+" : ""}{d.yoy}%
         </div>
       )}

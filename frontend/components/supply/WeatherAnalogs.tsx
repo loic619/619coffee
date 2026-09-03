@@ -499,7 +499,7 @@ function AnalogTable({ analogs }: { analogs: Analog[] }) {
         Top-{analogs.length} Weather Analogs · with crop outcomes (detrended)
       </div>
       <table className="w-full text-[10.5px]">
-        <thead className="text-[9px] text-slate-500 uppercase">
+        <thead className="text-[11px] text-slate-500 uppercase">
           <tr className="border-b border-slate-800">
             <th className="text-left  px-3 py-1.5">Rank</th>
             <th className="text-left  px-3 py-1.5">Year</th>

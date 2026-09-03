@@ -1,4 +1,5 @@
 "use client";
+import { chgTone } from "@/lib/formatters";
 import { ComposedChart, Bar, Line, LabelList, XAxis, YAxis, Tooltip, Legend, LineChart, CartesianGrid, ReferenceLine } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import {
@@ -8,7 +9,7 @@ import {
 
 const TT = { background: "#1e293b", border: "1px solid #334155", borderRadius: 6, fontSize: 10 };
 const CARD = "bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3";
-const chgCls = (v: number) => (v >= 0 ? "text-emerald-400" : "text-red-400");
+const chgCls = (v: number) => (chgTone(v));
 const chgStr = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`;
 
 function StoneXHeader({ title }: { title: string }) {

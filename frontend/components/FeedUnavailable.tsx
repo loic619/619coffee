@@ -27,7 +27,7 @@ export default function FeedUnavailable({ what, file, detail, className = "" }: 
       <span className="font-medium text-slate-300">{what}</span> is unavailable —{" "}
       {file ? <>the feed <span className="font-mono text-slate-300">{file}</span> did not load</> : "its feed did not load"}.
       {detail && <> {detail}</>}
-      <span className="block mt-0.5 text-[10px] text-slate-500">
+      <span className="block mt-0.5 text-[11px] text-slate-500">
         Not an empty result: the data could not be fetched. Check the freshness bar for the feed&rsquo;s last run.
       </span>
     </div>

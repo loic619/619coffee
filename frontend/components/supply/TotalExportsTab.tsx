@@ -17,6 +17,7 @@ import type { Formatter, ValueType, NameType } from "recharts/types/component/De
 import WorldBalanceSheet from "./WorldBalanceSheet";
 import { COUNTRY_EN } from "./BrazilTab/constants";
 import { COUNTRY_HUB, HUB_COLORS, HUB_ORDER } from "./IndonesiaExports/constants";
+import { chgTone } from "@/lib/formatters";
 
 const TT_STYLE = {
   background: "#1e293b", border: "1px solid #334155",
@@ -569,7 +570,7 @@ export default function TotalExportsTab() {
             <div className="text-[8px] uppercase tracking-wide font-bold text-slate-400 mb-0.5">YoY</div>
             <div className={`text-sm font-extrabold ${
               coverage.totalPct == null ? "text-slate-400"
-                : coverage.totalPct >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                : chgTone(coverage.totalPct)}`}>
               {coverage.totalPct == null ? "—" : `${coverage.totalPct >= 0 ? "+" : ""}${coverage.totalPct}%`}
             </div>
             <div className="text-[7px] text-slate-600 mt-0.5">
@@ -855,7 +856,7 @@ export default function TotalExportsTab() {
                 </td>
                 <td className="text-right py-1 px-1 text-slate-300">{r.kt.toLocaleString()}</td>
                 <td className={`text-right py-1 px-1 ${
-                  r.pct == null ? "text-slate-600" : r.pct >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  r.pct == null ? "text-slate-600" : chgTone(r.pct)}`}>
                   {r.pct == null ? "—" : `${r.pct >= 0 ? "+" : ""}${r.pct}%`}
                 </td>
                 <td className="text-right py-1 px-1 text-slate-400">{r.share}%</td>
@@ -869,7 +870,7 @@ export default function TotalExportsTab() {
               <td className="text-right py-1 px-1 font-bold text-slate-200">{coverage.total.toLocaleString()}</td>
               <td className={`text-right py-1 px-1 font-bold ${
                 coverage.totalPct == null ? "text-slate-600"
-                  : coverage.totalPct >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  : chgTone(coverage.totalPct)}`}>
                 {coverage.totalPct == null ? "—" : `${coverage.totalPct >= 0 ? "+" : ""}${coverage.totalPct}%`}
               </td>
               <td className="text-right py-1 px-1 text-slate-500">100%</td>

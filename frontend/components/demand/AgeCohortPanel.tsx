@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ComposedChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import { type AggMode, groupFor, groupOrder } from "@/lib/countryGroups";
+import { chgTone } from "@/lib/formatters";
 
 interface AnnualEntry {
   year: number;
@@ -276,7 +277,7 @@ export default function AgeCohortPanel() {
               const v2050 = s.byYear.get(refTo) ?? null;
               const delta = (v2025 != null && v2050 != null) ? v2050 - v2025 : null;
               const pct   = (v2025 && v2050) ? ((v2050 - v2025) / v2025) * 100 : null;
-              const pctCls = pct == null ? "text-slate-500" : pct >= 0 ? "text-emerald-400" : "text-red-400";
+              const pctCls = pct == null ? "text-slate-500" : chgTone(pct);
               return (
                 <tr key={s.key} className="border-b border-slate-800 hover:bg-slate-800/40">
                   <td className="px-2 py-1 text-slate-200 flex items-center gap-1.5">
@@ -285,7 +286,7 @@ export default function AgeCohortPanel() {
                   </td>
                   <td className="px-2 py-1 text-right font-mono text-slate-200">{fmtPop(v2025)}</td>
                   <td className="px-2 py-1 text-right font-mono text-slate-200">{fmtPop(v2050)}</td>
-                  <td className={`px-2 py-1 text-right font-mono ${delta != null ? (delta >= 0 ? "text-emerald-400" : "text-red-400") : "text-slate-500"}`}>
+                  <td className={`px-2 py-1 text-right font-mono ${delta != null ? (chgTone(delta)) : "text-slate-500"}`}>
                     {delta != null ? `${delta >= 0 ? "+" : ""}${fmtPop(Math.abs(delta) * (delta < 0 ? -1 : 1))}` : "—"}
                   </td>
                   <td className={`px-2 py-1 text-right font-mono ${pctCls}`}>

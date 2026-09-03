@@ -97,14 +97,14 @@ function SupplyPageInner() {
 
         <div className="flex flex-col sm:flex-row sm:items-start gap-2">
           <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-lg p-1 flex-wrap">
-            <span className="px-2 text-[10px] uppercase tracking-wider text-slate-500 select-none">Origin</span>
+            <span className="px-2 text-[11px] uppercase tracking-wider text-slate-500 select-none">Origin</span>
             {ORIGINS.map(t => (
               <Pill key={t.id} id={t.id} label={t.label} depth={t.depth}
                     active={tab === t.id} onClick={() => setTab(t.id)} />
             ))}
           </div>
           <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-lg p-1 flex-wrap">
-            <span className="px-2 text-[10px] uppercase tracking-wider text-slate-500 select-none">Across origins</span>
+            <span className="px-2 text-[11px] uppercase tracking-wider text-slate-500 select-none">Across origins</span>
             {CROSS.map(t => (
               <Pill key={t.id} id={t.id} label={t.label} depth={t.depth}
                     active={tab === t.id} onClick={() => setTab(t.id)}
@@ -112,7 +112,7 @@ function SupplyPageInner() {
             ))}
           </div>
         </div>
-        <p className="text-[10px] text-slate-600 -mt-3">
+        <p className="text-[11px] text-slate-600 -mt-3">
           Dot = depth of coverage: <span className="text-emerald-400">●</span> deep ·
           <span className="text-slate-400"> ●</span> standard ·
           <span className="text-slate-600"> ●</span> light. Origins in export-volume order.

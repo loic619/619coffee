@@ -8,6 +8,7 @@ import {
 import type { Formatter, ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 import { cropYearKey, kgToKT } from "./helpers";
 import type { SeriesKey, VolumeSeries } from "./types";
+import { chgTone } from "@/lib/formatters";
 
 /** Cumulative export pace across crop years. No projection overlay
  *  (Indonesia doesn't ship an SSOT forecast yet); always lines-only. */
@@ -101,7 +102,7 @@ export default function CumulativePaceChart({
       {pacePct !== null && (
         <div className="text-[10px] text-slate-500 mt-1">
           {currentCropKey} pace vs {prior1Key}:{" "}
-          <span className={`font-bold ${pacePct >= 0 ? "text-green-400" : "text-red-400"}`}>
+          <span className={`font-bold ${chgTone(pacePct)}`}>
             {pacePct >= 0 ? "+" : ""}{pacePct}%
           </span>{" "}
           at same crop-month

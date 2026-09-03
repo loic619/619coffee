@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Cell } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 import type { BalanceSheet, BalanceSeasonRow } from "./farmerEconomicsData";
+import { chgTone } from "@/lib/formatters";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -225,7 +226,7 @@ export default function BalanceSheetPanel({ balance }: { balance: BalanceSheet }
                     <td className="text-right pr-3 text-slate-300 font-mono">{p.toFixed(1)}</td>
                     <td className="text-right pr-3 text-red-400/80 font-mono">{r.exports_ico.toFixed(1)}</td>
                     <td className="text-right pr-3 text-orange-400/80 font-mono">{r.consumption.toFixed(1)}</td>
-                    <td className={`text-right font-mono font-bold ${s >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <td className={`text-right font-mono font-bold ${chgTone(s)}`}>
                       {s > 0 ? "+" : ""}{s.toFixed(1)}
                     </td>
                   </tr>

@@ -5,7 +5,7 @@ import {
 } from "recharts";
 
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
-import { fmtDateLabel } from "@/lib/formatters";
+import { fmtDateLabel, chgTone } from "@/lib/formatters";
 
 // options_oi.json — daily Barchart boards for the nearest live KC/RM option
 // expiries. Newer files carry {contracts: [...]} per market and per-contract
@@ -536,7 +536,7 @@ function MarketReport({ mkt, doc, shist, sections }: {
                         <span className={`shrink-0 ${m.side === "C" ? "text-emerald-400" : "text-red-400"}`}>
                           {m.strike.toLocaleString()}{m.side === "C" ? "C" : "P"}
                         </span>
-                        <span className={`truncate ${m.chg > 0 ? "text-emerald-300" : "text-red-300"}`}>
+                        <span className={`truncate ${chgTone(m.chg)}`}>
                           {m.chg > 0 ? "+" : "−"}{Math.abs(m.chg).toLocaleString()}
                           <span className="hidden sm:inline"> lots</span>
                           <span className="text-slate-500 hidden lg:inline"> {m.chg > 0 ? "build" : "unwind"}</span>

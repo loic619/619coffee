@@ -1,4 +1,5 @@
 "use client";
+import { chgTone } from "@/lib/formatters";
 import { useEffect, useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
@@ -223,7 +224,7 @@ export default function CumulativePaceChart({ monthly }: { monthly: ExportMonth[
       {pacePct !== null && (
         <div className="text-[10px] text-slate-500 mt-1">
           {currentKey} pace vs {prior1Key}:{" "}
-          <span className={`font-bold ${pacePct >= 0 ? "text-green-400" : "text-red-400"}`}>
+          <span className={`font-bold ${chgTone(pacePct)}`}>
             {pacePct >= 0 ? "+" : ""}{pacePct}%
           </span>{" "}
           at same crop-month
