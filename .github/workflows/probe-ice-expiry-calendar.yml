@@ -1,13 +1,16 @@
 name: "0.21 – Probe: ICE expiry calendar (FND ground truth)"
 
-# Dispatch-only. Prints the First Notice Day / Last Trading Day rows ICE itself
-# publishes for Coffee "C" (KC) and Robusta (RC), so the rule encoded in
-# frontend/lib/fnd.ts can be checked against the exchange rather than against
-# memory. ice.com is egress-blocked from the agent sandbox; a runner is not.
+# Dispatch-only. Prints what ICE itself publishes for Coffee "C" (KC) and
+# Robusta (RC): the contract identity (so we know which product page we read),
+# the notice/expiry RULES, and the dated expiry table — so the rule encoded in
+# backend/contract_dates.py + frontend/lib/fnd.ts is checked against the
+# exchange rather than against memory. ice.com is egress-blocked from the agent
+# sandbox; a runner is not.
 #
-# Read the output next to lib/__tests__/fnd.test.ts: every date the library
-# derives must appear here. If one does not, the RULE is wrong (most likely
-# the Robusta "four business days" figure), not the holiday table.
+# First run (2026-09-03) found KC's "seven business days prior" verbatim, and
+# for Robusta "fifteen calendar days preceding the first day of the delivery
+# period, next business day if not one" — NOT the four business days the repo
+# had carried since day one. Barchart is fetched as a second witness.
 
 on:
   workflow_dispatch:
@@ -21,28 +24,57 @@ jobs:
         run: |
           set -e
           UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+          extract() {  # $1 = html file, $2 = label
+            python3 - "$1" "$2" <<'PY'
+          import html, re, sys
+          path, label = sys.argv[1], sys.argv[2]
+          raw = open(path, encoding="utf-8", errors="replace").read()
+          title = re.search(r"<title>(.*?)</title>", raw, re.S | re.I)
+          print(f"  [{label}] <title>: {html.unescape(title.group(1)).strip()[:120] if title else '?'}")
+          t = re.sub(r"<script.*?</script>|<style.*?</style>", " ", raw, flags=re.S | re.I)
+          t = html.unescape(re.sub(r"<[^>]+>", "\n", t))
+          lines = [l.strip() for l in t.splitlines() if l.strip()]
+          keys = ("notice day", "last trading", "tender", "delivery period", "delivery month",
+                  "contract size", "unit of trading", "currency", "symbol", "product code",
+                  "contract series", "listing", "exchange")
+          seen = set()
+          for i, l in enumerate(lines):
+              low = l.lower()
+              if any(k in low for k in keys) and len(l) < 90:
+                  ctx = " | ".join(lines[i: i + 2])
+                  if ctx not in seen:
+                      seen.add(ctx); print("   ", ctx[:220])
+          # Dated rows: anything that looks like a 2026/2027 date with a contract month nearby.
+          dates = [l for l in lines if re.search(r"\b(20(2[6-7]))\b", l) and len(l) < 60]
+          if dates:
+              print(f"  [{label}] dated lines ({len(dates)}):")
+              for l in dates[:60]: print("     ", l)
+          PY
+          }
           for spec in "KC|15|Coffee-C-Futures" "RC|37089080|Robusta-Coffee-Futures"; do
             IFS='|' read -r code id slug <<< "$spec"
-            echo "=================== $code ==================="
+            echo "=================== ICE $code ==================="
             for tab in "" "/expiry"; do
               url="https://www.ice.com/products/${id}/${slug}${tab}"
               echo "--- $url"
               curl -sSL -A "$UA" --max-time 40 "$url" -o page.html || { echo "fetch failed"; continue; }
               echo "bytes: $(wc -c < page.html)"
-              python3 - <<'PY'
-          import html, re
-          t = open("page.html", encoding="utf-8", errors="replace").read()
-          t = re.sub(r"<script.*?</script>|<style.*?</style>", " ", t, flags=re.S | re.I)
-          t = html.unescape(re.sub(r"<[^>]+>", "\n", t))
-          lines = [l.strip() for l in t.splitlines() if l.strip()]
-          keys = ("notice", "last trading", "tender", "delivery month", "first business", "business day")
-          for i, l in enumerate(lines):
-              if any(k in l.lower() for k in keys):
-                  ctx = " | ".join(lines[max(0, i - 1): i + 3])
-                  print("  ", ctx[:300])
-          # Any explicit dates in 2026/2027 near the word Notice
-          for m in re.finditer(r"(?i)(notice[^\n]{0,80})", t):
-              pass
-          PY
+              extract page.html "$code$tab"
             done
+          done
+          echo "=================== Barchart (second witness) ==================="
+          for sym in RMU26 RMX26 KCZ26; do
+            url="https://www.barchart.com/futures/quotes/${sym}/profile"
+            echo "--- $url"
+            curl -sSL -A "$UA" --max-time 40 "$url" -o bc.html || { echo "fetch failed"; continue; }
+            echo "bytes: $(wc -c < bc.html)"
+            python3 - <<'PY'
+          import html, re
+          t = open("bc.html", encoding="utf-8", errors="replace").read()
+          t = html.unescape(re.sub(r"<[^>]+>", "\n", re.sub(r"<script.*?</script>", " ", t, flags=re.S | re.I)))
+          lines = [l.strip() for l in t.splitlines() if l.strip()]
+          for i, l in enumerate(lines):
+              if re.search(r"(?i)first notice|last trad|expir", l) and len(l) < 60:
+                  print("   ", " | ".join(lines[i: i + 3])[:160])
+          PY
           done
