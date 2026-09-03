@@ -9,9 +9,10 @@ Contract: coffea canephora tipo 7/8, delivery Vitória-ES, quoted in
 R$ per 60-kg saca, expiries Jan/Mar/May/Jul/Sep/Nov. Launched Sep 2024.
 
 The API serves only the current snapshot (no history endpoint), so this
-module ACCUMULATES a daily series: each run upserts today's entry —
-front contract + full curve — into brazil_b3_conilon.json. Field used is
-prvsDayAdjstmntPric (ajuste diário — official daily settlement).
+module ACCUMULATES a daily series: each run upserts one entry — front
+contract + full curve — into brazil_b3_conilon.json. Field used is
+prvsDayAdjstmntPric (ajuste diário — the PREVIOUS session's official daily
+settlement), so a fetch on day D is stored under the business day before D.
 
 No dated public source for CNL settlements
 ==========================================
@@ -32,7 +33,7 @@ Output frontend/public/data/brazil_b3_conilon.json:
 from __future__ import annotations
 
 import json
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import requests
@@ -98,6 +99,17 @@ def _front(contracts: list[dict]) -> dict:
     return (live or contracts or [{}])[0]
 
 
+def previous_business_day(d: date) -> date:
+    """The B3 session a fetch on `d` is reporting: the last weekday strictly
+    before `d`. Weekends only — B3's own holidays (Carnaval, Corpus Christi,
+    Tiradentes…) are not modelled here; on those days the API repeats the
+    prior settlement and the identical-snapshot guard skips the row."""
+    out = d - timedelta(days=1)
+    while out.weekday() >= 5:
+        out -= timedelta(days=1)
+    return out
+
+
 def _load() -> dict:
     try:
         d = json.loads(OUT.read_text(encoding="utf-8"))
@@ -114,45 +126,38 @@ def _load() -> dict:
 
 
 def export_brazil_b3_conilon() -> None:
-    """Daily: fetch the CNL curve and upsert an entry keyed on today's date.
+    """Daily: fetch the CNL curve and upsert an entry keyed on the SESSION date.
 
-    Two guards stand between the API and the history. Both exist because the
-    API has no date of its own — it serves "the current snapshot" — so a row is
-    dated by WHEN WE LOOKED, never by what it describes.
+    The API has no date of its own — it serves "the current snapshot" — so the
+    row's date has to be derived from the clock. Three rules do that:
+
+    Dating · the field read is `prvsDayAdjstmntPric`, the PREVIOUS session's
+    ajuste, so a fetch on D is dated previous_business_day(D). Until 2026-09-03
+    rows were dated D itself, which put every conilon print one session late
+    against the arabica board, the KC overlay and the B3 Telegram message. The
+    old data showed it plainly: the rows dated Mon 2026-08-24 and Sat 08-22 both
+    carried 1053.79 (Friday the 21st's settlement) while the row dated 08-21
+    held Thursday's 1050.37. The file was re-dated in one pass (every row
+    shifted back one business day, weekend duplicates collapsed — no two rows
+    disagreed about a session), and each row records the `fetched_on` date so
+    the provenance is still visible.
 
     Guard 1 · weekends. B3 does not settle Sat/Sun, so a weekend call returns
     the same figure a Monday call will. Writing it anyway advanced the file's
     last date every single day, and _b3_key() in topic_notify_daily takes the
     max last-date across the two B3 files as its dedup key — so the key looked
-    new each morning and the B3 message went out on Saturday AND Sunday. Worse,
-    that message carries one header for both markets, so Friday's arabica close
-    was published under a Sunday date. Three weekends were affected before this
-    was noticed (2026-08-15/16, -22/23, -29/30).
+    new each morning and the B3 message went out on Saturday AND Sunday, with
+    Friday's arabica close published under a Sunday date (2026-08-15/16, -22/23,
+    -29/30). Weekend fetches are skipped outright.
 
     Guard 2 · unchanged snapshots. A holiday is a weekday with no settlement,
     and so is any day B3 has not published by the time we call. The signature
-    is a payload identical to the previous row's, so that is treated as
+    is a payload identical to the newest earlier row's, so that is treated as
     "nothing new" rather than dated afresh — otherwise the series grows a flat
-    step that reads as a real unchanged session (Sunday's row rendered as
-    "→+0.00 (+0.0%)"). The compare is the FULL curve, not the front price: two
-    sessions can settle the front at the same number by coincidence, but the
-    whole curve matching means the API simply had not moved.
-
-    What these guards do NOT fix — the rows are dated one session late
-    ------------------------------------------------------------------
-    The field read is `prvsDayAdjstmntPric` — the PREVIOUS day's ajuste. So a
-    row dated D holds the settlement of the business day before D, throughout
-    the whole series. The data shows it plainly: 2026-08-24 (Mon) and
-    2026-08-22 (Sat) carry the identical 1053.79, because both report Friday
-    the 21st's settlement — while the row actually dated 08-21 holds 1050.37,
-    which is Thursday's.
-
-    That is a real defect and it is deliberately NOT addressed here, because
-    re-dating the series changes every consumer of this file
-    (conilon_basis.py, open_direction_factors.py, research_retest_watch.py)
-    and needs its own verification against a dated source. Do not "tidy" the
-    weekend rows away in the meantime: Saturday's row is currently the only
-    place Friday's settlement appears at all.
+    step that reads as a real unchanged session ("→+0.00 (+0.0%)"). The compare
+    is the FULL curve, not the front price: two sessions can settle the front
+    at the same number by coincidence, but the whole curve matching means the
+    API simply had not moved.
 
     Sister modules avoid the whole problem — brazil_b3_arabica keys rows on
     `fech`, the session date the source itself states. Only this accumulator
@@ -162,6 +167,14 @@ def export_brazil_b3_conilon() -> None:
     if today_d.weekday() >= 5:
         print(f"  brazil_b3_conilon → {today_d} is a weekend; B3 does not settle — skipping")
         return
+    # The field read is prvsDayAdjstmntPric — the PREVIOUS session's ajuste.
+    # So a row fetched on D holds the settlement of the business day before D,
+    # and is dated accordingly. It used to be dated D, which put every conilon
+    # print one session late against the arabica board, the KC overlay and the
+    # B3 Telegram message ("CNL lags by a day" — it did, by construction).
+    # Two fetches that both see Friday's settlement (Sat/Sun/Mon) resolve to the
+    # same Friday row, which is also why the weekend rows used to duplicate.
+    session_d = previous_business_day(today_d)
     try:
         contracts = fetch()
     except Exception as e:  # noqa: BLE001
@@ -173,7 +186,7 @@ def export_brazil_b3_conilon() -> None:
     front = _front(contracts)
     doc = _load()
     by_date = {e["date"]: e for e in doc["history"]}
-    today = today_d.isoformat()
+    today = session_d.isoformat()
 
     prev = next((e for e in sorted(doc["history"], key=lambda e: e["date"], reverse=True)
                  if e["date"] < today), None)
@@ -184,6 +197,7 @@ def export_brazil_b3_conilon() -> None:
 
     by_date[today] = {
         "date": today,
+        "fetched_on": today_d.isoformat(),
         "front_month": front.get("month"),
         "front_price": front.get("price"),
         "contracts": contracts,
