@@ -10,14 +10,23 @@ name: "0.17 – Refresh Workflow Activity (7-day run record)"
 # that never fires, a job that fires far more than expected, a run that
 # succeeds while its data sits still. Neither file alone shows that.
 #
-# Daily at 06:10 UTC — after the overnight scrapers and the export, so the
-# record covers a complete cycle. GITHUB_TOKEN carries actions:read by
+# Triggered off 1.4's completion, NOT off the clock. Crons on this repo fire
+# late by anything from an hour to half a day (measured 26 Aug – 1 Sep: this
+# workflow's 06:10 cron actually started at 07:06, 17:36, 18:37, 12:39, 11:51,
+# 13:42 and 11:35), so the daily review kept reading a record that was up to
+# 19 h old and calling it "today". 1.4 runs several times a day at the end of
+# the data cycle, so hanging off it keeps the record no more than one export
+# cycle behind whenever anything reads it. The 06:10 cron stays as a fallback
+# for a day on which 1.4 never runs. GITHUB_TOKEN carries actions:read by
 # default; no extra secret.
 
 on:
   schedule:
     - cron: '10 6 * * *'
   workflow_dispatch:
+  workflow_run:
+    workflows: ["1.4 – Export and Publish Static JSON"]
+    types: [completed]
 
 concurrency:
   group: build-workflow-activity
@@ -32,19 +41,64 @@ jobs:
       actions: read
 
     steps:
+      # A workflow_run fire checks out the SHA that triggered it, which
+      # predates the commit 1.4 just pushed — so the age check below would
+      # read a stale generated_at and the push would start from behind main.
+      # Take main's tip on that path; leave every other path as it was.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && 'main' || github.ref }}
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
+      # 1.4 finishes several times a day, and a rebuild costs ~90 s and a
+      # commit each time. Skip when the record is still young; a manual
+      # dispatch always rebuilds, and an unreadable or missing stamp counts
+      # as stale so a broken file can never wedge this shut.
+      - name: Check how old the record is
+        id: age
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import datetime as dt, json, pathlib, sys
+
+          MAX_AGE = dt.timedelta(hours=6)
+          fresh = False
+          try:
+              stamp = json.loads(
+                  pathlib.Path("frontend/public/data/workflow_activity.json").read_text()
+              )["generated_at"]
+              when = dt.datetime.fromisoformat(stamp)
+              if when.tzinfo is None:
+                  when = when.replace(tzinfo=dt.timezone.utc)
+              age = dt.datetime.now(dt.timezone.utc) - when
+              fresh = dt.timedelta(0) <= age < MAX_AGE
+              print(f"record is {age.total_seconds() / 3600:.1f} h old", file=sys.stderr)
+          except Exception as exc:
+              print(f"could not read generated_at ({exc}) — rebuilding", file=sys.stderr)
+          print(f"fresh={'true' if fresh else 'false'}")
+          PY
+
+      - name: Record still fresh — nothing to rebuild
+        if: steps.age.outputs.fresh == 'true'
+        run: echo "workflow_activity.json is under 6 h old; skipping this rebuild."
+
       - name: Collect 7-day run record
+        if: steps.age.outputs.fresh != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: python backend/scripts/build_workflow_activity.py
 
       - name: Commit if changed
+        if: steps.age.outputs.fresh != 'true'
+        env:
+          # Same branch the checkout above resolved to, spelled out rather
+          # than read from GITHUB_REF_NAME, which a workflow_run fire sets
+          # from the triggering run rather than from this checkout.
+          TARGET_BRANCH: ${{ github.event_name == 'workflow_run' && 'main' || github.ref_name }}
         run: |
           set -e
           git config user.name  "github-actions[bot]"
@@ -57,8 +111,8 @@ jobs:
           git commit -m "data: refresh workflow activity [skip ci]"
           ok=0
           for attempt in 1 2 3 4 5; do
-            if git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" \
-               && git push origin "HEAD:${GITHUB_REF_NAME}"; then ok=1; break; fi
+            if git pull --rebase --autostash --strategy-option=theirs origin "${TARGET_BRANCH}" \
+               && git push origin "HEAD:${TARGET_BRANCH}"; then ok=1; break; fi
             echo "push attempt $attempt failed; retrying in $((5*attempt))s…"; sleep $((5 * attempt))
           done
           [ "$ok" = 1 ] || { echo "push failed after 5 attempts"; exit 1; }
