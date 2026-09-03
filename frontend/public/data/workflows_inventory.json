@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-03T07:18:00.446760Z",
+  "generated_at": "2026-09-03T07:43:07.282083Z",
   "count": 99,
   "workflows": [
     {
@@ -562,7 +562,7 @@
     },
     {
       "file": "probe-ice-expiry-calendar.yml",
-      "name": "0.21 \u2013 Probe: ICE expiry calendar (FND ground truth)",
+      "name": "0.30 \u2013 Probe: ICE expiry calendar (FND ground truth)",
       "triggers": [
         "workflow_dispatch"
       ],
@@ -1239,7 +1239,7 @@
     },
     {
       "file": "threshold-alerts.yml",
-      "name": "1.18 \u2013 Threshold alerts (admin Telegram)",
+      "name": "1.26 \u2013 Threshold alerts (admin Telegram)",
       "triggers": [
         "workflow_dispatch",
         "workflow_run"
@@ -1353,11 +1353,6 @@
         "version": "0.21"
       },
       {
-        "file": "probe-ice-expiry-calendar.yml",
-        "name": "0.21 \u2013 Probe: ICE expiry calendar (FND ground truth)",
-        "version": "0.21"
-      },
-      {
         "file": "probe-port-ids.yml",
         "name": "0.22 \u2013 Probe PortWatch port ids (diagnostic)",
         "version": "0.22"
@@ -1398,6 +1393,11 @@
         "version": "0.29"
       },
       {
+        "file": "probe-ice-expiry-calendar.yml",
+        "name": "0.30 \u2013 Probe: ICE expiry calendar (FND ground truth)",
+        "version": "0.30"
+      },
+      {
         "file": "build-oni-history.yml",
         "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
         "version": "0.6"
@@ -1428,11 +1428,6 @@
         "version": "1.18"
       },
       {
-        "file": "threshold-alerts.yml",
-        "name": "1.18 \u2013 Threshold alerts (admin Telegram)",
-        "version": "1.18"
-      },
-      {
         "file": "scraper-mapbiomas-coffee.yml",
         "name": "1.24 \u2013 Coffee Crop Area (MapBiomas)",
         "version": "1.24"
@@ -1441,6 +1436,11 @@
         "file": "scraper-coffee-footprint.yml",
         "name": "1.25 \u2013 Coffee Footprint (MapBiomas raster)",
         "version": "1.25"
+      },
+      {
+        "file": "threshold-alerts.yml",
+        "name": "1.26 \u2013 Threshold alerts (admin Telegram)",
+        "version": "1.26"
       },
       {
         "file": "b3-kc-close.yml",
