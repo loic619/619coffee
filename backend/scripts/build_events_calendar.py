@@ -19,11 +19,13 @@ Known patterns:
   - Cecafé monthly: ~17th-20th of the following month. Encoded as the 17th
            with a note explaining the date is approximate.
   - ICE KC (Arabica) months: H K N U Z (Mar May Jul Sep Dec).
-    First Notice Day: 7 business days before the 1st business day of the
-    delivery month. Matches `firstNoticeDay()` in the frontend chain logic.
+    First Notice Day: 7 exchange business days before the 1st business day
+    of the delivery month.
   - ICE RC (Robusta) months: F H K N U X (Jan Mar May Jul Sep Nov).
-    First Notice Day: 4 business days before the 1st business day of the
-    delivery month.
+    First Notice Day: 4 exchange business days before the 1st business day
+    of the delivery month.
+    Both computed by backend/contract_dates.py (holiday-aware, verified
+    against ICE's published expiry table 2026-09-03 — see its tests).
   - Vietnam Customs: monthly export bulletin published 22-28 of each month
            (variable; encoded as the 25th with a date-range note).
 
@@ -67,111 +69,27 @@ KC_MONTHS = {"H": 3, "K": 5, "N": 7, "U": 9, "Z": 12}
 RC_MONTHS = {"F": 1, "H": 3, "K": 5, "N": 7, "U": 9, "X": 11}
 
 
-# Exchange holidays — this used to be Mon–Fri only, with a note saying "good
-# enough for a watchlist". It was not: an FND that is a day off is exactly what
-# a watchlist exists to prevent. Weekend-only maths put RMF26 on 26 Dec 2025
-# (true: 24 Dec — Christmas and Boxing Day sit inside the count) and KCZ26 on
-# 20 Nov 2026 (true: 19 Nov — Thanksgiving). These rules mirror
-# frontend/lib/fnd.ts exactly; a vitest cross-check there fails the build if
-# the two ever disagree on an entry in events.json.
+# FND arithmetic lives in backend/contract_dates.py — the one Python source,
+# holiday-aware, mirrored by frontend/lib/fnd.ts and cross-checked by vitest
+# against every FND entry this script writes. This file used to carry its own
+# Mon–Fri copy with a note saying "good enough for a watchlist"; it was not.
+# The script is run from the repo root, so put backend/ on the path first.
+import sys  # noqa: E402
 
-def _easter(y: int) -> date:
-    a, b, c = y % 19, y // 100, y % 100
-    d, e, f = b // 4, b % 4, (b + 8) // 25
-    g = (b - f + 1) // 3
-    h = (19 * a + b - d - g + 15) % 30
-    i, k = c // 4, c % 4
-    l = (32 + 2 * e + 2 * i - h - k) % 7
-    m = (a + 11 * h + 22 * l) // 451
-    month = (h + l - 7 * m + 114) // 31
-    day = (h + l - 7 * m + 114) % 31 + 1
-    return date(y, month, day)
-
-
-def _nth_weekday(y: int, m: int, weekday: int, n: int) -> date:
-    """weekday: Mon=0…Sun=6. n=1 first, n=-1 last."""
-    if n > 0:
-        first = date(y, m, 1)
-        return first + timedelta(days=(weekday - first.weekday()) % 7 + 7 * (n - 1))
-    nxt = date(y + (m == 12), (m % 12) + 1, 1)
-    last = nxt - timedelta(days=1)
-    return last - timedelta(days=(last.weekday() - weekday) % 7)
-
-
-def _observed_us(d: date) -> date:
-    return d - timedelta(days=1) if d.weekday() == 5 else d + timedelta(days=1) if d.weekday() == 6 else d
-
-
-def _uk_substitute(d: date, taken: set) -> date:
-    while d.weekday() >= 5 or d in taken:
-        d += timedelta(days=1)
-    return d
-
-
-def ice_us_holidays(y: int) -> set:
-    """ICE Futures U.S. softs closures. Friday after Thanksgiving is an early
-    close, not a closure."""
-    e = _easter(y)
-    days = {
-        _observed_us(date(y, 1, 1)), _nth_weekday(y, 1, 0, 3), _nth_weekday(y, 2, 0, 3),
-        e - timedelta(days=2), _nth_weekday(y, 5, 0, -1), _observed_us(date(y, 6, 19)),
-        _observed_us(date(y, 7, 4)), _nth_weekday(y, 9, 0, 1), _nth_weekday(y, 11, 3, 4),
-        _observed_us(date(y, 12, 25)),
-    }
-    if date(y + 1, 1, 1).weekday() == 5:          # next New Year on a Saturday
-        days.add(date(y, 12, 31))
-    return days
-
-
-def ice_eu_holidays(y: int) -> set:
-    """ICE Futures Europe softs closures — England & Wales bank holidays with
-    the substitute-day rule."""
-    e = _easter(y)
-    taken: set = set()
-    taken.add(_uk_substitute(date(y, 1, 1), taken))
-    taken |= {e - timedelta(days=2), e + timedelta(days=1),
-              _nth_weekday(y, 5, 0, 1), _nth_weekday(y, 5, 0, -1), _nth_weekday(y, 8, 0, -1)}
-    taken.add(_uk_substitute(date(y, 12, 25), taken))
-    taken.add(_uk_substitute(date(y, 12, 26), taken))
-    return taken
-
-
-_HOL_CACHE: dict = {}
-
-
-def _is_biz(d: date, market: str) -> bool:
-    if d.weekday() >= 5:
-        return False
-    key = (market, d.year)
-    if key not in _HOL_CACHE:
-        _HOL_CACHE[key] = ice_us_holidays(d.year) if market == "us" else ice_eu_holidays(d.year)
-    return d not in _HOL_CACHE[key]
-
-
-def _first_biz_day(year: int, month: int, market: str = "us") -> date:
-    """First exchange business day of the month."""
-    d = date(year, month, 1)
-    while not _is_biz(d, market):
-        d += timedelta(days=1)
-    return d
-
-
-def _sub_biz_days(d: date, n: int, market: str = "us") -> date:
-    """Subtract n exchange business days."""
-    out = d
-    while n > 0:
-        out -= timedelta(days=1)
-        if _is_biz(out, market):
-            n -= 1
-    return out
+sys.path.insert(0, str(REPO_ROOT / "backend"))
+from contract_dates import calc_fnd as _calc_fnd  # noqa: E402
 
 
 def _fnd_kc(year: int, month: int) -> date:
-    return _sub_biz_days(_first_biz_day(year, month, "us"), 7, "us")
+    return _calc_fnd(f"KC{_LETTER[month]}{str(year)[-2:]}")
 
 
 def _fnd_rc(year: int, month: int) -> date:
-    return _sub_biz_days(_first_biz_day(year, month, "eu"), 4, "eu")
+    return _calc_fnd(f"RM{_LETTER[month]}{str(year)[-2:]}")
+
+
+_LETTER = {v: k for k, v in {"F": 1, "G": 2, "H": 3, "J": 4, "K": 5, "M": 6,
+                             "N": 7, "Q": 8, "U": 9, "V": 10, "X": 11, "Z": 12}.items()}
 
 
 def _last_biz_day(year: int, month: int) -> date:

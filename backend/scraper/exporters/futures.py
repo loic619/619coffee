@@ -8,6 +8,7 @@ import json
 from datetime import date, datetime, timedelta
 
 from contract_dates import calc_fnd as _calc_fnd
+from contract_dates import market_for as _market_for
 from contract_dates import trading_days_to as _trading_days_to
 from models import NewsItem
 from scraper import symbols as _sym
@@ -185,7 +186,7 @@ def export_oi_fnd_chart(db) -> None:
                     fnd = _calc_fnd(sym)
                     if not fnd:
                         continue
-                    day_val = _trading_days_to(trade_date, fnd)
+                    day_val = _trading_days_to(trade_date, fnd, _market_for(sym) or "us")
                     if day_val < -45 or day_val > 0:
                         continue
                     series.setdefault(sym, {})[day_val] = oi
@@ -207,7 +208,7 @@ def export_oi_fnd_chart(db) -> None:
                 fnd = _calc_fnd(sym)
                 if not fnd:
                     continue
-                day_val = _trading_days_to(snap_date, fnd)
+                day_val = _trading_days_to(snap_date, fnd, _market_for(sym) or "us")
                 if day_val < -45 or day_val > 0:
                     continue
                 # Don't overwrite DB-sourced point — DB is authoritative
@@ -240,7 +241,7 @@ def export_oi_fnd_chart(db) -> None:
                 fnd = _calc_fnd(chart_sym)
                 if not fnd:
                     continue
-                day_val = _trading_days_to(snap_date, fnd)
+                day_val = _trading_days_to(snap_date, fnd, _market_for(chart_sym) or "us")
                 if day_val < -45 or day_val > 0:
                     continue
                 oi    = cell.get("oi")
@@ -333,7 +334,7 @@ def export_oi_fnd_chart(db) -> None:
                             snap_date = date.fromisoformat(snap_date_str)
                         except Exception:
                             continue
-                        day_val = _trading_days_to(snap_date, front_fnd)
+                        day_val = _trading_days_to(snap_date, front_fnd, _market_for(front_disp) or "us")
                         if day_val < -45 or day_val > 0:
                             continue
                         # Round to 2dp — settle prices come at the exchange's

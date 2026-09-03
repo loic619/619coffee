@@ -26,8 +26,14 @@
  * "Exchange business day" excludes the exchange's own holidays. The holiday
  * sets below are RULE-BASED (not a static table), so they do not go stale at
  * year end. They encode the published patterns; if ICE announces an ad-hoc
- * closure it must be added to `EXTRA_CLOSURES`. Verify against the exchange's
- * own expiry calendar before relying on a specific date for a trade.
+ * closure it must be added to `EXTRA_CLOSURES`.
+ *
+ * VERIFIED against ICE's published expiry table on 2026-09-03 (probe 0.21):
+ * both rules are quoted verbatim from the product pages, and every listed
+ * contract through March 2028 matches to the day — the holiday-shifted ones
+ * included. That table is pinned in lib/__tests__/fnd.test.ts, so drift fails
+ * a test rather than a trade. (The check also caught that the product id the
+ * repo had assumed was Robusta, 37089080, is White Sugar; Robusta is 37089079.)
  *
  * Two consumers, one source: the chain table calls `firstNoticeDay()`; the
  * cross-check test (lib/__tests__/fnd.test.ts) asserts every `category: "fnd"`
@@ -151,8 +157,15 @@ export function iceEuHolidays(y: number): Set<string> {
   add(nthWeekday(y, 5, 1, 1));              // Early May bank holiday
   add(nthWeekday(y, 5, 1, -1));             // Spring bank holiday
   add(nthWeekday(y, 8, 1, -1));             // Summer bank holiday
-  add(ukSubstitute(utc(y, 12, 25), taken)); // Christmas Day
-  add(ukSubstitute(utc(y, 12, 26), taken)); // Boxing Day
+  const xmas = utc(y, 12, 25);
+  add(ukSubstitute(xmas, taken));            // Christmas Day
+  // Boxing Day. When Christmas is a SATURDAY the UK gazettes two substitute
+  // days (Mon 27, Tue 28) — but ICE's published expiry table only reconciles
+  // if the exchange trades the Tuesday: RMF28's FND is 28 Dec 2027, which
+  // needs 28 Dec to be a business day. So one substitute day, not two, for
+  // that configuration. Every other year the ordinary rule holds (2026:
+  // Fri 25 + Sat 26 → Mon 28 closed, and RMF27 = 24 Dec confirms it).
+  if (xmas.getUTCDay() !== 6) add(ukSubstitute(utc(y, 12, 26), taken));
   EXTRA_CLOSURES.eu.forEach((x) => { if (x.startsWith(String(y))) taken.add(x); });
   return taken;
 }

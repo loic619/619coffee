@@ -27,10 +27,16 @@ describe("holiday rules", () => {
     ]) expect(h.has(d), d).toBe(true);
   });
 
-  it("ICE Europe 2027: Christmas on a Saturday shifts both days", () => {
+  it("ICE Europe 2027: Christmas on a Saturday — one substitute day, per ICE's table", () => {
+    // The UK gazettes Mon 27 AND Tue 28. ICE's published RMF28 FND (28 Dec
+    // 2027) only reconciles if the exchange trades Tue 28, so that is what
+    // the calendar encodes. This test used to assert both days closed — an
+    // assumption the exchange's own table contradicted.
     const h = iceEuHolidays(2027);
-    expect(h.has("2027-12-27")).toBe(true);   // Christmas substitute
-    expect(h.has("2027-12-28")).toBe(true);   // Boxing Day substitute
+    expect(h.has("2027-12-27")).toBe(true);
+    expect(h.has("2027-12-28")).toBe(false);
+    expect(h.has("2028-01-03")).toBe(false);  // belongs to 2028's set
+    expect(iceEuHolidays(2028).has("2028-01-03")).toBe(true);  // NY Sat → Mon
   });
 });
 
@@ -99,6 +105,31 @@ describe("events.json agrees with lib/fnd", () => {
     it(`${e.title} → ${e.date}`, () => {
       expect(sym, `cannot read a contract symbol from "${e.title}"`).toBeTruthy();
       expect(firstNoticeDayISO(sym!)).toBe(e.date);
+    });
+  }
+});
+
+// ── Ground truth: ICE's own expiry table ─────────────────────────────────────
+// Read from ice.com on 2026-09-03 by probe 0.21 (workflow
+// probe-ice-expiry-calendar.yml), product pages 15 (Coffee "C", KC) and
+// 37089079 (Robusta, RC). This is the exchange's published First Notice Day
+// for every listed contract, not a derivation. The rules the library encodes —
+// KC "seven business days prior to first business day of delivery month",
+// RC "fourth business day preceding the first business day of the delivery
+// month" — are quoted verbatim from those pages. If a date here ever fails,
+// either ICE changed a holiday or a rule, and the table is what to re-read.
+const ICE_PUBLISHED_FND: Record<string, string> = {
+  KCU26: "2026-08-21", KCZ26: "2026-11-19", KCH27: "2027-02-18", KCK27: "2027-04-22",
+  KCN27: "2027-06-22", KCU27: "2027-08-23", KCZ27: "2027-11-19", KCH28: "2028-02-18",
+  RMU26: "2026-08-25", RMX26: "2026-10-27", RMF27: "2026-12-24", RMH27: "2027-02-23",
+  RMK27: "2027-04-27", RMN27: "2027-06-25", RMU27: "2027-08-25", RMX27: "2027-10-26",
+  RMF28: "2027-12-28", RMH28: "2028-02-24",
+};
+
+describe("matches ICE's published expiry table (2026-09-03)", () => {
+  for (const [sym, iso] of Object.entries(ICE_PUBLISHED_FND)) {
+    it(`${sym} → ${iso}`, () => {
+      expect(firstNoticeDayISO(sym)).toBe(iso);
     });
   }
 });
