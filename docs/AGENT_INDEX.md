@@ -6,22 +6,24 @@ instead of searching 1,200 tracked files. Regenerate when tabs or data files cha
 
 | Tab | Where the code is | Files | Data it reads |
 |-----|-------------------|------:|---------------|
-| **Futures Exchange** | `frontend/app/futures/` · `frontend/components/futures/` | 35 | `acaphe_live.json`, `brazil_b3_arabica.json`, `brazil_b3_conilon.json`, `brazil_conilon_vitoria.json`, `cepea_conilon_indicator.json`, `cot.json`, `cot_options_book.json`, `cot_recent.json` _+10 more_ |
-| **News** | `frontend/app/news/` · `frontend/components/news/` | 7 | `events.json`, `news.json`, `sucafina_reports.json` |
-| **COT** | `frontend/app/cot/` · `frontend/app/signals/` · `frontend/components/signals/` | 9 | `open_direction_history.json`, `quant_report.json`, `sentiment_history.json` |
+| **Daily Brief** | `frontend/app/news/` · `frontend/components/news/` | 7 | `events.json`, `sucafina_reports.json` |
+| **Futures** | `frontend/app/futures/` · `frontend/components/futures/` | 39 | `acaphe_live.json`, `brazil_b3_arabica.json`, `brazil_b3_conilon.json`, `brazil_conilon_vitoria.json`, `cepea_conilon_indicator.json`, `cot.json`, `cot_options_book.json`, `cot_recent.json` _+10 more_ |
+| **COT** | `frontend/app/cot/` | 1 | — |
 | **Freight** | `frontend/app/freight/` | 6 | `farmer_economics.json`, `freight.json` |
 | **Supply** | `frontend/app/supply/` · `frontend/components/supply/` | 95 | `br_balance_sheet.json`, `brazil_export_projection.json`, `brazil_weather.json`, `ccs_sd.json`, `cecafe.json`, `cecafe_daily.json`, `co_balance_sheet.json`, `colombia_supply.json` _+33 more_ |
 | **Demand** | `frontend/app/demand/` · `frontend/components/demand/` | 30 | `ajca.json`, `certified_stocks_arabica.json`, `certified_stocks_robusta.json`, `coffee_imports.json`, `de_coffee_trade.json`, `demand_stocks.json`, `earnings.json`, `ecf_history.json` _+7 more_ |
 | **Macro** | `frontend/app/macro/` · `frontend/components/macro/` | 11 | `farmer_economics.json`, `freight.json`, `futures_price_history.json`, `fx_history.json`, `macro_cot.json`, `oi_history.json`, `origin_prices_history.json`, `quant_report.json` _+3 more_ |
+| **Signals** | `frontend/app/signals/` · `frontend/components/signals/` | 8 | `open_direction_history.json`, `quant_report.json`, `sentiment_history.json` |
 | **Map** | `frontend/app/map/` · `frontend/components/map/` | 8 | `acaphe_live.json`, `agronomic_alerts.json`, `cecafe.json`, `coffee_crop_area.json`, `coffee_crop_geo.json`, `coffee_footprint.json`, `eu_coffee_imports.json`, `freight.json` _+5 more_ |
+| **Research** | `frontend/app/research/` · `frontend/components/research/` | 58 | `alert_thresholds.json`, `certified_stocks_robusta.json`, `certified_stocks_robusta_deep_2020-2024.json`, `certified_stocks_robusta_deep_2025-2029.json`, `conilon_basis.json`, `cot_swap_identity.json`, `cropyear_xray.json`, `demand_stocks.json` _+27 more_ |
 | **Data Map** | `frontend/app/data-map/` · `frontend/components/data-map/` | 3 | `events.json`, `workflow_activity.json`, `workflows_inventory.json` |
-| **Research** | `frontend/app/research/` · `frontend/components/research/` | 57 | `certified_stocks_robusta.json`, `certified_stocks_robusta_deep_2020-2024.json`, `certified_stocks_robusta_deep_2025-2029.json`, `conilon_basis.json`, `cot_swap_identity.json`, `cropyear_xray.json`, `demand_stocks.json`, `farmer_economics.json` _+26 more_ |
 
 ## Supply sub-tabs (Tuesday rota, in page order)
 
-Defined as `TABS` in `frontend/app/supply/page.tsx`. **11** of them:
+Declared as `ORIGINS` + `CROSS` in `frontend/app/supply/page.tsx`. **11** of them,
+origins first (ordered by export volume), then the cross-cutting views:
 
-`brazil → colombia → honduras → ethiopia → vietnam → indonesia → uganda → total → fertilizers → enso → sd` → back to the start
+`brazil → vietnam → colombia → indonesia → ethiopia → honduras → uganda → total → sd → enso → fertilizers` → back to the start
 
 Each maps to a component under `frontend/components/supply/` — e.g. `sd` →
 `SupplySDTab.tsx`, `brazil` → `BrazilTab/`, `fertilizers` → `FertilizersTab.tsx`.
