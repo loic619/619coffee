@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-03T07:43:07.282083Z",
-  "count": 99,
+  "generated_at": "2026-09-03T07:45:16.529097Z",
+  "count": 100,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -515,6 +515,17 @@
       "workflow_run_deps": [],
       "concurrency_group": "acaphe-poll",
       "timeout_minutes": 8
+    },
+    {
+      "file": "probe-coffeecopa-tabela.yml",
+      "name": "0.31 \u2013 Probe: coffeecopa.com/tabela (Rio Minas / Duro physical quotes)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 5
     },
     {
       "file": "probe-fbx-history.yml",
@@ -1398,6 +1409,11 @@
         "version": "0.30"
       },
       {
+        "file": "probe-coffeecopa-tabela.yml",
+        "name": "0.31 \u2013 Probe: coffeecopa.com/tabela (Rio Minas / Duro physical quotes)",
+        "version": "0.31"
+      },
+      {
         "file": "build-oni-history.yml",
         "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
         "version": "0.6"
@@ -1499,7 +1515,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 36,
+    "uncovered_workflows_count": 37,
     "stale_curation_count": 0
   }
 }
