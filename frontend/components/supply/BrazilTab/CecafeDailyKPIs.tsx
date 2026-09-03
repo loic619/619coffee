@@ -16,7 +16,8 @@ import { useEffect, useState } from "react";
 import FeedUnavailable from "@/components/FeedUnavailable";
 import { MONTH_ABBR } from "@/lib/formatters";
 import StatCard from "./StatCard";
-import { bagsToKT, normalizeSources } from "./helpers";
+import { bagsToKT, normalizeSources, shiftMonth } from "./helpers";
+import { daysInMonth, fmtPct, fmtPerDay, monthFinal, pctChange } from "./pace";
 import type { CecafeSourceBucket, DailyData } from "./types";
 
 interface SourceLatest {
@@ -88,6 +89,20 @@ function _delta(cur: SourceLatest | null, prev: SourceLatest | null) {
   return { abs, pct };
 }
 
+/** Month-to-date pace of the three streams combined (bags per calendar day),
+ *  against last month's full-month average on the same basis. Same
+ *  definitions as pace.ts / the PaceStrip under the daily charts. */
+function _pace(bucket: CecafeSourceBucket, cur: SourceLatest | null) {
+  if (!cur || !cur.day) return null;
+  const perDay = cur.total / cur.day;
+  const lastYm = shiftMonth(cur.ym, -1);
+  const lastTotal = (["arabica", "conillon", "soluvel"] as const)
+    .map((t) => monthFinal(bucket[t]?.[lastYm]))
+    .reduce<number | null>((s, v) => (v == null ? s : (s ?? 0) + v), null);
+  const lastPerDay = lastTotal == null ? null : lastTotal / daysInMonth(lastYm);
+  return { perDay, lastYm, lastPerDay, pct: lastPerDay == null ? null : pctChange(perDay, lastPerDay) };
+}
+
 const _monthAbbr = (ym: string) => MONTH_ABBR[parseInt(ym.slice(5, 7), 10) - 1] ?? ym.slice(5);
 const _kt = (bags: number) => `${bagsToKT(bags).toFixed(1)} kt`;
 
@@ -113,6 +128,12 @@ export default function CecafeDailyKPIs() {
   const certPrev = certCur ? _atSameDayLastMonth(sources.certificados, certCur.ym, certCur.day) : null;
   const embDelta  = _delta(embCur, embPrev);
   const certDelta = _delta(certCur, certPrev);
+  const embPace   = _pace(sources.embarques, embCur);
+  const certPace  = _pace(sources.certificados, certCur);
+  const _paceSub = (p: ReturnType<typeof _pace>) =>
+    p?.lastPerDay != null
+      ? `${fmtPct(p.pct)} vs ${_monthAbbr(p.lastYm)} avg ${fmtPerDay(p.lastPerDay)}`
+      : "no prior month on file";
 
   const _deltaValue = (d: { pct: number } | null) =>
     d ? `${d.pct >= 0 ? "+" : ""}${d.pct.toFixed(1)}%` : "—";
@@ -122,7 +143,7 @@ export default function CecafeDailyKPIs() {
       : "no prior-month sample";
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       <StatCard
         label="Total Embarques · MTD"
         value={embCur ? _kt(embCur.total) : "—"}
@@ -134,6 +155,11 @@ export default function CecafeDailyKPIs() {
         sub={_deltaSub(embDelta, embPrev)}
       />
       <StatCard
+        label="Embarques pace · bags/day"
+        value={embPace ? fmtPerDay(embPace.perDay).replace("/day", "") : "—"}
+        sub={_paceSub(embPace)}
+      />
+      <StatCard
         label="Total Certificados · MTD"
         value={certCur ? _kt(certCur.total) : "—"}
         sub={certCur ? `${_monthAbbr(certCur.ym)} day ${certCur.day} · ${certCur.total.toLocaleString()} bags` : "no data"}
@@ -142,6 +168,11 @@ export default function CecafeDailyKPIs() {
         label="Certificados vs same-day last month"
         value={_deltaValue(certDelta)}
         sub={_deltaSub(certDelta, certPrev)}
+      />
+      <StatCard
+        label="Certificados pace · bags/day"
+        value={certPace ? fmtPerDay(certPace.perDay).replace("/day", "") : "—"}
+        sub={_paceSub(certPace)}
       />
     </div>
   );

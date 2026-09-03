@@ -9,6 +9,7 @@ import type { TooltipContentProps } from "recharts/types/component/Tooltip";
 
 type LabelFmt = NonNullable<TooltipContentProps<ValueType, NameType>["labelFormatter"]>;
 import { fmtBags, normalizeSources, shiftMonth, shortMonthLabel } from "./helpers";
+import { PaceByMonth, PaceStrip } from "./PaceComparison";
 import type { CecafeSourceKey, DailyData } from "./types";
 
 const SOURCE_LABEL: Record<CecafeSourceKey, { title: string; sub: string }> = {
@@ -17,11 +18,12 @@ const SOURCE_LABEL: Record<CecafeSourceKey, { title: string; sub: string }> = {
 };
 
 function DailyRegChart({
-  title, monthsData, currentMonth, soluvelData,
+  title, monthsData, currentMonth, latestMonth, soluvelData,
 }: {
   title: string;
   monthsData: Record<string, Record<string, number>>;
   currentMonth: string; // "YYYY-MM"
+  latestMonth: string;  // the file's reference month — months before it have closed
   soluvelData?: Record<string, Record<string, number>>;
 }) {
   const priorMonth = shiftMonth(currentMonth, -1);
@@ -129,6 +131,7 @@ function DailyRegChart({
           )}
         </LineChart>
       </ResponsiveContainer>
+      <PaceStrip monthsData={monthsData} currentMonth={currentMonth} latestMonth={latestMonth} />
     </div>
   );
 }
@@ -252,14 +255,17 @@ export default function DailyRegistrationSection() {
           title={`Arabica · ${sourceLabel.title} (Daily, Bags)`}
           monthsData={active.arabica}
           currentMonth={currentMonth}
+          latestMonth={latestMonth}
         />
         <DailyRegChart
           title={`Conilon · ${sourceLabel.title} (Daily, Bags)`}
           monthsData={active.conillon}
           currentMonth={currentMonth}
+          latestMonth={latestMonth}
           soluvelData={active.soluvel}
         />
       </div>
+      <PaceByMonth bucket={active} latestMonth={latestMonth} sourceTitle={sourceLabel.title} />
     </div>
   );
 }
