@@ -19,12 +19,19 @@
 
 ## The rota
 
-Which slot is running is decided by the date and time in **Asia/Saigon**: a run starting
-before 12:00 is **AM**, at or after 12:00 is **PM**.
+**One run a day, at 09:00 Asia/Saigon**, alternating between that weekday's two topics.
+It used to run twice a day; that was halved on 2026-09-03 after the account hit its monthly
+spend limit and a session was refused outright. A slot that doesn't run is worth nothing, so
+the cadence now fits the budget.
+
+So each weekday still has an **AM** and a **PM** topic below, but they are covered on
+alternating weeks: Monday week 1 takes Futures, Monday week 2 takes Daily Brief, and so on.
+Every topic comes round once a fortnight. **Which one is due is in the Rotation state block —
+read it, don't guess from the clock.**
 
 | Day | AM | PM |
 |-----|----|----|
-| **Monday** | Futures Exchange tab | News tab |
+| **Monday** | Futures tab | Daily Brief tab |
 | **Tuesday** | Supply — next sub-tab in the cycle | Supply — the one after it |
 | **Wednesday** | Demand — consumption | Macro tab |
 | **Thursday** | Freight tab | COT tab |
@@ -34,11 +41,27 @@ before 12:00 is **AM**, at or after 12:00 is **PM**.
 
 ### Rotation state — update this every time you use it
 
-**Supply sub-tabs** (Tuesday, two per week, ~6 weeks per full cycle, in page order).
-There are **eleven** — the authoritative list is `TABS` in `frontend/app/supply/page.tsx`:
-`Brazil → Colombia → Honduras → Ethiopia → Vietnam → Indonesia → Uganda → Total → Fertilizers → ENSO → S&D →` back to Brazil.
+**AM/PM alternation** (which half of today's row to take):
 
-- **Next up:** Brazil (AM), Colombia (PM)
+| Day | Last taken | Take next |
+|-----|-----------|-----------|
+| Monday | — | **AM** (Futures) |
+| Tuesday | — | **AM** (Supply, first sub-tab) |
+| Wednesday | — | **AM** (Demand — consumption) |
+| Thursday | — | **AM** (Freight) |
+| Friday | — | **AM** (Map) |
+| Saturday | — | **AM** (Data Map) |
+| Sunday | — | **AM** (Research — new idea) |
+
+After a run, set that day's "Last taken" to what you took and flip "Take next" to the other half.
+
+
+**Supply sub-tabs** (Tuesday, one per fortnight now, in page order).
+There are **eleven** — the authoritative list is `TABS` in `frontend/app/supply/page.tsx`:
+`Brazil → Vietnam → Colombia → Indonesia → Ethiopia → Honduras → Uganda → Total → S&D → ENSO → Fertilizers →` back to Brazil.
+(Origins first, ordered by export volume, then the cross-cutting views — the order `ORIGINS` + `CROSS` declare.)
+
+- **Next up:** Brazil
 - **Last covered:** — (cycle not yet started)
 
 **Data Map topics** (Saturday AM, one per week, in order):
