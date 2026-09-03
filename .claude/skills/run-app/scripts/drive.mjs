@@ -102,8 +102,16 @@ if (CLICK) { await page.locator(CLICK).first().click(); await page.waitForTimeou
 // inner scroller instead; pair it with a tall --height to capture a panel.
 const SCROLL = arg('scroll', null);
 if (SCROLL) {
-  await page.locator(SCROLL).first().evaluate(el => el.scrollIntoView({ block: 'start' }));
-  await page.waitForTimeout(800);
+  // Repeat until the target stays put: sections above it keep growing as their
+  // fetches land (and lazy sections mount on first sight), which pushes the
+  // target back out of view after a single scroll.
+  const target = page.locator(SCROLL).first();
+  for (let i = 0; i < 8; i++) {
+    await target.evaluate(el => el.scrollIntoView({ block: 'start' }));
+    await page.waitForTimeout(900);
+    const top = await target.evaluate(el => el.getBoundingClientRect().top);
+    if (Math.abs(top) < 4) break;
+  }
 }
 
 await page.screenshot({ path: OUT, fullPage: has('full') });
