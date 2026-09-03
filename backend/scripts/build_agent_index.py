@@ -17,25 +17,32 @@ OUT = "docs/AGENT_INDEX.md"
 # Tab label -> the directories its code actually lives in. Note that Freight and
 # COT keep their components inside frontend/app/, not frontend/components/.
 TABS = [
-    ("Futures Exchange", ["frontend/app/futures", "frontend/components/futures"]),
-    ("News",             ["frontend/app/news", "frontend/components/news"]),
-    ("COT",              ["frontend/app/cot", "frontend/app/signals", "frontend/components/signals"]),
-    ("Freight",          ["frontend/app/freight"]),
-    ("Supply",           ["frontend/app/supply", "frontend/components/supply"]),
-    ("Demand",           ["frontend/app/demand", "frontend/components/demand"]),
-    ("Macro",            ["frontend/app/macro", "frontend/components/macro"]),
-    ("Map",              ["frontend/app/map", "frontend/components/map"]),
-    ("Data Map",         ["frontend/app/data-map", "frontend/components/data-map"]),
-    ("Research",         ["frontend/app/research", "frontend/components/research"]),
+    ("Daily Brief",  ["frontend/app/news", "frontend/components/news"]),
+    ("Futures",      ["frontend/app/futures", "frontend/components/futures"]),
+    ("COT",          ["frontend/app/cot"]),
+    ("Freight",      ["frontend/app/freight"]),
+    ("Supply",       ["frontend/app/supply", "frontend/components/supply"]),
+    ("Demand",       ["frontend/app/demand", "frontend/components/demand"]),
+    ("Macro",        ["frontend/app/macro", "frontend/components/macro"]),
+    ("Signals",      ["frontend/app/signals", "frontend/components/signals"]),
+    ("Map",          ["frontend/app/map", "frontend/components/map"]),
+    ("Research",     ["frontend/app/research", "frontend/components/research"]),
+    ("Data Map",     ["frontend/app/data-map", "frontend/components/data-map"]),
 ]
 
 DATA_REF = re.compile(r"/data/([A-Za-z0-9_\-.]+\.json)")
 SUPPLY_TABS = re.compile(r'\{\s*id:\s*"([a-z0-9_-]+)"', re.I)
+# The Supply page splits its pills into two named arrays. If it is refactored
+# again, add the new names here — and the hard failure below will tell you.
+SUPPLY_ARRAYS = ("ORIGINS", "CROSS", "TABS")
 
 
 def scan(dirs):
     """Count .ts/.tsx files under dirs and collect the /data/*.json they reference."""
     n, data = 0, set()
+    missing = [d for d in dirs if not os.path.isdir(d)]
+    if len(missing) == len(dirs):
+        print(f"  WARNING: none of these directories exist any more: {dirs}")
     for d in dirs:
         if not os.path.isdir(d):
             continue
@@ -53,13 +60,33 @@ def scan(dirs):
 
 
 def supply_subtabs():
-    """The Supply sub-tab order, read from the page rather than hard-coded."""
+    """The Supply sub-tab ids, read from the page rather than hard-coded.
+
+    Raises rather than returning an empty list. A silent empty result once wrote
+    "**0** of them" into the index and shipped it: an index that is confidently
+    wrong is worse than no index, because agents act on it.
+    """
+    path = "frontend/app/supply/page.tsx"
     try:
-        src = open("frontend/app/supply/page.tsx", encoding="utf-8").read()
-    except OSError:
-        return []
-    block = src.split("const TABS", 1)
-    return SUPPLY_TABS.findall(block[1].split("]", 1)[0]) if len(block) > 1 else []
+        src = open(path, encoding="utf-8").read()
+    except OSError as exc:
+        raise SystemExit(f"{OUT}: cannot read {path} ({exc})") from exc
+
+    ids = []
+    for name in SUPPLY_ARRAYS:
+        marker = f"const {name} = ["
+        if marker not in src:
+            continue
+        body = src.split(marker, 1)[1].split("]", 1)[0]
+        ids.extend(SUPPLY_TABS.findall(body))
+
+    if not ids:
+        raise SystemExit(
+            f"{OUT}: found no Supply sub-tabs in {path}. The page was probably "
+            f"refactored — looked for {', '.join(SUPPLY_ARRAYS)}. Fix "
+            "SUPPLY_ARRAYS in this script rather than shipping an empty list."
+        )
+    return ids
 
 
 def main():
@@ -80,7 +107,7 @@ def main():
 
     subs = supply_subtabs()
     out.append("\n## Supply sub-tabs (Tuesday rota, in page order)\n")
-    out.append(f"Defined as `TABS` in `frontend/app/supply/page.tsx`. **{len(subs)}** of them:\n")
+    out.append(f"Declared as `ORIGINS` + `CROSS` in `frontend/app/supply/page.tsx`. **{len(subs)}** of them,\norigins first (ordered by export volume), then the cross-cutting views:\n")
     out.append("`" + " → ".join(subs) + "` → back to the start\n")
     out.append("Each maps to a component under `frontend/components/supply/` — e.g. `sd` →")
     out.append("`SupplySDTab.tsx`, `brazil` → `BrazilTab/`, `fertilizers` → `FertilizersTab.tsx`.\n")
