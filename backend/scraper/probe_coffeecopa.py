@@ -1,98 +1,73 @@
-"""probe_coffeecopa.py — TEMPORARY (round 2).
+"""probe_coffeecopa.py — TEMPORARY (round 3).
 
-Round 1: /tabela/ serves ONE table — headers `Qualidade | Cata | Preço` and a
-single row reading "Carregando dados...". No BRL amounts, no dates in the HTML.
-The prices are drawn client-side, and the page's own script says it refreshes
-"durante o horário comercial" and otherwise shows a fixed message; the probe ran
-04:51 BRT, outside those hours.
+Rounds 1-2 found the mechanism. /tabela/ ships an empty table and fills it
+client-side from a PUBLIC Google Sheet:
 
-So: find the endpoint the script calls. Dump the inline scripts around
-#tabela-precos, and try the usual WordPress data routes.
+    SHEET_ID   = 1wNX2fPobme6rAE869H8Zrv82K8eCjaDadE30DHU48tc
+    SHEET_NAME = "Preços"
+    gviz/tq?tqx=out:json  ->  JSONP-ish, strip 47 chars and the trailing ");"
+    columns: row.c[0] qualidade | row.c[1] cata (fraction) | row.c[2] preço
+
+The page only refreshes between 09:30 and 18:00 BRT, but that gate is in the
+browser — the sheet itself should answer any time. This checks that, and prints
+every row so the grades and the unit can be read off real data before a scraper
+assumes either.
 
 Delete once the answer is known.
 """
 from __future__ import annotations
 
 import json
-import re
 import sys
 
 import requests
 
+SHEET_ID = "1wNX2fPobme6rAE869H8Zrv82K8eCjaDadE30DHU48tc"
+GVIZ = (f"https://docs.google.com/spreadsheets/d/{SHEET_ID}"
+        "/gviz/tq?tqx=out:json&sheet=Pre%C3%A7os")
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                    "(KHTML, like Gecko) Chrome/126 Safari/537.36",
-      "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8"}
-
-
-def _get(url, **kw):
-    try:
-        r = requests.get(url, headers=UA, timeout=40, **kw)
-        print(f"  GET {url} -> {r.status_code} {len(r.content)}B "
-              f"{r.headers.get('content-type','?')}")
-        return r
-    except Exception as e:                                    # noqa: BLE001
-        print(f"  GET {url} -> FAILED {type(e).__name__}: {e}")
-        return None
+                    "(KHTML, like Gecko) Chrome/126 Safari/537.36"}
 
 
 def main() -> int:
-    print("=" * 78)
-    print("STEP 1 — inline scripts on /tabela/")
-    print("=" * 78)
-    r = _get("https://coffeecopa.com/tabela/")
-    html = r.text if r and r.ok else ""
-    for m in re.finditer(r"<script[^>]*>([\s\S]*?)</script>", html, re.I):
-        body = m.group(1)
-        if "tabela-precos" in body or "fetch(" in body or "ajax" in body.lower():
-            print("--- script block ---")
-            print(body.strip()[:4000])
-            print("--- end ---")
+    r = requests.get(GVIZ, headers=UA, timeout=40)
+    print(f"GET gviz -> {r.status_code} {len(r.content)}B "
+          f"{r.headers.get('content-type','?')}")
+    if not r.ok:
+        print(r.text[:800])
+        return 1
 
-    print()
-    print("=" * 78)
-    print("STEP 2 — every URL the page references that could carry the data")
-    print("=" * 78)
-    cands = set(re.findall(r"https?://[^\s\"'<>]{6,160}", html))
-    for u in sorted(cands):
-        if any(k in u.lower() for k in ("json", "ajax", "api", "preco", "tabela",
-                                        "cota", "sheet", "csv", "docs.google")):
-            print(f"  candidate: {u}")
+    text = r.text
+    print(f"first 80 chars: {text[:80]!r}")
+    start, end = text.find("{"), text.rfind("}")
+    payload = json.loads(text[start:end + 1])
 
-    print()
-    print("=" * 78)
-    print("STEP 3 — the page object via wp-json, scripts and all")
-    print("=" * 78)
-    r = _get("https://coffeecopa.com/wp-json/wp/v2/pages?search=tabela")
-    if r and r.ok:
-        try:
-            for page in r.json():
-                print(f"--- page id={page.get('id')} slug={page.get('slug')!r}")
-                content = (page.get("content") or {}).get("rendered") or ""
-                for m in re.finditer(r"<script[^>]*>([\s\S]*?)</script>", content, re.I):
-                    print(m.group(1).strip()[:4000])
-        except Exception as e:                                # noqa: BLE001
-            print(f"  json parse failed: {e}")
+    table = payload.get("table") or {}
+    cols = [c.get("label") or c.get("id") for c in table.get("cols") or []]
+    types = [c.get("type") for c in table.get("cols") or []]
+    print(f"\ncolumn labels: {cols}")
+    print(f"column types:  {types}")
 
-    print()
-    print("=" * 78)
-    print("STEP 4 — common WordPress data routes")
-    print("=" * 78)
-    for u in ("https://coffeecopa.com/wp-admin/admin-ajax.php?action=precos",
-              "https://coffeecopa.com/wp-json/coffeecopa/v1/precos",
-              "https://coffeecopa.com/wp-json/",
-              "https://coffeecopa.com/precos.json",
-              "https://coffeecopa.com/wp-content/uploads/precos.json"):
-        rr = _get(u)
-        if rr is not None and rr.ok:
-            body = rr.text[:900]
-            print(f"    body: {body!r}")
-            if "wp-json/" in u and u.endswith("wp-json/"):
-                try:
-                    routes = [k for k in rr.json().get("routes", {})
-                              if "wp/v2" not in k and "oembed" not in k]
-                    print(f"    custom routes: {json.dumps(routes, indent=2)[:1500]}")
-                except Exception:                             # noqa: BLE001
-                    pass
+    rows = table.get("rows") or []
+    print(f"rows: {len(rows)}\n")
+    for i, row in enumerate(rows):
+        cells = row.get("c") or []
+        vals = []
+        for c in cells:
+            if c is None:
+                vals.append(None)
+            else:
+                vals.append((c.get("v"), c.get("f")))
+        print(f"  {i:2d} {vals}")
+
+    print("\n--- what a scraper would read ---")
+    for row in rows:
+        c = row.get("c") or []
+        def val(i):
+            return c[i].get("v") if i < len(c) and c[i] else None
+        q, cata, preco = val(0), val(1), val(2)
+        if q or preco:
+            print(f"  qualidade={q!r:44s} cata={cata!r:10s} preco={preco!r}")
     return 0
 
 
