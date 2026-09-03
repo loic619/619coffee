@@ -1,0 +1,48 @@
+name: "0.31 – Probe: coffeecopa.com/tabela (Rio Minas / Duro physical quotes)"
+
+# Dispatch-only. Dumps the structure of https://coffeecopa.com/tabela/ — the
+# table(s), their headers, and every row mentioning Rio Minas or Duro — so a
+# scraper for the Brazilian physical arabica quotes (Rio Minas 20%, Duro 20%)
+# can be written against what the page actually serves. coffeecopa.com is
+# egress-blocked from the agent sandbox; a runner is not. Changes nothing.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fetch and dump
+        run: |
+          set -e
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+          curl -sSL -A "$UA" --max-time 40 "https://coffeecopa.com/tabela/" -o page.html
+          echo "bytes: $(wc -c < page.html)"
+          python3 - <<'PY'
+          import html, re
+          raw = open("page.html", encoding="utf-8", errors="replace").read()
+          t = re.search(r"<title>(.*?)</title>", raw, re.S | re.I)
+          print("title:", html.unescape(t.group(1)).strip() if t else "?")
+          # Tables, kept as rows of cells so the layout is readable.
+          tables = re.findall(r"<table.*?</table>", raw, re.S | re.I)
+          print(f"tables: {len(tables)}")
+          for ti, tb in enumerate(tables):
+              rows = re.findall(r"<tr.*?</tr>", tb, re.S | re.I)
+              print(f"--- table {ti}: {len(rows)} rows")
+              for r in rows[:60]:
+                  cells = [html.unescape(re.sub(r"<[^>]+>", "", c)).strip() for c in re.findall(r"<t[hd].*?</t[hd]>", r, re.S | re.I)]
+                  cells = [re.sub(r"\s+", " ", c) for c in cells]
+                  if any(cells): print("   | " + " | ".join(cells))
+          # Anything Rio Minas / Duro outside tables (cards, lists), plus dates.
+          text = html.unescape(re.sub(r"<[^>]+>", "\n", re.sub(r"<script.*?</script>|<style.*?</style>", " ", raw, flags=re.S | re.I)))
+          lines = [l.strip() for l in text.splitlines() if l.strip()]
+          print("--- lines mentioning Rio Minas / Duro / date:")
+          for i, l in enumerate(lines):
+              if re.search(r"(?i)rio\s*minas|duro|atualiza|data|\d{2}/\d{2}/\d{4}", l) and len(l) < 120:
+                  print("   ", " | ".join(lines[max(0, i-1): i+3])[:200])
+          # Is the table rendered client-side? Look for JSON / API hints.
+          for m in re.finditer(r"(?i)(fetch\(|axios|api/|\.json|wp-json)[^\"' ]{0,80}", raw):
+              print("   hint:", m.group(0)[:100]); break
+          PY
