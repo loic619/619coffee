@@ -97,6 +97,15 @@ await page.waitForTimeout(Number(arg('settle', 4000)));
 
 if (CLICK) { await page.locator(CLICK).first().click(); await page.waitForTimeout(1000); }
 
+// Pages whose root is `h-full overflow-y-auto` never scroll the document, so
+// --full returns the viewport. --scroll brings the element to the top of the
+// inner scroller instead; pair it with a tall --height to capture a panel.
+const SCROLL = arg('scroll', null);
+if (SCROLL) {
+  await page.locator(SCROLL).first().evaluate(el => el.scrollIntoView({ block: 'start' }));
+  await page.waitForTimeout(800);
+}
+
 await page.screenshot({ path: OUT, fullPage: has('full') });
 console.log(`screenshot: ${OUT}`);
 console.log(`url: ${page.url()}`);

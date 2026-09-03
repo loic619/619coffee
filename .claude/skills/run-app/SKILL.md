@@ -75,6 +75,7 @@ APP_ACCESS='<code>' node ../.claude/skills/run-app/scripts/drive.mjs \
 | `--out` | PNG path |
 | `--full` | full-page capture instead of the viewport |
 | `--click` | selector to click before the screenshot (toggles, sort buttons) |
+| `--scroll` | selector to scroll to the top of the inner scroller before the shot — the fix for pages where `--full` is a no-op (below). Pair with a tall `--height`. Use an exact match (`h2:text-is("Origin Farmgate Prices")`): `text=` is a case-insensitive substring and will find the page subtitle first |
 | `--port`, `--width`, `--height`, `--settle` | overrides |
 
 It prints any console errors, page errors and ≥400 responses. **Then read the

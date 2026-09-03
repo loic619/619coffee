@@ -1,0 +1,64 @@
+{
+  "unit": "BRL/saca_60kg",
+  "source": "Copa Café — tabela de compra (coffeecopa.com), via its public Google Sheet",
+  "url": "https://coffeecopa.com/tabela/",
+  "note": "Buying prices by grade and cata (defect share). The sheet carries no date; rows are dated by the business day whose list was in force at fetch time (table opens 09:30 BRT). Accumulates daily.",
+  "history": [
+    {
+      "date": "2026-09-02",
+      "fetched_at": "2026-09-03T07:57+00:00",
+      "quotes": {
+        "rio_minas_20": 1300.0,
+        "rio_minas_25": 1280.0,
+        "rio_minas_30": 1260.0,
+        "duro_20": 1600.0,
+        "duro_25": 1570.0,
+        "duro_30": 1540.0
+      }
+    }
+  ],
+  "grades": [
+    {
+      "key": "rio_minas_20",
+      "grade": "Rio Minas",
+      "cata": 20
+    },
+    {
+      "key": "rio_minas_25",
+      "grade": "Rio Minas",
+      "cata": 25
+    },
+    {
+      "key": "rio_minas_30",
+      "grade": "Rio Minas",
+      "cata": 30
+    },
+    {
+      "key": "duro_20",
+      "grade": "Duro",
+      "cata": 20
+    },
+    {
+      "key": "duro_25",
+      "grade": "Duro",
+      "cata": 25
+    },
+    {
+      "key": "duro_30",
+      "grade": "Duro",
+      "cata": 30
+    }
+  ],
+  "latest": {
+    "date": "2026-09-02",
+    "quotes": {
+      "rio_minas_20": 1300.0,
+      "rio_minas_25": 1280.0,
+      "rio_minas_30": 1260.0,
+      "duro_20": 1600.0,
+      "duro_25": 1570.0,
+      "duro_30": 1540.0
+    }
+  },
+  "updated": "2026-09-03T07:57:00+00:00"
+}

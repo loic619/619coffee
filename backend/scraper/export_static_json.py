@@ -100,6 +100,7 @@ def _exporters(db):
     from scraper.sources.brazil_arabica_fisico import export_brazil_arabica_fisico
     from scraper.sources.brazil_b3_arabica import export_brazil_b3_arabica
     from scraper.sources.brazil_b3_conilon import export_brazil_b3_conilon
+    from scraper.sources.brazil_coffeecopa import export_brazil_coffeecopa
     from scraper.sources.brazil_conilon_vitoria import export_brazil_conilon_vitoria
     from scraper.sources.cepea_conilon_indicator import export_cepea_conilon_indicator
     from scraper.sources.origin_prices_history import export_origin_prices_history
@@ -156,6 +157,7 @@ def _exporters(db):
         ("brazil_arabica_fisico", lambda: export_brazil_arabica_fisico()),
         ("brazil_b3_arabica",     lambda: export_brazil_b3_arabica()),
         ("brazil_b3_conilon",     lambda: export_brazil_b3_conilon()),
+        ("brazil_coffeecopa",     lambda: export_brazil_coffeecopa()),
         ("brazil_conilon_vitoria", lambda: export_brazil_conilon_vitoria()),
         ("cepea_conilon_indicator", lambda: export_cepea_conilon_indicator()),
         ("origin_prices_history", lambda: export_origin_prices_history(db)),

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
 import { fmtDateLabel, chgTone } from "@/lib/formatters";
@@ -46,12 +46,20 @@ const LB_PER_SACA = 60 / 0.45359237;
 interface CepeaEntry { date: string; price: number }
 interface CepeaDoc   { source?: string; history?: CepeaEntry[] }
 
+// brazil_coffeecopa.json — Copa Café buying table (Rio Minas / Duro by cata),
+// R$/saca. Converted to US$/saca at the day's BRL close (fx_history.json) so
+// it can sit on the arábica card and be differenced against New York.
+interface CopaDoc { history?: { date: string; quotes: Record<string, number> }[] }
+interface FxDoc   { pairs?: Record<string, { history?: { date: string; close: number }[] }> }
+
 // A physical/reference series drawn alongside the futures front line.
 interface Overlay {
   key:    string;                            // series field name in the chart rows
   name:   string;                            // legend / tooltip label
   color:  string;
   points: { date: string; value: number }[];
+  /** Draw this series' differential to the card's reference line as well. */
+  diff?:  boolean;
 }
 
 type Window = "1M" | "3M" | "6M" | "1Y" | "2Y";
@@ -63,15 +71,19 @@ function unitSymbol(unit?: string): string {
   return unit?.startsWith("BRL") ? "R$" : "US$";
 }
 
-function MarketCard({ title, doc, color, window: win, overlays, altUnit }: {
+function MarketCard({ title, doc, color, window: win, overlays, altUnit, altDefault, diffAgainst }: {
   title: string; doc: B3Doc | null; color: string; window: Window;
   overlays?: Overlay[];
   /** Optional second quoting convention, toggled from the card header. */
   altUnit?: { label: string; sym: string; suffix: string; factor: number };
+  /** Open the card in the alternate unit. */
+  altDefault?: boolean;
+  /** Overlay key to difference the front (and any `diff` overlay) against. */
+  diffAgainst?: string;
 }) {
   const hist = useMemo(() => doc?.history ?? [], [doc]);
   const shown = useMemo(() => (overlays ?? []).filter(o => o.points.length > 0), [overlays]);
-  const [useAlt, setUseAlt] = useState(false);
+  const [useAlt, setUseAlt] = useState(!!altDefault);
 
   // One scalar rescales every number on the card — headline, chart, overlays
   // and curve table alike. That is what keeps the KC overlay honest: it is
@@ -105,6 +117,34 @@ function MarketCard({ title, doc, color, window: win, overlays, altUnit }: {
     }
     return Array.from(rows.values()).sort((a, b) => a.date.localeCompare(b.date));
   }, [hist, shown, win, scale]);
+
+  // Differential rows: every series minus the reference overlay, on the days
+  // both print. The front and the reference are both settles, so their gap is
+  // the B3 basis to New York; the Copa Café buying prices are what a Brazilian
+  // farmer is actually offered, so theirs is the physical differential.
+  const ref = diffAgainst ? shown.find(o => o.key === diffAgainst) : undefined;
+  const diffSeries = useMemo(() => {
+    if (!ref) return [];
+    const rows: { date: string; label: string; [k: string]: string | number | undefined }[] = [];
+    for (const r of series) {
+      const base = r[ref.key];
+      if (typeof base !== "number") continue;
+      const row: typeof rows[number] = { date: r.date, label: r.label };
+      let any = false;
+      if (typeof r.price === "number") { row.price = r.price - base; any = true; }
+      for (const o of shown) {
+        const v = r[o.key];
+        if (o.diff && typeof v === "number") { row[o.key] = v - base; any = true; }
+      }
+      if (any) rows.push(row);
+    }
+    return rows;
+  }, [series, shown, ref]);
+  const diffOverlays = shown.filter(o => o.diff);
+  const lastDiff = diffSeries.length ? diffSeries[diffSeries.length - 1] : null;
+  const fmtDiff = (v: unknown) => typeof v === "number"
+    ? `${v >= 0 ? "+" : "−"}${Math.abs(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : "—";
 
   const last = hist.length ? hist[hist.length - 1] : null;
   const prev = hist.length > 1 ? hist[hist.length - 2] : null;
@@ -192,6 +232,46 @@ function MarketCard({ title, doc, color, window: win, overlays, altUnit }: {
         ))}
       </div>
 
+      {/* Differential to the reference line, in the card's display unit.
+          Zero = parity with New York; below = Brazil trades at a discount. */}
+      {ref && diffSeries.length > 0 && (
+        <div className="pt-2 border-t border-slate-700">
+          <div className="flex items-baseline justify-between gap-2 mb-1">
+            <div className="text-[9px] text-slate-400 uppercase tracking-wide">
+              Differential to {ref.name} · {sym}{suffix}
+            </div>
+            {lastDiff && (
+              <div className="text-[9px] font-mono flex flex-wrap gap-x-2 justify-end">
+                <span style={{ color }}>{fmtDiff(lastDiff.price)}</span>
+                {diffOverlays.map(o => (
+                  <span key={o.key} style={{ color: o.color }}>{fmtDiff(lastDiff[o.key])}</span>
+                ))}
+                <span className="text-slate-500">{lastDiff.date}</span>
+              </div>
+            )}
+          </div>
+          <div className="h-28">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={diffSeries} margin={{ top: 4, right: 6, left: -14, bottom: 0 }}>
+                <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                <XAxis dataKey="label" stroke="#64748b" tick={{ fontSize: 8 }} minTickGap={24} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 8 }} domain={["auto", "auto"]} width={44}
+                  tickFormatter={(v: number) => `${v > 0 ? "+" : ""}${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
+                <Tooltip contentStyle={TT_STYLE} labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                  formatter={(v) => `${fmtDiff(v)} ${sym}${suffix}`} />
+                <ReferenceLine y={0} stroke="#64748b" strokeDasharray="3 3" />
+                {diffOverlays.map(o => (
+                  <Line key={o.key} type="monotone" dataKey={o.key} name={o.name} stroke={o.color}
+                    strokeWidth={1.2} strokeDasharray="4 3" dot={false} connectNulls />
+                ))}
+                <Line type="monotone" dataKey="price" name={`${title} front`} stroke={color}
+                  strokeWidth={1.5} dot={false} connectNulls />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
       {/* Latest curve */}
       {last && (
         <table className="w-full text-[10px] font-mono">
@@ -223,6 +303,8 @@ export default function B3CoffeePanel() {
   const [vitoria, setVitoria] = useState<PhysDoc | null>(null);
   const [cepea,   setCepea]   = useState<CepeaDoc | null>(null);
   const [ny,      setNy]      = useState<PriceHistDoc | null>(null);
+  const [copa,    setCopa]    = useState<CopaDoc | null>(null);
+  const [fx,      setFx]      = useState<FxDoc | null>(null);
   const [window,  setWindow]  = useState<Window>("6M");
 
   useEffect(() => {
@@ -245,18 +327,50 @@ export default function B3CoffeePanel() {
     fetch("/data/futures_price_history.json")
       .then(r => r.ok ? r.json() : null).then(d => { if (d) setNy(d); })
       .catch(() => { /* B3-only */ });
+    // Copa Café buying table (R$/saca) + daily BRL closes to restate it in
+    // US$/saca on the arábica card.
+    fetch("/data/brazil_coffeecopa.json")
+      .then(r => r.ok ? r.json() : null).then(d => { if (d) setCopa(d); })
+      .catch(() => { /* no physical overlay */ });
+    fetch("/data/fx_history.json")
+      .then(r => r.ok ? r.json() : null).then(d => { if (d) setFx(d); })
+      .catch(() => { /* no physical overlay */ });
   }, []);
 
   // NY KC on the B3 arabica card, restated in US$/saca so both lines share an
   // axis — the spread between them is the Brazil differential.
-  const arabicaOverlays = useMemo<Overlay[]>(() => [{
-    // Name carries no unit: the card can be toggled to ¢/lb, where this line
-    // is New York's native quote rather than a conversion.
-    key: "kc", name: "NY KC front", color: "#38bdf8",
-    points: (ny?.arabica ?? [])
-      .filter(p => p.price != null)
-      .map(p => ({ date: p.date, value: p.price * LB_PER_SACA / 100 })),
-  }], [ny]);
+  const arabicaOverlays = useMemo<Overlay[]>(() => {
+    // BRL close on or before a date (physical quotes land on days FX is shut).
+    const brl = [...(fx?.pairs?.["BRL=X"]?.history ?? [])].sort((a, b) => a.date.localeCompare(b.date));
+    const rateOn = (date: string): number | null => {
+      let r: number | null = null;
+      for (const h of brl) { if (h.date <= date) r = h.close; else break; }
+      return r;
+    };
+    const copaLine = (key: string, name: string, color: string): Overlay => ({
+      key, name, color, diff: true,
+      points: (copa?.history ?? []).flatMap(e => {
+        const brlSaca = e.quotes?.[key];
+        const rate = rateOn(e.date);
+        return brlSaca != null && rate ? [{ date: e.date, value: brlSaca / rate }] : [];
+      }),
+    });
+    return [
+      {
+        // Name carries no unit: the card can be toggled to ¢/lb, where this line
+        // is New York's native quote rather than a conversion.
+        key: "kc", name: "NY KC front", color: "#38bdf8",
+        points: (ny?.arabica ?? [])
+          .filter(p => p.price != null)
+          .map(p => ({ date: p.date, value: p.price * LB_PER_SACA / 100 })),
+      },
+      // Copa Café buying prices at 20% cata, R$/saca → US$/saca at the day's
+      // BRL close. Rio Minas (natural, riada cup) and Duro (hard bean, the
+      // export-grade cup) bracket what the domestic buyer pays a grower.
+      copaLine("rio_minas_20", "Copa Rio Minas 20%", "#fb7185"),
+      copaLine("duro_20",      "Copa Duro 20%",      "#a78bfa"),
+    ];
+  }, [ny, copa, fx]);
 
   // Conilon references drawn with the CNL front (solid emerald): the CCCV
   // T7/8 delivery-spec physical (grey — the deep history the young futures
@@ -306,8 +420,8 @@ export default function B3CoffeePanel() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <MarketCard title="B3 Arábica 4/5 (Pregão Regular)" doc={arabica} color="#f59e0b" window={window}
-          overlays={arabicaOverlays}
-          altUnit={{ label: "¢/lb", sym: "¢", suffix: "/lb", factor: 100 / LB_PER_SACA }} />
+          overlays={arabicaOverlays} diffAgainst="kc"
+          altUnit={{ label: "¢/lb", sym: "¢", suffix: "/lb", factor: 100 / LB_PER_SACA }} altDefault />
         <MarketCard title="B3 Conilon 7/8 (CNL)"            doc={conilon} color="#34d399" window={window}
           overlays={conilonOverlays} />
       </div>
