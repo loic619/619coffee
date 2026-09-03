@@ -43,8 +43,16 @@ const YEAR_DASH = ["0", "5 3", "2 3"];   // this year solid, then dashed, then d
  * Jan–Apr irrigation window is what the comparison is for. Bulletins are
  * irregular (roughly ten-daily), so points connect across gaps.
  */
+// Working band for the irrigation read. Flood weeks run to +650% vs normal
+// (Dong Nai, Nov 2025) and on a full-range axis they flatten the deficit side
+// — which is the side this panel exists for — into a single line. The default
+// view is the band; "Full range" shows every point, and the count of readings
+// outside the band is always stated so nothing is silently hidden.
+const BAND: [number, number] = [-100, 150];
+
 function FlowHistoryChart({ history }: { history: HistoryEntry[] }) {
   const [river, setRiver] = useState<string>("all");
+  const [fullRange, setFullRange] = useState(false);
   const rivers = useMemo(() => {
     const seen = new Set<string>();
     for (const e of history) for (const r of e.rivers) seen.add(r.river);
@@ -72,6 +80,11 @@ function FlowHistoryChart({ history }: { history: HistoryEntry[] }) {
 
   if (history.length < 2) return null;
   const shownRivers = river === "all" ? rivers : rivers.filter(r => r === river);
+  // Readings the band would cut, over the rivers actually drawn.
+  const outside = rows.reduce((n, r) => n + shownRivers.reduce((m, rv) => m + years.reduce((k, y) => {
+    const v = r[`${rv}|${y}`];
+    return k + (typeof v === "number" && (v < BAND[0] || v > BAND[1]) ? 1 : 0);
+  }, 0), 0), 0);
   const monthTick = (doy: number) => {
     const d = new Date(Date.UTC(2026, 0, 1) + (doy - 1) * 86_400_000);
     return d.getUTCDate() <= 10 ? MONTH_ABBR[d.getUTCMonth()] : "";
@@ -86,15 +99,33 @@ function FlowHistoryChart({ history }: { history: HistoryEntry[] }) {
           <div className="text-[8px] text-slate-600 mt-0.5">
             % vs TBNN per bulletin · {history.length} bulletins · {span}
             {years.length > 1 ? ` · ${years[0]} solid, earlier years dashed` : " · year-on-year appears once the archive backfill spans a second year"}
+            {outside > 0 && (
+              <> · {fullRange
+                ? "full range — flood weeks compress the deficit side"
+                : `${outside} flood reading${outside === 1 ? "" : "s"} above +${BAND[1]}% off-scale`}</>
+            )}
           </div>
         </div>
-        <div className="flex bg-slate-900 border border-slate-700 rounded overflow-hidden text-[9px]">
-          {["all", ...rivers].map(r => (
-            <button key={r} onClick={() => setRiver(r)}
-              className={`px-2 py-0.5 ${river === r ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:text-slate-200"}`}>
-              {r === "all" ? "All" : r}
-            </button>
-          ))}
+        <div className="flex items-center gap-1.5">
+          {outside > 0 && (
+            <div className="flex bg-slate-900 border border-slate-700 rounded overflow-hidden text-[9px]">
+              {[["band", "±band"], ["full", "Full range"]].map(([k, label]) => (
+                <button key={k} onClick={() => setFullRange(k === "full")}
+                  title={k === "band" ? `Axis fixed to ${BAND[0]}%…+${BAND[1]}% — the irrigation-relevant band` : "Every reading, flood weeks included"}
+                  className={`px-2 py-0.5 ${(fullRange ? "full" : "band") === k ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:text-slate-200"}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex bg-slate-900 border border-slate-700 rounded overflow-hidden text-[9px]">
+            {["all", ...rivers].map(r => (
+              <button key={r} onClick={() => setRiver(r)}
+                className={`px-2 py-0.5 ${river === r ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:text-slate-200"}`}>
+                {r === "all" ? "All" : r}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       <div className="h-44">
@@ -103,7 +134,10 @@ function FlowHistoryChart({ history }: { history: HistoryEntry[] }) {
             <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
             <XAxis dataKey="doy" type="number" domain={[1, 366]} ticks={[1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]}
               tickFormatter={monthTick} stroke="#64748b" tick={{ fontSize: 8 }} />
-            <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={40} domain={["auto", "auto"]}
+            {/* width fits "+150%" — 40 clipped the leading digit and the axis
+                read "00%" for 100%. */}
+            <YAxis stroke="#64748b" tick={{ fontSize: 8 }} width={52}
+              domain={fullRange ? ["auto", "auto"] : BAND} allowDataOverflow={!fullRange}
               tickFormatter={(v: number) => `${v > 0 ? "+" : ""}${v}%`} />
             <Tooltip contentStyle={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 6, fontSize: 10 }}
               labelFormatter={(doy) => { const d = new Date(Date.UTC(2026, 0, 1) + (Number(doy) - 1) * 86_400_000); return `${d.getUTCDate()} ${MONTH_ABBR[d.getUTCMonth()]}`; }}
