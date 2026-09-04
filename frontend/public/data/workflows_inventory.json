@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-04T02:26:37.317445Z",
-  "count": 100,
+  "generated_at": "2026-09-04T03:44:11.776193Z",
+  "count": 101,
   "workflows": [
     {
       "file": "apply-crop-estimate-edit.yml",
@@ -526,6 +526,17 @@
       "workflow_run_deps": [],
       "concurrency_group": "acaphe-poll",
       "timeout_minutes": 8
+    },
+    {
+      "file": "probe-fbx-ajax.yml",
+      "name": "0.32 \u2013 Probe FBX ticker endpoint (diagnostic)",
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "crons": [],
+      "workflow_run_deps": [],
+      "concurrency_group": null,
+      "timeout_minutes": 15
     },
     {
       "file": "probe-fbx-history.yml",
@@ -1414,6 +1425,11 @@
         "version": "0.31"
       },
       {
+        "file": "probe-fbx-ajax.yml",
+        "name": "0.32 \u2013 Probe FBX ticker endpoint (diagnostic)",
+        "version": "0.32"
+      },
+      {
         "file": "build-oni-history.yml",
         "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
         "version": "0.6"
@@ -1515,7 +1531,7 @@
       "various / manual",
       "various / manual"
     ],
-    "uncovered_workflows_count": 37,
+    "uncovered_workflows_count": 38,
     "stale_curation_count": 0
   }
 }
