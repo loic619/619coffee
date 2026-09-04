@@ -22,10 +22,12 @@ WHAT IT MEASURES, per region
                this is what makes that visible instead of averaging it away.
 
 HONEST LIMITS, which the output carries so downstream cannot forget them
-  · The per-year rainfall history is 2015-2025 — ELEVEN years, not thirty.
-    That is roughly 3-4 El Niño and 4-5 La Niña occurrences per window. Enough
-    to establish direction where the effect is large and consistent; not
-    enough to pin a magnitude, and not enough to trust a weak signal at all.
+  · The record is 1995 onward — about thirty years, roughly ten occurrences of
+    each phase per window. It was eleven years until the composite was moved
+    off the published chart onto the daily store; every correlation FELL when
+    the record lengthened (Mt Elgon +0.42 → +0.21, Cerrado +0.21 → +0.05),
+    which is eleven-year noise washing out rather than signal being lost.
+    Treat any figure computed on the shorter record as having been optimistic.
   · Monthly rainfall totals are a cruder proxy than the SPI/SPEI/ET0 the
     drought model uses. A region can hit its normal total in three storms.
   · Every event is weighted equally: a weak El Niño counts the same as
@@ -37,22 +39,32 @@ from __future__ import annotations
 
 import json
 import statistics
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
 from scraper.crop_calendar import CROP_CALENDAR, PHASES
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+from fetch_origin_weather import ORIGINS  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "frontend" / "public" / "data"
 SEED = ROOT / "backend" / "seed" / "oni_history_full.json"
 OUT_PATH = DATA / "enso_teleconnection.json"
 
-WEATHER_FILE = {
-    "brazil": "brazil_weather.json", "colombia": "colombia_weather.json",
-    "honduras": "honduras_weather.json", "indonesia": "indonesia_weather.json",
-    "uganda": "uganda_weather.json", "ethiopia": "ethiopia_weather.json",
-    "vn": "vn_weather.json",
-}
+#: The DAILY store, not the published chart. {origin}_weather.json carries
+#: monthly_totals_history for the last ELEVEN years only — ENVELOPE_RANGE_START
+#: in fetch_origin_weather is CUR_YEAR - 10, sized for the cumulative-YTD
+#: envelope the charts draw, not for a composite. The store behind it holds
+#: daily rain back to 1995. Reading the chart threw away two thirds of the
+#: record and left 3-5 occurrences per crop phase, which is why magnitude could
+#: never be more than indicative.
+STORE_DIR = ROOT / "backend" / "seed" / "weather_history"
+#: A month needs this many daily records to count. Below it the total is a
+#: partial month masquerading as a dry one — worse than a gap, because a gap
+#: is visible and a low total is not.
+MIN_DAYS_IN_MONTH = 25
 
 ONI_THRESHOLD = 0.5
 MAX_LAG = 6
@@ -80,14 +92,25 @@ def _pearson(xs: list[float], ys: list[float]) -> float:
     return num / (dx * dy) ** 0.5 if dx > 0 and dy > 0 else 0.0
 
 
-def _monthly_series(region: dict) -> dict[tuple[int, int], float]:
-    """{(year, month): rainfall_mm} from a region's monthly_totals_history."""
-    out: dict[tuple[int, int], float] = {}
-    for year, months in (region.get("monthly_totals_history") or {}).items():
-        for i, v in enumerate(months or [], start=1):
-            if v is not None:
-                out[(int(year), i)] = float(v)
-    return out
+def _monthly_series(daily: dict) -> dict[tuple[int, int], float]:
+    """{(year, month): rainfall_mm} aggregated from the daily store.
+
+    Months with fewer than MIN_DAYS_IN_MONTH readings are dropped rather than
+    summed: a half-observed month reads as a dry one, and a dry month is
+    exactly the signal this module is trying to measure.
+    """
+    buckets: dict[tuple[int, int], list[float]] = {}
+    for date, rec in (daily or {}).items():
+        rain = (rec or {}).get("rain")
+        if rain is None:
+            continue
+        try:
+            y, m = int(date[:4]), int(date[5:7])
+        except (ValueError, IndexError):
+            continue
+        buckets.setdefault((y, m), []).append(float(rain))
+    return {ym: round(sum(v), 1) for ym, v in buckets.items()
+            if len(v) >= MIN_DAYS_IN_MONTH}
 
 
 def _climatology(series: dict[tuple[int, int], float]) -> dict[int, float]:
@@ -205,13 +228,20 @@ def build() -> dict:
     regions_out: dict[str, dict] = {}
     year_lo, year_hi = 9999, 0
 
-    for origin, fname in WEATHER_FILE.items():
-        doc = _load(DATA / fname)
+    for origin, regions in ORIGINS.items():
         cal = CROP_CALENDAR.get(origin)
-        if not doc or not cal:
+        store = _load(STORE_DIR / f"{origin}.json") or {}
+        by_region = store.get("regions") or {}
+        if not cal or not by_region:
             continue
-        for region in doc.get("provinces") or []:
-            series = _monthly_series(region)
+        # Iterate ORIGINS, not the store's own keys: the store is append-only
+        # and still holds regions that have since been renamed away (Uganda's
+        # Masaka, Kasese and Mbale sit alongside the belts that replaced them).
+        # ORIGINS is what the risk map iterates, so measuring the same set is
+        # what keeps a pin from having no measurement or a measurement no pin.
+        for reg in regions:
+            name = reg["name"]
+            series = _monthly_series(by_region.get(name) or {})
             if not series:
                 continue
             years = sorted({y for y, _ in series})
@@ -233,9 +263,9 @@ def build() -> dict:
                         **composite_phase(series, clim, oni, months, lag, span),
                     }
 
-            regions_out[f"{origin}|{region['name']}"] = {
+            regions_out[f"{origin}|{name}"] = {
                 "origin": origin,
-                "region": region["name"],
+                "region": name,
                 "lag_months": lag,
                 "lag_r": r,
                 "years": [years[0], years[-1]],
