@@ -126,8 +126,11 @@ def test_brief_has_all_top_level_sections(fixture_data_dir):
     assert " FOB" in out
     assert "CON T7" in out
     assert "UGA S15" in out
-    # Footer
-    assert "/quote · /cot · /stock · /certified · /brazil · /vietnam · /uganda · /freight · /macro" in out
+    # Footer — only the commands DISPATCH registers. #539b7fb1 trimmed six
+    # dead entries (/stock, /certified, /vietnam, /uganda, /freight, /macro)
+    # that fell through to "Unknown command." every morning; this assertion
+    # still pinned the old line and went red on main.
+    assert "/prices · /quote · /cot · /brazil · /ecf · /kaffeesteuer · /help" in out
     # Section emojis (we removed the old COT block; assert it's gone)
     assert "<b>COT KC</b>" not in out
     assert "<b>COT RC</b>" not in out

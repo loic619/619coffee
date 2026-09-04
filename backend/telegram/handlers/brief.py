@@ -388,8 +388,8 @@ def _physical_line(label: str, origin_key: str, fob_key: str,
 def _seed_weather_path(origin_key: str):
     """Locate backend/seed/weather_history/{origin}.json relative to the
     morning brief's data dir (which sits at frontend/public/data)."""
-    from telegram.data import _DATA_DIR
-    repo_root = _DATA_DIR.parent.parent.parent
+    from telegram.data import data_dir
+    repo_root = data_dir().parent.parent.parent
     return repo_root / "backend" / "seed" / "weather_history" / f"{origin_key}.json"
 
 
@@ -1093,10 +1093,11 @@ def _load_archive() -> dict | None:
     repo-root layout."""
     import json as _json
     try:
-        from telegram.data import _DATA_DIR
+        from telegram.data import data_dir
+        _dd = data_dir()
         for candidate in (
-            _DATA_DIR.parent.parent.parent / "data" / "contract_prices_archive.json",
-            _DATA_DIR / "contract_prices_archive.json",
+            _dd.parent.parent.parent / "data" / "contract_prices_archive.json",
+            _dd / "contract_prices_archive.json",
         ):
             if candidate.exists():
                 return _json.loads(candidate.read_text(encoding="utf-8"))
