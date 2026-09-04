@@ -144,7 +144,7 @@
    "category": "D",
    "lane": "operational",
    "confident": true,
-   "evidence": "notify() ends in exit 1 when live_quotes is stale, and dispatches a rescue poll",
+   "evidence": "over this sample: exit 1 on EVERY stale check, plus a rescue dispatch, with no state between runs. Rebuilt 2026-09-04 onto a degraded-state ladder \u2014 still category D, but red now means recovery repeatedly failed",
    "median_duration_s": 951,
    "events": {
     "schedule": 4
@@ -1099,7 +1099,7 @@
    "category": "D",
    "lane": "operational",
    "confident": true,
-   "evidence": "notify() ends in exit 1 when live_quotes is stale, and dispatches a rescue poll"
+   "evidence": "over this sample: exit 1 on EVERY stale check, plus a rescue dispatch, with no state between runs. Rebuilt 2026-09-04 onto a degraded-state ladder \u2014 still category D, but red now means recovery repeatedly failed"
   },
   {
    "id": 31121694274,
@@ -1112,7 +1112,7 @@
    "category": "D",
    "lane": "operational",
    "confident": true,
-   "evidence": "notify() ends in exit 1 when live_quotes is stale, and dispatches a rescue poll"
+   "evidence": "over this sample: exit 1 on EVERY stale check, plus a rescue dispatch, with no state between runs. Rebuilt 2026-09-04 onto a degraded-state ladder \u2014 still category D, but red now means recovery repeatedly failed"
   },
   {
    "id": 31124087175,
@@ -1242,7 +1242,7 @@
    "category": "D",
    "lane": "operational",
    "confident": true,
-   "evidence": "notify() ends in exit 1 when live_quotes is stale, and dispatches a rescue poll"
+   "evidence": "over this sample: exit 1 on EVERY stale check, plus a rescue dispatch, with no state between runs. Rebuilt 2026-09-04 onto a degraded-state ladder \u2014 still category D, but red now means recovery repeatedly failed"
   },
   {
    "id": 31128011625,
@@ -2087,7 +2087,7 @@
    "category": "D",
    "lane": "operational",
    "confident": true,
-   "evidence": "notify() ends in exit 1 when live_quotes is stale, and dispatches a rescue poll"
+   "evidence": "over this sample: exit 1 on EVERY stale check, plus a rescue dispatch, with no state between runs. Rebuilt 2026-09-04 onto a degraded-state ladder \u2014 still category D, but red now means recovery repeatedly failed"
   },
   {
    "id": 33037495724,

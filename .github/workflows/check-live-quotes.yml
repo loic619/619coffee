@@ -1,21 +1,41 @@
 name: "1.8 – Check Live Quotes Freshness"
 
-# Reads `live_quotes` from Upstash Redis and pings Telegram if `fetched_at` is
-# older than STALE_HOURS. Schedule mirrors the 0.1 poller's window:
-#   poller cron     `*/15 8-19 * * 1-5`   → polls every 15 min, 08:00-19:45 UTC, Mon-Fri
-#   checker cron    `15 9-20 * * 1-5`     → checks Mon-Fri 09:15-20:15 UTC
+# Reads `live_quotes` from Upstash and decides what a stale reading MEANS given
+# how long it has been stale. Logic lives in backend/scraper/check_live_quotes.py
+# with the decision ladder in source_health.py, unit-tested — it used to be ~70
+# lines of inline shell that nothing could test.
+#
+# Schedule mirrors the 0.1 poller's window:
+#   poller cron     `3,18,33,48 8-19 * * 1-5`   polls Mon-Fri, 08:00-19:48 UTC
+#   checker cron    `15 9-20 * * 1-5`           checks Mon-Fri 09:15-20:15 UTC
 # The 1-hour lead-in lets the first poll of the day land + write to Upstash
 # before the first check fires, and the trailing tick at 20:15 catches a
 # missed-last-poll scenario.
 #
 # Outside this window (overnight / weekends) the poller is intentionally
 # silent, so the freshness check is intentionally silent too — otherwise it
-# would fire ~80 false-positive Telegram alerts per week (every weeknight
-# 02:15-09:15 UTC + every weekend Sat 02:15 through Mon 09:15).
+# would fire ~80 false-positive alerts per week.
+#
+# WHAT CHANGED, 2026-09-04 (see the "A failed workflow is not a failed system"
+# research page). This check used to dispatch a rescue AND exit 1 on every
+# stale reading, holding no state between runs — so a 12-hour outage produced
+# 12 red runs, 12 alerts and 12 rescue dispatches all describing ONE event, and
+# backoff was impossible because nothing was remembered. Now the source carries
+# a `degraded` state in Upstash and the ladder is:
+#
+#   rescue dispatched   at stale checks 1, 2, 4, 8, 16, 32   (doubling)
+#   alert sent          at stale checks 1, 4, 12, 24, 48
+#   run goes RED        at stale checks    4, 12, 24, 48
+#
+# A red run now means "recovery has repeatedly failed", which is worth a
+# person's attention. Detecting staleness and dispatching a rescue is the
+# watchdog WORKING, and stays green.
+#
+# The rescue dispatch failing is the one thing that is always loud, whatever
+# the backoff says: the old `if curl -sf` guard meant that losing the
+# actions:write scope stopped the self-heal SILENTLY while the check kept
+# passing — a self-healing system that had quietly stopped healing.
 
-# The rescue path dispatches poll-acaphe-quotes, which needs actions:write.
-# It is guarded by `if curl -sf`, so losing the scope degraded it SILENTLY:
-# the check kept passing while the rescue never fired.
 permissions:
   contents: read
   actions: write
@@ -29,13 +49,16 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    # actions:write lets the stale path dispatch a rescue run of the 0.1
-    # poller — GH has throttled that workflow's cron twice (Jun + Aug 2026),
-    # and self-healing turns a dead schedule into at-most-hourly polls.
     permissions:
-      actions: write
+      actions: write            # to dispatch the rescue run of the 0.1 poller
     steps:
-      - name: Fetch live_quotes and check age
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install requests
+      - name: Check freshness, decide, act
         env:
           UPSTASH_REDIS_REST_URL:   ${{ secrets.UPSTASH_REDIS_REST_URL }}
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
@@ -47,78 +70,5 @@ jobs:
           # (GH Actions cron drift is typically <10 min) but short enough
           # to surface a real outage inside one trading day.
           STALE_HOURS:              "2"
-        run: |
-          set -u
-          if [ -z "${UPSTASH_REDIS_REST_URL:-}" ] || [ -z "${UPSTASH_REDIS_REST_TOKEN:-}" ]; then
-            # Skip rather than fail — the workflow is opt-in. Add
-            # UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN as
-            # GitHub repo secrets to enable the check.
-            echo "::warning::Upstash credentials not configured — skipping freshness check. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN as repo secrets to enable."
-            exit 0
-          fi
-
-          url="${UPSTASH_REDIS_REST_URL%/}/get/live_quotes"
-          http_code=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
-            -H "Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN}" "$url")
-
-          notify() {
-            local msg="$1"
-            echo "::error::$msg"
-            if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
-              curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-                -d "chat_id=${TELEGRAM_CHAT_ID}" \
-                -d "text=🚨 Live quotes alert — ${msg} — https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-                >/dev/null || true
-            fi
-            exit 1
-          }
-
-          if [ "$http_code" != "200" ]; then
-            notify "Upstash GET returned HTTP ${http_code}"
-          fi
-
-          python - <<'PY' | tee /tmp/check.log
-          import json, os, sys
-          from datetime import datetime, timezone
-
-          stale_hours = float(os.environ.get("STALE_HOURS", "6"))
-          with open("/tmp/resp.json") as f:
-              wrapper = json.load(f)
-
-          result = wrapper.get("result")
-          if result in (None, ""):
-              print("STALE_REASON=Upstash key live_quotes is empty (poller never wrote, or key was evicted)")
-              sys.exit(2)
-
-          payload = json.loads(result) if isinstance(result, str) else result
-          fetched_at = payload.get("fetched_at")
-          if not fetched_at:
-              print("STALE_REASON=fetched_at missing from payload (poller may be misconfigured)")
-              sys.exit(3)
-
-          ts = datetime.fromisoformat(fetched_at.replace("Z", "+00:00"))
-          age_h = (datetime.now(timezone.utc) - ts).total_seconds() / 3600
-          print(f"fetched_at={fetched_at} age_hours={age_h:.2f} threshold={stale_hours}")
-          if age_h > stale_hours:
-              print(f"STALE_REASON=live_quotes is {age_h:.1f}h old (threshold {stale_hours}h) — poller is down")
-              sys.exit(4)
-          PY
-          rc=${PIPESTATUS[0]}
-          if [ "$rc" -ne 0 ]; then
-            reason=$(grep -m1 '^STALE_REASON=' /tmp/check.log | cut -d= -f2-)
-            # Self-heal before alerting: dispatch a rescue run of the 0.1
-            # poller. Covers the twice-observed GH cron-throttling failure
-            # mode (and an evicted Upstash key) without human intervention;
-            # the alert still goes out so a genuinely broken poller (login
-            # change, site down) gets human eyes on the next hourly check.
-            kick=""
-            if curl -sf -X POST \
-                 -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                 -H "Accept: application/vnd.github+json" \
-                 "https://api.github.com/repos/${{ github.repository }}/actions/workflows/poll-acaphe-quotes.yml/dispatches" \
-                 -d '{"ref":"main"}' >/dev/null; then
-              kick=" (rescue poll dispatched)"
-            fi
-            notify "${reason:-freshness check failed (exit $rc)}${kick}"
-          fi
-          echo "Live quotes are fresh."
+          PYTHONPATH: .
+        run: python -m backend.scraper.check_live_quotes

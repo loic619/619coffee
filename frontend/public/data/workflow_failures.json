@@ -144,7 +144,7 @@
       "category": "D",
       "lane": "operational",
       "confident": true,
-      "evidence": "notify() ends in exit 1 when live_quotes is stale, and dispatches a rescue poll",
+      "evidence": "over this sample: exit 1 on EVERY stale check, plus a rescue dispatch, with no state between runs. Rebuilt 2026-09-04 onto a degraded-state ladder — still category D, but red now means recovery repeatedly failed",
       "median_duration_s": 951,
       "events": {
         "schedule": 4
