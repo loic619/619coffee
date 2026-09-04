@@ -115,3 +115,55 @@ def test_aborted_calls_neither_sleep_nor_count():
     assert elapsed < 0.5, f"aborted call still slept {elapsed:.2f}s"
     assert o._RUN_STATS["requests"] == 0, "aborted call counted as a request"
     assert o._RUN_STATS["wait_marketdata_s"] == 0.0, "aborted call billed wait time"
+
+
+# ── 403 skips the SECTION, not the run ──────────────────────────────────────
+# A run-wide abort meant a 403 storm on the last source silently short-circuited
+# everything after it: a mostly-good run quietly stopped collecting. 403 is also
+# per-source-IP and can be transient, so one refused source is no evidence the
+# next is refused too.
+
+def _storm():
+    """Drive consecutive 403s past the threshold, as _http_get does."""
+    for _ in range(o.TOO_MANY_403S):
+        o._RATE_STATE["consecutive_403s"] += 1
+        if o._RATE_STATE["consecutive_403s"] >= o.TOO_MANY_403S:
+            o._RATE_STATE["section_blocked"] = 1
+            o._RUN_STATS["aborted_by_403"] = 1
+
+
+def test_403_storm_blocks_only_the_current_section():
+    o._RATE_STATE.update(consecutive_403s=0, section_blocked=0, aborted=0)
+    _storm()
+    assert o._RATE_STATE["section_blocked"] == 1
+    assert o._RATE_STATE["aborted"] == 0, "403 must not set the run-wide abort"
+
+    o._begin_section("next source")
+    assert o._RATE_STATE["section_blocked"] == 0, "next section did not get a fresh slate"
+    assert o._RATE_STATE["consecutive_403s"] == 0
+
+
+def test_a_blocked_section_still_short_circuits_without_sleeping():
+    """Within the blocked section the remaining calls must cost nothing —
+    the whole point of moving the check above the try."""
+    import time
+    o._RATE_STATE.update(consecutive_403s=0, section_blocked=0, aborted=0)
+    o._RUN_STATS.update(requests=0, wait_marketdata_s=0.0)
+    _storm()
+    try:
+        t = time.monotonic()
+        assert o._http_get("https://www.ice.com/marketdata/publicdocs/x") is None
+        elapsed = time.monotonic() - t
+    finally:
+        o._RATE_STATE.update(section_blocked=0, consecutive_403s=0)
+    assert elapsed < 0.5
+    assert o._RUN_STATS["requests"] == 0
+
+
+def test_429_abort_stays_run_wide():
+    """Rate limiting IS cumulative — continuing anywhere makes it worse — so
+    the 429 path keeps the run-wide flag it always had."""
+    o._RATE_STATE.update(aborted=0, section_blocked=0)
+    o._RATE_STATE["aborted"] = 1            # as the 429 path sets it
+    o._begin_section("next source")
+    assert o._RATE_STATE["aborted"] == 1, "_begin_section must not clear a 429 abort"

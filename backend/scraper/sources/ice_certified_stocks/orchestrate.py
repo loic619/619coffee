@@ -231,7 +231,33 @@ TOO_MANY_429S = 4              # bail-out after this many consecutive 429s
 TOO_MANY_403S = 8
 RETRY_AFTER_MAX_S = 90         # cap any Retry-After we'll wait for
 RETRY_AFTER_GIVE_UP_S = 600    # if Akamai asks > this, abort the rest of the run
-_RATE_STATE: dict[str, int] = {"consecutive_429s": 0, "consecutive_403s": 0, "aborted": 0}
+# `aborted` is RUN-wide and only 429 sets it: rate limiting is cumulative, so
+# continuing anywhere makes it worse. `section_blocked` is the 403 equivalent
+# and is deliberately NARROWER — it skips the rest of the current section and
+# is cleared when the next one starts.
+#
+# The difference matters. A run that fetched arabica and most of robusta, then
+# met a 403 storm on the last source, used to have every remaining request
+# silently short-circuited by the run-wide flag: a mostly-good run quietly
+# stopped collecting. A 403 is also per-source-IP and can be transient within a
+# run, so one refused source is not evidence the next one is refused too.
+_RATE_STATE: dict[str, int] = {
+    "consecutive_429s": 0, "consecutive_403s": 0, "aborted": 0, "section_blocked": 0,
+}
+
+
+def _begin_section(label: str) -> None:
+    """Start a fetch section with a clean 403 slate.
+
+    Each section gets its own chance: being refused while chasing the stock
+    report says nothing about whether the tenders file will serve. The cost of
+    being wrong is bounded — TOO_MANY_403S requests per section — and
+    _assert_not_wholly_refused still fails the run if nothing at all succeeds.
+    """
+    if _RATE_STATE["section_blocked"]:
+        print(f"  → 403 block cleared; {label} gets a fresh attempt")
+    _RATE_STATE["section_blocked"] = 0
+    _RATE_STATE["consecutive_403s"] = 0
 
 # Fix 5: per-request interval (seconds) for the SEQUENTIAL tier-2 stock-report
 # sweep only. Concurrency bans the IP at any level, so the per-request gap is
@@ -585,7 +611,7 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
     # of which only 8 were real, and spent 24.6 minutes asleep proving a block
     # it had already detected in the first 8. Aborting has to stop the clock,
     # not just the fetching.
-    if _RATE_STATE["aborted"]:
+    if _RATE_STATE["aborted"] or _RATE_STATE["section_blocked"]:
         return None
     throttle = _throttle_for(url)
     try:
@@ -649,11 +675,12 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
                 _RUN_STATS["http_403"] += 1
                 _RATE_STATE["consecutive_403s"] += 1
                 if _RATE_STATE["consecutive_403s"] >= TOO_MANY_403S:
-                    if not _RATE_STATE["aborted"]:
-                        print(f"  ! {TOO_MANY_403S} consecutive 403s — the feed is refusing "
-                              f"us, not rate-limiting. Aborting; a longer interval would "
-                              f"not help and the sweep cannot match a refused response.")
-                    _RATE_STATE["aborted"] = 1
+                    if not _RATE_STATE["section_blocked"]:
+                        print(f"  ! {TOO_MANY_403S} consecutive 403s — this source is being "
+                              f"refused, not rate-limited. Skipping the rest of THIS section "
+                              f"and moving on; a longer interval would not help and the sweep "
+                              f"cannot match a refused response.")
+                    _RATE_STATE["section_blocked"] = 1
                     _RUN_STATS["aborted_by_403"] = 1
             print(f"  ! HTTP {r.status_code} ({ctype}) {url}")
             return r
@@ -830,8 +857,8 @@ def pull_stock_report(d: date, *, sweep: bool = True) -> tuple[str | None, dict 
             if url:
                 _save_cursor(d, None)          # found — nothing left to resume
                 return url, parsed
-            if _RATE_STATE["aborted"]:
-                break                          # banned: keep the cursor, stop here
+            if _RATE_STATE["aborted"] or _RATE_STATE["section_blocked"]:
+                break                          # refused: keep the cursor, stop here
         else:
             # for-else: the loop ran to completion without breaking, so every
             # second in the window answered 404. The file is not in here.
@@ -1237,6 +1264,7 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     arabica_errors: list[str] = []
 
     if not only_monthly:
+        _begin_section("arabica daily xls")
         print(f"[arabica] daily xls, {len(days_sorted_asc)} days...")
         for d in days_sorted_asc:
             url, parsed = pull_arabica_xls(d)
@@ -1266,6 +1294,7 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
             for _ in range(back):
                 anchor = anchor.replace(day=1) - timedelta(days=1)   # one more month back
             candidates = F.month_end_publish_candidates(anchor.year, anchor.month)
+            _begin_section("arabica ageing report")
             print(f"[arabica] ageing report for {anchor.year}-{anchor.month:02d} "
                   f"(trying {len(candidates)} candidate dates)...")
             for cand in candidates:
@@ -1295,6 +1324,7 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     infested_all: list[dict] = []
     sweep_day: date | None = None      # also read by the telemetry after run()
     if not only_monthly:
+        _begin_section("robusta stock report")
         # Header said "latest day only" for months while the loop below walked
         # FIVE. The reader who then sees three dates in the log has to go and
         # find out which is lying — so it now states what it does.
@@ -1362,6 +1392,7 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
               f"(tier-2 sweep day: {sweep_day})\n")
 
 
+        _begin_section("robusta per-day sources")
         # ONE day per run — the anchor (prior business day), which is the only
         # day that can carry data we do not already have. The loop used to walk
         # all 7 window days every run: 6 sources x 7 days = 42 requests at the
@@ -1407,6 +1438,7 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     monthly_iss_recv: list[dict] = []
     age_allowance_list: list[dict] = []
     if not skip_monthly:
+        _begin_section("robusta monthly reports")
         print("[robusta] monthly: iss/recv + age allowance (last 3 month-ends)...")
         # Walk back from current month's end through last 3 month-ends.
         # Real calendar date, not the business-day anchor (see arabica note).
