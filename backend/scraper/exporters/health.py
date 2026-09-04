@@ -313,6 +313,11 @@ def export_health(db, *, exporters_published_at: dict[str, str] | None = None) -
     scrapers["enso_indices"]    = _feed_ts("enso_indices.json", "scraped_at")
     scrapers["enso_subsurface"] = _feed_ts("enso_subsurface.json", "scraped_at")
     scrapers["vn_water"]        = _feed_ts("vn_water_levels.json", "updated")
+    # Nothing watched the traded tape, which is how it went silent for ten
+    # sessions (26 Aug – 4 Sep 2026) with every scheduled run reporting success.
+    # The workflow now fails loudly when it misses its window, but a feed this
+    # easy to lose should also be visible on the health bar.
+    scrapers["tradespread"]     = _feed_ts("tradespread.json", "updated")
 
     # ── Data as-of map ────────────────────────────────────────────────────────
     # `scrapers` answers "when did the pipeline last run" (used by DataHealthBar
