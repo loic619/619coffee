@@ -231,8 +231,17 @@ jobs:
           # those clear in seconds; a fault that survives 60s is not going to
           # clear by minute five either. A genuinely missed day is backfilled by
           # the workbook ingest, so the cost of giving up early is bounded.
+          # Exit 3 = the feed refused every request. That is not a transient
+          # fault and a second attempt just pays the whole run again — run
+          # 33854928072 did exactly that. Fail immediately on it; keep the one
+          # retry for everything else.
           for attempt in 1 2; do
-            run_scraper && break
+            if run_scraper; then break; fi
+            rc=$?
+            if [ "$rc" -eq 3 ]; then
+              echo "Feed refused every request (exit 3) — a retry cannot clear a block."
+              exit 3
+            fi
             [ $attempt -lt 2 ] && echo "Attempt $attempt failed, retrying in 60s..." && sleep 60 || exit 1
           done
 
