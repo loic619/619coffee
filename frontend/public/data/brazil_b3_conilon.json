@@ -1,10 +1,10 @@
 {
   "unit": "BRL/saca_60kg",
   "source": "B3 — Contrato Futuro de Café Conilon (CNL), DerivativeQuotation API",
-  "note": "front_price = nearest live contract's daily settlement (ajuste); history accumulates daily — B3 exposes no history endpoint.",
+  "note": "front_price = nearest live contract's daily settlement (ajuste). Rows are dated by the SESSION they settle (the API field is the previous day's ajuste; a fetch on D reports D-1's session). History accumulates daily — B3 exposes no history endpoint. Re-dated 2026-09-03; rows before that carried the fetch date, one session late.",
   "history": [
     {
-      "date": "2026-08-11",
+      "date": "2026-08-10",
       "front_month": "Sep '26",
       "front_price": 1076.54,
       "contracts": [
@@ -36,10 +36,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-11"
     },
     {
-      "date": "2026-08-12",
+      "date": "2026-08-11",
       "front_month": "Sep '26",
       "front_price": 1079.73,
       "contracts": [
@@ -71,10 +72,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-12"
     },
     {
-      "date": "2026-08-13",
+      "date": "2026-08-12",
       "front_month": "Sep '26",
       "front_price": 1074.29,
       "contracts": [
@@ -106,10 +108,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-13"
     },
     {
-      "date": "2026-08-14",
+      "date": "2026-08-13",
       "front_month": "Sep '26",
       "front_price": 1064.63,
       "contracts": [
@@ -141,10 +144,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-14"
     },
     {
-      "date": "2026-08-15",
+      "date": "2026-08-14",
       "front_month": "Sep '26",
       "front_price": 1052.28,
       "contracts": [
@@ -176,45 +180,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-15"
     },
     {
-      "date": "2026-08-16",
-      "front_month": "Sep '26",
-      "front_price": 1052.28,
-      "contracts": [
-        {
-          "month": "Sep '26",
-          "symb": "CNLU26",
-          "price": 1052.28,
-          "oi": 20,
-          "expiry": "2026-09-22"
-        },
-        {
-          "month": "Nov '26",
-          "symb": "CNLX26",
-          "price": 1048.34,
-          "oi": null,
-          "expiry": "2026-11-19"
-        },
-        {
-          "month": "Mar '27",
-          "symb": "CNLH27",
-          "price": 1048.34,
-          "oi": null,
-          "expiry": "2027-03-22"
-        },
-        {
-          "month": "May '27",
-          "symb": "CNLK27",
-          "price": 1048.34,
-          "oi": null,
-          "expiry": "2027-05-20"
-        }
-      ]
-    },
-    {
-      "date": "2026-08-18",
+      "date": "2026-08-17",
       "front_month": "Sep '26",
       "front_price": 1037.01,
       "contracts": [
@@ -246,10 +216,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-18"
     },
     {
-      "date": "2026-08-19",
+      "date": "2026-08-18",
       "front_month": "Sep '26",
       "front_price": 1040.75,
       "contracts": [
@@ -281,10 +252,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-19"
     },
     {
-      "date": "2026-08-20",
+      "date": "2026-08-19",
       "front_month": "Sep '26",
       "front_price": 1062.65,
       "contracts": [
@@ -316,10 +288,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-20"
     },
     {
-      "date": "2026-08-21",
+      "date": "2026-08-20",
       "front_month": "Sep '26",
       "front_price": 1050.37,
       "contracts": [
@@ -351,10 +324,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-21"
     },
     {
-      "date": "2026-08-22",
+      "date": "2026-08-21",
       "front_month": "Sep '26",
       "front_price": 1053.79,
       "contracts": [
@@ -386,80 +360,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
-    },
-    {
-      "date": "2026-08-23",
-      "front_month": "Sep '26",
-      "front_price": 1053.79,
-      "contracts": [
-        {
-          "month": "Sep '26",
-          "symb": "CNLU26",
-          "price": 1053.79,
-          "oi": 20,
-          "expiry": "2026-09-22"
-        },
-        {
-          "month": "Nov '26",
-          "symb": "CNLX26",
-          "price": 1049.85,
-          "oi": null,
-          "expiry": "2026-11-19"
-        },
-        {
-          "month": "Mar '27",
-          "symb": "CNLH27",
-          "price": 1049.85,
-          "oi": null,
-          "expiry": "2027-03-22"
-        },
-        {
-          "month": "May '27",
-          "symb": "CNLK27",
-          "price": 1049.85,
-          "oi": null,
-          "expiry": "2027-05-20"
-        }
-      ]
+      ],
+      "fetched_on": "2026-08-22"
     },
     {
       "date": "2026-08-24",
-      "front_month": "Sep '26",
-      "front_price": 1053.79,
-      "contracts": [
-        {
-          "month": "Sep '26",
-          "symb": "CNLU26",
-          "price": 1053.79,
-          "oi": 20,
-          "expiry": "2026-09-22"
-        },
-        {
-          "month": "Nov '26",
-          "symb": "CNLX26",
-          "price": 1049.85,
-          "oi": null,
-          "expiry": "2026-11-19"
-        },
-        {
-          "month": "Mar '27",
-          "symb": "CNLH27",
-          "price": 1049.85,
-          "oi": null,
-          "expiry": "2027-03-22"
-        },
-        {
-          "month": "May '27",
-          "symb": "CNLK27",
-          "price": 1049.85,
-          "oi": null,
-          "expiry": "2027-05-20"
-        }
-      ]
-    },
-    {
-      "date": "2026-08-25",
       "front_month": "Sep '26",
       "front_price": 1039.73,
       "contracts": [
@@ -491,10 +396,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-25"
     },
     {
-      "date": "2026-08-26",
+      "date": "2026-08-25",
       "front_month": "Sep '26",
       "front_price": 1046.43,
       "contracts": [
@@ -526,10 +432,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-26"
     },
     {
-      "date": "2026-08-27",
+      "date": "2026-08-26",
       "front_month": "Sep '26",
       "front_price": 1036.55,
       "contracts": [
@@ -561,10 +468,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-27"
     },
     {
-      "date": "2026-08-28",
+      "date": "2026-08-27",
       "front_month": "Sep '26",
       "front_price": 1024.12,
       "contracts": [
@@ -596,10 +504,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-28"
     },
     {
-      "date": "2026-08-29",
+      "date": "2026-08-28",
       "front_month": "Sep '26",
       "front_price": 1010.05,
       "contracts": [
@@ -631,45 +540,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-08-29"
     },
     {
-      "date": "2026-08-30",
-      "front_month": "Sep '26",
-      "front_price": 1010.05,
-      "contracts": [
-        {
-          "month": "Sep '26",
-          "symb": "CNLU26",
-          "price": 1010.05,
-          "oi": 20,
-          "expiry": "2026-09-22"
-        },
-        {
-          "month": "Nov '26",
-          "symb": "CNLX26",
-          "price": 1006.28,
-          "oi": null,
-          "expiry": "2026-11-19"
-        },
-        {
-          "month": "Mar '27",
-          "symb": "CNLH27",
-          "price": 1006.28,
-          "oi": null,
-          "expiry": "2027-03-22"
-        },
-        {
-          "month": "May '27",
-          "symb": "CNLK27",
-          "price": 1006.28,
-          "oi": null,
-          "expiry": "2027-05-20"
-        }
-      ]
-    },
-    {
-      "date": "2026-09-01",
+      "date": "2026-08-31",
       "front_month": "Sep '26",
       "front_price": 1015.63,
       "contracts": [
@@ -701,10 +576,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-09-01"
     },
     {
-      "date": "2026-09-02",
+      "date": "2026-09-01",
       "front_month": "Sep '26",
       "front_price": 1010.27,
       "contracts": [
@@ -736,10 +612,11 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
-      ]
+      ],
+      "fetched_on": "2026-09-02"
     },
     {
-      "date": "2026-09-03",
+      "date": "2026-09-02",
       "front_month": "Sep '26",
       "front_price": 995.66,
       "contracts": [
@@ -771,8 +648,45 @@
           "oi": null,
           "expiry": "2027-05-20"
         }
+      ],
+      "fetched_on": "2026-09-03"
+    },
+    {
+      "date": "2026-09-03",
+      "fetched_on": "2026-09-04",
+      "front_month": "Sep '26",
+      "front_price": 980.2,
+      "contracts": [
+        {
+          "month": "Sep '26",
+          "symb": "CNLU26",
+          "price": 980.2,
+          "oi": 20,
+          "expiry": "2026-09-22"
+        },
+        {
+          "month": "Nov '26",
+          "symb": "CNLX26",
+          "price": 976.55,
+          "oi": null,
+          "expiry": "2026-11-19"
+        },
+        {
+          "month": "Mar '27",
+          "symb": "CNLH27",
+          "price": 976.55,
+          "oi": null,
+          "expiry": "2027-03-22"
+        },
+        {
+          "month": "May '27",
+          "symb": "CNLK27",
+          "price": 976.55,
+          "oi": null,
+          "expiry": "2027-05-20"
+        }
       ]
     }
   ],
-  "updated": "2026-09-03T07:23:39.573684+00:00"
+  "updated": "2026-09-04T05:09:48.118366+00:00"
 }

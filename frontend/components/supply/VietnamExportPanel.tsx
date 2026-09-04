@@ -3,6 +3,7 @@ import StatCard from "@/components/supply/BrazilTab/StatCard";
 import MonthlyVolumeChart, { type ExportMonth } from "@/components/supply/VietnamTab/MonthlyVolumeChart";
 import CumulativePaceChart from "@/components/supply/VietnamTab/CumulativePaceChart";
 import AnnualTrendChart from "@/components/supply/VietnamTab/AnnualTrendChart";
+import ExpectedVsActual from "@/components/supply/ExpectedVsActual";
 import {
   vnCropYearKey, kBagsToKT, kBagsToMT, shortMonthLabel,
 } from "@/components/supply/VietnamTab/helpers";
@@ -92,6 +93,8 @@ export default function VietnamExportPanel({ exports: exp }: Props) {
 
       {/* Charts — same visual language as the Brazil tab */}
       <MonthlyVolumeChart    monthly={monthly} />
+      {/* What the customs first-half bulletin implied vs what the month did. */}
+      <ExpectedVsActual origin="vietnam" />
       <CumulativePaceChart   monthly={monthly} />
       <AnnualTrendChart      monthly={monthly} />
 

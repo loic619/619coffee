@@ -113,7 +113,7 @@ export default function EnsoRiskMap({ pins }: { pins: EnsoRiskPin[] }) {
                   (h) =>
                     `<span style="opacity:.75">${MONTHS(h.months)} · ${PHASE_LABEL[h.phase] ?? h.phase} (${h.cycle}) — ` +
                     `${h.anomaly_pct != null ? `${h.anomaly_pct > 0 ? "+" : ""}${h.anomaly_pct.toFixed(0)}% rain, ` : ""}` +
-                    `${h.n} past events</span>`
+                    `${h.n} past events${h.inferred ? ", window inferred" : ""}</span>`
                 ),
               p.lag_months != null
                 ? `<span style="opacity:.55">ENSO leads rainfall here by ${p.lag_months} mo</span>`

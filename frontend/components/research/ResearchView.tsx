@@ -58,6 +58,7 @@ import { nodesForArticle } from "./factor-map/articleNodes";
 import HondurasProfile from "./origins/HondurasProfile";
 import CertStocksSpread from "./CertStocksSpread";
 import VnMidMonth from "./VnMidMonth";
+import WorkflowFailures from "./WorkflowFailures";
 
 // Top-level research categories. Each groups several articles/tools, which render
 // stacked as collapsible cards on the category page.
@@ -1812,6 +1813,7 @@ const BODY: Record<string, React.ReactNode> = {
   "honduras-origin-country-profile": <HondurasProfile />,
   "cert-stocks-and-the-front-spread": <CertStocksSpread />,
   "vietnam-mid-month-customs-bulletin": <VnMidMonth />,
+  "workflow-failure-taxonomy": <WorkflowFailures />,
   "origin-logistics-the-fobbing-cost-model": <OriginLogistics />,
   "destination-in-store-cost": <DestinationInstore />,
   "freight-port-activity-how-the-numbers-are-built": <FreightMethodology />,

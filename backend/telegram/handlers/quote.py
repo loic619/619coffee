@@ -4,6 +4,7 @@ import re
 from datetime import date
 
 from telegram.data import load
+from telegram.formatting import header, num, signed, table, title
 
 STC = {1:"H",2:"H",3:"K",4:"K",5:"N",6:"N",7:"U",8:"U",9:"X",10:"X",11:"F",12:"F"}
 MA  = {1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",
@@ -106,26 +107,26 @@ def handle(args: str, context: dict) -> str:
     addons = sum(ADDON_DIFFS[k] for k in ["eudr", "rfa", "4c", "bb", "jute"] if a.get(k))
     rows = compute_months(basis, rc, today.month, today.day, addons)
 
-    # Build contract legend — unique letters in appearance order
+    # Contract legend — unique letters in appearance order. Each shipment
+    # month prices off one of these, which is why the letter travels with the
+    # differential in the shipment table rather than being dropped: "Nov-26
+    # +178" is not a quotation until you know which contract it prices off.
     legend_letters: list[str] = []
     for _, sym, _ in rows:
         m = re.match(r'^RM([A-Z])', sym)
-        if m:
-            letter = m.group(1)
-            if letter not in legend_letters:
-                legend_letters.append(letter)
+        if m and m.group(1) not in legend_letters:
+            legend_letters.append(m.group(1))
 
-    legend_lines = []
+    fut_rows: list[list] = [["", "last", "vs front"]]
     prev_price: float | None = None
     for letter in legend_letters:
         price = rc.get(letter)
         if price is None:
             continue
         if prev_price is None:
-            legend_lines.append(f"  {letter} = {price:,.0f}  (front)")
+            fut_rows.append([letter, num(price), "front"])
         else:
-            spread = round(prev_price - price)
-            legend_lines.append(f"  {letter} = {price:,.0f}  (+{spread})")
+            fut_rows.append([letter, num(price), signed(round(prev_price - price))])
         prev_price = price
 
     # Quality + packing labels
@@ -138,31 +139,28 @@ def handle(args: str, context: dict) -> str:
     else:
         packing = "Bulk"
 
-    # Shipment rows in differential notation
-    ship_lines = []
+    # Shipment rows: month, its pricing contract + differential, and the
+    # all-in price. The last column is new — the reader was previously doing
+    # 3,557 + 107 in their head on every row.
+    ship_rows: list[list] = [["", "diff", "price"]]
     for label, sym, diff in rows:
         m = re.match(r'^RM([A-Z])', sym)
         letter = m.group(1) if m else "?"
-        if diff is not None:
-            ship_lines.append(f"  {label:<8} {letter}{diff:+d}")
-        else:
-            ship_lines.append(f"  {label:<8} —")
+        if diff is None:
+            ship_rows.append([label, "—", "—"])
+            continue
+        base = rc.get(letter)
+        ship_rows.append([label, f"{letter} {diff:+d}",
+                          num(base + diff) if base is not None else "—"])
 
-    basis_s = f"{basis:+d}" if basis != 0 else "0"
-    out = [
-        "<b>Robusta Quotation</b>",
-        f"Basis: {front_sym} {basis_s} (VN FAQ ref)",
-        "",
+    basis_s = signed(basis) if basis else "0"
+    parts = [
+        title("☕ ROBUSTA QUOTATION", f"VN FAQ · {quality} · {packing}"),
+        f"Basis: {front_sym} {basis_s}",
+        header("📈", "futures"),
+        table(fut_rows, align="lrr"),
+        header("🚢", "shipment"),
+        table(ship_rows, align="lrr"),
+        "/quote basis=+50 — adjusts all rows\n/quote basis=-140 eudr rfa bb",
     ]
-    out.extend(legend_lines)
-    out.append("")
-    out.append(f"Quality: {quality}")
-    out.append(f"Packing: {packing}")
-    out.append("")
-    out.append("Shipment &amp; price:")
-    out.extend(ship_lines)
-    out.append("")
-    out.append("/quote basis=+50  — adjusts all rows")
-    out.append("/quote basis=-140 eudr rfa bb")
-
-    return "\n".join(out)
+    return "\n\n".join(parts)

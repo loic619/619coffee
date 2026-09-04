@@ -1,0 +1,69 @@
+name: "0.31 – Backfill: VN river-flow bulletins (NCHMF archive)"
+
+# The river-flow tracker (vn_dam_levels.py, run by the daily fetch) read only
+# the latest NCHMF bulletin and overwrote the file each day — five months of
+# tracking, one row on disk. The bulletins are date-named PDFs on
+# kttv.gov.vn's archive, so the history is recoverable: this walks the archive
+# by date over the range given, parses every bulletin it finds and fills the
+# `history` list the panel now charts. Idempotent — dates already on file are
+# skipped, nothing is overwritten. kttv.gov.vn is egress-blocked from the agent
+# sandbox; a runner reaches it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "Inclusive start date YYYY-MM-DD"
+        required: false
+        default: "2025-01-01"
+        type: string
+      end:
+        description: "Inclusive end date YYYY-MM-DD; blank = today"
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  group: vn-water-levels
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -q requests pdfplumber
+
+      - name: Backfill
+        working-directory: backend
+        env:
+          START: ${{ inputs.start }}
+          END: ${{ inputs.end }}
+        run: |
+          set -e
+          PYTHONPATH=. python -m scraper.sources.vn_dam_levels backfill "${START:-2025-01-01}" ${END:+"$END"}
+
+      - name: Commit & push
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data/vn_water_levels.json
+          if git diff --cached --quiet; then
+            echo "No new bulletins — the history already covered this range."
+            exit 0
+          fi
+          git commit -m "data: backfill VN river-flow bulletins [skip ci]"
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

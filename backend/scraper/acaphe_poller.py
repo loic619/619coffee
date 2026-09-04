@@ -1,9 +1,25 @@
 """
-acaphe_poller.py — Login once via Playwright, poll iquote.php every POLL_INTERVAL seconds,
-write cleaned JSON to frontend/public/data/acaphe_live.json.
+acaphe_poller.py — poll iquote.php, write cleaned JSON to
+frontend/public/data/acaphe_live.json and push it to Redis.
 
 Usage (from repo root):
-    python backend/scraper/acaphe_poller.py
+    python backend/scraper/acaphe_poller.py            # persistent loop
+    python -m scraper.acaphe_poller --once             # one tick (CI cron)
+
+Two things are worth knowing before changing this file.
+
+Playwright is the exception path, not the normal one. Only the LOGIN needs a
+browser; the quotes themselves come over plain HTTP with the resulting
+cookies. Those cookies are cached in Redis (see get_cookies), so a --once tick
+in a fresh CI container reuses the session instead of launching Chromium every
+time. A browser starts only on a cache miss, or when cached cookies are
+rejected.
+
+A successful fetch is not the same as usable data. acaphe answers HTTP 200
+with an empty or unpriced payload often enough that publishing whatever parsed
+would blank the live panel — and refresh the key's timestamp, hiding the
+outage from the 1.8 freshness checker. classify() gates the publish: degraded
+payloads are logged and the last good snapshot is left in place.
 """
 
 import asyncio
@@ -25,6 +41,12 @@ VIETNAM_LAST  = Path(__file__).parents[2] / "frontend" / "public" / "data" / "vi
 UPSTASH_URL   = os.environ.get("UPSTASH_REDIS_REST_URL", "").rstrip("/")
 UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
 REDIS_KEY     = "live_quotes"
+# Session jar, cached so Playwright is not launched on every tick. Stored in
+# Upstash (token-gated, not public like this repo) with a TTL so a credential
+# cannot linger indefinitely; acaphe's own session may expire sooner, which
+# the fetch-then-relogin path below handles.
+COOKIE_KEY    = "acaphe_cookies"
+COOKIE_TTL_S  = 12 * 3600
 DATABASE_URL  = os.environ.get("DATABASE_URL", "")
 
 # VN-only mode, set by the 01:00-04:00 UTC cron block in poll-acaphe-quotes.yml.
@@ -39,24 +61,52 @@ DATABASE_URL  = os.environ.get("DATABASE_URL", "")
 VN_ONLY       = os.environ.get("ACAPHE_VN_ONLY", "").lower() in ("1", "true", "yes")
 
 
-def _push_redis(data: dict, key: str = REDIS_KEY) -> None:
-    """Push data to Upstash Redis via REST API. Silent no-op if not configured."""
+def _push_redis(data: dict, key: str = REDIS_KEY, ttl_s: int | None = None) -> None:
+    """Push data to Upstash Redis via REST API. Silent no-op if not configured.
+
+    `ttl_s` sets an expiry (Redis SET ... EX). Used for the cookie jar so a
+    session credential cannot outlive its usefulness in the store.
+    """
     if not UPSTASH_URL or not UPSTASH_TOKEN:
         return
     try:
         payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+        cmd = ["SET", key, payload]
+        if ttl_s:
+            cmd += ["EX", str(int(ttl_s))]
         resp = requests.post(
             UPSTASH_URL,
             headers={
                 "Authorization": f"Bearer {UPSTASH_TOKEN}",
                 "Content-Type":  "application/json",
             },
-            json=["SET", key, payload],
+            json=cmd,
             timeout=5,
         )
         resp.raise_for_status()
     except Exception as exc:
         print(f"[acaphe][redis] push failed ({key}): {exc}")
+
+
+def _get_redis(key: str):
+    """Read a JSON value back from Upstash. None when unset/unreachable."""
+    if not UPSTASH_URL or not UPSTASH_TOKEN:
+        return None
+    try:
+        r = requests.get(
+            f"{UPSTASH_URL}/get/{key}",
+            headers={"Authorization": f"Bearer {UPSTASH_TOKEN}"},
+            timeout=5,
+        )
+        if not r.ok:
+            return None
+        result = r.json().get("result")
+        if not result:
+            return None
+        return json.loads(result) if isinstance(result, str) else result
+    except Exception as exc:
+        print(f"[acaphe][redis] get failed ({key}): {exc}")
+        return None
 API_URL       = "https://acaphe.com/iquote.php?v="
 LOGIN_URL     = "https://acaphe.com/"
 # Credentials come from the environment (ACAPHE_USER / ACAPHE_PASS), set as
@@ -233,6 +283,37 @@ def transform(raw: list) -> dict:
     return result
 
 
+# ── Source validation ─────────────────────────────────────────────────────────
+
+def classify(data: dict) -> tuple[str, list[str]]:
+    """Is this payload usable market data, or merely a successful HTTP call?
+
+    HTTP 200 + parseable JSON is NOT the same as "acaphe published quotes".
+    acaphe intermittently serves the bare stub `acaphe()` in place of the
+    block, and can return the row scaffolding with every price field empty.
+    Both used to sail through: fetch_and_save returned True for anything that
+    parsed, so an empty payload was pushed over a good snapshot in Redis and
+    the panel went blank with a fresh timestamp on it — which also blinded the
+    1.8 freshness checker, since the key had just been written.
+
+    Returns (status, reasons):
+      healthy  — at least one priced contract on each board
+      degraded — parsed, but the futures are missing or unpriced
+
+    "dead" is not returned here: a timeout, HTTP error or unparseable body
+    raises before this is reached and is handled by the caller.
+    """
+    reasons: list[str] = []
+    for board in ("robusta", "arabica"):
+        rows = data.get(board) or []
+        if not rows:
+            reasons.append(f"{board}: no rows")
+            continue
+        if not any(r.get("last") is not None for r in rows):
+            reasons.append(f"{board}: {len(rows)} rows, none priced")
+    return ("degraded" if reasons else "healthy"), reasons
+
+
 # ── Network helpers ────────────────────────────────────────────────────────────
 
 async def playwright_login() -> dict:
@@ -288,6 +369,32 @@ async def playwright_login() -> dict:
                 await asyncio.sleep(3 * attempt)   # 3s, 6s backoff
 
     raise RuntimeError(f"acaphe login failed after 3 attempts: {last_err}")
+
+
+async def get_cookies(force_login: bool = False) -> tuple[dict, bool]:
+    """Session cookies for iquote.php, preferring the cached jar.
+
+    Under GitHub Actions every tick is a fresh container, so "log in once then
+    poll" — the shape the persistent worker uses — has nothing to hold the
+    session in. Caching the jar in Redis (already provisioned for the quotes
+    themselves) restores that property across runs: Playwright then runs only
+    on a cache miss or after the cached cookies stop working, instead of on
+    every single tick.
+
+    The jar carries a TTL so a stale credential expires on its own, and the
+    caller re-logs in when a fetch fails on cached cookies.
+
+    Returns (cookies, from_cache) — the flag tells the caller whether a
+    failure is worth retrying with a fresh login.
+    """
+    if not force_login:
+        cached = _get_redis(COOKIE_KEY)
+        if cached:
+            print(f"[acaphe] reusing cached session ({len(cached)} cookies) — no browser needed")
+            return cached, True
+    cookies = await playwright_login()
+    _push_redis(cookies, key=COOKIE_KEY, ttl_s=COOKIE_TTL_S)
+    return cookies, False
 
 
 def _save_vn_prices_to_db(viet: dict, fetched_at: str) -> None:
@@ -349,28 +456,32 @@ def fetch_and_save(cookies: dict) -> bool:
             print("[acaphe] Vietnam snapshot saved (local + Redis)")
             if DATABASE_URL:
                 _save_vn_prices_to_db(viet, data["fetched_at"])
-        elif UPSTASH_URL and UPSTASH_TOKEN:
+        else:
             # VN data absent — inject the last-known snapshot into live_quotes
             # so the UI never shows an empty VN panel after morning data disappears
-            try:
-                r = requests.get(
-                    f"{UPSTASH_URL}/get/vietnam_last",
-                    headers={"Authorization": f"Bearer {UPSTASH_TOKEN}"},
-                    timeout=5,
-                )
-                if r.ok:
-                    result = r.json().get("result")
-                    if result:
-                        last_vn = json.loads(result) if isinstance(result, str) else result
-                        data["vietnam"] = last_vn
-                        print("[acaphe] VN data absent — injected last-known snapshot")
-            except Exception as e:
-                print(f"[acaphe] VN inject failed: {e}")
+            last_vn = _get_redis("vietnam_last")
+            if last_vn:
+                data["vietnam"] = last_vn
+                print("[acaphe] VN data absent — injected last-known snapshot")
+
+        # Validate before publishing: a degraded payload must not overwrite the
+        # last good one (see classify()). The status travels with the data so
+        # the frontend and the freshness checker can tell "acaphe answered" from
+        # "acaphe published quotes".
+        status, reasons = classify(data)
+        data["status"] = status
 
         if VN_ONLY:
             print("[acaphe] VN-only tick — skipping live_quotes push (futures off-session)")
-        else:
+        elif status == "healthy":
             _push_redis(data)
+        else:
+            # Retained, not republished. Exit stays 0: acaphe serving a stub is
+            # not this job failing, and turning every upstream hiccup red would
+            # bury the real ones — staleness is already alerted on by 1.8, which
+            # keeps working precisely because we did NOT refresh the key here.
+            print(f"::warning::acaphe payload degraded ({'; '.join(reasons)}) — "
+                  "keeping the last good live_quotes rather than overwriting it")
 
         viet     = data.get("vietnam", {}) or {}
         bmt_bid  = viet.get("bmt_bid", "?")
@@ -380,7 +491,7 @@ def fetch_and_save(cookies: dict) -> bool:
         a_last   = data["arabica"][0]["last"]  if data["arabica"]  else "?"
         now_t    = data.get("now_time", "")
         print(
-            f"[acaphe] {datetime.now().strftime('%H:%M:%S')} | {now_t} | "
+            f"[acaphe] {datetime.now().strftime('%H:%M:%S')} | {now_t} | {status} | "
             f"RC={r_last} KC={a_last} | BMT {bmt_bid}/{bmt_off} | VCB={usd_vnd}"
         )
         return True
@@ -411,10 +522,17 @@ async def main():
                         help="Single fetch + push then exit (cron-friendly).")
     args = parser.parse_args()
 
-    cookies = await playwright_login()
+    cookies, from_cache = await get_cookies()
 
     if args.once:
         ok = fetch_and_save(cookies)
+        if not ok and from_cache:
+            # The cached jar is the only thing that could be stale here, and a
+            # fresh login is exactly the recovery for it. Only worth a browser
+            # when we had not already just used one.
+            print("[acaphe] cached session rejected — logging in again …")
+            cookies, _ = await get_cookies(force_login=True)
+            ok = fetch_and_save(cookies)
         # Non-zero exit on failure so the workflow surfaces the problem.
         sys.exit(0 if ok else 1)
 
@@ -428,7 +546,7 @@ async def main():
             fails += 1
             if fails >= RELOGIN_AFTER:
                 print(f"[acaphe] {fails} consecutive failures — re-logging in …")
-                cookies = await playwright_login()
+                cookies, _ = await get_cookies(force_login=True)
                 fails   = 0
 
         await asyncio.sleep(POLL_INTERVAL)

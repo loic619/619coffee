@@ -1,0 +1,669 @@
+{
+  "question": "What does a failed workflow run actually mean here?",
+  "total_failed_runs_reported_by_api": 847,
+  "sample_span": [
+    "2026-07-15",
+    "2026-09-03"
+  ],
+  "sampling_note": "The Actions API caps listings at 30 runs/page regardless of per_page; this sample is the contiguous recent window. 847 is the all-time total the API reports, reaching back to 2026-06-22.",
+  "categories": {
+    "A": "Deterministic code failure",
+    "B": "External transient",
+    "C": "External persistent / dead source",
+    "D": "Intentional non-zero",
+    "E": "Duplicate / recovery failure"
+  },
+  "lanes": {
+    "pre-merge": "Caught before merge — nothing shipped",
+    "retired": "Workflow no longer exists",
+    "operational": "Scheduled or chained job on main"
+  },
+  "n": 240,
+  "category_counts": {
+    "A": 202,
+    "B": 7,
+    "C": 13,
+    "D": 16,
+    "E": 2
+  },
+  "lane_counts": {
+    "pre-merge": 168,
+    "retired": 29,
+    "operational": 43
+  },
+  "deductions": [
+    {
+      "label": "Pre-merge CI — nothing shipped",
+      "n": 168
+    },
+    {
+      "label": "Retired workflow — no longer exists",
+      "n": 29
+    },
+    {
+      "label": "Intentional non-zero (category D)",
+      "n": 16
+    }
+  ],
+  "actionable": 27,
+  "actionable_pct": 11.2,
+  "workflows": [
+    {
+      "name": "9.2 – Backend Lint",
+      "n": 128,
+      "category": "A",
+      "lane": "pre-merge",
+      "confident": true,
+      "evidence": "ruff findings on push/PR",
+      "median_duration_s": 16,
+      "events": {
+        "push": 65,
+        "pull_request": 62,
+        "workflow_dispatch": 1
+      }
+    },
+    {
+      "name": "1.6 – Morning Brief",
+      "n": 29,
+      "category": "A",
+      "lane": "retired",
+      "confident": true,
+      "evidence": "workflow deleted 2026-08-14; its failures stop on exactly that date",
+      "median_duration_s": 24,
+      "events": {
+        "workflow_run": 29
+      }
+    },
+    {
+      "name": "9.3 – Smart-quote guard (TS/TSX)",
+      "n": 21,
+      "category": "A",
+      "lane": "pre-merge",
+      "confident": true,
+      "evidence": "guard rejects smart quotes",
+      "median_duration_s": 14,
+      "events": {
+        "pull_request": 14,
+        "push": 7
+      }
+    },
+    {
+      "name": "9.1 – CI Tests",
+      "n": 18,
+      "category": "A",
+      "lane": "pre-merge",
+      "confident": true,
+      "evidence": "test assertions on push/PR",
+      "median_duration_s": 68,
+      "events": {
+        "push": 9,
+        "pull_request": 8,
+        "workflow_dispatch": 1
+      }
+    },
+    {
+      "name": "1.5 – Check Data Pipeline Freshness",
+      "n": 12,
+      "category": "D",
+      "lane": "operational",
+      "confident": true,
+      "evidence": "exits 1 BECAUSE a source/exporter/artifact is stale — the check working",
+      "median_duration_s": 15,
+      "events": {
+        "schedule": 11,
+        "workflow_dispatch": 1
+      }
+    },
+    {
+      "name": "1.7 – Cecafe Daily Registration",
+      "n": 6,
+      "category": "B",
+      "lane": "operational",
+      "confident": false,
+      "evidence": "site intermittently unreachable from runners (scraper retries 3x, keeps last good)",
+      "median_duration_s": 373,
+      "events": {
+        "schedule": 6
+      }
+    },
+    {
+      "name": "1.10 – Daily Weather Fetch & Accumulate",
+      "n": 5,
+      "category": "A",
+      "lane": "operational",
+      "confident": true,
+      "evidence": "log: exit 1 after the model step, on a feature-dimension drop",
+      "median_duration_s": 1050,
+      "events": {
+        "schedule": 5
+      }
+    },
+    {
+      "name": "1.8 – Check Live Quotes Freshness",
+      "n": 4,
+      "category": "D",
+      "lane": "operational",
+      "confident": true,
+      "evidence": "over this sample: exit 1 on EVERY stale check, plus a rescue dispatch, with no state between runs. Rebuilt 2026-09-04 onto a degraded-state ladder — still category D, but red now means recovery repeatedly failed",
+      "median_duration_s": 951,
+      "events": {
+        "schedule": 4
+      }
+    },
+    {
+      "name": "1.11 – Port Activity Scraper (PortWatch)",
+      "n": 4,
+      "category": "C",
+      "lane": "operational",
+      "confident": true,
+      "evidence": "log: 'A configured port produced no data' — HTTP fine, payload empty",
+      "median_duration_s": 1578,
+      "events": {
+        "workflow_dispatch": 4
+      }
+    },
+    {
+      "name": "0.1 – Acaphe Live Quotes Poll",
+      "n": 2,
+      "category": "E",
+      "lane": "operational",
+      "confident": false,
+      "evidence": "failures on workflow_dispatch — rescue runs dispatched by 1.8, not scheduled polls",
+      "median_duration_s": 1123,
+      "events": {
+        "workflow_dispatch": 2
+      }
+    },
+    {
+      "name": "Z – Backfill: Brazil Arabica físico",
+      "n": 1,
+      "category": "C",
+      "lane": "operational",
+      "confident": false,
+      "evidence": "unclassified — counted as actionable, not excused",
+      "median_duration_s": 340,
+      "events": {
+        "workflow_dispatch": 1
+      }
+    },
+    {
+      "name": "1.14 – ICE Monthly Reports (arabica ageing + robusta age-allowance)",
+      "n": 1,
+      "category": "C",
+      "lane": "operational",
+      "confident": false,
+      "evidence": "monthly file 404s until ICE publishes, sometimes weeks late",
+      "median_duration_s": 244,
+      "events": {
+        "workflow_dispatch": 1
+      }
+    },
+    {
+      "name": "0.2 – Capture KC at RC Close",
+      "n": 1,
+      "category": "C",
+      "lane": "operational",
+      "confident": false,
+      "evidence": "unclassified — counted as actionable, not excused",
+      "median_duration_s": 904,
+      "events": {
+        "schedule": 1
+      }
+    },
+    {
+      "name": "9.2 – CI Frontend",
+      "n": 1,
+      "category": "A",
+      "lane": "pre-merge",
+      "confident": false,
+      "evidence": "CI workflow (inferred from numbering)",
+      "median_duration_s": 908,
+      "events": {
+        "pull_request": 1
+      }
+    },
+    {
+      "name": "1.1 – Daily News Scraper",
+      "n": 1,
+      "category": "B",
+      "lane": "operational",
+      "confident": false,
+      "evidence": "upstream fetch failures",
+      "median_duration_s": 904,
+      "events": {
+        "workflow_dispatch": 1
+      }
+    },
+    {
+      "name": "1.3 – Daily OI Snapshot",
+      "n": 1,
+      "category": "C",
+      "lane": "operational",
+      "confident": false,
+      "evidence": "unclassified — counted as actionable, not excused",
+      "median_duration_s": 657,
+      "events": {
+        "workflow_run": 1
+      }
+    },
+    {
+      "name": "1.15 – Monthly CPI Scraper (US CPI · Retail Coffee CPI)",
+      "n": 1,
+      "category": "C",
+      "lane": "operational",
+      "confident": false,
+      "evidence": "unclassified — counted as actionable, not excused",
+      "median_duration_s": 80,
+      "events": {
+        "schedule": 1
+      }
+    },
+    {
+      "name": "0.18 – Probe: ICE stock-report access (index / retention)",
+      "n": 1,
+      "category": "C",
+      "lane": "operational",
+      "confident": false,
+      "evidence": "unclassified — counted as actionable, not excused",
+      "median_duration_s": 14,
+      "events": {
+        "workflow_dispatch": 1
+      }
+    },
+    {
+      "name": "1.13 – ICE Certified Stocks (arabica + robusta)",
+      "n": 1,
+      "category": "C",
+      "lane": "operational",
+      "confident": false,
+      "evidence": "ICE WAF blocks plain requests",
+      "median_duration_s": 511,
+      "events": {
+        "workflow_dispatch": 1
+      }
+    },
+    {
+      "name": "Z – Backfill: per-contract prices to 10y (manual)",
+      "n": 1,
+      "category": "C",
+      "lane": "operational",
+      "confident": true,
+      "evidence": "log: HTTP 403 on every contract — Barchart refusing the runner",
+      "median_duration_s": 50,
+      "events": {
+        "workflow_dispatch": 1
+      }
+    },
+    {
+      "name": "0.17 – Refresh Workflow Activity (7-day run record)",
+      "n": 1,
+      "category": "C",
+      "lane": "operational",
+      "confident": false,
+      "evidence": "unclassified — counted as actionable, not excused",
+      "median_duration_s": 59,
+      "events": {
+        "schedule": 1
+      }
+    }
+  ],
+  "daily": [
+    {
+      "date": "2026-07-15",
+      "pre-merge": 1,
+      "retired": 0,
+      "operational": 1,
+      "total": 2
+    },
+    {
+      "date": "2026-07-16",
+      "pre-merge": 3,
+      "retired": 2,
+      "operational": 0,
+      "total": 5
+    },
+    {
+      "date": "2026-07-17",
+      "pre-merge": 0,
+      "retired": 1,
+      "operational": 0,
+      "total": 1
+    },
+    {
+      "date": "2026-07-18",
+      "pre-merge": 0,
+      "retired": 1,
+      "operational": 0,
+      "total": 1
+    },
+    {
+      "date": "2026-07-19",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-07-20",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-07-21",
+      "pre-merge": 0,
+      "retired": 1,
+      "operational": 0,
+      "total": 1
+    },
+    {
+      "date": "2026-07-22",
+      "pre-merge": 7,
+      "retired": 1,
+      "operational": 0,
+      "total": 8
+    },
+    {
+      "date": "2026-07-23",
+      "pre-merge": 0,
+      "retired": 1,
+      "operational": 0,
+      "total": 1
+    },
+    {
+      "date": "2026-07-24",
+      "pre-merge": 0,
+      "retired": 1,
+      "operational": 0,
+      "total": 1
+    },
+    {
+      "date": "2026-07-25",
+      "pre-merge": 0,
+      "retired": 1,
+      "operational": 0,
+      "total": 1
+    },
+    {
+      "date": "2026-07-26",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-07-27",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-07-28",
+      "pre-merge": 0,
+      "retired": 1,
+      "operational": 0,
+      "total": 1
+    },
+    {
+      "date": "2026-07-29",
+      "pre-merge": 0,
+      "retired": 1,
+      "operational": 0,
+      "total": 1
+    },
+    {
+      "date": "2026-07-30",
+      "pre-merge": 2,
+      "retired": 1,
+      "operational": 0,
+      "total": 3
+    },
+    {
+      "date": "2026-07-31",
+      "pre-merge": 2,
+      "retired": 1,
+      "operational": 1,
+      "total": 4
+    },
+    {
+      "date": "2026-08-01",
+      "pre-merge": 4,
+      "retired": 1,
+      "operational": 2,
+      "total": 7
+    },
+    {
+      "date": "2026-08-02",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 2,
+      "total": 2
+    },
+    {
+      "date": "2026-08-03",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 2,
+      "total": 2
+    },
+    {
+      "date": "2026-08-04",
+      "pre-merge": 9,
+      "retired": 2,
+      "operational": 1,
+      "total": 12
+    },
+    {
+      "date": "2026-08-05",
+      "pre-merge": 2,
+      "retired": 1,
+      "operational": 1,
+      "total": 4
+    },
+    {
+      "date": "2026-08-06",
+      "pre-merge": 5,
+      "retired": 2,
+      "operational": 9,
+      "total": 16
+    },
+    {
+      "date": "2026-08-07",
+      "pre-merge": 1,
+      "retired": 1,
+      "operational": 1,
+      "total": 3
+    },
+    {
+      "date": "2026-08-08",
+      "pre-merge": 1,
+      "retired": 1,
+      "operational": 0,
+      "total": 2
+    },
+    {
+      "date": "2026-08-09",
+      "pre-merge": 9,
+      "retired": 0,
+      "operational": 0,
+      "total": 9
+    },
+    {
+      "date": "2026-08-10",
+      "pre-merge": 3,
+      "retired": 0,
+      "operational": 0,
+      "total": 3
+    },
+    {
+      "date": "2026-08-11",
+      "pre-merge": 2,
+      "retired": 2,
+      "operational": 1,
+      "total": 5
+    },
+    {
+      "date": "2026-08-12",
+      "pre-merge": 15,
+      "retired": 2,
+      "operational": 0,
+      "total": 17
+    },
+    {
+      "date": "2026-08-13",
+      "pre-merge": 0,
+      "retired": 2,
+      "operational": 1,
+      "total": 3
+    },
+    {
+      "date": "2026-08-14",
+      "pre-merge": 3,
+      "retired": 2,
+      "operational": 0,
+      "total": 5
+    },
+    {
+      "date": "2026-08-15",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-08-16",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-08-17",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-08-18",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-08-19",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-08-20",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-08-21",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-08-22",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-08-23",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-08-24",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-08-25",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 0,
+      "total": 0
+    },
+    {
+      "date": "2026-08-26",
+      "pre-merge": 12,
+      "retired": 0,
+      "operational": 5,
+      "total": 17
+    },
+    {
+      "date": "2026-08-27",
+      "pre-merge": 22,
+      "retired": 0,
+      "operational": 6,
+      "total": 28
+    },
+    {
+      "date": "2026-08-28",
+      "pre-merge": 46,
+      "retired": 0,
+      "operational": 1,
+      "total": 47
+    },
+    {
+      "date": "2026-08-29",
+      "pre-merge": 4,
+      "retired": 0,
+      "operational": 2,
+      "total": 6
+    },
+    {
+      "date": "2026-08-30",
+      "pre-merge": 1,
+      "retired": 0,
+      "operational": 4,
+      "total": 5
+    },
+    {
+      "date": "2026-08-31",
+      "pre-merge": 1,
+      "retired": 0,
+      "operational": 0,
+      "total": 1
+    },
+    {
+      "date": "2026-09-01",
+      "pre-merge": 3,
+      "retired": 0,
+      "operational": 0,
+      "total": 3
+    },
+    {
+      "date": "2026-09-02",
+      "pre-merge": 0,
+      "retired": 0,
+      "operational": 1,
+      "total": 1
+    },
+    {
+      "date": "2026-09-03",
+      "pre-merge": 10,
+      "retired": 0,
+      "operational": 2,
+      "total": 12
+    }
+  ]
+}

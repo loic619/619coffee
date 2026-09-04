@@ -21,6 +21,9 @@ import YoYByTypeChart from "./YoYByTypeChart";
 import RollingAvgChart from "./RollingAvgChart";
 import CountryHubFilter from "./CountryHubFilter";
 import { MonthlyVolumeCard, CumulativePaceCard, AnnualTrendCard, DestinationCard } from "./exportCharts";
+import ExpectedVsActual from "@/components/supply/ExpectedVsActual";
+import NewBadge from "@/components/NewBadge";
+import { BRAZIL_SUBTAB_FEEDS } from "@/lib/notify";
 import PinToReport from "@/components/report/PinToReport";
 import { buildRealizedExportsOverlay } from "@/lib/sdRealizedExports";
 import { toMultiSource, type BalanceSheetFile } from "@/lib/sdMultiSource";
@@ -141,7 +144,7 @@ export default function BrazilTab() {
           <button
             key={t}
             onClick={() => setSubTab(t)}
-            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
               subTab === t
                 ? "bg-slate-700 text-slate-100"
                 : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
@@ -152,6 +155,7 @@ export default function BrazilTab() {
               : t === "analogs" ? "Analogs"
               : t === "supply-demand" ? "Supply & Demand"
               : "Farmer Economics"}
+            <NewBadge scope={`brazil:${t}`} keys={BRAZIL_SUBTAB_FEEDS[t] ?? []} active={subTab === t} />
           </button>
         ))}
       </div>
@@ -236,6 +240,8 @@ export default function BrazilTab() {
           {/* Charts — instantiated through the shared exportCharts module so the
               News report builder renders these identically. */}
           <MonthlyVolumeCard data={data} projection={projection} filteredSeries={filteredSeries} typeFilter={filter.type} />
+          {/* What the mid-month Cecafé registration implied vs the monthly report. */}
+          <ExpectedVsActual origin="brazil" />
           <CumulativePaceCard data={data} projection={projection} filteredSeries={filteredSeries} typeFilter={filter.type} />
           <div className="relative">
             <div className="absolute right-3 top-3 z-10"><PinToReport id="brazil_annual_trend" /></div>

@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import PageHeader from "@/components/PageHeader";
 import { useUrlState } from "@/lib/useUrlState";
+import NewBadge from "@/components/NewBadge";
+import { SUPPLY_FEEDS } from "@/lib/notify";
 
 const BrazilTab      = dynamic(() => import("@/components/supply/BrazilTab"),      { ssr: false });
 const VietnamTab     = dynamic(() => import("@/components/supply/VietnamTab"),     { ssr: false });
@@ -69,6 +71,7 @@ function Pill({ id, label, depth, active, onClick, accent }: {
     >
       <span className={`inline-block w-1.5 h-1.5 rounded-full ${d.cls}`} aria-hidden />
       {label}
+      <NewBadge scope={`supply:${id}`} keys={SUPPLY_FEEDS[id] ?? []} active={active} />
     </button>
   );
 }

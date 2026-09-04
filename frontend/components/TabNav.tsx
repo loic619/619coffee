@@ -3,6 +3,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { tierAllowsTab, TIER_VIEW_COOKIE, type Tier } from "@/lib/gate";
+import NewBadge from "@/components/NewBadge";
+import { TAB_FEEDS } from "@/lib/notify";
 
 // Labels are the page titles, verbatim. The nav is a horizontally-scrolling
 // strip on a phone: when the word you tapped is not the word you land on, you
@@ -60,13 +62,15 @@ export default function TabNav() {
             <Link
               key={tab.href}
               href={tab.href}
-              className={`px-3 sm:px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors shrink-0 ${
+              className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors shrink-0 ${
                 active
                   ? "border-indigo-500 text-white"
                   : "border-transparent text-slate-400 hover:text-white"
               }`}
             >
               {tab.label}
+              {/* Feeds updated on this tab since it was last opened. */}
+              <NewBadge scope={`tab:${tab.href}`} keys={TAB_FEEDS[tab.href] ?? []} active={active} />
             </Link>
           );
         })}

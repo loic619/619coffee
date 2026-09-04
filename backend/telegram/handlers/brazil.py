@@ -41,6 +41,13 @@ def handle(args: str, context: dict) -> str:
     if not data:
         return "Brazil data unavailable. Run /run cecafe"
 
+    # v2 nests the crop categories under sources.embarques (physical port
+    # loadings); v1 had them at the top level. Reading the v1 shape against a
+    # v2 file silently yielded {} for every category, so this command answered
+    # "No Brazil registration data." on every call while /brief — which does
+    # unwrap — showed the same figures fine.
+    data = (data.get("sources") or {}).get("embarques") or data
+
     result = _latest(data, "arabica")
     if not result:
         return "No Brazil registration data."
@@ -53,7 +60,7 @@ def handle(args: str, context: dict) -> str:
     total = arab + con + sol
 
     lines = [
-        f"<b>Brazil Daily Registrations</b> ({month}-{day})",
+        f"<b>Brazil Daily Registrations</b> ({month}-{int(day):02d})",
         f"Total: {total:,} bags",
         "",
         "MoM change (same day):",

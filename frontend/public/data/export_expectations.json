@@ -1,0 +1,283 @@
+{
+  "generated_at": "2026-09-04T05:08:56.470945+00:00",
+  "brazil": {
+    "unit": "bags",
+    "basis_day": 15,
+    "ratio": 0.3228,
+    "ratio_n": 3,
+    "method": "Cecafé daily embarques through day 15 ÷ median day-15 share of the month over closed months (leave-one-out when scoring); actual = Cecafé monthly report total",
+    "rows": [
+      {
+        "month": "2026-05",
+        "cum_at_basis": 1161620,
+        "expected": 4708128,
+        "share_used": 0.2467,
+        "share_actual": 0.3731,
+        "method": "share",
+        "actual": 3113845,
+        "error_pct": 51.2,
+        "defect": null
+      },
+      {
+        "month": "2026-06",
+        "cum_at_basis": 998066,
+        "expected": 3671410,
+        "share_used": 0.2718,
+        "share_actual": 0.3228,
+        "method": "share",
+        "actual": 3091837,
+        "error_pct": 18.7,
+        "defect": null
+      },
+      {
+        "month": "2026-07",
+        "cum_at_basis": 516987,
+        "expected": 1485900,
+        "share_used": 0.3479,
+        "share_actual": 0.1706,
+        "method": "share",
+        "actual": 3029584,
+        "error_pct": -51.0,
+        "defect": null
+      },
+      {
+        "month": "2026-08",
+        "cum_at_basis": 1224324,
+        "expected": 3792745,
+        "share_used": 0.3228,
+        "share_actual": null,
+        "method": "share",
+        "actual": null,
+        "error_pct": null,
+        "defect": null
+      },
+      {
+        "month": "2026-09",
+        "cum_at_basis": 83991,
+        "expected": 260190,
+        "share_used": 0.3228,
+        "share_actual": null,
+        "method": "share",
+        "actual": null,
+        "error_pct": null,
+        "defect": null
+      }
+    ]
+  },
+  "vietnam": {
+    "unit": "tonnes",
+    "ratio": 0.4651,
+    "ratio_n": 24,
+    "method": "Customs first-half (k1) tonnes ÷ median k1/full-month ratio over valid paired months; actual = full-month customs figure",
+    "rows": [
+      {
+        "month": "2024-04",
+        "k1": 80781.0,
+        "expected": 173685,
+        "actual": 152073.0,
+        "error_pct": 14.2,
+        "defect": null
+      },
+      {
+        "month": "2024-05",
+        "k1": 41758.0,
+        "expected": 89783,
+        "actual": 79358.0,
+        "error_pct": 13.1,
+        "defect": null
+      },
+      {
+        "month": "2024-07",
+        "k1": 32041.0,
+        "expected": 68891,
+        "actual": 76982.0,
+        "error_pct": -10.5,
+        "defect": null
+      },
+      {
+        "month": "2024-08",
+        "k1": 36903.0,
+        "expected": 79344,
+        "actual": 76214.0,
+        "error_pct": 4.1,
+        "defect": null
+      },
+      {
+        "month": "2024-09",
+        "k1": 21398.0,
+        "expected": 46007,
+        "actual": 51369.0,
+        "error_pct": -10.4,
+        "defect": null
+      },
+      {
+        "month": "2024-10",
+        "k1": 21489.0,
+        "expected": 46203,
+        "actual": 45412.0,
+        "error_pct": 1.7,
+        "defect": null
+      },
+      {
+        "month": "2024-11",
+        "k1": 20933.0,
+        "expected": 45008,
+        "actual": 63019.0,
+        "error_pct": -28.6,
+        "defect": null
+      },
+      {
+        "month": "2024-12",
+        "k1": 48371.0,
+        "expected": 104001,
+        "actual": 127655.0,
+        "error_pct": -18.5,
+        "defect": null
+      },
+      {
+        "month": "2025-01",
+        "k1": 73818.0,
+        "expected": 158714,
+        "actual": 134005.0,
+        "error_pct": 18.4,
+        "defect": null
+      },
+      {
+        "month": "2025-02",
+        "k1": 74737.0,
+        "expected": 160690,
+        "actual": 169832.0,
+        "error_pct": -5.4,
+        "defect": null
+      },
+      {
+        "month": "2025-03",
+        "k1": 93898.0,
+        "expected": 201888,
+        "actual": 181115.0,
+        "error_pct": 11.5,
+        "defect": null
+      },
+      {
+        "month": "2025-04",
+        "k1": 83572.0,
+        "expected": 179686,
+        "actual": 166606.0,
+        "error_pct": 7.9,
+        "defect": null
+      },
+      {
+        "month": "2025-05",
+        "k1": 66503.0,
+        "expected": 142986,
+        "actual": 148762.0,
+        "error_pct": -3.9,
+        "defect": null
+      },
+      {
+        "month": "2025-06",
+        "k1": 54751.0,
+        "expected": 117719,
+        "actual": 117983.0,
+        "error_pct": -0.2,
+        "defect": null
+      },
+      {
+        "month": "2025-07",
+        "k1": 49420.0,
+        "expected": 106257,
+        "actual": 101979.0,
+        "error_pct": 4.2,
+        "defect": null
+      },
+      {
+        "month": "2025-09",
+        "k1": 37454.0,
+        "expected": 80529,
+        "actual": 81099.0,
+        "error_pct": -0.7,
+        "defect": null
+      },
+      {
+        "month": "2025-10",
+        "k1": 34364.0,
+        "expected": 73885,
+        "actual": 68316.0,
+        "error_pct": 8.2,
+        "defect": null
+      },
+      {
+        "month": "2025-11",
+        "k1": 37693.0,
+        "expected": 81043,
+        "actual": 88812.0,
+        "error_pct": -8.7,
+        "defect": null
+      },
+      {
+        "month": "2025-12",
+        "k1": 76118.0,
+        "expected": 163659,
+        "actual": 182967.0,
+        "error_pct": -10.6,
+        "defect": null
+      },
+      {
+        "month": "2026-02",
+        "k1": 94271.0,
+        "expected": 202690,
+        "actual": 142337.0,
+        "error_pct": 42.4,
+        "defect": null
+      },
+      {
+        "month": "2026-03",
+        "k1": 94560.0,
+        "expected": 203311,
+        "actual": 221975.0,
+        "error_pct": -8.4,
+        "defect": null
+      },
+      {
+        "month": "2026-04",
+        "k1": 99424.0,
+        "expected": 213769,
+        "actual": 189894.0,
+        "error_pct": 12.6,
+        "defect": null
+      },
+      {
+        "month": "2026-05",
+        "k1": 66642.0,
+        "expected": 143285,
+        "actual": 143009.0,
+        "error_pct": 0.2,
+        "defect": null
+      },
+      {
+        "month": "2026-06",
+        "k1": 57983.0,
+        "expected": 124668,
+        "actual": 126436.0,
+        "error_pct": -1.4,
+        "defect": null
+      },
+      {
+        "month": "2026-07",
+        "k1": 175431.0,
+        "expected": 377190,
+        "actual": 147890.0,
+        "error_pct": null,
+        "defect": "first half (175,431 t) exceeds the full month (147,890 t) — impossible; the first half is a subset of the month"
+      },
+      {
+        "month": "2026-08",
+        "k1": 61242.0,
+        "expected": 131675,
+        "actual": null,
+        "error_pct": null,
+        "defect": null
+      }
+    ]
+  }
+}

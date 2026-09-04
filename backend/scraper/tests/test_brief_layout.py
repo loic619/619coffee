@@ -126,8 +126,19 @@ def test_brief_has_all_top_level_sections(fixture_data_dir):
     assert " FOB" in out
     assert "CON T7" in out
     assert "UGA S15" in out
-    # Footer
-    assert "/quote · /cot · /stock · /certified · /brazil · /vietnam · /uganda · /freight · /macro" in out
+    # Footer — every command it advertises must actually be dispatchable.
+    # A literal footer string used to be pinned here, which is why the footer
+    # could advertise six commands (/stock, /certified, /vietnam, /uganda,
+    # /freight, /macro) that fell through to "Unknown command." every morning:
+    # the assertion tracked the wording, not the contract, so it went red when
+    # #539b7fb1 fixed the bug and stayed green for the months it existed.
+    # Pin the contract instead — a footer edit is free, a footer LIE is not.
+    from telegram.commands import DISPATCH
+    footer = out.rstrip().splitlines()[-1]
+    advertised = [w for w in footer.split(" · ") if w.startswith("/")]
+    assert advertised, f"no commands in the footer line: {footer!r}"
+    missing = [c for c in advertised if c.lstrip("/") not in DISPATCH]
+    assert not missing, f"footer advertises commands that are not in DISPATCH: {missing}"
     # Section emojis (we removed the old COT block; assert it's gone)
     assert "<b>COT KC</b>" not in out
     assert "<b>COT RC</b>" not in out

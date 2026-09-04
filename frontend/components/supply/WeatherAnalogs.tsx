@@ -86,7 +86,7 @@ interface HistoricalSig {
   detrended_residual: number;
 }
 
-interface AnalogDoc {
+export interface AnalogDoc {
   origin?: string;
   origin_label?: string;
   zone?: string;
@@ -155,7 +155,7 @@ function _oniBadge(v: number | null | undefined): { tag: string; cls: string } {
   return { tag: "Neutral", cls: "text-slate-400" };
 }
 
-function BacktestCard({ bt }: { bt: Backtest | null }) {
+export function BacktestCard({ bt }: { bt: Backtest | null }) {
   if (!bt) return null;
   const beatsZero    = bt.skill_vs_zero_pct    != null && bt.skill_vs_zero_pct    > 0;
   const beatsPersist = bt.skill_vs_persist_pct != null && bt.skill_vs_persist_pct > 0;
@@ -223,7 +223,7 @@ function BacktestCard({ bt }: { bt: Backtest | null }) {
   );
 }
 
-function EnsembleCard({ title, ensemble, sub }: { title: string; ensemble: Ensemble | null; sub: string }) {
+export function EnsembleCard({ title, ensemble, sub }: { title: string; ensemble: Ensemble | null; sub: string }) {
   if (!ensemble) {
     return (
       <div className="bg-slate-900 border border-slate-700 rounded-lg p-3">
@@ -295,7 +295,7 @@ function _spiBadge(v: number | null | undefined): { tag: string; cls: string } {
   return { tag: "extreme wet", cls: "text-sky-200" };
 }
 
-function CurrentSignature({ doc }: { doc: AnalogDoc }) {
+export function CurrentSignature({ doc }: { doc: AnalogDoc }) {
   return (
     <div className="bg-slate-900 border border-slate-700 rounded-lg p-3">
       <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold mb-2">
@@ -373,7 +373,7 @@ function CurrentSignature({ doc }: { doc: AnalogDoc }) {
   );
 }
 
-function StageRainChart({ doc }: { doc: AnalogDoc }) {
+export function StageRainChart({ doc }: { doc: AnalogDoc }) {
   const stages = doc.current_year_signature.map((s) => s.name);
   const data = stages.map((stageName) => {
     const cur = doc.current_year_signature.find((s) => s.name === stageName);
@@ -434,7 +434,7 @@ function StageRainChart({ doc }: { doc: AnalogDoc }) {
   );
 }
 
-function StageOniChart({ doc }: { doc: AnalogDoc }) {
+export function StageOniChart({ doc }: { doc: AnalogDoc }) {
   const stages = doc.current_year_signature.map((s) => s.name);
   const data = stages.map((stageName) => {
     const cur = doc.current_year_signature.find((s) => s.name === stageName);
@@ -492,7 +492,7 @@ function StageOniChart({ doc }: { doc: AnalogDoc }) {
   );
 }
 
-function AnalogTable({ analogs }: { analogs: Analog[] }) {
+export function AnalogTable({ analogs }: { analogs: Analog[] }) {
   return (
     <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
       <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold px-3 py-2 border-b border-slate-700">
@@ -549,10 +549,11 @@ interface WeatherAnalogsProps {
   label?: string;
 }
 
-export default function WeatherAnalogs({ dataUrl, label }: WeatherAnalogsProps) {
+/** Fetch one origin's analog document. Shared by the full panel and the
+ *  single-visual report items so both read the same file the same way. */
+export function useAnalogDoc(dataUrl: string): { doc: AnalogDoc | null; error: boolean } {
   const [doc, setDoc] = useState<AnalogDoc | null>(null);
   const [error, setError] = useState(false);
-
   useEffect(() => {
     setDoc(null);
     setError(false);
@@ -561,16 +562,77 @@ export default function WeatherAnalogs({ dataUrl, label }: WeatherAnalogsProps) 
       .then(setDoc)
       .catch(() => setError(true));
   }, [dataUrl]);
+  return { doc, error };
+}
 
-  if (error) return (
-    <div className="text-xs text-slate-500 italic py-6">
-      Weather analog forecast unavailable — backend script (compute_weather_analogs.py)
-      hasn&apos;t produced this origin yet.
+const Unavailable = () => (
+  <div className="text-xs text-slate-500 italic py-6">
+    Weather analog forecast unavailable — backend script (compute_weather_analogs.py)
+    hasn&apos;t produced this origin yet.
+  </div>
+);
+const Computing = () => (
+  <div className="text-xs text-slate-500 animate-pulse py-6">Computing weather analogs…</div>
+);
+
+/** The pieces of the analog panel that stand on their own in a report. */
+export type AnalogPart = "backtest" | "ensemble" | "signature" | "stage_rain" | "stage_oni" | "table";
+
+export const ANALOG_PART_LABEL: Record<AnalogPart, string> = {
+  backtest:   "Backtest skill",
+  ensemble:   "Ensemble forecasts",
+  signature:  "Current cycle signature",
+  stage_rain: "Stage rainfall vs analogs",
+  stage_oni:  "Stage ENSO (ONI) vs analogs",
+  table:      "Top-5 analog years",
+};
+
+/** One visual of the analog panel, self-fetching, with a one-line header so
+ *  it reads on its own in a report. The Supply tab still shows the full
+ *  panel below; the report builder picks these individually. */
+export function AnalogSection({ dataUrl, label, part }: WeatherAnalogsProps & { part: AnalogPart }) {
+  const { doc, error } = useAnalogDoc(dataUrl);
+  if (error) return <Unavailable />;
+  if (!doc) return <Computing />;
+  const originLabel = label ?? doc.origin_label ?? "this origin";
+  return (
+    <div className="space-y-2">
+      <div className="flex items-baseline justify-between flex-wrap gap-2">
+        <h3 className="text-sm font-semibold text-slate-200">
+          Weather analogs — {originLabel} · {ANALOG_PART_LABEL[part]}
+        </h3>
+        <div className="text-[9px] text-slate-600 font-mono">
+          {doc.harvest_period ? `harvest · ${doc.harvest_period} · ` : ""}generated {doc.generated_at.slice(0, 10)}
+        </div>
+      </div>
+      {part === "backtest" && <BacktestCard bt={doc.backtest} />}
+      {part === "ensemble" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <EnsembleCard
+            title={`Same-cycle forecast · ${doc.current_crop_year} crop`}
+            ensemble={doc.ensemble_same_cycle}
+            sub="Direct: this year's crop likely tracks what the analogs' own crops actually did. Ensemble mean of detrended y/y change."
+          />
+          <EnsembleCard
+            title={`Lag-1 forecast · ${doc.current_crop_year + 1} crop`}
+            ensemble={doc.ensemble_lag_one}
+            sub="Biennial: what happened the year AFTER each analog. Useful when this year's crop is largely set and you're sizing next year."
+          />
+        </div>
+      )}
+      {part === "signature" && <CurrentSignature doc={doc} />}
+      {part === "stage_rain" && <StageRainChart doc={doc} />}
+      {part === "stage_oni" && <StageOniChart doc={doc} />}
+      {part === "table" && <AnalogTable analogs={doc.top_analogs} />}
     </div>
   );
-  if (!doc) return (
-    <div className="text-xs text-slate-500 animate-pulse py-6">Computing weather analogs…</div>
-  );
+}
+
+export default function WeatherAnalogs({ dataUrl, label }: WeatherAnalogsProps) {
+  const { doc, error } = useAnalogDoc(dataUrl);
+
+  if (error) return <Unavailable />;
+  if (!doc) return <Computing />;
   const originLabel = label ?? doc.origin_label ?? "this origin";
 
   return (

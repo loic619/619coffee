@@ -1,21 +1,21 @@
 {
- "generated": "2026-09-03T07:24:04+00:00",
+ "generated": "2026-09-04T05:17:21+00:00",
  "window_years": [
-  2015,
-  2025
+  1995,
+  2026
  ],
  "oni_threshold": 0.5,
  "min_events": 3,
- "note": "Measured ENSO response per growing region per crop phase, from this repo's own monthly rainfall history and ONI record. anomaly_pct is the mean departure from that window's normal across occurrences of each ENSO phase; consistency is the share of occurrences that moved the same way as the mean, so a large mean built from disagreeing events is visible rather than averaged away. lag_months is where the teleconnection actually lands — ENSO arrives as an SST anomaly and the rainfall response is not simultaneous. The history is eleven years, so treat direction as informative and magnitude as indicative; a bucket with usable=false has too few occurrences to drive a severity.",
+ "note": "Measured ENSO response per growing region per crop phase, from this repo's own monthly rainfall history and ONI record. anomaly_pct is the mean departure from that window's normal across occurrences of each ENSO phase; consistency is the share of occurrences that moved the same way as the mean, so a large mean built from disagreeing events is visible rather than averaged away. lag_months is where the teleconnection actually lands — ENSO arrives as an SST anomaly and the rainfall response is not simultaneous. The history spans 32 years (1995-2026), so treat direction as informative and magnitude as indicative; a bucket with usable=false has too few occurrences to drive a severity. Per-region `years` may be shorter than the window: a region added later has no record before it existed.",
  "regions": {
   "brazil|Sul de Minas": {
    "origin": "brazil",
    "region": "Sul de Minas",
-   "lag_months": 0,
-   "lag_r": 0.15,
+   "lag_months": 4,
+   "lag_r": 0.062,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -26,21 +26,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 14.6,
+      "anomaly_pct": 6.8,
       "n": 4,
       "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -8.1,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 4.9,
+      "n": 5,
+      "consistency": 0.6,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -8.6,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -2.3,
+      "n": 22,
+      "consistency": 0.55,
       "usable": true
      }
     },
@@ -54,21 +54,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 1.2,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -0.6,
+      "n": 8,
+      "consistency": 0.62,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -12.8,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 3.6,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 7.8,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -4.2,
+      "n": 13,
+      "consistency": 0.62,
       "usable": true
      }
     },
@@ -81,21 +81,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 11.0,
-      "n": 2,
+      "anomaly_pct": 4.5,
+      "n": 8,
       "consistency": 0.5,
-      "usable": false
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -34.2,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -8.3,
+      "n": 12,
+      "consistency": 0.67,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 1.5,
-      "n": 8,
-      "consistency": 0.38,
+      "anomaly_pct": 5.3,
+      "n": 12,
+      "consistency": 0.42,
       "usable": true
      }
     }
@@ -105,10 +105,10 @@
    "origin": "brazil",
    "region": "Cerrado",
    "lag_months": 0,
-   "lag_r": 0.213,
+   "lag_r": 0.049,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -119,21 +119,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 8.6,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 10.4,
+      "n": 9,
+      "consistency": 0.56,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -2.3,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -6.2,
+      "n": 11,
+      "consistency": 0.55,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -8.5,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -2.3,
+      "n": 11,
+      "consistency": 0.64,
       "usable": true
      }
     },
@@ -147,21 +147,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 5.0,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -0.1,
+      "n": 9,
+      "consistency": 0.56,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -10.6,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -1.9,
+      "n": 12,
+      "consistency": 0.58,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -6.5,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": 0.9,
+      "n": 10,
+      "consistency": 0.5,
       "usable": true
      }
     },
@@ -174,21 +174,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 151.9,
-      "n": 2,
+      "anomaly_pct": 51.0,
+      "n": 4,
       "consistency": 1.0,
-      "usable": false
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -22.9,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -11.3,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -35.1,
-      "n": 8,
-      "consistency": 0.75,
+      "anomaly_pct": -6.4,
+      "n": 23,
+      "consistency": 0.61,
       "usable": true
      }
     }
@@ -198,10 +198,10 @@
    "origin": "brazil",
    "region": "Espírito Santo",
    "lag_months": 6,
-   "lag_r": -0.154,
+   "lag_r": -0.147,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -212,21 +212,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -8.6,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -15.7,
+      "n": 5,
+      "consistency": 0.8,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 31.8,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 11.2,
+      "n": 6,
+      "consistency": 0.83,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -5.8,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 0.6,
+      "n": 20,
+      "consistency": 0.35,
       "usable": true
      }
     },
@@ -240,21 +240,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -6.2,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -17.8,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 4.4,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": 1.2,
+      "n": 9,
+      "consistency": 0.67,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 5.0,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 4.8,
+      "n": 17,
+      "consistency": 0.71,
       "usable": true
      }
     },
@@ -267,22 +267,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -14.3,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": -15.5,
+      "n": 11,
+      "consistency": 0.64,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 14.7,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 7.5,
+      "n": 13,
+      "consistency": 0.54,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 6.4,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 9.1,
+      "n": 8,
+      "consistency": 0.75,
+      "usable": true
      }
     }
    }
@@ -291,10 +291,10 @@
    "origin": "brazil",
    "region": "Paraná",
    "lag_months": 0,
-   "lag_r": 0.121,
+   "lag_r": 0.104,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -305,21 +305,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 17.9,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 12.2,
+      "n": 9,
+      "consistency": 0.44,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -10.6,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -2.7,
+      "n": 11,
+      "consistency": 0.55,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -9.8,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -7.3,
+      "n": 11,
+      "consistency": 0.64,
       "usable": true
      }
     },
@@ -333,21 +333,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -11.0,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 0.4,
+      "n": 9,
+      "consistency": 0.56,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -9.6,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -6.3,
+      "n": 12,
+      "consistency": 0.58,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 18.2,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": 5.3,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      }
     },
@@ -360,21 +360,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 5.2,
-      "n": 2,
+      "anomaly_pct": 24.7,
+      "n": 4,
       "consistency": 0.5,
-      "usable": false
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 48.9,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -1.3,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -7.4,
-      "n": 8,
-      "consistency": 0.5,
+      "anomaly_pct": -4.0,
+      "n": 23,
+      "consistency": 0.57,
       "usable": true
      }
     }
@@ -383,11 +383,11 @@
   "colombia|Huila": {
    "origin": "colombia",
    "region": "Huila",
-   "lag_months": 6,
-   "lag_r": 0.308,
+   "lag_months": 1,
+   "lag_r": -0.062,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "principal/flowering": {
@@ -398,21 +398,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 0.6,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -7.0,
+      "n": 11,
+      "consistency": 0.55,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -18.8,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 9.0,
+      "n": 13,
+      "consistency": 0.69,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 2.2,
+      "anomaly_pct": -5.0,
       "n": 8,
-      "consistency": 0.5,
+      "consistency": 0.62,
       "usable": true
      }
     },
@@ -427,22 +427,22 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 15.1,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": -7.8,
+      "n": 4,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -12.8,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": 9.6,
+      "n": 5,
+      "consistency": 0.8,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -12.3,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 0.6,
+      "n": 22,
+      "consistency": 0.73,
+      "usable": true
      }
     },
     "principal/harvest": {
@@ -454,21 +454,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -9.1,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -2.9,
+      "n": 10,
+      "consistency": 0.3,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -14.7,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -5.2,
+      "n": 12,
+      "consistency": 0.42,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 0.2,
-      "n": 6,
-      "consistency": 0.5,
+      "anomaly_pct": 10.8,
+      "n": 9,
+      "consistency": 0.89,
       "usable": true
      }
     },
@@ -479,21 +479,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 22.9,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -1.0,
+      "n": 6,
+      "consistency": 0.17,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -2.4,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -5.4,
+      "n": 9,
+      "consistency": 0.33,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -17.3,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": 3.4,
+      "n": 16,
+      "consistency": 0.69,
       "usable": true
      }
     },
@@ -507,21 +507,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 10.6,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -2.4,
+      "n": 10,
+      "consistency": 0.3,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -20.8,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 2.7,
+      "n": 13,
+      "consistency": 0.69,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -5.4,
-      "n": 7,
-      "consistency": 0.57,
+      "anomaly_pct": 1.0,
+      "n": 8,
+      "consistency": 0.38,
       "usable": true
      }
     },
@@ -533,22 +533,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 16.8,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": 4.5,
+      "n": 6,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -10.3,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 3.1,
+      "n": 6,
+      "consistency": 0.5,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -21.4,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -2.3,
+      "n": 20,
+      "consistency": 0.35,
+      "usable": true
      }
     }
    }
@@ -557,10 +557,10 @@
    "origin": "colombia",
    "region": "Antioquia",
    "lag_months": 0,
-   "lag_r": -0.29,
+   "lag_r": -0.466,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "principal/flowering": {
@@ -571,21 +571,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -11.9,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": -24.5,
+      "n": 10,
+      "consistency": 0.9,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 9.5,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 22.8,
+      "n": 12,
+      "consistency": 0.75,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 10.3,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -2.9,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      }
     },
@@ -600,21 +600,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -21.5,
-      "n": 3,
+      "anomaly_pct": -33.3,
+      "n": 4,
       "consistency": 1.0,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 32.7,
-      "n": 1,
+      "anomaly_pct": 26.9,
+      "n": 7,
       "consistency": 1.0,
-      "usable": false
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 4.6,
-      "n": 7,
-      "consistency": 0.57,
+      "anomaly_pct": -0.8,
+      "n": 20,
+      "consistency": 0.55,
       "usable": true
      }
     },
@@ -627,22 +627,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -7.8,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -17.4,
+      "n": 10,
+      "consistency": 0.9,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -0.3,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 12.8,
+      "n": 14,
+      "consistency": 0.57,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 21.6,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 1.1,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
      }
     },
     "mitaca/flowering": {
@@ -652,21 +652,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -8.3,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -14.9,
+      "n": 8,
+      "consistency": 0.88,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 10.2,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 12.7,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -4.0,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -0.6,
+      "n": 13,
+      "consistency": 0.38,
       "usable": true
      }
     },
@@ -680,22 +680,22 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -14.3,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -21.8,
+      "n": 9,
+      "consistency": 0.89,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 3.5,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 17.5,
+      "n": 13,
+      "consistency": 0.62,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 22.1,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -1.5,
+      "n": 9,
+      "consistency": 0.67,
+      "usable": true
      }
     },
     "mitaca/harvest": {
@@ -706,21 +706,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -2.5,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -19.1,
+      "n": 5,
+      "consistency": 0.8,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 31.6,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 14.8,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -3.5,
-      "n": 7,
-      "consistency": 0.57,
+      "anomaly_pct": 1.0,
+      "n": 22,
+      "consistency": 0.59,
       "usable": true
      }
     }
@@ -730,10 +730,10 @@
    "origin": "colombia",
    "region": "Cauca",
    "lag_months": 6,
-   "lag_r": 0.472,
+   "lag_r": 0.069,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "principal/flowering": {
@@ -744,21 +744,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 17.2,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 13.7,
+      "n": 6,
+      "consistency": 0.83,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -23.7,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 9.4,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -1.3,
-      "n": 8,
-      "consistency": 0.62,
+      "anomaly_pct": -7.8,
+      "n": 19,
+      "consistency": 0.47,
       "usable": true
      }
     },
@@ -773,22 +773,22 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 63.0,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": 10.2,
+      "n": 11,
+      "consistency": 0.73,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -49.3,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": 0.2,
+      "n": 13,
+      "consistency": 0.69,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -59.0,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -7.0,
+      "n": 7,
+      "consistency": 0.29,
+      "usable": true
      }
     },
     "principal/harvest": {
@@ -800,21 +800,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 1.8,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": -13.6,
+      "n": 4,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -2.5,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 5.0,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -3.5,
-      "n": 6,
-      "consistency": 0.67,
+      "anomaly_pct": 1.2,
+      "n": 23,
+      "consistency": 0.74,
       "usable": true
      }
     },
@@ -825,21 +825,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 62.9,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -6.7,
+      "n": 6,
+      "consistency": 0.33,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -19.4,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 7.7,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -42.6,
-      "n": 5,
-      "consistency": 1.0,
+      "anomaly_pct": -0.8,
+      "n": 18,
+      "consistency": 0.28,
       "usable": true
      }
     },
@@ -853,21 +853,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 16.9,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 5.7,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -14.8,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 1.0,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -8.1,
-      "n": 7,
-      "consistency": 0.57,
+      "anomaly_pct": -0.9,
+      "n": 22,
+      "consistency": 0.36,
       "usable": true
      }
     },
@@ -879,22 +879,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 53.4,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": 12.1,
+      "n": 11,
+      "consistency": 0.73,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -40.9,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -7.1,
+      "n": 14,
+      "consistency": 0.36,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -51.8,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -4.8,
+      "n": 7,
+      "consistency": 0.29,
+      "usable": true
      }
     }
    }
@@ -903,10 +903,10 @@
    "origin": "colombia",
    "region": "Caldas",
    "lag_months": 6,
-   "lag_r": 0.433,
+   "lag_r": 0.055,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "principal/flowering": {
@@ -917,21 +917,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 23.9,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 10.5,
+      "n": 6,
+      "consistency": 0.83,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -2.9,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 20.6,
+      "n": 7,
+      "consistency": 0.86,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -5.6,
-      "n": 8,
-      "consistency": 0.88,
+      "anomaly_pct": -10.9,
+      "n": 19,
+      "consistency": 0.53,
       "usable": true
      }
     },
@@ -946,22 +946,22 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 33.6,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": 6.7,
+      "n": 11,
+      "consistency": 0.73,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -23.7,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -1.3,
+      "n": 13,
+      "consistency": 0.31,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -36.6,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 1.2,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
      }
     },
     "principal/harvest": {
@@ -973,21 +973,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 10.3,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": -18.7,
+      "n": 4,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -10.3,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 9.2,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -4.6,
-      "n": 6,
-      "consistency": 0.83,
+      "anomaly_pct": 1.3,
+      "n": 23,
+      "consistency": 0.74,
       "usable": true
      }
     },
@@ -998,21 +998,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 44.3,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -1.1,
+      "n": 6,
+      "consistency": 0.33,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -10.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 2.7,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -31.4,
-      "n": 5,
-      "consistency": 1.0,
+      "anomaly_pct": -0.7,
+      "n": 18,
+      "consistency": 0.28,
       "usable": true
      }
     },
@@ -1026,21 +1026,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 34.3,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 3.9,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -10.1,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 9.8,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -14.3,
-      "n": 7,
-      "consistency": 0.86,
+      "anomaly_pct": -2.9,
+      "n": 22,
+      "consistency": 0.36,
       "usable": true
      }
     },
@@ -1052,22 +1052,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 35.0,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": 9.8,
+      "n": 11,
+      "consistency": 0.73,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -24.6,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -8.3,
+      "n": 14,
+      "consistency": 0.43,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -38.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 1.1,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
      }
     }
    }
@@ -1075,11 +1075,11 @@
   "colombia|Nariño": {
    "origin": "colombia",
    "region": "Nariño",
-   "lag_months": 2,
-   "lag_r": -0.46,
+   "lag_months": 1,
+   "lag_r": -0.221,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "principal/flowering": {
@@ -1090,22 +1090,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -21.9,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": -20.2,
+      "n": 11,
+      "consistency": 0.73,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 15.4,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 11.8,
+      "n": 13,
+      "consistency": 0.46,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 24.1,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 8.6,
+      "n": 8,
+      "consistency": 0.38,
+      "usable": true
      }
     },
     "principal/fruit_fill": {
@@ -1119,21 +1119,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -24.0,
+      "anomaly_pct": -5.0,
       "n": 4,
-      "consistency": 0.75,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 41.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 16.9,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 2.7,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": -1.8,
+      "n": 22,
+      "consistency": 0.68,
       "usable": true
      }
     },
@@ -1146,21 +1146,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -20.0,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -16.2,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 20.5,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": 19.8,
+      "n": 12,
+      "consistency": 0.58,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -1.1,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -6.5,
+      "n": 9,
+      "consistency": 0.78,
       "usable": true
      }
     },
@@ -1171,21 +1171,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -33.6,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -21.8,
+      "n": 6,
+      "consistency": 0.83,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 30.1,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 12.7,
+      "n": 9,
+      "consistency": 0.67,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 4.6,
-      "n": 8,
-      "consistency": 0.5,
+      "anomaly_pct": 1.0,
+      "n": 16,
+      "consistency": 0.44,
       "usable": true
      }
     },
@@ -1199,22 +1199,22 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -14.8,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -13.9,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 14.7,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 12.1,
+      "n": 13,
+      "consistency": 0.46,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 11.5,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 1.8,
+      "n": 8,
+      "consistency": 0.38,
+      "usable": true
      }
     },
     "mitaca/harvest": {
@@ -1225,21 +1225,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -15.5,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": 6.0,
+      "n": 6,
+      "consistency": 0.33,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 26.0,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": 26.5,
+      "n": 6,
+      "consistency": 0.67,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -0.2,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": -9.8,
+      "n": 20,
+      "consistency": 0.7,
       "usable": true
      }
     }
@@ -1249,10 +1249,10 @@
    "origin": "honduras",
    "region": "El Paraíso",
    "lag_months": 0,
-   "lag_r": -0.251,
+   "lag_r": -0.123,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -1263,21 +1263,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -22.1,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -6.1,
+      "n": 6,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 54.1,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 0.2,
+      "n": 6,
+      "consistency": 0.33,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -4.0,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 1.8,
+      "n": 20,
+      "consistency": 0.5,
       "usable": true
      }
     },
@@ -1289,21 +1289,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -21.0,
-      "n": 2,
+      "anomaly_pct": -29.3,
+      "n": 6,
       "consistency": 1.0,
-      "usable": false
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 42.5,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 38.2,
+      "n": 7,
+      "consistency": 0.86,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -0.1,
-      "n": 8,
-      "consistency": 0.38,
+      "anomaly_pct": -4.9,
+      "n": 18,
+      "consistency": 0.61,
       "usable": true
      }
     },
@@ -1317,22 +1317,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -13.7,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -11.4,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 5.7,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 6.3,
+      "n": 13,
+      "consistency": 0.54,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 20.8,
-      "n": 2,
+      "anomaly_pct": 7.0,
+      "n": 8,
       "consistency": 0.5,
-      "usable": false
+      "usable": true
      }
     }
    }
@@ -1341,10 +1341,10 @@
    "origin": "honduras",
    "region": "Copán",
    "lag_months": 0,
-   "lag_r": -0.301,
+   "lag_r": -0.129,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -1355,21 +1355,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -27.0,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -1.3,
+      "n": 6,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 57.6,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 12.7,
+      "n": 6,
+      "consistency": 0.5,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -1.4,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": -3.4,
+      "n": 20,
+      "consistency": 0.55,
       "usable": true
      }
     },
@@ -1381,21 +1381,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -19.6,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -28.5,
+      "n": 6,
+      "consistency": 0.83,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 23.1,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 17.9,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 2.0,
-      "n": 8,
-      "consistency": 0.38,
+      "anomaly_pct": 2.8,
+      "n": 18,
+      "consistency": 0.56,
       "usable": true
      }
     },
@@ -1409,22 +1409,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -9.3,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -5.7,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 8.4,
-      "n": 4,
-      "consistency": 0.25,
+      "anomaly_pct": 7.5,
+      "n": 13,
+      "consistency": 0.54,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -6.4,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -3.5,
+      "n": 8,
+      "consistency": 0.62,
+      "usable": true
      }
     }
    }
@@ -1432,11 +1432,11 @@
   "honduras|Santa Bárbara": {
    "origin": "honduras",
    "region": "Santa Bárbara",
-   "lag_months": 4,
-   "lag_r": -0.366,
+   "lag_months": 0,
+   "lag_r": -0.114,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -1447,22 +1447,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -9.7,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": -1.2,
+      "n": 6,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 19.9,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 0.9,
+      "n": 6,
+      "consistency": 0.33,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -15.4,
-      "n": 2,
+      "anomaly_pct": 0.1,
+      "n": 20,
       "consistency": 0.5,
-      "usable": false
+      "usable": true
      }
     },
     "main/fruit_fill": {
@@ -1473,21 +1473,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -25.4,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -24.3,
+      "n": 6,
+      "consistency": 0.83,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 25.5,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 9.5,
+      "n": 7,
+      "consistency": 0.43,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 10.1,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": 4.2,
+      "n": 18,
+      "consistency": 0.39,
       "usable": true
      }
     },
@@ -1501,21 +1501,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -35.5,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -7.6,
+      "n": 10,
+      "consistency": 0.7,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 9.1,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": 8.5,
+      "n": 13,
+      "consistency": 0.46,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 12.5,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": -3.1,
+      "n": 8,
+      "consistency": 0.75,
       "usable": true
      }
     }
@@ -1525,10 +1525,10 @@
    "origin": "honduras",
    "region": "Montecillos",
    "lag_months": 0,
-   "lag_r": -0.267,
+   "lag_r": -0.091,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -1539,21 +1539,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -2.8,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -3.3,
+      "n": 6,
+      "consistency": 0.67,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 16.1,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -6.4,
+      "n": 6,
+      "consistency": 0.67,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -4.2,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": 2.9,
+      "n": 20,
+      "consistency": 0.45,
       "usable": true
      }
     },
@@ -1565,21 +1565,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -13.0,
-      "n": 2,
+      "anomaly_pct": -24.4,
+      "n": 6,
       "consistency": 1.0,
-      "usable": false
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 38.4,
-      "n": 1,
+      "anomaly_pct": 37.3,
+      "n": 7,
       "consistency": 1.0,
-      "usable": false
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -1.5,
-      "n": 8,
-      "consistency": 0.62,
+      "anomaly_pct": -4.8,
+      "n": 18,
+      "consistency": 0.61,
       "usable": true
      }
     },
@@ -1593,22 +1593,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -21.8,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -18.4,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 34.9,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 20.5,
+      "n": 13,
+      "consistency": 0.38,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -1.6,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -6.0,
+      "n": 8,
+      "consistency": 0.62,
+      "usable": true
      }
     }
    }
@@ -1616,11 +1616,11 @@
   "honduras|Agalta": {
    "origin": "honduras",
    "region": "Agalta",
-   "lag_months": 1,
-   "lag_r": -0.387,
+   "lag_months": 0,
+   "lag_r": -0.096,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -1631,21 +1631,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -31.4,
-      "n": 5,
-      "consistency": 1.0,
+      "anomaly_pct": 7.9,
+      "n": 6,
+      "consistency": 0.33,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 41.9,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 25.3,
+      "n": 6,
+      "consistency": 0.33,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 10.4,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -9.9,
+      "n": 20,
+      "consistency": 0.65,
       "usable": true
      }
     },
@@ -1657,21 +1657,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -31.3,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -29.5,
+      "n": 6,
+      "consistency": 0.83,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 49.8,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 22.1,
+      "n": 7,
+      "consistency": 0.86,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 1.6,
-      "n": 8,
-      "consistency": 0.5,
+      "anomaly_pct": -1.1,
+      "n": 18,
+      "consistency": 0.67,
       "usable": true
      }
     },
@@ -1685,22 +1685,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -15.8,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -9.6,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 7.8,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 3.0,
+      "n": 13,
+      "consistency": 0.38,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 16.3,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 10.9,
+      "n": 8,
+      "consistency": 0.38,
+      "usable": true
      }
     }
    }
@@ -1709,10 +1709,10 @@
    "origin": "indonesia",
    "region": "Lampung",
    "lag_months": 0,
-   "lag_r": -0.348,
+   "lag_r": -0.337,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "robusta (Sumatra)/flowering": {
@@ -1723,22 +1723,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -34.9,
-      "n": 4,
+      "anomaly_pct": -37.8,
+      "n": 10,
       "consistency": 1.0,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 11.8,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 15.6,
+      "n": 14,
+      "consistency": 0.71,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 40.4,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 22.8,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
      }
     },
     "robusta (Sumatra)/fruit_fill": {
@@ -1748,21 +1748,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 9.4,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 5.0,
+      "n": 10,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -21.9,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -1.6,
+      "n": 12,
+      "consistency": 0.58,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 6.2,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": -3.1,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      }
     },
@@ -1777,21 +1777,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -26.2,
-      "n": 3,
+      "anomaly_pct": -26.6,
+      "n": 5,
       "consistency": 1.0,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 37.9,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 0.5,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 5.8,
-      "n": 7,
-      "consistency": 0.71,
+      "anomaly_pct": 5.9,
+      "n": 22,
+      "consistency": 0.55,
       "usable": true
      }
     },
@@ -1803,21 +1803,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -14.7,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -13.8,
+      "n": 5,
+      "consistency": 0.8,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 7.8,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -2.8,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 5.2,
-      "n": 7,
-      "consistency": 0.43,
+      "anomaly_pct": 3.8,
+      "n": 22,
+      "consistency": 0.45,
       "usable": true
      }
     },
@@ -1829,21 +1829,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -54.1,
-      "n": 2,
+      "anomaly_pct": -50.0,
+      "n": 6,
       "consistency": 1.0,
-      "usable": false
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 90.7,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 26.3,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 2.2,
-      "n": 8,
-      "consistency": 0.5,
+      "anomaly_pct": 8.6,
+      "n": 18,
+      "consistency": 0.56,
       "usable": true
      }
     },
@@ -1858,22 +1858,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -13.0,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -17.9,
+      "n": 10,
+      "consistency": 0.9,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 0.5,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 7.6,
+      "n": 13,
+      "consistency": 0.69,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 22.8,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 8.6,
+      "n": 8,
+      "consistency": 0.62,
+      "usable": true
      }
     }
    }
@@ -1881,11 +1881,11 @@
   "indonesia|Gayo": {
    "origin": "indonesia",
    "region": "Gayo",
-   "lag_months": 6,
-   "lag_r": 0.106,
+   "lag_months": 2,
+   "lag_r": -0.067,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "robusta (Sumatra)/flowering": {
@@ -1896,21 +1896,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 12.6,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -0.3,
+      "n": 8,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 0.8,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -7.0,
+      "n": 9,
+      "consistency": 0.67,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -5.5,
-      "n": 7,
-      "consistency": 0.71,
+      "anomaly_pct": 4.7,
+      "n": 14,
+      "consistency": 0.64,
       "usable": true
      }
     },
@@ -1921,21 +1921,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -20.8,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -3.0,
+      "n": 11,
+      "consistency": 0.64,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 0.6,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 2.4,
+      "n": 14,
+      "consistency": 0.57,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 5.1,
-      "n": 8,
-      "consistency": 0.62,
+      "anomaly_pct": -0.1,
+      "n": 7,
+      "consistency": 0.43,
       "usable": true
      }
     },
@@ -1950,22 +1950,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 14.6,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": 0.7,
+      "n": 6,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -2.4,
-      "n": 4,
+      "anomaly_pct": 10.3,
+      "n": 6,
       "consistency": 0.5,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -31.5,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -3.3,
+      "n": 20,
+      "consistency": 0.7,
+      "usable": true
      }
     },
     "arabica/flowering": {
@@ -1976,22 +1976,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 18.5,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": 6.3,
+      "n": 7,
+      "consistency": 0.57,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -7.5,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -2.0,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -31.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -1.6,
+      "n": 15,
+      "consistency": 0.6,
+      "usable": true
      }
     },
     "arabica/fruit_fill": {
@@ -2002,21 +2002,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 23.1,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 10.6,
+      "n": 4,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -11.6,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 8.0,
+      "n": 5,
+      "consistency": 0.8,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -26.9,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -2.0,
+      "n": 22,
+      "consistency": 0.5,
       "usable": true
      }
     },
@@ -2031,21 +2031,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -6.0,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -2.5,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 0.9,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 4.2,
+      "n": 11,
+      "consistency": 0.64,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 3.3,
-      "n": 6,
-      "consistency": 0.5,
+      "anomaly_pct": -2.5,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      }
     }
@@ -2054,11 +2054,11 @@
   "indonesia|Java": {
    "origin": "indonesia",
    "region": "Java",
-   "lag_months": 6,
-   "lag_r": 0.348,
+   "lag_months": 0,
+   "lag_r": -0.3,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "robusta (Sumatra)/flowering": {
@@ -2069,19 +2069,19 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 26.0,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": -34.8,
+      "n": 10,
+      "consistency": 0.8,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 53.5,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 12.9,
+      "n": 14,
+      "consistency": 0.64,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -18.8,
+      "anomaly_pct": 23.8,
       "n": 7,
       "consistency": 0.71,
       "usable": true
@@ -2094,21 +2094,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -16.2,
-      "n": 2,
+      "anomaly_pct": -1.8,
+      "n": 10,
       "consistency": 0.5,
-      "usable": false
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 4.2,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 8.1,
+      "n": 12,
+      "consistency": 0.75,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 3.5,
-      "n": 8,
-      "consistency": 0.62,
+      "anomaly_pct": -8.0,
+      "n": 10,
+      "consistency": 0.5,
       "usable": true
      }
     },
@@ -2123,22 +2123,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 31.3,
+      "anomaly_pct": -51.0,
       "n": 5,
-      "consistency": 0.4,
+      "consistency": 1.0,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -31.3,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 13.9,
+      "n": 5,
+      "consistency": 0.8,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -15.6,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 8.4,
+      "n": 22,
+      "consistency": 0.55,
+      "usable": true
      }
     },
     "arabica/flowering": {
@@ -2149,22 +2149,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 26.1,
+      "anomaly_pct": -15.6,
       "n": 5,
-      "consistency": 0.4,
+      "consistency": 0.6,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -39.2,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": 8.0,
+      "n": 5,
+      "consistency": 0.6,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 13.1,
-      "n": 2,
+      "anomaly_pct": 1.7,
+      "n": 22,
       "consistency": 0.5,
-      "usable": false
+      "usable": true
      }
     },
     "arabica/fruit_fill": {
@@ -2175,21 +2175,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 43.5,
-      "n": 5,
-      "consistency": 0.2,
+      "anomaly_pct": -54.6,
+      "n": 6,
+      "consistency": 1.0,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -14.5,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 81.3,
+      "n": 7,
+      "consistency": 0.57,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -57.9,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -9.9,
+      "n": 18,
+      "consistency": 0.67,
       "usable": true
      }
     },
@@ -2204,21 +2204,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -26.4,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -18.7,
+      "n": 10,
+      "consistency": 0.8,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 23.4,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 12.2,
+      "n": 13,
+      "consistency": 0.69,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 10.6,
-      "n": 6,
-      "consistency": 0.5,
+      "anomaly_pct": 0.9,
+      "n": 8,
+      "consistency": 0.75,
       "usable": true
      }
     }
@@ -2228,10 +2228,10 @@
    "origin": "indonesia",
    "region": "Toraja",
    "lag_months": 0,
-   "lag_r": -0.091,
+   "lag_r": -0.306,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "robusta (Sumatra)/flowering": {
@@ -2242,22 +2242,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -18.1,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -40.1,
+      "n": 10,
+      "consistency": 1.0,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -4.1,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 23.7,
+      "n": 14,
+      "consistency": 0.64,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 46.6,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 9.9,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
      }
     },
     "robusta (Sumatra)/fruit_fill": {
@@ -2267,21 +2267,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 36.6,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": 3.3,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -31.0,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": 7.7,
+      "n": 12,
+      "consistency": 0.58,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -30.1,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -12.5,
+      "n": 10,
+      "consistency": 0.5,
       "usable": true
      }
     },
@@ -2296,21 +2296,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -13.1,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -26.5,
+      "n": 5,
+      "consistency": 0.8,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 1.4,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 10.2,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 5.4,
-      "n": 7,
-      "consistency": 0.71,
+      "anomaly_pct": 3.7,
+      "n": 22,
+      "consistency": 0.45,
       "usable": true
      }
     },
@@ -2322,21 +2322,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 18.9,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -2.7,
+      "n": 5,
+      "consistency": 0.4,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -17.0,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 16.4,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -5.7,
-      "n": 7,
-      "consistency": 0.57,
+      "anomaly_pct": -3.1,
+      "n": 22,
+      "consistency": 0.59,
       "usable": true
      }
     },
@@ -2348,21 +2348,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -56.1,
-      "n": 2,
+      "anomaly_pct": -51.2,
+      "n": 6,
       "consistency": 1.0,
-      "usable": false
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 14.1,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 1.0,
+      "n": 7,
+      "consistency": 0.43,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 12.3,
-      "n": 8,
-      "consistency": 0.5,
+      "anomaly_pct": 19.6,
+      "n": 18,
+      "consistency": 0.61,
       "usable": true
      }
     },
@@ -2377,22 +2377,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -3.1,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -18.7,
+      "n": 10,
+      "consistency": 0.9,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -12.4,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 14.4,
+      "n": 13,
+      "consistency": 0.62,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 13.4,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -2.6,
+      "n": 8,
+      "consistency": 0.38,
+      "usable": true
      }
     }
    }
@@ -2401,10 +2401,10 @@
    "origin": "indonesia",
    "region": "Flores",
    "lag_months": 0,
-   "lag_r": -0.351,
+   "lag_r": -0.339,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "robusta (Sumatra)/flowering": {
@@ -2415,22 +2415,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -48.3,
-      "n": 4,
+      "anomaly_pct": -45.7,
+      "n": 10,
       "consistency": 1.0,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 26.8,
-      "n": 5,
-      "consistency": 1.0,
+      "anomaly_pct": 28.0,
+      "n": 14,
+      "consistency": 0.79,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 29.6,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 9.3,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
      }
     },
     "robusta (Sumatra)/fruit_fill": {
@@ -2440,21 +2440,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -7.0,
-      "n": 5,
+      "anomaly_pct": -12.9,
+      "n": 10,
       "consistency": 0.6,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 8.9,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 16.6,
+      "n": 12,
+      "consistency": 0.75,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 2.7,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -7.0,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      }
     },
@@ -2469,21 +2469,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -23.6,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -19.0,
+      "n": 5,
+      "consistency": 0.6,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 11.4,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -0.4,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 8.5,
-      "n": 7,
-      "consistency": 0.71,
+      "anomaly_pct": 4.4,
+      "n": 22,
+      "consistency": 0.41,
       "usable": true
      }
     },
@@ -2495,21 +2495,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -8.8,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -14.4,
+      "n": 5,
+      "consistency": 0.8,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -15.3,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 1.9,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 6.0,
-      "n": 7,
-      "consistency": 0.71,
+      "anomaly_pct": 2.8,
+      "n": 22,
+      "consistency": 0.55,
       "usable": true
      }
     },
@@ -2521,21 +2521,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -55.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -53.4,
+      "n": 6,
+      "consistency": 0.83,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 55.6,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 55.3,
+      "n": 7,
+      "consistency": 0.43,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 6.9,
-      "n": 8,
-      "consistency": 0.5,
+      "anomaly_pct": -5.7,
+      "n": 18,
+      "consistency": 0.67,
       "usable": true
      }
     },
@@ -2550,22 +2550,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -28.0,
-      "n": 4,
+      "anomaly_pct": -30.8,
+      "n": 10,
       "consistency": 1.0,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 17.6,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 23.4,
+      "n": 13,
+      "consistency": 0.77,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 10.0,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -1.2,
+      "n": 8,
+      "consistency": 0.38,
+      "usable": true
      }
     }
    }
@@ -2574,10 +2574,10 @@
    "origin": "uganda",
    "region": "Greater Masaka",
    "lag_months": 2,
-   "lag_r": 0.206,
+   "lag_r": 0.14,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -2588,21 +2588,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 7.3,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 8.4,
+      "n": 7,
+      "consistency": 0.71,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -14.7,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -10.6,
+      "n": 10,
+      "consistency": 0.9,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 2.5,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 3.2,
+      "n": 15,
+      "consistency": 0.53,
       "usable": true
      }
     },
@@ -2614,21 +2614,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -4.1,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -11.7,
+      "n": 4,
+      "consistency": 0.75,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -26.4,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -12.6,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 5.5,
-      "n": 7,
-      "consistency": 0.29,
+      "anomaly_pct": 4.9,
+      "n": 22,
+      "consistency": 0.5,
       "usable": true
      }
     },
@@ -2642,21 +2642,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 19.7,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": 15.1,
+      "n": 8,
+      "consistency": 0.62,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -10.5,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -3.5,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -0.7,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -6.5,
+      "n": 13,
+      "consistency": 0.69,
       "usable": true
      }
     },
@@ -2668,21 +2668,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 15.5,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": 12.2,
+      "n": 8,
+      "consistency": 0.75,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -9.0,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -2.6,
+      "n": 9,
+      "consistency": 0.67,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -3.9,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": -5.3,
+      "n": 14,
+      "consistency": 0.64,
       "usable": true
      }
     },
@@ -2694,22 +2694,22 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 11.4,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": 5.8,
+      "n": 11,
+      "consistency": 0.55,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -2.6,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -2.0,
+      "n": 14,
+      "consistency": 0.57,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -23.4,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -5.1,
+      "n": 7,
+      "consistency": 0.43,
+      "usable": true
      }
     },
     "fly/harvest": {
@@ -2720,21 +2720,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 7.3,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 8.4,
+      "n": 7,
+      "consistency": 0.71,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -14.7,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -10.6,
+      "n": 10,
+      "consistency": 0.9,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 2.5,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 3.2,
+      "n": 15,
+      "consistency": 0.53,
       "usable": true
      }
     }
@@ -2744,10 +2744,10 @@
    "origin": "uganda",
    "region": "Central",
    "lag_months": 1,
-   "lag_r": 0.245,
+   "lag_r": 0.048,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -2758,21 +2758,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 15.4,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -4.5,
+      "n": 6,
+      "consistency": 0.67,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -19.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -6.8,
+      "n": 6,
+      "consistency": 0.33,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -4.6,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 3.4,
+      "n": 20,
+      "consistency": 0.55,
       "usable": true
      }
     },
@@ -2784,21 +2784,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -18.7,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -21.1,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 13.5,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 14.4,
+      "n": 6,
+      "consistency": 0.83,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 3.0,
-      "n": 8,
-      "consistency": 0.38,
+      "anomaly_pct": 0.2,
+      "n": 21,
+      "consistency": 0.52,
       "usable": true
      }
     },
@@ -2812,22 +2812,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 15.5,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 6.6,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -9.5,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -4.2,
+      "n": 14,
+      "consistency": 0.57,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -2.0,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -1.5,
+      "n": 7,
+      "consistency": 0.43,
+      "usable": true
      }
     },
     "fly/flowering": {
@@ -2838,21 +2838,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 7.5,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 8.3,
+      "n": 9,
+      "consistency": 0.67,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -8.7,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -4.9,
+      "n": 11,
+      "consistency": 0.55,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 1.6,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -1.8,
+      "n": 11,
+      "consistency": 0.64,
       "usable": true
      }
     },
@@ -2864,22 +2864,22 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 8.4,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 2.6,
+      "n": 11,
+      "consistency": 0.45,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -11.5,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -0.4,
+      "n": 13,
+      "consistency": 0.54,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 2.0,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -3.0,
+      "n": 8,
+      "consistency": 0.5,
+      "usable": true
      }
     },
     "fly/harvest": {
@@ -2890,21 +2890,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 15.4,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -4.5,
+      "n": 6,
+      "consistency": 0.67,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -19.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -6.8,
+      "n": 6,
+      "consistency": 0.33,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -4.6,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 3.4,
+      "n": 20,
+      "consistency": 0.55,
       "usable": true
      }
     }
@@ -2913,11 +2913,11 @@
   "uganda|Western": {
    "origin": "uganda",
    "region": "Western",
-   "lag_months": 2,
-   "lag_r": 0.051,
+   "lag_months": 1,
+   "lag_r": 0.097,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -2928,21 +2928,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 15.3,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": 10.4,
+      "n": 6,
+      "consistency": 0.67,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -20.1,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -18.7,
+      "n": 6,
+      "consistency": 0.83,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -5.4,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 2.5,
+      "n": 20,
+      "consistency": 0.55,
       "usable": true
      }
     },
@@ -2954,21 +2954,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -23.6,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -52.3,
+      "n": 4,
+      "consistency": 1.0,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 35.8,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -1.2,
+      "n": 6,
+      "consistency": 0.67,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 5.0,
-      "n": 7,
-      "consistency": 0.43,
+      "anomaly_pct": 8.0,
+      "n": 21,
+      "consistency": 0.57,
       "usable": true
      }
     },
@@ -2982,21 +2982,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 7.2,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 12.4,
+      "n": 10,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 6.6,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -2.5,
+      "n": 14,
+      "consistency": 0.64,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -5.6,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -13.0,
+      "n": 7,
+      "consistency": 0.86,
       "usable": true
      }
     },
@@ -3008,21 +3008,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 7.5,
-      "n": 3,
+      "anomaly_pct": 11.1,
+      "n": 9,
       "consistency": 0.67,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 15.8,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": 4.6,
+      "n": 11,
+      "consistency": 0.64,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -14.0,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": -13.8,
+      "n": 11,
+      "consistency": 0.73,
       "usable": true
      }
     },
@@ -3034,22 +3034,22 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 7.9,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": 10.6,
+      "n": 11,
+      "consistency": 0.45,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -3.8,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -1.8,
+      "n": 13,
+      "consistency": 0.54,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -12.1,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -11.8,
+      "n": 8,
+      "consistency": 0.62,
+      "usable": true
      }
     },
     "fly/harvest": {
@@ -3060,21 +3060,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 15.3,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": 10.4,
+      "n": 6,
+      "consistency": 0.67,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -20.1,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -18.7,
+      "n": 6,
+      "consistency": 0.83,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -5.4,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 2.5,
+      "n": 20,
+      "consistency": 0.55,
       "usable": true
      }
     }
@@ -3084,10 +3084,10 @@
    "origin": "uganda",
    "region": "Busoga",
    "lag_months": 1,
-   "lag_r": 0.265,
+   "lag_r": 0.183,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -3098,20 +3098,20 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 11.8,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -4.5,
+      "n": 6,
+      "consistency": 0.33,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -20.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -10.6,
+      "n": 6,
+      "consistency": 0.67,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -1.3,
-      "n": 5,
+      "anomaly_pct": 4.5,
+      "n": 20,
       "consistency": 0.6,
       "usable": true
      }
@@ -3124,21 +3124,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -14.6,
-      "n": 2,
+      "anomaly_pct": -17.8,
+      "n": 4,
       "consistency": 1.0,
-      "usable": false
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -4.4,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -1.9,
+      "n": 6,
+      "consistency": 0.83,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 4.2,
-      "n": 8,
-      "consistency": 0.5,
+      "anomaly_pct": 5.3,
+      "n": 21,
+      "consistency": 0.67,
       "usable": true
      }
     },
@@ -3152,22 +3152,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 24.5,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 17.5,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "la-nina": {
       "anomaly_pct": -7.9,
-      "n": 4,
-      "consistency": 0.75,
+      "n": 14,
+      "consistency": 0.86,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -15.0,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -10.3,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
      }
     },
     "fly/flowering": {
@@ -3178,21 +3178,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 20.9,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 23.5,
+      "n": 9,
+      "consistency": 0.78,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -7.2,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -5.2,
+      "n": 11,
+      "consistency": 0.45,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -18.3,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -14.0,
+      "n": 11,
+      "consistency": 0.82,
       "usable": true
      }
     },
@@ -3204,22 +3204,22 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 8.7,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": 9.4,
+      "n": 11,
+      "consistency": 0.64,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -7.4,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -4.4,
+      "n": 13,
+      "consistency": 0.62,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -6.8,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -5.7,
+      "n": 8,
+      "consistency": 0.62,
+      "usable": true
      }
     },
     "fly/harvest": {
@@ -3230,20 +3230,20 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 11.8,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -4.5,
+      "n": 6,
+      "consistency": 0.33,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -20.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -10.6,
+      "n": 6,
+      "consistency": 0.67,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -1.3,
-      "n": 5,
+      "anomaly_pct": 4.5,
+      "n": 20,
       "consistency": 0.6,
       "usable": true
      }
@@ -3253,11 +3253,11 @@
   "uganda|Mt Elgon": {
    "origin": "uganda",
    "region": "Mt Elgon",
-   "lag_months": 0,
-   "lag_r": 0.418,
+   "lag_months": 1,
+   "lag_r": 0.214,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -3268,21 +3268,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 96.4,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -15.5,
+      "n": 6,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -40.7,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -6.4,
+      "n": 6,
+      "consistency": 0.5,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -35.5,
-      "n": 7,
-      "consistency": 0.86,
+      "anomaly_pct": 6.6,
+      "n": 20,
+      "consistency": 0.75,
       "usable": true
      }
     },
@@ -3294,21 +3294,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 3.3,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -13.4,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 8.9,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 20.1,
+      "n": 6,
+      "consistency": 0.67,
+      "usable": true
      },
      "neutral": {
       "anomaly_pct": -1.9,
-      "n": 8,
-      "consistency": 0.5,
+      "n": 21,
+      "consistency": 0.48,
       "usable": true
      }
     },
@@ -3322,22 +3322,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 65.7,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 41.1,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -36.4,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -22.4,
+      "n": 14,
+      "consistency": 0.64,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -30.5,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -15.8,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
      }
     },
     "fly/flowering": {
@@ -3348,22 +3348,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 76.6,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 49.3,
+      "n": 9,
+      "consistency": 0.67,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -52.0,
-      "n": 5,
-      "consistency": 1.0,
+      "anomaly_pct": -22.0,
+      "n": 11,
+      "consistency": 0.64,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -23.1,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -18.3,
+      "n": 11,
+      "consistency": 0.64,
+      "usable": true
      }
     },
     "fly/fruit_fill": {
@@ -3374,21 +3374,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 32.1,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 26.5,
+      "n": 11,
+      "consistency": 0.64,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -10.9,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -14.4,
+      "n": 13,
+      "consistency": 0.62,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -42.6,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -13.0,
+      "n": 8,
+      "consistency": 0.62,
       "usable": true
      }
     },
@@ -3400,21 +3400,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 96.4,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -15.5,
+      "n": 6,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -40.7,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -6.4,
+      "n": 6,
+      "consistency": 0.5,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -35.5,
-      "n": 7,
-      "consistency": 0.86,
+      "anomaly_pct": 6.6,
+      "n": 20,
+      "consistency": 0.75,
       "usable": true
      }
     }
@@ -3424,10 +3424,10 @@
    "origin": "uganda",
    "region": "West Nile",
    "lag_months": 1,
-   "lag_r": 0.142,
+   "lag_r": 0.19,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -3438,21 +3438,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 7.2,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 1.2,
+      "n": 6,
+      "consistency": 0.67,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 5.0,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -9.4,
+      "n": 6,
+      "consistency": 0.67,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -7.8,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 2.5,
+      "n": 20,
+      "consistency": 0.55,
       "usable": true
      }
     },
@@ -3464,21 +3464,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -29.9,
-      "n": 2,
+      "anomaly_pct": -39.1,
+      "n": 4,
       "consistency": 1.0,
-      "usable": false
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 4.2,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 3.7,
+      "n": 6,
+      "consistency": 0.33,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 6.9,
-      "n": 8,
-      "consistency": 0.62,
+      "anomaly_pct": 7.2,
+      "n": 21,
+      "consistency": 0.67,
       "usable": true
      }
     },
@@ -3492,22 +3492,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 45.4,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": 32.0,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -17.6,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": -16.6,
+      "n": 14,
+      "consistency": 0.71,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -32.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -12.5,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
      }
     },
     "fly/flowering": {
@@ -3518,21 +3518,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 29.9,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": 41.4,
+      "n": 9,
+      "consistency": 0.78,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -9.8,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -11.7,
+      "n": 11,
+      "consistency": 0.82,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -26.9,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -22.2,
+      "n": 11,
+      "consistency": 0.73,
       "usable": true
      }
     },
@@ -3544,22 +3544,22 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 17.2,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": 9.9,
+      "n": 11,
+      "consistency": 0.27,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -1.6,
-      "n": 4,
-      "consistency": 0.25,
+      "anomaly_pct": -10.6,
+      "n": 13,
+      "consistency": 0.69,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -39.7,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 3.7,
+      "n": 8,
+      "consistency": 0.5,
+      "usable": true
      }
     },
     "fly/harvest": {
@@ -3570,21 +3570,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 7.2,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 1.2,
+      "n": 6,
+      "consistency": 0.67,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 5.0,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -9.4,
+      "n": 6,
+      "consistency": 0.67,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -7.8,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 2.5,
+      "n": 20,
+      "consistency": 0.55,
       "usable": true
      }
     }
@@ -3593,11 +3593,11 @@
   "uganda|Rwenzori": {
    "origin": "uganda",
    "region": "Rwenzori",
-   "lag_months": 4,
-   "lag_r": -0.019,
+   "lag_months": 1,
+   "lag_r": 0.102,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -3608,22 +3608,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 4.3,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": -3.5,
+      "n": 6,
+      "consistency": 0.67,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 0.6,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -12.3,
+      "n": 6,
+      "consistency": 0.83,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -11.9,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 4.7,
+      "n": 20,
+      "consistency": 0.55,
+      "usable": true
      }
     },
     "main/fruit_fill": {
@@ -3634,21 +3634,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 10.0,
+      "anomaly_pct": -32.7,
       "n": 4,
-      "consistency": 0.5,
+      "consistency": 1.0,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -2.6,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -7.2,
+      "n": 6,
+      "consistency": 0.83,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -6.9,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": 8.6,
+      "n": 21,
+      "consistency": 0.71,
       "usable": true
      }
     },
@@ -3662,21 +3662,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -6.6,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 17.8,
+      "n": 10,
+      "consistency": 0.6,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 10.5,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": -7.3,
+      "n": 14,
+      "consistency": 0.64,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 5.4,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": -8.9,
+      "n": 7,
+      "consistency": 0.71,
       "usable": true
      }
     },
@@ -3688,21 +3688,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 10.9,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 20.5,
+      "n": 9,
+      "consistency": 0.89,
+      "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 11.2,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -2.6,
+      "n": 11,
+      "consistency": 0.73,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -4.1,
-      "n": 8,
-      "consistency": 0.62,
+      "anomaly_pct": -14.1,
+      "n": 11,
+      "consistency": 0.64,
       "usable": true
      }
     },
@@ -3714,21 +3714,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 7.4,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 5.2,
+      "n": 11,
+      "consistency": 0.27,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 26.6,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -2.5,
+      "n": 13,
+      "consistency": 0.54,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -27.4,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -3.0,
+      "n": 8,
+      "consistency": 0.38,
       "usable": true
      }
     },
@@ -3740,22 +3740,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 4.3,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": -3.5,
+      "n": 6,
+      "consistency": 0.67,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 0.6,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": -12.3,
+      "n": 6,
+      "consistency": 0.83,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -11.9,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 4.7,
+      "n": 20,
+      "consistency": 0.55,
+      "usable": true
      }
     }
    }
@@ -3764,10 +3764,10 @@
    "origin": "ethiopia",
    "region": "Sidama/Yirgacheffe",
    "lag_months": 1,
-   "lag_r": 0.406,
+   "lag_r": 0.3,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -3778,21 +3778,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 8.5,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": 14.3,
+      "n": 10,
+      "consistency": 0.3,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 5.6,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": -10.0,
+      "n": 12,
+      "consistency": 0.67,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -19.8,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -2.4,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      }
     },
@@ -3806,21 +3806,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 20.3,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": -5.0,
+      "n": 4,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -26.8,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -9.7,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -4.9,
-      "n": 7,
-      "consistency": 0.43,
+      "anomaly_pct": 4.4,
+      "n": 22,
+      "consistency": 0.55,
       "usable": true
      }
     },
@@ -3833,22 +3833,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 68.7,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 45.7,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -41.5,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -36.0,
+      "n": 12,
+      "consistency": 0.75,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -33.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -0.3,
+      "n": 9,
+      "consistency": 0.56,
+      "usable": true
      }
     },
     "second/flowering": {
@@ -3859,21 +3859,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 16.7,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -3.2,
+      "n": 5,
+      "consistency": 0.4,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -25.7,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -13.3,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -3.5,
-      "n": 7,
-      "consistency": 0.57,
+      "anomaly_pct": 3.7,
+      "n": 22,
+      "consistency": 0.55,
       "usable": true
      }
     },
@@ -3888,21 +3888,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 48.8,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 35.7,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -28.7,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -26.5,
+      "n": 11,
+      "consistency": 0.73,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -26.5,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -7.7,
+      "n": 10,
+      "consistency": 0.5,
       "usable": true
      }
     },
@@ -3914,21 +3914,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 15.4,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": -5.8,
+      "n": 7,
+      "consistency": 0.57,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -22.8,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -10.9,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -2.9,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": 10.0,
+      "n": 15,
+      "consistency": 0.67,
       "usable": true
      }
     }
@@ -3938,10 +3938,10 @@
    "origin": "ethiopia",
    "region": "Jimma",
    "lag_months": 1,
-   "lag_r": 0.189,
+   "lag_r": 0.21,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -3952,21 +3952,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 4.2,
-      "n": 5,
+      "anomaly_pct": 15.0,
+      "n": 10,
       "consistency": 0.4,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -11.5,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -16.2,
+      "n": 12,
+      "consistency": 0.75,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 4.5,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 4.4,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      }
     },
@@ -3980,21 +3980,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 2.4,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -1.6,
+      "n": 4,
+      "consistency": 0.25,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 5.9,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 5.4,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -1.9,
-      "n": 7,
-      "consistency": 0.57,
+      "anomaly_pct": -0.7,
+      "n": 22,
+      "consistency": 0.45,
       "usable": true
      }
     },
@@ -4007,22 +4007,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 41.0,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 28.1,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -31.5,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -17.7,
+      "n": 12,
+      "consistency": 0.67,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -26.7,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -5.4,
+      "n": 9,
+      "consistency": 0.67,
+      "usable": true
      }
     },
     "second/flowering": {
@@ -4033,21 +4033,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -1.4,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": -1.6,
+      "n": 5,
+      "consistency": 0.4,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 17.2,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 1.1,
+      "n": 5,
+      "consistency": 0.6,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -1.9,
-      "n": 7,
-      "consistency": 0.71,
+      "anomaly_pct": 0.1,
+      "n": 22,
+      "consistency": 0.59,
       "usable": true
      }
     },
@@ -4062,21 +4062,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 29.4,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 29.5,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -17.0,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -17.1,
+      "n": 11,
+      "consistency": 0.64,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -23.8,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -9.0,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      }
     },
@@ -4088,21 +4088,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 1.0,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": -5.4,
+      "n": 7,
+      "consistency": 0.71,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -18.7,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -8.6,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 17.1,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 8.3,
+      "n": 15,
+      "consistency": 0.53,
       "usable": true
      }
     }
@@ -4111,11 +4111,11 @@
   "ethiopia|Limu": {
    "origin": "ethiopia",
    "region": "Limu",
-   "lag_months": 6,
-   "lag_r": -0.038,
+   "lag_months": 1,
+   "lag_r": 0.153,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -4126,21 +4126,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 7.8,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": 11.1,
+      "n": 10,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -3.7,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": -22.3,
+      "n": 12,
+      "consistency": 0.58,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -2.5,
-      "n": 5,
-      "consistency": 0.4,
+      "anomaly_pct": 15.6,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      }
     },
@@ -4154,22 +4154,22 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": -7.5,
-      "n": 5,
-      "consistency": 0.8,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": 8.1,
+      "anomaly_pct": -0.2,
       "n": 4,
       "consistency": 0.75,
       "usable": true
      },
+     "la-nina": {
+      "anomaly_pct": 5.9,
+      "n": 5,
+      "consistency": 0.4,
+      "usable": true
+     },
      "neutral": {
-      "anomaly_pct": 2.5,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -1.4,
+      "n": 22,
+      "consistency": 0.55,
+      "usable": true
      }
     },
     "main/harvest": {
@@ -4181,21 +4181,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 28.2,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 21.9,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 45.8,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -6.9,
+      "n": 12,
+      "consistency": 0.67,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -26.3,
-      "n": 6,
-      "consistency": 0.67,
+      "anomaly_pct": -12.8,
+      "n": 9,
+      "consistency": 0.56,
       "usable": true
      }
     },
@@ -4207,22 +4207,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -10.4,
+      "anomaly_pct": 0.1,
       "n": 5,
-      "consistency": 0.8,
+      "consistency": 0.2,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 13.6,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 6.0,
+      "n": 5,
+      "consistency": 0.4,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -1.3,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": -1.4,
+      "n": 22,
+      "consistency": 0.68,
+      "usable": true
      }
     },
     "second/fruit_fill": {
@@ -4236,21 +4236,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 24.5,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 21.7,
+      "n": 10,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 28.8,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -13.3,
+      "n": 11,
+      "consistency": 0.64,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -19.2,
-      "n": 6,
-      "consistency": 0.67,
+      "anomaly_pct": -4.6,
+      "n": 10,
+      "consistency": 0.8,
       "usable": true
      }
     },
@@ -4262,21 +4262,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 6.3,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 2.4,
+      "n": 7,
+      "consistency": 0.43,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 6.9,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -12.9,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -11.5,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 7.5,
+      "n": 15,
+      "consistency": 0.47,
       "usable": true
      }
     }
@@ -4286,10 +4286,10 @@
    "origin": "ethiopia",
    "region": "Kaffa",
    "lag_months": 1,
-   "lag_r": 0.53,
+   "lag_r": 0.182,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "main/flowering": {
@@ -4300,21 +4300,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 30.2,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 5.1,
+      "n": 10,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -23.8,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 0.6,
+      "n": 12,
+      "consistency": 0.5,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -26.6,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -5.8,
+      "n": 10,
+      "consistency": 0.5,
       "usable": true
      }
     },
@@ -4328,21 +4328,21 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 6.3,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -5.4,
+      "n": 4,
+      "consistency": 0.75,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -9.9,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 0.6,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": -1.3,
-      "n": 7,
-      "consistency": 0.57,
+      "anomaly_pct": 2.0,
+      "n": 22,
+      "consistency": 0.5,
       "usable": true
      }
     },
@@ -4355,22 +4355,196 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": 54.2,
-      "n": 4,
-      "consistency": 0.75,
+      "anomaly_pct": 23.0,
+      "n": 10,
+      "consistency": 0.6,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -42.4,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -23.8,
+      "n": 12,
+      "consistency": 0.58,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -3.8,
-      "n": 2,
+      "anomaly_pct": 7.4,
+      "n": 9,
+      "consistency": 0.67,
+      "usable": true
+     }
+    },
+    "second/flowering": {
+     "months": [
+      6,
+      7,
+      8
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -8.8,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -2.9,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 2.7,
+      "n": 22,
       "consistency": 0.5,
-      "usable": false
+      "usable": true
+     }
+    },
+    "second/fruit_fill": {
+     "months": [
+      9,
+      10,
+      11,
+      12,
+      1,
+      2
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 20.3,
+      "n": 10,
+      "consistency": 0.6,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -10.2,
+      "n": 11,
+      "consistency": 0.45,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -9.2,
+      "n": 10,
+      "consistency": 0.4,
+      "usable": true
+     }
+    },
+    "second/harvest": {
+     "months": [
+      3,
+      4,
+      5
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -12.2,
+      "n": 7,
+      "consistency": 0.43,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 1.0,
+      "n": 10,
+      "consistency": 0.7,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 5.0,
+      "n": 15,
+      "consistency": 0.73,
+      "usable": true
+     }
+    }
+   }
+  },
+  "ethiopia|Harrar": {
+   "origin": "ethiopia",
+   "region": "Harrar",
+   "lag_months": 1,
+   "lag_r": 0.251,
+   "years": [
+    1995,
+    2026
+   ],
+   "phases": {
+    "main/flowering": {
+     "months": [
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 39.6,
+      "n": 10,
+      "consistency": 0.4,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -32.0,
+      "n": 12,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -1.1,
+      "n": 10,
+      "consistency": 0.6,
+      "usable": true
+     }
+    },
+    "main/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "inferred": true,
+     "el-nino": {
+      "anomaly_pct": 12.5,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -15.5,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 2.8,
+      "n": 22,
+      "consistency": 0.55,
+      "usable": true
+     }
+    },
+    "main/harvest": {
+     "months": [
+      10,
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 50.3,
+      "n": 10,
+      "consistency": 0.7,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -43.1,
+      "n": 12,
+      "consistency": 0.83,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 4.4,
+      "n": 9,
+      "consistency": 0.44,
+      "usable": true
      }
     },
     "second/flowering": {
@@ -4382,194 +4556,20 @@
      "inferred": false,
      "el-nino": {
       "anomaly_pct": -2.1,
-      "n": 3,
-      "consistency": 0.67,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": -5.0,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
-     },
-     "neutral": {
-      "anomaly_pct": 1.6,
-      "n": 7,
-      "consistency": 0.43,
-      "usable": true
-     }
-    },
-    "second/fruit_fill": {
-     "months": [
-      9,
-      10,
-      11,
-      12,
-      1,
-      2
-     ],
-     "inferred": true,
-     "el-nino": {
-      "anomaly_pct": 38.7,
-      "n": 4,
-      "consistency": 0.75,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": -27.9,
-      "n": 3,
-      "consistency": 1.0,
-      "usable": true
-     },
-     "neutral": {
-      "anomaly_pct": -18.9,
-      "n": 3,
-      "consistency": 0.67,
-      "usable": true
-     }
-    },
-    "second/harvest": {
-     "months": [
-      3,
-      4,
-      5
-     ],
-     "inferred": false,
-     "el-nino": {
-      "anomaly_pct": 26.1,
       "n": 5,
-      "consistency": 0.4,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": -24.9,
-      "n": 3,
-      "consistency": 0.67,
-      "usable": true
-     },
-     "neutral": {
-      "anomaly_pct": -18.6,
-      "n": 3,
-      "consistency": 1.0,
-      "usable": true
-     }
-    }
-   }
-  },
-  "ethiopia|Harrar": {
-   "origin": "ethiopia",
-   "region": "Harrar",
-   "lag_months": 0,
-   "lag_r": 0.167,
-   "years": [
-    2015,
-    2025
-   ],
-   "phases": {
-    "main/flowering": {
-     "months": [
-      2,
-      3,
-      4
-     ],
-     "inferred": false,
-     "el-nino": {
-      "anomaly_pct": -0.9,
-      "n": 5,
-      "consistency": 0.6,
+      "consistency": 0.8,
       "usable": true
      },
      "la-nina": {
       "anomaly_pct": -13.4,
-      "n": 3,
-      "consistency": 0.67,
+      "n": 5,
+      "consistency": 1.0,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 14.8,
-      "n": 3,
-      "consistency": 0.67,
-      "usable": true
-     }
-    },
-    "main/fruit_fill": {
-     "months": [
-      5,
-      6,
-      7,
-      8,
-      9
-     ],
-     "inferred": true,
-     "el-nino": {
-      "anomaly_pct": -21.1,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
-     },
-     "la-nina": {
-      "anomaly_pct": -34.5,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
-     },
-     "neutral": {
-      "anomaly_pct": 9.6,
-      "n": 8,
-      "consistency": 0.62,
-      "usable": true
-     }
-    },
-    "main/harvest": {
-     "months": [
-      10,
-      11,
-      12,
-      1
-     ],
-     "inferred": false,
-     "el-nino": {
-      "anomaly_pct": 52.4,
-      "n": 4,
-      "consistency": 0.5,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": -28.6,
-      "n": 4,
-      "consistency": 0.75,
-      "usable": true
-     },
-     "neutral": {
-      "anomaly_pct": -38.4,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
-     }
-    },
-    "second/flowering": {
-     "months": [
-      6,
-      7,
-      8
-     ],
-     "inferred": false,
-     "el-nino": {
-      "anomaly_pct": -33.0,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
-     },
-     "la-nina": {
-      "anomaly_pct": -19.8,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
-     },
-     "neutral": {
-      "anomaly_pct": 10.7,
-      "n": 8,
-      "consistency": 0.62,
+      "anomaly_pct": 3.5,
+      "n": 22,
+      "consistency": 0.45,
       "usable": true
      }
     },
@@ -4584,22 +4584,22 @@
      ],
      "inferred": true,
      "el-nino": {
-      "anomaly_pct": 44.4,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 49.5,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -26.6,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -36.5,
+      "n": 11,
+      "consistency": 0.91,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": -25.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -9.0,
+      "n": 10,
+      "consistency": 0.6,
+      "usable": true
      }
     },
     "second/harvest": {
@@ -4610,21 +4610,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -8.1,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": 9.1,
+      "n": 7,
+      "consistency": 0.57,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": -49.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -9.9,
+      "n": 10,
+      "consistency": 0.6,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 26.2,
-      "n": 5,
-      "consistency": 0.6,
+      "anomaly_pct": 2.4,
+      "n": 15,
+      "consistency": 0.47,
       "usable": true
      }
     }
@@ -4633,11 +4633,11 @@
   "vn|Dak Lak": {
    "origin": "vn",
    "region": "Dak Lak",
-   "lag_months": 3,
-   "lag_r": -0.387,
+   "lag_months": 2,
+   "lag_r": -0.285,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "robusta/flowering": {
@@ -4649,22 +4649,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -70.6,
-      "n": 5,
+      "anomaly_pct": -63.0,
+      "n": 11,
       "consistency": 1.0,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 36.8,
-      "n": 4,
-      "consistency": 0.5,
+      "anomaly_pct": 38.3,
+      "n": 13,
+      "consistency": 0.62,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 102.9,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 24.4,
+      "n": 8,
+      "consistency": 0.38,
+      "usable": true
      }
     },
     "robusta/fruit_fill": {
@@ -4678,21 +4678,303 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -22.6,
+      "anomaly_pct": 10.3,
       "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": -5.2,
+      "n": 5,
+      "consistency": 0.8,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -1.2,
+      "n": 22,
+      "consistency": 0.68,
+      "usable": true
+     }
+    },
+    "robusta/harvest": {
+     "months": [
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -59.3,
+      "n": 9,
       "consistency": 1.0,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 15.8,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": 40.9,
+      "n": 11,
+      "consistency": 0.82,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 11.8,
-      "n": 5,
-      "consistency": 0.8,
+      "anomaly_pct": 9.4,
+      "n": 11,
+      "consistency": 0.36,
+      "usable": true
+     }
+    }
+   }
+  },
+  "vn|Lam Dong": {
+   "origin": "vn",
+   "region": "Lam Dong",
+   "lag_months": 1,
+   "lag_r": -0.348,
+   "years": [
+    1995,
+    2026
+   ],
+   "phases": {
+    "robusta/flowering": {
+     "months": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -41.8,
+      "n": 10,
+      "consistency": 0.9,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 35.4,
+      "n": 12,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -0.7,
+      "n": 10,
+      "consistency": 0.7,
+      "usable": true
+     }
+    },
+    "robusta/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -13.8,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 10.2,
+      "n": 7,
+      "consistency": 0.86,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 0.1,
+      "n": 20,
+      "consistency": 0.6,
+      "usable": true
+     }
+    },
+    "robusta/harvest": {
+     "months": [
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -37.2,
+      "n": 10,
+      "consistency": 0.9,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 30.4,
+      "n": 14,
+      "consistency": 0.71,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -6.6,
+      "n": 7,
+      "consistency": 0.71,
+      "usable": true
+     }
+    }
+   }
+  },
+  "vn|Dak Nong": {
+   "origin": "vn",
+   "region": "Dak Nong",
+   "lag_months": 1,
+   "lag_r": -0.301,
+   "years": [
+    1995,
+    2026
+   ],
+   "phases": {
+    "robusta/flowering": {
+     "months": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -47.9,
+      "n": 10,
+      "consistency": 0.9,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 31.7,
+      "n": 12,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 9.9,
+      "n": 10,
+      "consistency": 0.5,
+      "usable": true
+     }
+    },
+    "robusta/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": 3.1,
+      "n": 4,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 3.9,
+      "n": 7,
+      "consistency": 0.43,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -1.8,
+      "n": 20,
+      "consistency": 0.6,
+      "usable": true
+     }
+    },
+    "robusta/harvest": {
+     "months": [
+      11,
+      12,
+      1
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -40.8,
+      "n": 10,
+      "consistency": 0.7,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 33.8,
+      "n": 14,
+      "consistency": 0.57,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -9.1,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
+     }
+    }
+   }
+  },
+  "vn|Gia Lai": {
+   "origin": "vn",
+   "region": "Gia Lai",
+   "lag_months": 1,
+   "lag_r": -0.299,
+   "years": [
+    1995,
+    2026
+   ],
+   "phases": {
+    "robusta/flowering": {
+     "months": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -43.4,
+      "n": 10,
+      "consistency": 0.9,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 41.3,
+      "n": 12,
+      "consistency": 0.5,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": -6.2,
+      "n": 10,
+      "consistency": 0.6,
+      "usable": true
+     }
+    },
+    "robusta/fruit_fill": {
+     "months": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+     ],
+     "inferred": false,
+     "el-nino": {
+      "anomaly_pct": -7.9,
+      "n": 4,
+      "consistency": 0.75,
+      "usable": true
+     },
+     "la-nina": {
+      "anomaly_pct": 4.3,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
+     },
+     "neutral": {
+      "anomaly_pct": 0.3,
+      "n": 20,
+      "consistency": 0.5,
       "usable": true
      }
     },
@@ -4705,302 +4987,20 @@
      "inferred": false,
      "el-nino": {
       "anomaly_pct": -55.1,
-      "n": 3,
-      "consistency": 1.0,
+      "n": 10,
+      "consistency": 0.9,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 13.2,
-      "n": 3,
-      "consistency": 0.33,
-      "usable": true
-     },
-     "neutral": {
-      "anomaly_pct": 25.6,
-      "n": 4,
-      "consistency": 0.5,
-      "usable": true
-     }
-    }
-   }
-  },
-  "vn|Lam Dong": {
-   "origin": "vn",
-   "region": "Lam Dong",
-   "lag_months": 2,
-   "lag_r": -0.246,
-   "years": [
-    2015,
-    2025
-   ],
-   "phases": {
-    "robusta/flowering": {
-     "months": [
-      1,
-      2,
-      3,
-      4
-     ],
-     "inferred": false,
-     "el-nino": {
-      "anomaly_pct": -32.8,
-      "n": 5,
-      "consistency": 0.8,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": 9.0,
-      "n": 4,
-      "consistency": 0.25,
-      "usable": true
-     },
-     "neutral": {
-      "anomaly_pct": 64.2,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
-     }
-    },
-    "robusta/fruit_fill": {
-     "months": [
-      5,
-      6,
-      7,
-      8,
-      9,
-      10
-     ],
-     "inferred": false,
-     "el-nino": {
-      "anomaly_pct": -5.6,
-      "n": 3,
-      "consistency": 0.67,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": -8.5,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
-     },
-     "neutral": {
-      "anomaly_pct": 3.6,
-      "n": 7,
-      "consistency": 0.71,
-      "usable": true
-     }
-    },
-    "robusta/harvest": {
-     "months": [
-      11,
-      12,
-      1
-     ],
-     "inferred": false,
-     "el-nino": {
-      "anomaly_pct": -33.0,
-      "n": 4,
-      "consistency": 0.75,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": -3.6,
-      "n": 3,
-      "consistency": 0.67,
-      "usable": true
-     },
-     "neutral": {
-      "anomaly_pct": 48.2,
-      "n": 3,
-      "consistency": 0.33,
-      "usable": true
-     }
-    }
-   }
-  },
-  "vn|Dak Nong": {
-   "origin": "vn",
-   "region": "Dak Nong",
-   "lag_months": 3,
-   "lag_r": -0.385,
-   "years": [
-    2015,
-    2025
-   ],
-   "phases": {
-    "robusta/flowering": {
-     "months": [
-      1,
-      2,
-      3,
-      4
-     ],
-     "inferred": false,
-     "el-nino": {
-      "anomaly_pct": -52.1,
-      "n": 5,
-      "consistency": 1.0,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": 37.7,
-      "n": 4,
-      "consistency": 0.5,
-      "usable": true
-     },
-     "neutral": {
-      "anomaly_pct": 54.8,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
-     }
-    },
-    "robusta/fruit_fill": {
-     "months": [
-      5,
-      6,
-      7,
-      8,
-      9,
-      10
-     ],
-     "inferred": false,
-     "el-nino": {
-      "anomaly_pct": -5.9,
-      "n": 4,
-      "consistency": 0.5,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": 9.4,
-      "n": 2,
-      "consistency": 1.0,
-      "usable": false
-     },
-     "neutral": {
-      "anomaly_pct": 1.0,
-      "n": 5,
-      "consistency": 0.6,
-      "usable": true
-     }
-    },
-    "robusta/harvest": {
-     "months": [
-      11,
-      12,
-      1
-     ],
-     "inferred": false,
-     "el-nino": {
-      "anomaly_pct": -32.8,
-      "n": 3,
-      "consistency": 1.0,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": 21.2,
-      "n": 3,
-      "consistency": 0.33,
-      "usable": true
-     },
-     "neutral": {
-      "anomaly_pct": 11.4,
-      "n": 4,
-      "consistency": 0.25,
-      "usable": true
-     }
-    }
-   }
-  },
-  "vn|Gia Lai": {
-   "origin": "vn",
-   "region": "Gia Lai",
-   "lag_months": 2,
-   "lag_r": -0.249,
-   "years": [
-    2015,
-    2025
-   ],
-   "phases": {
-    "robusta/flowering": {
-     "months": [
-      1,
-      2,
-      3,
-      4
-     ],
-     "inferred": false,
-     "el-nino": {
-      "anomaly_pct": -32.8,
-      "n": 5,
-      "consistency": 1.0,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": 48.1,
-      "n": 4,
-      "consistency": 0.5,
-      "usable": true
-     },
-     "neutral": {
-      "anomaly_pct": -14.3,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
-     }
-    },
-    "robusta/fruit_fill": {
-     "months": [
-      5,
-      6,
-      7,
-      8,
-      9,
-      10
-     ],
-     "inferred": false,
-     "el-nino": {
-      "anomaly_pct": -1.6,
-      "n": 3,
-      "consistency": 0.67,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": -3.8,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
-     },
-     "neutral": {
-      "anomaly_pct": 1.2,
-      "n": 7,
+      "anomaly_pct": 43.3,
+      "n": 14,
       "consistency": 0.57,
       "usable": true
-     }
-    },
-    "robusta/harvest": {
-     "months": [
-      11,
-      12,
-      1
-     ],
-     "inferred": false,
-     "el-nino": {
-      "anomaly_pct": -46.6,
-      "n": 4,
-      "consistency": 1.0,
-      "usable": true
-     },
-     "la-nina": {
-      "anomaly_pct": 2.2,
-      "n": 3,
-      "consistency": 0.33,
-      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 57.5,
-      "n": 3,
-      "consistency": 0.33,
+      "anomaly_pct": -3.5,
+      "n": 7,
+      "consistency": 0.71,
       "usable": true
      }
     }
@@ -5010,10 +5010,10 @@
    "origin": "vn",
    "region": "Kon Tum",
    "lag_months": 1,
-   "lag_r": -0.276,
+   "lag_r": -0.271,
    "years": [
-    2015,
-    2025
+    1995,
+    2026
    ],
    "phases": {
     "robusta/flowering": {
@@ -5025,21 +5025,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -41.2,
-      "n": 5,
-      "consistency": 1.0,
+      "anomaly_pct": -42.1,
+      "n": 10,
+      "consistency": 0.9,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 57.6,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": 38.5,
+      "n": 12,
+      "consistency": 0.5,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 11.0,
-      "n": 3,
-      "consistency": 0.67,
+      "anomaly_pct": -4.1,
+      "n": 10,
+      "consistency": 0.7,
       "usable": true
      }
     },
@@ -5054,21 +5054,21 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -6.5,
-      "n": 3,
-      "consistency": 1.0,
+      "anomaly_pct": -1.7,
+      "n": 4,
+      "consistency": 0.5,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 2.5,
-      "n": 1,
-      "consistency": 1.0,
-      "usable": false
+      "anomaly_pct": -2.3,
+      "n": 7,
+      "consistency": 0.57,
+      "usable": true
      },
      "neutral": {
-      "anomaly_pct": 2.4,
-      "n": 7,
-      "consistency": 0.43,
+      "anomaly_pct": 1.1,
+      "n": 20,
+      "consistency": 0.5,
       "usable": true
      }
     },
@@ -5080,22 +5080,22 @@
      ],
      "inferred": false,
      "el-nino": {
-      "anomaly_pct": -56.9,
-      "n": 4,
-      "consistency": 1.0,
+      "anomaly_pct": -59.4,
+      "n": 10,
+      "consistency": 0.9,
       "usable": true
      },
      "la-nina": {
-      "anomaly_pct": 13.7,
-      "n": 4,
+      "anomaly_pct": 44.3,
+      "n": 14,
       "consistency": 0.5,
       "usable": true
      },
      "neutral": {
-      "anomaly_pct": 101.5,
-      "n": 2,
-      "consistency": 0.5,
-      "usable": false
+      "anomaly_pct": 0.4,
+      "n": 7,
+      "consistency": 0.29,
+      "usable": true
      }
     }
    }

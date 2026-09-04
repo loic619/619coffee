@@ -1,8 +1,21 @@
 {
-  "updated": "2026-09-02T14:01:06Z",
+  "updated": "2026-09-03T14:03:20Z",
   "source": "NCHMF – Bản tin dự báo nguồn nước thời hạn ngắn",
   "source_url": "https://nchmf.gov.vn/kttv/vi-VN/1/nguon-nuoc-21-18.html",
   "rivers": [
+    {
+      "river": "Dong Nai",
+      "river_vn": "Đồng Trăng",
+      "provinces": [
+        "Dak Nong",
+        "Lam Dong"
+      ],
+      "station": "Cái N,T",
+      "actual_mm3": 13.6,
+      "tbnn_pct": -46.0,
+      "forecast_tbnn_pct": -54.0,
+      "signal": "low"
+    },
     {
       "river": "Dak Bla",
       "river_vn": "ĐăkBla",
@@ -11,9 +24,9 @@
         "Kon Tum"
       ],
       "station": "Kon Tum",
-      "actual_mm3": 13.77,
-      "tbnn_pct": -80.0,
-      "forecast_tbnn_pct": -77.0,
+      "actual_mm3": 24.0,
+      "tbnn_pct": -78.0,
+      "forecast_tbnn_pct": -76.0,
       "signal": "critical"
     },
     {
@@ -23,13 +36,1744 @@
         "Dak Lak"
       ],
       "station": "Giang Sơn",
-      "actual_mm3": 22.75,
-      "tbnn_pct": -60.0,
-      "forecast_tbnn_pct": -43.0,
+      "actual_mm3": 28.0,
+      "tbnn_pct": -62.0,
+      "forecast_tbnn_pct": -56.0,
       "signal": "critical"
     }
   ],
-  "bulletin_date": "2026-09-02",
+  "bulletin_date": "2026-09-01",
   "has_live_data": true,
-  "pdf_url": "https://kttv.gov.vn//upload/thuyvan2/2026/8/22/dbqg_nnhn_20260822_1500.pdf"
+  "history": [
+    {
+      "date": "2025-01-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2025/1/1/dbqg_nnhn_20250101_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 14.04,
+          "tbnn_pct": -77.0,
+          "forecast_tbnn_pct": -77.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 186.27,
+          "tbnn_pct": 99.0,
+          "forecast_tbnn_pct": 92.0
+        }
+      ]
+    },
+    {
+      "date": "2025-01-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/1/8/dbqg_nnhn_20250108_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 72.58,
+          "tbnn_pct": 16.0,
+          "forecast_tbnn_pct": -5.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 8.84,
+          "tbnn_pct": -79.0,
+          "forecast_tbnn_pct": -76.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 109.92,
+          "tbnn_pct": 85.0,
+          "forecast_tbnn_pct": 20.0
+        }
+      ]
+    },
+    {
+      "date": "2025-01-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/1/15/dbqg_nnhn_20250115_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 37.74,
+          "tbnn_pct": 11.0,
+          "forecast_tbnn_pct": 27.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 8.91,
+          "tbnn_pct": -76.0,
+          "forecast_tbnn_pct": -74.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 57.38,
+          "tbnn_pct": 28.0,
+          "forecast_tbnn_pct": 11.0
+        }
+      ]
+    },
+    {
+      "date": "2025-01-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/1/22/dbqg_nnhn_20250122_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 52.0,
+          "tbnn_pct": 70.0,
+          "forecast_tbnn_pct": 5.6
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 19.5,
+          "tbnn_pct": -45.0,
+          "forecast_tbnn_pct": 2.5
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 48.4,
+          "tbnn_pct": 38.0,
+          "forecast_tbnn_pct": 5.1
+        }
+      ]
+    },
+    {
+      "date": "2025-02-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/2/1/dbqg_nnhn_20250201_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 44.06,
+          "tbnn_pct": 32.0,
+          "forecast_tbnn_pct": 38.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 29.22,
+          "tbnn_pct": -36.0,
+          "forecast_tbnn_pct": -31.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 44.13,
+          "tbnn_pct": 6.0,
+          "forecast_tbnn_pct": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2025-02-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/2/8/dbqg_nnhn_20250208_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 26.61,
+          "tbnn_pct": 27.0,
+          "forecast_tbnn_pct": 29.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 20.36,
+          "tbnn_pct": -29.0,
+          "forecast_tbnn_pct": -22.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 21.85,
+          "tbnn_pct": -6.0,
+          "forecast_tbnn_pct": 7.0
+        }
+      ]
+    },
+    {
+      "date": "2025-02-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2025/2/15/dbqg_nnhn_20250215_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 24.19,
+          "tbnn_pct": 27.0,
+          "forecast_tbnn_pct": 30.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 19.64,
+          "tbnn_pct": -25.0,
+          "forecast_tbnn_pct": -21.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 20.08,
+          "tbnn_pct": 0.0,
+          "forecast_tbnn_pct": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2025-02-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/2/22/dbqg_nnhn_20250222_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 23.0,
+          "tbnn_pct": 29.0,
+          "forecast_tbnn_pct": 49.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 19.9,
+          "tbnn_pct": -19.0,
+          "forecast_tbnn_pct": -14.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 17.22,
+          "tbnn_pct": 5.0,
+          "forecast_tbnn_pct": 10.0
+        }
+      ]
+    },
+    {
+      "date": "2025-03-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/3/1/dbqg_nnhn_20250301_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 107.05,
+          "tbnn_pct": 407.0,
+          "forecast_tbnn_pct": 201.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 17.58,
+          "tbnn_pct": -23.0,
+          "forecast_tbnn_pct": -14.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 55.18,
+          "tbnn_pct": 278.0,
+          "forecast_tbnn_pct": 168.0
+        }
+      ]
+    },
+    {
+      "date": "2025-03-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2025/3/8/dbqg_nnhn_20250308_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 36.95,
+          "tbnn_pct": 131.0,
+          "forecast_tbnn_pct": 70.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 18.77,
+          "tbnn_pct": -13.0,
+          "forecast_tbnn_pct": -6.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 37.87,
+          "tbnn_pct": 187.0,
+          "forecast_tbnn_pct": 60.0
+        }
+      ]
+    },
+    {
+      "date": "2025-03-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/3/15/dbqg_nnhn_20250315_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 32.66,
+          "tbnn_pct": 114.0,
+          "forecast_tbnn_pct": 83.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 18.62,
+          "tbnn_pct": -6.0,
+          "forecast_tbnn_pct": 0.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 22.95,
+          "tbnn_pct": 101.0,
+          "forecast_tbnn_pct": 43.0
+        }
+      ]
+    },
+    {
+      "date": "2025-03-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/3/22/dbqg_nnhn_20250322_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 28.3,
+          "tbnn_pct": 87.0,
+          "forecast_tbnn_pct": 76.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 19.2,
+          "tbnn_pct": 0.0,
+          "forecast_tbnn_pct": -9.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 17.6,
+          "tbnn_pct": 52.0,
+          "forecast_tbnn_pct": 39.0
+        }
+      ]
+    },
+    {
+      "date": "2025-04-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/4/1/dbqg_nnhn_20250401_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 23.83,
+          "tbnn_pct": 66.0,
+          "forecast_tbnn_pct": 24.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 26.27,
+          "tbnn_pct": -10.0,
+          "forecast_tbnn_pct": -5.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 21.53,
+          "tbnn_pct": 29.0,
+          "forecast_tbnn_pct": -22.0
+        }
+      ]
+    },
+    {
+      "date": "2025-04-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/4/8/dbqg_nnhn_20250408_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 19.27,
+          "tbnn_pct": 0.0,
+          "forecast_tbnn_pct": 0.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 14.81,
+          "tbnn_pct": 0.0,
+          "forecast_tbnn_pct": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2025-04-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/4/15/dbqg_nnhn_20250415_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 17.8,
+          "tbnn_pct": 0.0,
+          "forecast_tbnn_pct": -7.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 13.1,
+          "tbnn_pct": 17.0,
+          "forecast_tbnn_pct": 10.0
+        }
+      ]
+    },
+    {
+      "date": "2025-04-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/4/22/dbqg_nnhn_20250422_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 18.2,
+          "tbnn_pct": 51.0,
+          "forecast_tbnn_pct": 28.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 18.0,
+          "tbnn_pct": -6.0,
+          "forecast_tbnn_pct": 0.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 12.1,
+          "tbnn_pct": 9.0,
+          "forecast_tbnn_pct": -28.0
+        }
+      ]
+    },
+    {
+      "date": "2025-05-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/5/1/dbqg_nnhn_20250501_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 17.24,
+          "tbnn_pct": 22.0,
+          "forecast_tbnn_pct": 15.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 24.65,
+          "tbnn_pct": 0.0,
+          "forecast_tbnn_pct": -8.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 14.73,
+          "tbnn_pct": 0.0,
+          "forecast_tbnn_pct": -29.0
+        }
+      ]
+    },
+    {
+      "date": "2025-05-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2025/5/8/dbqg_nnhn_20250508_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 18.75,
+          "tbnn_pct": 18.0,
+          "forecast_tbnn_pct": 3.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 20.53,
+          "tbnn_pct": 0.0,
+          "forecast_tbnn_pct": -19.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 10.27,
+          "tbnn_pct": -28.0,
+          "forecast_tbnn_pct": -25.0
+        }
+      ]
+    },
+    {
+      "date": "2025-06-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2025/6/1/dbqg_nnhn_20250601_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 24.8,
+          "tbnn_pct": 10.0,
+          "forecast_tbnn_pct": 40.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 26.4,
+          "tbnn_pct": -35.0,
+          "forecast_tbnn_pct": -34.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 32.4,
+          "tbnn_pct": -13.0,
+          "forecast_tbnn_pct": 24.0
+        }
+      ]
+    },
+    {
+      "date": "2025-06-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2025/6/8/dbqg_nnhn_20250608_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 26.67,
+          "tbnn_pct": 31.0,
+          "forecast_tbnn_pct": 40.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 19.75,
+          "tbnn_pct": -35.0,
+          "forecast_tbnn_pct": -29.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 31.55,
+          "tbnn_pct": 11.0,
+          "forecast_tbnn_pct": 15.0
+        }
+      ]
+    },
+    {
+      "date": "2025-06-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/6/22/dbqg_nnhn_20250622_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 25.0,
+          "tbnn_pct": 36.0,
+          "forecast_tbnn_pct": 50.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 19.7,
+          "tbnn_pct": -32.0,
+          "forecast_tbnn_pct": -39.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 32.0,
+          "tbnn_pct": 29.0,
+          "forecast_tbnn_pct": 61.0
+        }
+      ]
+    },
+    {
+      "date": "2025-07-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/7/1/dbqg_nnhn_20250701_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 41.21,
+          "tbnn_pct": 75.0,
+          "forecast_tbnn_pct": 57.0
+        }
+      ]
+    },
+    {
+      "date": "2025-08-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/8/8/dbqg_nnhn_20250808_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 19.1,
+          "tbnn_pct": -2.0,
+          "forecast_tbnn_pct": 3.0
+        }
+      ]
+    },
+    {
+      "date": "2025-08-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/8/15/dbqg_nnhn_20250815_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 41.0,
+          "tbnn_pct": 100.0,
+          "forecast_tbnn_pct": 94.0
+        }
+      ]
+    },
+    {
+      "date": "2025-08-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/8/22/dbqg_nnhn_20250822_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 28.4,
+          "tbnn_pct": 65.0,
+          "forecast_tbnn_pct": 80.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 24.3,
+          "tbnn_pct": -64.0,
+          "forecast_tbnn_pct": -68.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 57.8,
+          "tbnn_pct": 0.0,
+          "forecast_tbnn_pct": -11.0
+        }
+      ]
+    },
+    {
+      "date": "2025-09-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2025/9/8/dbqg_nnhn_20250908_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 34.1,
+          "tbnn_pct": -53.0,
+          "forecast_tbnn_pct": -67.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 51.9,
+          "tbnn_pct": -12.0,
+          "forecast_tbnn_pct": 50.0
+        }
+      ]
+    },
+    {
+      "date": "2025-09-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2025/9/15/dbqg_nnhn_20250915_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 55.64,
+          "tbnn_pct": 86.0,
+          "forecast_tbnn_pct": 66.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 23.13,
+          "tbnn_pct": -75.0,
+          "forecast_tbnn_pct": -78.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 108.39,
+          "tbnn_pct": 62.0,
+          "forecast_tbnn_pct": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2025-09-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/9/22/dbqg_nnhn_20250922_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 55.64,
+          "tbnn_pct": 70.0,
+          "forecast_tbnn_pct": 165.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 24.22,
+          "tbnn_pct": -76.0,
+          "forecast_tbnn_pct": -76.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 76.81,
+          "tbnn_pct": 8.0,
+          "forecast_tbnn_pct": 32.0
+        }
+      ]
+    },
+    {
+      "date": "2025-10-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2025/10/8/dbqg_nnhn_20251008_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 41.6,
+          "tbnn_pct": 28.0,
+          "forecast_tbnn_pct": 27.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 23.1,
+          "tbnn_pct": -80.0,
+          "forecast_tbnn_pct": -80.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 111.0,
+          "tbnn_pct": 10.0,
+          "forecast_tbnn_pct": -24.0
+        }
+      ]
+    },
+    {
+      "date": "2025-10-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2025/10/22/dbqg_nnhn_20251022_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 60.3,
+          "tbnn_pct": 57.0,
+          "forecast_tbnn_pct": 42.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 14.7,
+          "tbnn_pct": -88.0,
+          "forecast_tbnn_pct": -24.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 78.1,
+          "tbnn_pct": 0.0,
+          "forecast_tbnn_pct": 14.0
+        }
+      ]
+    },
+    {
+      "date": "2025-11-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/11/1/dbqg_nnhn_20251101_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 32.0,
+          "tbnn_pct": -75.0,
+          "forecast_tbnn_pct": -67.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 174.0,
+          "tbnn_pct": 47.0,
+          "forecast_tbnn_pct": 52.0
+        }
+      ]
+    },
+    {
+      "date": "2025-11-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/11/8/dbqg_nnhn_20251108_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 83.46,
+          "tbnn_pct": 22.0,
+          "forecast_tbnn_pct": 30.0
+        }
+      ]
+    },
+    {
+      "date": "2025-11-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/11/15/dbqg_nnhn_20251115_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 52.4,
+          "tbnn_pct": -6.0,
+          "forecast_tbnn_pct": 61.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 23.0,
+          "tbnn_pct": -75.0,
+          "forecast_tbnn_pct": -63.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 188.0,
+          "tbnn_pct": 62.0,
+          "forecast_tbnn_pct": 57.0
+        }
+      ]
+    },
+    {
+      "date": "2025-11-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/11/22/dbqg_nnhn_20251122_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 746.0,
+          "tbnn_pct": 650.0,
+          "forecast_tbnn_pct": 90.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 39.9,
+          "tbnn_pct": -57.0,
+          "forecast_tbnn_pct": -64.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 324.0,
+          "tbnn_pct": 197.0,
+          "forecast_tbnn_pct": 244.0
+        }
+      ]
+    },
+    {
+      "date": "2025-12-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/12/1/dbqg_nnhn_20251201_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 152.4,
+          "tbnn_pct": 123.0,
+          "forecast_tbnn_pct": 408.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 32.0,
+          "tbnn_pct": -66.0,
+          "forecast_tbnn_pct": -64.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 466.0,
+          "tbnn_pct": 216.0,
+          "forecast_tbnn_pct": 42.0
+        }
+      ]
+    },
+    {
+      "date": "2025-12-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/12/8/dbqg_nnhn_20251208_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 110.7,
+          "tbnn_pct": 44.0,
+          "forecast_tbnn_pct": 23.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 22.0,
+          "tbnn_pct": -66.0,
+          "forecast_tbnn_pct": -67.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 172.7,
+          "tbnn_pct": 51.0,
+          "forecast_tbnn_pct": 13.0
+        }
+      ]
+    },
+    {
+      "date": "2025-12-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2025/12/15/dbqg_nnhn_20251215_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 108.0,
+          "tbnn_pct": 100.0,
+          "forecast_tbnn_pct": 25.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 17.31,
+          "tbnn_pct": -67.0,
+          "forecast_tbnn_pct": -70.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 142.8,
+          "tbnn_pct": 49.0,
+          "forecast_tbnn_pct": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2025-12-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2025/12/22/dbqg_nnhn_20251222_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 62.3,
+          "tbnn_pct": 23.0,
+          "forecast_tbnn_pct": 25.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 17.0,
+          "tbnn_pct": -70.0,
+          "forecast_tbnn_pct": -61.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 109.0,
+          "tbnn_pct": 11.0,
+          "forecast_tbnn_pct": 26.0
+        },
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": null,
+          "tbnn_pct": null,
+          "forecast_tbnn_pct": 0.0
+        },
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": null,
+          "tbnn_pct": null,
+          "forecast_tbnn_pct": 0.0
+        },
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": null,
+          "tbnn_pct": null,
+          "forecast_tbnn_pct": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2026-01-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/1/1/dbqg_nnhn_20260101_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 62.29,
+          "tbnn_pct": 23.0,
+          "forecast_tbnn_pct": 25.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 27.91,
+          "tbnn_pct": -55.0,
+          "forecast_tbnn_pct": -32.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 133.32,
+          "tbnn_pct": 37.0,
+          "forecast_tbnn_pct": 102.0
+        }
+      ]
+    },
+    {
+      "date": "2026-01-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/1/8/dbqg_nnhn_20260108_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 42.8,
+          "tbnn_pct": -2.0,
+          "forecast_tbnn_pct": 10.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 17.1,
+          "tbnn_pct": -61.0,
+          "forecast_tbnn_pct": -58.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 66.1,
+          "tbnn_pct": 13.0,
+          "forecast_tbnn_pct": 14.0
+        }
+      ]
+    },
+    {
+      "date": "2026-01-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2026/1/15/dbqg_nnhn_20260115_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 36.9,
+          "tbnn_pct": 9.0,
+          "forecast_tbnn_pct": 9.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 16.9,
+          "tbnn_pct": -57.0,
+          "forecast_tbnn_pct": -52.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 50.8,
+          "tbnn_pct": 15.0,
+          "forecast_tbnn_pct": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2026-01-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/1/22/dbqg_nnhn_20260122_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 30.8,
+          "tbnn_pct": 5.0,
+          "forecast_tbnn_pct": 15.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 14.3,
+          "tbnn_pct": -60.0,
+          "forecast_tbnn_pct": -54.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 37.0,
+          "tbnn_pct": 5.0,
+          "forecast_tbnn_pct": -7.0
+        }
+      ]
+    },
+    {
+      "date": "2026-02-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/2/1/dbqg_nnhn_20260201_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 29.6,
+          "tbnn_pct": 20.0,
+          "forecast_tbnn_pct": 31.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 23.6,
+          "tbnn_pct": -48.0,
+          "forecast_tbnn_pct": -45.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 41.8,
+          "tbnn_pct": 0.0,
+          "forecast_tbnn_pct": -13.0
+        }
+      ]
+    },
+    {
+      "date": "2026-02-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/2/8/dbqg_nnhn_20260208_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 28.4,
+          "tbnn_pct": 36.0,
+          "forecast_tbnn_pct": 35.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 11.7,
+          "tbnn_pct": -59.0,
+          "forecast_tbnn_pct": -50.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 24.5,
+          "tbnn_pct": 5.0,
+          "forecast_tbnn_pct": 10.0
+        }
+      ]
+    },
+    {
+      "date": "2026-02-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/2/15/dbqg_nnhn_20260215_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 20.5,
+          "tbnn_pct": -22.0,
+          "forecast_tbnn_pct": -20.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 20.4,
+          "tbnn_pct": 6.0,
+          "forecast_tbnn_pct": 11.0
+        }
+      ]
+    },
+    {
+      "date": "2026-02-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/2/22/dbqg_nnhn_20260222_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 21.3,
+          "tbnn_pct": -14.0,
+          "forecast_tbnn_pct": -7.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 18.4,
+          "tbnn_pct": 12.0,
+          "forecast_tbnn_pct": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2026-03-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/3/1/dbqg_nnhn_20260301_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 20.81,
+          "tbnn_pct": -8.0,
+          "forecast_tbnn_pct": -9.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 15.19,
+          "tbnn_pct": 0.0,
+          "forecast_tbnn_pct": 48.0
+        }
+      ]
+    },
+    {
+      "date": "2026-03-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/3/8/dbqg_nnhn_20260308_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 20.39,
+          "tbnn_pct": -6.0,
+          "forecast_tbnn_pct": -12.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 19.2,
+          "tbnn_pct": 45.0,
+          "forecast_tbnn_pct": 26.0
+        }
+      ]
+    },
+    {
+      "date": "2026-03-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/3/15/dbqg_nnhn_20260315_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 14.65,
+          "tbnn_pct": -26.0,
+          "forecast_tbnn_pct": -19.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 16.46,
+          "tbnn_pct": 44.0,
+          "forecast_tbnn_pct": 27.0
+        }
+      ]
+    },
+    {
+      "date": "2026-03-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/3/22/dbqg_nnhn_20260322_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 10.31,
+          "tbnn_pct": -46.0,
+          "forecast_tbnn_pct": -42.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 14.76,
+          "tbnn_pct": 27.0,
+          "forecast_tbnn_pct": 0.0
+        }
+      ]
+    },
+    {
+      "date": "2026-04-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/4/8/dbqg_nnhn_20260408_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 16.93,
+          "tbnn_pct": -1.0,
+          "forecast_tbnn_pct": 25.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 7.39,
+          "tbnn_pct": -62.0,
+          "forecast_tbnn_pct": 6.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 9.72,
+          "tbnn_pct": -35.0,
+          "forecast_tbnn_pct": -15.0
+        }
+      ]
+    },
+    {
+      "date": "2026-04-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/4/15/dbqg_nnhn_20260415_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 6.45,
+          "tbnn_pct": -65.0,
+          "forecast_tbnn_pct": -65.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 9.57,
+          "tbnn_pct": -15.0,
+          "forecast_tbnn_pct": -9.0
+        }
+      ]
+    },
+    {
+      "date": "2026-04-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/4/22/dbqg_nnhn_20260422_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 6.17,
+          "tbnn_pct": -68.0,
+          "forecast_tbnn_pct": -67.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 10.3,
+          "tbnn_pct": -8.0,
+          "forecast_tbnn_pct": -9.0
+        }
+      ]
+    },
+    {
+      "date": "2026-05-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2026/5/1/dbqg_nnhn_20260501_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 7.42,
+          "tbnn_pct": -70.0,
+          "forecast_tbnn_pct": -70.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 12.77,
+          "tbnn_pct": -17.0,
+          "forecast_tbnn_pct": -23.0
+        }
+      ]
+    },
+    {
+      "date": "2026-05-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/5/8/dbqg_nnhn_20260508_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 5.47,
+          "tbnn_pct": -74.0,
+          "forecast_tbnn_pct": -77.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 11.09,
+          "tbnn_pct": -22.0,
+          "forecast_tbnn_pct": -35.0
+        }
+      ]
+    },
+    {
+      "date": "2026-05-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2026/5/15/dbqg_nnhn_20260515_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 5.68,
+          "tbnn_pct": -78.0,
+          "forecast_tbnn_pct": -78.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 9.53,
+          "tbnn_pct": -39.0,
+          "forecast_tbnn_pct": 19.0
+        }
+      ]
+    },
+    {
+      "date": "2026-05-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/5/22/dbqg_nnhn_20260522_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 6.19,
+          "tbnn_pct": -78.0,
+          "forecast_tbnn_pct": -77.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 16.49,
+          "tbnn_pct": -17.0,
+          "forecast_tbnn_pct": -39.0
+        }
+      ]
+    },
+    {
+      "date": "2026-06-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/6/1/dbqg_nnhn_20260601_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 14.15,
+          "tbnn_pct": -40.0,
+          "forecast_tbnn_pct": 15.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 8.91,
+          "tbnn_pct": -78.0,
+          "forecast_tbnn_pct": -79.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 20.46,
+          "tbnn_pct": -45.0,
+          "forecast_tbnn_pct": -27.0
+        }
+      ]
+    },
+    {
+      "date": "2026-06-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/6/8/dbqg_nnhn_20260608_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 23.6,
+          "tbnn_pct": 12.0,
+          "forecast_tbnn_pct": -26.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 6.3,
+          "tbnn_pct": -79.0,
+          "forecast_tbnn_pct": -78.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 22.1,
+          "tbnn_pct": -22.0,
+          "forecast_tbnn_pct": -45.0
+        }
+      ]
+    },
+    {
+      "date": "2026-06-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2026/6/15/dbqg_nnhn_20260615_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 17.2,
+          "tbnn_pct": -8.0,
+          "forecast_tbnn_pct": -10.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 6.0,
+          "tbnn_pct": -79.0,
+          "forecast_tbnn_pct": -79.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 14.9,
+          "tbnn_pct": -37.0,
+          "forecast_tbnn_pct": -42.0
+        }
+      ]
+    },
+    {
+      "date": "2026-06-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/6/22/dbqg_nnhn_20260622_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 18.8,
+          "tbnn_pct": 3.0,
+          "forecast_tbnn_pct": 2.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 6.2,
+          "tbnn_pct": -78.0,
+          "forecast_tbnn_pct": -82.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 17.2,
+          "tbnn_pct": -28.0,
+          "forecast_tbnn_pct": -40.0
+        }
+      ]
+    },
+    {
+      "date": "2026-07-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/7/1/dbqg_nnhn_20260701_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 15.91,
+          "tbnn_pct": -13.0,
+          "forecast_tbnn_pct": -10.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 7.64,
+          "tbnn_pct": -82.0,
+          "forecast_tbnn_pct": -81.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 19.52,
+          "tbnn_pct": -51.0,
+          "forecast_tbnn_pct": -44.0
+        }
+      ]
+    },
+    {
+      "date": "2026-07-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/7/8/dbqg_nnhn_20260708_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 17.8,
+          "tbnn_pct": 0.0,
+          "forecast_tbnn_pct": -9.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 8.26,
+          "tbnn_pct": -78.0,
+          "forecast_tbnn_pct": -73.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 12.8,
+          "tbnn_pct": -58.0,
+          "forecast_tbnn_pct": -42.0
+        }
+      ]
+    },
+    {
+      "date": "2026-07-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2026/7/15/dbqg_nnhn_20260715_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 12.7,
+          "tbnn_pct": -29.0,
+          "forecast_tbnn_pct": -42.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 8.22,
+          "tbnn_pct": -79.0,
+          "forecast_tbnn_pct": -78.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 13.5,
+          "tbnn_pct": -53.0,
+          "forecast_tbnn_pct": -56.0
+        }
+      ]
+    },
+    {
+      "date": "2026-07-22",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/7/22/dbqg_nnhn_20260722_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 9.7,
+          "tbnn_pct": -42.0,
+          "forecast_tbnn_pct": -39.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 11.0,
+          "tbnn_pct": -77.0,
+          "forecast_tbnn_pct": -80.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 12.39,
+          "tbnn_pct": -61.0,
+          "forecast_tbnn_pct": -67.0
+        }
+      ]
+    },
+    {
+      "date": "2026-08-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/8/1/dbqg_nnhn_20260801_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 14.6,
+          "tbnn_pct": -37.0,
+          "forecast_tbnn_pct": -31.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 10.3,
+          "tbnn_pct": -87.0,
+          "forecast_tbnn_pct": -88.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 19.9,
+          "tbnn_pct": -63.0,
+          "forecast_tbnn_pct": -58.0
+        }
+      ]
+    },
+    {
+      "date": "2026-08-08",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2026/8/8/dbqg_nnhn_20260808_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 15.1,
+          "tbnn_pct": 2.0,
+          "forecast_tbnn_pct": -20.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 7.7,
+          "tbnn_pct": -88.0,
+          "forecast_tbnn_pct": -89.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 16.4,
+          "tbnn_pct": -66.0,
+          "forecast_tbnn_pct": -77.0
+        }
+      ]
+    },
+    {
+      "date": "2026-08-15",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan1/2026/8/15/dbqg_nnhn_20260815_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 10.9,
+          "tbnn_pct": -31.0,
+          "forecast_tbnn_pct": -31.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 10.3,
+          "tbnn_pct": -85.0,
+          "forecast_tbnn_pct": -85.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 15.2,
+          "tbnn_pct": -75.0,
+          "forecast_tbnn_pct": -75.0
+        }
+      ]
+    },
+    {
+      "date": "2026-08-22",
+      "pdf_url": "https://kttv.gov.vn//upload/thuyvan2/2026/8/22/dbqg_nnhn_20260822_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 13.77,
+          "tbnn_pct": -80.0,
+          "forecast_tbnn_pct": -77.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 22.75,
+          "tbnn_pct": -60.0,
+          "forecast_tbnn_pct": -43.0
+        }
+      ]
+    },
+    {
+      "date": "2026-09-01",
+      "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2026/9/1/dbqg_nnhn_20260901_1500.pdf",
+      "rivers": [
+        {
+          "river": "Dong Nai",
+          "station": "Cái N,T",
+          "actual_mm3": 13.6,
+          "tbnn_pct": -46.0,
+          "forecast_tbnn_pct": -54.0
+        },
+        {
+          "river": "Dak Bla",
+          "station": "Kon Tum",
+          "actual_mm3": 24.0,
+          "tbnn_pct": -78.0,
+          "forecast_tbnn_pct": -76.0
+        },
+        {
+          "river": "Srepok",
+          "station": "Giang Sơn",
+          "actual_mm3": 28.0,
+          "tbnn_pct": -62.0,
+          "forecast_tbnn_pct": -56.0
+        }
+      ]
+    }
+  ],
+  "pdf_url": "https://kttv.gov.vn/upload/thuyvan2/2026/9/1/dbqg_nnhn_20260901_1500.pdf"
 }

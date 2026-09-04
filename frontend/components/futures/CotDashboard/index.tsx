@@ -84,7 +84,9 @@ export default function CotDashboard() {
 
       {/* NY & London OI — 14-Day Tracking. Moved from /futures Exchange
           tab so positioning context sits next to the COT signal output. */}
-      <div id="cot-section-9" className="space-y-3">
+      {/* id 11: 9 belongs to Step9OptionsBook — this block carried the same id
+          and stole every #cot-section-9 anchor and scroll. */}
+      <div id="cot-section-11" className="space-y-3">
         <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold px-1">
           NY & London OI — 14-Day Tracking
         </div>
@@ -110,18 +112,21 @@ export default function CotDashboard() {
       <div id="cot-section-2"><CotHeatmap data={data} /></div>
       <div id="cot-section-3"><CotGauges data={data} /></div>
 
-      <div id="cot-section-1"><Step1GlobalFlow macroData={macroData} macroError={macroError} /></div>
+      {/* Steps 1, 4–9 carry their own cot-section-N id on their root, so the
+          wrappers here stay id-less — a second element with the same id made
+          every anchor resolve to the wrapper and the DOM invalid. */}
+      <Step1GlobalFlow macroData={macroData} macroError={macroError} />
 
-      <div id="cot-section-4"><Step4IndustryPulse  data={data} /></div>
-      <div id="cot-section-5"><Step5DryPowder      data={data} /></div>
-      <div id="cot-section-6"><Step6CycleLocation  recent52={recent52} /></div>
-      <div id="cot-section-7"><Step7Report         data={data} recent52={recent52} /></div>
+      <Step4IndustryPulse  data={data} />
+      <Step5DryPowder      data={data} />
+      <Step6CycleLocation  recent52={recent52} />
+      <Step7Report         data={data} recent52={recent52} />
 
       {/* Everything above is futures-only; this is what options adds. */}
       <Step9OptionsBook />
 
       {/* Signals moved to the end of the report. */}
-      <div id="cot-section-8"><Step8Analysis signals={signals} historicalSignals={historicalSignals} /></div>
+      <Step8Analysis signals={signals} historicalSignals={historicalSignals} />
     </div>
   );
 }

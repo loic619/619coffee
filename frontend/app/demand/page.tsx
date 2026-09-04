@@ -27,6 +27,8 @@ import StocksPanel from "@/components/demand/StocksPanel";
 import WorldConsumptionWidget from "@/components/demand/WorldConsumptionWidget";
 import PageHeader from "@/components/PageHeader";
 import { useUrlState } from "@/lib/useUrlState";
+import NewBadge from "@/components/NewBadge";
+import { DEMAND_TAB_FEEDS } from "@/lib/notify";
 
 type SubTab = "certified" | "destination" | "spot" | "demand" | "imports" | "earnings" | "listed";
 
@@ -87,13 +89,14 @@ function DemandPageInner() {
             key={t.id}
             onClick={() => setTab(t.id)}
             title={t.hint}
-            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
               tab === t.id
                 ? "bg-slate-800 text-amber-400 border border-slate-700"
                 : "text-slate-500 hover:text-slate-300 border border-transparent"
             }`}
           >
             {t.label}
+            <NewBadge scope={`demand:${t.id}`} keys={DEMAND_TAB_FEEDS[t.id] ?? []} active={tab === t.id} />
           </button>
         ))}
       </div>

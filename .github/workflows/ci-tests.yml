@@ -31,7 +31,10 @@ jobs:
 
       - name: Run backend unit tests
         working-directory: backend
-        run: pytest tests/ scraper/tests/ -v --tb=short
+        # telegram/tests/ added 2026-09: the bot package had no CI coverage,
+        # which is how /brazil and /ecf both sat answering an error string to
+        # every caller after the data files they read changed shape.
+        run: pytest tests/ scraper/tests/ telegram/tests/ -v --tb=short
 
       - name: Notify on failure
         if: failure()

@@ -25,7 +25,7 @@ jobs:
 
       - name: Install Python dependencies
         working-directory: backend
-        run: pip install playwright sqlalchemy psycopg2-binary python-dotenv
+        run: pip install playwright requests sqlalchemy psycopg2-binary python-dotenv
 
       - name: Cache Playwright browser
         uses: actions/cache@v4

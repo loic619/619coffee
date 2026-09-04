@@ -32,6 +32,7 @@ from database import SessionLocal
 from scraper.exporters.base import OUT_DIR
 from scraper.exporters.cot import export_cot, export_macro_cot
 from scraper.exporters.demand import export_demand_stocks, export_factory_mix_step
+from scraper.exporters.export_expectations import export_expectations
 from scraper.exporters.front_spread import export_front_spread
 from scraper.exporters.futures import (
     export_futures_chain,
@@ -46,6 +47,7 @@ from scraper.exporters.macro import (
     export_us_cpi,
 )
 from scraper.exporters.news import export_news
+from scraper.exporters.price_elasticity import export_price_elasticity
 from scraper.exporters.prices import export_latest_prices, export_vn_physical_prices
 from scraper.exporters.supply import (
     export_colombia,
@@ -60,6 +62,7 @@ from scraper.exporters.supply import (
     export_vn_export_by_destination,
 )
 from scraper.exporters.vn_midmonth import export_vn_midmonth
+from scraper.exporters.workflow_failures import export_workflow_failures
 
 
 def _exporters(db):
@@ -100,6 +103,7 @@ def _exporters(db):
     from scraper.sources.brazil_arabica_fisico import export_brazil_arabica_fisico
     from scraper.sources.brazil_b3_arabica import export_brazil_b3_arabica
     from scraper.sources.brazil_b3_conilon import export_brazil_b3_conilon
+    from scraper.sources.brazil_coffeecopa import export_brazil_coffeecopa
     from scraper.sources.brazil_conilon_vitoria import export_brazil_conilon_vitoria
     from scraper.sources.cepea_conilon_indicator import export_cepea_conilon_indicator
     from scraper.sources.origin_prices_history import export_origin_prices_history
@@ -131,6 +135,8 @@ def _exporters(db):
         ("futures_price_history", lambda: export_futures_price_history(db)),
         ("front_spread",          lambda: export_front_spread()),
         ("vn_midmonth",           lambda: export_vn_midmonth()),
+        ("export_expectations",   lambda: export_expectations()),
+        ("workflow_failures",     lambda: export_workflow_failures()),
         ("cot",                   lambda: export_cot(db)),
         ("macro_cot",             lambda: export_macro_cot(db)),
         ("freight",               lambda: export_freight(db)),
@@ -156,10 +162,14 @@ def _exporters(db):
         ("brazil_arabica_fisico", lambda: export_brazil_arabica_fisico()),
         ("brazil_b3_arabica",     lambda: export_brazil_b3_arabica()),
         ("brazil_b3_conilon",     lambda: export_brazil_b3_conilon()),
+        ("brazil_coffeecopa",     lambda: export_brazil_coffeecopa()),
         ("brazil_conilon_vitoria", lambda: export_brazil_conilon_vitoria()),
         ("cepea_conilon_indicator", lambda: export_cepea_conilon_indicator()),
         ("origin_prices_history", lambda: export_origin_prices_history(db)),
         ("tender_parity",         lambda: export_tender_parity()),
+        # Derived: needs origin_prices_history, fx_history and
+        # futures_price_history already on disk.
+        ("price_elasticity",      lambda: export_price_elasticity()),
         ("cot_sept_study",        lambda: export_cot_sept_study()),
         ("cot_cropyear_xray",     lambda: export_cot_cropyear_xray()),
         ("cot_swap_identity",     lambda: export_cot_swap_identity()),

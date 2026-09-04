@@ -15,6 +15,8 @@ import type { ChainData } from "@/components/futures/types";
 import UnitToggle from "@/components/UnitToggle";
 import { useFetchJson } from "@/lib/useFetchJson";
 import { useUrlState } from "@/lib/useUrlState";
+import NewBadge from "@/components/NewBadge";
+import { FUTURES_TAB_FEEDS } from "@/lib/notify";
 
 type FuturesTab = "price" | "options" | "quotation";
 const FUTURES_TABS: FuturesTab[] = ["price", "options", "quotation"];
@@ -78,13 +80,14 @@ function FuturesPageInner() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium rounded-t capitalize transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-t capitalize transition-colors ${
               tab === t
                 ? "bg-slate-800 text-white border border-b-transparent border-slate-700 -mb-px"
                 : "text-slate-500 hover:text-slate-300"
             }`}
           >
             {t}
+            <NewBadge scope={`futures:${t}`} keys={FUTURES_TAB_FEEDS[t] ?? []} active={tab === t} />
           </button>
         ))}
       </div>

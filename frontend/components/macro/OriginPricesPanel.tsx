@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ComposedChart, Area, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine } from "recharts";
 import { ResponsiveContainer } from "@/components/ui/FocusableChart";
 
-import { fmtDateLabel } from "@/lib/formatters";
+import { fmtDateLabel, fmtMonth } from "@/lib/formatters";
 import { CIF_FINANCING_RATE, FEU_MT, ORIGIN_EXPORT_COSTS, SAMPLING_GRADING_USD_MT, fobbingUsdMt } from "@/lib/originCosts";
 import { PARITY_ADDERS_USD } from "@/lib/research/certStocksParity";
 import { KC_CENTS_TO_USD_MT } from "@/lib/units";
@@ -57,10 +57,40 @@ interface FreightData {
   history?: ({ date: string } & Record<string, number | string>)[];
 }
 
-type Window = "1M" | "3M" | "6M" | "1Y" | "2Y";
+type Window = "1M" | "3M" | "6M" | "1Y" | "2Y" | "MAX";
 const WINDOW_DAYS: Record<Window, number> = {
-  "1M": 30, "3M": 90, "6M": 180, "1Y": 365, "2Y": 730,
+  "1M": 30, "3M": 90, "6M": 180, "1Y": 365, "2Y": 730, "MAX": Infinity,
 };
+
+/** Axis ticks: MM/DD reads well over months, but over a year or more the same
+ *  tick recurs each year, so long windows switch to MMM-YY. */
+function axisTickFor(w: Window): (iso: string) => string {
+  const short = w === "1M" || w === "3M" || w === "6M";
+  return short ? fmtDateLabel : (iso: string) => fmtMonth(String(iso).slice(0, 7));
+}
+
+/** Tooltip heading: the full date, year included. The axis ticks stay MM/DD
+ *  for density, but the tooltip is where "which year am I on?" gets answered
+ *  — and on a 1Y+ window that is not a rhetorical question. */
+function fmtTooltipDate(iso: unknown): string {
+  const s = String(iso);
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return s;
+  const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return `${parseInt(m[3], 10)} ${MON[parseInt(m[2], 10) - 1]} ${m[1]}`;
+}
+
+/** First date in the window, as an ISO string to compare `h.date` against.
+ *  MAX returns "" — every ISO date sorts after it, so nothing is filtered
+ *  and the chart shows each origin's full accumulated history (Vietnam is
+ *  ~3 years, Guatemala a few months; series simply start where they start). */
+function windowCutoff(w: Window): string {
+  const days = WINDOW_DAYS[w];
+  if (!Number.isFinite(days)) return "";
+  const c = new Date();
+  c.setDate(c.getDate() - days);
+  return c.toISOString().slice(0, 10);
+}
 
 // Native unit → metric tonne multiplier, so every origin converts to a single
 // comparable USD/MT figure (1 cwt = 45.359237 kg; 1 saca = 60 kg; ¢/lb via
@@ -133,9 +163,12 @@ function fmtNative(price: number, unit: string, currency: string): string {
 export default function OriginPricesPanel() {
   const [data,      setData]      = useState<OriginPricesData | null>(null);
   const [error,     setError]     = useState(false);
-  const [window,    setWindow]    = useState<Window>("3M");
-  const [usd,       setUsd]       = useState(false);
-  const [axisMode,  setAxisMode]  = useState<"index" | "value">("index");
+  // Defaults: six months of USD/MT price levels — the view where the origin
+  // lines and the exchange overlay share a scale and the differential reads
+  // off directly. Index and native units stay one click away.
+  const [window,    setWindow]    = useState<Window>("6M");
+  const [usd,       setUsd]       = useState(true);
+  const [axisMode,  setAxisMode]  = useState<"index" | "value">("value");
   const [commodity, setCommodity] = useState<Commodity>("robusta");
   const [basis,     setBasis]     = useState<Basis>("farmgate");
   const [fx,        setFx]        = useState<FxSeries>({});
@@ -316,9 +349,7 @@ export default function OriginPricesPanel() {
   // shade; stacking every origin's bands buries it in overlapping fills.
   const cheapestOrigin = useMemo<OriginKey | null>(() => {
     if (!data) return null;
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - WINDOW_DAYS[window]);
-    const cutoffIso = cutoff.toISOString().slice(0, 10);
+    const cutoffIso = windowCutoff(window);
     let best: OriginKey | null = null, bestVal = Infinity;
     for (const k of presentOrigins) {
       const inWindow = (data.origins[k]?.history ?? []).filter(h => h.date >= cutoffIso);
@@ -343,10 +374,7 @@ export default function OriginPricesPanel() {
 
   const chartData = useMemo(() => {
     if (!data) return [];
-    const days = WINDOW_DAYS[window];
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
-    const cutoffIso = cutoff.toISOString().slice(0, 10);
+    const cutoffIso = windowCutoff(window);
 
     // Per-point chart value on the selected basis (see convertPoint).
     const valueOf = convertPoint;
@@ -372,7 +400,7 @@ export default function OriginPricesPanel() {
     const fBase  = futuresSeries.filter(f => f.date >= cutoffIso).find(f => f.value > 0)?.value ?? null;
 
     return dates.map(d => {
-      const row: Record<string, number | string | null | [number, number]> = { date: d, label: fmtDateLabel(d) };
+      const row: Record<string, number | string | null | [number, number]> = { date: d };
       for (const k of presentOrigins) {
         const point = data.origins[k]?.history.find(h => h.date === d);
         const v = point ? valueOf(k, point) : null;
@@ -407,12 +435,54 @@ export default function OriginPricesPanel() {
     });
   }, [data, window, presentOrigins, convertPoint, axisMode, futuresSeries, showFutures, showCostBands, activeBands, freightMtOnDate, basis, commodity]);
 
+  // Differential to the exchange front month, USD/MT, per origin per day: the
+  // origin's price on the selected basis minus the last futures settle on or
+  // before that date (physical quotes land on days the exchange is shut).
+  // Always computed on unrebased USD/MT values, so it is independent of the
+  // Index/Value axis choice; it only needs the USD/MT basis to exist.
+  const showDiff = effUsd && futuresSeries.length > 0;
+  const diffData = useMemo(() => {
+    if (!data || !showDiff) return [] as Record<string, number | string | null>[];
+    const cutoffIso = windowCutoff(window);
+    const dateSet = new Set<string>();
+    for (const k of presentOrigins) {
+      for (const h of data.origins[k]?.history ?? []) if (h.date >= cutoffIso) dateSet.add(h.date);
+    }
+    const dates = Array.from(dateSet).sort();
+    let fi = -1;                                   // pointer into the sorted futures series
+    const rows: Record<string, number | string | null>[] = [];
+    for (const d of dates) {
+      while (fi + 1 < futuresSeries.length && futuresSeries[fi + 1].date <= d) fi++;
+      if (fi < 0) continue;
+      const fv = futuresSeries[fi].value;
+      const row: Record<string, number | string | null> = { date: d, label: fmtDateLabel(d) };
+      let any = false;
+      for (const k of presentOrigins) {
+        const point = data.origins[k]?.history.find(h => h.date === d);
+        const v = point ? convertPoint(k, point) : null;
+        row[k] = v == null ? null : v - fv;
+        if (v != null) any = true;
+      }
+      if (any) rows.push(row);
+    }
+    return rows;
+  }, [data, showDiff, window, presentOrigins, futuresSeries, convertPoint]);
+
+  // Latest differential per origin, for the KPI cards.
+  const latestDiff = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (let i = diffData.length - 1; i >= 0; i--) {
+      for (const k of presentOrigins) {
+        const v = diffData[i][k];
+        if (out[k] === undefined && typeof v === "number") out[k] = v;
+      }
+    }
+    return out;
+  }, [diffData, presentOrigins]);
+
   const stats = useMemo(() => {
     if (!data) return [] as { key: OriginKey; name: string; latest: HistoryPoint | null; pct: number | null; color: string; unit: string; currency: string; source: string; count: number }[];
-    const days = WINDOW_DAYS[window];
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
-    const cutoffIso = cutoff.toISOString().slice(0, 10);
+    const cutoffIso = windowCutoff(window);
 
     return presentOrigins.map(k => {
       const o = data.origins[k];
@@ -506,7 +576,7 @@ export default function OriginPricesPanel() {
           </div>
           {/* Window */}
           <div className="flex bg-slate-800 border border-slate-700 rounded-md overflow-hidden text-[10px]">
-            {(["1M","3M","6M","1Y","2Y"] as Window[]).map(w => (
+            {(["1M","3M","6M","1Y","2Y","MAX"] as Window[]).map(w => (
               <button key={w} onClick={() => setWindow(w)}
                 className={`px-2.5 py-1.5 transition ${window === w ? "bg-sky-600 text-white" : "text-slate-300 hover:bg-slate-700"}`}>
                 {w}
@@ -544,6 +614,14 @@ export default function OriginPricesPanel() {
                     {s.pct == null ? "—" : `${s.pct >= 0 ? "+" : ""}${s.pct.toFixed(1)}%`}
                   </div>
                 </div>
+                {showDiff && latestDiff[s.key] !== undefined && (
+                  <div className="text-[10px] font-mono mt-0.5">
+                    <span className="text-slate-500">vs {commodity === "arabica" ? "KC" : "RC"} </span>
+                    <span className={latestDiff[s.key] >= 0 ? "text-emerald-400" : "text-red-400"}>
+                      {latestDiff[s.key] >= 0 ? "+" : "−"}${Math.abs(Math.round(latestDiff[s.key])).toLocaleString()}/MT
+                    </span>
+                  </div>
+                )}
                 <div className="text-[9px] text-slate-500 mt-1">
                   {s.count} pt{s.count === 1 ? "" : "s"} in window · {s.source}
                 </div>
@@ -559,7 +637,9 @@ export default function OriginPricesPanel() {
 
       <div className="bg-slate-800 rounded-lg border border-slate-700 p-3">
         <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">
-          {axisMode === "index" ? `Rebased to 100 at start of ${window}` : "Price level"}
+          {axisMode === "index"
+            ? `Rebased to 100 at start of ${window === "MAX" ? "each series" : window}`
+            : "Price level"}
           {" · "}
           {basis === "fob" ? "FOB basis (farmgate + fobbing)"
             : basis === "cif" ? "CIF Antwerp basis (FOB + freight + transit financing)"
@@ -616,11 +696,17 @@ export default function OriginPricesPanel() {
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}>
               <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
-              <XAxis dataKey="label" stroke="#64748b" tick={{ fontSize: 9 }} minTickGap={20} />
+              {/* Keyed on the ISO date, NOT the MM/DD label: two rows a year
+                  apart share a label, so on a 1Y+ window Recharts treated them
+                  as one category and the tooltip showed the older row's values
+                  (hovering 6 Aug 2026 read 6 Aug 2025). The label is display
+                  only, via tickFormatter. */}
+              <XAxis dataKey="date" tickFormatter={axisTickFor(window)} stroke="#64748b" tick={{ fontSize: 9 }} minTickGap={20} />
               <YAxis stroke="#64748b" tick={{ fontSize: 9 }} domain={["auto","auto"]} tickFormatter={fmtTick} width={48} />
               <Tooltip
                 contentStyle={TT_STYLE}
                 labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                labelFormatter={fmtTooltipDate}
                 formatter={(v) => Array.isArray(v) && v.length === 2 && typeof v[0] === "number" && typeof v[1] === "number"
                   ? `$${Math.round(v[0]).toLocaleString()} → $${Math.round(v[1]).toLocaleString()}/MT`
                   : typeof v === "number"
@@ -681,6 +767,45 @@ export default function OriginPricesPanel() {
             </ComposedChart>
           </ResponsiveContainer>
         </div>
+
+        {/* Differential to the exchange: origin (on the selected basis) minus
+            the front month, USD/MT. Above zero = the physical is dearer than
+            the board; the gap that FOB/CIF lifting is meant to close. */}
+        {showDiff && diffData.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-slate-700">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">
+              Differential to {futuresName} · USD/MT ·{" "}
+              {basis === "fob" ? "FOB" : basis === "cif" ? "CIF Antwerp" : "farmgate"} minus front month
+            </div>
+            <div className="h-36">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={diffData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}>
+                  <CartesianGrid stroke="#1e293b" strokeDasharray="2 4" />
+                  <XAxis dataKey="date" tickFormatter={axisTickFor(window)} stroke="#64748b" tick={{ fontSize: 9 }} minTickGap={20} />
+                  <YAxis stroke="#64748b" tick={{ fontSize: 9 }} domain={["auto", "auto"]} width={48}
+                    tickFormatter={(v: number) => `${v > 0 ? "+" : ""}${Math.round(v).toLocaleString()}`} />
+                  <Tooltip
+                    contentStyle={TT_STYLE}
+                    labelStyle={{ color: "#94a3b8", fontSize: 10 }}
+                    labelFormatter={fmtTooltipDate}
+                    formatter={(v) => typeof v === "number"
+                      ? `${v >= 0 ? "+" : "−"}$${Math.abs(Math.round(v)).toLocaleString()}/MT`
+                      : "—"}
+                  />
+                  <ReferenceLine y={0} stroke="#64748b" strokeDasharray="3 3" />
+                  {presentOrigins.map(k => {
+                    const o = data.origins[k];
+                    if (!o) return null;
+                    return (
+                      <Line key={k} type="monotone" dataKey={k} name={o.name}
+                        stroke={o.color} strokeWidth={1.5} dot={false} connectNulls />
+                    );
+                  })}
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

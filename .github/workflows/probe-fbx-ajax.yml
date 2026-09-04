@@ -1,0 +1,34 @@
+name: "0.32 – Probe FBX ticker endpoint (diagnostic)"
+
+# Dispatch-only. Probe 0.29 caught wp-admin/admin-ajax.php returning all
+# thirteen FBX values in one 898-byte JSON, but recorded the response and not
+# the request — so the method, the `action` parameter and any nonce are unknown.
+# This captures the outbound request in full, then tries to replay it with no
+# browser at all. If the cold replay works, the scraper drops from twelve
+# Playwright page loads to one HTTP call and gains the FBX composite.
+# Writes nothing and commits nothing.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install playwright requests
+
+      - name: Install Playwright browser
+        run: sudo rm -f /etc/apt/sources.list.d/*microsoft* /etc/apt/sources.list.d/*azure* || true; playwright install chromium --with-deps || playwright install chromium
+
+      - name: Probe FBX ticker endpoint
+        working-directory: backend
+        run: python -m scraper.probe_fbx_ajax

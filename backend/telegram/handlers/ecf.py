@@ -4,14 +4,19 @@ from telegram.data import load
 
 
 def handle(args: str, context: dict) -> str:
-    data = load("demand_stocks.json")
+    # ECF port stocks live in their own file. They used to sit under
+    # demand_stocks.json → "ecf"; that key is gone (demand_stocks now carries
+    # eu/japan/usa/ajca/… only), so this command answered "ECF data empty."
+    # on every call. ecf_history.json carries the same {period, value_mt}
+    # monthly shape this formatter already expects, plus deeper history.
+    data = load("ecf_history.json")
     if not data:
         return "ECF data unavailable. Run /run ecf"
 
-    ecf = data.get("ecf", {})
-    monthly = ecf.get("monthly", [])
+    monthly = data.get("monthly", [])
     if not monthly:
         return "ECF data empty."
+    ecf = data
 
     last4 = monthly[-4:]
     lines = [

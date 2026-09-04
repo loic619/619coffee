@@ -1,6 +1,6 @@
 {
   "country": "uganda",
-  "scraped_at": "2026-09-03T07:23:15.311553+00:00",
+  "scraped_at": "2026-09-04T05:09:25.104839+00:00",
   "exports": {
     "source": "UCDA Monthly Reports",
     "last_updated": "2026-06",
@@ -796,13 +796,13 @@
     }
   },
   "ucda_price": {
-    "usd_cwt": 168.33,
+    "usd_cwt": 165.83,
     "as_of": "2026-09-03",
     "grade": "Screen 15",
     "grades": {
-      "Screen 15": 168.33,
-      "Wugar": 302.45,
-      "Drugar": 283.45
+      "Screen 15": 165.83,
+      "Wugar": 291.1,
+      "Drugar": 272.1
     }
   },
   "weather": {
@@ -844,18 +844,18 @@
         "name": "Mt Elgon",
         "drought": "MED",
         "csi_30d": 0.98,
-        "csi_60d": 0.63,
+        "csi_60d": 0.654,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH",
-        "rain_mtd_mm": 2.3,
-        "rain_hist_min": 11.6,
-        "rain_hist_max": 81.8
+        "rain_mtd_mm": 3.3,
+        "rain_hist_min": 26.9,
+        "rain_hist_max": 97.5
       },
       {
         "name": "West Nile",
         "drought": "MED",
         "csi_30d": 0.094,
-        "csi_60d": 0.07,
+        "csi_60d": 0.094,
         "csi_30d_level": "LOW",
         "csi_60d_level": "LOW"
       },
@@ -944,7 +944,6 @@
       {
         "region": "Central",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -977,6 +976,7 @@
           "L",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1016,7 +1016,6 @@
       {
         "region": "Western",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -1081,14 +1080,14 @@
           "M",
           "M",
           "M",
-          "M",
-          "H"
+          "H",
+          "H",
+          "M"
         ]
       },
       {
         "region": "Busoga",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -1152,7 +1151,8 @@
           "M",
           "M",
           "M",
-          "L",
+          "M",
+          "M",
           "M",
           "M"
         ]
@@ -1160,7 +1160,6 @@
       {
         "region": "Mt Elgon",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -1214,6 +1213,7 @@
           "L",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1232,7 +1232,6 @@
       {
         "region": "West Nile",
         "days": [
-          "-",
           "L",
           "L",
           "M",
@@ -1295,6 +1294,7 @@
           "M",
           "M",
           "M",
+          "-",
           "-",
           "-",
           "-",
@@ -1304,7 +1304,6 @@
       {
         "region": "Rwenzori",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -1351,6 +1350,7 @@
           "M",
           "M",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1377,15 +1377,11 @@
   },
   "enso": {
     "phase": "el-nino",
-    "intensity": "Moderate",
-    "oni": 1.39,
+    "intensity": "Strong",
+    "oni": 1.8,
     "peak_month": "Nov-25",
     "forecast_direction": "El Nino ongoing",
     "oni_history": [
-      {
-        "month": "Jan-25",
-        "value": -0.46
-      },
       {
         "month": "Feb-25",
         "value": -0.22
@@ -1444,8 +1440,7 @@
       },
       {
         "month": "Apr-26",
-        "value": 0.46,
-        "preliminary": true
+        "value": 0.46
       },
       {
         "month": "May-26",
@@ -1456,6 +1451,11 @@
         "month": "Jun-26",
         "value": 1.39,
         "preliminary": true
+      },
+      {
+        "month": "Jul-26",
+        "value": 1.8,
+        "preliminary": true
       }
     ],
     "oni_forecast": [],
@@ -1464,43 +1464,43 @@
         "region": "Greater Masaka",
         "type": "DRY",
         "note": "Lake Victoria crescent robusta — drought risk in the largest belt",
-        "dots": 2
+        "dots": 3
       },
       {
         "region": "Central",
         "type": "DRY",
         "note": "Mityana/Mubende robusta moisture deficit",
-        "dots": 2
+        "dots": 3
       },
       {
         "region": "Western",
         "type": "DRY",
         "note": "Bushenyi/Sheema robusta below-avg rainfall",
-        "dots": 2
+        "dots": 3
       },
       {
         "region": "Busoga",
         "type": "DRY",
         "note": "eastern robusta lowlands heat stress",
-        "dots": 2
+        "dots": 3
       },
       {
         "region": "Mt Elgon",
         "type": "DRY",
         "note": "Bugisu highland arabica moisture stress",
-        "dots": 2
+        "dots": 3
       },
       {
         "region": "West Nile",
         "type": "DRY",
         "note": "Okoro arabica — driest belt, most exposed",
-        "dots": 2
+        "dots": 3
       },
       {
         "region": "Rwenzori",
         "type": "DRY",
         "note": "Rwenzori arabica rainfall deficit",
-        "dots": 2
+        "dots": 3
       }
     ],
     "historical_stat": "El Nino years: Uganda coffee output -10 to -20% vs neutral (UCDA)",

@@ -5,6 +5,8 @@ from datetime import UTC, date, datetime, timedelta
 
 from contract_dates import trading_days_to
 from telegram.data import load
+from telegram.formatting import footer as fmt_footer
+from telegram.formatting import header, table, title
 from telegram.sender import esc
 
 # ── Constants ─────────────────────────────────────────────────────────────────
@@ -178,11 +180,11 @@ def _rc_section(chain: dict | None, acaphe: dict | None, archive: dict | None) -
     Returns (line, front letter, front price, front symbol) so downstream
     basis lines can re-use the same front contract for yesterday's lookup."""
     if not chain:
-        return "RC  data unavailable", None, None, None
+        return [["RC", "—", "", "unavailable"]], None, None, None
     contracts = (chain.get("robusta") or {}).get("contracts") or []
     front, second = _front_two(contracts)
     if not front or front.get("last") is None:
-        return "RC  data unavailable", None, None, None
+        return [["RC", "—", "", "unavailable"]], None, None, None
     front_sym = front.get("symbol", "?")
     front_last = front["last"]
     letter = _contract_letter(front_sym)
@@ -202,24 +204,24 @@ def _rc_section(chain: dict | None, acaphe: dict | None, archive: dict | None) -
     arrow   = ("▲" if change and change > 0 else "▼" if change and change < 0 else "→") if change is not None else "→"
     delta_s = f"{arrow}{change:+,.0f}" if change is not None else arrow
 
-    parts = [f"RC   {front_last:,.0f}  {delta_s}   ({front_sym})"]
+    rows: list[list] = [["RC", f"{front_last:,.0f}", delta_s, front_sym]]
     if second and second.get("symbol"):
         spread, spread_chg = _spread_with_change(archive, "robusta", front_sym, second["symbol"])
         if spread is not None:
             second_letter = _contract_letter(second["symbol"])
             # RC trades in whole-dollar/MT ticks → integer format is right here.
-            chg_part = f" ({round(spread_chg):+,d})" if spread_chg is not None else ""
-            parts.append(f"   · {letter}-{second_letter} spread at {round(spread):,}{chg_part}")
-    return "\n".join(parts), letter, front_last, front_sym
+            chg_part = f"{round(spread_chg):+,d}" if spread_chg is not None else ""
+            rows.append([f" {letter}-{second_letter}", f"{round(spread):,}", chg_part, "spread"])
+    return rows, letter, front_last, front_sym
 
 
 def _kc_section(chain: dict | None, acaphe: dict | None, archive: dict | None) -> str:
     if not chain:
-        return "KC  data unavailable"
+        return [["KC", "—", "", "unavailable"]]
     contracts = (chain.get("arabica") or {}).get("contracts") or []
     front, second = _front_two(contracts)
     if not front or front.get("last") is None:
-        return "KC  data unavailable"
+        return [["KC", "—", "", "unavailable"]]
     front_sym = front.get("symbol", "?")
     front_last = front["last"]
     letter = _contract_letter(front_sym)
@@ -234,16 +236,16 @@ def _kc_section(chain: dict | None, acaphe: dict | None, archive: dict | None) -
     arrow   = ("▲" if change and change > 0 else "▼" if change and change < 0 else "→") if change is not None else "→"
     delta_s = f"{arrow}{change:+.2f}" if change is not None else arrow
 
-    parts = [f"KC   {front_last:.2f}  {delta_s}   ({front_sym})"]
+    rows: list[list] = [["KC", f"{front_last:.2f}", delta_s, front_sym]]
     if second and second.get("symbol"):
         spread, spread_chg = _spread_with_change(archive, "arabica", front_sym, second["symbol"])
         if spread is not None:
             second_letter = _contract_letter(second["symbol"])
             # KC trades in 0.05-cent ticks, so spreads land on 2-decimal values
             # (e.g. 4.75, not 6). Use 2dp here and let RC keep integer formatting.
-            chg_part = f" ({spread_chg:+,.2f})" if spread_chg is not None else ""
-            parts.append(f"   · {letter}-{second_letter} spread at {spread:,.2f}{chg_part}")
-    return "\n".join(parts)
+            chg_part = f"{spread_chg:+,.2f}" if spread_chg is not None else ""
+            rows.append([f" {letter}-{second_letter}", f"{spread:,.2f}", chg_part, "spread"])
+    return rows
 
 
 # ── Physical cash lines (VN/BR/UG) with basis + day-over-day delta ───────────
@@ -388,8 +390,8 @@ def _physical_line(label: str, origin_key: str, fob_key: str,
 def _seed_weather_path(origin_key: str):
     """Locate backend/seed/weather_history/{origin}.json relative to the
     morning brief's data dir (which sits at frontend/public/data)."""
-    from telegram.data import _DATA_DIR
-    repo_root = _DATA_DIR.parent.parent.parent
+    from telegram.data import data_dir
+    repo_root = data_dir().parent.parent.parent
     return repo_root / "backend" / "seed" / "weather_history" / f"{origin_key}.json"
 
 
@@ -612,7 +614,7 @@ def _weather_block(today: date) -> str | None:
     vn_weather = load("vn_weather.json")
     vn_vhi     = load("vhi_vn.json")
 
-    lines = ["☁️ <b>Weather</b>"]
+    lines: list[str] = []
 
     # Brazil: frost vs rain, depending on the month
     if today.month in _FROST_MONTHS:
@@ -652,7 +654,7 @@ def _weather_block(today: date) -> str | None:
             flag = f" ({', '.join(esc(s) for s in stressed[:3])} stressed)"
         lines.append(f"VHI at {avg_vhi:.0f}{flag}")
 
-    return "\n".join(lines) if len(lines) > 1 else None
+    return "\n".join(lines) if lines else None
 
 
 # ── Exports section ──────────────────────────────────────────────────────────
@@ -777,7 +779,7 @@ def _exports_block(daily: dict | None, vn_supply: dict | None,
     parts = [p for p in (brazil, vn, ug) if p]
     if not parts:
         return None
-    return "🚢 <b>Exports</b>\n" + "\n\n".join(parts)
+    return "\n\n".join(parts)
 
 
 # ── Certified stocks ─────────────────────────────────────────────────────────
@@ -912,7 +914,7 @@ def _cert_stocks_block() -> str | None:
     parts = [p for p in (ny, ld) if p]
     if not parts:
         return None
-    return "🪤 <b>Certified stocks</b>\n" + "\n\n".join(parts)
+    return "\n\n".join(parts)
 
 
 # ── Upcoming events (Coming up · next 24h) ───────────────────────────────────
@@ -1074,7 +1076,7 @@ def _upcoming_events_section(now: datetime | None = None) -> str | None:
 
     upcoming.sort(key=lambda e: (e.get("date") or "", e.get("category") or ""))
 
-    lines = ["🗓 <b>Coming up · next 24h</b>"]
+    lines: list[str] = []
     for e in upcoming:
         when = "Today   " if e["date"] == today_iso else "Tomorrow"
         cat = _EVENT_CATEGORY_LABEL.get(e.get("category") or "other", "EVT")
@@ -1092,16 +1094,23 @@ def _load_archive() -> dict | None:
     drop a tiny archive next to the other JSONs without recreating the
     repo-root layout."""
     import json as _json
-    try:
-        from telegram.data import _DATA_DIR
-        for candidate in (
-            _DATA_DIR.parent.parent.parent / "data" / "contract_prices_archive.json",
-            _DATA_DIR / "contract_prices_archive.json",
-        ):
+
+    from telegram.data import data_dir
+    _dd = data_dir()
+    for candidate in (
+        _dd.parent.parent.parent / "data" / "contract_prices_archive.json",
+        _dd / "contract_prices_archive.json",
+    ):
+        try:
             if candidate.exists():
                 return _json.loads(candidate.read_text(encoding="utf-8"))
-    except Exception:
-        pass
+        except (OSError, ValueError):
+            # An unreadable or malformed archive is a missing archive; the
+            # caller degrades to no spread line. The blanket try/except this
+            # replaces also swallowed ImportError, so renaming the symbol it
+            # imported dropped the spread line from the brief in silence
+            # rather than failing — a bug whose only symptom is absent output.
+            continue
     return None
 
 
@@ -1232,8 +1241,8 @@ def build_brief_message(db=None) -> str:
     origin_prices = load("origin_prices_history.json")
     fx_hist  = load("fx_history.json")
 
-    rc_line, front_letter, front_price, front_sym = _rc_section(chain, acaphe, archive)
-    kc_line = _kc_section(chain, acaphe, archive)
+    rc_rows, front_letter, front_price, front_sym = _rc_section(chain, acaphe, archive)
+    kc_rows = _kc_section(chain, acaphe, archive)
 
     origins = (origin_prices or {}).get("origins") or {}
     vn_line = _physical_line(
@@ -1263,43 +1272,32 @@ def build_brief_message(db=None) -> str:
     certs   = _cert_stocks_block()
     coming  = _upcoming_events_section(now)
 
-    parts: list[str] = [f"☕ <b>Coffee Intel · {day_str}</b>", ""]
-    parts.append(rc_line)
-    parts.append(kc_line)
+    # Assembly in the house four layers — what is happening, what changed,
+    # what matters, then detail — with each group under a ruled header. The
+    # section builders above return bodies only; the headers live here so the
+    # visual language is set in one place rather than inside nine functions.
+    def _section(emoji: str, label: str, *bodies: str | None) -> list[str]:
+        present = [b for b in bodies if b]
+        return [header(emoji, label), "\n".join(present)] if present else []
+
+    parts: list[str] = [title("☕ COFFEE MORNING BRIEF", day_str)]
+
     open_call = _open_direction_block(today)
-    if open_call:
-        parts.append(open_call)
-    cci = _currency_index_block()
-    if cci:
-        parts.append(cci)
-    # Blank line between futures (RC/KC + their spread lines) and the
-    # physical block — visual break since the two groups read differently
-    # (futures = on-exchange, physical = farmgate-to-FOB basis).
-    if vn_line or br_line or ug_line:
-        parts.append("")
-    if vn_line:
-        parts.append(vn_line)
-    if br_line:
-        parts.append(br_line)
-    if ug_line:
-        parts.append(ug_line)
+    cci       = _currency_index_block()
+    market = table([["", "last", "d/d", ""], *rc_rows, *kc_rows], align="lrrl")
+    parts += _section("📈", "market", market)
+    # The open call and the currency index are interpretation, not quotes —
+    # they answer "what matters", so they sit apart from the price block.
+    parts += _section("🚨", "signals", open_call, cci)
+    parts += _section("🌍", "physical", vn_line, br_line, ug_line)
+    parts += _section("🌦", "weather", weather)
+    parts += _section("🚢", "exports", exports)
+    parts += _section("🪤", "stocks", certs)
+    parts += _section("🗓", "coming up", coming)
 
-    if weather:
-        parts.append("")
-        parts.append(weather)
-    if exports:
-        parts.append("")
-        parts.append(exports)
-    if certs:
-        parts.append("")
-        parts.append(certs)
-    if coming:
-        parts.append("")
-        parts.append(coming)
-
-    parts.append("")
-    parts.append("/quote · /cot · /stock · /certified · /brazil · /vietnam · /uganda · /freight · /macro")
-    return "\n".join(parts)
+    parts.append(fmt_footer(["prices", "quote", "cot", "brazil", "ecf",
+                             "kaffeesteuer", "help"]))
+    return "\n\n".join(parts)
 
 
 def _synthetic_fx_one(origin_doc: dict | None) -> dict | None:
