@@ -5,6 +5,7 @@ import OpenDirectionCalendar from "@/components/signals/OpenDirectionCalendar";
 import RobustaForecastSection from "@/components/signals/RobustaForecastSection";
 import VietnamDiffSection from "@/components/signals/VietnamDiffSection";
 import SentimentSection from "@/components/signals/SentimentSection";
+import PriceElasticitySection from "@/components/signals/PriceElasticitySection";
 
 // Signals is the MODELLED tab. Everything here is a model's output — a
 // direction call, a regression, a classification — and each panel carries a
@@ -31,6 +32,7 @@ export default function SignalsPage() {
         <RobustaForecastSection />
         <VietnamDiffSection />
         <SentimentSection />
+        <PriceElasticitySection />
       </div>
     </div>
   );

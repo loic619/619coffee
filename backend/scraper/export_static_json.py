@@ -47,6 +47,7 @@ from scraper.exporters.macro import (
     export_us_cpi,
 )
 from scraper.exporters.news import export_news
+from scraper.exporters.price_elasticity import export_price_elasticity
 from scraper.exporters.prices import export_latest_prices, export_vn_physical_prices
 from scraper.exporters.supply import (
     export_colombia,
@@ -166,6 +167,9 @@ def _exporters(db):
         ("cepea_conilon_indicator", lambda: export_cepea_conilon_indicator()),
         ("origin_prices_history", lambda: export_origin_prices_history(db)),
         ("tender_parity",         lambda: export_tender_parity()),
+        # Derived: needs origin_prices_history, fx_history and
+        # futures_price_history already on disk.
+        ("price_elasticity",      lambda: export_price_elasticity()),
         ("cot_sept_study",        lambda: export_cot_sept_study()),
         ("cot_cropyear_xray",     lambda: export_cot_cropyear_xray()),
         ("cot_swap_identity",     lambda: export_cot_swap_identity()),
