@@ -1,6 +1,6 @@
 {
   "country": "ethiopia",
-  "scraped_at": "2026-09-03T07:23:16.061103Z",
+  "scraped_at": "2026-09-04T05:09:25.930882Z",
   "exports": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-01",
@@ -361,14 +361,14 @@
         "csi_30d_level": "OK",
         "csi_60d_level": "MED",
         "rain_mtd_mm": 55.9,
-        "rain_hist_min": 5.0,
-        "rain_hist_max": 31.4
+        "rain_hist_min": 7.7,
+        "rain_hist_max": 42.8
       },
       {
         "name": "Harrar",
         "drought": "MED",
         "csi_30d": 0.56,
-        "csi_60d": 0.794,
+        "csi_60d": 0.816,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
       },
@@ -376,7 +376,7 @@
         "name": "Kaffa",
         "drought": "MED",
         "csi_30d": 0.84,
-        "csi_60d": 0.816,
+        "csi_60d": 0.84,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
       },
@@ -473,7 +473,6 @@
       {
         "region": "Harrar",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -519,6 +518,7 @@
           "L",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -545,7 +545,6 @@
       {
         "region": "Kaffa",
         "days": [
-          "-",
           "M",
           "M",
           "M",
@@ -607,7 +606,8 @@
           "M",
           "M",
           "M",
-          "M",
+          "L",
+          "L",
           "M",
           "M",
           "M",
@@ -618,15 +618,11 @@
   },
   "enso": {
     "phase": "el-nino",
-    "intensity": "Moderate",
-    "oni": 1.39,
+    "intensity": "Strong",
+    "oni": 1.8,
     "peak_month": "Nov-25",
     "forecast_direction": "El Nino conditions ongoing",
     "oni_history": [
-      {
-        "month": "Jan-25",
-        "value": -0.46
-      },
       {
         "month": "Feb-25",
         "value": -0.22
@@ -685,8 +681,7 @@
       },
       {
         "month": "Apr-26",
-        "value": 0.46,
-        "preliminary": true
+        "value": 0.46
       },
       {
         "month": "May-26",
@@ -697,6 +692,11 @@
         "month": "Jun-26",
         "value": 1.39,
         "preliminary": true
+      },
+      {
+        "month": "Jul-26",
+        "value": 1.8,
+        "preliminary": true
       }
     ],
     "oni_forecast": [],
@@ -705,31 +705,31 @@
         "region": "Sidama/Yirgacheffe",
         "type": "DRY",
         "note": "long rains below-avg, flowering stress",
-        "dots": 2
+        "dots": 3
       },
       {
         "region": "Harrar",
         "type": "DRY",
         "note": "eastern highlands drought, cherry shriveling",
-        "dots": 2
+        "dots": 3
       },
       {
         "region": "Kaffa",
         "type": "DRY",
         "note": "southwest moisture deficit, yield impact",
-        "dots": 2
+        "dots": 3
       },
       {
         "region": "Limu",
         "type": "DRY",
         "note": "below-avg rainfall, quality risk",
-        "dots": 2
+        "dots": 3
       },
       {
         "region": "Jimma",
         "type": "DRY",
         "note": "extended dry spells during critical growth",
-        "dots": 2
+        "dots": 3
       }
     ],
     "historical_stat": "El Nino years: Ethiopia coffee output -5 to -15% vs neutral; worst impacts in eastern highlands",

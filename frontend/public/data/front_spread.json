@@ -375,13 +375,13 @@
         {
           "month": "2026-09",
           "stocks_k_bags": 223.76,
-          "spread": 21.575,
-          "spread_pct": 6.5278
+          "spread": 17.8167,
+          "spread_pct": 5.5143
         }
       ],
       "analysis": {
         "n": 62,
-        "spearman": -0.656,
+        "spearman": -0.6547,
         "first_half": {
           "span": [
             "2021-08",
@@ -394,13 +394,13 @@
             "2024-03",
             "2026-09"
           ],
-          "spearman": -0.8129
+          "spearman": -0.8081
         },
         "holds_in_both_halves": true
       },
       "analysis_pct": {
         "n": 62,
-        "spearman": -0.7247,
+        "spearman": -0.7234,
         "first_half": {
           "span": [
             "2021-08",
@@ -413,17 +413,17 @@
             "2024-03",
             "2026-09"
           ],
-          "spearman": -0.8742
+          "spearman": -0.8694
         },
         "holds_in_both_halves": true
       },
       "latest": {
-        "date": "2026-09-02",
-        "spread": 10.35,
-        "spread_pct": 3.472,
+        "date": "2026-09-03",
+        "spread": 10.3,
+        "spread_pct": 3.4874,
         "front": "KCZ26",
         "second": "KCH27",
-        "front_price": 298.1
+        "front_price": 295.35
       }
     },
     "robusta": {
@@ -800,7 +800,7 @@
           "month": "2026-09",
           "stocks_k_bags": 826.0,
           "spread": -30.0,
-          "spread_pct": -0.8815
+          "spread_pct": -0.8867
         }
       ],
       "analysis": {
@@ -842,12 +842,12 @@
         "holds_in_both_halves": false
       },
       "latest": {
-        "date": "2026-09-02",
+        "date": "2026-09-03",
         "spread": -30.0,
-        "spread_pct": -0.8886,
+        "spread_pct": -0.8971,
         "front": "RCU26",
         "second": "RCX26",
-        "front_price": 3376.0
+        "front_price": 3344.0
       }
     }
   }

@@ -1,5 +1,57 @@
 [
   {
+    "id": 10728,
+    "title": "ICE-EU RC Daily OI Snapshot \u2013 2026-09-02",
+    "body": "ICE-EU RC Open Interest changed by -509 over the last session, with -373 on nearby two contracts and -136 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.",
+    "source": "ICE",
+    "category": "futures",
+    "lat": 51.51,
+    "lng": -0.09,
+    "tags": [
+      "daily-oi",
+      "robusta",
+      "futures",
+      "auto-commentary"
+    ],
+    "meta": "{\"market\": \"robusta\", \"date\": \"2026-09-02\", \"_commentary\": {\"text\": \"ICE-EU RC Open Interest changed by -509 over the last session, with -373 on nearby two contracts and -136 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-09-03T21:18:00.013335",
+    "commentary": {
+      "text": "ICE-EU RC Open Interest changed by -509 over the last session, with -373 on nearby two contracts and -136 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Bearish",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "OI snapshot: price down, long liquidation"
+  },
+  {
+    "id": 10727,
+    "title": "IFUS KC Daily OI Snapshot \u2013 2026-09-02",
+    "body": "IFUS KC Open Interest changed by -1,232 over the last session, with -1,380 on nearby two contracts and +148 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.",
+    "source": "ICE",
+    "category": "futures",
+    "lat": 40.74,
+    "lng": -74.05,
+    "tags": [
+      "daily-oi",
+      "arabica",
+      "futures",
+      "auto-commentary"
+    ],
+    "meta": "{\"market\": \"arabica\", \"date\": \"2026-09-02\", \"_commentary\": {\"text\": \"IFUS KC Open Interest changed by -1,232 over the last session, with -1,380 on nearby two contracts and +148 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.\", \"hasUpdate\": true, \"isLatestTradingDay\": true}}",
+    "pub_date": "2026-09-03T21:17:57.009062",
+    "commentary": {
+      "text": "IFUS KC Open Interest changed by -1,232 over the last session, with -1,380 on nearby two contracts and +148 on forward contracts. Technical view: PRICE DOWN, LONG LIQUIDATION.",
+      "hasUpdate": true,
+      "isLatestTradingDay": true
+    },
+    "sentiment": "Bearish",
+    "sentiment_confidence": 75.0,
+    "sentiment_method": "deterministic",
+    "sentiment_reason": "OI snapshot: price down, long liquidation"
+  },
+  {
     "id": 10726,
     "title": "Fertilizer Prices \u2013 2026-09",
     "body": null,
@@ -270,7 +322,10 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427468-abaixo-de-300-cents-lb-arabica-atinge-minima-de-tres-meses-em-ny-com-melhora-no-clima-e-maior-oferta.html",
-    "pub_date": "2026-09-03T18:47:00"
+    "pub_date": "2026-09-03T18:47:00",
+    "sentiment": "Bearish",
+    "sentiment_confidence": 95.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10722,
@@ -286,7 +341,10 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427446-precos-do-cafe-recuam-no-vietna-em-mercado-calmo.html",
-    "pub_date": "2026-09-03T14:22:00"
+    "pub_date": "2026-09-03T14:22:00",
+    "sentiment": "Bearish",
+    "sentiment_confidence": 90.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10719,
@@ -301,7 +359,10 @@
       "sprudge"
     ],
     "meta": "https://sprudge.com/train-station-transit-hub-theres-a-specialty-coffee-kiosk-for-that-1232248.html",
-    "pub_date": "2026-09-03T14:00:18"
+    "pub_date": "2026-09-03T14:00:18",
+    "sentiment": "Bullish",
+    "sentiment_confidence": 70.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10720,
@@ -316,7 +377,10 @@
       "sprudge"
     ],
     "meta": "https://sprudge.com/detroit-tigers-ace-pitcher-was-traded-to-the-dodgers-and-took-the-team-espresso-machine-with-him-1307045.html",
-    "pub_date": "2026-09-03T12:00:59"
+    "pub_date": "2026-09-03T12:00:59",
+    "sentiment": "Neutral",
+    "sentiment_confidence": 95.0,
+    "sentiment_method": "gemini"
   },
   {
     "id": 10708,
@@ -657,7 +721,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427401-cafe-tem-mais-um-dia-de-volatilidade-e-fecha-recuando-mais-de-3-na-bolsa-de-nova-york.html",
     "pub_date": "2026-09-02T19:57:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 85.0,
+    "sentiment_confidence": 90.0,
     "sentiment_method": "gemini"
   },
   {
@@ -676,7 +740,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427406-stonex-eleva-previsao-de-safra-de-cafe-do-brasil-2627-para-772-mi-sacas.html",
     "pub_date": "2026-09-02T19:43:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 90.0,
+    "sentiment_confidence": 95.0,
     "sentiment_method": "gemini"
   },
   {
@@ -695,7 +759,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427373-colheita-de-cafe-supera-90-entre-cooperados-da-cooxupe.html",
     "pub_date": "2026-09-02T15:02:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 70.0,
+    "sentiment_confidence": 80.0,
     "sentiment_method": "gemini"
   },
   {
@@ -712,8 +776,8 @@
     ],
     "meta": "https://sprudge.com/build-outs-of-coffee-aurora-coffee-hub-in-amman-jordan-1265150.html",
     "pub_date": "2026-09-02T14:00:33",
-    "sentiment": "Neutral",
-    "sentiment_confidence": 95.0,
+    "sentiment": "Bullish",
+    "sentiment_confidence": 70.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1121,7 +1185,7 @@
     "meta": "https://sprudge.com/on-the-menu-iced-lemon-creme-latte-at-swadesi-cafe-1265284.html",
     "pub_date": "2026-09-01T19:35:58",
     "sentiment": "Neutral",
-    "sentiment_confidence": 95.0,
+    "sentiment_confidence": 90.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1154,7 +1218,7 @@
     "meta": "https://sprudge.com/cartel-roasting-co-partners-with-little-bear-coffee-for-blends-with-friends-initiative-1306732.html",
     "pub_date": "2026-09-01T17:14:57",
     "sentiment": "Neutral",
-    "sentiment_confidence": 90.0,
+    "sentiment_confidence": 85.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1173,7 +1237,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427259-colheita-de-cafe-arabica-chega-a-93-no-cerrado-mineiro.html",
     "pub_date": "2026-09-01T12:25:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 70.0,
+    "sentiment_confidence": 80.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1191,7 +1255,7 @@
     "meta": "https://sprudge.com/an-internet-myth-study-finds-robusta-may-not-be-the-answer-to-climate-change-after-all-1304058.html",
     "pub_date": "2026-09-01T12:00:57",
     "sentiment": "Bullish",
-    "sentiment_confidence": 65.0,
+    "sentiment_confidence": 75.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1584,7 +1648,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427233-cafe-arabica-fecha-estavel-em-nova-york-em-sessao-de-consolidacao-precos-no-br-acompanham.html",
     "pub_date": "2026-08-31T21:01:00",
     "sentiment": "Neutral",
-    "sentiment_confidence": 85.0,
+    "sentiment_confidence": 95.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1603,7 +1667,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427241-perspectiva-para-oferta-de-cafe-e-confortavel-apesar-de-atrasos-no-brasil-e-na-colombia-diz-rabobank.html",
     "pub_date": "2026-08-31T19:16:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 85.0,
+    "sentiment_confidence": 90.0,
     "sentiment_method": "gemini"
   },
   {
@@ -1640,7 +1704,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427185-colheita-de-cafe-2627-do-brasil-alcanca-97-diz-safras.html",
     "pub_date": "2026-08-31T10:56:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 70.0,
+    "sentiment_confidence": 80.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2644,7 +2708,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427163-resiliencia-climatica-do-cafe-robusta-e-um-mito-da-internet-diz-pesquisador.html",
     "pub_date": "2026-08-28T20:22:00",
     "sentiment": "Bullish",
-    "sentiment_confidence": 65.0,
+    "sentiment_confidence": 75.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2663,7 +2727,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427166-cecafe-revisa-para-cima-dados-parciais-da-exportacao-de-agosto-em-123-mi-sacas.html",
     "pub_date": "2026-08-28T19:55:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 60.0,
+    "sentiment_confidence": 70.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2682,7 +2746,7 @@
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427149-exportacoes-mundiais-de-cafe-verde-aumentaram-08-em-junho-diz-oic.html",
     "pub_date": "2026-08-28T16:55:00",
     "sentiment": "Bearish",
-    "sentiment_confidence": 75.0,
+    "sentiment_confidence": 85.0,
     "sentiment_method": "gemini"
   },
   {
@@ -2699,8 +2763,8 @@
     ],
     "meta": "https://sprudge.com/summer-of-build-outs-continues-on-the-coffee-sprudgecast-1282886.html",
     "pub_date": "2026-08-28T14:00:12",
-    "sentiment": "Neutral",
-    "sentiment_confidence": 90.0,
+    "sentiment": "Bullish",
+    "sentiment_confidence": 70.0,
     "sentiment_method": "gemini"
   },
   {
@@ -3189,10 +3253,7 @@
       "sprudge"
     ],
     "meta": "https://sprudge.com/ny-based-colombian-coffee-roaster-devocion-partners-with-colombias-fnc-to-support-coffee-growers-after-the-august-earthquake-1291723.html",
-    "pub_date": "2026-08-27T20:29:39",
-    "sentiment": "Neutral",
-    "sentiment_confidence": 50.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-27T20:29:39"
   },
   {
     "id": 10402,
@@ -3208,10 +3269,7 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427093-maquinarios-agricolas-ganham-destaque-na-21-fecon.html",
-    "pub_date": "2026-08-27T19:38:00",
-    "sentiment": "Neutral",
-    "sentiment_confidence": 80.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-27T19:38:00"
   },
   {
     "id": 10403,
@@ -3227,10 +3285,7 @@
       "cafe"
     ],
     "meta": "https://www.noticiasagricolas.com.br/noticias/cafe/427092-cafe-tomba-mais-de-3-em-nova-york-nesta-5-produtor-recua-e-trava-o-mercado-fisico-no-brasil.html",
-    "pub_date": "2026-08-27T18:47:00",
-    "sentiment": "Bearish",
-    "sentiment_confidence": 85.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-27T18:47:00"
   },
   {
     "id": 10400,
@@ -3245,10 +3300,7 @@
       "sprudge"
     ],
     "meta": "https://sprudge.com/coffee-design-joe-coffee-companys-call-time-by-jordan-fisher-1278712.html",
-    "pub_date": "2026-08-27T17:34:12",
-    "sentiment": "Neutral",
-    "sentiment_confidence": 90.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-27T17:34:12"
   },
   {
     "id": 10388,
@@ -3419,10 +3471,7 @@
       "sprudge"
     ],
     "meta": "https://sprudge.com/learn-your-way-to-origin-with-cafe-imports-field-trip-costa-rica-1284702.html",
-    "pub_date": "2026-08-27T12:00:14",
-    "sentiment": "Neutral",
-    "sentiment_confidence": 90.0,
-    "sentiment_method": "gemini"
+    "pub_date": "2026-08-27T12:00:14"
   },
   {
     "id": 10370,
@@ -3995,35 +4044,5 @@
     "sentiment_confidence": 75.0,
     "sentiment_method": "deterministic",
     "sentiment_reason": "Brazil: no regions flagged at risk"
-  },
-  {
-    "id": 10312,
-    "title": "USD/UGX FX Rate \u2013 2026-08-26",
-    "body": "USD/UGX FX Rate price: 3697",
-    "source": "ExchangeRate-API",
-    "category": "general",
-    "lat": 1.3733,
-    "lng": 32.2903,
-    "tags": [
-      "fx",
-      "uganda"
-    ],
-    "meta": null,
-    "pub_date": "2026-08-26T02:38:30.155454"
-  },
-  {
-    "id": 10311,
-    "title": "USD/HNL FX Rate \u2013 2026-08-26",
-    "body": "USD/HNL FX Rate price: 26.8174",
-    "source": "ExchangeRate-API",
-    "category": "general",
-    "lat": 15.2,
-    "lng": -86.242,
-    "tags": [
-      "fx",
-      "honduras"
-    ],
-    "meta": null,
-    "pub_date": "2026-08-26T02:38:28.902182"
   }
 ]

@@ -1,15 +1,15 @@
 {
-  "updated": "2026-08-30",
+  "updated": "2026-09-04",
   "routes": [
     {
       "id": "vn-eu",
       "from": "Ho Chi Minh",
       "to": "Rotterdam",
       "rate": 4641,
-      "prev": 4699,
+      "prev": 4641,
       "unit": "USD/FEU",
       "proxy": false,
-      "prev_date": "2026-08-23",
+      "prev_date": "2026-08-28",
       "basis": {
         "index": "FBX11",
         "multiplier": 1.0
@@ -20,10 +20,10 @@
       "from": "Ho Chi Minh",
       "to": "Hamburg",
       "rate": 4734,
-      "prev": 4793,
+      "prev": 4734,
       "unit": "USD/FEU",
       "proxy": true,
-      "prev_date": "2026-08-23",
+      "prev_date": "2026-08-28",
       "basis": {
         "index": "FBX11",
         "multiplier": 1.02
@@ -37,7 +37,7 @@
       "prev": 7491,
       "unit": "USD/FEU",
       "proxy": false,
-      "prev_date": "2026-08-23",
+      "prev_date": "2026-08-28",
       "basis": {
         "index": "FBX01",
         "multiplier": 1.0
@@ -48,10 +48,10 @@
       "from": "Santos",
       "to": "Rotterdam",
       "rate": 2692,
-      "prev": 2725,
+      "prev": 2692,
       "unit": "USD/FEU",
       "proxy": true,
-      "prev_date": "2026-08-23",
+      "prev_date": "2026-08-28",
       "basis": {
         "index": "FBX11",
         "multiplier": 0.58
@@ -62,10 +62,10 @@
       "from": "Cartagena",
       "to": "Rotterdam",
       "rate": 2553,
-      "prev": 2584,
+      "prev": 2553,
       "unit": "USD/FEU",
       "proxy": true,
-      "prev_date": "2026-08-23",
+      "prev_date": "2026-08-28",
       "basis": {
         "index": "FBX11",
         "multiplier": 0.55
@@ -76,10 +76,10 @@
       "from": "Djibouti",
       "to": "Rotterdam",
       "rate": 3249,
-      "prev": 3289,
+      "prev": 3249,
       "unit": "USD/FEU",
       "proxy": true,
-      "prev_date": "2026-08-23",
+      "prev_date": "2026-08-28",
       "basis": {
         "index": "FBX11",
         "multiplier": 0.7
@@ -90,10 +90,10 @@
       "from": "Santos",
       "to": "New York",
       "rate": 4406,
-      "prev": 4309,
+      "prev": 4406,
       "unit": "USD/FEU",
       "proxy": true,
-      "prev_date": "2026-08-23",
+      "prev_date": "2026-08-28",
       "basis": {
         "index": "FBX03",
         "multiplier": 0.45
@@ -1150,16 +1150,40 @@
       "co-eu": 2553,
       "et-eu": 3249,
       "br-us": 4406
+    },
+    {
+      "date": "2026-09-04",
+      "vn-eu": 4641,
+      "vn-ham": 4734,
+      "vn-us": 7621,
+      "br-eu": 2692,
+      "co-eu": 2553,
+      "et-eu": 3249,
+      "br-us": 4406
     }
   ],
   "indices": [
     {
+      "code": "FBX",
+      "name": "Global composite (all lanes)",
+      "rate": 3590,
+      "date": "2026-09-04",
+      "prev": null,
+      "prev_date": null,
+      "history": [
+        {
+          "date": "2026-09-04",
+          "rate": 3590
+        }
+      ]
+    },
+    {
       "code": "FBX01",
       "name": "China \u2192 N. America West Coast",
       "rate": 7621,
-      "date": "2026-08-30",
+      "date": "2026-09-04",
       "prev": 7491,
-      "prev_date": "2026-08-23",
+      "prev_date": "2026-08-28",
       "history": [
         {
           "date": "2026-03-14",
@@ -1580,6 +1604,10 @@
         {
           "date": "2026-08-30",
           "rate": 7621
+        },
+        {
+          "date": "2026-09-04",
+          "rate": 7621
         }
       ]
     },
@@ -1587,12 +1615,16 @@
       "code": "FBX02",
       "name": "N. America West Coast \u2192 China",
       "rate": 347,
-      "date": "2026-08-30",
+      "date": "2026-09-04",
       "prev": null,
       "prev_date": null,
       "history": [
         {
           "date": "2026-08-30",
+          "rate": 347
+        },
+        {
+          "date": "2026-09-04",
           "rate": 347
         }
       ]
@@ -1601,9 +1633,9 @@
       "code": "FBX03",
       "name": "China \u2192 N. America East Coast",
       "rate": 9791,
-      "date": "2026-08-30",
-      "prev": 9576,
-      "prev_date": "2026-08-23",
+      "date": "2026-09-04",
+      "prev": 9791,
+      "prev_date": "2026-08-28",
       "history": [
         {
           "date": "2026-03-14",
@@ -2024,6 +2056,10 @@
         {
           "date": "2026-08-30",
           "rate": 9791
+        },
+        {
+          "date": "2026-09-04",
+          "rate": 9791
         }
       ]
     },
@@ -2031,12 +2067,16 @@
       "code": "FBX04",
       "name": "N. America East Coast \u2192 China",
       "rate": 491,
-      "date": "2026-08-30",
+      "date": "2026-09-04",
       "prev": null,
       "prev_date": null,
       "history": [
         {
           "date": "2026-08-30",
+          "rate": 491
+        },
+        {
+          "date": "2026-09-04",
           "rate": 491
         }
       ]
@@ -2045,9 +2085,9 @@
       "code": "FBX11",
       "name": "China \u2192 North Europe",
       "rate": 4641,
-      "date": "2026-08-30",
-      "prev": 4699,
-      "prev_date": "2026-08-23",
+      "date": "2026-09-04",
+      "prev": 4641,
+      "prev_date": "2026-08-28",
       "history": [
         {
           "date": "2026-03-14",
@@ -2468,6 +2508,10 @@
         {
           "date": "2026-08-30",
           "rate": 4641
+        },
+        {
+          "date": "2026-09-04",
+          "rate": 4641
         }
       ]
     },
@@ -2475,12 +2519,16 @@
       "code": "FBX12",
       "name": "North Europe \u2192 China",
       "rate": 540,
-      "date": "2026-08-30",
+      "date": "2026-09-04",
       "prev": null,
       "prev_date": null,
       "history": [
         {
           "date": "2026-08-30",
+          "rate": 540
+        },
+        {
+          "date": "2026-09-04",
           "rate": 540
         }
       ]
@@ -2489,12 +2537,16 @@
       "code": "FBX13",
       "name": "China \u2192 Mediterranean",
       "rate": 4800,
-      "date": "2026-08-30",
+      "date": "2026-09-04",
       "prev": null,
       "prev_date": null,
       "history": [
         {
           "date": "2026-08-30",
+          "rate": 4800
+        },
+        {
+          "date": "2026-09-04",
           "rate": 4800
         }
       ]
@@ -2503,12 +2555,16 @@
       "code": "FBX14",
       "name": "Mediterranean \u2192 China",
       "rate": 314,
-      "date": "2026-08-30",
+      "date": "2026-09-04",
       "prev": null,
       "prev_date": null,
       "history": [
         {
           "date": "2026-08-30",
+          "rate": 314
+        },
+        {
+          "date": "2026-09-04",
           "rate": 314
         }
       ]
@@ -2517,12 +2573,16 @@
       "code": "FBX21",
       "name": "N. America East Coast \u2192 North Europe",
       "rate": 417,
-      "date": "2026-08-30",
+      "date": "2026-09-04",
       "prev": null,
       "prev_date": null,
       "history": [
         {
           "date": "2026-08-30",
+          "rate": 417
+        },
+        {
+          "date": "2026-09-04",
           "rate": 417
         }
       ]
@@ -2531,12 +2591,16 @@
       "code": "FBX22",
       "name": "North Europe \u2192 N. America East Coast",
       "rate": 2574,
-      "date": "2026-08-30",
+      "date": "2026-09-04",
       "prev": null,
       "prev_date": null,
       "history": [
         {
           "date": "2026-08-30",
+          "rate": 2574
+        },
+        {
+          "date": "2026-09-04",
           "rate": 2574
         }
       ]
@@ -2545,12 +2609,16 @@
       "code": "FBX24",
       "name": "Europe \u2192 S. America East Coast",
       "rate": 1101,
-      "date": "2026-08-30",
+      "date": "2026-09-04",
       "prev": null,
       "prev_date": null,
       "history": [
         {
           "date": "2026-08-30",
+          "rate": 1101
+        },
+        {
+          "date": "2026-09-04",
           "rate": 1101
         }
       ]
@@ -2559,12 +2627,16 @@
       "code": "FBX26",
       "name": "Europe \u2192 S. America West Coast",
       "rate": 2310,
-      "date": "2026-08-30",
+      "date": "2026-09-04",
       "prev": null,
       "prev_date": null,
       "history": [
         {
           "date": "2026-08-30",
+          "rate": 2310
+        },
+        {
+          "date": "2026-09-04",
           "rate": 2310
         }
       ]

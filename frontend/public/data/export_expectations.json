@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-03T12:55:57.594439+00:00",
+  "generated_at": "2026-09-04T05:08:56.470945+00:00",
   "brazil": {
     "unit": "bags",
     "basis_day": 15,
@@ -269,6 +269,14 @@
         "actual": 147890.0,
         "error_pct": null,
         "defect": "first half (175,431 t) exceeds the full month (147,890 t) — impossible; the first half is a subset of the month"
+      },
+      {
+        "month": "2026-08",
+        "k1": 61242.0,
+        "expected": 131675,
+        "actual": null,
+        "error_pct": null,
+        "defect": null
       }
     ]
   }
