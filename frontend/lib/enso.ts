@@ -67,6 +67,11 @@ export interface EnsoPhaseHit {
   months: number[];
   severity: number;
   driver: string;
+  /** True when this cycle's window was derived arithmetically (it sits
+   *  between the cycle's flowering and its harvest) rather than published by
+   *  the origin's own calendar. Such a window loses a severity tie to a
+   *  sourced one, so it should be visible which is which. */
+  inferred?: boolean;
   anomaly_pct: number | null;
   n: number;
   consistency: number | null;

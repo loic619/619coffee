@@ -1092,17 +1092,23 @@ def _load_archive() -> dict | None:
     drop a tiny archive next to the other JSONs without recreating the
     repo-root layout."""
     import json as _json
-    try:
-        from telegram.data import data_dir
-        _dd = data_dir()
-        for candidate in (
-            _dd.parent.parent.parent / "data" / "contract_prices_archive.json",
-            _dd / "contract_prices_archive.json",
-        ):
+
+    from telegram.data import data_dir
+    _dd = data_dir()
+    for candidate in (
+        _dd.parent.parent.parent / "data" / "contract_prices_archive.json",
+        _dd / "contract_prices_archive.json",
+    ):
+        try:
             if candidate.exists():
                 return _json.loads(candidate.read_text(encoding="utf-8"))
-    except Exception:
-        pass
+        except (OSError, ValueError):
+            # An unreadable or malformed archive is a missing archive; the
+            # caller degrades to no spread line. The blanket try/except this
+            # replaces also swallowed ImportError, so renaming the symbol it
+            # imported dropped the spread line from the brief in silence
+            # rather than failing — a bug whose only symptom is absent output.
+            continue
     return None
 
 

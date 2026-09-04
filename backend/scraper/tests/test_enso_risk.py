@@ -177,3 +177,55 @@ def test_opposite_phases_still_score():
     }
     r = region_risk("vn", "Dak Lak", "el-nino", "Moderate", {1, 2, 3}, t)
     assert r["level"] == "high"
+
+
+def test_equal_severity_is_broken_by_evidence_not_loop_order():
+    """Two phases can both score 2. `max` used to hand the tie to whichever
+    the loop reached first, which is the phase ORDER, not the data.
+
+    Mt Elgon is the case: under El Niño its inferred Jul–Sep fill window is
+    -12.9% over four events, and its published Oct–Feb main harvest is +41.1%
+    over ten. Both severity 2. The fill window came first and the pin read
+    "Drought at cherry fill" for a region whose measured El Niño story is rain
+    on the harvest.
+    """
+    t = {"regions": {"uganda|Mt Elgon": {
+        "origin": "uganda", "region": "Mt Elgon", "lag_months": 0, "lag_r": 0.21,
+        "phases": {
+            "main/fruit_fill": {
+                "inferred": True,
+                "el-nino": {"anomaly_pct": -12.9, "n": 4, "consistency": 0.75, "usable": True},
+                "la-nina": {"anomaly_pct": 19.6, "n": 6, "consistency": 0.67, "usable": True},
+            },
+            "main/harvest": {
+                "inferred": False,
+                "el-nino": {"anomaly_pct": 41.1, "n": 10, "consistency": 0.70, "usable": True},
+                "la-nina": {"anomaly_pct": -22.4, "n": 14, "consistency": 0.64, "usable": True},
+            },
+        },
+    }}}
+    # A window covering both the Jul-Sep fill and part of the Oct-Feb harvest.
+    r = region_risk("uganda", "Mt Elgon", "el-nino", "Moderate",
+                    {7, 8, 9, 10, 11, 12}, t)
+    assert r["level"] == "high"
+    assert "Rain through harvest" in r["driver"], r["driver"]
+    # Both hits are still reported — the tie-break picks the headline, it does
+    # not hide the other phase.
+    assert {h["phase"] for h in r["phase_hits"] if h["severity"] > 0} == {
+        "fruit_fill", "harvest"}
+
+
+def test_a_published_window_outranks_an_inferred_one_on_a_tie():
+    """Same anomaly, same evidence, one window published and one arithmetic:
+    the published one carries the pin."""
+    same = {"anomaly_pct": -30.0, "n": 6, "consistency": 0.8, "usable": True}
+    t = {"regions": {"uganda|Mt Elgon": {
+        "origin": "uganda", "region": "Mt Elgon", "lag_months": 0, "lag_r": 0.21,
+        "phases": {
+            "main/fruit_fill": {"inferred": True, "el-nino": dict(same)},
+            "main/flowering": {"inferred": False, "el-nino": dict(same)},
+        },
+    }}}
+    r = region_risk("uganda", "Mt Elgon", "el-nino", "Moderate",
+                    {4, 5, 6, 7, 8, 9}, t)
+    assert "Drought at flowering" in r["driver"], r["driver"]

@@ -59,6 +59,16 @@ from fetch_origin_weather import (  # noqa: E402
 ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
 TODAY = dt.date.today()
 
+#: (connect, read). The connect leg was 10s and two of Uganda's seven belts
+#: lost a 1995→2026 backfill to it. urllib3 formats EVERY timeout as
+#: "Read timed out. (read timeout=N)" and prints whichever leg was armed, so a
+#: stalled TLS handshake reports the CONNECT value under a read-timeout label —
+#: which is why the message said 10 while this tuple's read leg said 60.
+#: Both legs are generous now: a 31-year daily range is a slow query to build.
+TIMEOUT = (30, 180)
+#: Six tries spans ~62s of backoff. The archive host is bursty, not down.
+ATTEMPTS = 6
+
 
 def fetch_archive(lat: float, lon: float, start: str, end: str) -> dict:
     params = {
@@ -68,16 +78,16 @@ def fetch_archive(lat: float, lon: float, start: str, end: str) -> dict:
         "timezone": "UTC",
     }
     last: Exception | None = None
-    for attempt in range(4):
+    for attempt in range(ATTEMPTS):
         try:
-            resp = requests.get(ARCHIVE_URL, params=params, headers=HEADERS, timeout=(10, 60))
+            resp = requests.get(ARCHIVE_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
             resp.raise_for_status()
             return resp.json()
         except Exception as e:  # noqa: BLE001
             last = e
-            if attempt < 3:
+            if attempt < ATTEMPTS - 1:
                 time.sleep(2 ** (attempt + 1))
-    raise RuntimeError(f"archive fetch failed after retries: {last}")
+    raise RuntimeError(f"archive fetch failed after {ATTEMPTS} attempts: {last}")
 
 
 def preflight() -> None:
@@ -92,15 +102,25 @@ def preflight() -> None:
         sys.exit(2)
 
 
-def backfill(origin: str, start: str, end: str, write: bool) -> int:
+def backfill(origin: str, start: str, end: str, write: bool) -> tuple[int, list[str]]:
+    """Fill missing days for one origin. Returns (days added, regions skipped).
+
+    A flaky region must not abort the other six — but it must not vanish
+    either. The caller turns a non-empty skip list into a non-zero exit, so a
+    partial backfill fails its run instead of reporting the green that hid
+    Uganda's Western and West Nile belts on 2015 while the other five reached
+    1995.
+    """
     regions = ORIGINS[origin]
     hist = load_history(origin)
     added = 0
+    skipped: list[str] = []
     for rc in regions:
         try:
             d = fetch_archive(rc["lat"], rc["lon"], start, end)["daily"]
         except Exception as e:  # noqa: BLE001 — a flaky region must not abort the origin
             print(f"  [{origin}] {rc['name']}: FETCH FAILED, skipping region: {e}", file=sys.stderr)
+            skipped.append(rc["name"])
             continue
         times, pr = d["time"], d["precipitation_sum"]
         tm, tx, tn = d["temperature_2m_mean"], d["temperature_2m_max"], d["temperature_2m_min"]
@@ -133,7 +153,25 @@ def backfill(origin: str, start: str, end: str, write: bool) -> int:
         time.sleep(1)  # spacing under Open-Meteo's burst limit
     if write:
         save_history(origin, hist)
-    return added
+    _report_coverage(origin, hist, regions)
+    return added, skipped
+
+
+def _report_coverage(origin: str, hist: dict, regions: list[dict]) -> None:
+    """Print what the STORE now holds per region — span and day count.
+
+    The count of days a fetch returned says what the API sent; this says what
+    is on disk. They differ exactly when something was skipped, and that
+    difference is the only thing worth reading in this log.
+    """
+    print(f"  [{origin}] store coverage:", flush=True)
+    for rc in regions:
+        days = sorted((hist.get("regions") or {}).get(rc["name"], {}))
+        if not days:
+            print(f"      {rc['name']:<18} EMPTY", flush=True)
+        else:
+            print(f"      {rc['name']:<18} {len(days):>6} days  "
+                  f"{days[0][:4]}..{days[-1][:4]}", flush=True)
 
 
 def main() -> None:
@@ -151,18 +189,32 @@ def main() -> None:
     preflight()
 
     total = 0
+    incomplete: list[str] = []
     for origin in selected:
         if origin not in ORIGINS:
             print(f"  [skip] unknown origin: {origin}", file=sys.stderr)
+            incomplete.append(f"{origin} (unknown origin key)")
             continue
         try:
-            added = backfill(origin, args.start, args.end, args.write)
+            added, skipped = backfill(origin, args.start, args.end, args.write)
             total += added
             print(f"  [{origin}] filled {added} missing region-days "
                   f"({'written' if args.write else 'dry-run'})")
+            incomplete += [f"{origin}/{name}" for name in skipped]
         except Exception as e:  # noqa: BLE001
             print(f"  [fail] {origin}: {e}", file=sys.stderr)
+            incomplete.append(f"{origin} (whole origin: {e})")
     print(f"[backfill_weather_history] done — {total} region-days filled.")
+
+    if incomplete:
+        # Everything fetched is already written, and the workflow's later steps
+        # run on always() so it still lands. Exiting non-zero is what stops the
+        # run reporting a coverage it does not have.
+        print(f"[backfill_weather_history] INCOMPLETE — {len(incomplete)} region(s) "
+              f"did not backfill: {', '.join(incomplete)}\n"
+              "What was fetched IS written; re-run for the rest (it is idempotent).",
+              file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

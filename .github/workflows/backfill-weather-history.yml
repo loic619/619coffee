@@ -22,8 +22,19 @@ name: "0.21 – Backfill weather history from the Open-Meteo archive"
 # forward, and only this fills what came before. All three are needed; each
 # alone leaves a green run and a hole in the data.
 #
-# NOTE: the archive host is not always reachable from CI. A failed fetch leaves
-# the store untouched rather than half-written, so a retry is the whole fix.
+# CORRECTION to that same first version: it claimed "a failed fetch leaves the
+# store untouched rather than half-written, so a retry is the whole fix." Only
+# the first half was true, and only for a whole-origin failure. The script
+# catches PER-REGION errors and continues, so one flaky belt is written out
+# missing while the other six succeed — and the run exits 0. That is what
+# happened on 2026-09-04: Uganda's Western and West Nile lost their 1995
+# backfill to a 10-second connect timeout, the other five reached 1995, and the
+# run reported success with the store two belts short. The script now exits
+# non-zero when ANY region is skipped, and prints the store's per-region span
+# so the log shows what is on disk rather than what the API happened to send.
+# The two steps below therefore run on !cancelled(): a partial fill is still
+# worth keeping and pushing (the backfill is idempotent and additive), it just
+# must not be called a success.
 
 on:
   workflow_dispatch:
@@ -85,6 +96,7 @@ jobs:
           PYTHONPATH=. python scripts/backfill_weather_history.py "${args[@]}"
 
       - name: Rebuild the chart JSON from the filled store
+        if: ${{ !cancelled() }}
         working-directory: backend
         env:
           ORIGINS: ${{ inputs.origins }}
@@ -103,6 +115,7 @@ jobs:
           PYTHONPATH=. python scripts/fetch_origin_weather.py "${args[@]}"
 
       - name: Commit & push
+        if: ${{ !cancelled() }}
         run: |
           set -e
           git config user.name  "github-actions[bot]"
