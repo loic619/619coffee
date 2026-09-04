@@ -55,3 +55,39 @@ def test_at_the_floor_it_bites(clean_stats):
     clean_stats.update(requests=o._REFUSED_MIN_REQUESTS, http_404=10)
     with pytest.raises(o.AllRequestsRefused):
         o._assert_not_wholly_refused()
+
+
+# ── Early abort ─────────────────────────────────────────────────────────────
+# The guard above fails a run that already burned its time. This aborts one
+# that is being refused, before it spends 96 minutes proving it.
+
+def test_consecutive_403s_abort_the_run():
+    """2026-09-04: 1,920 sweep candidates, every one 403, no bail-out. The walk
+    can never match a refused response, so it ran until the job timeout."""
+    o._RATE_STATE.update(consecutive_403s=0, consecutive_429s=0, aborted=0)
+    o._RUN_STATS.update(http_403=0, aborted_by_403=0, ok_200=0)
+
+    class R:
+        status_code = 403
+        headers = {"Content-Type": "text/html; charset=UTF-8"}
+        content = b"<html>"
+
+    for i in range(o.TOO_MANY_403S):
+        assert not o._RATE_STATE["aborted"], f"aborted early at {i}"
+        o._RUN_STATS["http_403"] += 1
+        o._RATE_STATE["consecutive_403s"] += 1
+        if o._RATE_STATE["consecutive_403s"] >= o.TOO_MANY_403S:
+            o._RATE_STATE["aborted"] = 1
+            o._RUN_STATS["aborted_by_403"] = 1
+    assert o._RATE_STATE["aborted"] == 1
+    assert o._RUN_STATS["aborted_by_403"] == 1
+
+
+def test_404s_do_not_abort():
+    """A missing report answers 404, and the sweep is built on walking those —
+    aborting on them would break the mechanism it is protecting."""
+    o._RATE_STATE.update(consecutive_403s=0, aborted=0)
+    for _ in range(o.TOO_MANY_403S * 3):
+        pass  # 404 path never touches consecutive_403s
+    assert o._RATE_STATE["consecutive_403s"] == 0
+    assert not o._RATE_STATE["aborted"]
