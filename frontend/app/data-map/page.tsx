@@ -1,1218 +1,13 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import Mermaid from "@/components/Mermaid";
 import DataDownloads from "@/components/data-map/DataDownloads";
 import WorkflowActivity from "@/components/data-map/WorkflowActivity";
-import { useFetchJson } from "@/lib/useFetchJson";
-
-// Shared class definitions appended to every per-tab diagram. `vis` (the tab's
-// own colour) is supplied per diagram.
-const DEFS = `
-  classDef scr fill:#0f172a,stroke:#334155,color:#94a3b8;
-  classDef store fill:#450a0a,stroke:#ef4444,color:#fecaca;
-  classDef proc fill:#1f2937,stroke:#64748b,color:#cbd5e1;
-  classDef json fill:#1e293b,stroke:#475569,color:#cbd5e1;`;
-
-const ARCHITECTURE = `flowchart LR
-  BC[Barchart core-api]
-  CFTC[CFTC COT report]
-  ARC[("contract_prices_archive.json<br/>SINGLE coffee OI+price source<br/>RC canonical · 5y")]
-  DB[(Postgres · 13 tables)]
-  EXP{{"1.4 Export & Publish · 02:30"}}
-  F13["1.3 Daily OI · 02:00 M-F"]
-  F23["2.3 COT · Fri 20:00"]
-  J[/~30 static JSON/]
-  VIS{{dashboard visuals}}
-  BC --> F13 --> ARC --> DB
-  CFTC --> F23 --> DB
-  ARC -->|max-OI rebuild in 2.3| DB
-  DB --> EXP --> J --> VIS
-  ARC --> J
-  classDef scr fill:#0f172a,stroke:#334155,color:#94a3b8;
-  classDef store fill:#450a0a,stroke:#ef4444,color:#fecaca;
-  classDef proc fill:#1f2937,stroke:#64748b,color:#cbd5e1;
-  classDef json fill:#1e293b,stroke:#475569,color:#cbd5e1;
-  class BC,CFTC,F13,F23 scr;
-  class ARC,DB store;
-  class EXP proc;
-  class J json;`;
-
-const FUTURES = `flowchart LR
-  WPOLL["Acaphe poll · /15min (1-19h)<br/>acaphe.com"]
-  W13["1.3 Daily OI · 02:00 M-F<br/>Barchart core-api"]
-  W120["1.20 Traded tape · 18:50 M-F<br/>acaphe tape + board"]
-  W198["1.98 Intraday KC/RC · 20:13 M-F<br/>Barchart 15-min bars"]
-  ARC[("contract_prices_archive.json")]
-  TARC[("tradespread_archive.json")]
-  EXP{{"1.4 Export · 02:30"}}
-  J_aca[/acaphe_live.json/]
-  J_chain[/futures_chain.json/]
-  J_oi[/oi_history.json/]
-  J_fnd[/oi_fnd_chart.json/]
-  J_tape[/tradespread.json/]
-  J_intra[/intraday_kc_rc_15min.json/]
-  quote{{Daily Live Quotes}}
-  chain{{Futures Chain}}
-  oi{{OI 7-day Table}}
-  oifnd{{OI Evolution to FND}}
-  tape{{Traded Tape Panel}}
-  model{{Open-direction model}}
-  WPOLL --> J_aca --> quote
-  W13 --> ARC
-  W13 --> EXP --> J_chain --> chain
-  ARC --> J_oi --> oi
-  ARC --> J_fnd --> oifnd
-  W120 -->|"full tick tape"| TARC
-  W120 -->|"open · +15min · RC-close<br/>close vs settle · VWAP · pressure"| J_tape --> tape
-  W198 -->|"open · 17:30 · 18:30 anchors"| J_intra --> model
-${DEFS}
-  classDef vis fill:#2e1065,stroke:#8b5cf6,color:#ddd6fe;
-  class WPOLL,W13,W120,W198 scr;
-  class ARC,TARC store;
-  class EXP proc;
-  class J_aca,J_chain,J_oi,J_fnd,J_tape,J_intra json;
-  class quote,chain,oi,oifnd,tape,model vis;`;
-
-const COT = `flowchart LR
-  W13["1.3 Daily OI · 02:00 M-F<br/>Barchart core-api"]
-  W23["2.3 COT + max-OI rebuild · Fri 20:00<br/>CFTC disagg report"]
-  ARC[("contract_prices_archive.json<br/>5y per-contract OI+price · untouched")]
-  DB[(Postgres)]
-  EXP{{"1.4 Export · 02:30"}}
-  J_cot[/cot.json · 312wk/]
-  J_mac[/macro_cot.json/]
-  J_fnd[/oi_fnd_chart.json/]
-  J_oi[/"oi_history.json<br/>14-day rolling slice of ARC (was 30)"/]
-  J_sig[/signals.json<br/>· quant + AGRO rows merged/]
-  ip{{Industry Pulse}}
-  sig{{"Signals · computed in-browser from cot.json<br/>+ /cot Telegram appends per-rule listing from signals.json"}}
-  gau{{Gauges}}
-  hm{{Heatmap}}
-  flow{{Global Flow}}
-  dp{{Dry Powder}}
-  cyc{{Cycle Location}}
-  rep{{"Report · backtest"}}
-  oi{{"OI 14-day table · nearby-OI delta re-derived<br/>from per-contract oi_history.json (was buggy exch_oi_*)"}}
-  oifnd{{OI Evolution to FND}}
-  W13 --> ARC --> DB
-  W23 --> DB --> EXP
-  EXP --> J_cot
-  EXP --> J_mac
-  EXP --> J_sig
-  ARC --> J_fnd
-  ARC --> J_oi
-  J_cot --> ip
-  J_cot --> sig
-  J_sig --> sig
-  J_cot --> gau
-  J_cot --> hm
-  J_cot --> flow
-  J_mac --> flow
-  J_cot --> dp
-  J_cot --> cyc
-  J_cot --> rep
-  J_oi --> oi
-  J_cot --> oi
-  J_fnd --> oifnd
-${DEFS}
-  classDef vis fill:#172554,stroke:#3b82f6,color:#bfdbfe;
-  class W13,W23 scr;
-  class ARC,DB store;
-  class EXP proc;
-  class J_cot,J_mac,J_fnd,J_oi,J_sig json;
-  class ip,sig,gau,hm,flow,dp,cyc,rep,oi,oifnd vis;`;
-
-const NEWS = `flowchart LR
-  W11["1.1 News · 01:00<br/>RSS · B3 · CEPEA · Cooabriel · AJCA · World Bank"]
-  WEVT["build_events_calendar.py · manual<br/>WASDE · ICE FND · Cecafé · ICO · VN Customs"]
-  WHLTH["1.4 Export · 02:30<br/>per-scraper run timestamps"]
-  DB[(Postgres · news_feed)]
-  EXP{{"1.4 Export · 02:30"}}
-  SEED_EV[("backend/seed/events.json<br/>(mirrored to /public/data)")]
-  J_n[/news.json/]
-  J_e[/events.json/]
-  J_h[/health.json/]
-  fresh{{"Freshness Grid — 26 scraper chips,<br/>today-pulse, grouped by category"}}
-  cal{{"Upcoming Calendar — next 30d,<br/>ISO-week timeline, category icons"}}
-  risk{{"Risk Radar — 15 watched terms<br/>last-7d vs prior-23d velocity ↑↑/↑/→/↓"}}
-  hd{{"Headlines Digest — last 7d,<br/>OR-multi-select Focus chips (KC·RC·origins·Macro)"}}
-  WHLTH --> J_h --> fresh
-  WEVT --> SEED_EV --> J_e --> cal
-  W11 --> DB --> EXP --> J_n
-  J_n --> hd
-  J_n --> risk
-${DEFS}
-  classDef vis fill:#1a1a2e,stroke:#a78bfa,color:#ddd6fe;
-  class W11,WEVT,WHLTH scr;
-  class DB,SEED_EV store;
-  class EXP proc;
-  class J_n,J_e,J_h json;
-  class fresh,cal,risk,hd vis;`;
-
-const FREIGHT = `flowchart LR
-  W12["1.2 Freight · 02:00 daily<br/>Freightos containers"]
-  WDRY["Yahoo dry-bulk<br/>(BDRY proxy)"]
-  J_fr[/freight.json/]
-  J_fe[/farmer_economics.json · fertilizer.dry_bulk/]
-  ctx{{Freight Context Panel}}
-  rate{{Rate Evolution + Spot table}}
-  dry{{Dry Bulk Indicator}}
-  W12 --> J_fr
-  J_fr --> ctx
-  J_fr --> rate
-  WDRY --> J_fe --> dry
-${DEFS}
-  classDef vis fill:#082f49,stroke:#0ea5e9,color:#bae6fd;
-  class W12,WDRY scr;
-  class J_fr,J_fe json;
-  class ctx,rate,dry vis;`;
-
-const SUPPLY = `flowchart LR
-  W17["1.7 Cecafe daily · 09:00<br/>B3 · cecafe.com.br"]
-  W32["3.2 Cecafe export · 15th<br/>cecafe"]
-  W331["3.3.1 CONAB · 12th<br/>conab.gov.br"]
-  W332["3.3.2 BR Fertilizer · 12th<br/>Comex Stat"]
-  W333["3.3.3 VN Fertilizer · 12th<br/>VN Customs"]
-  W334["3.3.4 VN Coffee Exports · 12th<br/>VN Customs"]
-  W335["3.3.5 Uganda UCDA · 14th<br/>ugandacoffee.go.ug"]
-  WCNTRY["Origin supply<br/>ICO · USDA · customs<br/>(CO·VN·ET·HN·ID)"]
-  WFERT["Fertilizers · UN Comtrade · World Bank"]
-  WINTEL["manual intel"]
-  WWX["weather-fetch · daily<br/>forecast.open-meteo.com<br/>P · Tmax/Tmin · ET₀ · ESSM"]
-  WSPI["0.3 SPI baseline · one-shot<br/>archive.open-meteo.com 1995-24"]
-  WSPEI["0.4 SPEI baseline · one-shot<br/>archive 1995-24 (P + ET₀)"]
-  WVHI["0.5 NOAA STAR VHI · weekly<br/>get_TS_admin.php per province<br/>admin-1 text endpoint (no NetCDF)"]
-  WENSO["NOAA ENSO ONI · monthly<br/>cpc.ncep.noaa.gov"]
-  WENFC["ENSO forecast fallback chain<br/>IRI HTML → CPC discussion text<br/>9 rolling quarters · enso_forecast.py"]
-  WBFL["0.6/0.7 One-shot backfills<br/>backfill_missing_fields.py · backfill_history_gap.py<br/>heals rain/ET₀/2025-gap from archive"]
-  AGRO[["agronomic_alerts.py · end of 1.10<br/>IPHM rules: fungal rust · severe defoliation<br/>· brazil frost · blossom drop"]]
-  DB[(Postgres)]
-  EXP{{"1.4 Export · 02:30"}}
-  SEED_SPI[("spi_30yr_baselines.json")]
-  SEED_SPEI[("spei_30yr_baselines.json")]
-  SEED_VHI[("vhi_province_ids.json<br/>34/34 NOAA GADM admin-1 IDs")]
-  J_cecd[/cecafe_daily.json/]
-  J_cec[/cecafe.json/]
-  J_fe[/farmer_economics.json/]
-  J_fsell[/farmer_selling_brazil.json/]
-  J_vn[/vietnam_supply.json/]
-  J_vnfe[/vn_farmer_economics/]
-  J_vnwl[/vn_water_levels.json/]
-  J_vnw[/vn_weather.json/]
-  J_wx[/×7 origin weather.json<br/>+ spi_1/3 + spei_1/3/]
-  J_vhi[/×7 vhi_*.json<br/>weekly NOAA STAR VHI by province/]
-  J_agro[/agronomic_alerts.json<br/>+ AGRO rows merged into signals.json/]
-  J_co[/colombia_supply.json/]
-  J_et[/ethiopia_supply.json/]
-  J_hn[/honduras_supply.json/]
-  J_id[/indonesia_supply.json/]
-  J_ug[/uganda_supply.json/]
-  J_ferts[/global_fertilizers.json/]
-  J_intel[/manual_intel.json/]
-  J_enso[/enso.json/]
-  br{{BR Daily Registration}}
-  mv{{BR Monthly Volume}}
-  brexp{{BR Export Charts}}
-  bfe{{BR Farmer Economics}}
-  sell{{BR Farmer Selling}}
-  cec{{BR Monthly Exports}}
-  vnexp{{VN Export Explorer}}
-  vnbal{{VN Balance Sheet}}
-  vnfe{{VN Farmer Economics}}
-  vnwl{{VN Water Levels}}
-  vnw{{VN Weather}}
-  wx{{Weather charts · rain · temp · cum · forecast}}
-  soil{{Soil Moisture · ESSM}}
-  drought{{"Drought + vegetation indices panel · SPI / SPEI / VHI columns"}}
-  frost{{14-day Frost Risk grid · moved here from farmer-econ}}
-  agroAlert{{"Agronomic alerts canonical · used by /map ticker + /signals merge"}}
-  ensoSub{{ENSO subtab · forecast plume · analogs · risk map}}
-  coexp{{Colombia}}
-  et{{Ethiopia}}
-  hn{{Honduras}}
-  idn{{Indonesia}}
-  ug{{Uganda}}
-  fert{{Fertilizers}}
-  intel{{Manual Intel}}
-  W17 --> J_cecd
-  J_cecd --> br
-  J_cecd --> mv
-  J_cecd --> brexp
-  W32 --> J_cec --> cec
-  W331 --> DB
-  W332 --> DB
-  W335 --> DB
-  DB --> EXP
-  W333 --> EXP
-  W334 --> EXP
-  WCNTRY --> EXP
-  WFERT --> J_ferts
-  WINTEL --> J_intel
-  EXP --> J_fe
-  EXP --> J_fsell
-  EXP --> J_vn
-  EXP --> J_vnfe
-  EXP --> J_vnwl
-  EXP --> J_vnw
-  EXP --> J_enso
-  WSPI -.->|one-shot CI| SEED_SPI --> WWX
-  WSPEI -.->|one-shot CI| SEED_SPEI --> WWX
-  WBFL -.->|one-shot CI| WWX
-  WWX --> J_wx --> wx
-  J_wx --> soil
-  J_wx --> drought
-  WVHI --> SEED_VHI --> J_vhi
-  J_vhi --> drought
-  J_wx --> AGRO
-  J_vhi --> AGRO
-  AGRO --> J_agro --> agroAlert
-  J_fe --> frost
-  WENSO --> J_enso --> ensoSub
-  WENFC --> J_enso
-  J_fe --> bfe
-  J_fsell --> sell
-  J_vn --> vnexp
-  J_vn --> vnbal
-  J_vnfe --> vnfe
-  J_vnwl --> vnwl
-  J_vnw --> vnw
-  J_co --> coexp
-  J_et --> et
-  J_hn --> hn
-  J_id --> idn
-  J_ug --> ug
-  J_ferts --> fert
-  J_fe --> fert
-  J_vn --> fert
-  J_intel --> intel
-${DEFS}
-  classDef vis fill:#1a2e05,stroke:#84cc16,color:#d9f99d;
-  class W17,W32,W331,W332,W333,W334,W335,WCNTRY,WFERT,WINTEL,WWX,WSPI,WSPEI,WVHI,WENSO,WENFC,WBFL scr;
-  class DB,SEED_SPI,SEED_SPEI,SEED_VHI store;
-  class EXP,AGRO proc;
-  class J_cecd,J_cec,J_fe,J_fsell,J_vn,J_vnfe,J_vnwl,J_vnw,J_wx,J_vhi,J_agro,J_co,J_et,J_hn,J_id,J_ug,J_ferts,J_intel,J_enso json;
-  class br,mv,brexp,bfe,sell,cec,vnexp,vnbal,vnfe,vnwl,vnw,wx,soil,drought,frost,agroAlert,ensoSub,coexp,et,hn,idn,ug,fert,intel vis;`;
-
-const DEMAND = `flowchart LR
-  W3B["1.3b Slow-data · 1st/mo<br/>ECF stocks · USDA PSD · AJCA · UCDA"]
-  WPOP["Population/age · UN WPP · World Bank"]
-  W41["4.1 Earnings · quarterly · filings"]
-  W31["3.1 Kaffeesteuer · 1st/mo · DESTATIS"]
-  WMIX["manual / various"]
-  WICE_KCD["1.13 ICE Cert Stocks · 00:35 M-F + chain<br/>once-a-day guard<br/>Arabica xls (sheet 7)"]
-  WICE_KCA["1.14 ICE Arabica Ageing · day-1/mo<br/>coffee_aging_YYYYMMDD.xls"]
-  WICE_RC["ICE Robusta (in 1.13)<br/>stock_report_RC_YYYYMMDD_HHMMSS.csv<br/>+ age_allowance + gradings + iss_recv"]
-  HITS[("stock_report_hits.json<br/>observed publish seconds")]
-  T0{{"tier 0 · recorded second<br/>1 GET"}}
-  T1{{"tier 1 · top-10 ±2s"}}
-  T2{{"tier 2 · sweep 10:29-11:00<br/>3s/req · 96 min full walk<br/>resumable cursor"}}
-  MISS{{"sweep exhausted<br/>Telegram: missed, late release"}}
-  BF["0.19 operator backfill<br/>enter HHMMSS on Research"]
-  REC{{"hole recovery<br/>known time, no snapshot"}}
-  J_ipt[/ice_publish_times.json/]
-  icepub{{"Research · Admin<br/>publish-time calendar"}}
-  WICE_SPA["ICE SPA API (fallback)<br/>POST marketdata/api/reports/142/data<br/>{KC | RC} → warehouse + total"]
-  COH[["cohort_outflow.py<br/>per-cohort DNA from gradings<br/>+ DNA-coverage guard"]]
-  EXP{{"1.4 Export · 02:30"}}
-  J_stk[/demand_stocks.json/]
-  J_earn[/earnings.json/]
-  J_tax[/kaffeesteuer.json/]
-  J_mix[/factory_mix.json/]
-  J_csa[/"certified_stocks_arabica.json<br/>+ ageing_report (year-bands)"/]
-  J_csr[/certified_stocks_robusta.json<br/>+ monthly.implied_outflow<br/>+ monthly.current_by_origin/]
-  J_h[/health.json/]
-  stk{{"ICE/ECF Stocks"}}
-  ecf{{ECF Panel}}
-  psd{{PSD Analytical}}
-  jp{{"Japan / AJCA"}}
-  age{{Age Cohort}}
-  grow{{Growth Markets}}
-  world{{World Consumption}}
-  earn{{Roaster Earnings}}
-  tax{{"Kaffeesteuer (DE tax)"}}
-  mix{{Roasting Mix}}
-  tiles{{4-tile header per contract}}
-  period{{Period view drills · age-banded}}
-  sysflow{{"System Flow · warehouses · in/out/transit · cohort outflow"}}
-  fresh{{"Freshness chip strip (per-feed)"}}
-  W3B --> EXP
-  WPOP --> EXP
-  EXP --> J_stk
-  J_stk --> stk
-  J_stk --> ecf
-  J_stk --> psd
-  J_stk --> jp
-  J_stk --> age
-  J_stk --> grow
-  J_stk --> world
-  W41 --> J_earn --> earn
-  W31 --> J_tax --> tax
-  WMIX --> J_mix --> mix
-  WICE_KCD --> J_csa
-  WICE_KCA --> J_csa
-  WICE_RC --> T0 -->|miss| T1 -->|miss| T2
-  T2 --> J_csr
-  HITS --> T0
-  T2 -->|"records the second"| HITS
-  T2 -->|"no hit in window"| MISS --> icepub
-  icepub --> BF --> HITS
-  HITS --> REC --> J_csr
-  HITS --> J_ipt --> icepub
-  WICE_RC --> COH --> J_csr
-  WICE_SPA -.fallback / freshness probe.-> J_csa
-  WICE_SPA -.fallback / freshness probe.-> J_csr
-  J_csa --> tiles
-  J_csr --> tiles
-  J_csa --> period
-  J_csr --> period
-  J_csa --> sysflow
-  J_csr --> sysflow
-  J_h --> fresh
-  J_csa --> fresh
-  J_csr --> fresh
-${DEFS}
-  classDef vis fill:#451a03,stroke:#f59e0b,color:#fde68a;
-  class W3B,WPOP,W41,W31,WMIX,WICE_KCD,WICE_KCA,WICE_RC,WICE_SPA scr;
-  class COH proc;
-  class T0,T1,T2,REC proc;
-  class HITS store;
-  class EXP proc;
-  class J_stk,J_earn,J_tax,J_mix,J_csa,J_csr,J_h,J_ipt json;
-  class stk,ecf,psd,jp,age,grow,world,earn,tax,mix,tiles,period,sysflow,fresh,icepub vis;`;
-
-const MACRO = `flowchart LR
-  W19["1.9 Quant CCI · 21:30 M-F<br/>jsDelivr FX · yfinance"]
-  W12["1.2 Freight · 02:00<br/>Freightos · Yahoo"]
-  W23["2.3 COT · Fri 20:00 · CFTC"]
-  WORIG["Origin prices (1.1) · 01:00<br/>BCB·giacaphe·FNC·IHCAFE·UCDA·ECX·CEPEA"]
-  WCPI["US/Retail CPI · BLS · Eurostat · BCB"]
-  W33["3.3.1–3.3.3 CONAB + Fertilizer · 12th<br/>conab.gov.br · Comex · VN Customs"]
-  EXP{{"1.4 Export · 02:30"}}
-  J_mac[/macro_cot.json/]
-  J_q[/quant_report.json/]
-  J_fx[/fx_history.json/]
-  J_fr[/freight.json/]
-  J_cpi[/retail_cpi.json/]
-  J_uscpi[/us_cpi.json/]
-  J_fe[/farmer_economics.json/]
-  J_orig[/origin_prices_history.json/]
-  xc{{Cross-Commodity MM}}
-  cci{{Coffee Currency Index}}
-  fx{{FX Pair Time-Series}}
-  fr{{Freight Context}}
-  cpi{{Retail CPI}}
-  uscpi{{US CPI}}
-  fert{{Fertilizer Inputs}}
-  orig{{Origin Prices}}
-  W23 --> EXP
-  WCPI --> EXP
-  W33 --> EXP
-  WORIG --> EXP
-  EXP --> J_mac --> xc
-  EXP --> J_cpi --> cpi
-  EXP --> J_uscpi --> uscpi
-  EXP --> J_fe --> fert
-  EXP --> J_orig --> orig
-  W19 --> J_q --> cci
-  W19 --> J_fx --> fx
-  W12 --> J_fr --> fr
-${DEFS}
-  classDef vis fill:#042f2e,stroke:#14b8a6,color:#99f6e4;
-  class W19,W12,W23,WORIG,WCPI,W33 scr;
-  class EXP proc;
-  class J_mac,J_q,J_fx,J_fr,J_cpi,J_uscpi,J_fe,J_orig json;
-  class xc,cci,fx,fr,cpi,uscpi,fert,orig vis;`;
-
-const NEWSMAP = `flowchart LR
-  W22["2.2 Commodity prices · Tue 22:55<br/>Barchart"]
-  WPOLL["Acaphe poll · /15min<br/>acaphe.com"]
-  W11["1.1 News · 01:00<br/>RSS · B3 · CEPEA · Cooabriel · AJCA"]
-  W32["3.2 Cecafe export · 15th"]
-  W12["1.2 Freight · 02:00"]
-  WCNTRY["Origin supply (VN ports)"]
-  DB[(Postgres · news_feed)]
-  EXP{{"1.4 Export · 02:30"}}
-  SEED["seed/factories.json"]
-  SUP[/supply JSONs · CO·VN·UG·BR·…/]
-  J_lp[/latest_prices.json/]
-  J_aca[/acaphe_live.json/]
-  J_news[/news.json · static/]
-  J_ctry[/countries.json · static from supply/]
-  J_fact[/factories.json · static/]
-  J_cec[/cecafe.json/]
-  J_fr[/freight.json/]
-  J_vnx[/vn_export_destination_port/]
-  J_agro[/"agronomic_alerts.json<br/>(produced end of 1.10 weather run)"/]
-  base{{Coffee Map base}}
-  price{{Price labels}}
-  country{{Country pins + intel}}
-  factory{{Factory pins}}
-  exports{{Exports overlay}}
-  freight{{Freight overlay}}
-  vnport{{VN port-flow arrows}}
-  news{{"News Feed / Sidebar"}}
-  ticker{{"Agronomic Threats Ticker — top overlay<br/>country chips, severity sort, click→region detail"}}
-  W22 --> EXP --> J_lp --> price
-  WPOLL --> J_aca --> price
-  W11 --> DB --> EXP
-  EXP --> J_news
-  J_news --> country
-  J_news --> news
-  SUP --> J_ctry --> country
-  SEED --> J_fact --> factory
-  W32 --> J_cec --> exports
-  W12 --> J_fr --> freight
-  WCNTRY --> J_vnx --> vnport
-  J_agro --> ticker
-${DEFS}
-  classDef vis fill:#500724,stroke:#ec4899,color:#fbcfe8;
-  class W22,WPOLL,W11,W32,W12,WCNTRY,SEED,SUP scr;
-  class DB store;
-  class EXP proc;
-  class J_lp,J_aca,J_news,J_ctry,J_fact,J_cec,J_fr,J_vnx,J_agro json;
-  class base,price,country,factory,exports,freight,vnport,news,ticker vis;`;
-
-const GLOBAL = `flowchart LR
-  J_aca[/acaphe_live.json/]
-  J_lp[/latest_prices.json/]
-  J_orig[/origin_prices_history.json/]
-  J_cot[/cot.json/]
-  J_sig[/signals.json · quant + AGRO rows/]
-  J_ev[/events.json · seed/]
-  J_met[/origin weather JSON ×7 · drought gated by rain_hist_min/]
-  J_sup[/×N _supply.json · per-region rain_mtd/hist/]
-  J_fr[/freight.json/]
-  J_q[/quant_report.json/]
-  J_mac[/macro_cot.json/]
-  J_news[(news_feed)]
-  TICKER{{"Market Ticker — global band, every tab<br/>KC + RC live · FX"}}
-  TG{{"Telegram morning brief · 03:00<br/>9 sections + 'Coming up · next 24h'<br/>weather alerts gated by seasonal baseline<br/>/cot appends per-rule signals listing"}}
-  J_aca --> TICKER
-  J_lp --> TICKER
-  J_aca --> TG
-  J_lp --> TG
-  J_orig --> TG
-  J_cot --> TG
-  J_sig --> TG
-  J_ev -->|next 24h| TG
-  J_sup --> TG
-  J_met --> TG
-  J_fr --> TG
-  J_q --> TG
-  J_mac --> TG
-  J_news --> TG
-${DEFS}
-  classDef vis fill:#083344,stroke:#22d3ee,color:#a5f3fc;
-  class J_aca,J_lp,J_orig,J_cot,J_sig,J_ev,J_met,J_sup,J_fr,J_q,J_mac,J_news json;
-  class TICKER,TG vis;`;
-
-const TAB_DIAGRAMS: Array<{ title: string; chart: string }> = [
-  { title: "News (Daily Brief)", chart: NEWS },
-  { title: "Futures Exchange", chart: FUTURES },
-  { title: "COT", chart: COT },
-  { title: "Freight", chart: FREIGHT },
-  { title: "Supply (incl. Weather + ENSO subtab)", chart: SUPPLY },
-  { title: "Demand (incl. Certified Stocks)", chart: DEMAND },
-  { title: "Macro", chart: MACRO },
-  { title: "Map", chart: NEWSMAP },
-  { title: "Global — Ticker & Telegram brief", chart: GLOBAL },
-];
-
-// Per-workflow operational metadata. The first four fields (wf, output,
-// component, visual) describe what trader-facing value the flow produces;
-// the optional five-group blocks below describe the OPS reality — when,
-// where, how, what-if-it-breaks, and what-it-costs. Designed for the
-// "if Cecafé's Akamai posture changes overnight, what do I check first"
-// question.
-//
-// All ops blocks are optional; "TBD" surfaces unfilled slots in the UI
-// rather than hiding them, so the audit gap is visible.
-type TriggerType = "cron" | "manual" | "edge" | "composite" | "tbd";
-
-interface FlowMetadata {
-  // ── Trader-facing summary (always populated) ───────────────────────────
-  wf: string;          // Workflow name / id, e.g. "1.13 ICE Certified Stocks"
-  output: string;      // What it writes (JSON path or "—" for compute-only)
-  component: string;   // Frontend / handler consumer
-  visual: string;      // User-facing surface description
-
-  // ── 1. Timing & Cadence — the "when" ───────────────────────────────────
-  cadence?: {
-    recurrence?: string;     // e.g. "Daily 17:00 UTC Mon-Fri"
-    window?: string;         // Active execution window if any, e.g. "Market hrs 09:00-20:00 UTC"
-    trigger?: TriggerType;   // cron | manual | edge | composite
-  };
-
-  // ── 2. Sourcing & Transport — the "where & how" ───────────────────────
-  transport?: {
-    provider?: string;       // e.g. "ICE Portal", "Open-Meteo", "CECAFÉ"
-    method?: string;         // e.g. "Direct API GET", "BeautifulSoup HTML parse", "PDF extract"
-    bypass?: string;         // Armor: e.g. "browser headers", "Akamai-friendly UA", "none"
-  };
-
-  // ── 3. Output & State — the "destination" ─────────────────────────────
-  storage?: {
-    target?: string;         // Same as `output` but normalized for filtering
-    footprint?: string;      // e.g. "~2KB capped at 14d", "~150KB monthly"
-    units?: string;          // Critical for ambiguous data: e.g. "60kg bags (KC) / 10MT lots (RC)"
-  };
-
-  // ── 4. Resiliency & Fallbacks — the "safety net" ──────────────────────
-  resiliency?: {
-    onMissing?: string;      // e.g. "keep last good JSON", "fail-closed", "use SPI baseline"
-    debounce?: string;       // Alert flap rule: e.g. "2 consecutive days before Telegram ping"
-    parserFallback?: string; // e.g. "regex extraction if structured JSON fails"
-  };
-
-  // ── 5. Compute & Cost — the "budget" ──────────────────────────────────
-  runtime?: {
-    duration?: string;       // Average run time, e.g. "~5s API", "~45s Playwright"
-    cost?: string;           // CI minutes / month, e.g. "~10 min/mo"
-  };
-}
-
-const ROWS: FlowMetadata[] = [
-  {
-    wf: "1.3 Daily OI", output: "oi_history.json", component: "OIHistoryTable", visual: "Futures · OI 14-day table (+ COT §2)",
-    cadence: { recurrence: "02:00 UTC Mon-Fri", trigger: "cron" },
-    transport: { provider: "Barchart core-api", method: "Direct API GET", bypass: "browser-shaped headers" },
-    storage: { target: "oi_history.json (14d slice) + contract_prices_archive.json (5y)", footprint: "~50KB rolling + ~5MB archive", units: "lots (RC) / contracts (KC)" },
-    resiliency: { onMissing: "keep 5y archive untouched; rolling view rebuilds next run" },
-    runtime: { duration: "~30s" },
-  },
-  {
-    wf: "1.3 Daily OI", output: "oi_fnd_chart.json", component: "OIFndChart", visual: "Futures + COT · OI Evolution to FND",
-    cadence: { recurrence: "02:00 UTC Mon-Fri", trigger: "cron" },
-    transport: { provider: "Barchart core-api", method: "derived from contract_prices_archive.json" },
-    storage: { target: "oi_history.json (14d slice) + contract_prices_archive.json (5y)" },
-    resiliency: { onMissing: "render last good archive snapshot" },
-  },
-  {
-    wf: "1.3 → 2.3 rebuild", output: "cot.json price", component: "Step4IndustryPulse", visual: "COT · Industry Pulse — price + switch dots",
-    cadence: { recurrence: "weekly: 1.3 daily M-F → 2.3 max-OI rebuild Fri 20:00 UTC", trigger: "composite" },
-    transport: { provider: "Barchart + CFTC", method: "max-OI synthesis across the rolling archive" },
-    storage: { target: "cot.json (312-week window)", units: "lots / Mgmd-Money net + Producer net" },
-  },
-  {
-    wf: "1.1 Daily News", output: "news_feed / country_intel", component: "/api/news · CoffeeMap", visual: "Map · news labels / country intel",
-    cadence: { recurrence: "01:00 UTC daily", trigger: "cron" },
-    transport: { provider: "RSS + B3 + CEPEA + Cooabriel + AJCA + World Bank", method: "RSS + BeautifulSoup HTML parse" },
-    storage: { target: "Postgres news_feed → news.json export", footprint: "~80KB" },
-    resiliency: { onMissing: "per-source failures logged; rest of run proceeds" },
-  },
-  {
-    wf: "1.2 Freight", output: "freight.json", component: "FreightContextPanel", visual: "Macro · Freight Context",
-    cadence: { recurrence: "02:00 UTC daily (09:00 Vietnam)", trigger: "cron" },
-    transport: { provider: "Freightos containers + Yahoo dry-bulk", method: "Direct API GET" },
-    storage: { target: "freight.json", units: "$/FEU containers + BDRY proxy" },
-    runtime: { duration: "~5s" },
-  },
-  {
-    wf: "1.4 Export & Publish", output: "all static JSON", component: "—", visual: "plumbing — feeds every JSON visual",
-    cadence: { recurrence: "02:30 UTC daily", trigger: "cron" },
-    transport: { provider: "Postgres + caches", method: "composite re-export from DB" },
-    storage: { target: "frontend/public/data/*.json + health.json" },
-    runtime: { duration: "~3 min" },
-  },
-  {
-    wf: "1.5 Fresh check", output: "—", component: "—", visual: "Telegram alert only",
-    cadence: { recurrence: "07:00 UTC daily (3h after 1.4)", trigger: "cron" },
-    transport: { method: "scan health.json freshness diff" },
-    resiliency: { onMissing: "Telegram ping per stale feed", debounce: "fires daily as long as stale (no cool-down yet)" },
-  },
-  {
-    wf: "Per-source Telegram alerts", output: "reads published JSON", component: "scraper/topic_notify_daily.py", visual: "Telegram — one text per source (1.6 brief retired 2026-08-14; /brief still on demand)",
-    cadence: { recurrence: "03:00 UTC daily", trigger: "cron" },
-    transport: { provider: "composite of all static JSONs", method: "compose-from-disk" },
-    storage: { target: "Telegram channel post (not persisted)" },
-    resiliency: { onMissing: "section omitted silently if its JSON is absent" },
-  },
-  {
-    wf: "1.7 Cecafe Daily", output: "cecafe_daily.json", component: "DailyRegistration", visual: "Supply · Brazil · Daily Registration",
-    cadence: { recurrence: "09:00 + 13:00 + 17:00 UTC (3 spread attempts/day)", trigger: "cron" },
-    transport: { provider: "cecafe.com.br", method: "BeautifulSoup HTML + regex on TOTAIS row (requests after PR #149)", bypass: "Chrome-shaped UA + Accept-Language pt-BR" },
-    storage: { target: "cecafe_daily.json", units: "60kg bags (arabica + conillon + soluvel)" },
-    resiliency: { onMissing: "keep last good JSON; CecafeUnreachable surfaces TCP failures as distinct from parser bugs", parserFallback: "8-col TOTAIS row when 12-col layout drops" },
-    runtime: { duration: "~10s per attempt; ~10min full retry window" },
-  },
-  {
-    wf: "1.9 Quant CCI", output: "quant_report.json", component: "CurrencyIndexSection", visual: "Macro · Coffee Currency Index",
-    cadence: { recurrence: "21:30 UTC Mon-Fri (post US close)", trigger: "cron" },
-    transport: { provider: "jsDelivr FX CDN", method: "Direct API GET" },
-    storage: { target: "quant_report.json", units: "weighted currency-basket index" },
-    resiliency: { onMissing: "Robusta sentiment/factors decoupled; can fail independently" },
-  },
-  {
-    wf: "1.16 Open-Direction Log", output: "quant_report.json (open_direction) + open_direction_history.json + open_direction_wf_analysis.json",
-    component: "PriceDirectionSection / OpenDirectionCalendar / OpenDirectionRecord", visual: "Macro · Open Price Direction + Track Record; Research · walk-forward record",
-    cadence: { recurrence: "03:00 UTC Mon-Fri (pre-open; brief chains on completion)", trigger: "cron" },
-    transport: { provider: "intraday_kc_rc_15min + fx snapshots", method: "logistic model, exact SHAP" },
-    storage: { target: "open_direction_history.json", footprint: "append-only prediction log", units: "overnight-gap direction + prob" },
-    resiliency: { onMissing: "panel shows UNAVAILABLE; history rows stay pending until resolvable" },
-  },
-  {
-    wf: "1.19 Sucafina Reports", output: "sucafina_reports.json", component: "OriginReportsPanel", visual: "News · Weekly notes from origin",
-    cadence: { recurrence: "Thu 06:23 UTC weekly (Sat backstop)", trigger: "cron" },
-    transport: { provider: "sucafina.com (Playwright) + Kontent CDN", method: "date links → PDF → pdfplumber → per-origin sections" },
-    storage: { target: "sucafina_reports.json", footprint: "last 30 weeks", units: "per-origin market notes" },
-    resiliency: { onMissing: "panel hidden until first run; unparsed weeks ship raw text + PDF link" },
-  },
-  {
-    wf: "1.16 Open-Direction Log", output: "fx_intraday_snapshots.json", component: "(model input)", visual: "feeds cci_overnight feature",
-    cadence: { recurrence: "03:00 UTC Mon-Fri (non-blocking step)", trigger: "cron" },
-    transport: { provider: "Barchart queryminutes (Playwright)", method: "15-min FX bars → 17:30-London + 03:00-UTC anchors" },
-    storage: { target: "fx_intraday_snapshots.json", footprint: "~500 days, 12 CCI pairs", units: "FX rate anchors per day" },
-    resiliency: { onMissing: "cci_overnight stays dormant; model runs on kc_after + days_since_roll" },
-  },
-  {
-    wf: "1.9 Quant CCI", output: "fx_history.json", component: "FxTimeSeriesPanel", visual: "Macro · FX Pair Time-Series",
-    cadence: { recurrence: "21:30 UTC Mon-Fri", trigger: "cron" },
-    transport: { provider: "jsDelivr FX CDN", method: "Direct API GET" },
-    storage: { target: "fx_history.json", footprint: "365-day per-pair history", units: "USD-quoted FX for 12 pairs (5 exporters + 7 importers)" },
-  },
-  {
-    wf: "Acaphe poll", output: "acaphe_live.json", component: "AcapheLiveQuotes", visual: "Futures · Daily Live Quotes",
-    cadence: { recurrence: "every 15 min", window: "08:00–19:45 UTC Mon-Fri (Brazil market hrs)", trigger: "cron" },
-    transport: { provider: "acaphe.com", method: "Direct API GET" },
-    storage: { target: "acaphe_live.json", footprint: "<5KB", units: "¢/lb KC + $/MT RC live mid" },
-    runtime: { duration: "~3s" },
-  },
-  {
-    wf: "1.20 Traded tape", output: "tradespread.json", component: "TradedTapePanel", visual: "Futures · Traded Tape",
-    cadence: {
-      recurrence: "18:50 UTC Mon-Fri (one run per session)",
-      window: "after both settles — 14:50 ET in EDT, 13:50 ET in EST",
-      trigger: "cron",
-    },
-    transport: { provider: "acaphe.com", method: "Playwright login → 6 tick panels + 2 spread panels + iquote board" },
-    storage: {
-      target: "tradespread.json (summary) + tradespread_archive.json (full tape, 400 sessions)",
-      units: "per contract: first tick, +15 min, price at the 17:30 London bell, "
-           + "last trade, settlement, close − settle, lifted/hit lots, VWAP up/down, pressure",
-    },
-    resiliency: {
-      onMissing: "the board (iquote) fails independently of the tape — settle fields go null "
-               + "and the tick stats still store. Absorbed workflow 0.2 (KC at RC close), which "
-               + "polled a live snapshot 8×/weekday for one instant the tape already timestamps.",
-    },
-  },
-  {
-    wf: "1.98 Intraday KC/RC", output: "intraday_kc_rc_15min.json", component: "open-direction model", visual: "Futures · model inputs (not a panel)",
-    cadence: { recurrence: "20:13 UTC Mon-Fri", trigger: "cron" },
-    transport: { provider: "Barchart", method: "Playwright → 15-min bars, volume-stitched front contract" },
-    storage: {
-      target: "intraday_kc_rc_15min.json",
-      footprint: "~1,500 sessions",
-      units: "RC open/09:15/16:30/17:30, KC 17:30/18:30, both settles — the anchors behind kc_after_rc_diff",
-    },
-  },
-  {
-    wf: "1.22 Slow-data", output: "demand_stocks.json", component: "StocksPanel", visual: "Demand · Stocks (ICE cert + PSD)",
-    cadence: { recurrence: "03:00 UTC on the 1st of each month", trigger: "cron" },
-    transport: { provider: "ECF + USDA PSD + AJCA + UCDA", method: "various per-source scrapers" },
-    storage: { target: "demand_stocks.json (composite)" },
-    resiliency: { onMissing: "per-source failure isolation; previous month's data retained" },
-  },
-  {
-    wf: "2.2 Commodity Prices", output: "latest_prices.json", component: "CoffeeMap", visual: "Map · price labels + ticker",
-    cadence: { recurrence: "22:55 UTC Tuesdays", trigger: "cron" },
-    transport: { provider: "Barchart", method: "Direct API GET" },
-    storage: { target: "latest_prices.json", units: "spot ¢/lb + $/MT for KC + RC" },
-  },
-  {
-    wf: "2.3 COT + rebuild", output: "cot.json", component: "Step1/4/5/6/7/8", visual: "COT · Signals, Gauges, Heatmap, Global Flow, Industry Pulse, Dry Powder, Cycle, Report",
-    cadence: { recurrence: "20:00 UTC Friday (CFTC publish window)", trigger: "cron" },
-    transport: { provider: "CFTC disagg report", method: "ZIP+CSV download" },
-    storage: { target: "cot.json", footprint: "312 weeks of disagg positions", units: "lots / MM-long, MM-short, PMPU-long, PMPU-short …" },
-    resiliency: { onMissing: "previous week's data retained; signals re-compute from cot.json on next run" },
-  },
-  {
-    wf: "2.3 COT + rebuild", output: "macro_cot.json", component: "CrossCommodityPanel", visual: "Macro · Cross-Commodity MM",
-    cadence: { recurrence: "20:00 UTC Friday", trigger: "cron" },
-    transport: { provider: "CFTC disagg report", method: "ZIP+CSV download (multi-commodity slice)" },
-    storage: { target: "macro_cot.json", units: "MM net per commodity (coffee, sugar, cocoa, …)" },
-  },
-  {
-    wf: "2.3 COT + rebuild", output: "signals.json", component: "morning_brief · /cot Telegram", visual: "Telegram · CoT signals",
-    cadence: { recurrence: "rebuilt end of 1.4 (02:30 UTC) from latest cot.json", trigger: "composite" },
-    transport: { method: "in-process signal-engine evaluation (frontend/scripts/export-signals.mjs)" },
-    storage: { target: "signals.json", units: "rules with severity (info|watch|alert|critical) + score + magnitude" },
-  },
-  {
-    wf: "3.1 Kaffeesteuer", output: "kaffeesteuer.json", component: "KaffeesteuerChart", visual: "Demand · Kaffeesteuer (DE tax)",
-    cadence: { recurrence: "08:00 UTC on the 1st of each month", trigger: "cron" },
-    transport: { provider: "DESTATIS", method: "PDF parse" },
-    storage: { target: "kaffeesteuer.json", units: "€ tax revenue" },
-  },
-  {
-    wf: "3.2 Cecafe Export", output: "cecafe.json", component: "CoffeeMap", visual: "Map · Brazil monthly exports",
-    cadence: { recurrence: "08:00 UTC on the 15th of each month", trigger: "cron" },
-    transport: { provider: "cecafe.com.br", method: "BeautifulSoup HTML + table extract", bypass: "Chrome-shaped UA" },
-    storage: { target: "cecafe.json", units: "60kg bags monthly exports + per-destination split" },
-  },
-  {
-    wf: "3.3.1 CONAB", output: "farmer_economics.json", component: "FarmerSellingPanel", visual: "Supply · Brazil Farmer Economics",
-    cadence: { recurrence: "02:00 UTC on the 12th of each month", trigger: "cron" },
-    transport: { provider: "conab.gov.br", method: "PDF parse + Safras echo" },
-    storage: { target: "farmer_economics.json (CONAB block)", units: "% sold + R$ cost components" },
-  },
-  {
-    wf: "3.3.2 BR Fertilizer", output: "farmer_economics.json", component: "FertilizerInputsPanel", visual: "Macro · Fertilizer Inputs (Brazil)",
-    cadence: { recurrence: "03:00 UTC on the 12th of each month", trigger: "cron" },
-    transport: { provider: "Comex Stat", method: "Direct API GET" },
-    storage: { target: "farmer_economics.json (.fertilizer block)", units: "tonnes + USD imports per nutrient" },
-  },
-  {
-    wf: "3.3.3 VN Fertilizer", output: "vn_fertilizer.json", component: "VnFarmerEconomics", visual: "Supply · VN Farmer Economics (fertilizer cost)",
-    cadence: { recurrence: "04:00 UTC on the 12th of each month", trigger: "cron" },
-    transport: { provider: "Vietnam Customs", method: "HTML scrape" },
-    storage: { target: "vn_fertilizer.json", units: "tonnes + VND/USD imports" },
-  },
-  {
-    wf: "3.3.4 VN Coffee Exports", output: "vn_coffee_export.json → vietnam_supply.json", component: "VnExportExplorer · VnBalanceSheet", visual: "Supply · VN Export Explorer + Balance Sheet",
-    cadence: { recurrence: "04:30 UTC on the 12th of each month", trigger: "cron" },
-    transport: { provider: "Vietnam Customs (GSO)", method: "HTML scrape" },
-    storage: { target: "vn_coffee_export.json + vietnam_supply.json", units: "60kg bags + tonnes by destination" },
-  },
-  {
-    wf: "3.3.5 Uganda UCDA", output: "uganda_supply.json", component: "UgandaTab", visual: "Supply · Uganda (exports, split, grades, destinations)",
-    cadence: { recurrence: "02:00 UTC on the 14th of each month (mid-month publish)", trigger: "cron" },
-    transport: { provider: "ugandacoffee.go.ug", method: "BeautifulSoup HTML + table extract" },
-    storage: { target: "uganda_supply.json", units: "60kg bags + by-grade splits" },
-  },
-  {
-    wf: "4.1 Earnings", output: "earnings.json", component: "EarningsTable", visual: "Demand · Roaster Earnings",
-    cadence: { recurrence: "08:00 UTC on the 15th of Feb/May/Aug/Nov (post-quarter)", trigger: "cron" },
-    transport: { provider: "10-K / 10-Q filings", method: "manual + filings scrape" },
-    storage: { target: "earnings.json", units: "USD revenue / volumes per roaster" },
-  },
-  {
-    wf: "various / manual", output: "factory_mix.json", component: "RoastingMixPanel", visual: "Demand · Roasting Mix",
-    cadence: { trigger: "manual" },
-    transport: { method: "manual / industry estimates" },
-    storage: { target: "factory_mix.json" },
-  },
-  {
-    wf: "various / manual", output: "global_fertilizers.json", component: "FertilizersTab", visual: "Supply · Fertilizers",
-    cadence: { trigger: "manual" },
-    transport: { provider: "UN Comtrade + World Bank", method: "manual aggregation" },
-    storage: { target: "global_fertilizers.json" },
-  },
-  {
-    wf: "various / manual", output: "manual_intel.json", component: "ManualIntelPanel", visual: "Supply · Manual Intel",
-    cadence: { trigger: "manual" },
-    transport: { method: "hand-curated entries" },
-    storage: { target: "manual_intel.json" },
-  },
-  {
-    wf: "various / manual", output: "retail_cpi.json", component: "RetailCpiPanel", visual: "Macro · Retail CPI",
-    cadence: { recurrence: "monthly post-publish (BLS / Eurostat / BCB)", trigger: "manual" },
-    transport: { provider: "BLS + Eurostat + BCB", method: "manual fetch + paste" },
-    storage: { target: "retail_cpi.json", units: "YoY % coffee CPI per geography" },
-  },
-  {
-    wf: "1.1 News → 1.4 Export", output: "us_cpi.json", component: "UsCpiPanel", visual: "Macro · Inflation · US CPI",
-    cadence: { recurrence: "monthly post-publish (BLS CPI-U release)", trigger: "cron" },
-    transport: { provider: "US BLS (CPI-U)", method: "BLS public API fetch" },
-    storage: { target: "us_cpi.json", units: "YoY % headline/core/food/energy CPI" },
-  },
-  {
-    wf: "various / manual", output: "origin_prices_history.json", component: "OriginPricesPanel", visual: "Macro · Origin Prices",
-    cadence: { trigger: "manual" },
-    transport: { method: "manual / aggregated origin sources" },
-    storage: { target: "origin_prices_history.json", units: "¢/lb FOB differentials per origin" },
-  },
-  {
-    wf: "various / manual", output: "*_supply.json (CO·ET·HN·ID)", component: "country tabs", visual: "Supply · country pages + Map (UG now via 3.3.5)",
-    cadence: { trigger: "manual" },
-    transport: { method: "country-specific manual updates" },
-    storage: { target: "colombia/ethiopia/honduras/indonesia_supply.json" },
-  },
-  // ── Added in the last 10 days ────────────────────────────────────────────
-  {
-    wf: "1.13 ICE Certified Stocks", output: "certified_stocks_arabica.json + …robusta.json", component: "CertifiedStocksPanel · CertifiedStocksSystemFlow",
-    visual: "Demand · Tiles + Period view + System flow + Freshness chips",
-    cadence: {
-      recurrence: "00:35 UTC Tue-Sat cron + chained off 1.1, once-a-day guard",
-      window: "anchors the previous business day; ICE robusta publishes 10:25-12:50 UTC, "
-        + "97% of it inside the swept 10:29-11:00",
-      trigger: "composite",   // 00:35 cron + workflow_run chain off 1.1
-    },
-    transport: {
-      provider: "ICE marketdata (10 source feeds)",
-      method: "Direct API GET (XLS + PDF + CSV), 5s/req — /marketdata/ 429s ANY concurrency",
-      bypass: "browser-shaped UA + Referer chain",
-    },
-    storage: {
-      target: "certified_stocks_arabica.json + certified_stocks_robusta.json",
-      footprint: "~200KB combined",
-      units: "60kg bags (KC) / 10MT lots (RC) — both surfaced",
-    },
-    resiliency: {
-      onMissing:
-        "The robusta CSV is stamped with the exact SECOND it was generated and there is no "
-        + "index, so it has to be guessed: tier 0 tries the second already recorded for that "
-        + "date (1 GET), tier 1 the ten most frequent ±2s, tier 2 sweeps 10:29-11:00 at 3s/req "
-        + "and saves a cursor so a run killed by the 120-min timeout resumes rather than "
-        + "restarting. That window is narrow ON PURPOSE — 1,920 candidates is a 96-min full "
-        + "walk that fits the timeout, so 'found nothing' is a real answer rather than 'ran out "
-        + "of time'; it covers 97% of sessions and the rest are announced, not hidden. A sweep "
-        + "that exhausts the window posts 'missed, late release' to Telegram and the day is "
-        + "listed as pending on Research · Admin, where entering the second dispatches 0.19. "
-        + "ICE retains historical reports (probe 0.18), so a missed day stays recoverable: any "
-        + "date with a known time but no snapshot is re-fetched, ≤20/run.",
-      parserFallback: "XLS-first → PDF fallback when ICE varies the daily file format",
-    },
-    runtime: {
-      duration: "~8 min when the day's second is known; up to the 120-min cap on a cold sweep",
-      cost: "was ~49% of all Actions minutes before the once-a-day guard and tier 0",
-    },
-  },
-  {
-    wf: "1.14 ICE Arabica Ageing (monthly)", output: "certified_stocks_arabica.json.ageing_report", component: "ArabicaPeriodTable",
-    visual: "Demand · Stocks drill Age (0Y/1Y/2Y/3Y/>4Y) → Group → Origin",
-    cadence: { recurrence: "14:00 UTC on the 1st of each month", trigger: "cron" },
-    transport: { provider: "ICE marketdata (KC ageing report)", method: "PDF parse (pdfplumber)" },
-    storage: { target: "certified_stocks_arabica.json.ageing_report block", units: "60kg bags by age bucket × origin × warehouse group" },
-    resiliency: { onMissing: "previous month's ageing block retained" },
-    runtime: { duration: "~30s" },
-  },
-  {
-    wf: "cohort_outflow (inline 1.13)", output: "certified_stocks_robusta.json.monthly.{implied_outflow, current_by_origin}", component: "CertifiedStocksSystemFlow",
-    visual: "Demand · Robusta per-origin in/out/lost/transit (cohort DNA + coverage guard)",
-    cadence: { recurrence: "after each 1.13 run (effectively daily M-F)", trigger: "composite" },
-    transport: { method: "in-process derivation from age-allowance + grading + tender feeds" },
-    storage: { target: "certified_stocks_robusta.json.monthly.implied_outflow + .current_by_origin", units: "10MT lots / per-origin in-flow vs out-flow vs in-transit" },
-    resiliency: { onMissing: "coverage guard refuses to publish when any source feed missing — readers see last good cohort instead of a half-built one" },
-  },
-  {
-    wf: "retired · SPI baseline (one-shot)", output: "spi_30yr_baselines.json", component: "fetch_origin_weather + WeatherCharts",
-    visual: "Supply · Weather · Drought Indices (SPI-1 / SPI-3)",
-    cadence: { recurrence: "one-shot (workflow_dispatch)", trigger: "manual" },
-    transport: { provider: "Open-Meteo ERA5 archive (1991-2020 baseline)", method: "Direct API GET per province" },
-    storage: { target: "backend/seed/spi_30yr_baselines.json", footprint: "~50KB seed", units: "monthly precip μ + σ per province × calendar month" },
-    runtime: { duration: "~10 min full backfill across all provinces" },
-  },
-  {
-    wf: "retired · SPEI baseline (one-shot)", output: "spei_30yr_baselines.json", component: "fetch_origin_weather + WeatherCharts",
-    visual: "Supply · Weather · Drought Indices (SPEI = D vs 30y, D = P − ET₀)",
-    cadence: { recurrence: "one-shot (workflow_dispatch)", trigger: "manual" },
-    transport: { provider: "Open-Meteo ERA5 (precip + et0_fao_evapotranspiration)", method: "Direct API GET" },
-    storage: { target: "backend/seed/spei_30yr_baselines.json", footprint: "~80KB seed", units: "monthly (P − ET₀) μ + σ per province" },
-    resiliency: { onMissing: "0.6 + 0.7 backfill workflows heal gaps in source weather_history before this rebuilds" },
-    runtime: { duration: "~15 min full backfill" },
-  },
-  {
-    wf: "/enso → /supply subtab", output: "enso.json", component: "SupplyEnsoTab",
-    visual: "Supply · ENSO subtab (PhaseSummary + ForecastPlume + AnalogChart + RiskMap)",
-    cadence: { recurrence: "rebuilt with the monthly ENSO scraper (~5th of each month)", trigger: "cron" },
-    transport: { provider: "NOAA CPC + IRI + composite analogs", method: "Direct API GET + computed" },
-    storage: { target: "enso.json", footprint: "~30KB", units: "ONI °C + phase + plume bands" },
-    resiliency: { onMissing: "PR #127's IRI fallback handles CPC outages (still under investigation per issue #132 comment-11)" },
-  },
-  {
-    wf: "EnsoPanel + WeatherRiskPanel relocation", output: "farmer_economics.json {.enso, .weather}", component: "WeatherCharts (farmerEconomicsUrl)",
-    visual: "Supply · Brazil · Weather subtab (was: Farmer Economics)",
-    cadence: { recurrence: "follows farmer_economics.json rebuild (12th monthly)", trigger: "cron" },
-    transport: { method: "frontend re-route only — data path unchanged" },
-    storage: { target: "farmer_economics.json (existing) re-surfaced under Weather subtab" },
-  },
-  {
-    wf: "build_events_calendar.py", output: "events.json (seed + /public mirror)", component: "UpcomingCalendar",
-    visual: "News · Coming up next 30 days (ISO-week timeline)",
-    cadence: { recurrence: "rebuilt on every backend deploy + nightly export 1.4", trigger: "composite" },
-    transport: { method: "compose from CFTC/USDA/ICE/CONAB known publish calendars" },
-    storage: { target: "backend/seed/events.json → frontend/public/data/events.json mirror", footprint: "~10KB", units: "calendar events {date, source, label, importance}" },
-  },
-  {
-    wf: "1.1 News (existing)", output: "news.json", component: "HeadlinesDigest + RiskRadar",
-    visual: "News · Filtered headlines digest · keyword-velocity radar",
-    cadence: { recurrence: "01:00 UTC daily (same as 1.1)", trigger: "cron" },
-    transport: { method: "frontend re-use of existing news_feed → news.json export" },
-    storage: { target: "news.json (already produced by 1.1)" },
-  },
-  {
-    wf: "1.4 Export (existing)", output: "health.json", component: "FreshnessGrid",
-    visual: "News · 'What changed since yesterday' chip grid (26 feeds, today pulse)",
-    cadence: { recurrence: "02:30 UTC daily (piggybacks on 1.4)", trigger: "cron" },
-    transport: { method: "frontend re-use of health.json with cadence-aware thresholds per feed" },
-    storage: { target: "health.json (already produced by 1.4) — consumed client-side", units: "per-feed last-success ISO + threshold-relative tone" },
-    resiliency: { onMissing: "grid renders 'Freshness signal unavailable' instead of stale grey-out" },
-  },
-  // ── Added this sprint (Phase 5 Path A + Sprint 2) ────────────────────────
-  {
-    wf: "0.5 NOAA STAR VHI (weekly, Sat 23:00)", output: "vhi_{origin}.json ×7", component: "WeatherCharts (VHI column in Drought + vegetation panel)",
-    visual: "Supply · Weather · VHI chip per province · stress<40 / fair 40-60 / healthy>60",
-    cadence: { recurrence: "23:00 UTC Saturday (after NOAA's Sat publish)", trigger: "cron" },
-    transport: { provider: "NOAA STAR VHI service", method: "Direct API GET per province (latin-1 header guards added PR #147)" },
-    storage: { target: "weather_history/vhi_{br,co,ho,et,vn,id,ug}.json ×7", footprint: "~20KB/origin", units: "VHI 0-100 by province × week" },
-    resiliency: { onMissing: "per-origin .errors[] populated, rest of run continues; future-proofing watch on Sidama (#132-c1-20)" },
-    runtime: { duration: "~2 min per Saturday run" },
-  },
-  {
-    wf: "0.4 backfill_missing_fields (one-shot)", output: "weather_history/*.json (rain + et0 + tmean heal)", component: "(internal: unblocks SPEI emit when forecast endpoint truncates et0/rain)",
-    visual: "—",
-    cadence: { recurrence: "one-shot (workflow_dispatch)", trigger: "manual" },
-    transport: { provider: "Open-Meteo ERA5 archive", method: "Direct API GET — re-fetches days where forecast endpoint dropped et0/rain/tmean" },
-    storage: { target: "weather_history/*.json fields healed in place" },
-  },
-  {
-    wf: "retired · backfill_history_gap (one-shot)", output: "weather_history/*.json (2025 gap fill)", component: "(internal: unblocks SPEI-3 by making seed↔history contiguous)",
-    visual: "—",
-    cadence: { recurrence: "one-shot (workflow_dispatch)", trigger: "manual" },
-    transport: { provider: "Open-Meteo ERA5 archive", method: "Direct API GET window: seed_end → today" },
-    storage: { target: "weather_history/*.json (filled 2025 gap so SPEI-3 has a continuous 3-month look-back)" },
-  },
-  {
-    wf: "Agronomic Alert Engine (Phase 5 Path A · end of 1.10)", output: "agronomic_alerts.json + AGRO rows in signals.json", component: "AgronomicTicker",
-    visual: "Map · Live Agronomic Threats top overlay · country chips · click→region detail",
-    cadence: { recurrence: "after each weather refresh (daily) + Saturday VHI run", trigger: "composite" },
-    transport: { method: "rule engine over weather_history + VHI + SPI/SPEI baselines" },
-    storage: { target: "agronomic_alerts.json + 6 AGRO rows appended to signals.json", units: "rule rows with severity (info|watch|alert|critical) + region + magnitude" },
-    resiliency: { onMissing: "rules silently skip provinces with no underlying weather data instead of false-alarming" },
-  },
-  {
-    wf: "Telegram week_ahead", output: "reads events.json", component: "telegram/handlers/brief.py::_upcoming_events_section",
-    visual: "Telegram · 'Coming up · next 24h' block under weather",
-    cadence: { recurrence: "03:00 UTC daily (piggybacks on 1.6)", trigger: "cron" },
-    transport: { method: "compose-from-disk: events.json filtered to next 24h" },
-    storage: { target: "Telegram channel post (not persisted)" },
-    resiliency: { onMissing: "section omitted silently if events.json absent (same pattern as the rest of brief)" },
-  },
-  {
-    wf: "Telegram weather", output: "—", component: "telegram/handlers/brief.py::_weather_line",
-    visual: "Telegram · drought alerts gated by rain_mtd_mm < rain_hist_min (seasonal baseline)",
-    cadence: { recurrence: "03:00 UTC daily (piggybacks on 1.6)", trigger: "cron" },
-    transport: { method: "compose from weather_history + 30y seasonal baseline" },
-    storage: { target: "Telegram channel post (not persisted)" },
-    resiliency: { onMissing: "seasonal-baseline gate prevents false alarms during the dry season (was firing 'drought' in normal dry months pre-fix)" },
-  },
-  {
-    wf: "/cot Telegram command (Body-1)", output: "reads signals.json", component: "telegram/handlers/cot.py",
-    visual: "Telegram · 'Signals (NY)/(LDN)' per-rule listing under position block · CRIT/ALERT/WARN/INFO",
-    cadence: { trigger: "edge", window: "on-demand (user types /cot)" },
-    transport: { method: "compose-from-disk: signals.json filtered by market == NY|LDN, AGRO excluded" },
-    storage: { target: "Telegram message (not persisted)", units: "rule rows with severity tag + score + magnitude" },
-    resiliency: { onMissing: "block omitted silently if signals.json absent" },
-  },
-  {
-    wf: "OI 14-day cap (Body-8)", output: "oi_history.json sliced to 14 days (was 30)", component: "OIHistoryTable",
-    visual: "COT · OI 14-day table · contract_prices_archive.json (5y) untouched",
-    cadence: { recurrence: "follows 1.3 (02:00 UTC Mon-Fri)", trigger: "cron" },
-    transport: { method: "fetch_oi_json MAX_DAYS=14 + defensive frontend slice" },
-    storage: { target: "oi_history.json", footprint: "~50% of pre-change size", units: "lots (RC) / contracts (KC)" },
-  },
-  {
-    wf: "COT Robusta nearby-OI fix (Body-7)", output: "—", component: "lib/cot/oiNearby.ts · Overview.tsx",
-    visual: "COT · 'X k lots in nearby (N and U)' re-derived from per-contract oi_history.json (was 0.0 bug)",
-    cadence: { trigger: "edge", window: "on-demand client-side render" },
-    transport: { method: "client-side derivation from per-contract oi_history.json (no fetch)" },
-    storage: { target: "—" },
-    resiliency: { onMissing: "falls back to last-good per-contract OI rather than the bugged exch_oi_ldn aggregate" },
-  },
-
-  // ── 0.x — Low-level pollers + one-shot backfills ─────────────────────────
-  {
-    wf: "0.1 Acaphe poll", output: "live_quotes (Upstash Redis)", component: "AcapheLiveQuotes", visual: "Futures · live ACAPHE quotes ticker",
-    cadence: { recurrence: "every 15 min Mon-Fri 08:00-19:00 UTC", window: "RC London + KC NY trading overlap", trigger: "cron" },
-    transport: { provider: "acaphe.com", method: "BeautifulSoup HTML parse → Upstash REST set" },
-    storage: { target: "Upstash live_quotes key (no file)", footprint: "~1KB single snapshot" },
-    resiliency: { onMissing: "next tick overwrites; freshness check (1.8) flags >6h stale", debounce: "concurrency: cancel-in-progress → fresh tick wins" },
-    runtime: { duration: "~30s" },
-  },
-  {
-    wf: "0.2 Refresh inventory", output: "workflows_inventory.json", component: "LiveWorkflowInventory + WorkflowDriftPanel", visual: "Data Platform Map · live inventory + drift panel",
-    cadence: { recurrence: "on push to .github/workflows/** or the build script", trigger: "edge" },
-    transport: { method: "yaml.safe_load over every workflow file" },
-    storage: { target: "workflows_inventory.json", footprint: "~17KB / 56 workflows", units: "structural metadata + drift report" },
-    resiliency: { onMissing: "keeps last good JSON (auto-commit only when content changes)" },
-    runtime: { duration: "~10s" },
-  },
-  {
-    wf: "0.12 VN River Flow", output: "vn_river_flow.json", component: "VnWaterLevels (VietnamTab)", visual: "Supply · Vietnam · water-level + dam alerts",
-    cadence: { recurrence: "10:00 UTC daily (after 08:00 UTC NCHMF publish)", trigger: "cron" },
-    transport: { provider: "NCHMF Vietnam Hydromet", method: "daily bulletin scrape" },
-    storage: { target: "vn_river_flow.json (rolling)" },
-    resiliency: { onMissing: "keep last good JSON" },
-  },
-  {
-    wf: "3.3.6 UCDA monthly reports", output: "uganda_monthly.json", component: "Uganda monthly report panels (when wired)", visual: "Supply · Uganda · monthly PDF backfill (one-shot)",
-    cadence: { recurrence: "manual workflow_dispatch only", trigger: "manual" },
-    transport: { provider: "UCDA monthly PDF index", method: "patchright stealth + pdfplumber extract", bypass: "Cloudflare bypass via patchright (GH IPs blocked)" },
-    storage: { target: "uganda_monthly.json (~80 PDFs back to ~2018)", footprint: "~few hundred KB" },
-    resiliency: { onMissing: "set +e + rc capture → commits only on rc=0; retry 3× preserves the contract" },
-  },
-  {
-    wf: "retired · 30Y weather backfill (one-shot)", output: "backend/seed/weather_history/{origin}.json", component: "WeatherCharts climatology bands", visual: "Supply · weather · 30-year baseline + bands (one-shot)",
-    cadence: { recurrence: "manual workflow_dispatch only", trigger: "manual" },
-    transport: { provider: "Open-Meteo archive API", method: "per-origin batch fetch 1995-2024" },
-    storage: { target: "backend/seed/weather_history/{origin}.json", footprint: "~MBs per origin seed" },
-    resiliency: { onMissing: "daily 1.10 fetch accumulates new actuals on top of the seed" },
-  },
-  {
-    wf: "0.14 BPS Indonesia exim", output: "indonesia_exports.json", component: "IndonesiaTab export panels", visual: "Supply · Indonesia · BPS exports",
-    cadence: { recurrence: "workflow_dispatch only (cron commented out pending Xvfb proof)", trigger: "manual" },
-    transport: { provider: "Indonesia BPS exim portal", method: "headless browser scrape" },
-    storage: { target: "indonesia_exports.json" },
-  },
-  {
-    wf: "retired · VHI backfill (one-shot)", output: "backend/seed/vhi_history.json", component: "(seeds the weekly 0.5 VHI fetch)", visual: "Supply · weather · VHI long-form history (one-shot)",
-    cadence: { recurrence: "manual workflow_dispatch only", trigger: "manual" },
-    transport: { provider: "NOAA STAR VHI text endpoint", method: "Direct GET" },
-    storage: { target: "backend/seed/vhi_history.json" },
-    resiliency: { onMissing: "weekly 0.5 fetch grows the file forward from where this one-shot stops" },
-  },
-  {
-    wf: "0.10 Colombia exports", output: "colombia_exports.json", component: "OriginExportPanel (ColombiaTab)", visual: "Supply · Colombia · monthly exports + NANDINA breakdown",
-    cadence: { recurrence: "06:30 UTC daily (DANE + FNC publish irregularly; daily catch-up)", trigger: "cron" },
-    transport: { provider: "DANE (NANDINA) + FNC headline", method: "FNC + DANE scrapers in sequence" },
-    storage: { target: "colombia_exports.json", units: "60kg bags (FNC) + USD value (DANE NANDINA)" },
-    resiliency: { onMissing: "per-source failures logged; rest of run proceeds" },
-  },
-
-  // ── 1.x — Daily + ops layer ──────────────────────────────────────────────
-  {
-    wf: "1.21 Brazil export forecast", output: "brazil_export_projection.json", component: "BrazilTab forecast block", visual: "Supply · Brazil · SSOT export projection",
-    cadence: { recurrence: "18:00 UTC daily", trigger: "cron" },
-    transport: { method: "compute over the historical Cecafé monthlies (local, no network)" },
-    storage: { target: "brazil_export_projection.json" },
-    resiliency: { onMissing: "no upstream network — fails only if the compute itself breaks" },
-  },
-  {
-    wf: "1.23 Brazil conilon demand", output: "brazil_conilon_demand.json",
-    component: "BrazilArbitragePanel", visual: "Futures · Brazil Internal Arbitrage · conilon blend share",
-    cadence: { recurrence: "05:23 UTC Tuesdays", window: "weekly — the legs refresh on their own schedules", trigger: "cron" },
-    transport: { provider: "USDA FAS PSD + CONAB", method: "PSD coffee CSV zip + CONAB SerieHistoricaCafe.txt; Cecafé read from the repo" },
-    storage: { target: "brazil_conilon_demand.json", footprint: "<20KB", units: "60-kg bags + % of the roast-and-ground blend" },
-    resiliency: {
-      onMissing: "estimate — refuses years where soluble exceeds half the conilon crop, and a CONAB outage degrades to a missing cross-check rather than no series",
-    },
-  },
-  {
-    wf: "1.8 Check live quotes", output: "—", component: "—", visual: "Telegram alert · live-quotes freshness",
-    cadence: { recurrence: "hourly :15 Mon-Fri 09:15-20:15 UTC", window: "poll window", trigger: "cron" },
-    transport: { method: "Upstash GET live_quotes → parse fetched_at" },
-    resiliency: { onMissing: "Telegram alert when live_quotes.fetched_at >6h old (poller dead)" },
-  },
-  {
-    wf: "1.10 Weather fetch", output: "{origin}_weather.json", component: "WeatherCharts (all origin tabs)", visual: "Supply · weather · actuals / forecast / climatology",
-    cadence: { recurrence: "01:53 UTC daily (ahead of every other data-commit job)", trigger: "cron" },
-    transport: { provider: "Open-Meteo forecast API", method: "Direct GET per origin region" },
-    storage: { target: "backend/seed/weather_history/{origin}.json (accumulator) → {origin}_weather.json (export)", footprint: "growing daily" },
-    resiliency: { onMissing: "keeps last good seed; daily appends are idempotent" },
-    runtime: { duration: "~10min" },
-  },
-  {
-    wf: "1.10 Weather fetch", output: "agronomic_alerts.json + merged into signals.json", component: "AgronomicTicker + signals consumers", visual: "Map · IPHM agronomic alerts ticker",
-    cadence: { recurrence: "tail step of 1.10", trigger: "cron" },
-    transport: { method: "SPI/SPEI/forecast inputs → IPHM rule eval" },
-    storage: { target: "agronomic_alerts.json + flattened into signals.json" },
-  },
-  {
-    wf: "1.10 Weather fetch", output: "weather_analogs_brazil.json", component: "WeatherAnalogs / AnalogSection", visual: "Supply · Brazil · analog years (production forecast)",
-    cadence: { recurrence: "tail step of 1.10", trigger: "cron" },
-    transport: { method: "Euclidean distance over per-phenology-stage signatures vs historical Brazil seed" },
-    storage: { target: "weather_analogs_brazil.json" },
-  },
-  {
-    wf: "1.11 Port activity", output: "frontend/public/data/port_activity/", component: "PortActivity (FreightTab)", visual: "Freight · per-port seasonal + monthly charts",
-    cadence: { recurrence: "Wed 06:17 UTC (PortWatch refreshes Tue ~13:00-14:00 UTC)", trigger: "cron" },
-    transport: { provider: "IMF PortWatch", method: "Direct GET per port" },
-    storage: { target: "port_activity/index.json + {port}.json", footprint: "~8MB total / ~30 ports" },
-    resiliency: { onMissing: "keep last good index + per-port files" },
-  },
-  {
-    wf: "1.22 Slow-data scraper", output: "Postgres PSD tables → psd_coffee.json (in 1.4 export)", component: "Demand · PSD-derived widgets", visual: "Demand · USDA PSD monthly (consumption / production)",
-    cadence: { recurrence: "12th of each month 03:00 UTC", trigger: "cron" },
-    transport: { provider: "USDA PSD", method: "Direct fetch + parse" },
-    storage: { target: "psd_coffee.json slice" },
-  },
-  {
-    wf: "1.12 Vercel redeploy", output: "—", component: "—", visual: "Vercel deploy (the act of publishing)",
-    cadence: { recurrence: "03:41 + 10:00 UTC + workflow_run chain off 1.4 / 1.13", trigger: "composite" },
-    transport: { method: "POST to Vercel deploy hook (VERCEL_DEPLOY_HOOK secret)" },
-    resiliency: { onMissing: "dedup guard skips duplicate fires within the same SHA (PR #314)", debounce: "concurrency group serialises overlap; Vercel itself dedups identical builds" },
-    runtime: { duration: "~5-10s per fire" },
-  },
-  {
-    wf: "1.15 CPI", output: "us_cpi.json + retail_cpi.json", component: "UsCpiPanel + RetailCpiPanel", visual: "Macro · US CPI + retail-coffee CPI panels",
-    cadence: { recurrence: "11th-16th of month 13:40 UTC + 1st 03:00 UTC catch-up", trigger: "cron" },
-    transport: { provider: "BLS API (key optional · keyless = 25 queries/day)", method: "Direct API GET" },
-    storage: { target: "us_cpi.json + retail_cpi.json" },
-    resiliency: { onMissing: "keep last good JSON; freshness threshold 35 days per 1.5" },
-  },
-
-  // ── 3.x — Demand / imports (monthly + semi-annual) ───────────────────────
-  {
-    wf: "3.4 ECF stocks", output: "ecf_stocks.json", component: "Demand · ECF panel", visual: "Demand · ECF stocks (bi-monthly)",
-    cadence: { recurrence: "5th of each month 04:00 UTC", trigger: "cron" },
-    transport: { provider: "ECF", method: "index page → per-post PDF extract" },
-    storage: { target: "ecf_stocks.json", footprint: "bi-monthly; debug dumps retained 14d" },
-  },
-  {
-    wf: "3.11 Balance sheets", output: "frontend/public/data/balance_sheets/", component: "SupplyDemandBalance (per origin)", visual: "Supply · per-origin S/D balance sheets",
-    cadence: { recurrence: "06:00 UTC on 20 Jun + 20 Dec (semi-annual)", trigger: "cron" },
-    transport: { method: "multi-source synthesis (BR / CO / ID / UG)" },
-    storage: { target: "balance_sheets/{origin}.json" },
-  },
-  {
-    wf: "3.5 AJCA Japan", output: "ajca.json", component: "Demand · AJCA panel", visual: "Demand · Japan AJCA stocks (monthly)",
-    cadence: { recurrence: "monthly", trigger: "cron" },
-    transport: { provider: "AJCA Japan", method: "Direct fetch + PDF parse (country breakdown)" },
-    storage: { target: "ajca.json", footprint: "monthly" },
-    resiliency: { onMissing: "YoY relies on ajca_history.json accumulator (cache wipe = year-long gap, see #132)" },
-  },
-  {
-    wf: "3.6 Spot Coffee (ATTE)", output: "spot_coffee.json", component: "Macro · ATTE spot panel", visual: "Macro · ATTE Brazilian spot prices (daily)",
-    cadence: { recurrence: "daily", trigger: "cron" },
-    transport: { provider: "ATTE", method: "BeautifulSoup HTML parse" },
-    storage: { target: "spot_coffee.json" },
-  },
-  {
-    wf: "3.7 UN WPP age", output: "un_wpp_age.json (via 1.4 export)", component: "AgeCohortPanel + CohortExplainer", visual: "Demand · age cohort population pyramid (annual)",
-    cadence: { recurrence: "15 July 03:00 UTC (annual)", trigger: "cron" },
-    transport: { provider: "UN World Population Prospects", method: "Playwright + DB upsert" },
-    storage: { target: "un_wpp_age.json (annual snapshot)" },
-  },
-  {
-    wf: "3.8 UN Comtrade imports", output: "coffee_imports_comtrade.json", component: "Demand · imports panel", visual: "Demand · global green-coffee imports (UN Comtrade)",
-    cadence: { recurrence: "15th of each month 07:00 UTC", trigger: "cron" },
-    transport: { provider: "UN Comtrade", method: "Direct API GET" },
-    storage: { target: "coffee_imports_comtrade.json" },
-  },
-  {
-    wf: "3.9 USITC imports", output: "us_coffee_imports.json", component: "Demand · US imports panel", visual: "Demand · US imports by origin (USITC DataWeb)",
-    cadence: { recurrence: "16th of each month 07:30 UTC", trigger: "cron" },
-    transport: { provider: "USITC DataWeb", method: "Direct fetch" },
-    storage: { target: "us_coffee_imports.json" },
-  },
-  {
-    wf: "3.10 Eurostat imports", output: "eu_coffee_imports.json", component: "Demand · EU imports panel", visual: "Demand · EU imports by origin (Eurostat Comext)",
-    cadence: { recurrence: "17th of each month 08:00 UTC", trigger: "cron" },
-    transport: { provider: "Eurostat Comext", method: "Direct fetch" },
-    storage: { target: "eu_coffee_imports.json" },
-  },
-
-  // ── 9.x — CI / hygiene ──────────────────────────────────────────────────
-  {
-    wf: "9.1 CI Tests", output: "—", component: "—", visual: "Required PR status check",
-    cadence: { recurrence: "every push + PR + daily 06:00 UTC", trigger: "composite" },
-    transport: { method: "pytest backend + vitest / tsc frontend" },
-    resiliency: { onMissing: "blocks PR merge until green" },
-  },
-  {
-    wf: "9.2 Backend lint", output: "—", component: "—", visual: "Required PR status check",
-    cadence: { recurrence: "every push + PR", trigger: "composite" },
-    transport: { method: "ruff (+ mypy where wired)" },
-  },
-  {
-    wf: "9.3 Smart-quote guard", output: "—", component: "—", visual: "Required PR status check",
-    cadence: { recurrence: "every push + PR", trigger: "composite" },
-    transport: { method: "grep for curly quotes / em-dashes in TS/TSX strings" },
-    resiliency: { onMissing: "fails the PR if a smart quote slips into a TypeScript string" },
-  },
-];
+import { useFetchJson, type FetchState } from "@/lib/useFetchJson";
+import { useUrlState } from "@/lib/useUrlState";
+import { ARCHITECTURE, TAB_DIAGRAMS } from "./diagrams";
+import { ROWS, type FlowMetadata, type TriggerType } from "./flows";
 
 // ── Operational metadata card view ──────────────────────────────────────────
 // Replaces the flat 4-column table with an expandable per-flow card.
@@ -1474,20 +269,54 @@ function WorkflowDriftPanel({ drift }: { drift: DriftReport | undefined }) {
   );
 }
 
-// Wrapper that fetches the inventory JSON once for both the drift panel
-// (above the curated table) and the live inventory table itself.
-function WorkflowDriftCheck() {
-  const { data, loading, error } =
-    useFetchJson<InventoryPayload>("/data/workflows_inventory.json");
+// Both readers of the inventory take the payload as a prop. The fetch itself
+// lives on the page: the drift banner sits above the sub-tab bar while the
+// inventory table sits inside one sub-tab, and each fetching for itself would
+// mean the same JSON over the wire two or three times.
+
+/** Above the sub-tab bar, and only when something is actually wrong.
+ *
+ * Drift means the curated table and the workflow YAML disagree, which is a
+ * page-wide fact — burying it inside a sub-tab would let a stale row go unseen
+ * for as long as nobody happened to open that tab.
+ *
+ * A count and a link, not the list. The full panel is 38 rows deep at the time
+ * of writing, and repeating that above every sub-tab pushes the content the
+ * split was meant to surface below the fold on all five of them. The detail
+ * lives once, in the Workflows tab, beside the table it is about. The clean
+ * "in sync" state is not urgent and stays there too.
+ */
+function DriftBanner({ drift, onOpen }: { drift: DriftReport | undefined; onOpen: () => void }) {
+  if (!drift) return null;
+  const uncovered = drift.uncovered_workflows.length;
+  const stale     = drift.stale_curation.length;
+  if (uncovered === 0 && stale === 0) return null;
+  const bits = [
+    uncovered > 0 && `${uncovered} workflow${uncovered === 1 ? "" : "s"} without a curated row`,
+    stale > 0 && `${stale} curated row${stale === 1 ? "" : "s"} pointing at a workflow that no longer exists`,
+  ].filter(Boolean) as string[];
+  return (
+    <div className="flex items-baseline justify-between gap-3 flex-wrap text-[11px] bg-amber-950/40 border border-amber-800/60 rounded-lg px-3 py-2">
+      <span className="text-amber-200">
+        Curated table drift — {bits.join(" · ")}.
+      </span>
+      <button onClick={onOpen} className="text-amber-400 hover:text-amber-300 font-medium whitespace-nowrap">
+        See the detail →
+      </button>
+    </div>
+  );
+}
+
+function DriftStatus({ state }: { state: FetchState<InventoryPayload> }) {
+  const { data, loading, error } = state;
   if (loading) return <div className="text-[11px] text-slate-500">Checking for drift…</div>;
   if (error)   return <div className="text-[11px] text-red-400">Drift check failed: {error.message}</div>;
   if (!data)   return null;
   return <WorkflowDriftPanel drift={data.drift} />;
 }
 
-function LiveWorkflowInventory() {
-  const { data, loading, error } =
-    useFetchJson<InventoryPayload>("/data/workflows_inventory.json");
+function LiveWorkflowInventory({ state }: { state: FetchState<InventoryPayload> }) {
+  const { data, loading, error } = state;
 
   if (loading) return <div className="text-[11px] text-slate-500">Loading inventory…</div>;
   if (error)   return <div className="text-[11px] text-red-400">Failed to load: {error.message}</div>;
@@ -1556,52 +385,174 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
   );
 }
 
+// ── Sub-tabs ────────────────────────────────────────────────────────────────
+// The page used to be one scroll carrying five unrelated jobs: an
+// architecture diagram, nine pipeline diagrams, a curated workflow table, a
+// run log and a CSV exporter. Nothing shared a question, so anything below
+// the diagrams was effectively unreachable — and the nine Mermaid charts all
+// rendered on load whether or not anyone wanted them.
+//
+// One tab per question, so each answers something you would arrive with.
+
+type SubTab = "overview" | "pipelines" | "workflows" | "activity" | "downloads";
+
+const TABS: { id: SubTab; label: string; hint: string }[] = [
+  { id: "overview",  label: "Overview",
+    hint: "How the pieces fit — the single price+OI archive and what fans out of it" },
+  { id: "pipelines", label: "Pipelines",
+    hint: "One diagram per dashboard tab: source · frequency → store → JSON → visual" },
+  { id: "workflows", label: "Workflows",
+    hint: "What each workflow does, when it runs, and what happens when it breaks" },
+  { id: "activity",  label: "Activity",
+    hint: "What actually ran over the last 7 days — durations, failures, skips" },
+  { id: "downloads", label: "Downloads",
+    hint: "Export any dataset behind the dashboard to CSV" },
+];
+const SUB_TABS = TABS.map((t) => t.id) as SubTab[];
+const FLOW_IDS = TAB_DIAGRAMS.map((d) => d.id);
+
 export default function DataMapPage() {
+  // useUrlState reads `useSearchParams`, which Next 14 requires to live under
+  // a Suspense boundary during static prerender (see /demand, /futures).
   return (
-    <div>
+    <Suspense fallback={<div className="h-full bg-slate-950" />}>
+      <DataMapPageInner />
+    </Suspense>
+  );
+}
+
+function DataMapPageInner() {
+  const [tab, setTab] = useUrlState<SubTab>("tab", "overview", (raw) =>
+    (SUB_TABS as string[]).includes(raw) ? (raw as SubTab) : "overview",
+  );
+  // Second-level state: which pipeline diagram is open. Deep-linkable as
+  // `?tab=pipelines&flow=futures`, so "where does the COT chart get its data"
+  // is one link rather than a scroll through nine diagrams.
+  const [flow, setFlow] = useUrlState<string>("flow", FLOW_IDS[0], (raw) =>
+    FLOW_IDS.includes(raw) ? raw : FLOW_IDS[0],
+  );
+
+  // Fetched once here and passed down — see DriftBanner / DriftStatus.
+  const inventory = useFetchJson<InventoryPayload>("/data/workflows_inventory.json");
+
+  const diagram = TAB_DIAGRAMS.find((d) => d.id === flow) ?? TAB_DIAGRAMS[0];
+
+  return (
+    <div className="flex flex-col h-full overflow-y-auto">
       <PageHeader
         title="Data Map"
         subtitle="How every fetch flows through storage to each dashboard visual. Source of truth: docs/DATA_PLATFORM_MAP.md"
       />
-      <div className="p-4 space-y-4">
-        <Card title="Architecture overview — the single-source view">
-          <Mermaid chart={ARCHITECTURE} />
-          <div className="text-[11px] text-slate-500 leading-relaxed mt-3 px-1">
-            <p className="mb-1">
-              <span className="text-amber-400">★ contract_prices_archive.json</span> is the single coffee
-              OI+price source: one daily fetch (1.3) feeds it, and it fans out to the OI table, both
-              OI→FND charts, and the Industry Pulse price (via the max-OI rebuild in 2.3).
-            </p>
-            <p>Symbol convention — FETCH=RM (Barchart) · STORE=RC (canonical) · DISPLAY=RM (OI table + FND chart).</p>
-          </div>
-        </Card>
 
-        <p className="text-[11px] text-slate-500 px-1">
-          One diagram per dashboard tab — source · frequency → store → JSON → visual.
-        </p>
-        {TAB_DIAGRAMS.map(({ title, chart }) => (
-          <Card key={title} title={title}>
-            <Mermaid chart={chart} />
-          </Card>
+      {/* Sub-tab bar */}
+      <div className="flex items-center gap-1 flex-wrap px-4 py-2 border-b border-slate-700 bg-slate-900">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            title={t.hint}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              tab === t.id
+                ? "bg-slate-800 text-amber-400 border border-slate-700"
+                : "text-slate-500 hover:text-slate-300 border border-transparent"
+            }`}
+          >
+            {t.label}
+          </button>
         ))}
+      </div>
 
-        <WorkflowDriftCheck />
+      <div className="p-4 space-y-4">
+        {/* Renders on every sub-tab, but only when there IS drift. */}
+        <DriftBanner drift={inventory.data?.drift} onOpen={() => setTab("workflows")} />
 
-        <Card title="Data downloads — export any dataset to CSV">
-          <DataDownloads />
-        </Card>
+        {tab === "overview" && (
+          <>
+            <Card title="Architecture overview — the single-source view">
+              <Mermaid chart={ARCHITECTURE} />
+              <div className="text-[11px] text-slate-500 leading-relaxed mt-3 px-1">
+                <p className="mb-1">
+                  <span className="text-amber-400">★ contract_prices_archive.json</span> is the single coffee
+                  OI+price source: one daily fetch (1.3) feeds it, and it fans out to the OI table, both
+                  OI→FND charts, and the Industry Pulse price (via the max-OI rebuild in 2.3).
+                </p>
+                <p>Symbol convention — FETCH=RM (Barchart) · STORE=RC (canonical) · DISPLAY=RM (OI table + FND chart).</p>
+              </div>
+            </Card>
 
-        <Card title="Per-workflow → exact dashboard visual">
-          <WorkflowTable />
-        </Card>
+            <Card title="What's on each tab">
+              <ul className="text-[11px] text-slate-400 leading-relaxed space-y-1.5">
+                {TABS.filter((t) => t.id !== "overview").map((t) => (
+                  <li key={t.id}>
+                    <button
+                      onClick={() => setTab(t.id)}
+                      className="text-amber-400 hover:text-amber-300 font-medium"
+                    >
+                      {t.label}
+                    </button>
+                    <span className="text-slate-500"> — {t.hint}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </>
+        )}
 
-        <Card title="Workflow activity — what actually ran, last 7 days">
-          <WorkflowActivity />
-        </Card>
+        {tab === "pipelines" && (
+          <>
+            {/* Only the selected chart mounts. Mermaid parses and lays out on
+                render, so the nine-at-once version paid for every diagram to
+                answer a question about one. */}
+            <div className="flex items-center gap-1 flex-wrap">
+              {TAB_DIAGRAMS.map((d) => (
+                <button
+                  key={d.id}
+                  onClick={() => setFlow(d.id)}
+                  className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors border ${
+                    flow === d.id
+                      ? "bg-slate-800 text-amber-400 border-slate-600"
+                      : "text-slate-500 hover:text-slate-300 border-slate-800"
+                  }`}
+                >
+                  {d.title}
+                </button>
+              ))}
+            </div>
+            <Card title={diagram.title}>
+              <p className="text-[11px] text-slate-500 mb-3 -mt-1">{diagram.blurb}</p>
+              <Mermaid chart={diagram.chart} />
+              <p className="text-[11px] text-slate-600 mt-3">
+                Read left to right — source · frequency → store → JSON → visual.
+              </p>
+            </Card>
+          </>
+        )}
 
-        <Card title="Live workflow inventory — auto-generated from YAML">
-          <LiveWorkflowInventory />
-        </Card>
+        {tab === "workflows" && (
+          <>
+            <Card title="Per-workflow → exact dashboard visual">
+              <WorkflowTable />
+            </Card>
+            <Card title="Curated table vs the YAML">
+              <DriftStatus state={inventory} />
+            </Card>
+            <Card title="Live workflow inventory — auto-generated from YAML">
+              <LiveWorkflowInventory state={inventory} />
+            </Card>
+          </>
+        )}
+
+        {tab === "activity" && (
+          <Card title="Workflow activity — what actually ran, last 7 days">
+            <WorkflowActivity />
+          </Card>
+        )}
+
+        {tab === "downloads" && (
+          <Card title="Data downloads — export any dataset to CSV">
+            <DataDownloads />
+          </Card>
+        )}
       </div>
     </div>
   );

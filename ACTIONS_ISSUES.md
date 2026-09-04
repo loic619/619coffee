@@ -30,9 +30,10 @@
 
 | | Issue | Why it's next |
 |---|-------|---------------|
-| **In flight** | **C5** · P1 | The `auto-fix` PR for C5 is **open and awaiting your review** — retry on transient API errors plus a partial-write path, so one 502 can no longer discard a whole sweep. The queue is blocked until you merge or close it. **After it merges, dispatch 0.17 once by hand** to rebuild the record immediately rather than waiting for the next trigger. |
-| **1st** | **A2** · P2 | Pin ruff. Re-confirmed still unpinned on 4 Sep. |
-| **2nd** | **A5** · P2 | Make the smart-quote guard fail loudly when its detector breaks. Re-confirmed still the fragile `if grep -rnP …` construct on 4 Sep. |
+| **In flight** | — none | C5's `auto-fix` PR (**#833**) merged this run. The queue is unblocked and should pick up **A2** next. **Dispatch 0.17 once by hand** to rebuild the record immediately rather than waiting for the next trigger. |
+| **watching** | **B8** · P1 | **Symptom cleared 4 Sep; cause understood; mitigation unproven.** The feed is serving and the data is current (`2026-09-03` both markets). Six PRs landed — the diagnosis is that ICE blocks per RUNNER IP, driven by our own request volume, and a healthy run now issues ~186 fewer requests. What is NOT established is that the reduction is enough: the run that recovered drew a clean IP, so it shows the feed works, not that the blocking stops. The next few days of scheduled runs decide it. Nothing to do until then. |
+| **1st** | **A2** · P2 | Pin ruff. Re-confirmed still unpinned today. |
+| **2nd** | **A5** · P2 | Make the smart-quote guard fail loudly when its detector breaks. Re-confirmed still the fragile `if grep -rnP …` construct today. |
 | **3rd** | **B2** · P2 | Let the sentinel dispatch its own scraper. |
 | **4th** | **B7** · P2 | Nothing watches `data_asof`, so "scraper ran fine, content frozen for months" has no alarm at all. |
 | **5th** | **C2** · P2 | Count the rescue dispatches. |
@@ -41,6 +42,89 @@
 **Waiting on you — the agent will never take these:** **A1** (branch protection; still the highest-value item in this file — **A6** and now **A7** are its fourth and fifth instances in eleven days) · **C1** (pick a polling strategy).
 
 **Not in the queue:** A3, A4, A6, A7, B1, B4, B5, C3, C4, E1, E3 closed · B3, E2, E4 watching.
+
+**Note on B8's status.** It is `[~]`, not `[ ]`, and the distinction matters: the
+part that could lose data unnoticed is closed, so this is no longer an
+*invisible* failure — it is a visible outage waiting on a diagnosis. If ICE
+lifts the block on its own, B8 closes with no code change and the two guards
+stay as the thing that would have caught it.
+
+**Correction, 2026-09-04 — the block is per RUNNER IP, and it did not start on
+3 Sep.** Two claims in the first version of this row were wrong, both from
+comparing runs that differed in more than one variable:
+
+* *"Began 3 Sep."* No — run `33592853150` (2 Sep 04:58) was already returning
+  403 on 877 of the 900 log lines sampled. It then timed out at two hours.
+* *"ICE serves the archive and refuses recent files."* That came from a smoke
+  run returning 10/10 at 08:42 while a backfill 403'd at 08:45 — but those were
+  **separate jobs on different runners** (`1000023630` vs `1000023637`), so
+  archive-vs-live and clean-IP-vs-blocked-IP were confounded and the wrong one
+  was named.
+
+What the evidence actually supports: run `33599302408` started at **06:59:12**
+on 2 Sep, the same second the blocked run was killed at 06:59:05 — a fresh
+runner, a different IP — and immediately got normal 404s where the previous IP
+had got nothing but 403s. Every run is **all-or-nothing**: no run mixes 200s
+and 403s. That is the signature of a per-source-IP block, not a URL-scope rule.
+
+It also explains the "recovery" pattern in the run history: repeated triggers
+appearing to fix themselves are not the block lifting, they are rolling a new
+runner IP until one is not blocked.
+
+The experiment that settles it is a smoke run under #838's code, which probes
+an archive URL and a live URL **in the same job** and therefore on one IP. If
+both pass, the archive/live theory is dead and it is purely per-IP.
+
+**Result (run 33866182291, runner `1000023667`):** both passed.
+
+```
+=== SMOKE: 10/10 OK (archive URLs) ===
+=== SMOKE (live, 2026-09-03): ✓ HTTP 200 ===
+```
+
+Archive-vs-live is dead. The block is per source IP and file age is irrelevant.
+
+---
+
+**End of 4 Sep. Where B8 stands.**
+
+*Symptom* — gone. Backfill `33864176535` landed `cd7a3a04`: arabica and robusta
+both at `2026-09-03`, found at sweep candidate 280 exactly as the arithmetic
+predicted. The feed is serving.
+
+*Cause* — understood, and it is us. ICE blocks a runner IP after sustained
+volume against `/marketdata/publicdocs/`. The telemetry shows how we earned it:
+1,178 requests on 31 Aug, 1,976 on 1 Sep, 2,022 on 3 Sep, ~99% of them misses.
+The block began mid-run on 3 Sep, roughly 187 requests into that day's sweep.
+
+*Mitigation* — merged, six PRs:
+
+| | |
+|---|---|
+| #834 | a run that asks ≥10 times and gets nothing fails, instead of writing unchanged files and exiting 0 |
+| #835 | 8 consecutive 403s abort instead of walking 1,920 candidates |
+| #838 | the abort stops the CLOCK too (it was still sleeping 5s per skipped call); a block is not retried; smoke can finally see a live block; an in-flight run no longer spawns duplicates |
+| #839 | tier-1 stops re-asking questions the sweep or a previous run already answered — ~150 GETs |
+| #840 | per-day sources fetch one day, not seven — 42 GETs to 6 |
+| #843 | a 403 skips the SECTION, not the rest of the run |
+
+A healthy run now issues roughly **186 fewer requests**.
+
+*What is still open, and why this row is not `[x]`* — the reduction is
+unverified in production. The run that recovered drew a clean runner IP, which
+demonstrates the feed works, not that we have stopped earning blocks. If the
+scheduled runs over the next few days stay green, close it. If a 403 storm
+recurs, the run will now say so in seconds instead of two silent hours, and the
+next lever is the tier-2 sweep itself — 1,870 requests to locate one file is
+still the single largest source of volume in the system, and nothing merged
+today touched it.
+
+*One process note.* #843 fixed a hazard introduced by #835 earlier the same
+day: the 403 bail-out set the run-wide flag, so a storm on the last source
+would silently truncate an otherwise good run — and the wholly-refused guard
+would not fire, because earlier fetches had succeeded. That is the third
+variant of "reports success while collecting nothing" found in one session.
+The shape is worth watching for specifically.
 
 ---
 
@@ -77,6 +161,7 @@
 | **B5** | `[x]` **P2** | *(Resolved 3 Sep.)* The missing ICE robusta report arrived. Both monthly ICE reports are now current and neither is near its limit — the 7 Sep alarm this row predicted will not fire. | `health.json` now reads `ice_robusta_age_allowance: 2026-08-31` alongside `ice_arabica_ageing: 2026-08-31`. At 3.3 days against a 38-day threshold that is 9% of limit, against 87% when this row was written. So the answer to the row's own either/or was **(a)** — ICE simply had not published the August age-allowance file yet, and one of the 2/3 Sep catch-window retries collected it. There was no regression in the "already captured this month?" guard, and `scraper-ice-monthly-reports.yml` **needs no change**. | Closed, verified against `health.json` rather than a run badge. The proposed diagnostic (read the 1.14 log to tell cause (a) from cause (b)) is **no longer needed** — the outcome settled it. Do not spend a PR on this row. |
 | **B6** | `[ ]` **P3** | The Cecafe daily scraper failed 4 times in the window, and the error it prints about itself is **wrong**, which would send whoever fixes it chasing the wrong thing. No data was lost — the file stayed inside its 3-day guard and the runs have been green since 31 Aug. *(Recurred once more, 3 Sep 19:41 UTC — same bot-challenge shape, still no data lost: `cecafe_daily.json` was 1 day old against a 3-day alert threshold, and the job logged "Fetch failed but the data is still current — no alert." Root cause below is unchanged.)* | Failures on 26, 29 and 30 (×2) Aug. All three retry attempts in each run died identically: Cecafe served a bot-challenge interstitial (~7,100 chars) and the browser fallback raised `Page.content: Unable to retrieve content because the page is navigating and changing the content`. In `backend/scraper/fetch_cecafe_daily.py` the challenge-polling loop calls `await page.content()` at **line 132** while the Cloudflare challenge is still redirecting; Playwright raises instead of returning HTML, and the exception escapes the loop as `CecafeUnreachable`. The script then prints *"This is the recurring connect-timeout pattern"* — it is not a connect timeout, and nothing timed out. | Two small changes in `backend/scraper/fetch_cecafe_daily.py`: (1) wrap the in-loop `await page.content()` (line 132) in `try/except` and, on a navigation-in-progress error, treat it as *"challenge still up"* — sleep `poll_ms` and continue the loop instead of aborting the whole run; apply the same guard to the settle read at line 139, retrying once after `await page.wait_for_load_state("domcontentloaded")`. (2) Correct the message so it names the bot challenge rather than a connect timeout. |
 | **B7** | `[ ]` **P2** | **A scraper can run green every single day while the data inside it hasn't moved for five months, and nothing anywhere would tell you.** Your freshness alarm watches whether the *scraper ran*, not whether it *brought anything back*. Right now nine feeds have a scraper stamp from this morning and content months old — the worst is Indonesian exports, whose newest figure is from **April**, 155 days ago. Some of those are perfectly normal publication lag and some may not be; the point of this row is that nothing is checking. | `check-scrapers-freshness.yml` reads only the `scrapers` (40 keys) and `exporters` (54 keys) blocks of `health.json`. The `data_asof` block — also 40 keys, and the one that records *how old the data itself is* — is never read: `grep data_asof .github/workflows/check-scrapers-freshness.yml` returns nothing. So `1.5` cannot see this class of failure at all, which is the same shape as the three silent failures #730 was written to catch. Measured 3 Sep, scraper stamp <3 days old but `data_asof` >60 days: `indonesia_exports` 155 d (2026-04), `honduras_exports` 94 d, `ethiopia_exports` 94 d, `enso` 94 d, `colombia_exports` 94 d, `vietnam_exports` 64 d, `us_cpi` 64 d, `retail_cpi` 64 d, `fertilizer_wb` 64 d. **Do not treat that list as nine bugs** — `us_cpi` and `retail_cpi` at `2026-07` are exactly right for early September (August CPI publishes mid-September), and several others are plausibly normal lag. `indonesia_exports` is the one that looks wrong on its face: `frontend/public/data/indonesia_exports.json` was rewritten on 2 Sep, so the scraper is running and writing — it is just not bringing back anything newer than April. | Two steps, in this order. **(1)** Add a `DATA_ASOF_THRESHOLDS_D` table to `check-scrapers-freshness.yml` and check the `data_asof` block against it in the same loop that already checks `scrapers`, with a generous per-source default (say 2× the source's scraper threshold) so it alarms on months, not days. Seed the table from the source's real publication cadence, not from today's ages — otherwise it enshrines whatever is currently broken as normal. **(2)** Separately, and *before* setting Indonesia's threshold, establish which of the nine are genuine: for each, compare `data_asof` against the source's actual publication schedule. That is a diagnosis, not a code change, and its result should be written back into this row. Start with `indonesia_exports`. |
+| **B8** | `[~]` **P1** | **The certified-stocks feed is dark right now.** ICE has refused every request since roughly the evening of 3 Sep, so arabica is frozen at `2026-09-02` and robusta at `2026-09-01`. Until today a blocked run **reported success**: it fetched nothing, merged nothing, rewrote both JSONs unchanged and exited 0 — the only symptom was the data quietly ageing, with no alert. That half is fixed. The block itself is not, and no amount of retrying will clear it. | Every request to `www.ice.com/marketdata/publicdocs/` returns **HTTP 403 with an HTML challenge body** — Akamai serving a block page instead of the file. Run `33838897893` (4 Sep 05:00): **1,368 refusals in the last 71 minutes of log alone, zero 200s, zero 429s.** It is **not** rate limiting, and the instinctive remedy is the wrong one: the measured request gap was **3.05 s**, exactly the configured interval, with no throttle drift and no `Retry-After` anywhere — slowing to 4 s would only fail slower. It is also not an IP ban on GitHub runners: probe **0.30** fetched `www.ice.com/products/…` from a runner at **07:50 the same morning** and got 200 with 78 KB of real content. The block is scoped to the marketdata path. | **Fixed already — the two defects the outage exposed:** (1) a run that asks ≥10 times and gets **nothing** now fails non-zero instead of reporting success (#834), and 403 is counted and printed separately from 429 so the next reader sees which remedy applies; (2) eight consecutive 403s now **abort** the run (#835) — there was a bail-out for 429 and none at all for 403, so the tier-2 sweep walked all 1,920 candidates for 96 minutes and the job died on its 120-minute timeout, which GitHub reports as *"cancelled"* and is why it never looked like a failure. **Still open, and the actual issue:** determine what ICE now requires on that path — header/UA signature, `Referer`, a cookie, or a moved path. A probe that walks a few header variants from a runner would settle it in one dispatch, the way 0.30 settled the IP question. Until then the feed stays dark and the guards make that loud instead of silent. |
 
 ---
 

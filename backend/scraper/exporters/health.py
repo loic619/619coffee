@@ -18,7 +18,12 @@ from scraper.validate_export import (
 )
 
 
-def export_health(db, *, exporters_published_at: dict[str, str] | None = None) -> None:
+def export_health(
+    db,
+    *,
+    exporters_published_at: dict[str, str] | None = None,
+    known_exporters: set[str] | None = None,
+) -> None:
     """Write health.json: last successful DB write per scraper + last
     successful publish per exporter topic.
 
@@ -29,6 +34,14 @@ def export_health(db, *, exporters_published_at: dict[str, str] | None = None) -
     previous timestamp from the existing health.json — preserved by a
     defensive merge below, so a 1-topic --only run doesn't blow away
     the other topics' freshness signals.
+
+    `known_exporters` is the orchestrator's full topic registry. That
+    merge keeps a previous timestamp forever, which is right for a topic
+    that merely didn't run — and wrong for one that has been DELETED: its
+    last stamp ages without limit and the 1.5 freshness check alerts on it
+    every day, because that check reads whatever keys this map contains and
+    cannot know which still exist. Passing the registry lets the two cases
+    be told apart. Omit it to skip pruning.
     """
 
     def _ts(val) -> str | None:
@@ -274,6 +287,15 @@ def export_health(db, *, exporters_published_at: dict[str, str] | None = None) -
         **existing_exporters,
         **(exporters_published_at or {}),
     }
+    # Drop topics the orchestrator no longer knows about. Removing an exporter
+    # used to leave its last timestamp here permanently: vn_coffee_imports went
+    # in #815 as verified dead code, kept its 2026-08-31 stamp, and started
+    # paging every morning from 2 Sep as "3.9d old (limit 2.0d)" — a pipeline
+    # failure alert for a pipeline that had been deliberately deleted.
+    # Only prune when the caller supplied the registry: an empty/absent one
+    # would otherwise wipe the map on any caller that doesn't pass it.
+    if known_exporters:
+        exporters_map = {k: v for k, v in exporters_map.items() if k in known_exporters}
 
     # ── Newer feature feeds (added with the news-desk freshness revamp) ───────
     # Each reads the JSON its visual consumes, so the pipeline timestamp is the
@@ -313,6 +335,11 @@ def export_health(db, *, exporters_published_at: dict[str, str] | None = None) -
     scrapers["enso_indices"]    = _feed_ts("enso_indices.json", "scraped_at")
     scrapers["enso_subsurface"] = _feed_ts("enso_subsurface.json", "scraped_at")
     scrapers["vn_water"]        = _feed_ts("vn_water_levels.json", "updated")
+    # Nothing watched the traded tape, which is how it went silent for ten
+    # sessions (26 Aug – 4 Sep 2026) with every scheduled run reporting success.
+    # The workflow now fails loudly when it misses its window, but a feed this
+    # easy to lose should also be visible on the health bar.
+    scrapers["tradespread"]     = _feed_ts("tradespread.json", "updated")
 
     # ── Data as-of map ────────────────────────────────────────────────────────
     # `scrapers` answers "when did the pipeline last run" (used by DataHealthBar

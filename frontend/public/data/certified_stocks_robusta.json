@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-03T17:37:13+00:00",
-  "as_of": "2026-09-01",
+  "generated_at": "2026-09-04T11:08:45+00:00",
+  "as_of": "2026-09-03",
   "snapshots": [
     {
       "date": "2025-05-28",
@@ -6306,8 +6306,8 @@
       "non_tend_lots": 2,
       "suspended_lots": 0,
       "lots_graded_today": 0,
-      "lots_sold_today": 0,
-      "lots_bought_today": 0,
+      "lots_sold_today": 913,
+      "lots_bought_today": 913,
       "tenders_today": 0,
       "by_port_lots": {
         "ANT": 3492,
@@ -6331,9 +6331,9 @@
       "total_bags_60kg_equivalent": 826000,
       "non_tend_lots": 2,
       "suspended_lots": 0,
-      "lots_graded_today": 0,
-      "lots_sold_today": 0,
-      "lots_bought_today": 0,
+      "lots_graded_today": 48,
+      "lots_sold_today": 12,
+      "lots_bought_today": 12,
       "tenders_today": 0,
       "by_port_lots": {
         "ANT": 3539,
@@ -6349,23 +6349,49 @@
         "NOR": 0,
         "ROT": 0
       }
+    },
+    {
+      "date": "2026-09-03",
+      "cut_off_date": "2026-09-02",
+      "total_lots_certified": 4982,
+      "total_bags_60kg_equivalent": 830333,
+      "non_tend_lots": 2,
+      "suspended_lots": 0,
+      "lots_graded_today": 0,
+      "lots_sold_today": 12,
+      "lots_bought_today": 12,
+      "tenders_today": 0,
+      "by_port_lots": {
+        "ANT": 3587,
+        "LON": 1371,
+        "TRI": 24,
+        "AMS": 0,
+        "BAR": 0,
+        "BRE": 0,
+        "FEL": 0,
+        "HAM": 0,
+        "LEH": 0,
+        "LIV": 0,
+        "NOR": 0,
+        "ROT": 0
+      }
     }
   ],
   "latest_detail": {
     "stock_report": {
-      "cut_off_date": "2026-08-31",
+      "cut_off_date": "2026-09-02",
       "ports": [
         {
           "port_id": "ANT",
           "port_name": "Antwerp",
-          "with_val_cert": 3539,
+          "with_val_cert": 3587,
           "non_tend": 2,
           "suspended": 0
         },
         {
           "port_id": "LON",
           "port_name": "London",
-          "with_val_cert": 1393,
+          "with_val_cert": 1371,
           "non_tend": 0,
           "suspended": 0
         },
@@ -6441,12 +6467,12 @@
         }
       ],
       "grand_total": {
-        "with_val_cert": 4956,
+        "with_val_cert": 4982,
         "non_tend": 2,
         "suspended": 0
       }
     },
-    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260901_103832.csv"
+    "stock_report_url": "https://www.ice.com/marketdata/publicdocs/liffe/coffee/stock_reports/Stock_Report_RC_20260903_103340.csv"
   },
   "recent_activity": {
     "gradings": [
@@ -13971,6 +13997,51 @@
           "sold": 12,
           "bought": 12
         }
+      },
+      {
+        "date": "2026-09-02",
+        "report_date": "2026-09-02",
+        "delivery_date": "2026-09-02",
+        "members": [],
+        "grand_total": {
+          "sold": 0,
+          "bought": 0
+        }
+      },
+      {
+        "date": "2026-09-03",
+        "report_date": "2026-09-03",
+        "delivery_date": "2026-09-03",
+        "members": [
+          {
+            "code": "ADU",
+            "rows": [
+              {
+                "origin": "Indonesia",
+                "sold": 12,
+                "bought": 0
+              }
+            ],
+            "total_sold": 12,
+            "total_bought": 0
+          },
+          {
+            "code": "ICS",
+            "rows": [
+              {
+                "origin": "Indonesia",
+                "sold": 0,
+                "bought": 12
+              }
+            ],
+            "total_sold": 0,
+            "total_bought": 12
+          }
+        ],
+        "grand_total": {
+          "sold": 12,
+          "bought": 12
+        }
       }
     ],
     "tenders": [
@@ -17730,6 +17801,106 @@
           "originals_month": 3000,
           "retenders": 12,
           "retenders_month": 925,
+          "originals_rejected": 0,
+          "originals_rejected_month": 0,
+          "retenders_rejected": 0,
+          "retenders_rejected_month": 0,
+          "originals_withdrawn": 0,
+          "originals_withdrawn_month": 0,
+          "retenders_withdrawn": 0,
+          "retenders_withdrawn_month": 0,
+          "originals_substituted": 0,
+          "originals_substituted_month": 0,
+          "retenders_substituted": 0,
+          "retenders_substituted_month": 0,
+          "original_substitutions": 0,
+          "original_substitutions_month": 0,
+          "retender_substitutions": 0,
+          "retender_substitutions_month": 0
+        }
+      },
+      {
+        "date": "2026-09-02",
+        "report_date": "2026-09-02",
+        "delivery_period": "2026-09",
+        "business_date": "2026-09-02",
+        "by_origin": [
+          {
+            "origin": "Brazilian Conillon",
+            "originals_today": 0,
+            "originals_month": 1822,
+            "retenders_today": 0,
+            "retenders_month": 922
+          },
+          {
+            "origin": "Indonesia",
+            "originals_today": 0,
+            "originals_month": 1178,
+            "retenders_today": 0,
+            "retenders_month": 3
+          }
+        ],
+        "totals_today": {
+          "originals": 0,
+          "originals_month": 3000,
+          "retenders": 0,
+          "retenders_month": 925
+        },
+        "grand_totals": {
+          "originals": 0,
+          "originals_month": 3000,
+          "retenders": 0,
+          "retenders_month": 925,
+          "originals_rejected": 0,
+          "originals_rejected_month": 0,
+          "retenders_rejected": 0,
+          "retenders_rejected_month": 0,
+          "originals_withdrawn": 0,
+          "originals_withdrawn_month": 0,
+          "retenders_withdrawn": 0,
+          "retenders_withdrawn_month": 0,
+          "originals_substituted": 0,
+          "originals_substituted_month": 0,
+          "retenders_substituted": 0,
+          "retenders_substituted_month": 0,
+          "original_substitutions": 0,
+          "original_substitutions_month": 0,
+          "retender_substitutions": 0,
+          "retender_substitutions_month": 0
+        }
+      },
+      {
+        "date": "2026-09-03",
+        "report_date": "2026-09-03",
+        "delivery_period": "2026-09",
+        "business_date": "2026-09-03",
+        "by_origin": [
+          {
+            "origin": "Brazilian Conillon",
+            "originals_today": 0,
+            "originals_month": 1822,
+            "retenders_today": 0,
+            "retenders_month": 922
+          },
+          {
+            "origin": "Indonesia",
+            "originals_today": 0,
+            "originals_month": 1178,
+            "retenders_today": 12,
+            "retenders_month": 15
+          }
+        ],
+        "totals_today": {
+          "originals": 0,
+          "originals_month": 3000,
+          "retenders": 12,
+          "retenders_month": 937
+        },
+        "grand_totals": {
+          "originals": 0,
+          "originals_month": 3000,
+          "retenders": 12,
+          "retenders_month": 937,
           "originals_rejected": 0,
           "originals_rejected_month": 0,
           "retenders_rejected": 0,
@@ -33246,7 +33417,7 @@
       "max": 27067,
       "max_date": "2011-07-11",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-09-01",
+      "last_seen": "2026-09-03",
       "observations": 3173,
       "locked": true
     },
@@ -33256,7 +33427,7 @@
       "max": 6169,
       "max_date": "2010-01-11",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-09-01",
+      "last_seen": "2026-09-03",
       "observations": 2855,
       "locked": true
     },
@@ -33266,7 +33437,7 @@
       "max": 5320,
       "max_date": "2019-07-24",
       "first_seen": "2009-03-23",
-      "last_seen": "2026-09-01",
+      "last_seen": "2026-09-03",
       "observations": 3172,
       "locked": true
     },
@@ -33276,7 +33447,7 @@
       "max": 2870,
       "max_date": "2011-08-08",
       "first_seen": "2009-03-23",
-      "last_seen": "2026-09-01",
+      "last_seen": "2026-09-03",
       "observations": 2274,
       "locked": true
     },
@@ -33286,7 +33457,7 @@
       "max": 2672,
       "max_date": "2021-03-23",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-09-01",
+      "last_seen": "2026-09-03",
       "observations": 2366,
       "locked": true
     },
@@ -33296,7 +33467,7 @@
       "max": 2399,
       "max_date": "2015-08-03",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-09-01",
+      "last_seen": "2026-09-03",
       "observations": 3173,
       "locked": true
     },
@@ -33316,7 +33487,7 @@
       "max": 494,
       "max_date": "2025-05-13",
       "first_seen": "2023-11-01",
-      "last_seen": "2026-09-01",
+      "last_seen": "2026-09-03",
       "observations": 927,
       "locked": true
     },
@@ -33336,7 +33507,7 @@
       "max": 341,
       "max_date": "2017-11-22",
       "first_seen": "2009-03-09",
-      "last_seen": "2026-09-01",
+      "last_seen": "2026-09-03",
       "observations": 2626,
       "locked": true
     },
@@ -33346,7 +33517,7 @@
       "max": 302,
       "max_date": "2015-08-03",
       "first_seen": "2009-09-21",
-      "last_seen": "2026-09-01",
+      "last_seen": "2026-09-03",
       "observations": 2281,
       "locked": true
     },
@@ -33356,7 +33527,7 @@
       "max": 184,
       "max_date": "2009-11-02",
       "first_seen": "2009-06-01",
-      "last_seen": "2026-09-01",
+      "last_seen": "2026-09-03",
       "observations": 1975,
       "locked": true
     },
@@ -33366,7 +33537,7 @@
       "max": 177,
       "max_date": "2023-05-22",
       "first_seen": "2009-04-06",
-      "last_seen": "2026-09-01",
+      "last_seen": "2026-09-03",
       "observations": 1146,
       "locked": true
     },
@@ -33386,7 +33557,7 @@
       "max": 0,
       "max_date": "2026-05-27",
       "first_seen": "2026-05-27",
-      "last_seen": "2026-09-01",
+      "last_seen": "2026-09-03",
       "observations": 58,
       "locked": true
     }

@@ -3,6 +3,10 @@
 The session runs on Vietnam wall-clock and arabica's crosses midnight, which is
 where the interesting failure lives — see test_arabica_open15_is_not_the_close.
 """
+from datetime import UTC, datetime
+from zoneinfo import ZoneInfo
+
+from scraper import fetch_tradespread as ts
 from scraper.fetch_tradespread import (
     _at_or_before,
     _attach_settle,
@@ -141,3 +145,57 @@ def test_a_liquid_contract_reports_a_fresh_anchor():
     s = _summarise({"label": "Robusta 11/26", "n_trades": 3, "ticks": ticks},
                    "2026-08-25")
     assert s["at_rc_close"]["stale_s"] == 5
+
+
+# ── the capture window and session dating ────────────────────────────────────
+# This feed went silent from 2026-08-26 to 2026-09-04 — ten sessions — with
+# every scheduled run reporting success. Three faults stacked:
+#   1. the window was 105 minutes wide and GitHub's cron drift grew past it;
+#   2. a skip returned 0, so the miss was invisible;
+#   3. _session_date pivoted on 06:00 VN, which would have mis-filed any fetch
+#      the widened window newly admits.
+# One test per fault, each keyed to a real drifted run time.
+
+def test_the_window_admits_the_cron_drift_actually_observed():
+    """Runs landed 2h26m to 7h31m late; the old 13:45-15:30 window rejected all."""
+    ny = ZoneInfo("America/New_York")
+    for iso, why in [
+        ("2026-09-03T21:22:56Z", "2h33m late — the steady state since 1 Sep"),
+        ("2026-08-26T21:15:47Z", "2h26m late — the first miss"),
+        ("2026-08-28T02:21:13Z", "7h31m late — the worst observed"),
+        ("2026-09-03T18:50:00Z", "on time"),
+    ]:
+        t = datetime.strptime(iso, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC).astimezone(ny)
+        ok, msg = ts._window_check(t)
+        assert ok, f"{why} ({t:%a %H:%M} NY) should be inside the window: {msg}"
+
+
+def test_the_window_still_refuses_a_partial_or_rolled_over_tape():
+    ny = ZoneInfo("America/New_York")
+    # Before the 13:30 settle + 15 min: the tape is incomplete.
+    assert not ts._window_check(datetime(2026, 9, 3, 13, 40, tzinfo=ny))[0]
+    # After 03:30 the next day the panels have rolled to the new session.
+    assert not ts._window_check(datetime(2026, 9, 4, 4, 30, tzinfo=ny))[0]
+
+
+def test_the_weekday_test_applies_to_the_session_not_the_clock():
+    """A Friday tape read at 02:00 ET Saturday is still Friday's."""
+    ny = ZoneInfo("America/New_York")
+    ok, msg = ts._window_check(datetime(2026, 9, 5, 2, 0, tzinfo=ny))   # Sat 02:00
+    assert ok, f"Friday's session read in the small hours must be kept: {msg}"
+    assert "2026-09-04" in msg
+    # Saturday's own (non-existent) session is refused.
+    assert not ts._window_check(datetime(2026, 9, 5, 14, 0, tzinfo=ny))[0]
+
+
+def test_session_date_pivots_on_the_next_open_not_on_dawn():
+    """09:21 VN is where a 7h31m drift landed; the 06:00 pivot mis-filed it."""
+    vn = ZoneInfo("Asia/Ho_Chi_Minh")
+    # 2026-08-28T02:21Z = 09:21 VN on the 28th — still Thursday the 27th's tape.
+    assert ts._session_date(datetime(2026, 8, 28, 9, 21, tzinfo=vn)) == "2026-08-27"
+    # The on-time fetch lands 01:50 VN and was always dated correctly.
+    assert ts._session_date(datetime(2026, 9, 4, 1, 50, tzinfo=vn)) == "2026-09-03"
+    # 14:59 VN is the last minute belonging to yesterday's session.
+    assert ts._session_date(datetime(2026, 9, 4, 14, 59, tzinfo=vn)) == "2026-09-03"
+    # 15:00 VN opens the new one.
+    assert ts._session_date(datetime(2026, 9, 4, 15, 0, tzinfo=vn)) == "2026-09-04"

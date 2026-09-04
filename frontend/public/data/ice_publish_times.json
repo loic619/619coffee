@@ -1,211 +1,211 @@
 {
  "note": "Observed publish times of the ICE London robusta certified-stock CSV. The file is served under an HHMMSS-stamped URL with no index, so these are the seconds workflow 1.13 has to guess.",
  "source": "backend/scraper/sources/ice_certified_stocks/stock_report_hits.json",
- "captures": 64,
+ "captures": 65,
  "first_date": "2026-06-03",
- "last_date": "2026-09-01",
+ "last_date": "2026-09-03",
  "earliest": "10:29:56",
  "latest": "12:47:15",
  "median": "10:32:32",
  "p90": "10:47:36",
- "distinct_seconds": 61,
+ "distinct_seconds": 62,
  "seconds_seen_more_than_once": 2,
  "by_minute": [
   {
    "minute": "10:29",
    "count": 1,
-   "share": 0.0156
+   "share": 0.0154
   },
   {
    "minute": "10:30",
    "count": 19,
-   "share": 0.2969
+   "share": 0.2923
   },
   {
    "minute": "10:31",
    "count": 8,
-   "share": 0.125
+   "share": 0.1231
   },
   {
    "minute": "10:32",
    "count": 10,
-   "share": 0.1562
+   "share": 0.1538
   },
   {
    "minute": "10:33",
-   "count": 1,
-   "share": 0.0156
+   "count": 2,
+   "share": 0.0308
   },
   {
    "minute": "10:34",
    "count": 2,
-   "share": 0.0312
+   "share": 0.0308
   },
   {
    "minute": "10:35",
    "count": 3,
-   "share": 0.0469
+   "share": 0.0462
   },
   {
    "minute": "10:36",
    "count": 3,
-   "share": 0.0469
+   "share": 0.0462
   },
   {
    "minute": "10:37",
    "count": 2,
-   "share": 0.0312
+   "share": 0.0308
   },
   {
    "minute": "10:38",
    "count": 2,
-   "share": 0.0312
+   "share": 0.0308
   },
   {
    "minute": "10:39",
    "count": 1,
-   "share": 0.0156
+   "share": 0.0154
   },
   {
    "minute": "10:40",
    "count": 1,
-   "share": 0.0156
+   "share": 0.0154
   },
   {
    "minute": "10:41",
    "count": 1,
-   "share": 0.0156
+   "share": 0.0154
   },
   {
    "minute": "10:42",
    "count": 1,
-   "share": 0.0156
+   "share": 0.0154
   },
   {
    "minute": "10:43",
    "count": 1,
-   "share": 0.0156
+   "share": 0.0154
   },
   {
    "minute": "10:45",
    "count": 1,
-   "share": 0.0156
+   "share": 0.0154
   },
   {
    "minute": "10:47",
    "count": 1,
-   "share": 0.0156
+   "share": 0.0154
   },
   {
    "minute": "10:50",
    "count": 1,
-   "share": 0.0156
+   "share": 0.0154
   },
   {
    "minute": "10:51",
    "count": 2,
-   "share": 0.0312
+   "share": 0.0308
   },
   {
    "minute": "11:00",
    "count": 1,
-   "share": 0.0156
+   "share": 0.0154
   },
   {
    "minute": "11:23",
    "count": 1,
-   "share": 0.0156
+   "share": 0.0154
   },
   {
    "minute": "12:47",
    "count": 1,
-   "share": 0.0156
+   "share": 0.0154
   }
  ],
  "cumulative": [
   {
    "through": "10:29",
-   "share": 0.0156
+   "share": 0.0154
   },
   {
    "through": "10:30",
-   "share": 0.3125
+   "share": 0.3077
   },
   {
    "through": "10:31",
-   "share": 0.4375
+   "share": 0.4308
   },
   {
    "through": "10:32",
-   "share": 0.5938
+   "share": 0.5846
   },
   {
    "through": "10:33",
-   "share": 0.6094
+   "share": 0.6154
   },
   {
    "through": "10:34",
-   "share": 0.6406
+   "share": 0.6462
   },
   {
    "through": "10:35",
-   "share": 0.6875
+   "share": 0.6923
   },
   {
    "through": "10:36",
-   "share": 0.7344
+   "share": 0.7385
   },
   {
    "through": "10:37",
-   "share": 0.7656
+   "share": 0.7692
   },
   {
    "through": "10:38",
-   "share": 0.7969
+   "share": 0.8
   },
   {
    "through": "10:39",
-   "share": 0.8125
+   "share": 0.8154
   },
   {
    "through": "10:40",
-   "share": 0.8281
+   "share": 0.8308
   },
   {
    "through": "10:41",
-   "share": 0.8438
+   "share": 0.8462
   },
   {
    "through": "10:42",
-   "share": 0.8594
+   "share": 0.8615
   },
   {
    "through": "10:43",
-   "share": 0.875
+   "share": 0.8769
   },
   {
    "through": "10:45",
-   "share": 0.8906
+   "share": 0.8923
   },
   {
    "through": "10:47",
-   "share": 0.9062
+   "share": 0.9077
   },
   {
    "through": "10:50",
-   "share": 0.9219
+   "share": 0.9231
   },
   {
    "through": "10:51",
-   "share": 0.9531
+   "share": 0.9538
   },
   {
    "through": "11:00",
-   "share": 0.9688
+   "share": 0.9692
   },
   {
    "through": "11:23",
-   "share": 0.9844
+   "share": 0.9846
   },
   {
    "through": "12:47",
@@ -218,7 +218,7 @@
   "interval_s": 3.0,
   "tier1_k": 10,
   "observed_max_offset_s": 8295,
-  "days_inside_window": 62
+  "days_inside_window": 63
  },
  "days": [
   {
@@ -476,6 +476,10 @@
   {
    "date": "2026-09-01",
    "time": "10:38:32"
+  },
+  {
+   "date": "2026-09-03",
+   "time": "10:33:40"
   }
  ],
  "by_weekday": {
@@ -503,8 +507,8 @@
    },
    {
     "weekday": "Thu",
-    "n": 13,
-    "median": "10:31:03",
+    "n": 14,
+    "median": "10:31:10",
     "max": "10:40:09",
     "late": 1
    },
@@ -523,31 +527,37 @@
    "rate": 0.263
   },
   "thu_fri": {
-   "n": 26,
+   "n": 27,
    "late": 2,
-   "rate": 0.077
+   "rate": 0.074
   },
   "permutation_p": 0.04
  },
  "misses": {
-  "business_days": 65,
-  "captured": 64,
+  "business_days": 67,
+  "captured": 65,
   "missing": [
    {
     "date": "2026-08-31",
     "weekday": "Mon",
     "recoverable": false,
     "data_hole": true
+   },
+   {
+    "date": "2026-09-02",
+    "weekday": "Wed",
+    "recoverable": false,
+    "data_hole": true
    }
   ],
   "by_weekday": {
    "Wed": {
-    "missing": 0,
-    "of": 13
+    "missing": 1,
+    "of": 14
    },
    "Thu": {
     "missing": 0,
-    "of": 13
+    "of": 14
    },
    "Fri": {
     "missing": 0,
@@ -564,12 +574,14 @@
   }
  },
  "rate_limits": {
-  "runs": 9,
+  "runs": 10,
   "runs_with_429": 0,
   "total_429": 0,
   "total_retry_after_s": 0,
   "worst_retry_after_s": 0,
   "runs_aborted_by_429": 0,
+  "runs_blocked_by_403": 0,
+  "total_403": 0,
   "runs_resumed": 0,
   "median_sweep_gets": 354,
   "recent": [
@@ -725,129 +737,52 @@
     "requests": 2022,
     "wait_publicdocs_s": 14.0,
     "wait_marketdata_s": 6335.0
+   },
+   {
+    "at": "2026-09-04T11:08:48+00:00",
+    "sweep_day": "2026-09-03",
+    "outcome": "completed",
+    "http_429": 0,
+    "http_404": 416,
+    "retry_after_count": 0,
+    "retry_after_total_s": 0,
+    "retry_after_max_s": 0,
+    "throttle_bumps": 0,
+    "aborted_by_429": false,
+    "sweep_gets": 241,
+    "resumed_from": null,
+    "requests": 444,
+    "wait_publicdocs_s": 14.0,
+    "wait_marketdata_s": 1703.0
    }
   ]
  },
+ "blocks": {
+  "runs": 10,
+  "instrumented_runs": 0,
+  "note": "blocked_sections recorded from 2026-09-04; earlier runs could meet a 403 without leaving any trace of which section it cost",
+  "runs_with_a_block": 0,
+  "sections_skipped": 0,
+  "requests_given_up": 0,
+  "by_section": [],
+  "recent": []
+ },
  "runs": {
-  "count": 362,
+  "count": 370,
   "note": null,
   "outcomes": {
-   "success": 251,
-   "cancelled": 10,
-   "timeout": 42,
-   "queue_cancelled": 50,
+   "success": 255,
+   "cancelled": 11,
+   "timeout": 43,
+   "queue_cancelled": 51,
    "skipped": 6,
-   "failure": 1,
+   "failure": 2,
    "unknown": 2
   },
-  "billed_minutes_total": 9950,
-  "billed_minutes_mean": 27.5,
-  "with_telemetry": 31,
+  "billed_minutes_total": 10338,
+  "billed_minutes_mean": 27.9,
+  "with_telemetry": 39,
   "recent": [
-   {
-    "id": 32325855904,
-    "date": "2026-08-20",
-    "started": "2026-08-20T02:46:47Z",
-    "event": "workflow_run",
-    "conclusion": "success",
-    "attempt": 1,
-    "job_seconds": 2939,
-    "billed_minutes": 49,
-    "last_step": "Complete job",
-    "outcome": "success",
-    "telemetry": null
-   },
-   {
-    "id": 32332351294,
-    "date": "2026-08-20",
-    "started": "2026-08-20T04:34:07Z",
-    "event": "workflow_dispatch",
-    "conclusion": "success",
-    "attempt": 1,
-    "job_seconds": 2226,
-    "billed_minutes": 38,
-    "last_step": "Complete job",
-    "outcome": "success",
-    "telemetry": null
-   },
-   {
-    "id": 32418407200,
-    "date": "2026-08-20",
-    "started": "2026-08-20T21:14:46Z",
-    "event": "workflow_run",
-    "conclusion": "success",
-    "attempt": 1,
-    "job_seconds": 1820,
-    "billed_minutes": 31,
-    "last_step": "Complete job",
-    "outcome": "success",
-    "telemetry": null
-   },
-   {
-    "id": 32438867792,
-    "date": "2026-08-21",
-    "started": "2026-08-21T02:09:44Z",
-    "event": "schedule",
-    "conclusion": "cancelled",
-    "attempt": 1,
-    "job_seconds": 7216,
-    "billed_minutes": 121,
-    "last_step": "Complete job",
-    "outcome": "timeout",
-    "telemetry": null
-   },
-   {
-    "id": 32441154140,
-    "date": "2026-08-21",
-    "started": "2026-08-21T02:48:56Z",
-    "event": "workflow_run",
-    "conclusion": "cancelled",
-    "attempt": 1,
-    "job_seconds": null,
-    "billed_minutes": 0,
-    "last_step": null,
-    "outcome": "queue_cancelled",
-    "telemetry": null
-   },
-   {
-    "id": 32441404738,
-    "date": "2026-08-21",
-    "started": "2026-08-21T02:53:16Z",
-    "event": "workflow_run",
-    "conclusion": "success",
-    "attempt": 1,
-    "job_seconds": 1835,
-    "billed_minutes": 31,
-    "last_step": "Complete job",
-    "outcome": "success",
-    "telemetry": null
-   },
-   {
-    "id": 32527717588,
-    "date": "2026-08-21",
-    "started": "2026-08-21T21:16:29Z",
-    "event": "workflow_run",
-    "conclusion": "cancelled",
-    "attempt": 1,
-    "job_seconds": 7215,
-    "billed_minutes": 121,
-    "last_step": "Complete job",
-    "outcome": "timeout",
-    "telemetry": null
-   },
-   {
-    "id": 32545123049,
-    "date": "2026-08-22",
-    "started": "2026-08-22T02:02:02Z",
-    "event": "schedule",
-    "conclusion": "cancelled",
-    "attempt": 1,
-    "job_seconds": 7214,
-    "billed_minutes": 121,
-    "last_step": "Complete job",
-    "outcome": "timeout",
-    "telemetry": null
-   },
    {
     "id": 32546520786,
     "date": "2026-08-22",
@@ -1043,6 +978,9 @@
     "outcome": "timeout",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1067,6 +1005,9 @@
     "outcome": "queue_cancelled",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1091,6 +1032,9 @@
     "outcome": "timeout",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1115,6 +1059,9 @@
     "outcome": "cancelled",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1139,6 +1086,9 @@
     "outcome": "failure",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1163,6 +1113,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1187,6 +1140,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1211,6 +1167,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1235,6 +1194,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1259,6 +1221,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1283,6 +1248,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1307,6 +1275,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1331,6 +1302,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1355,6 +1329,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1379,6 +1356,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1403,6 +1383,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1427,6 +1410,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1542,6 +1528,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1566,6 +1555,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1590,6 +1582,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1614,6 +1609,9 @@
     "outcome": "timeout",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1638,6 +1636,9 @@
     "outcome": "queue_cancelled",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1662,6 +1663,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1686,6 +1690,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1710,6 +1717,9 @@
     "outcome": "timeout",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1734,6 +1744,9 @@
     "outcome": "queue_cancelled",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1758,6 +1771,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1782,6 +1798,9 @@
     "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1798,14 +1817,17 @@
     "date": "2026-09-03",
     "started": "2026-09-03T04:57:34Z",
     "event": "schedule",
-    "conclusion": null,
+    "conclusion": "success",
     "attempt": 1,
-    "job_seconds": null,
-    "billed_minutes": 0,
-    "last_step": "Rebuild the run-outcome history",
-    "outcome": "unknown",
+    "job_seconds": 6664,
+    "billed_minutes": 112,
+    "last_step": "Complete job",
+    "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1830,6 +1852,9 @@
     "outcome": "queue_cancelled",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1846,14 +1871,17 @@
     "date": "2026-09-03",
     "started": "2026-09-03T06:36:48Z",
     "event": "workflow_run",
-    "conclusion": null,
+    "conclusion": "success",
     "attempt": 1,
-    "job_seconds": null,
-    "billed_minutes": 0,
-    "last_step": null,
-    "outcome": "unknown",
+    "job_seconds": 12,
+    "billed_minutes": 1,
+    "last_step": "Complete job",
+    "outcome": "success",
     "telemetry": {
      "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
      "retry_after_count": 0,
      "retry_after_total_s": 0,
      "throttle_bumps": 0,
@@ -1862,6 +1890,222 @@
      "resumed_from": null,
      "wait_publicdocs_s": 14.0,
      "wait_marketdata_s": 6335.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 33807077291,
+    "date": "2026-09-03",
+    "started": "2026-09-03T21:16:55Z",
+    "event": "workflow_run",
+    "conclusion": "success",
+    "attempt": 1,
+    "job_seconds": 17,
+    "billed_minutes": 1,
+    "last_step": "Complete job",
+    "outcome": "success",
+    "telemetry": {
+     "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 1870,
+     "http_404": 187,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 6335.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 33838897893,
+    "date": "2026-09-04",
+    "started": "2026-09-04T05:00:39Z",
+    "event": "schedule",
+    "conclusion": "cancelled",
+    "attempt": 1,
+    "job_seconds": 7215,
+    "billed_minutes": 121,
+    "last_step": "Complete job",
+    "outcome": "timeout",
+    "telemetry": {
+     "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 241,
+     "http_404": 416,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 1703.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 33842660775,
+    "date": "2026-09-04",
+    "started": "2026-09-04T06:01:09Z",
+    "event": "workflow_run",
+    "conclusion": "cancelled",
+    "attempt": 1,
+    "job_seconds": null,
+    "billed_minutes": 0,
+    "last_step": null,
+    "outcome": "queue_cancelled",
+    "telemetry": {
+     "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 241,
+     "http_404": 416,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 1703.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 33845257727,
+    "date": "2026-09-04",
+    "started": "2026-09-04T06:39:10Z",
+    "event": "workflow_run",
+    "conclusion": "cancelled",
+    "attempt": 1,
+    "job_seconds": 5985,
+    "billed_minutes": 100,
+    "last_step": "Complete job",
+    "outcome": "cancelled",
+    "telemetry": {
+     "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 241,
+     "http_404": 416,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 1703.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 33854671005,
+    "date": "2026-09-04",
+    "started": "2026-09-04T08:41:44Z",
+    "event": "workflow_dispatch",
+    "conclusion": "success",
+    "attempt": 1,
+    "job_seconds": 71,
+    "billed_minutes": 2,
+    "last_step": "Complete job",
+    "outcome": "success",
+    "telemetry": {
+     "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 241,
+     "http_404": 416,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 1703.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 33854928072,
+    "date": "2026-09-04",
+    "started": "2026-09-04T08:44:54Z",
+    "event": "workflow_dispatch",
+    "conclusion": "failure",
+    "attempt": 1,
+    "job_seconds": 3060,
+    "billed_minutes": 51,
+    "last_step": "Complete job",
+    "outcome": "failure",
+    "telemetry": {
+     "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 241,
+     "http_404": 416,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 1703.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 33864176535,
+    "date": "2026-09-04",
+    "started": "2026-09-04T10:38:21Z",
+    "event": "workflow_dispatch",
+    "conclusion": null,
+    "attempt": 1,
+    "job_seconds": null,
+    "billed_minutes": 0,
+    "last_step": "Rebuild the run-outcome history",
+    "outcome": "unknown",
+    "telemetry": {
+     "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 241,
+     "http_404": 416,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 1703.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 33866182291,
+    "date": "2026-09-04",
+    "started": "2026-09-04T11:04:08Z",
+    "event": "workflow_dispatch",
+    "conclusion": null,
+    "attempt": 1,
+    "job_seconds": null,
+    "billed_minutes": 0,
+    "last_step": null,
+    "outcome": "unknown",
+    "telemetry": {
+     "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 241,
+     "http_404": 416,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 1703.0,
      "wait_retry_after_s": 0
     }
    }

@@ -111,6 +111,11 @@ jobs:
         working-directory: backend
         env:
           PYTHONUNBUFFERED: "1"
+          # A 403 skips a fetch section and lets the run finish green, so the
+          # orchestrator says so on Telegram itself — the step-level failure
+          # notifier below never fires for it.
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           for attempt in 1 2 3; do
@@ -125,7 +130,8 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add frontend/public/data/certified_stocks_arabica.json \
-                  frontend/public/data/certified_stocks_robusta.json
+                  frontend/public/data/certified_stocks_robusta.json \
+                  frontend/public/data/run_degradations.json
           git diff --cached --quiet \
             && echo "No changes." \
             || (git commit -m "data: ICE monthly reports (ageing + age-allowance) [skip ci]" \

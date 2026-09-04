@@ -26,6 +26,7 @@ npx next build
 
 # Pick a port nothing is on, then start with the gate configured:
 (lsof -ti:3002 | xargs -r kill -9) 2>/dev/null; sleep 2
+# GATE_PW_ADMIN instead of GATE_PW_USER for /data-map and /admin (see below).
 GATE_PW_USER="$APP_ACCESS" GATE_SECRET='local-only-throwaway' \
   nohup npx next start -p 3002 > /tmp/next.log 2>&1 &
 timeout 60 bash -c 'until curl -sf http://localhost:3002/ >/dev/null; do sleep 1; done' && echo UP
@@ -47,9 +48,15 @@ renders empty rather than redirecting. Two things matter:
 - **`SITE_GATE_ENABLED=false` does not work.** Edge middleware inlines env at
   build time, and even rebuilding with it set leaves the gate up. Don't spend
   time on it; go through the gate instead.
-- **The password is checked against `GATE_PW_USER`**, which lives in Vercel and
-  is absent locally. Set it at server start to whatever you'll send. Signing
-  the tier cookie also needs `GATE_SECRET` or the login bounces with `err=3`.
+- **The password is checked against the env var for the tier you want**, and
+  those live in Vercel, absent locally. Set one at server start to whatever
+  you'll send. Signing the tier cookie also needs `GATE_SECRET` or the login
+  bounces with `err=3`.
+- **`/data-map` and `/admin` need `GATE_PW_ADMIN`, not `GATE_PW_USER`.**
+  Starting with only the user password logs in fine and then redirects to
+  `/news`, which reads as the page having broken rather than the tier being
+  wrong — `pathAllowed()` in `lib/gate.ts` has the table. For an admin-only
+  page, start with `GATE_PW_ADMIN=... GATE_SECRET=...` and send that code.
 
 Put the access code in `APP_ACCESS` in the environment. Never hardcode it in a
 file — this repo is public.
@@ -59,7 +66,12 @@ means the name was empty; `err=3` means `GATE_SECRET` is unset.
 
 ## 3. Drive it
 
-`scripts/drive.mjs` handles gate login, the browser setup and error capture:
+`scripts/drive.mjs` handles gate login, the browser setup and error capture.
+**Use it rather than hand-rolling a Playwright script.** The gate form has
+changed shape twice; a script written from memory fills fields that no longer
+exist, and Playwright reports that as a bland 30s timeout on
+`input[name=first]` rather than "the form changed". Sept 2026 cost two runs to
+exactly this — the driver was correct the whole time and simply was not used.
 
 ```bash
 APP_ACCESS='<code>' node ../.claude/skills/run-app/scripts/drive.mjs \
@@ -111,6 +123,15 @@ Brief is the landing since Sept 2026) and can open everything except
 
 ## Gotchas that cost real time
 
+- **`npx next start` from the wrong directory INSTALLS A DIFFERENT NEXT.** It
+  does not error. Outside `frontend/` there is no local `next`, so npx fetches
+  the latest from the registry — `npm warn exec The following package was not
+  found and will be installed: next@16.3.4` — and you then debug a server that
+  is a different major version from the one that built `.next`. It is easy to
+  land in the wrong cwd without noticing: a `cd frontend && <cmd>` whose first
+  command fails leaves the shell wherever it started, and later calls in the
+  same session inherit that. Check the directory, or use an absolute
+  `cd /home/user/Coffee-intel-map/frontend` in the same command as the start.
 - **`waitUntil: 'networkidle'` never settles** — the app polls live data, so
   navigation times out at 60s. Use `domcontentloaded` plus `--wait`.
 - **Headless UAs are treated as bots.** `middleware.ts` matches "headless" in

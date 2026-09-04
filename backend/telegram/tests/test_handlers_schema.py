@@ -9,6 +9,7 @@ schema move breaks CI instead of the bot.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -37,21 +38,20 @@ def test_brazil_reads_the_v2_cecafe_schema():
 
     out = brazil.handle("", {})
     assert "No Brazil registration data" not in out
-    assert "bags" in out and "Total:" in out
+    assert "bags" in out and "TOTAL" in out
 
 
-def test_brazil_pads_the_day():
-    out = brazil.handle("", {})
-    head = out.splitlines()[0]
-    # "(2026-09-2)" is a formatting bug; the date must be zero-padded.
-    assert "-0" in head or head.rstrip(")")[-2:].isdigit()
+def test_brazil_states_the_day_and_the_comparison_day():
+    """The header carries both dates: the message is a comparison, so "3 Sep"
+    alone would leave the reader guessing what it is measured against."""
+    head = brazil.handle("", {}).splitlines()[1]
+    assert re.match(r"^\d{1,2} \w{3} · vs \d{1,2} \w{3}$", head), head
 
 
 def test_brazil_agrees_with_the_brief():
     """Both read the same file; a divergence means one of them drifted."""
     from telegram.handlers import brief
-    b = brazil.handle("", {})
-    total = b.splitlines()[1].replace("Total:", "").replace("bags", "").strip()
+    total = re.search(r"TOTAL ([\d,]+) bags", brazil.handle("", {})).group(1)
     assert total in brief.handle("", {}), "brazil and brief disagree on the day's total"
 
 
@@ -78,7 +78,7 @@ def test_ecf_reads_its_own_file_not_demand_stocks():
 def test_prices_still_renders_both_boards():
     out = prices.handle("", {})
     assert "unavailable" not in out
-    assert "KC (" in out and "RC (" in out
+    assert "KC " in out and "RC " in out
 
 
 def test_kaffeesteuer_still_renders():

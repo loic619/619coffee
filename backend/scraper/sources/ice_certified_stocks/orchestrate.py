@@ -32,6 +32,7 @@ from pathlib import Path
 
 import requests
 
+from ... import run_degradations
 from . import fetch as F
 from .cohort_outflow import (
     build_cohort_dna,
@@ -221,9 +222,66 @@ TIMEOUT = 30
 _THROTTLE = {"public": 2.0, "marketdata": 5.0}
 _THROTTLE_CAP = 15.0           # ceiling when self-bumping on 429 retries
 TOO_MANY_429S = 4              # bail-out after this many consecutive 429s
+# Same idea for 403, which had no bail-out at all. A missing report answers 404,
+# so a 403 is anomalous — Akamai serving a challenge page instead of the file.
+# Without this the 2026-09-04 block cost a full 96-minute tier-2 sweep: every
+# one of the 1,920 candidates was refused, none could ever match, and the walk
+# only ended when the 120-minute job timeout killed it. Eight consecutive is
+# ~24 seconds of sweep, long enough to ride out a blip and short enough that a
+# real block costs seconds instead of two hours.
+TOO_MANY_403S = 8
 RETRY_AFTER_MAX_S = 90         # cap any Retry-After we'll wait for
 RETRY_AFTER_GIVE_UP_S = 600    # if Akamai asks > this, abort the rest of the run
-_RATE_STATE: dict[str, int] = {"consecutive_429s": 0, "aborted": 0}
+# `aborted` is RUN-wide and only 429 sets it: rate limiting is cumulative, so
+# continuing anywhere makes it worse. `section_blocked` is the 403 equivalent
+# and is deliberately NARROWER — it skips the rest of the current section and
+# is cleared when the next one starts.
+#
+# The difference matters. A run that fetched arabica and most of robusta, then
+# met a 403 storm on the last source, used to have every remaining request
+# silently short-circuited by the run-wide flag: a mostly-good run quietly
+# stopped collecting. A 403 is also per-source-IP and can be transient within a
+# run, so one refused source is not evidence the next one is refused too.
+_RATE_STATE: dict[str, int] = {
+    "consecutive_429s": 0, "consecutive_403s": 0, "aborted": 0, "section_blocked": 0,
+}
+
+
+def _begin_section(label: str) -> None:
+    """Start a fetch section with a clean 403 slate.
+
+    Each section gets its own chance: being refused while chasing the stock
+    report says nothing about whether the tenders file will serve. The cost of
+    being wrong is bounded — TOO_MANY_403S requests per section — and
+    _assert_not_wholly_refused still fails the run if nothing at all succeeds.
+    """
+    if _RATE_STATE["section_blocked"]:
+        print(f"  → 403 block cleared; {label} gets a fresh attempt")
+    _RATE_STATE["section_blocked"] = 0
+    _RATE_STATE["consecutive_403s"] = 0
+    _CURRENT_SECTION["label"] = label
+    _RUN_STATS["sections"] += 1
+
+
+def _record_section_block() -> None:
+    """Name the section this 403 storm is about to skip.
+
+    Called once per block, at the moment the threshold trips, so the label is
+    still the section that earned it — `_begin_section` overwrites it the
+    instant the next one starts. `skipped_requests` then accumulates on the
+    short-circuit path below, which is what turns "we were blocked" into "we
+    gave up N requests worth of this source".
+    """
+    _RUN_STATS["blocked_sections"].append({
+        "section": _CURRENT_SECTION["label"],
+        "at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "after_403s": _RATE_STATE["consecutive_403s"],
+        "skipped_requests": 0,
+    })
+    # The flag and the detail are one event, so one place sets both. They were
+    # separate lines in _http_get, which is how a run could end up flagged
+    # `aborted_403` with no record of which section it cost.
+    _RUN_STATS["aborted_by_403"] = 1
 
 # Fix 5: per-request interval (seconds) for the SEQUENTIAL tier-2 stock-report
 # sweep only. Concurrency bans the IP at any level, so the per-request gap is
@@ -305,6 +363,11 @@ RUN_STATS_KEEP = 200
 _RUN_STATS: dict = {
     "http_429": 0, "retry_after_waits": [], "throttle_bumps": 0,
     "aborted_by_429": 0, "sweep_gets": 0, "http_404": 0, "resumed_from": None,
+    # 403 is a BLOCK, not a rate limit: Akamai serving a challenge page instead
+    # of the file. It needs its own counter because the remedy is the opposite
+    # of a 429's — slowing down does nothing. `ok_200` is the denominator that
+    # makes "everything was refused" distinguishable from "nothing was due".
+    "http_403": 0, "ok_200": 0, "aborted_by_403": 0,
     # Seconds actually SLEPT between requests, split by which host's limit
     # imposed it. This is the answer to "where did the 111 minutes go" — the
     # run is almost entirely deliberate waiting, and this says whose.
@@ -314,7 +377,19 @@ _RUN_STATS: dict = {
     # stopped early because it was rate-limited or ran out of clock, which
     # says nothing about where the file is.
     "sweep_exhausted": False,
+    # Sections a 403 storm cut short, and how many requests each gave up.
+    # `aborted_by_403` is a bare flag: it says the run met a block, not what
+    # the run therefore came home WITHOUT — and those are different facts,
+    # because the sections are not interchangeable. A skipped arabica xls is a
+    # missing snapshot; a skipped robusta stock report is a missing session.
+    # `sections` is the denominator that makes "2 of 5 refused" sayable.
+    "blocked_sections": [], "sections": 0,
 }
+
+# The section being fetched right now. A 403 storm skips the rest of it, and
+# this is what names the hole in the log, the Telegram line, the research page
+# and the data-map run record.
+_CURRENT_SECTION: dict[str, str] = {"label": "startup"}
 
 
 def _load_cursor() -> dict:
@@ -324,14 +399,41 @@ def _load_cursor() -> dict:
         return {}
 
 
-def _save_cursor(d: date, last_tried: str | None) -> None:
+def _save_cursor(d: date, last_tried: str | None, *, keep_tried: bool = True) -> None:
     """Remember the last second ruled out for `d`. Cleared on success — a
-    found day never needs resuming."""
+    found day never needs resuming. `tried_tier1` survives either way: it is a
+    different fact with a different lifetime (see _mark_tier1_tried)."""
     try:
-        payload = {} if last_tried is None else {"date": d.isoformat(), "last_tried": last_tried}
+        cur = _load_cursor() if keep_tried else {}
+        payload: dict = {} if last_tried is None else {"date": d.isoformat(), "last_tried": last_tried}
+        if keep_tried and cur.get("tried_tier1"):
+            payload["tried_tier1"] = cur["tried_tier1"]
         STOCK_REPORT_CURSOR_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     except Exception as e:  # noqa: BLE001 — telemetry must never break the run
         print(f"  ! cursor write failed: {e}")
+
+
+# Dates whose tier-1 guess-list has already been walked and missed. Durable,
+# because the answer does not change: tier-1 is a fixed set of seconds learned
+# from OTHER days, so re-running it against the same date re-asks a question
+# already answered no. 2026-08-31 is the case in point — swept to exhaustion on
+# 1 Sep, still absent, and every run since has spent 50 more GETs on it.
+TIER1_TRIED_KEEP = 60
+
+
+def _tier1_already_tried(d: date) -> bool:
+    return d.isoformat() in (_load_cursor().get("tried_tier1") or [])
+
+
+def _mark_tier1_tried(d: date) -> None:
+    try:
+        cur = _load_cursor()
+        tried = [x for x in (cur.get("tried_tier1") or []) if x != d.isoformat()]
+        tried.append(d.isoformat())
+        cur["tried_tier1"] = sorted(tried)[-TIER1_TRIED_KEEP:]
+        STOCK_REPORT_CURSOR_PATH.write_text(json.dumps(cur, indent=2), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001
+        print(f"  ! tier1-tried write failed: {e}")
 
 
 def _sweep_candidate_count() -> int:
@@ -352,10 +454,6 @@ def _notify_late_release(day: date) -> None:
     failure — but it is one that needs a human, because the only way to recover
     the session is for someone to supply the publish second. Silence would turn
     an announced trade-off back into a silent hole."""
-    import os
-
-    tok = os.environ.get("TELEGRAM_BOT_TOKEN")
-    chat = os.environ.get("TELEGRAM_CHAT_ID")
     lo, hi = STOCK_REPORT_SWEEP_RANGE
     win = f"{lo[0]:02d}:{lo[1]:02d}–{hi[0]:02d}:{hi[1]:02d}"
     # Report the WINDOW first, with the GET count as a subordinate detail.
@@ -373,15 +471,92 @@ def _notify_late_release(day: date) -> None:
             f"({_RUN_STATS['sweep_gets']:,} requests after tier-1 overlap).\n"
             f"Add the publish time on the Admin research page to backfill it.")
     print(f"[robusta] LATE RELEASE — {day} not in {win}")
+    _telegram(text, tag="robusta")
+
+
+def _telegram(text: str, *, tag: str) -> None:
+    """Send one line to the ops chat, or say in the log why it could not."""
+    tok = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat = os.environ.get("TELEGRAM_CHAT_ID")
     if not tok or not chat:
-        print("[robusta] telegram not configured — not sending")
+        print(f"[{tag}] telegram not configured — not sending")
         return
     try:
         import requests as _rq
         _rq.post(f"https://api.telegram.org/bot{tok}/sendMessage",
                  data={"chat_id": chat, "text": text}, timeout=20)
     except Exception as e:  # noqa: BLE001 — never fail the run on a notification
-        print(f"[robusta] telegram send failed: {e}")
+        print(f"[{tag}] telegram send failed: {e}")
+
+
+def _notify_blocked_sections() -> None:
+    """Announce every section a 403 storm skipped, on a run that still exits 0.
+
+    Skipping is the right call — one refused source must not throw away the
+    nine that served — but it leaves a hole that nothing else says out loud.
+    The workflow's own notifier is `if: failure()`; the data-map run record
+    reads GitHub's conclusion; the research page reads run outcomes. All three
+    look at a skipped section and see a green run, which is exactly the shape
+    that has cost this project data three times over: reports success while
+    collecting nothing.
+
+    So the run stays green and gets loud instead. A wholly-refused run gets
+    this AND the workflow's failure line: that one says look, this one says at
+    what.
+    """
+    blocked = _RUN_STATS["blocked_sections"]
+    if not blocked:
+        return
+    total = _RUN_STATS["sections"] or len(blocked)
+    lines = [
+        "\u26a0\ufe0f ICE certified stocks \u2014 403 block, sections skipped",
+        f"{len(blocked)} of {total} sections refused; the run kept the rest.",
+    ]
+    for b in blocked:
+        lines.append(
+            f"\u00b7 {b['section']} \u2014 blocked after {b['after_403s']} x 403, "
+            f"{b['skipped_requests']:,} further request(s) skipped")
+    lines.append(
+        f"Run totals: {_RUN_STATS['requests']:,} requests, {_RUN_STATS['ok_200']:,} x 200, "
+        f"{_RUN_STATS['http_403']:,} x 403.")
+    lines.append("Green run, incomplete data. A 403 is a per-IP block, not a pacing "
+                 "problem — the next scheduled run draws a different runner.")
+    text = "\n".join(lines)
+    print(f"[ice] 403 BLOCK — skipped {len(blocked)} of {total} sections: "
+          f"{', '.join(b['section'] for b in blocked)}")
+    _telegram(text, tag="ice")
+
+
+# The activity panel joins on the YAML basename, not the display title: a
+# title is mutable and the Actions API caches it per run.
+_WORKFLOW_NAME = "1.13 – ICE Certified Stocks (arabica + robusta)"
+_WORKFLOW_FILE = "scraper-ice-certified-stocks.yml"
+
+
+def _publish_degradation() -> None:
+    """Put this run's skipped sections where the data-map run record can see it.
+
+    That panel reads GitHub conclusions, and a 403 skip leaves the conclusion
+    green — so without this row the run is indistinguishable from a clean one
+    in the one place built to catch pipelines that are green while their data
+    sits still.
+    """
+    blocked = _RUN_STATS["blocked_sections"]
+    if not blocked:
+        return
+    total = _RUN_STATS["sections"] or len(blocked)
+    skipped = sum(b["skipped_requests"] for b in blocked)
+    run_degradations.record(
+        workflow=_WORKFLOW_NAME,
+        file=_WORKFLOW_FILE,
+        kind="http_403",
+        detail=(f"ICE refused {len(blocked)} of {total} fetch sections with 403 "
+                f"(a per-IP block, not rate limiting). Those sections were skipped so the "
+                f"rest of the run could finish; {skipped:,} further request(s) were given "
+                f"up and their data is missing from this run."),
+        items=[f"{b['section']} — after {b['after_403s']} x 403, "
+               f"{b['skipped_requests']:,} request(s) skipped" for b in blocked],
+    )
 
 
 def _record_run_stats(outcome: str, sweep_day: date | None) -> None:
@@ -401,6 +576,16 @@ def _record_run_stats(outcome: str, sweep_day: date | None) -> None:
         "retry_after_max_s": max(waits) if waits else 0,
         "throttle_bumps": _RUN_STATS["throttle_bumps"],
         "aborted_by_429": bool(_RUN_STATS["aborted_by_429"]),
+        # The 403 side of the record. It was missing entirely: `outcome` could
+        # read "aborted_403" while not one field in the row said how many 403s
+        # there were, how many requests succeeded, or which section was cut
+        # short — so the research page could only ever report rate limiting,
+        # and a block looked like a quiet day.
+        "http_403": _RUN_STATS["http_403"],
+        "ok_200": _RUN_STATS["ok_200"],
+        "aborted_by_403": bool(_RUN_STATS["aborted_by_403"]),
+        "sections": _RUN_STATS["sections"],
+        "blocked_sections": list(_RUN_STATS["blocked_sections"]),
         "sweep_gets": _RUN_STATS["sweep_gets"],
         "resumed_from": _RUN_STATS["resumed_from"],
         "requests": _RUN_STATS["requests"],
@@ -539,10 +724,18 @@ def _throttle_for(url: str) -> float:
 
 
 def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> requests.Response | None:
+    # Checked BEFORE the try, because the `finally` below sleeps the throttle on
+    # every exit path. With the check inside it, an aborted run kept paying the
+    # full 5s/req for calls it never made: run 33854928072 logged 302 requests
+    # of which only 8 were real, and spent 24.6 minutes asleep proving a block
+    # it had already detected in the first 8. Aborting has to stop the clock,
+    # not just the fetching.
+    if _RATE_STATE["aborted"] or _RATE_STATE["section_blocked"]:
+        if _RATE_STATE["section_blocked"] and _RUN_STATS["blocked_sections"]:
+            _RUN_STATS["blocked_sections"][-1]["skipped_requests"] += 1
+        return None
     throttle = _throttle_for(url)
     try:
-        if _RATE_STATE["aborted"]:
-            return None
         r = requests.get(url, headers=F.HEADERS, timeout=TIMEOUT, allow_redirects=True)
 
         # 429 → respect Retry-After (capped), back off, retry exactly once.
@@ -591,10 +784,25 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
 
         if r.status_code == 200:
             _RATE_STATE["consecutive_429s"] = 0
+            _RATE_STATE["consecutive_403s"] = 0
+            _RUN_STATS["ok_200"] += 1
         else:
             ctype = r.headers.get("Content-Type", "")[:40]
             if r.status_code == 404:
                 _RUN_STATS["http_404"] += 1
+                # A 404 is the normal "not this second" answer during the sweep
+                # and says nothing about whether we are blocked.
+            elif r.status_code == 403:
+                _RUN_STATS["http_403"] += 1
+                _RATE_STATE["consecutive_403s"] += 1
+                if _RATE_STATE["consecutive_403s"] >= TOO_MANY_403S:
+                    if not _RATE_STATE["section_blocked"]:
+                        print(f"  ! {TOO_MANY_403S} consecutive 403s — this source is being "
+                              f"refused, not rate-limited. Skipping the rest of "
+                              f"'{_CURRENT_SECTION['label']}' and moving on; a longer interval "
+                              f"would not help and the sweep cannot match a refused response.")
+                        _record_section_block()
+                    _RATE_STATE["section_blocked"] = 1
             print(f"  ! HTTP {r.status_code} ({ctype}) {url}")
             return r
 
@@ -704,13 +912,39 @@ def pull_stock_report(d: date, *, sweep: bool = True) -> tuple[str | None, dict 
             return url, parsed
         print(f"  ! recorded time {known} for {d} no longer resolves — re-searching")
 
+    # Tier 1 — the seconds learned from OTHER days, tried against this one.
+    # Two ways it was pure waste, both costing 50 GETs at 5s each:
+    #
+    #   (a) On the SWEEP day it is redundant. The sweep walks every second in
+    #       the window, so any tier-1 time inside the window gets tried anyway,
+    #       just later. Only the times OUTSIDE the window add anything — and
+    #       those are the ones worth keeping, because the sweep can never reach
+    #       them (2026-08-25 published at 11:23:51, past the 11:00 edge).
+    #
+    #   (b) On a date it has already missed. Tier-1 is a fixed list, so asking
+    #       it twice about the same date re-asks a question already answered
+    #       no. 2026-08-31 was swept to exhaustion on 1 Sep and is still absent;
+    #       every run since has spent 50 more GETs re-confirming that.
     tier1 = _stock_report_tier1_times()
+    if sweep:
+        in_window = set(_stock_report_sweep_times())
+        skipped = [t for t in tier1 if t in in_window]
+        tier1 = [t for t in tier1 if t not in in_window]
+        if skipped:
+            print(f"  → tier-1: {len(skipped)} time(s) left to the sweep, "
+                  f"{len(tier1)} outside the window tried first")
+    elif _tier1_already_tried(d):
+        print(f"  → tier-1 already missed for {d} — not re-asking ({len(tier1)} GETs saved)")
+        tier1 = []
+
     for hhmmss in tier1:
         url, parsed = _try(hhmmss)
         if url:
             return url, parsed
 
     if not sweep:
+        # Record the miss so the next run does not repeat this list verbatim.
+        _mark_tier1_tried(d)
         return None, None
 
     # Tier 2 — sequential sweep. Concurrency bans the IP at any level, so the
@@ -744,8 +978,8 @@ def pull_stock_report(d: date, *, sweep: bool = True) -> tuple[str | None, dict 
             if url:
                 _save_cursor(d, None)          # found — nothing left to resume
                 return url, parsed
-            if _RATE_STATE["aborted"]:
-                break                          # banned: keep the cursor, stop here
+            if _RATE_STATE["aborted"] or _RATE_STATE["section_blocked"]:
+                break                          # refused: keep the cursor, stop here
         else:
             # for-else: the loop ran to completion without breaking, so every
             # second in the window answered 404. The file is not in here.
@@ -1009,6 +1243,14 @@ def recompute_robusta_cohort_outflow(data: dict) -> dict:
 
 
 def _merge_robusta(new: dict, old: dict) -> dict:
+    # daily_fetched: union. This is the ledger of days whose per-day sources
+    # (gradings, appeals, iss/recv, tenders, overview, infested) have actually
+    # been requested. It has to be recorded rather than inferred, because a day
+    # with no gradings and a day never fetched look identical in the data — and
+    # guessing wrong either re-fetches forever or leaves a permanent hole.
+    fetched = set(old.get("daily_fetched") or []) | set(new.get("daily_fetched") or [])
+    new["daily_fetched"] = sorted(fetched)[-400:]
+
     # snapshots: union by date.
     by_date = {s["date"]: s for s in (old.get("snapshots") or [])}
     for s in new.get("snapshots") or []:
@@ -1068,6 +1310,40 @@ def _merge_robusta(new: dict, old: dict) -> dict:
         new["as_of"] = new["snapshots"][-1]["date"]
     return new
 
+class AllRequestsRefused(RuntimeError):
+    """Every HTTP request in the run failed. Raised so the job exits non-zero.
+
+    On 2026-09-04 ICE began answering /marketdata/publicdocs/ with 403 and an
+    HTML challenge body. The run made 1,368 requests, every one refused, then
+    merged zero new data over the existing snapshots, wrote both JSONs, and
+    reported success — the only visible symptom was data quietly going stale.
+    Per-source failures are deliberately non-fatal (one missing report must not
+    lose the other nine), but "not one request succeeded" is not a per-source
+    failure, it is the feed being gone, and it has to be loud.
+    """
+
+
+def _assert_not_wholly_refused() -> None:
+    """Fail the run when every request was refused. A run that fetched nothing
+    because nothing was published is fine and stays silent — that run makes few
+    or no requests. This only fires when we ASKED and were refused every time.
+    """
+    reqs, ok = _RUN_STATS["requests"], _RUN_STATS["ok_200"]
+    if reqs >= _REFUSED_MIN_REQUESTS and ok == 0:
+        raise AllRequestsRefused(
+            f"{reqs} requests, 0 succeeded "
+            f"({_RUN_STATS['http_403']} x 403, {_RUN_STATS['http_429']} x 429, "
+            f"{_RUN_STATS['http_404']} x 404). The feed is refusing us, not idle "
+            f"— data was NOT refreshed. A 403 with an HTML body is a block, not "
+            f"a rate limit: changing the request interval will not clear it."
+        )
+
+
+# Below this, a run genuinely had nothing to ask for (a quiet day, or every
+# source served from cursor) and zero successes means nothing.
+_REFUSED_MIN_REQUESTS = 10
+
+
 def run(days_back: int = 30, write: bool = True, merge: bool = True,
         skip_monthly: bool = False, only_monthly: bool = False) -> dict:
     # skip_monthly  → daily scraper: pull the daily feeds, skip the monthly
@@ -1098,6 +1374,10 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
           f"[skip_monthly={skip_monthly} only_monthly={only_monthly}] ===\n")
 
     # ── Arabica: 1 source, loop dates ──
+    # Ledger of days whose per-day robusta sources were requested. Empty on a
+    # --only-monthly run, which skips that block; the merge unions it with the
+    # stored list, so an empty one inherits rather than blanks.
+    daily_fetched: list[str] = []
     arabica_snapshots: list[dict] = []
     arabica_latest: dict | None = None
     arabica_latest_date: date | None = None
@@ -1105,6 +1385,7 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     arabica_errors: list[str] = []
 
     if not only_monthly:
+        _begin_section("arabica daily xls")
         print(f"[arabica] daily xls, {len(days_sorted_asc)} days...")
         for d in days_sorted_asc:
             url, parsed = pull_arabica_xls(d)
@@ -1134,6 +1415,7 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
             for _ in range(back):
                 anchor = anchor.replace(day=1) - timedelta(days=1)   # one more month back
             candidates = F.month_end_publish_candidates(anchor.year, anchor.month)
+            _begin_section("arabica ageing report")
             print(f"[arabica] ageing report for {anchor.year}-{anchor.month:02d} "
                   f"(trying {len(candidates)} candidate dates)...")
             for cand in candidates:
@@ -1163,8 +1445,12 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     infested_all: list[dict] = []
     sweep_day: date | None = None      # also read by the telemetry after run()
     if not only_monthly:
-        print("[robusta] stock report (.csv, latest day only)...")
-        # Recent days get tier-1; only the latest gets the tier-2 sweep.
+        _begin_section("robusta stock report")
+        # Header said "latest day only" for months while the loop below walked
+        # FIVE. The reader who then sees three dates in the log has to go and
+        # find out which is lying — so it now states what it does.
+        print(f"[robusta] stock report (.csv, {len(days_sorted_asc[-5:])} recent days; "
+              f"tier-2 sweep on the last only)...")
         #
         # A previous edit here cut this to the latest day alone, on the reading
         # that "ICE only keeps one per day" and the four older probes were 16
@@ -1227,8 +1513,30 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
               f"(tier-2 sweep day: {sweep_day})\n")
 
 
-        print(f"[robusta] gradings + iss/recv + tenders + overview, {len(days_sorted_asc)} days...")
-        for d in days_sorted_asc:
+        _begin_section("robusta per-day sources")
+        # ONE day per run — the anchor (prior business day), which is the only
+        # day that can carry data we do not already have. The loop used to walk
+        # all 7 window days every run: 6 sources x 7 days = 42 requests at the
+        # 5s marketdata throttle, of which 14 day/source pairs were already
+        # stored on 2026-09-04 and re-requested anyway. Volume against
+        # /marketdata/publicdocs/ is what gets a runner IP blocked, so a request
+        # that cannot teach us anything is not free.
+        #
+        # The 7-day window (#609) existed because a day falling between runs was
+        # "lost for good". That is still a real risk and is still covered — but
+        # by fetching the days actually MISSING from the ledger, not by
+        # re-fetching six days that are already in hand. On a healthy day the
+        # missing list is empty and this is exactly one day, as intended.
+        _prev_fetched = set((_existing or {}).get("daily_fetched") or [])
+        anchor_day = days_sorted_asc[-1]
+        gap_days = [d for d in days_sorted_asc[:-1] if d.isoformat() not in _prev_fetched]
+        daily_days = gap_days + [anchor_day]
+        if gap_days:
+            print(f"[robusta] per-day sources: {anchor_day} + {len(gap_days)} never-fetched "
+                  f"gap day(s) ({', '.join(d.isoformat() for d in gap_days)})...")
+        else:
+            print(f"[robusta] per-day sources: {anchor_day} only (no gaps in the window)...")
+        for d in daily_days:
             for url, parsed in pull_gradings(d):
                 gradings_all.append({"date": d.isoformat(), "url": url, **parsed})
             for url, parsed in pull_grading_appeals(d):
@@ -1241,14 +1549,17 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
             if parsed: overview_all[d] = parsed
             _, parsed = pull_infested_warrant(d)
             if parsed: infested_all.append({"date": d.isoformat(), **parsed})
+        daily_fetched = sorted({d.isoformat() for d in daily_days} | _prev_fetched)
         print(f"  → gradings={len(gradings_all)}  appeals={len(appeals_all)}  "
               f"iss/recv={len(iss_recv_all)}  tenders={len(tenders_all)}  "
-              f"overview={len(overview_all)}  infested={len(infested_all)}\n")
+              f"overview={len(overview_all)}  infested={len(infested_all)}  "
+              f"({len(daily_days)} day(s) requested, {len(daily_days) * 6} GETs)\n")
 
     # ── Robusta monthly reports (iss/recv + age allowance) ──
     monthly_iss_recv: list[dict] = []
     age_allowance_list: list[dict] = []
     if not skip_monthly:
+        _begin_section("robusta monthly reports")
         print("[robusta] monthly: iss/recv + age allowance (last 3 month-ends)...")
         # Walk back from current month's end through last 3 month-ends.
         # Real calendar date, not the business-day anchor (see arabica note).
@@ -1308,6 +1619,10 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     robusta_json = {
         "generated_at":  now,
         "as_of":         robusta_latest_date.isoformat() if robusta_latest_date else None,
+        # Days whose per-day sources have actually been requested. Read back on
+        # the next run so a day already fetched is not fetched again, and a day
+        # genuinely missed still is.
+        "daily_fetched": daily_fetched,
         "snapshots":     robusta_snapshots,
         "latest_detail": {
             "stock_report":     robusta_latest_stock,
@@ -1415,7 +1730,15 @@ _SMOKE_URLS = [
 
 
 def smoke() -> int:
-    """Hit each of the 10 probe-verified URLs once. Returns # of 200s."""
+    """Hit each of the 10 probe-verified URLs once. Returns # of 200s.
+
+    Every URL above is a FIXED HISTORICAL date, which makes this a check that
+    the URL shapes still resolve — not that the feed works today. On
+    2026-09-04 it reported 10/10 OK while every current-date request in the
+    same minutes returned 403: ICE was serving the archive and refusing recent
+    files. Read alone it is a false all-clear, so the live probe below runs
+    with it and its result is part of the exit status.
+    """
     print("=== SMOKE: probe-verified URLs (expect 10/10 HTTP 200) ===\n")
     ok = 0
     for name, url in _SMOKE_URLS:
@@ -1424,8 +1747,20 @@ def smoke() -> int:
             ok += 1
             ctype = r.headers.get("Content-Type", "")[:40]
             print(f"  ✓ {name:18}  HTTP 200  {len(r.content):>10,} B  {ctype}")
-    print(f"\n=== SMOKE: {ok}/{len(_SMOKE_URLS)} OK ===")
-    return ok
+    print(f"\n=== SMOKE: {ok}/{len(_SMOKE_URLS)} OK (archive URLs) ===")
+
+    # The question the archive cannot answer: does TODAY's data come through?
+    live_day = _biz_days_back(date.today() - timedelta(days=1), 1)[0]
+    live_url = F.ARABICA_DAILY_XLS.format(yyyymmdd=live_day.strftime("%Y%m%d"))
+    r = _http_get(live_url)
+    live_ok = r is not None and r.status_code == 200 and bool(r.content)
+    status = "HTTP 200" if live_ok else (f"HTTP {r.status_code}" if r is not None else "no response")
+    print(f"\n=== SMOKE (live, {live_day}): {'✓' if live_ok else '✗'} {status} ===")
+    if ok == len(_SMOKE_URLS) and not live_ok:
+        print("  ! ARCHIVE SERVES, LIVE DOES NOT — the feed is blocked for current\n"
+              "    files even though every historical URL resolves. A 10/10 above\n"
+              "    is not an all-clear; this is the line that matters.")
+    return ok if live_ok else -1
 
 
 def _cli() -> None:
@@ -1460,7 +1795,9 @@ def _cli() -> None:
           f"gradings={len(out['robusta']['recent_activity']['gradings'])}")
     # Telemetry last, so it records what the run actually cost.
     _record_run_stats(
-        outcome="aborted_429" if _RUN_STATS["aborted_by_429"] else "completed",
+        outcome=("aborted_429" if _RUN_STATS["aborted_by_429"]
+                 else "aborted_403" if _RUN_STATS["aborted_by_403"]
+                 else "completed"),
         sweep_day=out.get("_sweep_day"),
     )
     print(f"WAIT: publicdocs {_RUN_STATS['wait_publicdocs_s']/60:.1f} min · "
@@ -1468,11 +1805,28 @@ def _cli() -> None:
           f"retry-after {sum(_RUN_STATS['retry_after_waits'])/60:.1f} min "
           f"over {_RUN_STATS['requests']} requests")
     print(f"RATE: {_RUN_STATS['http_429']} x 429 · "
+          f"{_RUN_STATS['http_403']} x 403 · "
           f"{len(_RUN_STATS['retry_after_waits'])} Retry-After waits "
           f"({round(sum(_RUN_STATS['retry_after_waits']))}s total) · "
           f"{_RUN_STATS['throttle_bumps']} throttle bumps · "
           f"{_RUN_STATS['sweep_gets']} sweep GETs · "
-          f"{_RUN_STATS['http_404']} x 404")
+          f"{_RUN_STATS['http_404']} x 404 · "
+          f"{_RUN_STATS['ok_200']} x 200")
+    # A 403 skips a section and lets the run finish green. Green must not be
+    # the same word as complete, so the skip is announced everywhere a person
+    # looks: Telegram now, the ICE research page from ice_run_stats.json, and
+    # the data-map run record from run_degradations.json.
+    _notify_blocked_sections()
+    _publish_degradation()
+    # Last, so the telemetry above is printed and recorded before we blow up.
+    # Exit 3 rather than 1: the caller retries a transient fault, and a feed
+    # refusing every request is not one. Retrying it just pays the whole run
+    # twice — run 33854928072 did exactly that, ~25 minutes per attempt.
+    try:
+        _assert_not_wholly_refused()
+    except AllRequestsRefused as e:
+        print(f"\n{type(e).__name__}: {e}", file=sys.stderr)
+        sys.exit(3)
 
 
 if __name__ == "__main__":
