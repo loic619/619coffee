@@ -50,6 +50,32 @@ part that could lose data unnoticed is closed, so this is no longer an
 lifts the block on its own, B8 closes with no code change and the two guards
 stay as the thing that would have caught it.
 
+**Correction, 2026-09-04 — the block is per RUNNER IP, and it did not start on
+3 Sep.** Two claims in the first version of this row were wrong, both from
+comparing runs that differed in more than one variable:
+
+* *"Began 3 Sep."* No — run `33592853150` (2 Sep 04:58) was already returning
+  403 on 877 of the 900 log lines sampled. It then timed out at two hours.
+* *"ICE serves the archive and refuses recent files."* That came from a smoke
+  run returning 10/10 at 08:42 while a backfill 403'd at 08:45 — but those were
+  **separate jobs on different runners** (`1000023630` vs `1000023637`), so
+  archive-vs-live and clean-IP-vs-blocked-IP were confounded and the wrong one
+  was named.
+
+What the evidence actually supports: run `33599302408` started at **06:59:12**
+on 2 Sep, the same second the blocked run was killed at 06:59:05 — a fresh
+runner, a different IP — and immediately got normal 404s where the previous IP
+had got nothing but 403s. Every run is **all-or-nothing**: no run mixes 200s
+and 403s. That is the signature of a per-source-IP block, not a URL-scope rule.
+
+It also explains the "recovery" pattern in the run history: repeated triggers
+appearing to fix themselves are not the block lifting, they are rolling a new
+runner IP until one is not blocked.
+
+The experiment that settles it is a smoke run under #838's code, which probes
+an archive URL and a live URL **in the same job** and therefore on one IP. If
+both pass, the archive/live theory is dead and it is purely per-IP.
+
 ---
 
 ## A. CI gates — the checks that are supposed to stop bad code
