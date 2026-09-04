@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import re
 import sys
 from datetime import UTC, datetime, timedelta
@@ -59,6 +60,30 @@ VN = ZoneInfo("Asia/Ho_Chi_Minh")
 LONDON = ZoneInfo("Europe/London")
 KEEP_DAYS = 400
 OPEN_WINDOW_MIN = 15          # "price 15 min after the open"
+
+# Robusta opens 15:00 VN; that instant both starts a new session and ends the
+# previous one's readability, so it is the pivot for _session_date and the hard
+# ceiling on how late the tape can be fetched.
+SESSION_OPEN_VN_HOUR = 15
+
+# When it is safe to read a finished session, in New York wall-clock.
+#
+# Lower bound: arabica settles 13:30 ET and the exchange posts the settlement
+# ~15 min later, so a fetch before 13:45 would store a partial tape.
+#
+# Upper bound: 15:00 VN the next day is when acaphe's panels roll to the new
+# session — 04:00 ET under EDT. Stopping at 03:30 ET keeps half an hour of
+# margin against that roll.
+#
+# The window used to close at 15:30 ET, i.e. 105 minutes wide, and that is why
+# this feed died. GitHub runs these crons LATE and the lateness grew: the
+# 18:50 UTC fire landed 23-47 min late through 25 Aug, then 2h26m on the 26th,
+# 7h31m on the 28th, and has sat at ~2h30m since. Everything from 26 Aug on
+# missed the window and the job skipped — ten sessions lost, every run green.
+# 13:45 -> 03:30(+1) is 13h45m of room, which absorbs the worst drift observed
+# with six hours to spare and is bounded by the market, not by a guess.
+WINDOW_OPEN_NY = 13 * 60 + 45
+WINDOW_CLOSE_NY = 3 * 60 + 30      # next calendar day
 
 TICK_PANELS = {                # panel → market
     "hisview1_data.php": "robusta", "hisview2_data.php": "robusta",
@@ -316,11 +341,21 @@ def _spread_volume(a: dict, b: dict) -> dict:
 
 
 def _session_date(now_vn: datetime) -> str:
-    """The exchange session a VN wall-clock belongs to. The tape runs 15:00 VN
-    to ~00:30 VN(+1), so an after-midnight fetch still belongs to the previous
-    VN date."""
+    """The exchange session a VN wall-clock belongs to.
+
+    A session opens 15:00 VN and its last print lands ~00:30 VN the next day,
+    so ANY moment before 15:00 VN still belongs to the session that opened the
+    previous VN date — right up to the instant the next one opens.
+
+    The cutoff used to be 06:00 VN, which was fine only because the guard below
+    never admitted a fetch later than ~02:30 VN. It is a trap the moment that
+    window widens: at 09:21 VN — where a 7.5-hour cron drift actually landed on
+    2026-08-28 — the old rule dated Thursday's tape as Friday's, silently
+    filing a complete session under the wrong day. 15:00 is the real boundary
+    and the only one that cannot be outgrown, because it is the next open.
+    """
     d = now_vn.date()
-    return (d - timedelta(days=1) if now_vn.hour < 6 else d).isoformat()
+    return (d - timedelta(days=1) if now_vn.hour < SESSION_OPEN_VN_HOUR else d).isoformat()
 
 
 # ── io ───────────────────────────────────────────────────────────────────────
@@ -413,21 +448,50 @@ async def _fetch_all() -> dict:
     return out
 
 
+def _window_check(ny: datetime) -> tuple[bool, str]:
+    """(may_fetch, reason) for a New York wall-clock.
+
+    The session being read is the one whose 13:30 ET settle has passed: today's
+    if we are past the settle, yesterday's if we are in the small hours before
+    the panels roll. The weekday test applies to THAT session, not to the fetch
+    moment — a Friday tape read at 02:00 ET Saturday is still Friday's, and
+    testing the clock instead of the session would throw it away.
+    """
+    hm = ny.hour * 60 + ny.minute
+    if hm >= WINDOW_OPEN_NY:
+        session_day = ny.date()
+    elif hm <= WINDOW_CLOSE_NY:
+        session_day = ny.date() - timedelta(days=1)
+    else:
+        return False, (f"{ny:%a %H:%M} New York is between the panel roll and the "
+                       f"settle (window is 13:45 → 03:30 next day)")
+    if session_day.weekday() >= 5:
+        return False, f"the session it would read ({session_day}) is a weekend"
+    return True, f"reading the {session_day} session"
+
+
 def main() -> int:
-    # ONE scheduled fire, 18:50 UTC. Arabica settles 13:30 ET, which is 17:30
-    # UTC under EDT and 18:30 UTC under EST, so 18:50 UTC lands after the bell
-    # in BOTH seasons — 14:50 ET in summer, 13:50 ET in winter — and in both
-    # cases far enough past it for the exchange settlement to have been posted
-    # (~15 min). That is why the season no longer needs a second cron: the
-    # window below is simply wide enough to admit either. --force bypasses it
-    # for manual dispatch.
+    # ONE scheduled fire, 18:50 UTC — 14:50 ET under EDT, 13:50 ET under EST,
+    # after the 13:30 ET arabica settle in both seasons. The window is wide
+    # enough that the season needs no second cron, and wide enough that GitHub's
+    # cron drift (see WINDOW_* above) can no longer push a run out of it.
+    # --force bypasses it for manual dispatch.
     if "--force" not in sys.argv:
         ny = datetime.now(ZoneInfo("America/New_York"))
-        hm = ny.hour * 60 + ny.minute
-        if ny.weekday() >= 5 or not (13 * 60 + 45 <= hm <= 15 * 60 + 30):
-            print(f"[tradespread] {ny:%a %H:%M} New York is outside the "
-                  "post-close window (13:45–15:30) — skip")
+        ok, why = _window_check(ny)
+        if not ok:
+            print(f"[tradespread] skip — {why}")
+            # A scheduled fire that lands outside the window is a SCHEDULING
+            # DEFECT, not a quiet no-op. Returning 0 here is what let this feed
+            # die on 26 Aug and stay dead for ten sessions with every run
+            # reporting success. Fail so the run is red and the alert fires;
+            # a hand dispatch at the wrong hour stays a harmless exit 0.
+            if os.environ.get("GITHUB_EVENT_NAME") == "schedule":
+                print("::error::scheduled run fell outside the capture window — "
+                      "the tape for this session was not collected")
+                return 1
             return 0
+        print(f"[tradespread] {why}")
     raw = asyncio.run(_fetch_all())
     if not raw["ticks"]:
         print("[tradespread] no tick data — nothing stored")
