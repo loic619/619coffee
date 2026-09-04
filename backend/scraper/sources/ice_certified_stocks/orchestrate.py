@@ -305,6 +305,11 @@ RUN_STATS_KEEP = 200
 _RUN_STATS: dict = {
     "http_429": 0, "retry_after_waits": [], "throttle_bumps": 0,
     "aborted_by_429": 0, "sweep_gets": 0, "http_404": 0, "resumed_from": None,
+    # 403 is a BLOCK, not a rate limit: Akamai serving a challenge page instead
+    # of the file. It needs its own counter because the remedy is the opposite
+    # of a 429's — slowing down does nothing. `ok_200` is the denominator that
+    # makes "everything was refused" distinguishable from "nothing was due".
+    "http_403": 0, "ok_200": 0,
     # Seconds actually SLEPT between requests, split by which host's limit
     # imposed it. This is the answer to "where did the 111 minutes go" — the
     # run is almost entirely deliberate waiting, and this says whose.
@@ -591,10 +596,13 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
 
         if r.status_code == 200:
             _RATE_STATE["consecutive_429s"] = 0
+            _RUN_STATS["ok_200"] += 1
         else:
             ctype = r.headers.get("Content-Type", "")[:40]
             if r.status_code == 404:
                 _RUN_STATS["http_404"] += 1
+            elif r.status_code == 403:
+                _RUN_STATS["http_403"] += 1
             print(f"  ! HTTP {r.status_code} ({ctype}) {url}")
             return r
 
@@ -1068,6 +1076,40 @@ def _merge_robusta(new: dict, old: dict) -> dict:
         new["as_of"] = new["snapshots"][-1]["date"]
     return new
 
+class AllRequestsRefused(RuntimeError):
+    """Every HTTP request in the run failed. Raised so the job exits non-zero.
+
+    On 2026-09-04 ICE began answering /marketdata/publicdocs/ with 403 and an
+    HTML challenge body. The run made 1,368 requests, every one refused, then
+    merged zero new data over the existing snapshots, wrote both JSONs, and
+    reported success — the only visible symptom was data quietly going stale.
+    Per-source failures are deliberately non-fatal (one missing report must not
+    lose the other nine), but "not one request succeeded" is not a per-source
+    failure, it is the feed being gone, and it has to be loud.
+    """
+
+
+def _assert_not_wholly_refused() -> None:
+    """Fail the run when every request was refused. A run that fetched nothing
+    because nothing was published is fine and stays silent — that run makes few
+    or no requests. This only fires when we ASKED and were refused every time.
+    """
+    reqs, ok = _RUN_STATS["requests"], _RUN_STATS["ok_200"]
+    if reqs >= _REFUSED_MIN_REQUESTS and ok == 0:
+        raise AllRequestsRefused(
+            f"{reqs} requests, 0 succeeded "
+            f"({_RUN_STATS['http_403']} x 403, {_RUN_STATS['http_429']} x 429, "
+            f"{_RUN_STATS['http_404']} x 404). The feed is refusing us, not idle "
+            f"— data was NOT refreshed. A 403 with an HTML body is a block, not "
+            f"a rate limit: changing the request interval will not clear it."
+        )
+
+
+# Below this, a run genuinely had nothing to ask for (a quiet day, or every
+# source served from cursor) and zero successes means nothing.
+_REFUSED_MIN_REQUESTS = 10
+
+
 def run(days_back: int = 30, write: bool = True, merge: bool = True,
         skip_monthly: bool = False, only_monthly: bool = False) -> dict:
     # skip_monthly  → daily scraper: pull the daily feeds, skip the monthly
@@ -1468,11 +1510,15 @@ def _cli() -> None:
           f"retry-after {sum(_RUN_STATS['retry_after_waits'])/60:.1f} min "
           f"over {_RUN_STATS['requests']} requests")
     print(f"RATE: {_RUN_STATS['http_429']} x 429 · "
+          f"{_RUN_STATS['http_403']} x 403 · "
           f"{len(_RUN_STATS['retry_after_waits'])} Retry-After waits "
           f"({round(sum(_RUN_STATS['retry_after_waits']))}s total) · "
           f"{_RUN_STATS['throttle_bumps']} throttle bumps · "
           f"{_RUN_STATS['sweep_gets']} sweep GETs · "
-          f"{_RUN_STATS['http_404']} x 404")
+          f"{_RUN_STATS['http_404']} x 404 · "
+          f"{_RUN_STATS['ok_200']} x 200")
+    # Last, so the telemetry above is printed and recorded before we blow up.
+    _assert_not_wholly_refused()
 
 
 if __name__ == "__main__":
