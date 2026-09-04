@@ -29,8 +29,12 @@ interface Payload {
   };
   misses: {
     business_days: number;
+    /** Business days ICE actually published on — closures removed. Optional
+     *  only because a cached payload predates it. */
+    sessions?: number;
     captured: number;
     missing: { date: string; weekday: string; data_hole: boolean; recoverable: boolean }[];
+    no_release?: { date: string; weekday: string; reason: string }[];
     by_weekday: Record<string, { missing: number; of: number }>;
   };
   runs: {
@@ -85,8 +89,11 @@ interface BlockedSection {
   skipped_requests: number;
 }
 
+/** The reason offered first, because the common case is an exchange holiday. */
+const DEFAULT_PASS_REASON = "market closed — no report published";
+
 /**
- * One pending miss, with the field that closes it.
+ * One pending miss, with the two things that can close it.
  *
  * The narrow window makes a late publish an ANNOUNCED outcome rather than a
  * silent hole — Telegram says so at the time, and the day lands here. The only
@@ -94,29 +101,35 @@ interface BlockedSection {
  * because there is no index to read it from. Entering it appends the
  * observation to the hit log and re-runs the scraper, whose tier 0 then fetches
  * the session in a single GET at any age (retention, probe 0.18).
+ *
+ * But a second is only the answer when a report exists. 2026-08-31 was the UK
+ * summer bank holiday: the sweep walked the whole window because there was
+ * nothing to find, and the row then sat here forever asking for a number that
+ * does not exist. **Pass** is the other exit — it files the reason instead of a
+ * time and takes the day out of the session count. Deliberately not one click:
+ * the reason is the only record of why a day was written off, and a row with no
+ * reason is indistinguishable from one someone got bored of.
  */
 function BackfillRow({ date, weekday }: { date: string; weekday: string }) {
   const [value, setValue] = useState("");
+  const [mode, setMode] = useState<"time" | "pass">("time");
+  const [reason, setReason] = useState(DEFAULT_PASS_REASON);
   const [state, setState] = useState<{ kind: "idle" | "busy" | "ok" | "err"; msg?: string }>({
     kind: "idle",
   });
+  const done = state.kind === "busy" || state.kind === "ok";
 
-  async function submit() {
-    const hhmmss = value.replace(/\D/g, "");
-    if (!/^\d{6}$/.test(hhmmss)) {
-      setState({ kind: "err", msg: "six digits, as in the filename — e.g. 112351" });
-      return;
-    }
+  async function post(payload: Record<string, unknown>, ok: string) {
     setState({ kind: "busy" });
     try {
       const res = await fetch("/api/admin/ice-publish-time", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date, hhmmss }),
+        body: JSON.stringify({ date, ...payload }),
       });
       const body = await res.json().catch(() => ({}));
       if (res.ok) {
-        setState({ kind: "ok", msg: "queued — the backfill run takes a few minutes" });
+        setState({ kind: "ok", msg: ok });
       } else {
         setState({ kind: "err", msg: body.hint ?? body.error ?? `HTTP ${res.status}` });
       }
@@ -125,29 +138,90 @@ function BackfillRow({ date, weekday }: { date: string; weekday: string }) {
     }
   }
 
+  function submitTime() {
+    const hhmmss = value.replace(/\D/g, "");
+    if (!/^\d{6}$/.test(hhmmss)) {
+      setState({ kind: "err", msg: "six digits, as in the filename — e.g. 112351" });
+      return;
+    }
+    void post({ hhmmss }, "queued — the backfill run takes a few minutes");
+  }
+
+  function submitPass() {
+    const why = reason.trim();
+    if (!why) {
+      setState({ kind: "err", msg: "say why — it is the only record of the closure" });
+      return;
+    }
+    void post({ no_release: true, reason: why }, "passed — it leaves the list on the next publish");
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-2 py-1.5 border-b border-slate-800/70 last:border-0">
       <span className="font-mono text-xs text-slate-300 w-24">{date}</span>
       <span className="text-[11px] text-slate-500 w-8">{weekday}</span>
-      <input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter") void submit(); }}
-        placeholder="HHMMSS"
-        inputMode="numeric"
-        maxLength={8}
-        disabled={state.kind === "busy" || state.kind === "ok"}
-        className="w-24 px-2 py-1 rounded bg-slate-900 border border-slate-700 font-mono
-                   text-xs text-slate-200 placeholder:text-slate-600 disabled:opacity-50"
-      />
-      <button
-        onClick={() => void submit()}
-        disabled={state.kind === "busy" || state.kind === "ok"}
-        className="px-2.5 py-1 rounded border border-slate-600 text-[11px] text-slate-300
-                   hover:bg-slate-800 disabled:opacity-40"
-      >
-        {state.kind === "busy" ? "sending…" : "backfill"}
-      </button>
+      {mode === "time" ? (
+        <>
+          <input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") submitTime(); }}
+            placeholder="HHMMSS"
+            inputMode="numeric"
+            maxLength={8}
+            disabled={done}
+            aria-label={`publish time for ${date}`}
+            className="w-24 px-2 py-1 rounded bg-slate-900 border border-slate-700 font-mono
+                       text-xs text-slate-200 placeholder:text-slate-600 disabled:opacity-50"
+          />
+          <button
+            onClick={submitTime}
+            disabled={done}
+            className="px-2.5 py-1 rounded border border-slate-600 text-[11px] text-slate-300
+                       hover:bg-slate-800 disabled:opacity-40"
+          >
+            {state.kind === "busy" ? "sending…" : "backfill"}
+          </button>
+          <button
+            onClick={() => { setMode("pass"); setState({ kind: "idle" }); }}
+            disabled={done}
+            title="ICE published nothing that day — record why instead of a time"
+            className="px-2.5 py-1 rounded border border-slate-700 text-[11px] text-slate-400
+                       hover:bg-slate-800 hover:text-slate-200 disabled:opacity-40"
+          >
+            no release
+          </button>
+        </>
+      ) : (
+        <>
+          <input
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") submitPass(); }}
+            placeholder="why — e.g. UK summer bank holiday"
+            maxLength={200}
+            disabled={done}
+            aria-label={`reason there was no release on ${date}`}
+            className="flex-1 min-w-[14rem] px-2 py-1 rounded bg-slate-900 border border-amber-500/40
+                       text-xs text-slate-200 placeholder:text-slate-600 disabled:opacity-50"
+          />
+          <button
+            onClick={submitPass}
+            disabled={done}
+            className="px-2.5 py-1 rounded border border-amber-500/50 text-[11px] text-amber-300
+                       hover:bg-amber-500/10 disabled:opacity-40"
+          >
+            {state.kind === "busy" ? "sending…" : "pass the day"}
+          </button>
+          <button
+            onClick={() => { setMode("time"); setState({ kind: "idle" }); }}
+            disabled={done}
+            className="text-[11px] text-slate-500 hover:text-slate-300 disabled:opacity-40"
+          >
+            cancel
+          </button>
+        </>
+      )}
       {state.msg && (
         <span className={`text-[11px] ${state.kind === "ok" ? "text-emerald-400" : "text-rose-400"}`}>
           {state.msg}
@@ -177,19 +251,24 @@ function band(secs: number): { cls: string; label: string } {
  * clustering visible as a vertical pattern rather than something you have to
  * take on trust from a p-value.
  */
-function PublishCalendar({ days, missing }: {
+function PublishCalendar({ days, missing, closed = [] }: {
   days: { date: string; time: string }[];
   missing: { date: string; recoverable: boolean }[];
+  closed?: { date: string; reason: string }[];
 }) {
   const byDate = new Map(days.map((d) => [d.date, d.time]));
   const miss = new Map(missing.map((m) => [m.date, m.recoverable]));
+  // Passed days are no longer misses, but they are inside the span — without
+  // their own cell they would render as "outside the record", which is wrong in
+  // the one direction that matters: it would read as if we had never looked.
+  const shut = new Map(closed.map((c) => [c.date, c.reason]));
   const toSecs = (t: string) => {
     const [h, m, s] = t.split(":").map(Number);
     return h * 3600 + m * 60 + s;
   };
 
   // Month span covering every observation.
-  const all = [...days.map((d) => d.date), ...missing.map((m) => m.date)].sort();
+  const all = days.map((d) => d.date).concat(missing.map((m) => m.date)).sort();
   if (!all.length) return null;
   const [y0, m0] = all[0].split("-").map(Number);
   const [y1, m1] = all[all.length - 1].split("-").map(Number);
@@ -231,6 +310,16 @@ function PublishCalendar({ days, missing }: {
                 if (!time) {
                   const known = miss.get(iso);
                   const isMiss = miss.has(iso);
+                  const why = shut.get(iso);
+                  if (why) {
+                    return (
+                      <div key={iso} title={`${iso} — no release · ${why}`}
+                           className="rounded border border-slate-700/60 bg-slate-800/20 px-1 py-1 text-center">
+                        <div className="text-[10px] text-slate-500 tabular-nums">{dnum}</div>
+                        <div className="text-[9px] text-slate-500 font-mono">shut</div>
+                      </div>
+                    );
+                  }
                   return (
                     <div key={iso}
                          title={isMiss ? (known ? "missed — publish time known, recoverable" : "missed — time unknown") : "outside the record"}
@@ -568,6 +657,7 @@ export default function IcePublishTimes() {
           ["bg-orange-500/20 border-orange-500/40 text-orange-300", "10:40–11:00"],
           ["bg-rose-500/20 border-rose-500/40 text-rose-300", "after 11:00"],
           ["border-dashed border-slate-400/80 bg-slate-800/40 text-slate-400", "no snapshot (dashed • )"],
+          ["border-slate-700/60 bg-slate-800/20 text-slate-500", "shut — no release"],
         ].map(([cls, label]) => (
           <span key={label} className="flex items-center gap-1.5">
             <span className={`inline-block w-4 h-3 rounded border ${cls}`} />
@@ -575,7 +665,8 @@ export default function IcePublishTimes() {
           </span>
         ))}
       </div>
-      <PublishCalendar days={data.days} missing={data.misses.missing} />
+      <PublishCalendar days={data.days} missing={data.misses.missing}
+                       closed={data.misses.no_release ?? []} />
       <P>
         Read down the columns rather than across the rows: Monday sits under Monday. The late
         cells — orange and red — sit almost entirely in the left three, which is the weekday
@@ -622,12 +713,15 @@ export default function IcePublishTimes() {
 
       <H2>Days we missed</H2>
       <P>
-        {data.misses.captured} of {data.misses.business_days} business days in the span were
-        captured. The {data.misses.missing.length} misses are spread across weekdays with no
-        pattern — so there is no recurring day to schedule around:
+        {data.misses.captured} of {data.misses.sessions ?? data.misses.business_days} sessions in
+        the span were captured.{" "}
+        {data.misses.missing.length === 1
+          ? "The single remaining miss leaves no weekday pattern to schedule around:"
+          : `The ${data.misses.missing.length} misses are spread across weekdays with no pattern — `
+            + "so there is no recurring day to schedule around:"}
       </P>
       <RefTable
-        head={["weekday", "missed / business days"]}
+        head={["weekday", "missed / sessions"]}
         rows={["Mon", "Tue", "Wed", "Thu", "Fri"].map((w) => [
           w,
           `${data.misses.by_weekday[w]?.missing ?? 0} / ${data.misses.by_weekday[w]?.of ?? 0}`,
@@ -636,7 +730,7 @@ export default function IcePublishTimes() {
       <P>
         A miss is a business day with no snapshot — the data we actually wanted. Keying it on the
         hit log instead would mark a day &ldquo;found&rdquo; the moment its publish second was
-        written down, which is the opposite of true: knowing the time makes a day
+        written down, which is the opposite of true: knowing the time makes a day{" "}
         <em>recoverable</em>, not recovered. With retention confirmed, every row below whose time
         is known is a single GET away on the next run.
       </P>
@@ -648,7 +742,32 @@ export default function IcePublishTimes() {
         ])}
       />
 
-      <H>Pending misses — enter the second, and it backfills</H>
+      <H>Sessions, not business days</H>
+      <P>
+        The denominator above is <em>sessions</em>, not weekdays, because a business day and a
+        trading day are not the same thing. ICE Futures Europe shuts for UK holidays, and on those
+        days there is no report to find — the sweep still runs, still walks the full window, and
+        still finds nothing, which looks exactly like a miss and is not one. Counting those days
+        against coverage understates it; counting them as captured overstates it. So they come out
+        of the denominator and keep their own row:
+      </P>
+      {(data.misses.no_release ?? []).length === 0 ? (
+        <P>None recorded in the current span.</P>
+      ) : (
+        <RefTable
+          head={["date", "weekday", "why there was no release"]}
+          rows={(data.misses.no_release ?? []).map((m) => [m.date, m.weekday, m.reason])}
+        />
+      )}
+      <P>
+        Nothing detects this automatically — there is no feed that announces an ICE closure, and
+        inferring one from an empty sweep would silently absolve every genuine failure. It is an
+        operator judgement, recorded as such: the <em>pass</em> control below files the reason
+        against the date, and the record refuses to accept it for a day whose publish second is
+        already known, because a filename we can name is proof the market was open.
+      </P>
+
+      <H>Pending misses — enter the second, or pass the day</H>
       <P>
         The window is deliberately narrower than the observed range, so some sessions will fall
         outside it. That is a priced decision, not an oversight: {data.sweep.window} covers{" "}
@@ -663,16 +782,26 @@ export default function IcePublishTimes() {
         filename. Enter them below and workflow 0.19 appends the observation and re-runs the
         scraper; tier 0 then fetches that session in a single GET, however old it is.
       </P>
+      <P>
+        <strong>Or pass it.</strong> A second only exists if a report does, and some of these rows
+        are days ICE never published — 2026-08-31 was the UK summer bank holiday, the sweep walked
+        the whole window with nothing to find, and the row then sat here asking indefinitely for a
+        number that was never generated. <em>No release</em> files the reason instead of a time and
+        moves the day out of the session count. It asks for the reason rather than taking one
+        click, because that sentence is the entire record of why a day was written off — and the
+        temptation it guards against is passing a day that was simply missed.
+      </P>
       {pending.length === 0 ? (
         <P className="text-emerald-400">
-          Nothing pending — every business day on record either has its snapshot or has its
-          publish time known and queued for the next run.
+          Nothing pending — every business day on record either has its snapshot, has its
+          publish time known and queued for the next run, or is a recorded closure.
         </P>
       ) : (
         <div className="my-3 p-3 rounded border border-slate-700/70 bg-slate-900/40">
           <div className="text-[11px] text-slate-500 mb-2">
             Filename format: <Code>Stock_Report_RC_YYYYMMDD_HHMMSS.csv</Code> — enter the{" "}
-            <Code>HHMMSS</Code> part only.
+            <Code>HHMMSS</Code> part only. If there was no report at all, use{" "}
+            <Code>no release</Code>.
           </div>
           {pending.map((m) => (
             <BackfillRow key={m.date} date={m.date} weekday={m.weekday} />

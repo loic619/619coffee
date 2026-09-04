@@ -249,6 +249,28 @@ def _by_weekday(obs: list[tuple[str, int, str]]) -> dict:
     }
 
 
+NO_RELEASE = HITS.with_name("no_release_days.json")
+
+
+def _no_release_days() -> dict[str, str]:
+    """Days ICE published nothing at all, date → reason.
+
+    A business day with no snapshot has two possible explanations and they are
+    not the same problem: either there was a report and the sweep failed to
+    guess its second, or there was no report — the exchange was shut. Only the
+    first is recoverable. Treating a closure as a pending miss puts a permanent
+    to-do on the page for a day nothing will ever close.
+
+    Operator-entered via workflow 0.19, so the reason travels with the date.
+    """
+    try:
+        doc = json.loads(NO_RELEASE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return {d["date"]: d.get("reason", "no release")
+            for d in doc.get("days", []) if d.get("date")}
+
+
 def _misses(obs: list[tuple[str, int, str]]) -> dict:
     """Business days inside the observed span with NO capture.
 
@@ -256,11 +278,17 @@ def _misses(obs: list[tuple[str, int, str]]) -> dict:
     to guess, or days ICE never published? A missing day whose stock snapshot is
     also absent from certified_stocks_robusta.json is a genuine hole — the
     workbook fallback did not cover it either.
+
+    Closed days are reported, not dropped: they come out of the `sessions`
+    denominator (there was no session) and out of `missing` (nothing to
+    recover), but keep their own list with the reason attached, so the coverage
+    figure stays honest in both directions.
     """
     import datetime as dt
 
     if not obs:
-        return {"business_days": 0, "captured": 0, "missing": [], "by_weekday": {}}
+        return {"business_days": 0, "sessions": 0, "captured": 0,
+                "missing": [], "no_release": [], "by_weekday": {}}
     known_times = {d for d, _s, _t in obs}
     d0 = dt.date.fromisoformat(obs[0][0])
     d1 = dt.date.fromisoformat(obs[-1][0])
@@ -272,7 +300,8 @@ def _misses(obs: list[tuple[str, int, str]]) -> dict:
     except Exception:
         pass
 
-    biz, missing = 0, []
+    closed = _no_release_days()
+    biz, missing, no_release = 0, [], []
     by_wd: dict[str, list[int]] = {}
     d = d0
     while d <= d1:
@@ -280,14 +309,20 @@ def _misses(obs: list[tuple[str, int, str]]) -> dict:
             biz += 1
             iso, wd = d.isoformat(), d.strftime("%a")
             slot = by_wd.setdefault(wd, [0, 0])
-            slot[1] += 1
             # A miss is a day with no SNAPSHOT — the data we actually wanted.
             # Keying it on the hit log instead would make a day "found" the
             # moment its publish second was written down, which is the opposite
             # of true: knowing the time is what makes it recoverable, not
             # recovered.
-            if iso not in snaps:
+            if iso in snaps:
+                slot[1] += 1
+            elif iso in closed:
+                # A holding we do have would contradict the mark, hence the
+                # ordering: data first, classification only over a genuine hole.
+                no_release.append({"date": iso, "weekday": wd, "reason": closed[iso]})
+            else:
                 slot[0] += 1
+                slot[1] += 1
                 missing.append({
                     "date": iso, "weekday": wd,
                     # Time known → one GET away on the next run. Time unknown →
@@ -298,8 +333,10 @@ def _misses(obs: list[tuple[str, int, str]]) -> dict:
         d += dt.timedelta(days=1)
     return {
         "business_days": biz,
-        "captured": biz - len(missing),
+        "sessions": biz - len(no_release),
+        "captured": biz - len(no_release) - len(missing),
         "missing": missing,
+        "no_release": no_release,
         "by_weekday": {k: {"missing": v[0], "of": v[1]} for k, v in by_wd.items()},
     }
 

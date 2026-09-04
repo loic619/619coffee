@@ -11,6 +11,12 @@ name: "0.19 – Record an ICE publish time (operator backfill)"
 # fetches the session in a single request — retention is confirmed, so age does
 # not matter (probe 0.18: June reports still served in late August).
 #
+# Given a date and NO second, it records the other reason a day can be empty:
+# ICE published nothing at all. 2026-08-31 was the UK summer bank holiday — the
+# sweep walked the full window because there was nothing to find, and no second
+# will ever close that day. Passing it files the reason and takes it off the
+# pending list instead of leaving a permanent to-do there.
+#
 # Dispatched from the research page via /api/admin/ice-publish-time, or by hand.
 
 on:
@@ -21,8 +27,12 @@ on:
         required: true
         type: string
       hhmmss:
-        description: "Publish time as it appears in the filename, e.g. 112351"
-        required: true
+        description: "Publish time as in the filename, e.g. 112351. Leave empty to pass the day."
+        required: false
+        type: string
+      reason:
+        description: "Why there was no release — only read when hhmmss is empty"
+        required: false
         type: string
 
 concurrency:
@@ -51,36 +61,17 @@ jobs:
         env:
           IN_DATE: ${{ inputs.date }}
           IN_TIME: ${{ inputs.hhmmss }}
+          IN_REASON: ${{ inputs.reason }}
+        # Not a heredoc: the rules here (a date is in at most one of the two
+        # files; a day with a known second cannot be passed; a second withdraws
+        # an earlier pass) are the part worth testing, and nothing tests YAML.
         run: |
-          python - <<'PY'
-          import json, os, re, sys, datetime as dt
-          from pathlib import Path
+          PYTHONPATH=. python -m scraper.sources.ice_certified_stocks.record_observation \
+            --date "$IN_DATE" --hhmmss "$IN_TIME" --reason "$IN_REASON"
 
-          d, t = os.environ["IN_DATE"].strip(), os.environ["IN_TIME"].strip()
-          # Validate here as well as at the API. A bad value would be committed
-          # to the hit log and then poison tier 0 for that date forever.
-          if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", d):
-              sys.exit(f"bad date: {d!r}")
-          if not re.fullmatch(r"\d{6}", t):
-              sys.exit(f"bad time: {t!r} — want HHMMSS, e.g. 112351")
-          hh, mm, ss = int(t[:2]), int(t[2:4]), int(t[4:6])
-          if not (0 <= hh < 24 and 0 <= mm < 60 and 0 <= ss < 60):
-              sys.exit(f"not a wall-clock time: {t}")
-          day = dt.date.fromisoformat(d)
-          if day > dt.date.today():
-              sys.exit(f"{d} is in the future")
-
-          p = Path("scraper/sources/ice_certified_stocks/stock_report_hits.json")
-          doc = json.loads(p.read_text(encoding="utf-8"))
-          hits = [h for h in doc["hits"] if h.get("date") != d]
-          hits.append({"date": d, "hhmmss": t, "source": "operator"})
-          hits.sort(key=lambda h: (h["date"] != "bootstrap", h["date"]))
-          doc["hits"] = hits
-          p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
-          print(f"recorded {d} -> {t}")
-          PY
-
+      # Nothing to fetch for a passed day — there was no report.
       - name: Backfill the session
+        if: ${{ inputs.hhmmss != '' }}
         working-directory: backend
         env:
           PYTHONUNBUFFERED: "1"
@@ -96,6 +87,13 @@ jobs:
         run: PYTHONPATH=. python -m scraper.exporters.ice_publish_times || true
 
       - name: Commit
+        # Inputs go through the environment, never interpolated into the script:
+        # `reason` is free text typed by an operator, and `${{ }}` in a run block
+        # would make it shell.
+        env:
+          IN_DATE: ${{ inputs.date }}
+          IN_TIME: ${{ inputs.hhmmss }}
+          IN_REASON: ${{ inputs.reason }}
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -104,13 +102,21 @@ jobs:
                    frontend/public/data/ice_publish_times.json \
                    frontend/public/data/run_degradations.json \
                    backend/scraper/sources/ice_certified_stocks/stock_report_hits.json \
+                   backend/scraper/sources/ice_certified_stocks/no_release_days.json \
                    backend/scraper/sources/ice_certified_stocks/stock_report_cursor.json \
                    backend/scraper/sources/ice_certified_stocks/ice_run_stats.json; do
             [ -f "$f" ] && git add "$f"
           done
           true
+          if [ -n "$IN_TIME" ]; then
+            MSG="data: ICE robusta backfill $IN_DATE @ $IN_TIME [skip ci]"
+            NOOP="Nothing changed — the session may not be recoverable at that second."
+          else
+            MSG="data: ICE no release on $IN_DATE — $IN_REASON [skip ci]"
+            NOOP="Nothing changed — $IN_DATE was already recorded as a no-release day."
+          fi
           git diff --cached --quiet \
-            && echo "Nothing changed — the session may not be recoverable at that second." \
-            || (git commit -m "data: ICE robusta backfill ${{ inputs.date }} @ ${{ inputs.hhmmss }} [skip ci]" \
+            && echo "$NOOP" \
+            || (git commit -m "$MSG" \
                 && git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" \
                 && git push origin "HEAD:${GITHUB_REF_NAME}")
