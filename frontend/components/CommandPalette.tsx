@@ -47,7 +47,11 @@ const DESTS: Dest[] = [
   { label: "Research · Logistics", href: "/research/logistics" },
   { label: "Research · Exchange & certified stocks", href: "/research/exchange" },
   { label: "Research · Demand", href: "/research/demand" },
-  { label: "Data Map", href: "/data-map", keys: "admin workflows pipeline" },
+  { label: "Data Map", href: "/data-map", keys: "admin workflows pipeline architecture" },
+  { label: "Data Map · Pipelines", href: "/data-map?tab=pipelines", keys: "diagram flow source json visual mermaid" },
+  { label: "Data Map · Workflows", href: "/data-map?tab=workflows", keys: "cadence cron transport resiliency drift inventory yaml" },
+  { label: "Data Map · Activity", href: "/data-map?tab=activity", keys: "runs last 7 days failures duration" },
+  { label: "Data Map · Downloads", href: "/data-map?tab=downloads", keys: "csv export dataset" },
 ];
 
 function score(d: Dest, q: string): number {
