@@ -31,7 +31,7 @@
 | | Issue | Why it's next |
 |---|-------|---------------|
 | **In flight** | — none | C4's `auto-fix` PR (**#823**) merged this run (06:19 UTC). The queue is unblocked and should pick up **C5** next. |
-| **1st** | **B8** · P1 | **New, 4 Sep.** The ICE certified-stocks feed has been refused since ~3 Sep and the data is frozen. The silent half is fixed this session (#834, #835 — a wholly-refused run now fails loudly and aborts in seconds rather than burning two hours), so what remains is diagnosis, not damage control: find what ICE now wants on `/marketdata/publicdocs/`. One probe dispatch, the way 0.30 settled the IP question. |
+| **watching** | **B8** · P1 | **Symptom cleared 4 Sep; cause understood; mitigation unproven.** The feed is serving and the data is current (`2026-09-03` both markets). Six PRs landed — the diagnosis is that ICE blocks per RUNNER IP, driven by our own request volume, and a healthy run now issues ~186 fewer requests. What is NOT established is that the reduction is enough: the run that recovered drew a clean IP, so it shows the feed works, not that the blocking stops. The next few days of scheduled runs decide it. Nothing to do until then. |
 | **2nd** | **C5** · P1 | The record has recovered from its 44-hour freeze on its own (a later run of 0.17 got a clean sweep), but the code that let one API hiccup abort the whole collector is unchanged — re-confirmed today by reading `build_workflow_activity.py`: still no retry, still no partial-write path. It will freeze again the next time GitHub's API hiccups mid-sweep. |
 | **3rd** | **A2** · P2 | Pin ruff. Re-confirmed still unpinned today. |
 | **4th** | **A5** · P2 | Make the smart-quote guard fail loudly when its detector breaks. Re-confirmed still the fragile `if grep -rnP …` construct today. |
@@ -75,6 +75,57 @@ runner IP until one is not blocked.
 The experiment that settles it is a smoke run under #838's code, which probes
 an archive URL and a live URL **in the same job** and therefore on one IP. If
 both pass, the archive/live theory is dead and it is purely per-IP.
+
+**Result (run 33866182291, runner `1000023667`):** both passed.
+
+```
+=== SMOKE: 10/10 OK (archive URLs) ===
+=== SMOKE (live, 2026-09-03): ✓ HTTP 200 ===
+```
+
+Archive-vs-live is dead. The block is per source IP and file age is irrelevant.
+
+---
+
+**End of 4 Sep. Where B8 stands.**
+
+*Symptom* — gone. Backfill `33864176535` landed `cd7a3a04`: arabica and robusta
+both at `2026-09-03`, found at sweep candidate 280 exactly as the arithmetic
+predicted. The feed is serving.
+
+*Cause* — understood, and it is us. ICE blocks a runner IP after sustained
+volume against `/marketdata/publicdocs/`. The telemetry shows how we earned it:
+1,178 requests on 31 Aug, 1,976 on 1 Sep, 2,022 on 3 Sep, ~99% of them misses.
+The block began mid-run on 3 Sep, roughly 187 requests into that day's sweep.
+
+*Mitigation* — merged, six PRs:
+
+| | |
+|---|---|
+| #834 | a run that asks ≥10 times and gets nothing fails, instead of writing unchanged files and exiting 0 |
+| #835 | 8 consecutive 403s abort instead of walking 1,920 candidates |
+| #838 | the abort stops the CLOCK too (it was still sleeping 5s per skipped call); a block is not retried; smoke can finally see a live block; an in-flight run no longer spawns duplicates |
+| #839 | tier-1 stops re-asking questions the sweep or a previous run already answered — ~150 GETs |
+| #840 | per-day sources fetch one day, not seven — 42 GETs to 6 |
+| #843 | a 403 skips the SECTION, not the rest of the run |
+
+A healthy run now issues roughly **186 fewer requests**.
+
+*What is still open, and why this row is not `[x]`* — the reduction is
+unverified in production. The run that recovered drew a clean runner IP, which
+demonstrates the feed works, not that we have stopped earning blocks. If the
+scheduled runs over the next few days stay green, close it. If a 403 storm
+recurs, the run will now say so in seconds instead of two silent hours, and the
+next lever is the tier-2 sweep itself — 1,870 requests to locate one file is
+still the single largest source of volume in the system, and nothing merged
+today touched it.
+
+*One process note.* #843 fixed a hazard introduced by #835 earlier the same
+day: the 403 bail-out set the run-wide flag, so a storm on the last source
+would silently truncate an otherwise good run — and the wholly-refused guard
+would not fire, because earlier fetches had succeeded. That is the third
+variant of "reports success while collecting nothing" found in one session.
+The shape is worth watching for specifically.
 
 ---
 
