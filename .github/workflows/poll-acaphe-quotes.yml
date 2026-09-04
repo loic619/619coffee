@@ -99,14 +99,28 @@ jobs:
           cache: 'pip'
           cache-dependency-path: backend/scraper/requirements.txt
 
+      # The poller needs requests + playwright, and sqlalchemy/psycopg2 for the
+      # VN daily row (scraper.db). Installing the whole scraper stack (scipy,
+      # yfinance, curl_cffi, …) cost ~19s of a ~55s run for packages this job
+      # never imports — the same waste fixed for the morning brief in d6212be.
+      #
+      # sqlalchemy is NOT optional despite _save_vn_prices_to_db being wrapped
+      # in try/except: without it the write fails silently and the VN daily
+      # history quietly stops accruing, which is how vietnam_last.json sat
+      # frozen from April to August unnoticed.
       - name: Install Python dependencies
         if: steps.gate.outputs.skip == 'false'
-        working-directory: backend
-        run: pip install --quiet -r scraper/requirements.txt psycopg2-binary
+        run: pip install --quiet requests playwright sqlalchemy psycopg2-binary
 
       # Cache the chromium binary (~120 MB) across the ~50 runs/week. On a hit,
       # `playwright install` skips the download; --with-deps still ensures OS
       # libs (fast on the hosted image where most are preinstalled).
+      #
+      # Still installed unconditionally even though the poller now reuses a
+      # cached session and usually never launches a browser: whether the cookie
+      # cache hits is only known inside the poller, and a cache miss with no
+      # Chromium on disk would turn a recoverable re-login into a failed run.
+      # ~9s on a cache hit is the price of that safety net.
       - name: Cache Playwright browser
         if: steps.gate.outputs.skip == 'false'
         uses: actions/cache@v4
