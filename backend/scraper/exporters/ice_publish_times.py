@@ -133,6 +133,7 @@ def build() -> dict:
         "by_weekday": _by_weekday(obs),
         "misses": _misses(obs),
         "rate_limits": _rate_limits(),
+        "blocks": _blocks(),
         "runs": _runs(),
     }
 
@@ -165,6 +166,12 @@ def _runs() -> dict:
         s = by_day.get(r.get("date") or "")
         rows.append({**r, "telemetry": {
             "http_429": s.get("http_429"),
+            # The 403 side. A block skips a fetch section and lets the run
+            # finish GREEN, so `outcome` alone cannot show it — this row is the
+            # only thing that says the run came home incomplete.
+            "http_403": s.get("http_403"),
+            "ok_200": s.get("ok_200"),
+            "blocked_sections": s.get("blocked_sections") or [],
             "retry_after_count": s.get("retry_after_count"),
             "retry_after_total_s": s.get("retry_after_total_s"),
             "throttle_bumps": s.get("throttle_bumps"),
@@ -297,6 +304,58 @@ def _misses(obs: list[tuple[str, int, str]]) -> dict:
     }
 
 
+def _blocks() -> dict:
+    """Sections a 403 storm skipped, per run.
+
+    A 429 and a 403 look alike in the Actions log and mean opposite things. A
+    429 is pacing: the run slows down, waits out the Retry-After and continues,
+    and the telemetry above is how you tune it. A 403 on this feed is Akamai
+    refusing the runner IP outright — there is no interval that clears it, and
+    the only sane response is to skip the section and let the rest of the run
+    finish.
+
+    Which makes the block INVISIBLE to every other instrument here. The run
+    exits 0, so the workflow's failure notifier stays quiet, GitHub records
+    success and the activity panel draws a green cell. The outcome field says
+    "aborted_403" at best, which says a block happened, not what the run
+    therefore came home without — and the sections are not interchangeable: a
+    skipped arabica xls is one missing snapshot, a skipped robusta stock report
+    is a missing session that only a human with the publish second recovers.
+
+    So this reports the sections by name, and what each one gave up.
+    """
+    path = HITS.with_name("ice_run_stats.json")
+    try:
+        runs = json.loads(path.read_text(encoding="utf-8")).get("runs", [])
+    except Exception:
+        runs = []
+    blocked = [r for r in runs if r.get("blocked_sections")]
+    by_section: Counter = Counter()
+    skipped = 0
+    for r in blocked:
+        for b in r["blocked_sections"]:
+            by_section[b.get("section", "unknown")] += 1
+            skipped += b.get("skipped_requests", 0) or 0
+    return {
+        "runs": len(runs),
+        # Distinguishes "no block has happened" from "no run has recorded one
+        # yet" — the fields were only added 2026-09-04, and a zero that means
+        # "not instrumented" reads exactly like a clean record.
+        "instrumented_runs": sum(1 for r in runs if "blocked_sections" in r),
+        "note": "blocked_sections recorded from 2026-09-04; earlier runs could meet a "
+                "403 without leaving any trace of which section it cost",
+        "runs_with_a_block": len(blocked),
+        "sections_skipped": sum(len(r["blocked_sections"]) for r in blocked),
+        "requests_given_up": skipped,
+        "by_section": [{"section": k, "runs": v} for k, v in by_section.most_common()],
+        "recent": [{"at": r.get("at"), "outcome": r.get("outcome"),
+                    "sections": r.get("sections"),
+                    "ok_200": r.get("ok_200"), "http_403": r.get("http_403"),
+                    "blocked": r["blocked_sections"]}
+                   for r in blocked[-10:]],
+    }
+
+
 def _rate_limits() -> dict:
     """Per-run 429 / Retry-After telemetry, once runs start recording it.
 
@@ -320,6 +379,8 @@ def _rate_limits() -> dict:
         "total_retry_after_s": round(sum(waits)),
         "worst_retry_after_s": max((r.get("retry_after_max_s", 0) for r in runs), default=0),
         "runs_aborted_by_429": sum(1 for r in runs if r.get("aborted_by_429")),
+        "runs_blocked_by_403": sum(1 for r in runs if r.get("blocked_sections")),
+        "total_403": sum(r.get("http_403", 0) or 0 for r in runs),
         "runs_resumed": sum(1 for r in runs if r.get("resumed_from")),
         "median_sweep_gets": sorted(r.get("sweep_gets", 0) for r in runs)[n // 2],
         "recent": runs[-20:],

@@ -45,6 +45,9 @@ interface Payload {
       billed_minutes: number | null; last_step: string | null;
       telemetry: {
         http_429: number | null;
+        http_403?: number | null;
+        ok_200?: number | null;
+        blocked_sections?: BlockedSection[];
         wait_publicdocs_s: number | null;
         wait_marketdata_s: number | null;
         wait_retry_after_s: number | null;
@@ -55,8 +58,31 @@ interface Payload {
     runs: number; note?: string;
     runs_with_429?: number; total_429?: number; total_retry_after_s?: number;
     worst_retry_after_s?: number; runs_aborted_by_429?: number;
+    runs_blocked_by_403?: number; total_403?: number;
     runs_resumed?: number; median_sweep_gets?: number;
   };
+  blocks?: {
+    runs: number;
+    instrumented_runs: number;
+    note: string;
+    runs_with_a_block: number;
+    sections_skipped: number;
+    requests_given_up: number;
+    by_section: { section: string; runs: number }[];
+    recent: {
+      at: string; outcome: string; sections: number | null;
+      ok_200: number | null; http_403: number | null;
+      blocked: BlockedSection[];
+    }[];
+  };
+}
+
+/** One fetch section a 403 storm cut short. */
+interface BlockedSection {
+  section: string;
+  at?: string;
+  after_403s: number;
+  skipped_requests: number;
 }
 
 /**
@@ -268,6 +294,7 @@ export default function IcePublishTimes() {
     );
   }
 
+  const blocks = data.blocks;
   const max = Math.max(...data.by_minute.map((m) => m.count), 1);
   const pct = (x: number) => `${(x * 100).toFixed(0)}%`;
   // Seconds from the window's 10:30 start to the median publish — the position
@@ -679,9 +706,78 @@ export default function IcePublishTimes() {
               ["time spent obeying Retry-After", `${data.rate_limits.total_retry_after_s}s`],
               ["worst single Retry-After", `${data.rate_limits.worst_retry_after_s}s`],
               ["runs aborted by rate limiting", String(data.rate_limits.runs_aborted_by_429)],
+              ["runs that met a 403 block", String(data.rate_limits.runs_blocked_by_403 ?? 0)],
+              ["total 403s", String(data.rate_limits.total_403 ?? 0)],
               ["runs that resumed a previous sweep", String(data.rate_limits.runs_resumed)],
               ["median sweep GETs", String(data.rate_limits.median_sweep_gets)],
             ]}
+          />
+        </>
+      )}
+
+      <H2>Refused sections</H2>
+      <P>
+        A 429 and a 403 read alike in the log and mean opposite things. A 429 is pacing: the run
+        waits out the <Code>Retry-After</Code>, slows down and carries on, and the table above is
+        how you tune it. A 403 on this feed is Akamai refusing the runner IP outright &mdash; no
+        interval clears it, and the only sane response is to skip that fetch section and let the
+        rest of the run finish.
+      </P>
+      <P>
+        Which is what makes a block invisible to every other instrument here. The run exits 0, so
+        the workflow&rsquo;s failure notifier stays quiet, GitHub records success, and the activity
+        panel in the Data map draws a green cell. This section is where a green-but-incomplete run
+        says what it came home without &mdash; and the sections are not interchangeable: a skipped
+        arabica xls is one missing snapshot, a skipped robusta stock report is a missing session
+        that only a human with the publish second can recover.
+      </P>
+      {!blocks || blocks.instrumented_runs === 0 ? (
+        <P>
+          <strong>Nothing recorded yet.</strong>{" "}
+          {blocks?.note ?? "this payload predates the field entirely"}. Of{" "}
+          {blocks?.runs ?? 0} recorded runs, none carries it &mdash; so a zero here means
+          &ldquo;not instrumented&rdquo;, not &ldquo;never blocked&rdquo;, and the 3&ndash;4 Sep
+          block does not appear.
+        </P>
+      ) : blocks.runs_with_a_block === 0 ? (
+        <P>
+          <strong>No run has skipped a section.</strong>{" "}
+          {blocks.instrumented_runs} instrumented run
+          {blocks.instrumented_runs === 1 ? "" : "s"}, zero 403 blocks.
+        </P>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 my-4">
+            <Stat label="runs with a block" value={String(blocks.runs_with_a_block)}
+                  sub={`of ${blocks.instrumented_runs} instrumented`} />
+            <Stat label="sections skipped" value={String(blocks.sections_skipped)} />
+            <Stat label="requests given up"
+                  value={blocks.requests_given_up.toLocaleString()}
+                  sub="never sent, so never answered" />
+          </div>
+          {blocks.by_section.length > 0 && (
+            <RefTable
+              head={["section", "runs it was skipped in"]}
+              rows={blocks.by_section.map((b) => [b.section, String(b.runs)])}
+            />
+          )}
+          <P>
+            The most recent blocks, newest first. <Code>ok 200</Code> beside{" "}
+            <Code>403</Code> is the load-bearing pair: a run with successes alongside the refusals
+            collected something, and one with none collected nothing at all &mdash; that second
+            shape is the one the wholly-refused guard fails outright.
+          </P>
+          <RefTable
+            head={["run", "outcome", "sections skipped", "requests given up", "200", "403"]}
+            rows={blocks.recent.slice().reverse().map((r) => [
+              (r.at ?? "").replace("T", " ").slice(0, 16),
+              r.outcome.replace(/_/g, " "),
+              `${r.blocked.length}${r.sections ? ` of ${r.sections}` : ""} — ${
+                r.blocked.map((b) => b.section).join(", ")}`,
+              r.blocked.reduce((n, b) => n + (b.skipped_requests ?? 0), 0).toLocaleString(),
+              r.ok_200 == null ? "—" : String(r.ok_200),
+              r.http_403 == null ? "—" : String(r.http_403),
+            ])}
           />
         </>
       )}
@@ -750,7 +846,8 @@ export default function IcePublishTimes() {
       </P>
       {/* DataFiles prefixes /data/ itself — pass the bare filename. */}
       <DataFiles files={["ice_publish_times.json"]}
-                 note="Derived from stock_report_hits.json, the scraper's own hit log." />
+                 note="Derived from stock_report_hits.json (the scraper's own hit log) and
+                       ice_run_stats.json (its per-run telemetry)." />
     </>
   );
 }

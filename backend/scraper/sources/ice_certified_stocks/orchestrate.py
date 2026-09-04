@@ -32,6 +32,7 @@ from pathlib import Path
 
 import requests
 
+from ... import run_degradations
 from . import fetch as F
 from .cohort_outflow import (
     build_cohort_dna,
@@ -258,6 +259,29 @@ def _begin_section(label: str) -> None:
         print(f"  → 403 block cleared; {label} gets a fresh attempt")
     _RATE_STATE["section_blocked"] = 0
     _RATE_STATE["consecutive_403s"] = 0
+    _CURRENT_SECTION["label"] = label
+    _RUN_STATS["sections"] += 1
+
+
+def _record_section_block() -> None:
+    """Name the section this 403 storm is about to skip.
+
+    Called once per block, at the moment the threshold trips, so the label is
+    still the section that earned it — `_begin_section` overwrites it the
+    instant the next one starts. `skipped_requests` then accumulates on the
+    short-circuit path below, which is what turns "we were blocked" into "we
+    gave up N requests worth of this source".
+    """
+    _RUN_STATS["blocked_sections"].append({
+        "section": _CURRENT_SECTION["label"],
+        "at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "after_403s": _RATE_STATE["consecutive_403s"],
+        "skipped_requests": 0,
+    })
+    # The flag and the detail are one event, so one place sets both. They were
+    # separate lines in _http_get, which is how a run could end up flagged
+    # `aborted_403` with no record of which section it cost.
+    _RUN_STATS["aborted_by_403"] = 1
 
 # Fix 5: per-request interval (seconds) for the SEQUENTIAL tier-2 stock-report
 # sweep only. Concurrency bans the IP at any level, so the per-request gap is
@@ -353,7 +377,19 @@ _RUN_STATS: dict = {
     # stopped early because it was rate-limited or ran out of clock, which
     # says nothing about where the file is.
     "sweep_exhausted": False,
+    # Sections a 403 storm cut short, and how many requests each gave up.
+    # `aborted_by_403` is a bare flag: it says the run met a block, not what
+    # the run therefore came home WITHOUT — and those are different facts,
+    # because the sections are not interchangeable. A skipped arabica xls is a
+    # missing snapshot; a skipped robusta stock report is a missing session.
+    # `sections` is the denominator that makes "2 of 5 refused" sayable.
+    "blocked_sections": [], "sections": 0,
 }
+
+# The section being fetched right now. A 403 storm skips the rest of it, and
+# this is what names the hole in the log, the Telegram line, the research page
+# and the data-map run record.
+_CURRENT_SECTION: dict[str, str] = {"label": "startup"}
 
 
 def _load_cursor() -> dict:
@@ -418,10 +454,6 @@ def _notify_late_release(day: date) -> None:
     failure — but it is one that needs a human, because the only way to recover
     the session is for someone to supply the publish second. Silence would turn
     an announced trade-off back into a silent hole."""
-    import os
-
-    tok = os.environ.get("TELEGRAM_BOT_TOKEN")
-    chat = os.environ.get("TELEGRAM_CHAT_ID")
     lo, hi = STOCK_REPORT_SWEEP_RANGE
     win = f"{lo[0]:02d}:{lo[1]:02d}–{hi[0]:02d}:{hi[1]:02d}"
     # Report the WINDOW first, with the GET count as a subordinate detail.
@@ -439,15 +471,92 @@ def _notify_late_release(day: date) -> None:
             f"({_RUN_STATS['sweep_gets']:,} requests after tier-1 overlap).\n"
             f"Add the publish time on the Admin research page to backfill it.")
     print(f"[robusta] LATE RELEASE — {day} not in {win}")
+    _telegram(text, tag="robusta")
+
+
+def _telegram(text: str, *, tag: str) -> None:
+    """Send one line to the ops chat, or say in the log why it could not."""
+    tok = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat = os.environ.get("TELEGRAM_CHAT_ID")
     if not tok or not chat:
-        print("[robusta] telegram not configured — not sending")
+        print(f"[{tag}] telegram not configured — not sending")
         return
     try:
         import requests as _rq
         _rq.post(f"https://api.telegram.org/bot{tok}/sendMessage",
                  data={"chat_id": chat, "text": text}, timeout=20)
     except Exception as e:  # noqa: BLE001 — never fail the run on a notification
-        print(f"[robusta] telegram send failed: {e}")
+        print(f"[{tag}] telegram send failed: {e}")
+
+
+def _notify_blocked_sections() -> None:
+    """Announce every section a 403 storm skipped, on a run that still exits 0.
+
+    Skipping is the right call — one refused source must not throw away the
+    nine that served — but it leaves a hole that nothing else says out loud.
+    The workflow's own notifier is `if: failure()`; the data-map run record
+    reads GitHub's conclusion; the research page reads run outcomes. All three
+    look at a skipped section and see a green run, which is exactly the shape
+    that has cost this project data three times over: reports success while
+    collecting nothing.
+
+    So the run stays green and gets loud instead. A wholly-refused run gets
+    this AND the workflow's failure line: that one says look, this one says at
+    what.
+    """
+    blocked = _RUN_STATS["blocked_sections"]
+    if not blocked:
+        return
+    total = _RUN_STATS["sections"] or len(blocked)
+    lines = [
+        "\u26a0\ufe0f ICE certified stocks \u2014 403 block, sections skipped",
+        f"{len(blocked)} of {total} sections refused; the run kept the rest.",
+    ]
+    for b in blocked:
+        lines.append(
+            f"\u00b7 {b['section']} \u2014 blocked after {b['after_403s']} x 403, "
+            f"{b['skipped_requests']:,} further request(s) skipped")
+    lines.append(
+        f"Run totals: {_RUN_STATS['requests']:,} requests, {_RUN_STATS['ok_200']:,} x 200, "
+        f"{_RUN_STATS['http_403']:,} x 403.")
+    lines.append("Green run, incomplete data. A 403 is a per-IP block, not a pacing "
+                 "problem — the next scheduled run draws a different runner.")
+    text = "\n".join(lines)
+    print(f"[ice] 403 BLOCK — skipped {len(blocked)} of {total} sections: "
+          f"{', '.join(b['section'] for b in blocked)}")
+    _telegram(text, tag="ice")
+
+
+# The activity panel joins on the YAML basename, not the display title: a
+# title is mutable and the Actions API caches it per run.
+_WORKFLOW_NAME = "1.13 – ICE Certified Stocks (arabica + robusta)"
+_WORKFLOW_FILE = "scraper-ice-certified-stocks.yml"
+
+
+def _publish_degradation() -> None:
+    """Put this run's skipped sections where the data-map run record can see it.
+
+    That panel reads GitHub conclusions, and a 403 skip leaves the conclusion
+    green — so without this row the run is indistinguishable from a clean one
+    in the one place built to catch pipelines that are green while their data
+    sits still.
+    """
+    blocked = _RUN_STATS["blocked_sections"]
+    if not blocked:
+        return
+    total = _RUN_STATS["sections"] or len(blocked)
+    skipped = sum(b["skipped_requests"] for b in blocked)
+    run_degradations.record(
+        workflow=_WORKFLOW_NAME,
+        file=_WORKFLOW_FILE,
+        kind="http_403",
+        detail=(f"ICE refused {len(blocked)} of {total} fetch sections with 403 "
+                f"(a per-IP block, not rate limiting). Those sections were skipped so the "
+                f"rest of the run could finish; {skipped:,} further request(s) were given "
+                f"up and their data is missing from this run."),
+        items=[f"{b['section']} — after {b['after_403s']} x 403, "
+               f"{b['skipped_requests']:,} request(s) skipped" for b in blocked],
+    )
 
 
 def _record_run_stats(outcome: str, sweep_day: date | None) -> None:
@@ -467,6 +576,16 @@ def _record_run_stats(outcome: str, sweep_day: date | None) -> None:
         "retry_after_max_s": max(waits) if waits else 0,
         "throttle_bumps": _RUN_STATS["throttle_bumps"],
         "aborted_by_429": bool(_RUN_STATS["aborted_by_429"]),
+        # The 403 side of the record. It was missing entirely: `outcome` could
+        # read "aborted_403" while not one field in the row said how many 403s
+        # there were, how many requests succeeded, or which section was cut
+        # short — so the research page could only ever report rate limiting,
+        # and a block looked like a quiet day.
+        "http_403": _RUN_STATS["http_403"],
+        "ok_200": _RUN_STATS["ok_200"],
+        "aborted_by_403": bool(_RUN_STATS["aborted_by_403"]),
+        "sections": _RUN_STATS["sections"],
+        "blocked_sections": list(_RUN_STATS["blocked_sections"]),
         "sweep_gets": _RUN_STATS["sweep_gets"],
         "resumed_from": _RUN_STATS["resumed_from"],
         "requests": _RUN_STATS["requests"],
@@ -612,6 +731,8 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
     # it had already detected in the first 8. Aborting has to stop the clock,
     # not just the fetching.
     if _RATE_STATE["aborted"] or _RATE_STATE["section_blocked"]:
+        if _RATE_STATE["section_blocked"] and _RUN_STATS["blocked_sections"]:
+            _RUN_STATS["blocked_sections"][-1]["skipped_requests"] += 1
         return None
     throttle = _throttle_for(url)
     try:
@@ -677,11 +798,11 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
                 if _RATE_STATE["consecutive_403s"] >= TOO_MANY_403S:
                     if not _RATE_STATE["section_blocked"]:
                         print(f"  ! {TOO_MANY_403S} consecutive 403s — this source is being "
-                              f"refused, not rate-limited. Skipping the rest of THIS section "
-                              f"and moving on; a longer interval would not help and the sweep "
-                              f"cannot match a refused response.")
+                              f"refused, not rate-limited. Skipping the rest of "
+                              f"'{_CURRENT_SECTION['label']}' and moving on; a longer interval "
+                              f"would not help and the sweep cannot match a refused response.")
+                        _record_section_block()
                     _RATE_STATE["section_blocked"] = 1
-                    _RUN_STATS["aborted_by_403"] = 1
             print(f"  ! HTTP {r.status_code} ({ctype}) {url}")
             return r
 
@@ -1691,6 +1812,12 @@ def _cli() -> None:
           f"{_RUN_STATS['sweep_gets']} sweep GETs · "
           f"{_RUN_STATS['http_404']} x 404 · "
           f"{_RUN_STATS['ok_200']} x 200")
+    # A 403 skips a section and lets the run finish green. Green must not be
+    # the same word as complete, so the skip is announced everywhere a person
+    # looks: Telegram now, the ICE research page from ice_run_stats.json, and
+    # the data-map run record from run_degradations.json.
+    _notify_blocked_sections()
+    _publish_degradation()
     # Last, so the telemetry above is printed and recorded before we blow up.
     # Exit 3 rather than 1: the caller retries a transient fault, and a feed
     # refusing every request is not one. Retrying it just pays the whole run

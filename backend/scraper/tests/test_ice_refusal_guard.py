@@ -167,3 +167,124 @@ def test_429_abort_stays_run_wide():
     o._RATE_STATE["aborted"] = 1            # as the 429 path sets it
     o._begin_section("next source")
     assert o._RATE_STATE["aborted"] == 1, "_begin_section must not clear a 429 abort"
+
+
+# ── A skipped section has to be REPORTED ────────────────────────────────────
+# Skipping is the right call, and it leaves the run green. Green is then
+# indistinguishable from complete in all three places a person looks: the
+# workflow's failure notifier is `if: failure()`, the data-map run record reads
+# GitHub conclusions, and the research page reads run outcomes. So the skip has
+# to carry a record of its own.
+
+@pytest.fixture
+def blocked_run():
+    """A run that fetched one section, then had two refused."""
+    keep_stats, keep_rate = dict(o._RUN_STATS), dict(o._RATE_STATE)
+    o._RUN_STATS.update(requests=0, ok_200=0, http_403=0, http_429=0, http_404=0,
+                        aborted_by_403=0, sections=0, blocked_sections=[],
+                        wait_marketdata_s=0.0)
+    o._RATE_STATE.update(consecutive_403s=0, consecutive_429s=0,
+                         aborted=0, section_blocked=0)
+
+    def block(label: str, skipped: int) -> None:
+        o._begin_section(label)
+        o._RATE_STATE["consecutive_403s"] = o.TOO_MANY_403S
+        o._record_section_block()
+        o._RATE_STATE["section_blocked"] = 1
+        for _ in range(skipped):
+            o._http_get("https://www.ice.com/marketdata/publicdocs/x")
+
+    o._begin_section("arabica daily xls")          # served fine
+    block("robusta stock report", 412)
+    block("robusta per-day sources", 6)
+    yield o._RUN_STATS
+    o._RUN_STATS.clear(); o._RUN_STATS.update(keep_stats)
+    o._RATE_STATE.clear(); o._RATE_STATE.update(keep_rate)
+
+
+def test_each_blocked_section_is_named(blocked_run):
+    """Which section was skipped is the load-bearing fact — the sections are
+    not interchangeable, and `aborted_by_403` alone cannot say."""
+    got = [b["section"] for b in blocked_run["blocked_sections"]]
+    assert got == ["robusta stock report", "robusta per-day sources"]
+    assert blocked_run["sections"] == 3, "the served section must count in the denominator"
+
+
+def test_the_block_counts_what_it_gave_up(blocked_run):
+    """A skip is only legible with its size: 8 x 403 then 412 requests never
+    sent is a whole source missing, 8 then 6 is one day of six files."""
+    assert [b["skipped_requests"] for b in blocked_run["blocked_sections"]] == [412, 6]
+    assert blocked_run["requests"] == 0, "short-circuited calls must stay uncounted"
+
+
+def test_a_second_block_does_not_overwrite_the_first(blocked_run):
+    assert len(blocked_run["blocked_sections"]) == 2
+
+
+def test_telegram_names_the_sections(blocked_run, monkeypatch):
+    """The run stays green, so this message is the only thing that says it at
+    the time. It has to carry the sections, not just 'a 403 happened'."""
+    blocked_run.update(requests=1024, ok_200=18, http_403=141)
+    sent: list[str] = []
+    monkeypatch.setattr(o, "_telegram", lambda text, *, tag: sent.append(text))
+    o._notify_blocked_sections()
+    assert len(sent) == 1
+    body = sent[0]
+    assert "2 of 3 sections refused" in body
+    assert "robusta stock report" in body and "robusta per-day sources" in body
+    assert "412" in body
+    # The remedy has to be right, or the reader tunes the interval again.
+    assert "per-IP block, not a pacing problem" in body
+
+
+def test_a_clean_run_says_nothing(monkeypatch):
+    o._RUN_STATS["blocked_sections"] = []
+    sent: list[str] = []
+    monkeypatch.setattr(o, "_telegram", lambda text, *, tag: sent.append(text))
+    o._notify_blocked_sections()
+    assert sent == []
+
+
+def test_run_stats_row_carries_the_403_side(blocked_run, tmp_path, monkeypatch):
+    """The row used to record `outcome: aborted_403` and not one 403 field —
+    so the research page could only ever report rate limiting."""
+    import json
+    monkeypatch.setattr(o, "RUN_STATS_PATH", tmp_path / "ice_run_stats.json")
+    blocked_run.update(requests=1024, ok_200=18, http_403=141)
+    o._record_run_stats("completed", None)
+    row = json.loads((tmp_path / "ice_run_stats.json").read_text())["runs"][-1]
+    assert row["http_403"] == 141 and row["ok_200"] == 18
+    assert row["aborted_by_403"] is True
+    assert [b["section"] for b in row["blocked_sections"]] == [
+        "robusta stock report", "robusta per-day sources"]
+
+
+def test_degradation_row_reaches_the_data_map(blocked_run, tmp_path, monkeypatch):
+    """The data-map panel reads conclusions, and this run's conclusion is
+    success. The row is the only thing that puts it on that page."""
+    import json
+
+    from scraper import run_degradations as rd
+    monkeypatch.setattr(rd, "PATH", tmp_path / "run_degradations.json")
+    o._publish_degradation()
+    doc = json.loads((tmp_path / "run_degradations.json").read_text())
+    row = doc["runs"][-1]
+    # Joined on the YAML basename: a display title is mutable and the Actions
+    # API caches it per run.
+    assert row["file"] == "scraper-ice-certified-stocks.yml"
+    assert row["kind"] == "http_403"
+    assert "2 of 3" in row["detail"] and "418" in row["detail"]
+    assert len(row["items"]) == 2
+
+
+def test_degradation_is_idempotent_per_run(blocked_run, tmp_path, monkeypatch):
+    """A retried attempt replaces its own row rather than appending a second."""
+    import json
+
+    from scraper import run_degradations as rd
+    monkeypatch.setattr(rd, "PATH", tmp_path / "run_degradations.json")
+    monkeypatch.setenv("GITHUB_RUN_ID", "999")
+    o._publish_degradation()
+    o._publish_degradation()
+    doc = json.loads((tmp_path / "run_degradations.json").read_text())
+    assert len(doc["runs"]) == 1
