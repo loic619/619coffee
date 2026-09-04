@@ -9,6 +9,7 @@ The exact numeric values are NOT pinned (they drift with input fixtures) —
 only the section structure, ordering, and key labels.
 """
 import json
+import re
 
 import pytest
 
@@ -114,13 +115,15 @@ def test_brief_has_all_top_level_sections(fixture_data_dir):
     out = build_brief_message()
 
     # Header
-    assert "☕ <b>Coffee Intel ·" in out
-    # Futures with spread on a second line
-    assert "RC   3,438" in out
-    assert "(RMN26)" in out
-    assert "N-U spread at" in out
-    assert "KC   260.60" in out
-    assert "(KCN26)" in out
+    assert "<b>☕ COFFEE MORNING BRIEF</b>" in out
+    # Futures with each board's spread on the row beneath it. The market block
+    # is a padded <pre> table now, so match the row's cells rather than the
+    # column widths, which move with the widest value in the column.
+    # No end anchor: the table's closing </pre> rides on the final row.
+    assert re.search(r"^RC\s+3,438\s+\S*-9\s+RMN26\b",      out, re.M)
+    assert re.search(r"^ N-U\s+123\s+-6\s+spread\b",        out, re.M)
+    assert re.search(r"^KC\s+260\.60\s+\S*-6\.55\s+KCN26\b", out, re.M)
+    assert re.search(r"^ N-U\s+6\.05\s+\+0\.00\s+spread\b",  out, re.M)
     # Physical lines — each origin gets one line with basis "Nxxx" and FOB tag
     assert "VN FAQ" in out
     assert " FOB" in out
@@ -149,7 +152,7 @@ def test_brief_certified_stocks_block(fixture_data_dir):
     each with a reporting-date header, a Grading line, and a Stocks delta line."""
     from telegram.handlers.brief import build_brief_message
     out = build_brief_message()
-    assert "🪤 <b>Certified stocks</b>" in out
+    assert "🪤 <b>STOCKS</b>" in out
     assert "<b>New York</b>:" in out
     assert "<b>London</b>:" in out
     assert "Grading:" in out
@@ -236,11 +239,16 @@ def test_brief_physical_includes_basis_and_delta(fixture_data_dir):
 
 
 def test_brief_spread_line_has_change_in_parens(fixture_data_dir):
-    """Spread daily change appears in parens after the spread value."""
+    """The spread's daily change is printed beside the spread value.
+
+    It moved from a prose line ("N-U spread at 123 (-6)") into the market
+    table's own d/d column in the redesign; the number that must not go missing
+    is the change, not the wording.
+    """
     from telegram.handlers.brief import build_brief_message
     out = build_brief_message()
     # Today RC N-U = 3438 - 3315 = 123; yesterday 3476 - 3347 = 129; delta = -6.
-    assert "N-U spread at 123 (-6)" in out
+    assert re.search(r"^ N-U\s+123\s+-6\s+spread\b", out, re.M)
 
 
 def test_front_two_picks_liquid_front_during_roll():
