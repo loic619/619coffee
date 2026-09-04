@@ -264,10 +264,11 @@ def _run_exporters(db, only_set: set[str] | None) -> dict[str, str]:
 
 def main(only=None):
     only_set = set(only) if only else None
+    # Building the registry with a None db only reads the keys — the exporters
+    # aren't invoked. Computed unconditionally: it validates --only below, and
+    # health.json needs it on every run to prune topics that no longer exist.
+    known = {k for k, _ in _exporters(None)} | {"health"}
     if only_set is not None:
-        # Validate before opening a DB session (building the registry with a
-        # None db only reads the keys — the exporters aren't invoked).
-        known = {k for k, _ in _exporters(None)} | {"health"}
         unknown = only_set - known
         if unknown:
             raise SystemExit(f"Unknown export topic(s): {', '.join(sorted(unknown))}. Known: {', '.join(sorted(known))}")
@@ -277,8 +278,10 @@ def main(only=None):
         published_at = _run_exporters(db, only_set)
         # health always runs last — its freshness manifest reflects the topics
         # that just published. Passing exporters_published_at lets it record
-        # per-topic success/failure independently of the per-scraper signal.
-        export_health(db, exporters_published_at=published_at)
+        # per-topic success/failure independently of the per-scraper signal;
+        # passing the registry lets it tell a topic that merely didn't run this
+        # time from one that has been deleted (see export_health's docstring).
+        export_health(db, exporters_published_at=published_at, known_exporters=known)
     finally:
         db.close()
     print(f"Done → {OUT_DIR}")
