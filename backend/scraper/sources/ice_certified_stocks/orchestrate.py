@@ -552,10 +552,16 @@ def _throttle_for(url: str) -> float:
 
 
 def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> requests.Response | None:
+    # Checked BEFORE the try, because the `finally` below sleeps the throttle on
+    # every exit path. With the check inside it, an aborted run kept paying the
+    # full 5s/req for calls it never made: run 33854928072 logged 302 requests
+    # of which only 8 were real, and spent 24.6 minutes asleep proving a block
+    # it had already detected in the first 8. Aborting has to stop the clock,
+    # not just the fetching.
+    if _RATE_STATE["aborted"]:
+        return None
     throttle = _throttle_for(url)
     try:
-        if _RATE_STATE["aborted"]:
-            return None
         r = requests.get(url, headers=F.HEADERS, timeout=TIMEOUT, allow_redirects=True)
 
         # 429 → respect Retry-After (capped), back off, retry exactly once.
@@ -1476,7 +1482,15 @@ _SMOKE_URLS = [
 
 
 def smoke() -> int:
-    """Hit each of the 10 probe-verified URLs once. Returns # of 200s."""
+    """Hit each of the 10 probe-verified URLs once. Returns # of 200s.
+
+    Every URL above is a FIXED HISTORICAL date, which makes this a check that
+    the URL shapes still resolve — not that the feed works today. On
+    2026-09-04 it reported 10/10 OK while every current-date request in the
+    same minutes returned 403: ICE was serving the archive and refusing recent
+    files. Read alone it is a false all-clear, so the live probe below runs
+    with it and its result is part of the exit status.
+    """
     print("=== SMOKE: probe-verified URLs (expect 10/10 HTTP 200) ===\n")
     ok = 0
     for name, url in _SMOKE_URLS:
@@ -1485,8 +1499,20 @@ def smoke() -> int:
             ok += 1
             ctype = r.headers.get("Content-Type", "")[:40]
             print(f"  ✓ {name:18}  HTTP 200  {len(r.content):>10,} B  {ctype}")
-    print(f"\n=== SMOKE: {ok}/{len(_SMOKE_URLS)} OK ===")
-    return ok
+    print(f"\n=== SMOKE: {ok}/{len(_SMOKE_URLS)} OK (archive URLs) ===")
+
+    # The question the archive cannot answer: does TODAY's data come through?
+    live_day = _biz_days_back(date.today() - timedelta(days=1), 1)[0]
+    live_url = F.ARABICA_DAILY_XLS.format(yyyymmdd=live_day.strftime("%Y%m%d"))
+    r = _http_get(live_url)
+    live_ok = r is not None and r.status_code == 200 and bool(r.content)
+    status = "HTTP 200" if live_ok else (f"HTTP {r.status_code}" if r is not None else "no response")
+    print(f"\n=== SMOKE (live, {live_day}): {'✓' if live_ok else '✗'} {status} ===")
+    if ok == len(_SMOKE_URLS) and not live_ok:
+        print("  ! ARCHIVE SERVES, LIVE DOES NOT — the feed is blocked for current\n"
+              "    files even though every historical URL resolves. A 10/10 above\n"
+              "    is not an all-clear; this is the line that matters.")
+    return ok if live_ok else -1
 
 
 def _cli() -> None:
@@ -1539,7 +1565,14 @@ def _cli() -> None:
           f"{_RUN_STATS['http_404']} x 404 · "
           f"{_RUN_STATS['ok_200']} x 200")
     # Last, so the telemetry above is printed and recorded before we blow up.
-    _assert_not_wholly_refused()
+    # Exit 3 rather than 1: the caller retries a transient fault, and a feed
+    # refusing every request is not one. Retrying it just pays the whole run
+    # twice — run 33854928072 did exactly that, ~25 minutes per attempt.
+    try:
+        _assert_not_wholly_refused()
+    except AllRequestsRefused as e:
+        print(f"\n{type(e).__name__}: {e}", file=sys.stderr)
+        sys.exit(3)
 
 
 if __name__ == "__main__":

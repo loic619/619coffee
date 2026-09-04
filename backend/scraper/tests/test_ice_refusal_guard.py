@@ -91,3 +91,27 @@ def test_404s_do_not_abort():
         pass  # 404 path never touches consecutive_403s
     assert o._RATE_STATE["consecutive_403s"] == 0
     assert not o._RATE_STATE["aborted"]
+
+
+def test_aborted_calls_neither_sleep_nor_count():
+    """Aborting must stop the CLOCK, not just the fetching.
+
+    The abort check used to sit inside the try, so `finally` still slept the
+    full throttle and counted a phantom request on every short-circuited call.
+    Run 33854928072 logged 302 requests of which 8 were real and spent 24.6
+    minutes asleep proving a block it had detected in the first 8.
+    """
+    import time
+
+    o._RATE_STATE.update(aborted=1)
+    o._RUN_STATS.update(requests=0, wait_marketdata_s=0.0)
+    try:
+        t = time.monotonic()
+        assert o._http_get("https://www.ice.com/marketdata/publicdocs/x") is None
+        elapsed = time.monotonic() - t
+    finally:
+        o._RATE_STATE.update(aborted=0)
+
+    assert elapsed < 0.5, f"aborted call still slept {elapsed:.2f}s"
+    assert o._RUN_STATS["requests"] == 0, "aborted call counted as a request"
+    assert o._RUN_STATS["wait_marketdata_s"] == 0.0, "aborted call billed wait time"

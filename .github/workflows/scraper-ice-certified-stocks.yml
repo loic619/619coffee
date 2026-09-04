@@ -118,6 +118,7 @@ jobs:
             "https://api.github.com/repos/$REPO/actions/workflows/scraper-ice-certified-stocks.yml/runs?per_page=30" || true)
           prior=$(printf '%s' "$body" | python3 -c "
           import json, os, sys
+          from datetime import datetime, timezone
           try:
               d = json.load(sys.stdin)
           except Exception as e:
@@ -125,19 +126,36 @@ jobs:
               sys.exit(0)
           today = os.environ['TODAY']
           this_run = os.environ['THIS_RUN']
+          now = datetime.now(timezone.utc)
+          # Only a run young enough to still be working counts as in flight. A
+          # wedged one must not gate the day: on 2026-09-02 the 04:58 run hung
+          # for two hours and it was the THIRD trigger, at 06:32, that actually
+          # brought the data home. Blanket-skipping on in_progress would have
+          # thrown that away.
+          IN_FLIGHT_MAX_AGE_S = 45 * 60
           for r in d.get('workflow_runs', []):
               if str(r['id']) == this_run:
                   continue
-              if not (r.get('run_started_at') or '').startswith(today):
+              started = r.get('run_started_at') or ''
+              if not started.startswith(today):
                   continue
               if r.get('conclusion') == 'success':
-                  print(r['id']); break
+                  print(f\"already scraped successfully today in run {r['id']}\"); break
+              if r.get('status') in ('in_progress', 'queued'):
+                  try:
+                      age = (now - datetime.fromisoformat(started.replace('Z', '+00:00'))).total_seconds()
+                  except Exception:
+                      continue
+                  if age < IN_FLIGHT_MAX_AGE_S:
+                      print(f\"run {r['id']} is already scraping (started {int(age//60)}m ago)\"); break
+                  print(f'[guard] run {r[\"id\"]} in flight {int(age//60)}m — treating as wedged, scraping anyway',
+                        file=sys.stderr)
           " || true)
           if [ -n "$prior" ]; then
-            echo "Already scraped successfully today via run $prior — skipping."
+            echo "Skipping — $prior."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
-            echo "No successful run yet today. Proceeding."
+            echo "No successful or in-flight run yet today. Proceeding."
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -231,8 +249,17 @@ jobs:
           # those clear in seconds; a fault that survives 60s is not going to
           # clear by minute five either. A genuinely missed day is backfilled by
           # the workbook ingest, so the cost of giving up early is bounded.
+          # Exit 3 = the feed refused every request. That is not a transient
+          # fault and a second attempt just pays the whole run again — run
+          # 33854928072 did exactly that. Fail immediately on it; keep the one
+          # retry for everything else.
           for attempt in 1 2; do
-            run_scraper && break
+            if run_scraper; then break; fi
+            rc=$?
+            if [ "$rc" -eq 3 ]; then
+              echo "Feed refused every request (exit 3) — a retry cannot clear a block."
+              exit 3
+            fi
             [ $attempt -lt 2 ] && echo "Attempt $attempt failed, retrying in 60s..." && sleep 60 || exit 1
           done
 
