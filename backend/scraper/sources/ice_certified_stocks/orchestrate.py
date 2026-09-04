@@ -337,14 +337,41 @@ def _load_cursor() -> dict:
         return {}
 
 
-def _save_cursor(d: date, last_tried: str | None) -> None:
+def _save_cursor(d: date, last_tried: str | None, *, keep_tried: bool = True) -> None:
     """Remember the last second ruled out for `d`. Cleared on success — a
-    found day never needs resuming."""
+    found day never needs resuming. `tried_tier1` survives either way: it is a
+    different fact with a different lifetime (see _mark_tier1_tried)."""
     try:
-        payload = {} if last_tried is None else {"date": d.isoformat(), "last_tried": last_tried}
+        cur = _load_cursor() if keep_tried else {}
+        payload: dict = {} if last_tried is None else {"date": d.isoformat(), "last_tried": last_tried}
+        if keep_tried and cur.get("tried_tier1"):
+            payload["tried_tier1"] = cur["tried_tier1"]
         STOCK_REPORT_CURSOR_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     except Exception as e:  # noqa: BLE001 — telemetry must never break the run
         print(f"  ! cursor write failed: {e}")
+
+
+# Dates whose tier-1 guess-list has already been walked and missed. Durable,
+# because the answer does not change: tier-1 is a fixed set of seconds learned
+# from OTHER days, so re-running it against the same date re-asks a question
+# already answered no. 2026-08-31 is the case in point — swept to exhaustion on
+# 1 Sep, still absent, and every run since has spent 50 more GETs on it.
+TIER1_TRIED_KEEP = 60
+
+
+def _tier1_already_tried(d: date) -> bool:
+    return d.isoformat() in (_load_cursor().get("tried_tier1") or [])
+
+
+def _mark_tier1_tried(d: date) -> None:
+    try:
+        cur = _load_cursor()
+        tried = [x for x in (cur.get("tried_tier1") or []) if x != d.isoformat()]
+        tried.append(d.isoformat())
+        cur["tried_tier1"] = sorted(tried)[-TIER1_TRIED_KEEP:]
+        STOCK_REPORT_CURSOR_PATH.write_text(json.dumps(cur, indent=2), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001
+        print(f"  ! tier1-tried write failed: {e}")
 
 
 def _sweep_candidate_count() -> int:
@@ -737,13 +764,39 @@ def pull_stock_report(d: date, *, sweep: bool = True) -> tuple[str | None, dict 
             return url, parsed
         print(f"  ! recorded time {known} for {d} no longer resolves — re-searching")
 
+    # Tier 1 — the seconds learned from OTHER days, tried against this one.
+    # Two ways it was pure waste, both costing 50 GETs at 5s each:
+    #
+    #   (a) On the SWEEP day it is redundant. The sweep walks every second in
+    #       the window, so any tier-1 time inside the window gets tried anyway,
+    #       just later. Only the times OUTSIDE the window add anything — and
+    #       those are the ones worth keeping, because the sweep can never reach
+    #       them (2026-08-25 published at 11:23:51, past the 11:00 edge).
+    #
+    #   (b) On a date it has already missed. Tier-1 is a fixed list, so asking
+    #       it twice about the same date re-asks a question already answered
+    #       no. 2026-08-31 was swept to exhaustion on 1 Sep and is still absent;
+    #       every run since has spent 50 more GETs re-confirming that.
     tier1 = _stock_report_tier1_times()
+    if sweep:
+        in_window = set(_stock_report_sweep_times())
+        skipped = [t for t in tier1 if t in in_window]
+        tier1 = [t for t in tier1 if t not in in_window]
+        if skipped:
+            print(f"  → tier-1: {len(skipped)} time(s) left to the sweep, "
+                  f"{len(tier1)} outside the window tried first")
+    elif _tier1_already_tried(d):
+        print(f"  → tier-1 already missed for {d} — not re-asking ({len(tier1)} GETs saved)")
+        tier1 = []
+
     for hhmmss in tier1:
         url, parsed = _try(hhmmss)
         if url:
             return url, parsed
 
     if not sweep:
+        # Record the miss so the next run does not repeat this list verbatim.
+        _mark_tier1_tried(d)
         return None, None
 
     # Tier 2 — sequential sweep. Concurrency bans the IP at any level, so the
