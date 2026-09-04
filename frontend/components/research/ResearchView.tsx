@@ -57,6 +57,7 @@ import { BY_ID } from "./factor-map/nodes";
 import { nodesForArticle } from "./factor-map/articleNodes";
 import HondurasProfile from "./origins/HondurasProfile";
 import CertStocksSpread from "./CertStocksSpread";
+import SectionNav from "./SectionNav";
 import VnMidMonth from "./VnMidMonth";
 import WorkflowFailures from "./WorkflowFailures";
 
@@ -1890,6 +1891,9 @@ function ListView({ sel, setSel, cat, setCat, list: all, editing, onEdit }: {
 }) {
   const [q, setQ] = useState("");
   const [sortId, setSortId] = useState(DEFAULT_SORT.id);
+  // Callback ref: SectionNav needs the mounted node, and a plain useRef would
+  // not re-render it when the node arrives.
+  const [bodyEl, setBodyEl] = useState<HTMLDivElement | null>(null);
   const sort = optionById(sortId);
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -1971,8 +1975,14 @@ function ListView({ sel, setSel, cat, setCat, list: all, editing, onEdit }: {
               </button>
             )}
             {current.note && <EditorNote text={current.note} />}
+            {/* Contents bar, built from the article's own rendered headings —
+                these papers run six to eight sections and the reader arriving
+                from the index usually wants one of them. */}
+            <SectionNav container={bodyEl} articleId={current.id} />
             {/* the index IS the summary here, so the article opens expanded */}
-            <AlwaysOpen.Provider value><ArticleBody id={current.id} /></AlwaysOpen.Provider>
+            <div ref={setBodyEl}>
+              <AlwaysOpen.Provider value><ArticleBody id={current.id} /></AlwaysOpen.Provider>
+            </div>
           </>
         )}
       </div>
