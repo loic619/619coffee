@@ -221,9 +221,17 @@ TIMEOUT = 30
 _THROTTLE = {"public": 2.0, "marketdata": 5.0}
 _THROTTLE_CAP = 15.0           # ceiling when self-bumping on 429 retries
 TOO_MANY_429S = 4              # bail-out after this many consecutive 429s
+# Same idea for 403, which had no bail-out at all. A missing report answers 404,
+# so a 403 is anomalous — Akamai serving a challenge page instead of the file.
+# Without this the 2026-09-04 block cost a full 96-minute tier-2 sweep: every
+# one of the 1,920 candidates was refused, none could ever match, and the walk
+# only ended when the 120-minute job timeout killed it. Eight consecutive is
+# ~24 seconds of sweep, long enough to ride out a blip and short enough that a
+# real block costs seconds instead of two hours.
+TOO_MANY_403S = 8
 RETRY_AFTER_MAX_S = 90         # cap any Retry-After we'll wait for
 RETRY_AFTER_GIVE_UP_S = 600    # if Akamai asks > this, abort the rest of the run
-_RATE_STATE: dict[str, int] = {"consecutive_429s": 0, "aborted": 0}
+_RATE_STATE: dict[str, int] = {"consecutive_429s": 0, "consecutive_403s": 0, "aborted": 0}
 
 # Fix 5: per-request interval (seconds) for the SEQUENTIAL tier-2 stock-report
 # sweep only. Concurrency bans the IP at any level, so the per-request gap is
@@ -309,7 +317,7 @@ _RUN_STATS: dict = {
     # of the file. It needs its own counter because the remedy is the opposite
     # of a 429's — slowing down does nothing. `ok_200` is the denominator that
     # makes "everything was refused" distinguishable from "nothing was due".
-    "http_403": 0, "ok_200": 0,
+    "http_403": 0, "ok_200": 0, "aborted_by_403": 0,
     # Seconds actually SLEPT between requests, split by which host's limit
     # imposed it. This is the answer to "where did the 111 minutes go" — the
     # run is almost entirely deliberate waiting, and this says whose.
@@ -596,13 +604,24 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
 
         if r.status_code == 200:
             _RATE_STATE["consecutive_429s"] = 0
+            _RATE_STATE["consecutive_403s"] = 0
             _RUN_STATS["ok_200"] += 1
         else:
             ctype = r.headers.get("Content-Type", "")[:40]
             if r.status_code == 404:
                 _RUN_STATS["http_404"] += 1
+                # A 404 is the normal "not this second" answer during the sweep
+                # and says nothing about whether we are blocked.
             elif r.status_code == 403:
                 _RUN_STATS["http_403"] += 1
+                _RATE_STATE["consecutive_403s"] += 1
+                if _RATE_STATE["consecutive_403s"] >= TOO_MANY_403S:
+                    if not _RATE_STATE["aborted"]:
+                        print(f"  ! {TOO_MANY_403S} consecutive 403s — the feed is refusing "
+                              f"us, not rate-limiting. Aborting; a longer interval would "
+                              f"not help and the sweep cannot match a refused response.")
+                    _RATE_STATE["aborted"] = 1
+                    _RUN_STATS["aborted_by_403"] = 1
             print(f"  ! HTTP {r.status_code} ({ctype}) {url}")
             return r
 
@@ -1502,7 +1521,9 @@ def _cli() -> None:
           f"gradings={len(out['robusta']['recent_activity']['gradings'])}")
     # Telemetry last, so it records what the run actually cost.
     _record_run_stats(
-        outcome="aborted_429" if _RUN_STATS["aborted_by_429"] else "completed",
+        outcome=("aborted_429" if _RUN_STATS["aborted_by_429"]
+                 else "aborted_403" if _RUN_STATS["aborted_by_403"]
+                 else "completed"),
         sweep_day=out.get("_sweep_day"),
     )
     print(f"WAIT: publicdocs {_RUN_STATS['wait_publicdocs_s']/60:.1f} min · "
