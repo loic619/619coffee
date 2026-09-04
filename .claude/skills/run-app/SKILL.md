@@ -59,7 +59,12 @@ means the name was empty; `err=3` means `GATE_SECRET` is unset.
 
 ## 3. Drive it
 
-`scripts/drive.mjs` handles gate login, the browser setup and error capture:
+`scripts/drive.mjs` handles gate login, the browser setup and error capture.
+**Use it rather than hand-rolling a Playwright script.** The gate form has
+changed shape twice; a script written from memory fills fields that no longer
+exist, and Playwright reports that as a bland 30s timeout on
+`input[name=first]` rather than "the form changed". Sept 2026 cost two runs to
+exactly this — the driver was correct the whole time and simply was not used.
 
 ```bash
 APP_ACCESS='<code>' node ../.claude/skills/run-app/scripts/drive.mjs \
@@ -111,6 +116,15 @@ Brief is the landing since Sept 2026) and can open everything except
 
 ## Gotchas that cost real time
 
+- **`npx next start` from the wrong directory INSTALLS A DIFFERENT NEXT.** It
+  does not error. Outside `frontend/` there is no local `next`, so npx fetches
+  the latest from the registry — `npm warn exec The following package was not
+  found and will be installed: next@16.3.4` — and you then debug a server that
+  is a different major version from the one that built `.next`. It is easy to
+  land in the wrong cwd without noticing: a `cd frontend && <cmd>` whose first
+  command fails leaves the shell wherever it started, and later calls in the
+  same session inherit that. Check the directory, or use an absolute
+  `cd /home/user/Coffee-intel-map/frontend` in the same command as the start.
 - **`waitUntil: 'networkidle'` never settles** — the app polls live data, so
   navigation times out at 60s. Use `domcontentloaded` plus `--wait`.
 - **Headless UAs are treated as bots.** `middleware.ts` matches "headless" in
