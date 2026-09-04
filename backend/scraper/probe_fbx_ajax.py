@@ -101,6 +101,7 @@ def nonce_from_html() -> str | None:
     stays, though even then one page load beats twelve.
     """
     import re
+    import time
 
     import requests
 
@@ -109,20 +110,40 @@ def nonce_from_html() -> str | None:
     except Exception as e:  # noqa: BLE001
         print(f"  page GET failed: {type(e).__name__} {str(e)[:80]}")
         return None
-    print(f"  plain GET of the lane page: [{r.status_code}] {len(r.text):,}b")
+    html = r.text
+    print(f"  plain GET of the lane page: [{r.status_code}] {len(html):,}b")
 
-    # Try the specific pairing first, then any WP-shaped nonce, so a rename of
-    # the surrounding variable does not read as "absent".
-    for pat, why in (
-        (r'freightos_get_ticker_data["\']\s*,\s*["\']?nonce["\']?\s*:\s*["\']([0-9a-f]{8,12})', "next to the action name"),
-        (r'["\']?nonce["\']?\s*[:=]\s*["\']([0-9a-f]{8,12})["\']', "a nonce-shaped field"),
-        (r'ticker[^<>]{0,200}?([0-9a-f]{10})', "near the word ticker"),
-    ):
-        m = re.search(pat, r.text, re.I)
-        if m:
-            print(f"  found {why}: {m.group(1)}")
-            return m.group(1)
-    print("  no nonce in the served HTML — it is minted client-side")
+    # Run 2 picked a nonce by regex and got a real token that the endpoint then
+    # rejected — a WordPress page carries several, and matching "a nonce-shaped
+    # field" matched the wrong one. Guessing which is which is the same mistake
+    # in a smaller costume, so: find every candidate and let the endpoint say.
+    where = [m.start() for m in re.finditer(re.escape(_ACTION), html)]
+    print(f"  '{_ACTION}' appears {len(where)} time(s) in the HTML")
+    for pos in where[:3]:
+        print(f"    …{html[max(0, pos - 120):pos + 120]!r}")
+
+    tokens: list[str] = []
+    for m in re.finditer(r"\b([0-9a-f]{10})\b", html):
+        if m.group(1) not in tokens:
+            tokens.append(m.group(1))
+    print(f"  {len(tokens)} distinct 10-hex token(s) in the page; testing each")
+
+    for tok in tokens[:40]:
+        body = f"action={_ACTION}&nonce={tok}"
+        try:
+            resp = requests.post(_AJAX, data=body, timeout=20,
+                                 headers={"User-Agent": _UA, **_FORM})
+        except Exception:  # noqa: BLE001
+            continue
+        # 898 bytes of thirteen lanes is the signature of an accepted call;
+        # a 40-byte {"success":false,...} is the rejection.
+        if resp.status_code == 200 and len(resp.text) > 200:
+            print(f"    {tok} ACCEPTED — {_summarise(resp.text)[:90]}")
+            return tok
+        time.sleep(0.4)   # a rejected guess is cheap for them, but still pace it
+
+    print("  no token in the served HTML is accepted — the ticker nonce is")
+    print("  minted client-side, so harvesting it needs the browser.")
     return None
 
 
@@ -188,27 +209,23 @@ def replay(req: dict) -> None:
 
 
 def try_date_arguments(req: dict) -> None:
-    """Does the endpoint serve anything but today? Cheap to ask, huge if yes."""
+    """Does the endpoint serve anything but today? Cheap to ask, huge if yes.
+
+    Run 2's version of this tested nothing: it omitted the content-type, so
+    WordPress could not parse the body, no handler ran, and all six arguments
+    came back with the same 400 `0` that an empty body produces. Six identical
+    rejections looked like a clean null result and were an artefact of the
+    probe. Sending _FORM is the whole fix; the baseline line below exists so a
+    uniform answer can be read against a call that is known to work.
+    """
     from datetime import date, timedelta
 
-    import requests
-    target = (date.today() - timedelta(days=30)).isoformat()
-    base = req["post_data"] or ""
+    base = req["post_data"] or f"action={_ACTION}"
+    print(_post(base, "baseline, no date argument"))
 
+    target = (date.today() - timedelta(days=30)).isoformat()
     for name in ("date", "day", "from", "start", "period", "range"):
-        payload = f"{base}&{name}={target}" if base else None
-        params = None if payload else {name: target}
-        try:
-            if req["method"] == "POST":
-                r = requests.post(req["url"], data=payload,
-                                  headers={"User-Agent": _UA}, timeout=30)
-            else:
-                r = requests.get(req["url"], params=params,
-                                 headers={"User-Agent": _UA}, timeout=30)
-        except Exception as e:  # noqa: BLE001
-            print(f"  {name:8} ERR {type(e).__name__}")
-            continue
-        print(f"  {name:8} [{r.status_code}] {_summarise(r.text)[:130]}")
+        print(_post(f"{base}&{name}={target}", f"+{name}={target}"))
 
 
 def main() -> int:
