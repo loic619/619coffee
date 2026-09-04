@@ -33,6 +33,17 @@ logger = logging.getLogger(__name__)
 
 _CACHE_PATH = Path(__file__).resolve().parents[1] / "cache" / "population.json"
 
+# The cache above is gitignored, so it exists only inside the job that wrote it.
+# demand_stocks.json is rebuilt by FOUR workflows and only one of them runs this
+# scraper — the other three found no cache and published `populations: null`,
+# blanking the demand tab's per-capita chart within hours of every refresh
+# (2026-09-02 07:29 wrote 48 countries; the next export, 03:00 the following
+# morning, wrote null). So the payload is also published as a normal committed
+# data file, which is present at checkout for every export whether or not the
+# World Bank was contacted in that job.
+_PUBLISHED_PATH = (Path(__file__).resolve().parents[3]
+                   / "frontend" / "public" / "data" / "populations.json")
+
 _HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -168,6 +179,9 @@ async def run(page, db) -> None:  # noqa: ARG001
 
         _CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
         _CACHE_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        _PUBLISHED_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _PUBLISHED_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False),
+                                   encoding="utf-8")
 
         n = len(payload["countries"])
         print(f"[population] OK: {n}/{len(_COUNTRIES)} countries, latest year {payload['last_updated']}")
@@ -189,10 +203,15 @@ async def run(page, db) -> None:  # noqa: ARG001
 
 
 def fetch_latest() -> dict | None:
-    if not _CACHE_PATH.exists():
-        return None
-    try:
-        return json.loads(_CACHE_PATH.read_text(encoding="utf-8"))
-    except Exception as e:
-        logger.warning(f"[population] cache read failed: {e}")
-        return None
+    """Freshest available payload: this job's cache first, else the committed
+    file. Never returns None just because the scraper did not run here."""
+    for path, label in ((_CACHE_PATH, "cache"), (_PUBLISHED_PATH, "published")):
+        if not path.exists():
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if data.get("countries"):
+                return data
+        except Exception as e:
+            logger.warning(f"[population] {label} read failed: {e}")
+    return None
