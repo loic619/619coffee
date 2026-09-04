@@ -26,6 +26,7 @@ npx next build
 
 # Pick a port nothing is on, then start with the gate configured:
 (lsof -ti:3002 | xargs -r kill -9) 2>/dev/null; sleep 2
+# GATE_PW_ADMIN instead of GATE_PW_USER for /data-map and /admin (see below).
 GATE_PW_USER="$APP_ACCESS" GATE_SECRET='local-only-throwaway' \
   nohup npx next start -p 3002 > /tmp/next.log 2>&1 &
 timeout 60 bash -c 'until curl -sf http://localhost:3002/ >/dev/null; do sleep 1; done' && echo UP
@@ -47,9 +48,15 @@ renders empty rather than redirecting. Two things matter:
 - **`SITE_GATE_ENABLED=false` does not work.** Edge middleware inlines env at
   build time, and even rebuilding with it set leaves the gate up. Don't spend
   time on it; go through the gate instead.
-- **The password is checked against `GATE_PW_USER`**, which lives in Vercel and
-  is absent locally. Set it at server start to whatever you'll send. Signing
-  the tier cookie also needs `GATE_SECRET` or the login bounces with `err=3`.
+- **The password is checked against the env var for the tier you want**, and
+  those live in Vercel, absent locally. Set one at server start to whatever
+  you'll send. Signing the tier cookie also needs `GATE_SECRET` or the login
+  bounces with `err=3`.
+- **`/data-map` and `/admin` need `GATE_PW_ADMIN`, not `GATE_PW_USER`.**
+  Starting with only the user password logs in fine and then redirects to
+  `/news`, which reads as the page having broken rather than the tier being
+  wrong — `pathAllowed()` in `lib/gate.ts` has the table. For an admin-only
+  page, start with `GATE_PW_ADMIN=... GATE_SECRET=...` and send that code.
 
 Put the access code in `APP_ACCESS` in the environment. Never hardcode it in a
 file — this repo is public.
