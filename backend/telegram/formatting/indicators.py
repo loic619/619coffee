@@ -13,9 +13,16 @@ WATCH = "🟠"   # developing, not yet actionable
 INFO  = "🟡"   # context
 
 _SEVERITY = {
-    "alert": ALERT,
-    "warn":  WATCH,   # the engines' WARN tier means "watch", not "danger"
-    "info":  INFO,
+    # The signal engines emit five spellings across two vocabularies: the quant
+    # engine says alert/warn/info, the agronomic one critical/alert/watch. Any
+    # key missing here falls through to INFO — the *lowest* mark — so an
+    # unmapped top tier renders as context and reads as the opposite of what it
+    # is. Keep every spelling either engine can produce mapped explicitly.
+    "critical": ALERT,
+    "alert":    ALERT,
+    "warn":     WATCH,   # the engines' WARN tier means "watch", not "danger"
+    "watch":    WATCH,
+    "info":     INFO,
 }
 
 

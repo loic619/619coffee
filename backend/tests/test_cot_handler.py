@@ -1,9 +1,18 @@
-"""Tests for the /cot Telegram handler — signals block formatting (issue #132 Body-1)."""
+"""Tests for the /cot Telegram handler — signals block formatting (issue #132 Body-1).
+
+Rewritten for the message redesign: the signals block is now one `🚨 SIGNALS`
+section whose rows carry a severity *mark* and a market prefix
+(`🔴 NY · Squeeze Risk (+3)`), replacing the old per-market `Signals (NY):`
+headings and `[ALERT]` text tags. The behaviours asserted are the same ones the
+pre-redesign tests protected — severity ordering, warn/watch as synonyms, AGRO
+rows excluded, and graceful rendering when signals.json is absent.
+"""
 from __future__ import annotations
 
 import pytest
 
 # Path setup matches the other backend tests (conftest.py adds backend/ to sys.path).
+from telegram.formatting.indicators import ALERT, INFO, WATCH
 from telegram.handlers import cot
 
 # Minimal cot_recent.json shape — two adjacent weeks so the handler picks
@@ -70,28 +79,32 @@ def _patched_load(monkeypatch):
     return sig_doc
 
 
-def test_signals_block_renders_with_ny_and_ldn_sections(_patched_load):
+def test_signals_block_renders_both_markets(_patched_load):
+    """One SIGNALS section now, with the board named on each row."""
     out = cot.handle("", {})
-    assert "Signals (NY):" in out
-    assert "Signals (LDN):" in out
+    assert "🚨 <b>SIGNALS</b>" in out
+    assert "NY · Squeeze Risk" in out
+    assert "LDN · Commercial Convergence Bearish" in out
 
 
-def test_severity_tags_use_canonical_short_forms(_patched_load):
+def test_severity_marks_cover_every_tier(_patched_load):
+    """Each tier the engines emit must render as its own mark. `critical` and
+    `watch` used to fall through to INFO — the lowest mark — which printed the
+    most urgent row as context."""
     out = cot.handle("", {})
-    assert "[CRIT]"  in out   # critical → CRIT
-    assert "[ALERT]" in out   # alert    → ALERT
-    assert "[WARN]"  in out   # watch    → WARN
-    assert "[INFO]"  in out   # info     → INFO
+    assert f"{ALERT} LDN · Commercial Convergence Bearish" in out  # critical
+    assert f"{ALERT} NY · Squeeze Risk"    in out                  # alert
+    assert f"{WATCH} NY · Fund Long Exit"  in out                  # watch
+    assert f"{INFO} NY · Normal Hedging"   in out                  # info
 
 
-def test_score_signed_with_magnitude(_patched_load):
+def test_score_rendered_signed(_patched_load):
+    """Magnitude is no longer printed; the signed score still is, and the sign
+    is the part that carries direction."""
     out = cot.handle("", {})
-    # CR5: +3, large
-    assert "(+3, large)"  in out
-    # ML5: -2, small
-    assert "(-2, small)"  in out
-    # CP1: zero score — sign omitted but magnitude kept
-    assert "(0, small)"   in out
+    assert "(+3)" in out   # CR5
+    assert "(-2)" in out   # ML5
+    assert "(+0)" in out   # CP1 — zero still renders with an explicit sign
 
 
 def test_agro_rows_excluded_from_market_blocks(_patched_load):
@@ -104,14 +117,15 @@ def test_agro_rows_excluded_from_market_blocks(_patched_load):
 
 
 def test_critical_sorts_above_alert_above_watch(_patched_load):
-    """Within the NY block, severity rank drives ordering: alert (3) > watch (2)
-    > info (1). The single LDN row is critical (4)."""
+    """Within a board, severity rank drives ordering: alert (3) > watch (2) >
+    info (1). NY is listed before LDN, whose single row is critical (4)."""
     out = cot.handle("", {})
-    ny_pos    = out.index("Signals (NY):")
-    cr5_pos   = out.index("[ALERT] CR5")
-    ml5_pos   = out.index("[WARN] ML5")
-    cp1_pos   = out.index("[INFO] CP1")
-    assert ny_pos < cr5_pos < ml5_pos < cp1_pos
+    sig_pos = out.index("🚨 <b>SIGNALS</b>")
+    cr5_pos = out.index("NY · Squeeze Risk")
+    ml5_pos = out.index("NY · Fund Long Exit")
+    cp1_pos = out.index("NY · Normal Hedging")
+    ci2_pos = out.index("LDN · Commercial Convergence Bearish")
+    assert sig_pos < cr5_pos < ml5_pos < cp1_pos < ci2_pos
 
 
 def test_handler_renders_without_signals_file(monkeypatch):
@@ -124,14 +138,13 @@ def test_handler_renders_without_signals_file(monkeypatch):
 
     monkeypatch.setattr(cot, "load", fake_load)
     out = cot.handle("", {})
-    assert "COT Report" in out
-    assert "Signals (NY):" not in out
-    assert "Signals (LDN):" not in out
+    assert "COT POSITIONING" in out
+    assert "SIGNALS" not in out
 
 
-def test_handler_omits_market_block_with_no_signals(monkeypatch):
-    """If signals.json has rows but none for a given market, that market's
-    block is omitted entirely (no orphan header)."""
+def test_handler_omits_market_with_no_signals(monkeypatch):
+    """If signals.json has rows but none for a given market, that market simply
+    contributes no rows — and never an empty, orphaned mention of itself."""
     def fake_load(filename: str):
         if filename == "cot_recent.json":
             return _COT_FIXTURE
@@ -146,39 +159,40 @@ def test_handler_omits_market_block_with_no_signals(monkeypatch):
 
     monkeypatch.setattr(cot, "load", fake_load)
     out = cot.handle("", {})
-    assert "Signals (NY):" in out
-    assert "Signals (LDN):" not in out
+    assert "NY · Squeeze Risk" in out
+    assert "LDN ·" not in out
 
 
-def test_signal_line_format_unit():
-    """_signal_line is pure — easy to lock down."""
-    line = cot._signal_line({
-        "id": "CR5", "name": "Squeeze Risk", "severity": "alert",
-        "score": 3, "magnitude": "large",
-    })
-    assert line == "  [ALERT] CR5 Squeeze Risk (+3, large)"
+def test_signal_lines_format_unit():
+    """_signal_lines is pure — easy to lock down."""
+    lines = cot._signal_lines([
+        {"id": "CR5", "name": "Squeeze Risk", "market": "NY",
+         "severity": "alert", "score": 3, "magnitude": "large"},
+    ], "NY")
+    assert lines == [f"{ALERT} NY · Squeeze Risk (+3)"]
 
 
-def test_signal_line_negative_score():
-    line = cot._signal_line({
-        "id": "ML5", "name": "Fund Long Exit", "severity": "watch",
-        "score": -2, "magnitude": "small",
-    })
-    assert line == "  [WARN] ML5 Fund Long Exit (-2, small)"
+def test_signal_lines_negative_score():
+    lines = cot._signal_lines([
+        {"id": "ML5", "name": "Fund Long Exit", "market": "NY",
+         "severity": "watch", "score": -2, "magnitude": "small"},
+    ], "NY")
+    assert lines == [f"{WATCH} NY · Fund Long Exit (-2)"]
 
 
-def test_signal_line_missing_magnitude():
-    """A signal lacking magnitude renders just the score."""
-    line = cot._signal_line({
-        "id": "XX1", "name": "Foo", "severity": "info", "score": 5,
-    })
-    assert line == "  [INFO] XX1 Foo (+5)"
+def test_signal_lines_falls_back_to_id_without_a_name():
+    """A row that carries no name still has to identify itself."""
+    lines = cot._signal_lines([
+        {"id": "XX1", "market": "NY", "severity": "info", "score": 5},
+    ], "NY")
+    assert lines == [f"{INFO} NY · XX1 (+5)"]
 
 
 def test_warn_and_watch_treated_as_synonyms(monkeypatch):
     """Live drift: quant signals use severity='warn'; agronomic engine uses
-    severity='watch'. Both must map to [WARN] tag and rank above info."""
-    assert cot._SEVERITY_TAG["warn"]  == cot._SEVERITY_TAG["watch"]  == "WARN"
+    severity='watch'. Both must carry the same mark and rank above info."""
+    from telegram.formatting.indicators import severity
+    assert severity("warn") == severity("watch") == WATCH
     assert cot._SEVERITY_RANK["warn"] == cot._SEVERITY_RANK["watch"] == 2
 
     # Integration: a 'warn' row must sort above an 'info' row in the same market.
@@ -198,6 +212,6 @@ def test_warn_and_watch_treated_as_synonyms(monkeypatch):
 
     monkeypatch.setattr(cot, "load", fake_load)
     out = cot.handle("", {})
-    warn_pos = out.index("[WARN] BB2")
-    info_pos = out.index("[INFO] AA1")
+    warn_pos = out.index(f"{WATCH} NY · Warn Row")
+    info_pos = out.index(f"{INFO} NY · Info Row")
     assert warn_pos < info_pos, "warn must sort above info regardless of spelling"

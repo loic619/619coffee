@@ -30,7 +30,8 @@ def test_renders_today_and_tomorrow(monkeypatch):
                         lambda name: doc if name == "events.json" else None)
     out = brief._upcoming_events_section(NOW)
     assert out is not None
-    assert "Coming up · next 24h" in out
+    # The "COMING UP" heading is emitted by the assembly in build_brief_message,
+    # not by this builder — every section builder returns a body only.
     assert "Today" in out
     assert "Tomorrow" in out
     assert "[WASDE] WASDE Crop Production Report" in out
@@ -156,8 +157,8 @@ def test_build_brief_message_does_not_crash_with_no_events(monkeypatch):
     source returns None (matching a fresh sandbox / cold-cache state)."""
     monkeypatch.setattr(brief, "load", lambda name: None)
     out = brief.build_brief_message()
-    assert "Coffee Intel" in out
-    assert "Coming up · next 24h" not in out   # section omitted gracefully
+    assert "COFFEE MORNING BRIEF" in out
+    assert "COMING UP" not in out   # section omitted gracefully
 
 
 # Note: the old `_weather_line` + `_drought_below_seasonal_floor` tests were
