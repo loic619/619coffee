@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T05:09:59.649185Z",
+  "generated_at": "2026-09-04T07:26:13.771396Z",
   "method": {
     "iv": "ATM IV per session: mean of call/put IVs on the strikes bracketing the settlement, from the boards archive (Black-76-implied from settlement premiums where the vendor serves no IV).",
     "rv": "Annualized close-to-close vol of the SAME contract's settlements over the next 21 sessions (per-contract archive; RM underlyings map to RC futures).",
@@ -10,8 +10,8 @@
     "arabica": {
       "spread_now": {
         "date": "2026-09-03",
-        "spread": -0.4,
-        "percentile": 45.0,
+        "spread": -0.1,
+        "percentile": 46.0,
         "n": 568
       },
       "all": {
@@ -4455,19 +4455,19 @@
         "KCZ26": {
           "date": "2026-09-03",
           "dte": 71,
-          "iv": 45.6,
+          "iv": 45.9,
           "rv_trailing": 46.0
         },
         "KCH27": {
           "date": "2026-09-03",
           "dte": 162,
-          "iv": 41.1,
+          "iv": 41.3,
           "rv_trailing": 42.0
         },
         "KCK27": {
           "date": "2026-09-03",
           "dte": 218,
-          "iv": 39.2,
+          "iv": 39.3,
           "rv_trailing": 39.7
         }
       }
@@ -4475,8 +4475,8 @@
     "robusta": {
       "spread_now": {
         "date": "2026-09-03",
-        "spread": 1.9,
-        "percentile": 44.0,
+        "spread": 2.3,
+        "percentile": 45.0,
         "n": 391
       },
       "all": {
@@ -7685,19 +7685,19 @@
         "RMX26": {
           "date": "2026-09-03",
           "dte": 48,
-          "iv": 35.1,
+          "iv": 35.5,
           "rv_trailing": 33.2
         },
         "RMF27": {
           "date": "2026-09-03",
           "dte": 104,
-          "iv": 35.5,
+          "iv": 35.7,
           "rv_trailing": 32.3
         },
         "RMH27": {
           "date": "2026-09-03",
           "dte": 167,
-          "iv": 35.2,
+          "iv": 35.3,
           "rv_trailing": 31.7
         }
       }

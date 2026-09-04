@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T05:09:58.008223Z",
+  "generated_at": "2026-09-04T07:26:12.195033Z",
   "method": {
     "expiry_rules": "KC: 2nd Friday of the month preceding the contract month (ICE US ch.8). RC/RM: 3rd Wednesday (ICE Europe spec).",
     "oi_dating": "contract_prices_archive stores OI one key-day late; the series is re-dated back one session and the jump window is [E-1, E+2].",
@@ -6179,7 +6179,7 @@
           "itm_put_oi": null,
           "fut_oi": null,
           "future": 295.35,
-          "atm_iv": 0.4556,
+          "atm_iv": 0.4589,
           "itm_pct": null,
           "itm_vs_fut_pct": null
         }
@@ -12048,7 +12048,7 @@
           "itm_put_oi": null,
           "fut_oi": null,
           "future": 3374,
-          "atm_iv": 0.3515,
+          "atm_iv": 0.3553,
           "itm_pct": null,
           "itm_vs_fut_pct": null
         }
