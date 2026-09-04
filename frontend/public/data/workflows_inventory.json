@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T04:55:30.091249Z",
+  "generated_at": "2026-09-04T06:19:14.961733Z",
   "count": 101,
   "workflows": [
     {
@@ -266,12 +266,15 @@
       "name": "0.17 \u2013 Refresh Workflow Activity (7-day run record)",
       "triggers": [
         "schedule",
-        "workflow_dispatch"
+        "workflow_dispatch",
+        "workflow_run"
       ],
       "crons": [
         "10 6 * * *"
       ],
-      "workflow_run_deps": [],
+      "workflow_run_deps": [
+        "1.4 \u2013 Export and Publish Static JSON"
+      ],
       "concurrency_group": "build-workflow-activity",
       "timeout_minutes": 10
     },
