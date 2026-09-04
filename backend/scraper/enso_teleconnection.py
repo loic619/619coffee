@@ -284,9 +284,11 @@ def build() -> dict:
             "occurrences that moved the same way as the mean, so a large mean built from "
             "disagreeing events is visible rather than averaged away. lag_months is where the "
             "teleconnection actually lands — ENSO arrives as an SST anomaly and the rainfall "
-            "response is not simultaneous. The history is eleven years, so treat direction as "
+            "response is not simultaneous. The history spans "
+            f"{year_hi - year_lo + 1} years ({year_lo}-{year_hi}), so treat direction as "
             "informative and magnitude as indicative; a bucket with usable=false has too few "
-            "occurrences to drive a severity."
+            "occurrences to drive a severity. Per-region `years` may be shorter than the "
+            "window: a region added later has no record before it existed."
         ),
         "regions": regions_out,
     }
