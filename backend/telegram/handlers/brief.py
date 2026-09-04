@@ -335,7 +335,7 @@ def _rc_price_on(archive: dict | None, on_date: str, front_sym: str | None = Non
     return None
 
 
-def _physical_line(label: str, origin_key: str, fob_key: str,
+def _physical_row(label: str, origin_key: str, fob_key: str,
                    currency_label: str, history: list[dict],
                    fx_history: dict | None, fx_pair: str,
                    archive: dict | None, rc_price_today: float | None,
@@ -350,25 +350,27 @@ def _physical_line(label: str, origin_key: str, fob_key: str,
     farmgate.
     """
     if not history or rc_price_today is None:
-        return ""
+        return None
     cur, prev = _last_two_prices(history)
     if not cur:
-        return ""
+        return None
     cur_date  = cur.get("date") or ""
     cur_price = cur.get("price")
     if cur_price is None:
-        return ""
+        return None
     fob = _FOB_COST_USD.get(fob_key, 0)
     fx_today = _fx_close_on(fx_history, fx_pair, cur_date) if fx_history else None
     # FX scrape lags the physical scrape on weekends; if no FX for the cur_date,
     # fall back to the most-recent FX. Without FX we still show the local price
     # but skip the basis math.
+    # Without FX the local price still stands; the basis columns go blank
+    # rather than guessing at a conversion.
     if fx_today is None:
-        return f"{label}  {cur_price:,.0f} {currency_label}"
+        return [label, f"{cur_price:,.0f} {currency_label}", "—", ""]
 
     cur_basis = _basis_for_date(cur_price, fx_today, rc_price_today, fob, unit_to_usd_mt)
     if cur_basis is None:
-        return f"{label}  {cur_price:,.0f} {currency_label}"
+        return [label, f"{cur_price:,.0f} {currency_label}", "—", ""]
 
     letter = front_letter or "N"
     delta_part = ""
@@ -378,11 +380,10 @@ def _physical_line(label: str, origin_key: str, fob_key: str,
         rc_prev = _rc_price_on(archive, prev_date, front_sym)
         prev_basis = _basis_for_date(prev["price"], fx_prev, rc_prev, fob, unit_to_usd_mt)
         if prev_basis is not None:
-            delta = cur_basis - prev_basis
-            delta_part = f" ({_sign(delta, 'd')})"
+            delta_part = _arrow(cur_basis, prev_basis) + _sign(cur_basis - prev_basis, "d")
 
-    cur_local = f"{cur_price:,.0f} {currency_label}"
-    return f"{label}  {cur_local} · {letter}{cur_basis:+d}{delta_part} FOB"
+    return [label, f"{cur_price:,.0f} {currency_label}",
+            f"{letter}{cur_basis:+d}", delta_part]
 
 
 # ── Weather section ──────────────────────────────────────────────────────────
@@ -1245,19 +1246,19 @@ def build_brief_message(db=None) -> str:
     kc_rows = _kc_section(chain, acaphe, archive)
 
     origins = (origin_prices or {}).get("origins") or {}
-    vn_line = _physical_line(
+    vn_row = _physical_row(
         "VN FAQ", "vietnam", "VN_FAQ", "VND",
         (origins.get("vietnam") or {}).get("history") or [],
         fx_hist, "VND=X", archive, front_price, front_letter, front_sym,
         unit_to_usd_mt=1000.0,   # VND/kg → USD/kg × 1000 = USD/MT
     )
-    br_line = _physical_line(
+    br_row = _physical_row(
         "CON T7", "brazil_conilon", "CON_T7", "BRL",
         (origins.get("brazil_conilon") or {}).get("history") or [],
         fx_hist, "BRL=X", archive, front_price, front_letter, front_sym,
         unit_to_usd_mt=1000.0 / 60.0,   # BRL/saca-60kg → USD/(60kg) × 1000/60 = USD/MT
     )
-    ug_line = _physical_line(
+    ug_row = _physical_row(
         "UGA S15", "uganda", "UGA_S15", "USD",
         (origins.get("uganda") or {}).get("history") or [],
         # Uganda is already quoted USD/cwt — no FX conversion → use a "1" pair.
@@ -1289,14 +1290,17 @@ def build_brief_message(db=None) -> str:
     # The open call and the currency index are interpretation, not quotes —
     # they answer "what matters", so they sit apart from the price block.
     parts += _section("🚨", "signals", open_call, cci)
-    parts += _section("🌍", "physical", vn_line, br_line, ug_line)
+    phys = [r for r in (vn_row, br_row, ug_row) if r]
+    if phys:
+        parts += _section("🌍", "physical",
+                          table([["", "local", "FOB", "d/d"], *phys], align="lrrr"))
     parts += _section("🌦", "weather", weather)
     parts += _section("🚢", "exports", exports)
     parts += _section("🪤", "stocks", certs)
     parts += _section("🗓", "coming up", coming)
 
-    parts.append(fmt_footer(["prices", "quote", "cot", "brazil", "ecf",
-                             "kaffeesteuer", "help"]))
+    parts.append(fmt_footer(["prices", "quote", "cot", "exports", "imports",
+                             "brazil", "ecf", "kaffeesteuer", "help"]))
     return "\n\n".join(parts)
 
 
