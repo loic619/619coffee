@@ -1298,7 +1298,10 @@ def build_brief_message(db=None) -> str:
         parts.append(coming)
 
     parts.append("")
-    parts.append("/quote · /cot · /stock · /certified · /brazil · /vietnam · /uganda · /freight · /macro")
+    # Only commands DISPATCH actually registers. This line used to advertise
+    # /stock, /certified, /vietnam, /uganda, /freight and /macro — six of the
+    # nine fell through to "Unknown command." every morning.
+    parts.append("/prices · /quote · /cot · /brazil · /ecf · /kaffeesteuer · /help")
     return "\n".join(parts)
 
 
