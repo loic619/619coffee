@@ -49,7 +49,7 @@ read it, don't guess from the clock.**
 | Tuesday | — | **AM** (Supply, first sub-tab) |
 | Wednesday | — | **AM** (Demand — consumption) |
 | Thursday | — | **AM** (Freight) |
-| Friday | — | **AM** (Map) |
+| Friday | AM (Map) — 2026-09-04 | **PM** (UX, cross-cutting) |
 | Saturday | — | **AM** (Data Map) |
 | Sunday | — | **AM** (Research — new idea) |
 
@@ -83,7 +83,7 @@ Ranked within each tab, best first. `[ ]` open · `[~]` partly done · `[x]` shi
 
 | ID | Status | Tab | The improvement, in plain language | Evidence it's worth doing | Where | Effort |
 |----|--------|-----|-------------------------------------|---------------------------|-------|--------|
-| — | | | *Empty. The first session fills this in.* | | | |
+| IMP-001 | [ ] | Map | The threat bar across the top of the map overstates how bad things are. Ethiopia's chip today says "3 critical" — but only 1 of those 3 is critical; the other 2 are one notch down. The chip is pairing the country's *total* alert count with its *worst* severity word, so a country with 1 critical and 20 mild watches would read "21 critical". Show the count and the severity separately — e.g. "3 alerts · worst critical", or a small breakdown "1 critical · 2 alert" — so the number means what it says. | `agronomic_alerts.json` (generated_at `2026-09-03T06:38Z`) has `summary.by_severity = {alert: 3, watch: 4, critical: 2}` across 9 alerts. Ethiopia's own mix is `{critical: 1, alert: 2}`, Uganda's is `{critical: 1}` — yet the chips render "3 critical" and "1 critical", making Ethiopia look 3× the threat it is and indistinguishable in kind from Uganda's single genuine critical. The rollup at `AgronomicTicker.tsx:112-118` computes `count` (all alerts) and `worst` (max severity) as independent fields, then line 161 prints them adjacent: `<span>{r.count} {r.worst}</span>`. | `frontend/components/map/AgronomicTicker.tsx` — line 161 (chip label); optionally carry a per-severity tally out of the `rollups` memo at lines 100-120. Chip background colour by `worst` is correct and should stay. | S |
 
 ---
 
