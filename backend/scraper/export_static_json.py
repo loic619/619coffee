@@ -61,6 +61,7 @@ from scraper.exporters.supply import (
     export_vn_export_by_destination,
 )
 from scraper.exporters.vn_midmonth import export_vn_midmonth
+from scraper.exporters.workflow_failures import export_workflow_failures
 
 
 def _exporters(db):
@@ -134,6 +135,7 @@ def _exporters(db):
         ("front_spread",          lambda: export_front_spread()),
         ("vn_midmonth",           lambda: export_vn_midmonth()),
         ("export_expectations",   lambda: export_expectations()),
+        ("workflow_failures",     lambda: export_workflow_failures()),
         ("cot",                   lambda: export_cot(db)),
         ("macro_cot",             lambda: export_macro_cot(db)),
         ("freight",               lambda: export_freight(db)),
