@@ -40,6 +40,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 from collections import defaultdict
@@ -65,6 +66,37 @@ PER_PAGE = 100
 # behaving.
 MAX_PAGES = 10          # 1,000 runs for a single workflow in one week
 
+# One sweep makes at least one API call per workflow — ~100 of them — so it
+# needs ~100 consecutive clean responses to produce any output at all. A
+# single 502 from the Actions API used to discard the other 98 and write
+# nothing, freezing the record until some later run happened to get a clean
+# sweep (44 hours, once). 502s from that endpoint are routine, so the design
+# turned a routine hiccup into a total loss. Two defences below: retry the
+# transient statuses here, and (in main) let one workflow's failure be
+# partial rather than fatal.
+RETRY_STATUSES = frozenset({429, 500, 502, 503, 504})
+RETRY_BACKOFF = (1, 2, 4, 8)    # seconds; len() == the number of retries
+MAX_RETRY_AFTER = 60            # cap a hostile Retry-After rather than stalling the job
+
+
+def _retry_after_seconds(err: urllib.error.HTTPError) -> float | None:
+    """Seconds to wait per the response's Retry-After header, if it gives a
+    usable delta. Only the numeric form is honoured; the HTTP-date form is
+    rare here and not worth parsing wrong."""
+    try:
+        raw = err.headers.get("Retry-After") if err.headers else None
+    except AttributeError:
+        return None
+    if raw is None:
+        return None
+    try:
+        secs = float(str(raw).strip())
+    except ValueError:
+        return None
+    if secs < 0:
+        return None
+    return min(secs, MAX_RETRY_AFTER)
+
 
 def _api(url: str, token: str) -> dict:
     req = urllib.request.Request(url, headers={
@@ -73,6 +105,30 @@ def _api(url: str, token: str) -> dict:
         "X-GitHub-Api-Version": "2022-11-28",
         "User-Agent": "coffee-intel-activity",
     })
+    for attempt, backoff in enumerate(RETRY_BACKOFF, start=1):
+        try:
+            with urllib.request.urlopen(req, timeout=45) as r:
+                return json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            # 401/403/404 are real answers, not weather — fail loudly.
+            if e.code not in RETRY_STATUSES:
+                raise
+            delay = _retry_after_seconds(e)
+            if delay is None:
+                delay = backoff
+            reason = f"HTTP {e.code}"
+        except urllib.error.URLError as e:
+            delay = backoff
+            reason = f"{type(e).__name__}: {e.reason}"
+        except TimeoutError:
+            # A read that outlives the 45s timeout raises this directly rather
+            # than through URLError; it is as transient as the statuses above.
+            delay = backoff
+            reason = "read timeout"
+        print(f"[activity] {reason} on {url} — retry {attempt}/{len(RETRY_BACKOFF)} in {delay:g}s",
+              file=sys.stderr)
+        time.sleep(delay)
+    # Last attempt is unguarded: whatever it raises is the error the caller sees.
     with urllib.request.urlopen(req, timeout=45) as r:
         return json.loads(r.read())
 
@@ -108,6 +164,7 @@ def main() -> int:
     # costs bandwidth, not accuracy.
     runs: list[dict] = []
     capped: list[str] = []
+    errored: list[str] = []
     for wf in workflows:
         wf_id = wf.get("id")
         if wf_id is None:
@@ -118,9 +175,15 @@ def main() -> int:
                    f"&created=%3E%3D{since.strftime('%Y-%m-%d')}")
             try:
                 batch = _api(url, token).get("workflow_runs") or []
-            except urllib.error.HTTPError as e:
+            except (urllib.error.URLError, TimeoutError) as e:
+                # One workflow's failure is not the sweep's failure. Record it,
+                # keep whatever pages did come back, and move on — an undercount
+                # that announces itself is recoverable; a file that stops
+                # updating is not. (The workflow LISTING above still returns 1:
+                # with no list there is nothing to collect.)
                 print(f"[activity] runs error {wf.get('name')} page {page}: {e}", file=sys.stderr)
-                return 1
+                errored.append(wf.get("name") or str(wf_id))
+                break
             # A run's own `name` is the workflow title CACHED WHEN THE RUN
             # WAS CREATED, and GitHub never backfills it after a rename — a
             # run created today still carries last month's title. Aggregating
@@ -143,6 +206,8 @@ def main() -> int:
             capped.append(wf.get("name") or str(wf_id))
     if capped:
         print(f"[activity] page cap hit for: {', '.join(capped)}", file=sys.stderr)
+    if errored:
+        print(f"[activity] collection failed for: {', '.join(errored)}", file=sys.stderr)
 
     # The per-workflow endpoint can return the same run twice across pages
     # when a run lands mid-pagination.
@@ -229,6 +294,10 @@ def main() -> int:
         # Non-empty means a workflow exceeded the page cap and its counts
         # are a floor, not a total.
         "capped_workflows": capped,
+        # Non-empty means the API never answered for these workflows even
+        # after retries, so their runs are missing from this file entirely.
+        # Read alongside `capped_workflows`: both mean "this is a floor".
+        "errored_workflows": errored,
         # "old title → current title" for workflows renamed inside the
         # window. Each one is a workflow_run trigger to re-check.
         "renamed_in_window": renamed,
@@ -244,6 +313,8 @@ def main() -> int:
           f"({totals['success']} ok / {totals['failure']} failed / {totals['cancelled']} cancelled)")
     for line in renamed:
         print(f"[activity] renamed in window: {line}")
+    if errored:
+        print(f"[activity] {len(errored)} workflow(s) could not be collected — counts are a floor")
     return 0
 
 
