@@ -42,6 +42,7 @@ interface ActivityPayload {
    *  are a floor, not a total. Normally empty; if it is not, the panel says
    *  so rather than letting an undercount read as a quiet week. */
   capped_workflows?: string[];
+  errored_workflows?: string[];
   /** "old title → current title" for workflows renamed inside the window.
    *  Not cosmetic: `workflow_run` triggers match on the exact display
    *  title, so a rename silently stops waking whatever listened for it. */
@@ -111,6 +112,7 @@ export default function WorkflowActivity() {
   const t = data.totals;
   const failRate = t.runs ? (t.failure / t.runs) * 100 : 0;
   const capped = data.capped_workflows ?? [];
+  const errored = data.errored_workflows ?? [];
   const renamed = data.renamed_in_window ?? [];
 
   return (
@@ -125,6 +127,14 @@ export default function WorkflowActivity() {
           {renamed.map(r => (
             <div key={r} className="font-mono text-[9px] text-sky-400/80 pl-2">{r}</div>
           ))}
+        </div>
+      )}
+
+      {errored.length > 0 && (
+        <div className="text-[10px] text-amber-400 border border-amber-900/60 bg-amber-950/30 rounded px-2 py-1">
+          Incomplete sweep: the GitHub API never answered for {errored.join(", ")}, so{" "}
+          {errored.length === 1 ? "its runs are" : "their runs are"} missing from this record
+          entirely — the totals below are a floor. The rest of the sweep is unaffected.
         </div>
       )}
 
