@@ -101,3 +101,60 @@ def test_health_exporters_block_empty_when_orchestrator_passes_nothing(tmp_path,
     health.export_health(_empty_db())
     data = json.loads((tmp_path / "health.json").read_text())
     assert data["exporters"] == {}
+
+
+def test_health_exporters_prunes_topics_that_no_longer_exist(tmp_path, monkeypatch):
+    """A DELETED exporter must leave the map, not age in it forever.
+
+    The merge above deliberately keeps a topic that didn't run this time. That
+    same behaviour kept vn_coffee_imports after #815 removed the whole chain as
+    verified dead code: its 2026-08-31 stamp survived every subsequent run and
+    the 1.5 freshness check paged every morning about a pipeline that had been
+    deliberately deleted. The check reads whatever keys this map holds and
+    cannot know which still exist, so the registry has to do the telling-apart.
+    """
+    monkeypatch.setattr(health, "OUT_DIR", tmp_path)
+    monkeypatch.setattr(base, "LATEST_PRICES_FALLBACK", False)
+    health.export_health(
+        _empty_db(),
+        exporters_published_at={"cot": "2026-06-15T10:00:00Z",
+                                "gone": "2026-06-15T10:00:01Z"},
+    )
+    # `gone` has since been removed from the orchestrator's registry. `cot`
+    # didn't publish on this run but is still registered, so it keeps its ts.
+    health.export_health(
+        _empty_db(),
+        exporters_published_at={},
+        known_exporters={"cot", "news", "health"},
+    )
+    data = json.loads((tmp_path / "health.json").read_text())
+    assert data["exporters"]["cot"] == "2026-06-15T10:00:00Z", \
+        "a registered topic that didn't run keeps its previous ts"
+    assert "gone" not in data["exporters"], \
+        "an unregistered topic must be pruned, not left to age forever"
+
+
+def test_health_exporters_not_pruned_without_a_registry(tmp_path, monkeypatch):
+    """Callers that don't pass the registry keep the old merge behaviour.
+
+    Pruning against an absent or empty set would wipe the whole map, which is
+    strictly worse than the stale key it fixes — every topic would then read as
+    missing on the next freshness check.
+    """
+    monkeypatch.setattr(health, "OUT_DIR", tmp_path)
+    monkeypatch.setattr(base, "LATEST_PRICES_FALLBACK", False)
+    health.export_health(_empty_db(), exporters_published_at={"cot": "2026-06-15T10:00:00Z"})
+    health.export_health(_empty_db(), exporters_published_at={})
+    data = json.loads((tmp_path / "health.json").read_text())
+    assert data["exporters"]["cot"] == "2026-06-15T10:00:00Z"
+
+
+def test_orchestrator_passes_its_registry_to_health():
+    """The wiring, not just the mechanism: every key health prunes against has
+    to come from the same registry the export loop iterates, or the fix is
+    inert in production while its unit test passes."""
+    from scraper.export_static_json import _exporters
+    keys = {k for k, _ in _exporters(None)}
+    assert "cot" in keys and "freight" in keys, "registry did not build"
+    assert "vn_coffee_imports" not in keys, \
+        "the removed Vietnam imports topic is back in the registry"
