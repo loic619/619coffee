@@ -14,6 +14,15 @@
 //   · failing   — ran, and at least one run did not succeed
 //   · cancelled — ran, and at least one run was killed (usually a
 //                 concurrency queue bumping a queued run)
+//   · degraded  — ran, SUCCEEDED, and skipped part of its own work
+//
+// That last one is the hardest to see and has cost the most data. A
+// conclusion is the wrong instrument for it: a job that meets an HTTP 403 on
+// one source and skips it so the other nine can finish is doing the right
+// thing, and exits 0 — identical here to a run that collected everything.
+// So a workflow that skips work says so in run_degradations.json, and this
+// panel reads that beside the conclusions. Green and complete stop being the
+// same word.
 import { useMemo, useState } from "react";
 import { useFetchJson } from "@/lib/useFetchJson";
 
@@ -50,8 +59,27 @@ interface ActivityPayload {
 interface InventoryLite {
   workflows: { file: string; name: string; crons: string[] }[];
 }
+/** One green run that skipped part of its own work. Written by the workflow
+ *  itself (backend/scraper/run_degradations.py), not by the Actions API —
+ *  which is the point: the API has no field for this. */
+interface Degradation {
+  at: string;
+  date: string;
+  workflow: string;
+  file: string;
+  run_id: string;
+  run_url: string | null;
+  kind: string;
+  detail: string;
+  items: string[];
+}
+interface DegradationPayload {
+  generated_at: string;
+  keep_days: number;
+  runs: Degradation[];
+}
 
-type Filter = "all" | "problem" | "silent";
+type Filter = "all" | "problem" | "silent" | "degraded";
 
 /** Heat step for a day cell. Runs-per-day is heavily skewed (one workflow
  *  runs 96×/day, most run once), so the ramp is banded rather than linear. */
@@ -74,6 +102,7 @@ const dayLabel = (iso: string) => {
 export default function WorkflowActivity() {
   const { data, error } = useFetchJson<ActivityPayload>("/data/workflow_activity.json");
   const { data: inv } = useFetchJson<InventoryLite>("/data/workflows_inventory.json");
+  const { data: degraded } = useFetchJson<DegradationPayload>("/data/run_degradations.json");
   const [filter, setFilter] = useState<Filter>("all");
 
   // Workflows the YAML schedules but which produced no run in the window.
@@ -92,11 +121,27 @@ export default function WorkflowActivity() {
       .map(w => ({ name: w.name, file: w.file, crons: w.crons }));
   }, [data, inv]);
 
+  // Degradations inside the SAME window the run table covers, so a row here
+  // always has a run above it to belong to. The file keeps a month; the panel
+  // shows a week, and a stale row would read as a live incident.
+  const skips = useMemo(() => {
+    if (!data || !degraded) return [];
+    const since = data.since.slice(0, 10);
+    return degraded.runs.filter(r => (r.date ?? "") >= since)
+      .sort((a, b) => (b.at ?? "").localeCompare(a.at ?? ""));
+  }, [data, degraded]);
+
+  // Joined on file, for the same reason `silent` is: a display title is
+  // mutable and the Actions API caches it per run.
+  const skippedFiles = useMemo(
+    () => new Set(skips.map(r => r.file).filter(Boolean)), [skips]);
+
   const rows = useMemo(() => {
     if (!data) return [];
     if (filter === "problem") return data.workflows.filter(w => w.failure > 0 || w.cancelled > 0);
+    if (filter === "degraded") return data.workflows.filter(w => skippedFiles.has(w.file));
     return data.workflows;
-  }, [data, filter]);
+  }, [data, filter, skippedFiles]);
 
   if (error) {
     return (
@@ -144,12 +189,15 @@ export default function WorkflowActivity() {
           <Stat label="cancelled" value={t.cancelled} tone={t.cancelled ? "text-amber-400" : "text-slate-500"} />
           <Stat label="fail rate" value={`${failRate.toFixed(1)}%`}
             tone={failRate > 5 ? "text-red-400" : "text-slate-400"} />
+          <Stat label="degraded" value={skips.length}
+            tone={skips.length ? "text-orange-400" : "text-slate-500"} />
         </div>
         <div className="inline-flex rounded border border-slate-700 overflow-hidden">
           {([
             { k: "all" as const, l: `All ${data.workflows.length}` },
             { k: "problem" as const, l: "Failed / cancelled" },
             { k: "silent" as const, l: `Silent ${silent.length}` },
+            { k: "degraded" as const, l: `Degraded ${skips.length}` },
           ]).map(o => (
             <button key={o.k} onClick={() => setFilter(o.k)}
               className={`text-[10px] px-2 py-0.5 transition-colors ${
@@ -163,6 +211,8 @@ export default function WorkflowActivity() {
 
       {filter === "silent" ? (
         <SilentList silent={silent} />
+      ) : filter === "degraded" ? (
+        <DegradedList skips={skips} days={data.window_days} />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-[10px] font-mono">
@@ -195,11 +245,23 @@ export default function WorkflowActivity() {
                     </td>
                   ))}
                   <td className="py-1 px-2 text-right text-slate-300">{w.runs}</td>
-                  <td className={`py-1 px-2 text-right ${
-                    w.failure ? "text-red-400" : w.cancelled ? "text-amber-400" : "text-slate-600"}`}>
-                    {w.failure || w.cancelled
-                      ? `${w.failure}${w.cancelled ? `+${w.cancelled}c` : ""}`
-                      : "–"}
+                  {/* Conclusion and degradation are separate facts and a row
+                      that has both must show both — an amber "0+8c" hid the
+                      skip entirely when one workflow was cancelled AND came
+                      home incomplete. */}
+                  <td className="py-1 px-2 text-right whitespace-nowrap">
+                    <span className={
+                      w.failure ? "text-red-400" : w.cancelled ? "text-amber-400" : "text-slate-600"}>
+                      {w.failure || w.cancelled
+                        ? `${w.failure}${w.cancelled ? `+${w.cancelled}c` : ""}`
+                        : "–"}
+                    </span>
+                    {skippedFiles.has(w.file) && (
+                      <span className="text-orange-400 ml-1"
+                        title="Succeeded, but skipped part of its own work — see Degraded">
+                        skip
+                      </span>
+                    )}
                   </td>
                   <td className="py-1 px-2 text-right text-slate-500">{fmtDur(w.avg_seconds)}</td>
                   <td className="py-1 pl-2 text-slate-500 whitespace-nowrap">
@@ -224,7 +286,9 @@ export default function WorkflowActivity() {
         bumped a run that was already waiting — the failure mode that silently cost a month of
         Uganda data. <span className="text-slate-400">Silent</span> lists workflows whose YAML
         declares a cron but which produced no run at all this week; that is the one thing the
-        Actions tab cannot show, because there is nothing there to see.
+        Actions tab cannot show, because there is nothing there to see.{" "}
+        <span className="text-orange-400">Degraded</span> is the other one: runs that SUCCEEDED
+        having skipped part of their own work, which no conclusion can express.
       </p>
     </div>
   );
@@ -236,6 +300,57 @@ function Stat({ label, value, tone }: { label: string; value: number | string; t
       <span className={`font-mono text-sm font-bold ${tone}`}>{value}</span>
       <span className="text-slate-500 uppercase tracking-wider text-[9px]">{label}</span>
     </span>
+  );
+}
+
+/** Green runs that skipped work — the state a conclusion cannot express.
+ *
+ *  Deliberately rendered as incidents rather than a table row: each one is a
+ *  specific hole in a specific day's data, and the run link is the only way to
+ *  see how big. Reported by the workflow itself; nothing in the Actions API
+ *  would ever produce this list. */
+function DegradedList({ skips, days }: { skips: Degradation[]; days: number }) {
+  if (skips.length === 0) {
+    return (
+      <p className="text-[11px] text-emerald-400 py-2">
+        No run reported skipping any of its own work in the last {days} days. Note this only
+        covers workflows that report it &mdash; a job that skips work silently still cannot be
+        seen from here.
+      </p>
+    );
+  }
+  return (
+    <div className="space-y-1.5">
+      {skips.map(r => (
+        <div key={`${r.run_id}-${r.at}`}
+          className="bg-slate-950/50 border border-orange-900/50 rounded px-3 py-2 space-y-1">
+          <div className="flex items-start gap-3">
+            <span className="text-[9px] font-mono uppercase tracking-wider text-orange-400 mt-0.5 shrink-0">
+              {r.kind.replace(/_/g, " ")}
+            </span>
+            <div className="min-w-0">
+              <div className="text-[11px] text-slate-300">{r.workflow}</div>
+              <div className="text-[9px] font-mono text-slate-500">
+                {r.at.replace("T", " ").slice(0, 16)} UTC · {r.file}
+                {r.run_url && (
+                  <>
+                    {" · "}
+                    <a href={r.run_url} target="_blank" rel="noreferrer"
+                      className="text-sky-400 hover:text-sky-300 underline">run</a>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="text-[10px] text-slate-400 leading-relaxed">{r.detail}</div>
+          {r.items.length > 0 && (
+            <ul className="text-[9px] font-mono text-orange-300/80 space-y-0.5 pl-2">
+              {r.items.map((it, i) => <li key={i}>· {it}</li>)}
+            </ul>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }
 
