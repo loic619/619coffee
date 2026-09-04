@@ -74,7 +74,9 @@ KNOWN: dict[str, tuple[str, str, bool, str]] = {
         "exits 1 BECAUSE a source/exporter/artifact is stale — the check working"),
     "1.8 – Check Live Quotes Freshness": (
         "D", "operational", True,
-        "notify() ends in exit 1 when live_quotes is stale, and dispatches a rescue poll"),
+        "over this sample: exit 1 on EVERY stale check, plus a rescue dispatch, with no "
+        "state between runs. Rebuilt 2026-09-04 onto a degraded-state ladder — still "
+        "category D, but red now means recovery repeatedly failed"),
 
     "1.11 – Port Activity Scraper (PortWatch)": (
         "C", "operational", True,

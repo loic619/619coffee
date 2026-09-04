@@ -77,9 +77,9 @@ export default function WorkflowFailures() {
         {d ? d.n : "240"}-run sample and — more usefully — separating <em>where</em> a failure happened
         from <em>what</em> broke, the genuinely actionable residue is{" "}
         <strong>{d ? `${d.actionable} runs, ${d.actionable_pct}%` : "27 runs, 11%"}</strong>. The other
-        {" "}89% are the system behaving as designed. The structural finding is separate and worse: the
-        one self-healing loop in the repo <em>fails itself</em> while it heals, and has no memory between
-        attempts, so it cannot back off.
+        {" "}89% are the system behaving as designed. The structural finding is separate and was worse: the
+        one self-healing loop in the repo <em>failed itself</em> while it healed, with no memory between
+        attempts, so it could not back off. That is fixed — §7.
       </P>
 
       {!d && (
@@ -252,7 +252,48 @@ export default function WorkflowFailures() {
             than one it rediscovers every hour.
           </P>
 
-          <H2>7 · What this licenses</H2>
+          <H2>7 · Fixed — what it does now</H2>
+          <P>
+            Implemented 2026-09-04. The source now carries a <Code>degraded</Code> state in the same
+            Upstash store the data lives in, and the ladder is counted in consecutive stale checks —
+            hourly, so they read as hours:
+          </P>
+          <RefTable
+            head={["Stale check", "1", "2", "4", "8", "12", "16", "24"]}
+            rows={[
+              ["Rescue dispatched", "•", "•", "•", "•", "", "•", ""],
+              ["Alert sent", "•", "", "•", "", "•", "", "•"],
+              [<strong key="r">Run goes red</strong>, "", "", "•", "", "•", "", "•"],
+            ]}
+          />
+          <P>
+            A twelve-hour outage now produces <strong>4 rescue attempts, 3 alerts and 2 red runs</strong>{" "}
+            instead of twelve of each. More importantly the colour means something: green covers
+            &ldquo;stale detected, rescue dispatched, standing down&rdquo; — the watchdog working — and red
+            means recovery has repeatedly failed, which is a claim worth paging on.
+          </P>
+          <UL>
+            <LI><strong>Recovery is announced too.</strong> An outage that silently ends leaves the reader
+              unsure it ever did, so the first fresh reading after a degraded spell sends one message and
+              resets the state.</LI>
+            <LI><strong>A failed dispatch is always loud</strong>, whatever the backoff says. That is the
+              exact bug the old <Code>if curl -sf</Code> hid, and it is now the one condition that
+              overrides the ladder.</LI>
+            <LI><strong>Losing the state is not an incident.</strong> A missing or corrupt health key reads
+              as healthy and restarts the ladder rather than crashing or paging — the watchdog forgetting
+              is not itself an outage.</LI>
+            <LI><strong>The store being unreachable is.</strong> That is a real system failure and not the
+              source&rsquo;s fault, so it escalates immediately and no backoff applies.</LI>
+          </UL>
+          <P>
+            The decision ladder is a pure function in <Code>source_health.py</Code> with the I/O in{" "}
+            <Code>check_live_quotes.py</Code>, replacing ~70 lines of inline shell that nothing could
+            test — which is why both defects lived in it unnoticed. 26 tests cover the ladder and the
+            wiring, including the one that states the whole point: a twelve-hour outage goes red twice,
+            not twelve times.
+          </P>
+
+          <H2>8 · What this licenses</H2>
           <UL>
             <LI><strong>Track the actionable rate, not the failure rate.</strong> The raw count moves with
               release cadence — the spikes above are busy days on <Code>main</Code>, not outages.</LI>
