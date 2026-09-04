@@ -157,6 +157,31 @@ def _score(bucket: dict, phase: str, intensity: str,
     return sev, text, evidence
 
 
+def _worst_key(hit: dict) -> tuple:
+    """Rank one phase hit against another. Severity first, then EVIDENCE.
+
+    Severity alone leaves ties, and `max` resolves a tie by iteration order —
+    which is the order the phases are looped, not anything about the data. On
+    Uganda's Mt Elgon that handed the pin to a −12.9% El Niño deficit measured
+    over four events in an INFERRED fill window, ahead of a +41.1% surplus over
+    ten events in the published main-harvest window. Same severity, nothing
+    like the same evidence, and the pin read "Drought at cherry fill" while the
+    region's actual, well-measured El Niño story is rain on the harvest.
+
+    So after severity: a published window outranks an arithmetic one, then the
+    larger anomaly, then the more consistent, then the better-attested. Every
+    tier is a statement about how much the number is worth, never about which
+    phase we would rather report.
+    """
+    return (
+        hit.get("severity") or 0,
+        0 if hit.get("inferred") else 1,
+        abs(hit.get("anomaly_pct") or 0.0),
+        hit.get("consistency") or 0.0,
+        hit.get("n") or 0,
+    )
+
+
 def region_risk(origin: str, region: str, phase: str, intensity: str,
                 months: set[int], teleconnection: dict,
                 status: str = "official") -> dict:
@@ -192,14 +217,18 @@ def region_risk(origin: str, region: str, phase: str, intensity: str,
             sev, text, evidence = _score(measured, ph, intensity, all_phases.get(other))
             hits.append({
                 "cycle": cycle["label"], "phase": ph, "months": overlap,
-                "severity": sev, "driver": text, **evidence,
+                "severity": sev, "driver": text,
+                # Whether this cycle's window is published or arithmetic. It
+                # breaks ties below, and the pin should be able to say so.
+                "inferred": bool(all_phases.get("inferred")),
+                **evidence,
             })
 
     scoring = [h for h in hits if h["severity"] > 0]
     if not scoring:
         worst_sev, driver = 0, "No phase at risk in the projected window"
     else:
-        worst = max(scoring, key=lambda h: h["severity"])
+        worst = max(scoring, key=_worst_key)
         worst_sev = worst["severity"]
         driver = f"{worst['driver']} ({worst['cycle']})"
 
@@ -208,6 +237,10 @@ def region_risk(origin: str, region: str, phase: str, intensity: str,
         worst_sev = min(worst_sev, 1)
         if worst_sev:
             driver = f"{driver} — developing"
+
+    # Ranked, not loop-ordered: the hit that drove the colour reads first in
+    # the popup, and the reader sees the ranking that produced it.
+    hits.sort(key=_worst_key, reverse=True)
 
     level = _level(worst_sev)
     out = {"level": level, "color": _LEVEL_COLOR[level], "driver": driver,
