@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T10:38:20.572775Z",
+  "generated_at": "2026-09-04T16:49:28.833657Z",
   "count": 101,
   "workflows": [
     {
@@ -1333,14 +1333,34 @@
   "drift": {
     "uncovered_workflows": [
       {
+        "file": "poll-acaphe-quotes.yml",
+        "name": "0.1 \u2013 Acaphe Live Quotes Poll",
+        "version": "0.1"
+      },
+      {
+        "file": "scraper-monthly-colombia.yml",
+        "name": "0.10 \u2013 Colombia coffee exports (monthly \u00b7 DANE + FNC)",
+        "version": "0.10"
+      },
+      {
         "file": "rebuild-origin-weather-seed.yml",
         "name": "0.11 \u2013 Rebuild origin weather seed (climatology + region set)",
         "version": "0.11"
       },
       {
+        "file": "scraper-vn-water-levels.yml",
+        "name": "0.12 \u2013 VN River Flow (NCHMF daily bulletin)",
+        "version": "0.12"
+      },
+      {
         "file": "backfill-enso-thermocline.yml",
         "name": "0.13 \u2013 Backfill \u2014 ENSO thermocline archive (TAO/TRITON 150m, multi-year)",
         "version": "0.13"
+      },
+      {
+        "file": "bps-indonesia-exim.yml",
+        "name": "0.14 \u2013 BPS Indonesia coffee exports (monthly)",
+        "version": "0.14"
       },
       {
         "file": "frost-backtest.yml",
@@ -1366,6 +1386,11 @@
         "file": "ice-record-publish-time.yml",
         "name": "0.19 \u2013 Record an ICE publish time (operator backfill)",
         "version": "0.19"
+      },
+      {
+        "file": "build-workflow-inventory.yml",
+        "name": "0.2 \u2013 Refresh Workflow Inventory",
+        "version": "0.2"
       },
       {
         "file": "probe-ice-stock-pace.yml",
@@ -1433,6 +1458,16 @@
         "version": "0.32"
       },
       {
+        "file": "backfill-missing-fields.yml",
+        "name": "0.4 \u2013 One-shot \u2014 Backfill missing weather-history fields (Open-Meteo archive)",
+        "version": "0.4"
+      },
+      {
+        "file": "build-vhi.yml",
+        "name": "0.5 \u2013 Weekly \u2014 Vegetation Health Index (NOAA STAR VHI)",
+        "version": "0.5"
+      },
+      {
         "file": "build-oni-history.yml",
         "name": "0.6 \u2013 Monthly \u2014 Build ONI history seed (NOAA CPC 1980\u2192present)",
         "version": "0.6"
@@ -1453,6 +1488,46 @@
         "version": "0.9"
       },
       {
+        "file": "scraper-daily.yml",
+        "name": "1.1 \u2013 Daily News Scraper",
+        "version": "1.1"
+      },
+      {
+        "file": "weather-fetch.yml",
+        "name": "1.10 \u2013 Daily Weather Fetch & Accumulate",
+        "version": "1.10"
+      },
+      {
+        "file": "scraper-port-activity.yml",
+        "name": "1.11 \u2013 Port Activity Scraper (PortWatch)",
+        "version": "1.11"
+      },
+      {
+        "file": "redeploy-vercel.yml",
+        "name": "1.12 \u2013 Daily Publish (Vercel redeploy)",
+        "version": "1.12"
+      },
+      {
+        "file": "scraper-ice-certified-stocks.yml",
+        "name": "1.13 \u2013 ICE Certified Stocks (arabica + robusta)",
+        "version": "1.13"
+      },
+      {
+        "file": "scraper-ice-monthly-reports.yml",
+        "name": "1.14 \u2013 ICE Monthly Reports (arabica ageing + robusta age-allowance)",
+        "version": "1.14"
+      },
+      {
+        "file": "scraper-cpi.yml",
+        "name": "1.15 \u2013 Monthly CPI Scraper (US CPI \u00b7 Retail Coffee CPI)",
+        "version": "1.15"
+      },
+      {
+        "file": "open-direction-log.yml",
+        "name": "1.16 \u2013 Open-Direction Prediction Log",
+        "version": "1.16"
+      },
+      {
         "file": "source-sentinel.yml",
         "name": "1.17 \u2013 Source Sentinel (monthly supply releases)",
         "version": "1.17"
@@ -1461,6 +1536,36 @@
         "file": "model-health.yml",
         "name": "1.18 \u2013 Open-Direction Model Health",
         "version": "1.18"
+      },
+      {
+        "file": "scraper-sucafina.yml",
+        "name": "1.19 \u2013 Sucafina Origin Reports (weekly)",
+        "version": "1.19"
+      },
+      {
+        "file": "scraper-freight.yml",
+        "name": "1.2 \u2013 Freight Rate Scraper",
+        "version": "1.2"
+      },
+      {
+        "file": "tradespread.yml",
+        "name": "1.20 \u2013 Traded tape (acaphe tradespread)",
+        "version": "1.20"
+      },
+      {
+        "file": "brazil-export-forecast.yml",
+        "name": "1.21 \u2013 Brazil Export Forecast (SSOT projection)",
+        "version": "1.21"
+      },
+      {
+        "file": "scraper-slow-data.yml",
+        "name": "1.22 \u2013 Monthly Slow-Data Scraper (USDA PSD)",
+        "version": "1.22"
+      },
+      {
+        "file": "brazil-conilon-demand.yml",
+        "name": "1.23 \u2013 Brazil conilon domestic demand",
+        "version": "1.23"
       },
       {
         "file": "scraper-mapbiomas-coffee.yml",
@@ -1478,14 +1583,114 @@
         "version": "1.26"
       },
       {
+        "file": "daily_oi.yml",
+        "name": "1.3 \u2013 Daily OI Snapshot",
+        "version": "1.3"
+      },
+      {
+        "file": "export-and-publish.yml",
+        "name": "1.4 \u2013 Export and Publish Static JSON",
+        "version": "1.4"
+      },
+      {
+        "file": "check-scrapers-freshness.yml",
+        "name": "1.5 \u2013 Check Data Pipeline Freshness",
+        "version": "1.5"
+      },
+      {
         "file": "b3-kc-close.yml",
         "name": "1.6 \u2013 B3 at KC close + final fechamento",
         "version": "1.6"
       },
       {
+        "file": "scraper-cecafe-daily.yml",
+        "name": "1.7 \u2013 Cecafe Daily Registration",
+        "version": "1.7"
+      },
+      {
+        "file": "check-live-quotes.yml",
+        "name": "1.8 \u2013 Check Live Quotes Freshness",
+        "version": "1.8"
+      },
+      {
+        "file": "quant-currency-index.yml",
+        "name": "1.9 \u2013 Quant Coffee Currency Index",
+        "version": "1.9"
+      },
+      {
         "file": "fetch-intraday-kc-rc.yml",
         "name": "1.96 \u2013 Fetch Intraday KC/RC 15min (Barchart)",
         "version": "1.96"
+      },
+      {
+        "file": "refresh-intraday-15min.yml",
+        "name": "1.98 \u2013 Refresh Intraday KC/RC 15min (daily)",
+        "version": "1.98"
+      },
+      {
+        "file": "scraper-prices.yml",
+        "name": "2.2 \u2013 Commodity Prices Scraper",
+        "version": "2.2"
+      },
+      {
+        "file": "scraper-cot.yml",
+        "name": "2.3 \u2013 COT Scraper",
+        "version": "2.3"
+      },
+      {
+        "file": "scraper-kaffeesteuer.yml",
+        "name": "3.1 \u2013 Kaffeesteuer Scraper",
+        "version": "3.1"
+      },
+      {
+        "file": "scraper-eurostat-imports.yml",
+        "name": "3.10 \u2013 EU Coffee Imports by Origin (Eurostat Comext)",
+        "version": "3.10"
+      },
+      {
+        "file": "refresh-balance-sheets.yml",
+        "name": "3.11 \u2013 Semi-annual \u00b7 Multi-source balance sheets (BR/CO/ID/UG)",
+        "version": "3.11"
+      },
+      {
+        "file": "scraper-cecafe.yml",
+        "name": "3.2 \u2013 Cecafe Export Scraper",
+        "version": "3.2"
+      },
+      {
+        "file": "scraper-monthly-conab.yml",
+        "name": "3.3.1 \u2013 Monthly Scraper \u00b7 CONAB (Brazil supply)",
+        "version": "3.3.1"
+      },
+      {
+        "file": "scraper-monthly-br-fertilizer.yml",
+        "name": "3.3.2 \u2013 Monthly Scraper \u00b7 Brazil Fertilizer (Comex)",
+        "version": "3.3.2"
+      },
+      {
+        "file": "scraper-monthly-vn-fertilizer.yml",
+        "name": "3.3.3 \u2013 Monthly Scraper \u00b7 Vietnam Fertilizer",
+        "version": "3.3.3"
+      },
+      {
+        "file": "scraper-monthly-vn-exports.yml",
+        "name": "3.3.4 \u2013 Monthly Scraper \u00b7 Vietnam Coffee Exports",
+        "version": "3.3.4"
+      },
+      {
+        "file": "scraper-monthly-uganda.yml",
+        "name": "3.3.5 \u2013 Monthly Scraper \u00b7 Uganda UCDA Reports",
+        "version": "3.3.5"
+      },
+      {
+        "file": "ucda-monthly-reports.yml",
+        "name": "3.3.6 \u2013 Monthly Scraper \u00b7 UCDA Uganda monthly reports (by-destination)",
+        "version": "3.3.6"
+      },
+      {
+        "file": "scraper-ecf-stocks.yml",
+        "name": "3.4 \u2013 ECF stocks",
+        "version": "3.4"
       },
       {
         "file": "apply-crop-estimate-edit.yml",
@@ -1498,14 +1703,59 @@
         "version": "3.4.3"
       },
       {
+        "file": "scraper-japan-stocks.yml",
+        "name": "3.5 \u2013 AJCA (Japan)",
+        "version": "3.5"
+      },
+      {
+        "file": "scraper-spot-coffee.yml",
+        "name": "3.6 \u2013 Spot Coffee (ATTE)",
+        "version": "3.6"
+      },
+      {
+        "file": "scraper-annual-un-wpp.yml",
+        "name": "3.7 \u2013 Annual Scraper \u00b7 UN WPP age structure + World Bank population",
+        "version": "3.7"
+      },
+      {
+        "file": "scraper-coffee-imports.yml",
+        "name": "3.8 \u2013 Coffee Imports (UN Comtrade)",
+        "version": "3.8"
+      },
+      {
+        "file": "scraper-usitc-imports.yml",
+        "name": "3.9 \u2013 US Coffee Imports by Origin (USITC DataWeb)",
+        "version": "3.9"
+      },
+      {
+        "file": "scraper-earnings.yml",
+        "name": "4.1 \u2013 Earnings Scraper",
+        "version": "4.1"
+      },
+      {
         "file": "scraper-roaster-results.yml",
         "name": "4.2 \u2013 Roaster Results (volume/mix from PDFs)",
         "version": "4.2"
       },
       {
+        "file": "ci-tests.yml",
+        "name": "9.1 \u2013 CI Tests",
+        "version": "9.1"
+      },
+      {
         "file": "research-retest-watch.yml",
         "name": "9.10 \u2013 Research retest watch",
         "version": "9.10"
+      },
+      {
+        "file": "lint-backend.yml",
+        "name": "9.2 \u2013 Backend Lint",
+        "version": "9.2"
+      },
+      {
+        "file": "lint-smart-quotes.yml",
+        "name": "9.3 \u2013 Smart-quote guard (TS/TSX)",
+        "version": "9.3"
       },
       {
         "file": "ci-frontend.yml",
@@ -1524,17 +1774,8 @@
       }
     ],
     "stale_curation": [],
-    "non_workflow_entries": [
-      "Per-source Telegram alerts",
-      "Acaphe poll",
-      "various / manual",
-      "various / manual",
-      "various / manual",
-      "various / manual",
-      "various / manual",
-      "various / manual"
-    ],
-    "uncovered_workflows_count": 38,
+    "non_workflow_entries": [],
+    "uncovered_workflows_count": 88,
     "stale_curation_count": 0
   }
 }
