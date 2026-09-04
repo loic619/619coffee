@@ -227,15 +227,27 @@ def test_vn_mtd_rain_wording_when_seed_available(tmp_path, monkeypatch):
 
 
 def test_brief_physical_includes_basis_and_delta(fixture_data_dir):
-    """The VN line shows N±basis followed by a parenthesised +/- delta and FOB
-    tag — the spec's locked format."""
+    """Every physical row carries local price, FOB basis and the basis d/d.
+
+    The three used to run together in prose ("86,700 VND · N-43 (+16) FOB");
+    they are now three aligned columns under a local/FOB/d/d header. What must
+    not go missing is any of the three numbers, so pin the row's cells rather
+    than the punctuation that used to separate them.
+    """
+    import re as _re
+
     from telegram.handlers.brief import build_brief_message
     out = build_brief_message()
-    # Pattern: "VN FAQ  86,700 VND · N-XX (+YY) FOB" where YY can be +/- and is
-    # the basis delta vs yesterday.
-    import re as _re
-    m = _re.search(r"VN FAQ\s+86,700 VND · N[+-]\d+ \([+-]?\d+\) FOB", out)
-    assert m is not None, f"VN FAQ line wrong shape: {out!r}"
+
+    # No start anchor: the table's opening <pre> rides on the header row.
+    assert _re.search(r"local\s+FOB\s+d/d$", out, _re.M), \
+        f"physical table header missing: {out!r}"
+    # local price + currency · basis letter and signed number · signed delta
+    m = _re.search(r"^VN FAQ\s+86,700 VND\s+[A-Z][+-]\d+\s+\S*[+-]\d+$", out, _re.M)
+    assert m is not None, f"VN FAQ row wrong shape: {out!r}"
+    for origin in ("CON T7", "UGA S15"):
+        assert _re.search(rf"^{origin}\s+[\d,]+ [A-Z]{{3}}\s+[A-Z][+-]\d+", out, _re.M), \
+            f"{origin} row wrong shape: {out!r}"
 
 
 def test_brief_spread_line_has_change_in_parens(fixture_data_dir):
