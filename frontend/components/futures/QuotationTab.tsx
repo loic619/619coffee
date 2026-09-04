@@ -42,6 +42,29 @@ function fmtDiff(letter: string, diff: number): string {
   return diff >= 0 ? `${letter}+${diff}` : `${letter}${diff}`;
 }
 
+// A full crop year is 12 shipment columns. At the on-screen 84px they need
+// ~1,350px with the three label columns, which the table scrolls horizontally
+// for — but a printed A4 landscape page is only ~1,120px of usable width, so
+// without this the right-hand months would be clipped off the PDF. The strip
+// used to be truncated to 5 months to dodge exactly that; tightening the month
+// cells for print keeps the whole year on the page instead of hiding half of
+// it. Screen rendering is untouched.
+const QUOTATION_PRINT_CSS = `
+@media print {
+  .qt-mo { width: 46px !important; padding-left: 3px !important; padding-right: 3px !important; }
+  #report-canvas table { font-size: 8px !important; }
+  #report-canvas td, #report-canvas th { padding-top: 3px !important; padding-bottom: 3px !important; }
+  /* The three label columns are sized for the screen; the specification text is
+     nowrap and alone eats ~230px. Let it wrap and the strip gets its width. */
+  #report-canvas th:nth-child(-n+3), #report-canvas td:nth-child(-n+3) {
+    padding-left: 5px !important; padding-right: 5px !important;
+    white-space: normal !important;
+  }
+  #report-canvas th:nth-child(1), #report-canvas td:nth-child(1) { width: 74px !important; }
+  #report-canvas th:nth-child(2), #report-canvas td:nth-child(2) { width: 150px !important; }
+  #report-canvas th:nth-child(3), #report-canvas td:nth-child(3) { width: 82px !important; }
+}`;
+
 const PACKING_OPTIONS = [
   { key: "jute",   label: "Food-grade jute bags  60 kg each", short: "Jute bags", display: "+25 USD/MT", val: 25 },
   { key: "bigbag", label: "Big bags  1 MT per bag",           short: "Big bags",  display: "+15 USD/MT", val: 15 },
@@ -173,9 +196,10 @@ export default function QuotationTab({ contracts = [], vnFaqUsdMt }: { contracts
   const printPricelist = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Vietnam coffee prices - ${new Date().toISOString().slice(0, 10)}`,
-    // Base theme CSS + a landscape override so the (up to 5-month) tables have
-    // room without clipping. The later @page rule wins over the portrait default.
-    pageStyle: `${printTheme === "light" ? PRINT_CSS_LIGHT : PRINT_CSS_DARK}\n@page { size: A4 landscape; }`,
+    // Base theme CSS, a landscape override (the later @page rule wins over the
+    // portrait default), then the month-column tightening that lets a full
+    // 12-month crop strip fit the page.
+    pageStyle: `${printTheme === "light" ? PRINT_CSS_LIGHT : PRINT_CSS_DARK}\n@page { size: A4 landscape; }\n${QUOTATION_PRINT_CSS}`,
   });
 
   const toggleOption = (key: string) =>
@@ -330,9 +354,14 @@ export default function QuotationTab({ contracts = [], vnFaqUsdMt }: { contracts
   }) {
     if (opts.months.length === 0) return null;
     const frontLabel = opts.months[0].priceKey;
-    // Cap the strip at 5 shipment months so the table stays within a printable
-    // column width; a crop with more months (the new crop) shows only its first 5.
-    const months = opts.months.slice(0, 5);
+    // Each table shows its WHOLE crop year. This used to slice(0, 5) to keep the
+    // strip inside a printable width, which meant the new crop — a full Dec→Nov
+    // strip by construction — was displayed as Dec→Apr and the back half of the
+    // year was simply invisible. The strips are bounded at 12 by monthsBase (the
+    // new crop is exactly Dec→Nov; the current crop runs from the front month to
+    // its own Nov), so nothing here can run away. Print width is handled by
+    // QUOTATION_PRINT_CSS instead of by hiding months.
+    const months = opts.months;
     return (
       <div className="space-y-3">
         {/* Per-crop controls — screen only (excluded from the pricelist PDF) */}
@@ -430,7 +459,7 @@ export default function QuotationTab({ contracts = [], vnFaqUsdMt }: { contracts
                     Detail
                   </th>
                   {months.map((m, i) => (
-                    <th key={i} className="px-3 py-2.5 text-center w-[84px] border-l border-slate-700">
+                    <th key={i} className="qt-mo px-3 py-2.5 text-center w-[84px] border-l border-slate-700">
                       <div className="text-white font-bold">{m.label}</div>
                       <div className="text-[9px] text-slate-500 mt-0.5">{m.contractSym}</div>
                     </th>
@@ -471,7 +500,7 @@ export default function QuotationTab({ contracts = [], vnFaqUsdMt }: { contracts
                           {months.map((m, i) => {
                             if (m.basisForMonth == null) {
                               return (
-                                <td key={i} className="px-3 py-2 text-center font-bold border-l border-slate-800/50 text-slate-600">
+                                <td key={i} className="qt-mo px-3 py-2 text-center font-bold border-l border-slate-800/50 text-slate-600">
                                   —
                                 </td>
                               );
@@ -482,7 +511,7 @@ export default function QuotationTab({ contracts = [], vnFaqUsdMt }: { contracts
                               ? "text-indigo-300"
                               : chgTone(totalDiff);
                             return (
-                              <td key={i} className={`px-3 py-2 text-center font-bold border-l border-slate-800/50 ${color}`}>
+                              <td key={i} className={`qt-mo px-3 py-2 text-center font-bold border-l border-slate-800/50 ${color}`}>
                                 {display}
                               </td>
                             );
