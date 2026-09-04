@@ -22,8 +22,8 @@ wrong with that, and this module fixes all three.
 3 · THE EVENT HAS A DURATION AND A LAG, NOT JUST A STATE
     An El Niño arriving in two months, peaking, and decaying over the
     following six touches specific calendar months — and the WEATHER response
-    is offset from the SST signal by a region-specific lag (measured: 0 months
-    at Mt Elgon, 3 in Dak Lak). So the question is not "is there an El Niño"
+    is offset from the SST signal by a region-specific lag (measured: 1 month
+    at Mt Elgon, 2 in Dak Lak). So the question is not "is there an El Niño"
     but "which crop phases will its weather actually land on". That is what
     `project_event_months` and `affected_months` compute.
 
@@ -54,7 +54,8 @@ COUNTRY_LABEL = {
 _LEVEL_COLOR = {"high": "#dc2626", "moderate": "#f59e0b", "low": "#16a34a"}
 
 #: A departure smaller than this is not worth colouring a pin over, whatever
-#: the phase. Rainfall is noisy and eleven years is a short record.
+#: the phase. Rainfall is noisy, and even on the full record a phase composite
+#: rests on 4-14 occurrences, not on the 380 months behind the region gate.
 MIN_ANOMALY_PCT = 8.0
 #: Below this share of events agreeing with the mean, the composite is
 #: cancellation rather than signal.
@@ -62,8 +63,30 @@ MIN_CONSISTENCY = 0.6
 #: Region-level gate. If a region's rainfall barely correlates with the ONI at
 #: ANY lag, it has no measurable ENSO relationship and no crop phase of it
 #: should be coloured, however tidy a single phase composite happens to look.
-#: The measured distribution breaks naturally here: nine regions sit below it
-#: (Paraná 0.12, Sul de Minas 0.15, Rwenzori 0.02) and the rest run 0.21-0.53.
+#:
+#: This was justified as a natural break in the distribution. On eleven years
+#: that was true. On the full 1995-2026 record, measured across all 36 regions
+#: on a comparable span for the first time, it is NOT: |r| runs 0.05 / 0.10 /
+#: 0.17 / 0.30 / 0.47 (min, p25, median, p75, max) with no gap wider than 0.03
+#: anywhere near 0.20. Fifteen of 36 clear it, and they do so continuously —
+#: 0.19, 0.21, 0.22 are neighbours, not sides of a divide.
+#:
+#: So it is a MATERIALITY bar, not a significance one, and it is deliberately
+#: the stricter of the two. With ~380 monthly pairs, significance arrives at
+#: r ≈ 0.10 (two-sided, p<.05) — on eleven years it took 0.17, which is why
+#: the shorter record made this threshold look like a break. Twenty-six of 36
+#: regions are now significant. But r = 0.20 is ENSO explaining 4% of monthly
+#: rainfall variance, and below that a pin coloured from a phase composite is
+#: coloured on something that barely moves with the ocean. Real, and still not
+#: worth a trading decision.
+#:
+#: KNOWN LIMIT, stated because it changes how a dark pin should be read: this
+#: correlates every calendar month against the ONI, so a signal confined to
+#: one season is diluted by the eleven months it does not touch. That is the
+#: likely reason all four Brazilian and all five Honduran regions sit below
+#: the bar. "No measurable ENSO link" here means no year-round monthly link,
+#: which is the honest claim this measurement supports — not that the region
+#: is known to be ENSO-proof.
 MIN_LAG_R = 0.20
 #: A real teleconnection pushes the two phases in OPPOSITE directions. When El
 #: Niño and La Niña both come out dry, whatever is moving the rain is not
