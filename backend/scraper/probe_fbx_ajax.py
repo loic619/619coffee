@@ -43,6 +43,8 @@ import json
 import sys
 
 _PAGE = "https://www.freightos.com/enterprise/terminal/fbx-11-china-to-northern-europe/"
+_AJAX = "https://www.freightos.com/wp-admin/admin-ajax.php"
+_ACTION = "freightos_get_ticker_data"
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -54,17 +56,74 @@ def _brief(body: str, n: int = 400) -> str:
 
 
 def _summarise(body: str) -> str:
-    """Report the payload as lane->value pairs when it parses, else raw head."""
+    """Report the payload as lane->value pairs when it parses, else raw head.
+
+    Must survive a scalar: WordPress answers an unrecognised or unparsed action
+    with a bare `0`, which is valid JSON and is not a dict. The first run of this
+    probe crashed here on `list(0)` and lost the last two sections.
+    """
     try:
         parsed = json.loads(body)
     except Exception:  # noqa: BLE001
         return f"not JSON — {_brief(body, 200)}"
-    rows = parsed.get("data") if isinstance(parsed, dict) else None
+    if not isinstance(parsed, dict):
+        # A bare 0 is WordPress saying "no handler ran".
+        return f"scalar {parsed!r} — action not handled"
+    rows = parsed.get("data")
     if not isinstance(rows, list):
-        return f"JSON but no data list — keys {list(parsed)[:10]}"
+        return f"dict but no data list — keys {list(parsed)[:10]}"
     pairs = [f"{r.get('label')}={r.get('value')}({r.get('change')})"
              for r in rows if isinstance(r, dict)]
     return f"{len(pairs)} lanes · " + " ".join(pairs)
+
+
+_FORM = {"Content-Type": "application/x-www-form-urlencoded"}
+
+
+def _post(body: str, label: str) -> str:
+    """One POST to the ticker endpoint, reported in a single line."""
+    import requests
+
+    try:
+        r = requests.post(_AJAX, data=body, timeout=30,
+                          headers={"User-Agent": _UA, **_FORM})
+    except Exception as e:  # noqa: BLE001
+        return f"  {label:38} ERR {type(e).__name__} {str(e)[:60]}"
+    return f"  {label:38} [{r.status_code}] {len(r.text):>6}b  {_summarise(r.text)[:120]}"
+
+
+def nonce_from_html() -> str | None:
+    """Can a plain GET find the nonce, with no browser at all?
+
+    This is the whole design question. If the nonce is inlined in the page HTML
+    then the scraper is: one GET, one regex, one POST — and Playwright leaves
+    workflow 1.2 entirely. If it is minted by JavaScript at runtime, the browser
+    stays, though even then one page load beats twelve.
+    """
+    import re
+
+    import requests
+
+    try:
+        r = requests.get(_PAGE, headers={"User-Agent": _UA}, timeout=45)
+    except Exception as e:  # noqa: BLE001
+        print(f"  page GET failed: {type(e).__name__} {str(e)[:80]}")
+        return None
+    print(f"  plain GET of the lane page: [{r.status_code}] {len(r.text):,}b")
+
+    # Try the specific pairing first, then any WP-shaped nonce, so a rename of
+    # the surrounding variable does not read as "absent".
+    for pat, why in (
+        (r'freightos_get_ticker_data["\']\s*,\s*["\']?nonce["\']?\s*:\s*["\']([0-9a-f]{8,12})', "next to the action name"),
+        (r'["\']?nonce["\']?\s*[:=]\s*["\']([0-9a-f]{8,12})["\']', "a nonce-shaped field"),
+        (r'ticker[^<>]{0,200}?([0-9a-f]{10})', "near the word ticker"),
+    ):
+        m = re.search(pat, r.text, re.I)
+        if m:
+            print(f"  found {why}: {m.group(1)}")
+            return m.group(1)
+    print("  no nonce in the served HTML — it is minted client-side")
+    return None
 
 
 async def capture() -> dict | None:
@@ -170,15 +229,41 @@ def main() -> int:
     print("\n=== 2. does it work cold, with no browser? ===")
     replay(req)
 
-    print("\n=== 3. will it serve a past date? ===")
+    # Run 1 proved the captured request replays without cookies. It did NOT
+    # show whether the nonce is checked — the nonce used was fresh from that
+    # same session. If it is not validated, the scraper needs no page load at
+    # all; if it is, we need one GET to harvest it. Very different designs.
+    print("\n=== 3. is the nonce actually validated? ===")
+    captured = ""
+    if req.get("post_data"):
+        import re as _re
+        m = _re.search(r"nonce=([0-9a-f]+)", req["post_data"])
+        captured = m.group(1) if m else ""
+    print(_post(f"action={_ACTION}&nonce={captured}", "captured nonce"))
+    print(_post(f"action={_ACTION}&nonce=deadbeef01", "obviously bogus nonce"))
+    print(_post(f"action={_ACTION}", "no nonce field at all"))
+    print(_post(f"action={_ACTION}_typo&nonce={captured}", "wrong action (control)"))
+    print(_post("", "empty body (control)"))
+
+    print("\n=== 4. can a plain GET harvest a nonce, no browser? ===")
+    html_nonce = nonce_from_html()
+    if html_nonce:
+        print(_post(f"action={_ACTION}&nonce={html_nonce}", "nonce scraped from HTML"))
+
+    print("\n=== 5. will it serve a past date? ===")
     try_date_arguments(req)
 
     print("\n=== reading this ===")
-    print("  Section 2 decides the rewrite: a 200 carrying 13 lanes on the bare")
-    print("  attempt means one request replaces twelve page loads. Anything that")
-    print("  needs the browser's cookies or a nonce means we keep Playwright.")
-    print("  Section 3 is a long shot — identical payloads for every argument")
-    print("  just confirms the endpoint is current-value-only, as 0.28/0.29 found.")
+    print("  Section 2: confirmed in run 1 — replays fine without cookies.")
+    print("  Section 3 decides the design. If the bogus and missing-nonce calls")
+    print("  still return 13 lanes, the nonce is decorative and the scraper is a")
+    print("  single POST with no page fetch. If they return 0 or 403, we need a")
+    print("  nonce, and section 4 says whether a plain GET can get one — which")
+    print("  still beats twelve Playwright loads either way.")
+    print("  The wrong-action and empty-body controls exist so that a uniform 0")
+    print("  can be read as 'rejected' rather than 'the endpoint always says 0'.")
+    print("  Section 5 stays a long shot; identical payloads for every argument")
+    print("  just re-confirms current-value-only, as 0.28/0.29 found.")
     return 0
 
 
