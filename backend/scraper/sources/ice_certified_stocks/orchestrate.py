@@ -1095,6 +1095,14 @@ def recompute_robusta_cohort_outflow(data: dict) -> dict:
 
 
 def _merge_robusta(new: dict, old: dict) -> dict:
+    # daily_fetched: union. This is the ledger of days whose per-day sources
+    # (gradings, appeals, iss/recv, tenders, overview, infested) have actually
+    # been requested. It has to be recorded rather than inferred, because a day
+    # with no gradings and a day never fetched look identical in the data — and
+    # guessing wrong either re-fetches forever or leaves a permanent hole.
+    fetched = set(old.get("daily_fetched") or []) | set(new.get("daily_fetched") or [])
+    new["daily_fetched"] = sorted(fetched)[-400:]
+
     # snapshots: union by date.
     by_date = {s["date"]: s for s in (old.get("snapshots") or [])}
     for s in new.get("snapshots") or []:
@@ -1218,6 +1226,10 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
           f"[skip_monthly={skip_monthly} only_monthly={only_monthly}] ===\n")
 
     # ── Arabica: 1 source, loop dates ──
+    # Ledger of days whose per-day robusta sources were requested. Empty on a
+    # --only-monthly run, which skips that block; the merge unions it with the
+    # stored list, so an empty one inherits rather than blanks.
+    daily_fetched: list[str] = []
     arabica_snapshots: list[dict] = []
     arabica_latest: dict | None = None
     arabica_latest_date: date | None = None
@@ -1283,8 +1295,11 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     infested_all: list[dict] = []
     sweep_day: date | None = None      # also read by the telemetry after run()
     if not only_monthly:
-        print("[robusta] stock report (.csv, latest day only)...")
-        # Recent days get tier-1; only the latest gets the tier-2 sweep.
+        # Header said "latest day only" for months while the loop below walked
+        # FIVE. The reader who then sees three dates in the log has to go and
+        # find out which is lying — so it now states what it does.
+        print(f"[robusta] stock report (.csv, {len(days_sorted_asc[-5:])} recent days; "
+              f"tier-2 sweep on the last only)...")
         #
         # A previous edit here cut this to the latest day alone, on the reading
         # that "ICE only keeps one per day" and the four older probes were 16
@@ -1347,8 +1362,29 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
               f"(tier-2 sweep day: {sweep_day})\n")
 
 
-        print(f"[robusta] gradings + iss/recv + tenders + overview, {len(days_sorted_asc)} days...")
-        for d in days_sorted_asc:
+        # ONE day per run — the anchor (prior business day), which is the only
+        # day that can carry data we do not already have. The loop used to walk
+        # all 7 window days every run: 6 sources x 7 days = 42 requests at the
+        # 5s marketdata throttle, of which 14 day/source pairs were already
+        # stored on 2026-09-04 and re-requested anyway. Volume against
+        # /marketdata/publicdocs/ is what gets a runner IP blocked, so a request
+        # that cannot teach us anything is not free.
+        #
+        # The 7-day window (#609) existed because a day falling between runs was
+        # "lost for good". That is still a real risk and is still covered — but
+        # by fetching the days actually MISSING from the ledger, not by
+        # re-fetching six days that are already in hand. On a healthy day the
+        # missing list is empty and this is exactly one day, as intended.
+        _prev_fetched = set((_existing or {}).get("daily_fetched") or [])
+        anchor_day = days_sorted_asc[-1]
+        gap_days = [d for d in days_sorted_asc[:-1] if d.isoformat() not in _prev_fetched]
+        daily_days = gap_days + [anchor_day]
+        if gap_days:
+            print(f"[robusta] per-day sources: {anchor_day} + {len(gap_days)} never-fetched "
+                  f"gap day(s) ({', '.join(d.isoformat() for d in gap_days)})...")
+        else:
+            print(f"[robusta] per-day sources: {anchor_day} only (no gaps in the window)...")
+        for d in daily_days:
             for url, parsed in pull_gradings(d):
                 gradings_all.append({"date": d.isoformat(), "url": url, **parsed})
             for url, parsed in pull_grading_appeals(d):
@@ -1361,9 +1397,11 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
             if parsed: overview_all[d] = parsed
             _, parsed = pull_infested_warrant(d)
             if parsed: infested_all.append({"date": d.isoformat(), **parsed})
+        daily_fetched = sorted({d.isoformat() for d in daily_days} | _prev_fetched)
         print(f"  → gradings={len(gradings_all)}  appeals={len(appeals_all)}  "
               f"iss/recv={len(iss_recv_all)}  tenders={len(tenders_all)}  "
-              f"overview={len(overview_all)}  infested={len(infested_all)}\n")
+              f"overview={len(overview_all)}  infested={len(infested_all)}  "
+              f"({len(daily_days)} day(s) requested, {len(daily_days) * 6} GETs)\n")
 
     # ── Robusta monthly reports (iss/recv + age allowance) ──
     monthly_iss_recv: list[dict] = []
@@ -1428,6 +1466,10 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     robusta_json = {
         "generated_at":  now,
         "as_of":         robusta_latest_date.isoformat() if robusta_latest_date else None,
+        # Days whose per-day sources have actually been requested. Read back on
+        # the next run so a day already fetched is not fetched again, and a day
+        # genuinely missed still is.
+        "daily_fetched": daily_fetched,
         "snapshots":     robusta_snapshots,
         "latest_detail": {
             "stock_report":     robusta_latest_stock,
