@@ -12,7 +12,6 @@ from telegram.formatting import numbers as nb
 from telegram.formatting import sections as sec
 from telegram.formatting import tables as tb
 
-
 # ── indicators ───────────────────────────────────────────────────────────────
 
 def test_arrow_directions():
@@ -131,3 +130,21 @@ def test_a_market_block_fits_the_phone_width_budget():
     block = tb.table([["RC", "3,557", "▲+2", "RMX26"],
                       ["KC", "310.30", "▲+0.65", "KCZ26"]], align="lrrl")
     assert tb.width_of(block) <= tb.WIDTH_BUDGET
+
+
+def test_a_group_label_spans_and_does_not_widen_column_zero():
+    """"MANAGED MONEY" is a heading inside the block, not a column-0 value —
+    if it set that column's width every number below would be indented
+    behind it."""
+    block = tb.table([["Price", "310.30", "▼-2.10"],
+                      ["MANAGED MONEY"],
+                      ["Net", "+18,200", "▲+4,600"]], align="lrr")
+    rows = _body(block)
+    assert rows[1] == "MANAGED MONEY"
+    # Column 0 is sized by "Price"/"Net", so the value column starts early.
+    assert rows[0].index("310.30") < len("MANAGED MONEY")
+
+
+def test_blank_row_renders_as_a_blank_line():
+    rows = _body(tb.table([["a", "1"], [""], ["b", "2"]], align="lr"))
+    assert rows[1] == ""

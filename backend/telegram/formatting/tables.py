@@ -42,10 +42,21 @@ def table(rows: Sequence[Sequence[object]], align: str = "", gap: int = 2) -> st
     grid = [["—" if c is None else str(c) for c in row] for row in rows]
     ncols = max(len(r) for r in grid)
     grid = [r + [""] * (ncols - len(r)) for r in grid]
-    widths = [max(len(r[i]) for r in grid) for i in range(ncols)]
+
+    # A row with nothing past the first cell SPANS the table: a group label
+    # like "MANAGED MONEY" is not a column-0 value, and letting it set that
+    # column's width would indent every number in the block behind it.
+    def _spans(row: list[str]) -> bool:
+        return not any(c for c in row[1:])
+
+    body = [r for r in grid if not _spans(r)]
+    widths = [max((len(r[i]) for r in body), default=0) for i in range(ncols)]
 
     out = []
     for row in grid:
+        if _spans(row):
+            out.append(row[0])
+            continue
         cells = []
         for i, cell in enumerate(row):
             a = align[i] if i < len(align) else "l"
