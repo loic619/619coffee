@@ -84,6 +84,14 @@ SOURCES: list[dict] = [
         "id": "ico_direct",
         "kind": "files",
         "urls": [
+            # ICO's own page links these paths on ico.org and they 404 there
+            # (site migrated 2024→); the same paths on the new domain are tried.
+            "https://icocoffee.org/historical/1990%20onwards/Excel/3c%20-%20Indicator%20prices.xlsx",
+            "https://www.icocoffee.org/historical/1990%20onwards/Excel/3c%20-%20Indicator%20prices.xlsx",
+            "https://icocoffee.org/historical/1990%20onwards/Excel/3a%20-%20Prices%20paid%20to%20growers.xlsx",
+            "https://www.icocoffee.org/historical/1990%20onwards/Excel/3a%20-%20Prices%20paid%20to%20growers.xlsx",
+            "https://icocoffee.org/historical/1990%20onwards/Excel/1a%20-%20Total%20production.xlsx",
+            "https://ico.org/wp-content/uploads/historical/1990%20onwards/Excel/3c%20-%20Indicator%20prices.xlsx",
             "https://www.ico.org/historical/1990%20onwards/Excel/3a%20-%20Prices%20paid%20to%20growers.xlsx",
             "https://www.ico.org/historical/1990%20onwards/Excel/3b%20-%20Retail%20prices.xlsx",
             "https://www.ico.org/historical/1990%20onwards/Excel/2a%20-%20Prices%20paid%20to%20growers.xlsx",
