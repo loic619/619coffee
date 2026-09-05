@@ -28,124 +28,124 @@
   ],
   "kc_roll": "nearest contract, rolled 5 trading days before FND (KC) / 3 (RC), from contract_prices_archive.json",
   "soi_sign": "SOI multiplied by \u22121 so that positive = El Ni\u00f1o-like (matches ONI sign)",
-  "oni_provenance": "backend/seed/oni_history_full.json, 1980\u2192 (NOAA CPC via build_oni_history.py)"
+  "oni_provenance": "NOAA CPC oni.ascii.txt, 1950\u2192 (data/raw/noaa_oni_full)"
  },
- "n_tests_ccf": 12258,
+ "n_tests_ccf": 12366,
  "n_families": 150,
  "discovery_end": "2012-12",
- "episodes_collapsed": 21,
- "episodes_all": 27,
+ "episodes_collapsed": 34,
+ "episodes_all": 42,
  "episodes_in_tier1": {
-  "el_nino": 12,
-  "la_nina": 9
+  "el_nino": 17,
+  "la_nina": 12
  },
  "episodes_in_tier2": {
   "el_nino": 1,
   "la_nina": 0
  },
  "event_placebo_family_p": {
-  "el_nino": 0.1875,
-  "la_nina": 0.119
+  "el_nino": 0.109,
+  "la_nina": 0.351
  },
  "oos": {
   "diff3": {
    "discovery_end": "2012-12",
    "best_lag_discovery": 1,
-   "r_discovery": -0.19041757787029615,
-   "p_discovery": 0.0813629355156762,
-   "n_discovery": 395,
-   "r_validation": -0.06580440538156002,
-   "p_validation": 0.7017602939643259,
-   "n_validation": 163,
+   "r_discovery": -0.12699834838838484,
+   "p_discovery": 0.10536788365216565,
+   "n_discovery": 633,
+   "r_validation": -0.05788286697886473,
+   "p_validation": 0.7332544981807909,
+   "n_validation": 164,
    "same_sign": true,
-   "p_max_validation_if_searched": 0.714
+   "p_max_validation_if_searched": 0.754
   },
   "sa_diff1": {
    "discovery_end": "2012-12",
-   "best_lag_discovery": 0,
-   "r_discovery": -0.13262279777989636,
-   "p_discovery": 0.08734548742440262,
-   "n_discovery": 396,
-   "r_validation": -0.0506960604384602,
-   "p_validation": 0.6382193231350999,
-   "n_validation": 162,
+   "best_lag_discovery": 1,
+   "r_discovery": -0.08761298813787055,
+   "p_discovery": 0.1031615923814706,
+   "n_discovery": 635,
+   "r_validation": -0.028146407010370363,
+   "p_validation": 0.7879046859498069,
+   "n_validation": 164,
    "same_sign": true,
-   "p_max_validation_if_searched": 0.704
+   "p_max_validation_if_searched": 0.767
   },
   "level": {
    "discovery_end": "2012-12",
-   "best_lag_discovery": 17,
-   "r_discovery": -0.282580324131458,
-   "p_discovery": 0.04444458390580075,
-   "n_discovery": 379,
-   "r_validation": -0.0667958812684781,
-   "p_validation": 0.8026989599111705,
+   "best_lag_discovery": 20,
+   "r_discovery": -0.14314223713551666,
+   "p_discovery": 0.14991164627093023,
+   "n_discovery": 636,
+   "r_validation": 0.03783127648618981,
+   "p_validation": 0.8885551718977731,
    "n_validation": 164,
-   "same_sign": true,
-   "p_max_validation_if_searched": 0.558
+   "same_sign": false,
+   "p_max_validation_if_searched": 0.612
   }
  },
  "weather_regression": {
-  "n": 374,
-  "r2_without": 0.060501533486217896,
-  "r2_with": 0.10147527194318329,
-  "enso_coef_without": -0.016744978363671274,
-  "enso_p_without": 0.056796443358765186,
-  "enso_coef_with": -0.01413928635468563,
-  "enso_p_with": 0.18912936024024685,
-  "enso_coef_shrink_pct": 15.561035388608024
+  "n": 375,
+  "r2_without": 0.038079776080502725,
+  "r2_with": 0.10024576145830533,
+  "enso_coef_without": -0.012275612397196939,
+  "enso_p_without": 0.12531320928567302,
+  "enso_coef_with": -0.013611299378864478,
+  "enso_p_with": 0.20186732344808023,
+  "enso_coef_shrink_pct": -10.880817497728557
  },
  "weather_regression_tables": {
   "without_weather": {
    "coef": {
-    "const": 0.0199,
-    "oni_l1": -0.0167,
-    "arb_d_lag3": 0.1272
+    "const": 0.0205,
+    "oni_l1": -0.0123,
+    "arb_d_lag3": 0.0571
    },
    "se_hac": {
-    "const": 0.0119,
-    "oni_l1": 0.0088,
-    "arb_d_lag3": 0.0596
+    "const": 0.009,
+    "oni_l1": 0.008,
+    "arb_d_lag3": 0.0624
    },
    "t": {
-    "const": 1.667,
-    "oni_l1": -1.9049,
-    "arb_d_lag3": 2.1352
+    "const": 2.277,
+    "oni_l1": -1.5328,
+    "arb_d_lag3": 0.9153
    },
    "p": {
-    "const": 0.0955,
-    "oni_l1": 0.0568,
-    "arb_d_lag3": 0.0327
+    "const": 0.0228,
+    "oni_l1": 0.1253,
+    "arb_d_lag3": 0.36
    }
   },
   "with_weather": {
    "coef": {
-    "const": 0.011,
-    "oni_l1": -0.0141,
-    "arb_d_lag3": 0.1839,
-    "rain_br_l2": 0.025,
-    "rain_vn_l3": 0.0067
+    "const": 0.0111,
+    "oni_l1": -0.0136,
+    "arb_d_lag3": 0.1855,
+    "rain_br_l2": 0.0251,
+    "rain_vn_l3": 0.0063
    },
    "se_hac": {
     "const": 0.0139,
-    "oni_l1": 0.0108,
-    "arb_d_lag3": 0.057,
+    "oni_l1": 0.0107,
+    "arb_d_lag3": 0.0569,
     "rain_br_l2": 0.0119,
-    "rain_vn_l3": 0.0104
+    "rain_vn_l3": 0.0105
    },
    "t": {
-    "const": 0.7952,
-    "oni_l1": -1.3132,
-    "arb_d_lag3": 3.2242,
-    "rain_br_l2": 2.1002,
-    "rain_vn_l3": 0.6408
+    "const": 0.7944,
+    "oni_l1": -1.2762,
+    "arb_d_lag3": 3.2584,
+    "rain_br_l2": 2.1184,
+    "rain_vn_l3": 0.6059
    },
    "p": {
-    "const": 0.4265,
-    "oni_l1": 0.1891,
-    "arb_d_lag3": 0.0013,
-    "rain_br_l2": 0.0357,
-    "rain_vn_l3": 0.5216
+    "const": 0.427,
+    "oni_l1": 0.2019,
+    "arb_d_lag3": 0.0011,
+    "rain_br_l2": 0.0341,
+    "rain_vn_l3": 0.5446
    }
   }
  },
@@ -176,17 +176,16 @@
   1,
   2,
   3,
-  4,
   6,
   7,
   9,
-  10,
   11,
   12,
   13,
   15,
-  16,
+  17,
   18,
+  19,
   24
  ],
  "k_enso_k_br_k_vn": [

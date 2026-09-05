@@ -9,18 +9,24 @@ files. Keeping the two apart is what makes the study reproducible from raw.
 
 What is fetched, and why each one is on the list
 ------------------------------------------------
-ICO (approved)          The International Coffee Organization publishes, back to
-                        1990, monthly averages of the ICE New York and London
-                        futures and of its group indicator prices. That history
-                        is the whole reason Tier 1 exists: the repo's own price
-                        record is 5 years long and contains one ENSO episode per
-                        phase. ICO has reorganised its site more than once, so
-                        the file names are not guessed — the historical-data
-                        pages are crawled and every price/futures spreadsheet
-                        they link to is taken.
+ICO (approved)          The International Coffee Organization's historical data
+                        (group indicator prices, prices paid to growers,
+                        production, exports; 1990→). The historical-data pages
+                        are crawled and every price spreadsheet they link to is
+                        taken. OUTCOME 2026-09-05: the pages exist on ico.org
+                        and link `…/historical/1990 onwards/Excel/3c - Indicator
+                        prices.xlsx` etc., and every such link 404s on both
+                        ico.org and icocoffee.org (site migration). ICO lists no
+                        ICE-futures monthly file at all — those averages live
+                        only inside its monthly report PDFs. Kept on the list
+                        so a re-run picks the files up if ICO restores them.
 World Bank Pink Sheet   (approved) Monthly ICO Other Milds and Robustas
-                        indicator prices from 1960, USD/kg. A second, physical
-                        ex-dock variant of the arbitrage for robustness.
+                        indicator prices from 1960, USD/kg. THE Tier-1 series:
+                        it tracks the repo's own KC/RC futures premium at
+                        r = 0.99 (levels) / 0.93 (monthly changes) over their
+                        41-month overlap.
+NOAA ONI 1950→          The same index the repo seeds from 1980, from the same
+                        file, twenty years earlier.
 Stooq KC.F / RC.F       Daily continuous front-month history for both
                         exchanges. FALLBACK ONLY for the ICO futures files, and
                         the same source the production scraper already falls

@@ -173,7 +173,7 @@ def regime_lag_grid(x: pd.Series, y: pd.Series, regimes: pd.Series, lags: range 
     rows = []
     for reg in ("el_nino", "la_nina", "neutral"):
         mask = regimes == reg
-        xm = x.where(mask.reindex(x.index).fillna(False).astype(bool))
+        xm = x.where(mask.reindex(x.index, fill_value=False).astype(bool))
         for k in lags:
             a, b = st._align(xm, y, k)
             if len(a) < 20:
@@ -259,7 +259,7 @@ def run_market_regimes(inp: Inputs, arb_d3: pd.Series) -> pd.DataFrame:
         q = s.quantile([1 / 3, 2 / 3])
         for lab, mask in (("low tercile", s <= q.iloc[0]), ("mid tercile", (s > q.iloc[0]) & (s <= q.iloc[1])),
                           ("high tercile", s > q.iloc[1])):
-            y = arb_d3.where(mask.reindex(arb_d3.index).fillna(False).astype(bool))
+            y = arb_d3.where(mask.reindex(arb_d3.index, fill_value=False).astype(bool))
             c = st.ccf(inp.oni, y, POS_LAGS).dropna(subset=["pearson"])
             if c.empty:
                 continue

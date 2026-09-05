@@ -172,7 +172,7 @@ def _event_panel(ax, phase: str, name: str, title: str) -> None:
 def chart_05_06() -> None:
     for phase, fname, lab in (("el_nino", "05_event_study_el_nino.png", "El Niño"), ("la_nina", "06_event_study_la_nina.png", "La Niña")):
         fig, axes = plt.subplots(1, 2, figsize=(12, 4.6))
-        _event_panel(axes[0], phase, "tier1", f"{lab} onsets → NY–London (ICO indicator premium, 1980→)")
+        _event_panel(axes[0], phase, "tier1", f"{lab} onsets → NY–London (ICO indicator premium, 1960→)")
         _event_panel(axes[1], phase, "tier2", f"{lab} onsets → VN–BR physical (2023→, exploratory)")
         fig.tight_layout()
         fig.savefig(OUT_CHARTS / fname, dpi=160)
@@ -277,7 +277,7 @@ def chart_10() -> None:
     ax.set_xticklabels([f"+{h} m" for h in hs])
     ax.axhline(0, color=TXT2, lw=0.6)
     ax.set_ylabel("forward Δ log premium")
-    ax.set_title("What the NY–London premium did after a real-time ENSO signal (false alarms included), 1981→")
+    ax.set_title("What the NY–London premium did after a real-time ENSO signal (false alarms included)")
     ax.legend(loc="lower left", fontsize=7)
     fig.tight_layout()
     fig.savefig(OUT_CHARTS / "10_predictive_conditional.png", dpi=160)

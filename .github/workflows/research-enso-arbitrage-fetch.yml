@@ -2,13 +2,20 @@ name: "Z – Research: ENSO × arbitrage — fetch external series (manual)"
 
 # The ENSO × coffee-arbitrage study (backend/research/enso_arbitrage) needs a
 # price history longer than the five years this repo holds: ENSO turns every
-# three to seven years, and five years contains one episode per phase. ICO
-# publishes monthly NY/London futures and indicator prices back to 1990; the
-# World Bank Pink Sheet carries the indicators back to 1960.
+# three to seven years, and five years contains one episode per phase. The
+# World Bank Pink Sheet carries the ICO indicator prices back to 1960, NOAA the
+# ONI back to 1950. ICO's own historical spreadsheets are tried as well but
+# 404 on both of ICO's domains since its site migration (2026-09-05), and ICO
+# publishes no NY/London futures history as a file at all.
 #
 # The Claude Code sandbox has no outbound HTTPS, so the fetch runs here and
 # commits the raw files plus a manifest (url, time, size, sha256) to the branch
 # the workflow was dispatched on. The study never touches the network itself.
+#
+# A dispatch-only workflow is not registered with GitHub until it has existed
+# on the default branch (or run once from a push trigger). During the study it
+# carried a branch-scoped push trigger for that reason; once on main it is
+# dispatchable as is.
 #
 # Touches nothing the app renders. Isolated from the export pipeline.
 
@@ -19,14 +26,6 @@ on:
         description: "Space-separated source ids to fetch (blank = all)"
         required: false
         default: ""
-  # A dispatch-only workflow is not registered with GitHub until it exists on
-  # the default branch, so it cannot be dispatched from a study branch. This
-  # push trigger — this branch, this file — registers and runs it there
-  # without merging anything to main. The data commits it makes carry
-  # [skip ci] and touch data/, so they never re-trigger it.
-  push:
-    branches: ["claude/enso-arbitrage-study"]
-    paths: [".github/workflows/research-enso-arbitrage-fetch.yml"]
 
 concurrency:
   group: research-enso-arbitrage-fetch

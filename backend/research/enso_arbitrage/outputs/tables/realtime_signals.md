@@ -1,5 +1,26 @@
 | month | phase | rule | value | confirmed | lead_months_vs_official_onset |
 |---|---|---|---|---|---|
+| 1950-03 | la_nina | oni_1mo_strong | -1.320 | True | -2.000 |
+| 1951-09 | el_nino | oni_2mo | 0.710 | True | -3.000 |
+| 1953-07 | el_nino | oni_2mo | 0.770 | True | -3.000 |
+| 1954-10 | la_nina | oni_2mo | -0.830 | True | 5.000 |
+| 1955-06 | la_nina | oni_2mo | -0.760 | True | -3.000 |
+| 1956-10 | la_nina | oni_2mo | -0.520 | False |  |
+| 1957-07 | el_nino | oni_2mo | 0.720 | True | -3.000 |
+| 1959-03 | el_nino | oni_2mo | 0.600 | False |  |
+| 1963-10 | el_nino | oni_2mo | 1.090 | True | -3.000 |
+| 1964-08 | la_nina | oni_2mo | -0.660 | True | -3.000 |
+| 1965-09 | el_nino | oni_2mo | 1.100 | True | -3.000 |
+| 1968-04 | la_nina | oni_2mo | -0.730 | False |  |
+| 1969-01 | el_nino | oni_2mo | 0.660 | True | -3.000 |
+| 1969-12 | el_nino | oni_2mo | 0.710 | False |  |
+| 1970-10 | la_nina | oni_2mo | -0.720 | True | -3.000 |
+| 1972-09 | el_nino | oni_2mo | 1.000 | True | -3.000 |
+| 1973-08 | la_nina | oni_2mo | -0.800 | True | -3.000 |
+| 1975-01 | la_nina | oni_2mo | -0.880 | True | -3.000 |
+| 1976-12 | el_nino | oni_2mo | 0.790 | True | -3.000 |
+| 1978-01 | el_nino | oni_2mo | 0.840 | True | -3.000 |
+| 1980-02 | el_nino | oni_2mo | 0.640 | False |  |
 | 1981-11 | la_nina | nino34_4wk | -0.600 | False |  |
 | 1982-06 | el_nino | nino34_4wk | 0.600 | True | -1.000 |
 | 1982-08 | el_nino | nino34_4wk | 0.800 | True | -3.000 |

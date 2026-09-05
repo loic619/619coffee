@@ -1,8 +1,8 @@
 | regime_variable | regime | n_months | best_lag | r | p_bartlett | n_pairs |
 |---|---|---|---|---|---|---|
-| arabica price level (Other Milds, USD/t) | low tercile | 267 | 0 | -0.304 | 0.030 | 79 |
-| arabica price level (Other Milds, USD/t) | mid tercile | 266 | 24 | 0.187 | 0.089 | 232 |
-| arabica price level (Other Milds, USD/t) | high tercile | 267 | 20 | 0.168 | 0.173 | 225 |
+| arabica price level (Other Milds, USD/t) | low tercile | 267 | 22 | -0.224 | 0.013 | 264 |
+| arabica price level (Other Milds, USD/t) | mid tercile | 266 | 11 | -0.180 | 0.105 | 266 |
+| arabica price level (Other Milds, USD/t) | high tercile | 267 | 20 | 0.164 | 0.131 | 267 |
 | ICE certified robusta stocks (1993→) | low tercile | 69 | 18 | 0.545 | 0.028 | 69 |
 | ICE certified robusta stocks (1993→) | mid tercile | 69 | 13 | -0.265 | 0.110 | 69 |
 | ICE certified robusta stocks (1993→) | high tercile | 69 | 24 | -0.391 | 0.120 | 69 |
