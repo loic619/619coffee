@@ -24,11 +24,13 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from collections import defaultdict
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import requests
 
@@ -230,6 +232,35 @@ TOO_MANY_429S = 4              # bail-out after this many consecutive 429s
 # ~24 seconds of sweep, long enough to ride out a blip and short enough that a
 # real block costs seconds instead of two hours.
 TOO_MANY_403S = 8
+# ── What the 403 is, and what this file does NOT fix ─────────────────────────
+#
+# Evidence, 2026-09-05, two runs of this same code on the same day:
+#
+#   06:31  1.13, runner A   1,796 requests   27 x 200   0 x 403
+#   16:35  1.14, runner B      26 requests    0 x 200  26 x 403 (from request 1)
+#
+# One runner was served 1,796 times without a refusal; another was refused
+# before it had asked for anything. Same headers, same hosts, same code, hours
+# apart. That rules out our request volume, our pacing, our headers and the URL
+# shapes — a block we had earned would have appeared partway through the
+# 1,796-request run, and it did not. The refusal is `text/html` where a missing
+# file answers 404, i.e. a WAF page rather than the file server.
+#
+# So: GitHub-hosted runner IP -> ICE/WAF -> 403. What is NOT established is the
+# WAF vendor or why that IP is listed; nothing here captures enough to say, and
+# _record_block_signature exists to close that gap on the next occurrence.
+#
+# Everything in this module is therefore about SURVIVING the block well —
+# detect it in 8 requests, keep the data, stop billing, alert once, recover on
+# its own. None of it stops ICE refusing a runner. The candidate fixes for that
+# are all infrastructure and none belong in this file:
+#
+#   * a fixed egress IP (self-hosted runner, or a proxy with a stable address)
+#   * asking ICE to allowlist that address
+#
+# Do not attempt to fix it by tuning headers, user agents or the request
+# interval. The natural experiment above already says those are not the cause,
+# and each attempt costs a run to disprove.
 RETRY_AFTER_MAX_S = 90         # cap any Retry-After we'll wait for
 RETRY_AFTER_GIVE_UP_S = 600    # if Akamai asks > this, abort the rest of the run
 # `aborted` is RUN-wide and only 429 sets it: rate limiting is cumulative, so
@@ -384,7 +415,41 @@ _RUN_STATS: dict = {
     # missing snapshot; a skipped robusta stock report is a missing session.
     # `sections` is the denominator that makes "2 of 5 refused" sayable.
     "blocked_sections": [], "sections": 0,
+    # First 403's sanitised fingerprint. Every diagnosis of this block so far
+    # has had to infer the mechanism from status codes alone, because nothing
+    # kept what the refusal actually SAID — we knew only "403, text/html".
+    # A vendor name or a reference id in the body is the difference between
+    # "some WAF" and a specific rule someone can ask ICE about.
+    #
+    # Deliberately narrow: a fixed allowlist of response headers, and body text
+    # with tags stripped and capped. Request headers are never recorded (ours
+    # would be echoed back), Set-Cookie is never recorded, and the cap keeps a
+    # hostile body from becoming a log-injection surface.
+    "block_signature": None,
 }
+
+# Response headers safe to keep from a refusal. Everything else — Set-Cookie
+# above all — is dropped rather than filtered, so a header added by a future
+# WAF cannot leak by default.
+_SIGNATURE_HEADERS = ("Server", "Content-Type", "X-Reference-Error", "X-Akamai-Request-ID")
+_SIGNATURE_BODY_CHARS = 200
+
+
+def _record_block_signature(r) -> None:
+    """Keep one sanitised fingerprint of the first refusal in a run."""
+    if _RUN_STATS["block_signature"] is not None:
+        return
+    try:
+        body = re.sub(r"<[^>]+>", " ", r.text or "")
+        body = re.sub(r"\s+", " ", body).strip()[:_SIGNATURE_BODY_CHARS]
+    except Exception:  # noqa: BLE001 — a signature must never break a run
+        body = ""
+    _RUN_STATS["block_signature"] = {
+        "status": r.status_code,
+        "url_path": urlsplit(r.url).path if getattr(r, "url", None) else None,
+        "headers": {k: r.headers.get(k) for k in _SIGNATURE_HEADERS if r.headers.get(k)},
+        "body_excerpt": body,
+    }
 
 # The section being fetched right now. A 403 storm skips the rest of it, and
 # this is what names the hole in the log, the Telegram line, the research page
@@ -489,43 +554,133 @@ def _telegram(text: str, *, tag: str) -> None:
         print(f"[{tag}] telegram send failed: {e}")
 
 
-def _notify_blocked_sections() -> None:
-    """Announce every section a 403 storm skipped, on a run that still exits 0.
+# ── Edge-triggered block notification ────────────────────────────────────────
+# Same model as data/alert_state.json (threshold_alerts.py): a condition fires
+# ONCE when it turns true, then disarms, and re-arms only after it has been
+# observed false again. Run 33978343636 sent the identical block message three
+# times in fourteen minutes; a block that persists for a day would have sent it
+# on every run. The message is worth reading the first time and is noise after.
+#
+# State is committed so it survives the runner, exactly like alert_state.json.
+# parents[4] is the repo root — same anchor as OUT_DIR above. parents[3] is
+# backend/, which quietly created backend/data/ instead.
+BLOCK_STATE_PATH = Path(__file__).resolve().parents[4] / "data" / "ice_block_state.json"
 
-    Skipping is the right call — one refused source must not throw away the
-    nine that served — but it leaves a hole that nothing else says out loud.
-    The workflow's own notifier is `if: failure()`; the data-map run record
-    reads GitHub's conclusion; the research page reads run outcomes. All three
-    look at a skipped section and see a green run, which is exactly the shape
-    that has cost this project data three times over: reports success while
-    collecting nothing.
 
-    So the run stays green and gets loud instead. A wholly-refused run gets
-    this AND the workflow's failure line: that one says look, this one says at
-    what.
+def _run_label() -> str:
+    """Which job is speaking — the workflow's own name when GitHub supplies it.
+
+    The message used to say "ICE certified stocks" whatever invoked it, so a
+    block met by 1.14 (monthly reports) was reported under 1.13's name. That is
+    why run 33978343636 was read as three runs of the wrong workflow.
+    """
+    return os.environ.get("GITHUB_WORKFLOW") or "ICE certified stocks"
+
+
+def _block_key(*, only_monthly: bool, skip_monthly: bool) -> str:
+    """State key for the feed set this run covers, independent of the env."""
+    if only_monthly:
+        return "ice_monthly"
+    return "ice_daily" if skip_monthly else "ice_full"
+
+
+def _load_block_state() -> dict:
+    try:
+        return json.loads(BLOCK_STATE_PATH.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001 — absent/corrupt state must not stop a run
+        return {}
+
+
+def _save_block_state(state: dict) -> None:
+    try:
+        BLOCK_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        BLOCK_STATE_PATH.write_text(
+            json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    except Exception as e:  # noqa: BLE001 — a notification must not fail a run
+        print(f"[ice] could not write block state: {e}")
+
+
+def _block_signature(blocked: list[dict], wholly_refused: bool) -> str:
+    """What makes two blocks "the same event".
+
+    The set of refused sections, plus whether anything at all got through. A
+    different section going dark, or a partial block becoming a total one, is a
+    materially different failure and alerts again.
+    """
+    return "|".join(sorted(b["section"] for b in blocked)) + \
+           ("|all" if wholly_refused else "|partial")
+
+
+def _notify_blocked_sections(*, only_monthly: bool = False,
+                             skip_monthly: bool = False) -> bool:
+    """Announce a 403 block once, and announce the recovery.
+
+    Skipping a refused section is the right call — one refused source must not
+    throw away the nine that served — but it leaves a hole that nothing else
+    says out loud. The workflow's own notifier is `if: failure()`; the data-map
+    run record reads GitHub's conclusion; the research page reads run outcomes.
+    All three look at a skipped section and see a green run, which is exactly
+    the shape that has cost this project data three times over: reports success
+    while collecting nothing.
+
+    Returns True when this run met a block, so the caller can tell the workflow
+    not to stack a second, contradictory "failed" line on top of this one.
     """
     blocked = _RUN_STATS["blocked_sections"]
+    key = _block_key(only_monthly=only_monthly, skip_monthly=skip_monthly)
+    state = _load_block_state()
+    prev = state.get(key) or {"armed": True, "signature": None, "last_fired": None}
+    now = datetime.now(UTC).isoformat(timespec="seconds")
+
     if not blocked:
-        return
+        # Recovery, but only on evidence. A run that fetched nothing because it
+        # already held everything has not shown that ICE is serving again, and
+        # saying "RECOVERED" off the back of it would be a guess.
+        if not prev.get("armed") and _RUN_STATS["ok_200"] > 0:
+            _telegram(
+                f"✅ ICE RECOVERED — {_run_label()}\n"
+                f"{_RUN_STATS['ok_200']:,} of {_RUN_STATS['requests']:,} requests served. "
+                f"New data captured.",
+                tag="ice")
+            print("[ice] RECOVERED — feed serving again")
+            state[key] = {"armed": True, "signature": None,
+                          "last_fired": prev.get("last_fired"), "recovered_at": now}
+            _save_block_state(state)
+        return False
+
+    wholly_refused = _RUN_STATS["ok_200"] == 0 and _RUN_STATS["requests"] > 0
     total = _RUN_STATS["sections"] or len(blocked)
-    lines = [
-        "\u26a0\ufe0f ICE certified stocks \u2014 403 block, sections skipped",
-        f"{len(blocked)} of {total} sections refused; the run kept the rest.",
-    ]
-    for b in blocked:
-        lines.append(
-            f"\u00b7 {b['section']} \u2014 blocked after {b['after_403s']} x 403, "
-            f"{b['skipped_requests']:,} further request(s) skipped")
-    lines.append(
-        f"Run totals: {_RUN_STATS['requests']:,} requests, {_RUN_STATS['ok_200']:,} x 200, "
-        f"{_RUN_STATS['http_403']:,} x 403.")
-    lines.append("Green run, incomplete data. A 403 is a per-IP block, not a pacing "
-                 "problem — the next scheduled run draws a different runner.")
-    text = "\n".join(lines)
+    sig = _block_signature(blocked, wholly_refused)
+
     print(f"[ice] 403 BLOCK — skipped {len(blocked)} of {total} sections: "
           f"{', '.join(b['section'] for b in blocked)}")
-    _telegram(text, tag="ice")
 
+    # Armed, or a materially different failure than the one already reported.
+    if prev.get("armed") or prev.get("signature") != sig:
+        if wholly_refused:
+            lines = [f"\U0001f6ab ICE BLOCKED — {_run_label()}",
+                     "Every request refused. No new data was captured."]
+        else:
+            lines = [f"⚠️ ICE DEGRADED — {_run_label()}",
+                     f"{len(blocked)} of {total} sections refused; the run kept the rest."]
+        for b in blocked:
+            lines.append(
+                f"· {b['section']} — blocked after {b['after_403s']} x 403, "
+                f"{b['skipped_requests']:,} further request(s) skipped")
+        lines.append(
+            f"Run totals: {_RUN_STATS['requests']:,} requests, {_RUN_STATS['ok_200']:,} x 200, "
+            f"{_RUN_STATS['http_403']:,} x 403.")
+        lines.append("Existing data is preserved and left explicitly stale. A 403 is a "
+                     "per-IP block on the runner, not a pacing problem — the next "
+                     "scheduled run draws a different runner. Further identical blocks "
+                     "stay quiet until this one clears.")
+        _telegram("\n".join(lines), tag="ice")
+        state[key] = {"armed": False, "signature": sig, "last_fired": now}
+        _save_block_state(state)
+    else:
+        print(f"[ice] identical block already reported at {prev.get('last_fired')} "
+              f"— not sending again")
+    return True
 
 # The activity panel joins on the YAML basename, not the display title: a
 # title is mutable and the Actions API caches it per run.
@@ -586,6 +741,9 @@ def _record_run_stats(outcome: str, sweep_day: date | None) -> None:
         "aborted_by_403": bool(_RUN_STATS["aborted_by_403"]),
         "sections": _RUN_STATS["sections"],
         "blocked_sections": list(_RUN_STATS["blocked_sections"]),
+        # Sanitised fingerprint of the first refusal — see
+        # _record_block_signature. Absent on a run that met no 403.
+        "block_signature": _RUN_STATS["block_signature"],
         "sweep_gets": _RUN_STATS["sweep_gets"],
         "resumed_from": _RUN_STATS["resumed_from"],
         "requests": _RUN_STATS["requests"],
@@ -795,6 +953,7 @@ def _http_get(url: str, *, source: str | None = None, _retry: bool = False) -> r
             elif r.status_code == 403:
                 _RUN_STATS["http_403"] += 1
                 _RATE_STATE["consecutive_403s"] += 1
+                _record_block_signature(r)
                 if _RATE_STATE["consecutive_403s"] >= TOO_MANY_403S:
                     if not _RATE_STATE["section_blocked"]:
                         print(f"  ! {TOO_MANY_403S} consecutive 403s — this source is being "
@@ -1242,6 +1401,46 @@ def recompute_robusta_cohort_outflow(data: dict) -> dict:
     return data
 
 
+# ── "do we already hold this period?" ────────────────────────────────────────
+# These answer one narrow question: is the SPECIFIC target period already in
+# the published JSON? They are not a "the file is old, stop looking" switch.
+#
+# The monthly job exists because ICE publishes late and irregularly — the
+# iss/recv file has shown up mid-month — so the run must keep asking for any
+# period it does not hold, however far back. What it must stop doing is asking
+# again for a period it parsed weeks ago. _target_month() rolls forward on the
+# 1st of every month, so the arabica check below starts failing again the
+# moment a new report is due, and the fetch resumes untouched.
+
+
+def _target_month() -> str:
+    """The period a monthly run is chasing: the previous calendar month."""
+    first = date.today().replace(day=1)
+    return (first - timedelta(days=1)).strftime("%Y-%m")
+
+
+def _have_ageing_for(month_key: str) -> bool:
+    """True when the stored arabica ageing report is already that month.
+
+    One slot, holding the most recent report — so "already captured" means the
+    slot's own month_end matches. An older report in the slot is exactly the
+    case we still fetch for.
+    """
+    doc = _load_existing_json(OUT_DIR / "certified_stocks_arabica.json") or {}
+    return ((doc.get("ageing_report") or {}).get("month_end") or "")[:7] == month_key
+
+
+def _have_monthly(feed: str, key_field: str, month_key: str) -> bool:
+    """True when the robusta monthly `feed` already carries `month_key`.
+
+    A list, so hold is per-period: holding 2026-07 says nothing about 2026-08,
+    and the walk-back still requests every month that is missing.
+    """
+    doc = _load_existing_json(OUT_DIR / "certified_stocks_robusta.json") or {}
+    rows = (doc.get("monthly") or {}).get(feed) or []
+    return any((r.get(key_field) or "")[:7] == month_key for r in rows)
+
+
 def _merge_robusta(new: dict, old: dict) -> dict:
     # daily_fetched: union. This is the ledger of days whose per-day sources
     # (gradings, appeals, iss/recv, tenders, overview, infested) have actually
@@ -1406,7 +1605,24 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
     # Walk back up to 2 months in case the latest isn't published yet.
     arabica_ageing: dict | None = None
     arabica_ageing_url: str | None = None
-    if not skip_monthly:
+    if not skip_monthly and _have_ageing_for(_target_month()):
+        # Already holding the TARGET period — not "we have some old report, so
+        # never look again". The distinction is the whole point of this job:
+        # next month _target_month() moves on, this check fails, and the fetch
+        # runs exactly as before. Skipping here only ever removes a request for
+        # a period already sitting in the JSON.
+        print(f"[arabica] ageing report {_target_month()} already captured — not re-fetching")
+    elif not skip_monthly:
+        # ONE section for the whole walk-back, not one per month.
+        #
+        # This used to sit inside the loop below, which reset consecutive_403s
+        # on every iteration — and since a month is only 6 candidates against a
+        # TOO_MANY_403S of 8, the breaker could never trip here. Run
+        # 33978343636 spent 18 refusals proving a block it should have called
+        # after 8, three times over. It also counted 3 sections where there is
+        # one, which is why that run's Telegram said "1 of 4" for a job with
+        # two fetch sections.
+        _begin_section("arabica ageing report")
         for back in (0, 1, 2):
             # Cursor from the REAL calendar date, not the business-day anchor:
             # when the 1st-3rd fall on Sat-Mon (Aug 2026), the anchor stays in
@@ -1415,7 +1631,6 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
             for _ in range(back):
                 anchor = anchor.replace(day=1) - timedelta(days=1)   # one more month back
             candidates = F.month_end_publish_candidates(anchor.year, anchor.month)
-            _begin_section("arabica ageing report")
             print(f"[arabica] ageing report for {anchor.year}-{anchor.month:02d} "
                   f"(trying {len(candidates)} candidate dates)...")
             for cand in candidates:
@@ -1563,17 +1778,43 @@ def run(days_back: int = 30, write: bool = True, merge: bool = True,
         print("[robusta] monthly: iss/recv + age allowance (last 3 month-ends)...")
         # Walk back from current month's end through last 3 month-ends.
         # Real calendar date, not the business-day anchor (see arabica note).
+        #
+        # Each month-end is skipped only when THAT month is already in the
+        # JSON. The walk-back still runs, so a month we do not hold is still
+        # requested however old it is, and the newest month-end is requested on
+        # every run until it lands — which is what the 5th/8th/11th crons are
+        # for, since the iss/recv file has appeared as late as mid-month. What
+        # goes away is re-downloading a period we already parsed. Measured
+        # against the 2026-09-05 state of the JSONs, --only-monthly issues:
+        #
+        #   ICE serving (404s, nothing new published)   48 -> 10 requests
+        #   ICE refusing (all 403)                      26 ->  8 requests
+        #
+        # The 10 that remain are the iss/recv candidates for 2026-08 and
+        # 2026-06 — the two months genuinely absent from the file. Every
+        # age_allowance month and the whole arabica section are held, so they
+        # are not asked for at all.
         cursor = date.today().replace(day=1) - timedelta(days=1)   # calendar last day of prev month
+        skipped_months: list[str] = []
         for _ in range(3):
-            _, _, parsed = _pull_month_end(pull_iss_recv_monthly, cursor)
-            if parsed:
-                monthly_iss_recv.append(parsed)
-            me, _, parsed = _pull_month_end(pull_age_allowance, cursor)
-            if parsed:
-                # Store the resolved (last-business-day) date so a weekend
-                # month-end like May 31 → May 29 keeps the report's real file date.
-                age_allowance_list.append({"month_end": me.isoformat(), **parsed})
+            key = cursor.strftime("%Y-%m")
+            want_iss = not _have_monthly("iss_recv_monthly", "month", key)
+            want_age = not _have_monthly("age_allowance", "month_end", key)
+            if not want_iss and not want_age:
+                skipped_months.append(key)
+            if want_iss:
+                _, _, parsed = _pull_month_end(pull_iss_recv_monthly, cursor)
+                if parsed:
+                    monthly_iss_recv.append(parsed)
+            if want_age:
+                me, _, parsed = _pull_month_end(pull_age_allowance, cursor)
+                if parsed:
+                    # Store the resolved (last-business-day) date so a weekend
+                    # month-end like May 31 → May 29 keeps the report's real file date.
+                    age_allowance_list.append({"month_end": me.isoformat(), **parsed})
             cursor = (cursor.replace(day=1) - timedelta(days=1))
+        if skipped_months:
+            print(f"  → already captured, not re-fetched: {', '.join(skipped_months)}")
         print(f"  → monthly_iss_recv={len(monthly_iss_recv)}  age_allowance={len(age_allowance_list)}\n")
 
     # ── Build robusta snapshots (one per business day with any data) ──
@@ -1816,7 +2057,7 @@ def _cli() -> None:
     # the same word as complete, so the skip is announced everywhere a person
     # looks: Telegram now, the ICE research page from ice_run_stats.json, and
     # the data-map run record from run_degradations.json.
-    _notify_blocked_sections()
+    _notify_blocked_sections(only_monthly=args.only_monthly, skip_monthly=args.skip_monthly)
     _publish_degradation()
     # Last, so the telemetry above is printed and recorded before we blow up.
     # Exit 3 rather than 1: the caller retries a transient fault, and a feed

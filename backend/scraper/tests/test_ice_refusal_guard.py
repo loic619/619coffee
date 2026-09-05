@@ -177,8 +177,13 @@ def test_429_abort_stays_run_wide():
 # to carry a record of its own.
 
 @pytest.fixture
-def blocked_run():
+def blocked_run(tmp_path, monkeypatch):
     """A run that fetched one section, then had two refused."""
+    # The block alert is edge-triggered against a committed state file. Point
+    # it at tmp_path: without this the suite writes data/ice_block_state.json
+    # into the working tree and the SECOND test to notify is suppressed by the
+    # first one's state — order-dependent, and it dirties the repo.
+    monkeypatch.setattr(o, "BLOCK_STATE_PATH", tmp_path / "ice_block_state.json")
     keep_stats, keep_rate = dict(o._RUN_STATS), dict(o._RATE_STATE)
     o._RUN_STATS.update(requests=0, ok_200=0, http_403=0, http_429=0, http_404=0,
                         aborted_by_403=0, sections=0, blocked_sections=[],
@@ -230,11 +235,16 @@ def test_telegram_names_the_sections(blocked_run, monkeypatch):
     o._notify_blocked_sections()
     assert len(sent) == 1
     body = sent[0]
+    # 18 of 1,024 requests served, so this is a partial block, not a total one.
+    assert "ICE DEGRADED" in body
     assert "2 of 3 sections refused" in body
     assert "robusta stock report" in body and "robusta per-day sources" in body
     assert "412" in body
     # The remedy has to be right, or the reader tunes the interval again.
-    assert "per-IP block, not a pacing problem" in body
+    # Matched as two facts rather than one phrase: the wording gained "on the
+    # runner" when the message learned to name its own workflow, and pinning
+    # the sentence verbatim made a clarification look like a regression.
+    assert "per-IP block" in body and "not a pacing problem" in body
 
 
 def test_a_clean_run_says_nothing(monkeypatch):
