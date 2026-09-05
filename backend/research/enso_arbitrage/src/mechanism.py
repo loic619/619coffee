@@ -85,7 +85,9 @@ def enso_vs_weather_regression(arb_d: pd.Series, oni: pd.Series, rain_br: pd.Ser
         o.index = o.index + k
         return o.rename(name)
 
-    X0 = pd.concat([lagged(oni, k_enso, f"oni_l{k_enso}"), arb_d.shift(1).rename("arb_d_lag1")], axis=1)
+    # arb_d is a 3-month change: its lag-1 overlaps it by two months and would
+    # carry a mechanical 0.7 coefficient; lag 3 is the first non-overlapping one
+    X0 = pd.concat([lagged(oni, k_enso, f"oni_l{k_enso}"), arb_d.shift(3).rename("arb_d_lag3")], axis=1)
     X1 = pd.concat([X0, lagged(rain_br, k_br, f"rain_br_l{k_br}"), lagged(rain_vn, k_vn, f"rain_vn_l{k_vn}")], axis=1)
     if extra is not None:
         X0 = pd.concat([X0, extra], axis=1)

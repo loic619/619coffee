@@ -172,7 +172,7 @@ def regime_lag_grid(x: pd.Series, y: pd.Series, regimes: pd.Series, lags: range 
     rows = []
     for reg in ("el_nino", "la_nina", "neutral"):
         mask = regimes == reg
-        xm = x.where(mask.reindex(x.index).fillna(False))
+        xm = x.where(mask.reindex(x.index).fillna(False).astype(bool))
         for k in lags:
             a, b = st._align(xm, y, k)
             if len(a) < 20:
@@ -200,12 +200,17 @@ def run_regressions(inp: Inputs, arb: pd.Series, lags_to_test: list[int]) -> pd.
     rows = []
     for k in lags_to_test:
         base = pd.concat([_lag(inp.oni, k, "oni"), arb.diff(3).shift(3).rename("d3_lag3")], axis=1)
-        ctrl = pd.concat([base, inp.stocks["d_log_rob_12"].rename("dlog_rob_stocks_12"),
-                          inp.stocks["d_log_ara_12"].rename("dlog_ara_stocks_12")], axis=1)
+        ctrl_rob = pd.concat([base, inp.stocks["d_log_rob_12"].rename("dlog_rob_stocks_12")], axis=1)
+        ctrl = pd.concat([ctrl_rob, inp.stocks["d_log_ara_12"].rename("dlog_ara_stocks_12")], axis=1)
         asym = pd.concat([_lag(inp.oni.clip(lower=0), k, "oni_pos"), _lag(inp.oni.clip(upper=0), k, "oni_neg"),
                           arb.diff(3).shift(3).rename("d3_lag3")], axis=1)
+        # the same sample as the control spec, so a change in the ENSO coefficient
+        # is the control and not the years
+        base_2010 = base[base.index >= pd.Period("2010-08", freq="M")]
         for spec, X in (("oni + lagged Δ + month dummies", pd.concat([base, month_d], axis=1)),
-                        ("… + Δlog cert stocks (rob 1993→, ara 2010→)", pd.concat([ctrl, month_d], axis=1)),
+                        ("… + Δlog cert robusta stocks (1993→, same sample)", pd.concat([ctrl_rob, month_d], axis=1)),
+                        ("oni alone, 2010-08→ sample", pd.concat([base_2010, month_d], axis=1)),
+                        ("… + Δlog cert stocks rob & ara (2010-08→)", pd.concat([ctrl, month_d], axis=1)),
                         ("ONI⁺ / ONI⁻ (asymmetry) + lagged Δ + month dummies", pd.concat([asym, month_d], axis=1))):
             res = st.newey_west_ols(y, X)
             if res is None:
@@ -253,7 +258,7 @@ def run_market_regimes(inp: Inputs, arb_d3: pd.Series) -> pd.DataFrame:
         q = s.quantile([1 / 3, 2 / 3])
         for lab, mask in (("low tercile", s <= q.iloc[0]), ("mid tercile", (s > q.iloc[0]) & (s <= q.iloc[1])),
                           ("high tercile", s > q.iloc[1])):
-            y = arb_d3.where(mask.reindex(arb_d3.index).fillna(False))
+            y = arb_d3.where(mask.reindex(arb_d3.index).fillna(False).astype(bool))
             c = st.ccf(inp.oni, y, POS_LAGS).dropna(subset=["pearson"])
             if c.empty:
                 continue
@@ -266,11 +271,21 @@ def run_market_regimes(inp: Inputs, arb_d3: pd.Series) -> pd.DataFrame:
 
 # ── predictive ────────────────────────────────────────────────────────────────
 
+def _decluster(months: list[pd.Period], min_gap: int = 6) -> list[pd.Period]:
+    """Keep the first signal of a cluster: two flags six months apart are one
+    developing event seen twice, and counting both overstates n."""
+    out: list[pd.Period] = []
+    for m in sorted(months):
+        if not out or (m - out[-1]).n >= min_gap:
+            out.append(m)
+    return out
+
+
 def run_predictive(inp: Inputs, arb: pd.Series, label: str) -> pd.DataFrame:
     neutral = [p for p, v in inp.regimes.items() if v == "neutral"]
     rows = []
     for phase in ("el_nino", "la_nina"):
-        sig = [m for m in inp.signals.loc[inp.signals["phase"] == phase, "month"] if m in arb.index]
+        sig = _decluster([m for m in inp.signals.loc[inp.signals["phase"] == phase, "month"] if m in arb.index])
         off = [e["onset"] for e in inp.episodes if e["phase"] == phase and e["onset"] in arb.index]
         for kind, months in (("real-time signal (incl. false alarms)", sig), ("official onset (retrospective)", off)):
             for sample, mm in (("all", months), *[(n, m) for n, m in zip(("discovery ≤2012", "validation 2013→"),
@@ -288,8 +303,10 @@ def run_predictive(inp: Inputs, arb: pd.Series, label: str) -> pd.DataFrame:
 
 def lag_response_row(phase: str, arb_name: str, ev: dict, fam: pd.DataFrame, price_level: float) -> dict:
     e = ev[phase]
-    s = e["summary"].dropna(subset=["mean"]) if "mean" in e["summary"] else e["summary"]
     row = {"event": phase, "arbitrage": arb_name, "n_events": e["n"]}
+    if "mean" not in e["summary"].columns:
+        return row                      # no onset of this phase inside the series
+    s = e["summary"].dropna(subset=["mean"])
     if s.empty:
         return row
     j = s["mean"].abs().idxmax()

@@ -130,8 +130,8 @@ def _ccf_panel(ax, c: pd.DataFrame, title: str) -> None:
 
 def chart_03_04() -> None:
     c = _p("ccf_all_lags.csv")
-    for n, arb, fname in ((3, "ICO indicator premium (1960→)", "03_ccf_enso_ny_london.png"),
-                          (4, "VN–BR physical premium B1", "04_ccf_enso_vn_br.png")):
+    for arb, fname in (("ICO indicator premium (1960→)", "03_ccf_enso_ny_london.png"),
+                       ("VN–BR physical premium B1", "04_ccf_enso_vn_br.png")):
         fig, axes = plt.subplots(2, 1, figsize=(11, 7))
         for ax, tr, lab in zip(axes, ("level", "diff3"), ("LEVELS — reported, flagged: two persistent series", "3-MONTH CHANGES — the test that counts")):
             sub = c[(c["arbitrage"] == arb) & (c["index"] == "ONI") & (c["transform"] == tr)]

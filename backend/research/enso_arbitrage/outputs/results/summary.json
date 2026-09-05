@@ -1,0 +1,201 @@
+{
+ "tier1": {
+  "file": "data/raw/worldbank_pink_sheet_current/CMO-Historical-Data-Monthly.xlsx",
+  "sheet": "Monthly Prices",
+  "columns": {
+   "arabica": "Coffee, Arabica",
+   "robusta": "Coffee, Robusta"
+  },
+  "units": "$/kg \u2192 USD/t",
+  "first": "1960-01",
+  "last": "2026-08",
+  "n": 800
+ },
+ "tier2": {
+  "months": 37,
+  "first": "2023-06",
+  "last": "2026-08"
+ },
+ "notes": {
+  "vietnam_provenance": "origin_prices_history.json (giacaphe, 2021-05 \u2192)",
+  "vietnam_exclusions": [
+   {
+    "date": "2023-01-02",
+    "price": 69400.0,
+    "local_median": 41000.0,
+    "rule": "> 30% off 15-obs local median"
+   }
+  ],
+  "kc_roll": "nearest contract, rolled 5 trading days before FND (KC) / 3 (RC), from contract_prices_archive.json",
+  "soi_sign": "SOI multiplied by \u22121 so that positive = El Ni\u00f1o-like (matches ONI sign)"
+ },
+ "n_tests_ccf": 12258,
+ "n_families": 150,
+ "discovery_end": "2012-12",
+ "episodes_collapsed": 21,
+ "episodes_all": 27,
+ "episodes_in_tier1": {
+  "el_nino": 12,
+  "la_nina": 9
+ },
+ "episodes_in_tier2": {
+  "el_nino": 1,
+  "la_nina": 0
+ },
+ "event_placebo_family_p": {
+  "el_nino": 0.1875,
+  "la_nina": 0.119
+ },
+ "oos": {
+  "diff3": {
+   "discovery_end": "2012-12",
+   "best_lag_discovery": 1,
+   "r_discovery": -0.19041757787029615,
+   "p_discovery": 0.0813629355156762,
+   "n_discovery": 395,
+   "r_validation": -0.06580440538156002,
+   "p_validation": 0.7017602939643259,
+   "n_validation": 163,
+   "same_sign": true,
+   "p_max_validation_if_searched": 0.714
+  },
+  "sa_diff1": {
+   "discovery_end": "2012-12",
+   "best_lag_discovery": 0,
+   "r_discovery": -0.13262279777989636,
+   "p_discovery": 0.08734548742440262,
+   "n_discovery": 396,
+   "r_validation": -0.0506960604384602,
+   "p_validation": 0.6382193231350999,
+   "n_validation": 162,
+   "same_sign": true,
+   "p_max_validation_if_searched": 0.704
+  },
+  "level": {
+   "discovery_end": "2012-12",
+   "best_lag_discovery": 17,
+   "r_discovery": -0.282580324131458,
+   "p_discovery": 0.04444458390580075,
+   "n_discovery": 379,
+   "r_validation": -0.0667958812684781,
+   "p_validation": 0.8026989599111705,
+   "n_validation": 164,
+   "same_sign": true,
+   "p_max_validation_if_searched": 0.558
+  }
+ },
+ "weather_regression": {
+  "n": 374,
+  "r2_without": 0.5879584417009794,
+  "r2_with": 0.6039638913385552,
+  "enso_coef_without": -0.004912745223744881,
+  "enso_p_without": 0.17359326450049606,
+  "enso_coef_with": -0.00575263021407329,
+  "enso_p_with": 0.26336800395439963,
+  "enso_coef_shrink_pct": -17.09604207173161
+ },
+ "weather_regression_tables": {
+  "without_weather": {
+   "coef": {
+    "const": 0.0058,
+    "oni_l1": -0.0049,
+    "arb_d_lag1": 0.7532
+   },
+   "se_hac": {
+    "const": 0.0097,
+    "oni_l1": 0.0036,
+    "arb_d_lag1": 0.0218
+   },
+   "t": {
+    "const": 0.6008,
+    "oni_l1": -1.3607,
+    "arb_d_lag1": 34.5896
+   },
+   "p": {
+    "const": 0.548,
+    "oni_l1": 0.1736,
+    "arb_d_lag1": 0.0
+   }
+  },
+  "with_weather": {
+   "coef": {
+    "const": -0.0067,
+    "oni_l1": -0.0058,
+    "arb_d_lag1": 0.7535,
+    "rain_br_l2": 0.0099,
+    "rain_vn_l3": 0.0026
+   },
+   "se_hac": {
+    "const": 0.01,
+    "oni_l1": 0.0051,
+    "arb_d_lag1": 0.0225,
+    "rain_br_l2": 0.0059,
+    "rain_vn_l3": 0.005
+   },
+   "t": {
+    "const": -0.6717,
+    "oni_l1": -1.1185,
+    "arb_d_lag1": 33.5108,
+    "rain_br_l2": 1.667,
+    "rain_vn_l3": 0.5225
+   },
+   "p": {
+    "const": 0.5018,
+    "oni_l1": 0.2634,
+    "arb_d_lag1": 0.0,
+    "rain_br_l2": 0.0955,
+    "rain_vn_l3": 0.6013
+   }
+  }
+ },
+ "crop_year_regression": {
+  "brazil_arabica": {
+   "n": 28,
+   "coef_oni": 0.042828528375624744,
+   "p_oni": 0.20335580577753043,
+   "coef_biennial": -0.8368407886273941,
+   "r2": 0.7754846836892673,
+   "corr_simple": 0.07845535300935177
+  },
+  "vietnam_robusta": {
+   "n": 28,
+   "coef_oni": -0.04944676140140765,
+   "p_oni": 0.4112741596155771,
+   "coef_biennial": -0.0958031357874064,
+   "r2": 0.04268916772298048,
+   "corr_simple": -0.18107994000083122
+  }
+ },
+ "price_levels_usd_t": {
+  "other_milds_median_1980_on": 3040.0,
+  "other_milds_latest": 7970.0
+ },
+ "lags_used_in_regressions": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  6,
+  7,
+  9,
+  10,
+  11,
+  12,
+  13,
+  15,
+  16,
+  18,
+  24
+ ],
+ "k_enso_k_br_k_vn": [
+  1,
+  2,
+  3
+ ],
+ "arb_volatility": {
+  "tier1_sd_diff3_log": 0.09425366263320312,
+  "tier1_sd_level_log": 0.26681933206051117,
+  "tier2_sd_diff3_log": 0.14223577112851665
+ }
+}

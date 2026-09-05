@@ -121,6 +121,17 @@ SOURCES: list[dict] = [
         "note": "World Bank CMO 'Pink Sheet', monthly, 1960→: COFFEE_ARABIC / COFFEE_ROBUS (approved). Jan-2025 snapshot.",
     },
     {
+        # The repo's ONI seed starts in 1980 (parse_oni_series since_year=1980).
+        # NOAA's file runs from 1950: twenty more years of the SAME index from
+        # the SAME source, which is roughly five more episodes per phase for the
+        # event study. No methodology change — a wider window.
+        "id": "noaa_oni_full",
+        "kind": "files",
+        "urls": ["https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt"],
+        "filename": "oni.ascii.txt",
+        "note": "NOAA CPC ONI, 3-month running mean by season, 1950→. Extends the repo seed back from 1980.",
+    },
+    {
         "id": "stooq_kc_f_daily",
         "kind": "files",
         "urls": ["https://stooq.com/q/d/l/?s=kc.f&i=d"],
