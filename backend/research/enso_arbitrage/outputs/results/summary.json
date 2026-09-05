@@ -27,7 +27,8 @@
    }
   ],
   "kc_roll": "nearest contract, rolled 5 trading days before FND (KC) / 3 (RC), from contract_prices_archive.json",
-  "soi_sign": "SOI multiplied by \u22121 so that positive = El Ni\u00f1o-like (matches ONI sign)"
+  "soi_sign": "SOI multiplied by \u22121 so that positive = El Ni\u00f1o-like (matches ONI sign)",
+  "oni_provenance": "backend/seed/oni_history_full.json, 1980\u2192 (NOAA CPC via build_oni_history.py)"
  },
  "n_tests_ccf": 12258,
  "n_families": 150,
@@ -86,65 +87,65 @@
  },
  "weather_regression": {
   "n": 374,
-  "r2_without": 0.5879584417009794,
-  "r2_with": 0.6039638913385552,
-  "enso_coef_without": -0.004912745223744881,
-  "enso_p_without": 0.17359326450049606,
-  "enso_coef_with": -0.00575263021407329,
-  "enso_p_with": 0.26336800395439963,
-  "enso_coef_shrink_pct": -17.09604207173161
+  "r2_without": 0.060501533486217896,
+  "r2_with": 0.10147527194318329,
+  "enso_coef_without": -0.016744978363671274,
+  "enso_p_without": 0.056796443358765186,
+  "enso_coef_with": -0.01413928635468563,
+  "enso_p_with": 0.18912936024024685,
+  "enso_coef_shrink_pct": 15.561035388608024
  },
  "weather_regression_tables": {
   "without_weather": {
    "coef": {
-    "const": 0.0058,
-    "oni_l1": -0.0049,
-    "arb_d_lag1": 0.7532
+    "const": 0.0199,
+    "oni_l1": -0.0167,
+    "arb_d_lag3": 0.1272
    },
    "se_hac": {
-    "const": 0.0097,
-    "oni_l1": 0.0036,
-    "arb_d_lag1": 0.0218
+    "const": 0.0119,
+    "oni_l1": 0.0088,
+    "arb_d_lag3": 0.0596
    },
    "t": {
-    "const": 0.6008,
-    "oni_l1": -1.3607,
-    "arb_d_lag1": 34.5896
+    "const": 1.667,
+    "oni_l1": -1.9049,
+    "arb_d_lag3": 2.1352
    },
    "p": {
-    "const": 0.548,
-    "oni_l1": 0.1736,
-    "arb_d_lag1": 0.0
+    "const": 0.0955,
+    "oni_l1": 0.0568,
+    "arb_d_lag3": 0.0327
    }
   },
   "with_weather": {
    "coef": {
-    "const": -0.0067,
-    "oni_l1": -0.0058,
-    "arb_d_lag1": 0.7535,
-    "rain_br_l2": 0.0099,
-    "rain_vn_l3": 0.0026
+    "const": 0.011,
+    "oni_l1": -0.0141,
+    "arb_d_lag3": 0.1839,
+    "rain_br_l2": 0.025,
+    "rain_vn_l3": 0.0067
    },
    "se_hac": {
-    "const": 0.01,
-    "oni_l1": 0.0051,
-    "arb_d_lag1": 0.0225,
-    "rain_br_l2": 0.0059,
-    "rain_vn_l3": 0.005
+    "const": 0.0139,
+    "oni_l1": 0.0108,
+    "arb_d_lag3": 0.057,
+    "rain_br_l2": 0.0119,
+    "rain_vn_l3": 0.0104
    },
    "t": {
-    "const": -0.6717,
-    "oni_l1": -1.1185,
-    "arb_d_lag1": 33.5108,
-    "rain_br_l2": 1.667,
-    "rain_vn_l3": 0.5225
+    "const": 0.7952,
+    "oni_l1": -1.3132,
+    "arb_d_lag3": 3.2242,
+    "rain_br_l2": 2.1002,
+    "rain_vn_l3": 0.6408
    },
    "p": {
-    "const": 0.5018,
-    "oni_l1": 0.2634,
-    "arb_d_lag1": 0.0,
-    "rain_br_l2": 0.0955,
-    "rain_vn_l3": 0.6013
+    "const": 0.4265,
+    "oni_l1": 0.1891,
+    "arb_d_lag3": 0.0013,
+    "rain_br_l2": 0.0357,
+    "rain_vn_l3": 0.5216
    }
   }
  },
