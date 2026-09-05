@@ -172,13 +172,28 @@ def fx() -> pd.DataFrame:
 
 # ── ENSO ──────────────────────────────────────────────────────────────────────
 
+ONI_RAW = Path(__file__).resolve().parent.parent / "data" / "raw" / "noaa_oni_full" / "oni.ascii.txt"
+
+
 def oni() -> pd.Series:
-    """NOAA ONI, 3-month running mean anchored to the season's CENTRE month, 1980-01 →.
+    """NOAA ONI, 3-month running mean anchored to the season's CENTRE month.
+
+    From NOAA's own oni.ascii.txt (1950 →) when the fetch has landed it under
+    data/raw, parsed with the repo's parser; otherwise the repo seed (1980 →).
     Monthly PeriodIndex. Note the centre-month anchoring: the value at m uses
     m+1 and is published early in m+2 — see enso.availability_shift."""
-    rows = _load(SEED / "oni_history_full.json")["oni"]
+    if ONI_RAW.exists():
+        from scraper.enso_analogs import parse_oni_series
+        rows = parse_oni_series(ONI_RAW.read_text(encoding="utf-8"), since_year=1950)
+    else:
+        rows = _load(SEED / "oni_history_full.json")["oni"]
     s = pd.Series({pd.Period(year=r["year"], month=r["month"], freq="M"): r["value"] for r in rows}, dtype=float)
     return s.sort_index()
+
+
+def oni_provenance() -> str:
+    return ("NOAA CPC oni.ascii.txt, 1950→ (data/raw/noaa_oni_full)" if ONI_RAW.exists()
+            else "backend/seed/oni_history_full.json, 1980→ (NOAA CPC via build_oni_history.py)")
 
 
 def nino34_weekly() -> pd.Series:

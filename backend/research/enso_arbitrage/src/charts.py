@@ -221,7 +221,7 @@ def chart_08() -> None:
     f = f.sort_values(["o", "index"])
     fig, ax = plt.subplots(figsize=(10, 5))
     ypos = np.arange(len(f))
-    cols = f["index"].map({"ONI": S1, "ONI⁺": NINO, "ONI⁻": NINA})
+    cols = f["index"].map({"ONI": S3, "ONI⁺": NINO, "ONI⁻": NINA})
     ax.hlines(ypos, f["ci_block_lo"], f["ci_block_hi"], color=cols, lw=2, alpha=0.6)
     ax.scatter(f["r"], ypos, color=cols, s=40, zorder=5)
     surv = f[f["p_max_surrogate"] < 0.05]
@@ -231,7 +231,7 @@ def chart_08() -> None:
     ax.set_yticklabels([f"{t}  ·  {i}  ·  lag {int(k):+d}" for t, i, k in zip(f["transform"], f["index"], f["best_lag"])], fontsize=7)
     ax.axvline(0, color=TXT2, lw=0.6)
     ax.set_xlabel("r at the best lag (block-bootstrap 95 % CI)")
-    ax.set_title("Robustness across transformations — NY–London premium vs ONI (blue), ONI⁺ El Niño (red), ONI⁻ La Niña (blue)")
+    ax.set_title("Robustness across transformations — NY–London premium vs ONI (aqua), ONI⁺ El Niño (red), ONI⁻ La Niña (blue)")
     ax.legend(loc="lower right")
     fig.tight_layout()
     fig.savefig(OUT_CHARTS / "08_robustness_transforms.png", dpi=160)
@@ -245,9 +245,9 @@ def chart_09() -> None:
     cols = [S2 if p < 0.05 else "#b8b7b1" for p in ch["p_max_surrogate"].fillna(1)]
     ax.barh(ypos, ch["r"], color=cols, height=0.6)
     for y, (_, r) in zip(ypos, ch.iterrows()):
-        ax.text(r["r"] + (0.01 if r["r"] >= 0 else -0.01), y,
+        ax.text(max(r["r"], 0) + 0.01, y,
                 f"lag {int(r['lag'])}, n_eff {r['n_eff']:.0f}, p_max {r['p_max_surrogate']:.2f}",
-                va="center", ha="left" if r["r"] >= 0 else "right", fontsize=7, color=TXT2)
+                va="center", ha="left", fontsize=7, color=TXT2)
     ax.set_yticks(ypos)
     ax.set_yticklabels([f"{a} → {b}" for a, b in zip(ch["from"], ch["to"])], fontsize=8)
     ax.axvline(0, color=TXT2, lw=0.6)
@@ -278,7 +278,7 @@ def chart_10() -> None:
     ax.axhline(0, color=TXT2, lw=0.6)
     ax.set_ylabel("forward Δ log premium")
     ax.set_title("What the NY–London premium did after a real-time ENSO signal (false alarms included), 1981→")
-    ax.legend(loc="upper left", fontsize=7)
+    ax.legend(loc="lower left", fontsize=7)
     fig.tight_layout()
     fig.savefig(OUT_CHARTS / "10_predictive_conditional.png", dpi=160)
     plt.close(fig)

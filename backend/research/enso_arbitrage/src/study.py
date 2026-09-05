@@ -85,7 +85,8 @@ def build_inputs() -> Inputs:
     prod = rd.production_annual()
     notes = {"vietnam_provenance": vn_prov, "vietnam_exclusions": vn_excl,
              "kc_roll": "nearest contract, rolled 5 trading days before FND (KC) / 3 (RC), from contract_prices_archive.json",
-             "soi_sign": "SOI multiplied by −1 so that positive = El Niño-like (matches ONI sign)"}
+             "soi_sign": "SOI multiplied by −1 so that positive = El Niño-like (matches ONI sign)",
+             "oni_provenance": rd.oni_provenance()}
     return Inputs(oni, nino34, soi, eps, eps_all, regimes, sig, ps, ps_meta, fut, tier2,
                   {"months": int(tier2["b1_log"].notna().sum()), "first": str(tier2.index.min()),
                    "last": str(tier2.dropna(subset=["b1_log"]).index.max())},

@@ -389,6 +389,16 @@ def main(argv: list[str] | None = None) -> int:
         else:
             fetch_files(src, session, manifest)
 
+    # Merge with the previous manifest: a --only run replaces its own sources'
+    # entries and keeps everyone else's, so a partial refresh never erases the
+    # record of what an earlier run retrieved.
+    fetched_ids = {e["source"] for e in manifest}
+    if MANIFEST.exists():
+        try:
+            prev = json.loads(MANIFEST.read_text(encoding="utf-8")).get("entries", [])
+            manifest = [e for e in prev if e.get("source") not in fetched_ids] + manifest
+        except (OSError, ValueError):
+            pass
     ok = [e for e in manifest if e.get("ok") and e.get("file")]
     doc = {"generated_at": _now(), "files_ok": len(ok), "entries": manifest,
            "note": "Raw external inputs for backend/research/enso_arbitrage. Every file is listed with the url "
@@ -396,8 +406,9 @@ def main(argv: list[str] | None = None) -> int:
                    "itself never touches the network."}
     MANIFEST.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     idx = write_index(manifest)
-    print(f"\n{len(ok)} files retrieved; manifest {MANIFEST}; index {idx}")
-    return 0 if ok else 1
+    new_ok = [e for e in ok if e["source"] in fetched_ids]
+    print(f"\n{len(new_ok)} files retrieved this run ({len(ok)} on record); manifest {MANIFEST}; index {idx}")
+    return 0 if new_ok else 1
 
 
 if __name__ == "__main__":
