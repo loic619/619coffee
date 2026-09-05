@@ -63,12 +63,16 @@ def front_series(market: str, roll_days_before_fnd: int | None = None, position:
     fnd_cache: dict[str, dt.date | None] = {}
     for d in sorted(arch):
         day = arch[d] or {}
-        priced = [(s, v) for s, v in day.items() if isinstance(v, dict) and v.get("price") is not None]
-        if not priced:
-            continue
         dd = dt.date.fromisoformat(d)
+        # The nearby is chosen among EVERY listed contract, priced or not. On a
+        # partial archive day (2026-08-31: only RCU26 and RCH28 carried a price)
+        # choosing among priced contracts alone would hand the front to a
+        # contract eighteen months out. If the true nearby has no price that
+        # day, the day is a gap, not a jump.
         live = []
-        for s, v in priced:
+        for s, v in day.items():
+            if not isinstance(v, dict):
+                continue
             if s not in fnd_cache:
                 fnd_cache[s] = calc_fnd(s)
             f = fnd_cache[s]
@@ -76,11 +80,13 @@ def front_series(market: str, roll_days_before_fnd: int | None = None, position:
                 continue
             mkt = market_for(s) or "us"
             if trading_days_to(dd, f, mkt) < -roll_days_before_fnd:   # negative = before FND
-                live.append((_expiry_key(s), s, v["price"], f))
+                live.append((_expiry_key(s), s, v.get("price"), f))
         live.sort()
         if len(live) < position:
             continue
         _, s, p, f = live[position - 1]
+        if p is None:
+            continue
         rows.append({"date": pd.Timestamp(dd), "price": float(p), "contract": s, "fnd": pd.Timestamp(f)})
     return pd.DataFrame(rows).set_index("date").sort_index()
 
