@@ -1,0 +1,6 @@
+| event | arbitrage | n_events | direction | peak_lag_months | mean_change_log | ci_lo | ci_hi | consistency | p_placebo_at_peak | p_placebo_family | pct_change_in_premium_ratio | usd_t_at_sample_median_price | ccf_best_lag | ccf_r | ccf_p_bartlett | ccf_q_bh | ccf_p_max_surrogate | ccf_n_eff |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| el_nino | ICO indicator premium (1960→) | 17 | premium narrows | 12.000 | -0.102 | -0.198 | -0.011 | 0.765 | 0.016 | 0.109 | -9.722 | -295.544 | 0.000 | -0.119 | 0.092 | 0.279 | 0.412 | 202.300 |
+| la_nina | ICO indicator premium (1960→) | 12 | premium widens | 21.000 | 0.090 | -0.086 | 0.280 | 0.667 | 0.137 | 0.351 | 9.418 | 286.314 | 13.000 | -0.072 | 0.277 | 0.991 | 0.986 | 229.400 |
+| el_nino | VN–BR physical premium B1 | 1 | premium narrows | 13.000 | -0.338 |  |  | 1.000 | 0.301 | 0.335 | -28.699 | -872.460 | 14.000 | 0.692 | 0.057 | 0.412 | 0.579 | 8.000 |
+| la_nina | VN–BR physical premium B1 | 0 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
