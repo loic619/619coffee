@@ -19,6 +19,14 @@ on:
         description: "Space-separated source ids to fetch (blank = all)"
         required: false
         default: ""
+  # A dispatch-only workflow is not registered with GitHub until it exists on
+  # the default branch, so it cannot be dispatched from a study branch. This
+  # push trigger — this branch, this file — registers and runs it there
+  # without merging anything to main. The data commits it makes carry
+  # [skip ci] and touch data/, so they never re-trigger it.
+  push:
+    branches: ["claude/enso-arbitrage-study"]
+    paths: [".github/workflows/research-enso-arbitrage-fetch.yml"]
 
 concurrency:
   group: research-enso-arbitrage-fetch
