@@ -56,6 +56,7 @@ interface Payload {
     arb_volatility: { tier1_sd_diff3_log: number; tier1_sd_level_log: number; tier2_sd_diff3_log: number };
     tier1_families: number; tier1_families_pmax_lt_05: number; tier1_families_q_lt_10: number; tier1_min_pmax: number;
     tier1_lag_tests: number; tier1_lag_tests_p05: number; tier1_lag_tests_q10: number;
+    discovery_end: string;
     notes?: { oni_provenance?: string; vietnam_provenance?: string };
   };
   lag_response: LagRow[];
@@ -173,6 +174,13 @@ function CcfChart({ pts, title, note }: { pts: CcfPt[]; title: string; note: str
     sur: p.p_surrogate != null && p.p_surrogate < 0.05 ? p.r : null,
   })), [pts]);
   const has = rows.some(r => r.r != null);
+  // The band would otherwise set the axis and fill the plot edge to edge — the
+  // reader must see the band's edges to read "r never leaves it".
+  const ymax = useMemo(() => {
+    const vals = pts.reduce((acc: number[], p) => acc.concat([Math.abs(p.r ?? 0), Math.abs(p.rho ?? 0), p.band ?? 0]), []);
+    const m = Math.max.apply(null, vals.concat([0.05]));
+    return Math.ceil(m * 1.45 * 20) / 20;
+  }, [pts]);
   return (
     <Panel title={title} note={note}>
       <div style={{ height: 240 }}>
@@ -182,7 +190,7 @@ function CcfChart({ pts, title, note }: { pts: CcfPt[]; title: string; note: str
               <CartesianGrid stroke={GRID} />
               <XAxis dataKey="lag" type="number" domain={[-24, 24]} ticks={[-24, -18, -12, -6, 0, 6, 12, 18, 24]} tick={TICK}
                 label={{ value: "lag k (months) — k > 0: ENSO leads the arbitrage; k < 0: the arbitrage leads ENSO", position: "insideBottom", offset: -10, fill: "#64748b", fontSize: 9 }} />
-              <YAxis tick={TICK} width={40} />
+              <YAxis tick={TICK} width={40} domain={[-ymax, ymax]} allowDataOverflow />
               <ReferenceLine y={0} stroke="#475569" />
               <ReferenceLine x={0} stroke="#475569" />
               <Tooltip contentStyle={TT} labelFormatter={(l) => `lag ${l}`}
@@ -214,7 +222,7 @@ function CcfChart({ pts, title, note }: { pts: CcfPt[]; title: string; note: str
 
 function EventChart({ block, phase, title, note }: { block: EvBlock; phase: Phase; title: string; note: string }) {
   const col = phase === "el_nino" ? NINO : NINA;
-  const paths = block.paths ?? [];
+  const paths = useMemo(() => block.paths ?? [], [block]);
   const rows = useMemo(() => block.summary.map(s => {
     const row: Record<string, number | null | [number, number]> = {
       h: s.h, mean: s.mean, median: s.median,

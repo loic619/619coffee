@@ -169,7 +169,7 @@ _Source: `outputs/results/lag_response_table.csv`. "Consistency" is the share of
 
 150 families (2 tiers × 5 arbitrage series × 6 transformations × 5 ENSO indices), 49 lags each, Pearson and Spearman: **12,366 tests**.
 
-**Tier 1 — nothing survives.** In the 90 Tier-1 families:
+**Tier 1 — nothing survives.** In the 30 families of the ICO indicator premium (6 transformations × 5 indices; 60 counting the repo's 2021→ futures series alongside):
 
 - **0** families whose best lag passes the max-|r| surrogate test at 5 % (smallest p = 0.39);
 - **0** lags with BH q < 0.10, in any family;
