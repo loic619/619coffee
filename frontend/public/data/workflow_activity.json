@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-05T05:52:26.134093+00:00",
+ "generated_at": "2026-09-05T21:15:00.894938+00:00",
  "window_days": 7,
  "capped_workflows": [],
  "errored_workflows": [],
@@ -7,14 +7,14 @@
   "0.21 \u2013 Probe: ICE expiry calendar (FND ground truth) \u2192 0.30 \u2013 Probe: ICE expiry calendar (FND ground truth)",
   "1.18 \u2013 Threshold alerts (admin Telegram) \u2192 1.26 \u2013 Threshold alerts (admin Telegram)"
  ],
- "since": "2026-08-29T05:52:26+00:00",
+ "since": "2026-08-29T21:15:00+00:00",
  "repo": "loic619/619coffee",
  "totals": {
-  "runs": 1193,
-  "success": 1128,
-  "failure": 38,
-  "cancelled": 21,
-  "other": 6
+  "runs": 1212,
+  "success": 1149,
+  "failure": 39,
+  "cancelled": 20,
+  "other": 4
  },
  "days": [
   "2026-08-29",
@@ -55,8 +55,8 @@
   {
    "name": "9.1 \u2013 CI Tests",
    "file": "ci-tests.yml",
-   "runs": 162,
-   "success": 141,
+   "runs": 166,
+   "success": 145,
    "failure": 21,
    "cancelled": 0,
    "by_day": [
@@ -67,23 +67,23 @@
     12,
     39,
     72,
-    1
+    5
    ],
    "events": {
-    "push": 85,
-    "pull_request": 70,
+    "push": 87,
+    "pull_request": 72,
     "workflow_dispatch": 6,
     "schedule": 1
    },
-   "last_run": "2026-09-05T02:46:10Z",
+   "last_run": "2026-09-05T20:46:56Z",
    "last_conclusion": "success",
    "avg_seconds": 67
   },
   {
    "name": "9.2 \u2013 Backend Lint",
    "file": "lint-backend.yml",
-   "runs": 107,
-   "success": 104,
+   "runs": 110,
+   "success": 107,
    "failure": 3,
    "cancelled": 0,
    "by_day": [
@@ -94,66 +94,66 @@
     10,
     21,
     58,
-    1
+    4
    ],
    "events": {
-    "push": 53,
-    "pull_request": 48,
+    "push": 54,
+    "pull_request": 50,
     "workflow_dispatch": 6
    },
-   "last_run": "2026-09-05T02:46:11Z",
+   "last_run": "2026-09-05T20:33:21Z",
    "last_conclusion": "success",
-   "avg_seconds": 18
+   "avg_seconds": 17
   },
   {
    "name": "1.17 \u2013 Source Sentinel (monthly supply releases)",
    "file": "source-sentinel.yml",
-   "runs": 78,
+   "runs": 77,
    "success": 77,
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    8,
+    1,
     12,
     11,
     11,
     11,
     11,
     12,
-    2
+    8
    ],
    "events": {
-    "workflow_run": 70,
+    "workflow_run": 69,
     "schedule": 7,
     "workflow_dispatch": 1
    },
-   "last_run": "2026-09-05T05:53:05Z",
-   "last_conclusion": "in_progress",
+   "last_run": "2026-09-05T21:15:33Z",
+   "last_conclusion": "success",
    "avg_seconds": 22
   },
   {
    "name": "1.12 \u2013 Daily Publish (Vercel redeploy)",
    "file": "redeploy-vercel.yml",
    "runs": 74,
-   "success": 74,
+   "success": 73,
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    8,
+    1,
     10,
     11,
     11,
     10,
     11,
     12,
-    1
+    8
    ],
    "events": {
     "workflow_run": 67,
     "schedule": 7
    },
-   "last_run": "2026-09-05T05:52:14Z",
-   "last_conclusion": "success",
+   "last_run": "2026-09-05T21:15:33Z",
+   "last_conclusion": "in_progress",
    "avg_seconds": 17
   },
   {
@@ -184,28 +184,28 @@
   {
    "name": "1.4 \u2013 Export and Publish Static JSON",
    "file": "export-and-publish.yml",
-   "runs": 68,
-   "success": 67,
+   "runs": 66,
+   "success": 65,
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    7,
+    0,
     9,
     10,
     10,
     9,
     10,
     11,
-    2
+    7
    ],
    "events": {
-    "workflow_run": 54,
-    "workflow_dispatch": 7,
-    "schedule": 7
+    "workflow_run": 52,
+    "schedule": 7,
+    "workflow_dispatch": 7
    },
-   "last_run": "2026-09-05T05:51:37Z",
+   "last_run": "2026-09-05T21:14:15Z",
    "last_conclusion": "in_progress",
-   "avg_seconds": 78
+   "avg_seconds": 79
   },
   {
    "name": "9.3 \u2013 Smart-quote guard (TS/TSX)",
@@ -235,59 +235,34 @@
   {
    "name": "1.13 \u2013 ICE Certified Stocks (arabica + robusta)",
    "file": "scraper-ice-certified-stocks.yml",
-   "runs": 32,
-   "success": 19,
+   "runs": 30,
+   "success": 20,
    "failure": 1,
-   "cancelled": 10,
+   "cancelled": 9,
    "by_day": [
-    4,
+    0,
     3,
     3,
     4,
     4,
     4,
     8,
-    2
+    4
    ],
    "events": {
-    "workflow_run": 22,
-    "schedule": 6,
+    "workflow_run": 21,
+    "schedule": 5,
     "workflow_dispatch": 4
    },
-   "last_run": "2026-09-05T05:51:22Z",
-   "last_conclusion": "pending",
-   "avg_seconds": 2576
-  },
-  {
-   "name": "1.3 \u2013 Daily OI Snapshot",
-   "file": "daily_oi.yml",
-   "runs": 27,
-   "success": 27,
-   "failure": 0,
-   "cancelled": 0,
-   "by_day": [
-    3,
-    3,
-    4,
-    4,
-    4,
-    4,
-    4,
-    1
-   ],
-   "events": {
-    "workflow_run": 22,
-    "schedule": 5
-   },
-   "last_run": "2026-09-05T05:51:22Z",
+   "last_run": "2026-09-05T21:14:03Z",
    "last_conclusion": "success",
-   "avg_seconds": 71
+   "avg_seconds": 2645
   },
   {
    "name": "0.2 \u2013 Refresh Workflow Inventory",
    "file": "build-workflow-inventory.yml",
-   "runs": 25,
-   "success": 25,
+   "runs": 26,
+   "success": 26,
    "failure": 0,
    "cancelled": 0,
    "by_day": [
@@ -298,45 +273,45 @@
     2,
     10,
     8,
-    1
+    2
    ],
    "events": {
-    "push": 25
+    "push": 26
    },
-   "last_run": "2026-09-05T02:46:10Z",
+   "last_run": "2026-09-05T20:33:21Z",
    "last_conclusion": "success",
    "avg_seconds": 19
   },
   {
-   "name": "1.1 \u2013 Daily News Scraper",
-   "file": "scraper-daily.yml",
-   "runs": 22,
-   "success": 22,
+   "name": "1.3 \u2013 Daily OI Snapshot",
+   "file": "daily_oi.yml",
+   "runs": 26,
+   "success": 26,
    "failure": 0,
    "cancelled": 0,
    "by_day": [
+    0,
     3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    1
+    4,
+    4,
+    4,
+    4,
+    4,
+    3
    ],
    "events": {
-    "schedule": 15,
-    "workflow_dispatch": 7
+    "workflow_run": 21,
+    "schedule": 5
    },
-   "last_run": "2026-09-05T05:36:20Z",
+   "last_run": "2026-09-05T21:14:03Z",
    "last_conclusion": "success",
-   "avg_seconds": 563
+   "avg_seconds": 73
   },
   {
    "name": "1.26 \u2013 Threshold alerts (admin Telegram)",
    "file": "threshold-alerts.yml",
-   "runs": 18,
-   "success": 18,
+   "runs": 23,
+   "success": 23,
    "failure": 0,
    "cancelled": 0,
    "by_day": [
@@ -347,40 +322,65 @@
     0,
     5,
     11,
-    2
+    7
    ],
    "events": {
-    "workflow_run": 17,
+    "workflow_run": 22,
     "workflow_dispatch": 1
    },
-   "last_run": "2026-09-05T05:53:05Z",
+   "last_run": "2026-09-05T21:15:33Z",
    "last_conclusion": "success",
-   "avg_seconds": 20
+   "avg_seconds": 19
   },
   {
    "name": "0.17 \u2013 Refresh Workflow Activity (7-day run record)",
    "file": "build-workflow-activity.yml",
-   "runs": 17,
-   "success": 14,
+   "runs": 22,
+   "success": 19,
    "failure": 1,
    "cancelled": 0,
    "by_day": [
-    1,
+    0,
     1,
     1,
     1,
     1,
     1,
     9,
-    2
+    8
    ],
    "events": {
-    "workflow_run": 10,
+    "workflow_run": 15,
     "schedule": 7
    },
-   "last_run": "2026-09-05T05:53:05Z",
+   "last_run": "2026-09-05T21:15:33Z",
    "last_conclusion": "pending",
-   "avg_seconds": 53
+   "avg_seconds": 46
+  },
+  {
+   "name": "1.1 \u2013 Daily News Scraper",
+   "file": "scraper-daily.yml",
+   "runs": 21,
+   "success": 21,
+   "failure": 0,
+   "cancelled": 0,
+   "by_day": [
+    0,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "events": {
+    "schedule": 14,
+    "workflow_dispatch": 7
+   },
+   "last_run": "2026-09-05T21:00:52Z",
+   "last_conclusion": "success",
+   "avg_seconds": 547
   },
   {
    "name": "1.6 \u2013 B3 at KC close + final fechamento",
@@ -439,21 +439,21 @@
    "failure": 5,
    "cancelled": 0,
    "by_day": [
+    0,
     2,
     2,
     2,
     2,
     2,
     2,
-    2,
-    0
+    2
    ],
    "events": {
     "schedule": 14
    },
-   "last_run": "2026-09-04T19:21:19Z",
+   "last_run": "2026-09-05T18:54:58Z",
    "last_conclusion": "failure",
-   "avg_seconds": 155
+   "avg_seconds": 152
   },
   {
    "name": "1.18 \u2013 Open-Direction Model Health",
@@ -484,26 +484,26 @@
    "name": "1.5 \u2013 Check Data Pipeline Freshness",
    "file": "check-scrapers-freshness.yml",
    "runs": 8,
-   "success": 3,
-   "failure": 5,
+   "success": 4,
+   "failure": 4,
    "cancelled": 0,
    "by_day": [
-    1,
+    0,
     2,
     1,
     1,
     1,
     1,
     1,
-    0
+    1
    ],
    "events": {
     "schedule": 7,
     "workflow_dispatch": 1
    },
-   "last_run": "2026-09-04T11:56:51Z",
-   "last_conclusion": "failure",
-   "avg_seconds": 16
+   "last_run": "2026-09-05T11:06:23Z",
+   "last_conclusion": "success",
+   "avg_seconds": 15
   },
   {
    "name": "0.12 \u2013 VN River Flow (NCHMF daily bulletin)",
@@ -513,19 +513,19 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
+    0,
     1,
     1,
     1,
     1,
     1,
     1,
-    1,
-    0
+    1
    ],
    "events": {
     "schedule": 7
    },
-   "last_run": "2026-09-04T13:55:54Z",
+   "last_run": "2026-09-05T13:11:29Z",
    "last_conclusion": "success",
    "avg_seconds": 43
   },
@@ -537,21 +537,21 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
+    0,
     1,
     1,
     1,
     1,
     1,
     1,
-    1,
-    0
+    1
    ],
    "events": {
     "schedule": 7
    },
-   "last_run": "2026-09-04T12:03:18Z",
+   "last_run": "2026-09-05T11:12:28Z",
    "last_conclusion": "success",
-   "avg_seconds": 115
+   "avg_seconds": 114
   },
   {
    "name": "1.10 \u2013 Daily Weather Fetch & Accumulate",
@@ -561,21 +561,21 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
+    0,
     1,
     1,
     1,
     1,
     1,
     1,
-    1,
-    0
+    1
    ],
    "events": {
     "schedule": 7
    },
-   "last_run": "2026-09-04T06:33:43Z",
+   "last_run": "2026-09-05T06:20:09Z",
    "last_conclusion": "success",
-   "avg_seconds": 418
+   "avg_seconds": 422
   },
   {
    "name": "1.21 \u2013 Brazil Export Forecast (SSOT projection)",
@@ -585,21 +585,21 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
+    0,
     1,
     1,
     1,
     1,
     1,
     1,
-    1,
-    0
+    1
    ],
    "events": {
     "schedule": 7
    },
-   "last_run": "2026-09-04T20:20:42Z",
+   "last_run": "2026-09-05T19:59:24Z",
    "last_conclusion": "success",
-   "avg_seconds": 20
+   "avg_seconds": 19
   },
   {
    "name": "1.16 \u2013 Open-Direction Prediction Log",
@@ -770,6 +770,30 @@
    "avg_seconds": 15
   },
   {
+   "name": "1.14 \u2013 ICE Monthly Reports (arabica ageing + robusta age-allowance)",
+   "file": "scraper-ice-monthly-reports.yml",
+   "runs": 4,
+   "success": 3,
+   "failure": 1,
+   "cancelled": 0,
+   "by_day": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1
+   ],
+   "events": {
+    "schedule": 4
+   },
+   "last_run": "2026-09-05T16:35:27Z",
+   "last_conclusion": "failure",
+   "avg_seconds": 301
+  },
+  {
    "name": "1.2 \u2013 Freight Rate Scraper",
    "file": "scraper-freight.yml",
    "runs": 4,
@@ -795,6 +819,31 @@
    "avg_seconds": 64
   },
   {
+   "name": "Z \u2013 Research: ENSO \u00d7 arbitrage \u2014 fetch external series (manual)",
+   "file": "research-enso-arbitrage-fetch.yml",
+   "runs": 4,
+   "success": 3,
+   "failure": 1,
+   "cancelled": 0,
+   "by_day": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    4
+   ],
+   "events": {
+    "workflow_dispatch": 3,
+    "push": 1
+   },
+   "last_run": "2026-09-05T15:50:36Z",
+   "last_conclusion": "success",
+   "avg_seconds": 103
+  },
+  {
    "name": "0.32 \u2013 Probe FBX ticker endpoint (diagnostic)",
    "file": "probe-fbx-ajax.yml",
    "runs": 3,
@@ -817,30 +866,6 @@
    "last_run": "2026-09-04T04:31:19Z",
    "last_conclusion": "success",
    "avg_seconds": 73
-  },
-  {
-   "name": "1.14 \u2013 ICE Monthly Reports (arabica ageing + robusta age-allowance)",
-   "file": "scraper-ice-monthly-reports.yml",
-   "runs": 3,
-   "success": 3,
-   "failure": 0,
-   "cancelled": 0,
-   "by_day": [
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    0,
-    0
-   ],
-   "events": {
-    "schedule": 3
-   },
-   "last_run": "2026-09-03T17:35:38Z",
-   "last_conclusion": "success",
-   "avg_seconds": 114
   },
   {
    "name": "0.21 \u2013 Backfill weather history from the Open-Meteo archive",
@@ -898,21 +923,45 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
+    0,
+    0,
+    0,
+    0,
+    0,
     1,
     0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0
+    1
    ],
    "events": {
     "schedule": 2
    },
-   "last_run": "2026-09-03T11:26:32Z",
+   "last_run": "2026-09-05T11:18:05Z",
    "last_conclusion": "success",
    "avg_seconds": 122
+  },
+  {
+   "name": "3.3.2 \u2013 Monthly Scraper \u00b7 Brazil Fertilizer (Comex)",
+   "file": "scraper-monthly-br-fertilizer.yml",
+   "runs": 2,
+   "success": 2,
+   "failure": 0,
+   "cancelled": 0,
+   "by_day": [
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "events": {
+    "workflow_dispatch": 2
+   },
+   "last_run": "2026-09-05T10:52:42Z",
+   "last_conclusion": "success",
+   "avg_seconds": 358
   },
   {
    "name": "3.7 \u2013 Annual Scraper \u00b7 UN WPP age structure + World Bank population",
@@ -937,6 +986,30 @@
    "last_run": "2026-09-04T08:06:14Z",
    "last_conclusion": "success",
    "avg_seconds": 164
+  },
+  {
+   "name": "0.10 \u2013 Colombia coffee exports (monthly \u00b7 DANE + FNC)",
+   "file": "scraper-monthly-colombia.yml",
+   "runs": 1,
+   "success": 1,
+   "failure": 0,
+   "cancelled": 0,
+   "by_day": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "events": {
+    "workflow_dispatch": 1
+   },
+   "last_run": "2026-09-05T10:52:17Z",
+   "last_conclusion": "success",
+   "avg_seconds": 283
   },
   {
    "name": "0.15 \u2013 Frost model backtest (recent real data / historic events)",
@@ -1227,28 +1300,28 @@
    "avg_seconds": 79
   },
   {
-   "name": "3.3.2 \u2013 Monthly Scraper \u00b7 Brazil Fertilizer (Comex)",
-   "file": "scraper-monthly-br-fertilizer.yml",
+   "name": "3.3.5 \u2013 Monthly Scraper \u00b7 Uganda UCDA Reports",
+   "file": "scraper-monthly-uganda.yml",
    "runs": 1,
    "success": 1,
    "failure": 0,
    "cancelled": 0,
    "by_day": [
     0,
-    1,
     0,
     0,
     0,
     0,
     0,
-    0
+    0,
+    1
    ],
    "events": {
     "workflow_dispatch": 1
    },
-   "last_run": "2026-08-30T17:27:34Z",
+   "last_run": "2026-09-05T10:52:28Z",
    "last_conclusion": "success",
-   "avg_seconds": 358
+   "avg_seconds": 425
   },
   {
    "name": "3.5 \u2013 AJCA (Japan)",
