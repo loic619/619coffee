@@ -19,35 +19,42 @@
   },
   "comex": {
     "blind_alerted": null,
-    "confirmed": "2026-07",
-    "last_found": null,
-    "last_probe": "2026-09-04T11:39:35+00:00",
+    "confirmed": "2026-09",
+    "last_found": "2026-09-05T10:52:16+00:00",
+    "last_probe": "2026-09-05T10:52:16+00:00",
     "overdue_alerted": "2026-09",
-    "signal": "\"6358e43-65864baa17db5\"|Thu, 06 Aug 2026 18:05:11 GMT|104173123",
-    "verify": null
+    "signal": "\"729d16a-65aac1eab23ee\"|Fri, 04 Sep 2026 18:05:55 GMT|120181098",
+    "verify": {
+      "dispatched_at": "2026-09-05T10:52:16+00:00",
+      "keys": [
+        "fertilizer_comex"
+      ],
+      "kind": "health_ts",
+      "status": "pending"
+    }
   },
   "conab": {
     "blind_alerted": "2026-09",
     "confirmed": "2026-07",
     "last_found": null,
-    "last_probe": "2026-09-04T11:39:35+00:00",
+    "last_probe": "2026-09-05T10:52:16+00:00",
     "overdue_alerted": "2026-09",
     "signal": "f296090bdb68296eb1c039ebdc112376237d8ba504979b642fc3450416f35d23",
     "verify": null
   },
   "dane": {
     "blind_alerted": null,
-    "confirmed": "2026-08",
-    "last_found": "2026-08-10T08:15:13+00:00",
-    "last_probe": "2026-09-04T11:39:35+00:00",
+    "confirmed": "2026-09",
+    "last_found": "2026-09-05T10:52:16+00:00",
+    "last_probe": "2026-09-05T10:52:16+00:00",
     "overdue_alerted": null,
-    "signal": "https://www.dane.gov.co/files/operaciones/EXPORTACIONES/anex-EXPORTACIONES-jun2026.xls",
+    "signal": "https://www.dane.gov.co/files/operaciones/EXPORTACIONES/anex-EXPORTACIONES-jul2026.xls",
     "verify": {
-      "dispatched_at": "2026-08-10T08:15:13+00:00",
-      "expected": "2026-06",
+      "dispatched_at": "2026-09-05T10:52:16+00:00",
+      "expected": "2026-07",
       "file": "frontend/public/data/colombia_supply.json",
       "kind": "month_in_file",
-      "status": "ok"
+      "status": "pending"
     }
   },
   "ecf": {
@@ -68,7 +75,7 @@
     "blind_alerted": null,
     "confirmed": "2026-08",
     "last_found": "2026-08-27T17:52:16+00:00",
-    "last_probe": "2026-09-04T11:39:35+00:00",
+    "last_probe": "2026-09-05T10:52:16+00:00",
     "overdue_alerted": "2026-08",
     "signal": "76caafb0bfe54c3bdb89fab6e605ed5383cc95b07c15ef13fd38eda7689507f8",
     "verify": {
@@ -80,17 +87,18 @@
     }
   },
   "ucda": {
-    "confirmed": "2026-08",
-    "last_found": "2026-08-10T08:15:13+00:00",
-    "last_probe": "2026-08-10T08:15:13+00:00",
+    "blind_alerted": null,
+    "confirmed": "2026-09",
+    "last_found": "2026-09-05T10:52:16+00:00",
+    "last_probe": "2026-09-05T10:52:16+00:00",
     "overdue_alerted": null,
-    "signal": "b6de1a1d13aca1adc81ab723e82c93f5b7a3b85bb2cd0ff1ba7356462d655a01",
+    "signal": "f3b3394bcaa886330491fba8417143af88686a15abb104f9495c6d6611aa6ba8",
     "verify": {
-      "dispatched_at": "2026-08-10T08:15:13+00:00",
-      "expected": "2026-06",
+      "dispatched_at": "2026-09-05T10:52:16+00:00",
+      "expected": "2026-07",
       "file": "frontend/public/data/uganda_monthly.json",
       "kind": "month_in_file",
-      "status": "ok"
+      "status": "pending"
     }
   },
   "vn_customs": {
