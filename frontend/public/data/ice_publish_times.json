@@ -1,211 +1,220 @@
 {
  "note": "Observed publish times of the ICE London robusta certified-stock CSV. The file is served under an HHMMSS-stamped URL with no index, so these are the seconds workflow 1.13 has to guess.",
  "source": "backend/scraper/sources/ice_certified_stocks/stock_report_hits.json",
- "captures": 65,
+ "captures": 66,
  "first_date": "2026-06-03",
- "last_date": "2026-09-03",
+ "last_date": "2026-09-04",
  "earliest": "10:29:56",
  "latest": "12:47:15",
  "median": "10:32:32",
  "p90": "10:47:36",
- "distinct_seconds": 62,
+ "distinct_seconds": 63,
  "seconds_seen_more_than_once": 2,
  "by_minute": [
   {
    "minute": "10:29",
    "count": 1,
-   "share": 0.0154
+   "share": 0.0152
   },
   {
    "minute": "10:30",
    "count": 19,
-   "share": 0.2923
+   "share": 0.2879
   },
   {
    "minute": "10:31",
    "count": 8,
-   "share": 0.1231
+   "share": 0.1212
   },
   {
    "minute": "10:32",
    "count": 10,
-   "share": 0.1538
+   "share": 0.1515
   },
   {
    "minute": "10:33",
    "count": 2,
-   "share": 0.0308
+   "share": 0.0303
   },
   {
    "minute": "10:34",
    "count": 2,
-   "share": 0.0308
+   "share": 0.0303
   },
   {
    "minute": "10:35",
    "count": 3,
-   "share": 0.0462
+   "share": 0.0455
   },
   {
    "minute": "10:36",
    "count": 3,
-   "share": 0.0462
+   "share": 0.0455
   },
   {
    "minute": "10:37",
    "count": 2,
-   "share": 0.0308
+   "share": 0.0303
   },
   {
    "minute": "10:38",
    "count": 2,
-   "share": 0.0308
+   "share": 0.0303
   },
   {
    "minute": "10:39",
    "count": 1,
-   "share": 0.0154
+   "share": 0.0152
   },
   {
    "minute": "10:40",
    "count": 1,
-   "share": 0.0154
+   "share": 0.0152
   },
   {
    "minute": "10:41",
    "count": 1,
-   "share": 0.0154
+   "share": 0.0152
   },
   {
    "minute": "10:42",
    "count": 1,
-   "share": 0.0154
+   "share": 0.0152
   },
   {
    "minute": "10:43",
    "count": 1,
-   "share": 0.0154
+   "share": 0.0152
   },
   {
    "minute": "10:45",
    "count": 1,
-   "share": 0.0154
+   "share": 0.0152
   },
   {
    "minute": "10:47",
    "count": 1,
-   "share": 0.0154
+   "share": 0.0152
   },
   {
    "minute": "10:50",
    "count": 1,
-   "share": 0.0154
+   "share": 0.0152
   },
   {
    "minute": "10:51",
    "count": 2,
-   "share": 0.0308
+   "share": 0.0303
+  },
+  {
+   "minute": "10:56",
+   "count": 1,
+   "share": 0.0152
   },
   {
    "minute": "11:00",
    "count": 1,
-   "share": 0.0154
+   "share": 0.0152
   },
   {
    "minute": "11:23",
    "count": 1,
-   "share": 0.0154
+   "share": 0.0152
   },
   {
    "minute": "12:47",
    "count": 1,
-   "share": 0.0154
+   "share": 0.0152
   }
  ],
  "cumulative": [
   {
    "through": "10:29",
-   "share": 0.0154
+   "share": 0.0152
   },
   {
    "through": "10:30",
-   "share": 0.3077
+   "share": 0.303
   },
   {
    "through": "10:31",
-   "share": 0.4308
+   "share": 0.4242
   },
   {
    "through": "10:32",
-   "share": 0.5846
+   "share": 0.5758
   },
   {
    "through": "10:33",
-   "share": 0.6154
+   "share": 0.6061
   },
   {
    "through": "10:34",
-   "share": 0.6462
+   "share": 0.6364
   },
   {
    "through": "10:35",
-   "share": 0.6923
+   "share": 0.6818
   },
   {
    "through": "10:36",
-   "share": 0.7385
+   "share": 0.7273
   },
   {
    "through": "10:37",
-   "share": 0.7692
+   "share": 0.7576
   },
   {
    "through": "10:38",
-   "share": 0.8
+   "share": 0.7879
   },
   {
    "through": "10:39",
-   "share": 0.8154
+   "share": 0.803
   },
   {
    "through": "10:40",
-   "share": 0.8308
+   "share": 0.8182
   },
   {
    "through": "10:41",
-   "share": 0.8462
+   "share": 0.8333
   },
   {
    "through": "10:42",
-   "share": 0.8615
+   "share": 0.8485
   },
   {
    "through": "10:43",
-   "share": 0.8769
+   "share": 0.8636
   },
   {
    "through": "10:45",
-   "share": 0.8923
+   "share": 0.8788
   },
   {
    "through": "10:47",
-   "share": 0.9077
+   "share": 0.8939
   },
   {
    "through": "10:50",
-   "share": 0.9231
+   "share": 0.9091
   },
   {
    "through": "10:51",
-   "share": 0.9538
+   "share": 0.9394
+  },
+  {
+   "through": "10:56",
+   "share": 0.9545
   },
   {
    "through": "11:00",
-   "share": 0.9692
+   "share": 0.9697
   },
   {
    "through": "11:23",
-   "share": 0.9846
+   "share": 0.9848
   },
   {
    "through": "12:47",
@@ -218,7 +227,7 @@
   "interval_s": 3.0,
   "tier1_k": 10,
   "observed_max_offset_s": 8295,
-  "days_inside_window": 63
+  "days_inside_window": 64
  },
  "days": [
   {
@@ -480,6 +489,10 @@
   {
    "date": "2026-09-03",
    "time": "10:33:40"
+  },
+  {
+   "date": "2026-09-04",
+   "time": "10:56:22"
   }
  ],
  "by_weekday": {
@@ -514,10 +527,10 @@
    },
    {
     "weekday": "Fri",
-    "n": 13,
-    "median": "10:32:34",
-    "max": "10:47:36",
-    "late": 1
+    "n": 14,
+    "median": "10:32:41",
+    "max": "10:56:22",
+    "late": 2
    }
   ],
   "late_threshold": "10:40:00",
@@ -527,16 +540,16 @@
    "rate": 0.263
   },
   "thu_fri": {
-   "n": 27,
-   "late": 2,
-   "rate": 0.074
+   "n": 28,
+   "late": 3,
+   "rate": 0.107
   },
   "permutation_p": 0.04
  },
  "misses": {
-  "business_days": 67,
-  "sessions": 66,
-  "captured": 65,
+  "business_days": 68,
+  "sessions": 67,
+  "captured": 66,
   "missing": [
    {
     "date": "2026-09-02",
@@ -563,7 +576,7 @@
    },
    "Fri": {
     "missing": 0,
-    "of": 13
+    "of": 14
    },
    "Mon": {
     "missing": 0,
@@ -576,7 +589,7 @@
   }
  },
  "rate_limits": {
-  "runs": 10,
+  "runs": 11,
   "runs_with_429": 0,
   "total_429": 0,
   "total_retry_after_s": 0,
@@ -756,12 +769,34 @@
     "requests": 444,
     "wait_publicdocs_s": 14.0,
     "wait_marketdata_s": 1703.0
+   },
+   {
+    "at": "2026-09-05T06:31:57+00:00",
+    "sweep_day": "2026-09-04",
+    "outcome": "completed",
+    "http_429": 0,
+    "http_404": 1769,
+    "retry_after_count": 0,
+    "retry_after_total_s": 0,
+    "retry_after_max_s": 0,
+    "throttle_bumps": 0,
+    "aborted_by_429": false,
+    "http_403": 0,
+    "ok_200": 27,
+    "aborted_by_403": false,
+    "sections": 3,
+    "blocked_sections": [],
+    "sweep_gets": 1643,
+    "resumed_from": null,
+    "requests": 1796,
+    "wait_publicdocs_s": 14.0,
+    "wait_marketdata_s": 5659.0
    }
   ]
  },
  "blocks": {
-  "runs": 10,
-  "instrumented_runs": 0,
+  "runs": 11,
+  "instrumented_runs": 1,
   "note": "blocked_sections recorded from 2026-09-04; earlier runs could meet a 403 without leaving any trace of which section it cost",
   "runs_with_a_block": 0,
   "sections_skipped": 0,
@@ -770,73 +805,21 @@
   "recent": []
  },
  "runs": {
-  "count": 370,
+  "count": 374,
   "note": null,
   "outcomes": {
-   "success": 255,
+   "success": 258,
    "cancelled": 11,
    "timeout": 43,
-   "queue_cancelled": 51,
+   "queue_cancelled": 52,
    "skipped": 6,
    "failure": 2,
    "unknown": 2
   },
-  "billed_minutes_total": 10338,
-  "billed_minutes_mean": 27.9,
-  "with_telemetry": 39,
+  "billed_minutes_total": 10375,
+  "billed_minutes_mean": 27.7,
+  "with_telemetry": 43,
   "recent": [
-   {
-    "id": 32546520786,
-    "date": "2026-08-22",
-    "started": "2026-08-22T02:32:12Z",
-    "event": "workflow_run",
-    "conclusion": "cancelled",
-    "attempt": 1,
-    "job_seconds": null,
-    "billed_minutes": 0,
-    "last_step": null,
-    "outcome": "queue_cancelled",
-    "telemetry": null
-   },
-   {
-    "id": 32547067021,
-    "date": "2026-08-22",
-    "started": "2026-08-22T02:44:17Z",
-    "event": "workflow_run",
-    "conclusion": "success",
-    "attempt": 1,
-    "job_seconds": 10,
-    "billed_minutes": 1,
-    "last_step": "Complete job",
-    "outcome": "success",
-    "telemetry": null
-   },
-   {
-    "id": 32598851455,
-    "date": "2026-08-22",
-    "started": "2026-08-22T21:11:07Z",
-    "event": "workflow_run",
-    "conclusion": "success",
-    "attempt": 1,
-    "job_seconds": 11,
-    "billed_minutes": 1,
-    "last_step": "Complete job",
-    "outcome": "success",
-    "telemetry": null
-   },
-   {
-    "id": 32613858860,
-    "date": "2026-08-23",
-    "started": "2026-08-23T02:50:45Z",
-    "event": "workflow_run",
-    "conclusion": "success",
-    "attempt": 1,
-    "job_seconds": 10,
-    "billed_minutes": 1,
-    "last_step": "Complete job",
-    "outcome": "success",
-    "telemetry": null
-   },
    {
     "id": 32613945726,
     "date": "2026-08-23",
@@ -2062,12 +2045,12 @@
     "date": "2026-09-04",
     "started": "2026-09-04T10:38:21Z",
     "event": "workflow_dispatch",
-    "conclusion": null,
+    "conclusion": "success",
     "attempt": 1,
-    "job_seconds": null,
-    "billed_minutes": 0,
-    "last_step": "Rebuild the run-outcome history",
-    "outcome": "unknown",
+    "job_seconds": 2034,
+    "billed_minutes": 34,
+    "last_step": "Complete job",
+    "outcome": "success",
     "telemetry": {
      "http_429": 0,
      "http_403": null,
@@ -2089,12 +2072,12 @@
     "date": "2026-09-04",
     "started": "2026-09-04T11:04:08Z",
     "event": "workflow_dispatch",
-    "conclusion": null,
+    "conclusion": "success",
     "attempt": 1,
-    "job_seconds": null,
-    "billed_minutes": 0,
-    "last_step": null,
-    "outcome": "unknown",
+    "job_seconds": 70,
+    "billed_minutes": 2,
+    "last_step": "Complete job",
+    "outcome": "success",
     "telemetry": {
      "http_429": 0,
      "http_403": null,
@@ -2108,6 +2091,114 @@
      "resumed_from": null,
      "wait_publicdocs_s": 14.0,
      "wait_marketdata_s": 1703.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 33920474328,
+    "date": "2026-09-04",
+    "started": "2026-09-04T21:18:22Z",
+    "event": "workflow_run",
+    "conclusion": "success",
+    "attempt": 1,
+    "job_seconds": 14,
+    "billed_minutes": 1,
+    "last_step": "Complete job",
+    "outcome": "success",
+    "telemetry": {
+     "http_429": 0,
+     "http_403": null,
+     "ok_200": null,
+     "blocked_sections": [],
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 241,
+     "http_404": 416,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 1703.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 33945753590,
+    "date": "2026-09-05",
+    "started": "2026-09-05T04:53:18Z",
+    "event": "schedule",
+    "conclusion": null,
+    "attempt": 1,
+    "job_seconds": null,
+    "billed_minutes": 0,
+    "last_step": "Rebuild the run-outcome history",
+    "outcome": "unknown",
+    "telemetry": {
+     "http_429": 0,
+     "http_403": 0,
+     "ok_200": 27,
+     "blocked_sections": [],
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 1643,
+     "http_404": 1769,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 5659.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 33948283114,
+    "date": "2026-09-05",
+    "started": "2026-09-05T05:51:22Z",
+    "event": "workflow_run",
+    "conclusion": "cancelled",
+    "attempt": 1,
+    "job_seconds": null,
+    "billed_minutes": 0,
+    "last_step": null,
+    "outcome": "queue_cancelled",
+    "telemetry": {
+     "http_429": 0,
+     "http_403": 0,
+     "ok_200": 27,
+     "blocked_sections": [],
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 1643,
+     "http_404": 1769,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 5659.0,
+     "wait_retry_after_s": 0
+    }
+   },
+   {
+    "id": 33949795787,
+    "date": "2026-09-05",
+    "started": "2026-09-05T06:25:59Z",
+    "event": "workflow_run",
+    "conclusion": null,
+    "attempt": 1,
+    "job_seconds": null,
+    "billed_minutes": 0,
+    "last_step": null,
+    "outcome": "unknown",
+    "telemetry": {
+     "http_429": 0,
+     "http_403": 0,
+     "ok_200": 27,
+     "blocked_sections": [],
+     "retry_after_count": 0,
+     "retry_after_total_s": 0,
+     "throttle_bumps": 0,
+     "sweep_gets": 1643,
+     "http_404": 1769,
+     "resumed_from": null,
+     "wait_publicdocs_s": 14.0,
+     "wait_marketdata_s": 5659.0,
      "wait_retry_after_s": 0
     }
    }
