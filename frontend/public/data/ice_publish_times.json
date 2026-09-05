@@ -535,19 +535,21 @@
  },
  "misses": {
   "business_days": 67,
+  "sessions": 66,
   "captured": 65,
   "missing": [
-   {
-    "date": "2026-08-31",
-    "weekday": "Mon",
-    "recoverable": false,
-    "data_hole": true
-   },
    {
     "date": "2026-09-02",
     "weekday": "Wed",
     "recoverable": false,
     "data_hole": true
+   }
+  ],
+  "no_release": [
+   {
+    "date": "2026-08-31",
+    "weekday": "Mon",
+    "reason": "UK summer bank holiday — ICE Futures Europe closed, no robusta report published"
    }
   ],
   "by_weekday": {
@@ -564,8 +566,8 @@
     "of": 13
    },
    "Mon": {
-    "missing": 1,
-    "of": 13
+    "missing": 0,
+    "of": 12
    },
    "Tue": {
     "missing": 0,
