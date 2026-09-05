@@ -106,7 +106,8 @@ jobs:
         # write time even on a monthly-only run.
         run: pip install requests 'xlrd<2.0' openpyxl pdfplumber sqlalchemy psycopg2-binary python-dotenv jinja2
 
-      - name: Pull ICE monthly reports (--only-monthly, 3 attempts)
+      - name: Pull ICE monthly reports (--only-monthly, fail fast on a block)
+        id: pull
         if: ${{ github.event_name == 'workflow_dispatch' || steps.guard.outputs.done != 'true' }}
         working-directory: backend
         env:
@@ -118,10 +119,36 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          for attempt in 1 2 3; do
+          # Exit 3 = the feed refused EVERY request. That is a per-IP block on
+          # this runner, not a transient fault: the orchestrator says so in the
+          # same breath ("changing the request interval will not clear it"),
+          # and a retry can only pay the whole run again from the same IP.
+          #
+          # Run 33978343636 did exactly that. Three attempts, 5 minutes apart,
+          # 26 refusals each, three identical Telegram messages and 14 minutes
+          # of runner time to re-learn what request one had already proved.
+          # 1.13 was given this fast path in #838; this job never got it.
+          #
+          # `orchestrate || rc=$?` rather than `if orchestrate; then break; fi`
+          # followed by `rc=$?`: under `set -e` the bare call would kill the
+          # step, and after an if/fi with no else `$?` is the IF's status
+          # (always 0), not the command's — which is why 1.13's own exit-3
+          # check never fired either. Fixed there in the same commit.
+          for attempt in 1 2; do
+            rc=0
             python -m scraper.sources.ice_certified_stocks.orchestrate \
-              --days "${{ inputs.days_back || 3 }}" --only-monthly && break
-            [ $attempt -lt 3 ] && echo "Attempt $attempt failed, retrying in 5m..." && sleep 300 || exit 1
+              --days "${{ inputs.days_back || 3 }}" --only-monthly || rc=$?
+            [ "$rc" -eq 0 ] && break
+            if [ "$rc" -eq 3 ]; then
+              echo "ICE refused every request (exit 3) — a retry cannot clear a per-IP block."
+              # Tells the failure notifier below to stay quiet: the orchestrator
+              # has already sent a BLOCKED message naming the sections, and a
+              # generic "failed" line on top of it says a different thing about
+              # the same event.
+              echo "ice_blocked=true" >> "$GITHUB_OUTPUT"
+              exit 3
+            fi
+            [ $attempt -lt 2 ] && echo "Attempt $attempt failed, retrying in 60s..." && sleep 60 || exit 1
           done
 
       - name: Commit + push if changed
@@ -131,15 +158,54 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add frontend/public/data/certified_stocks_arabica.json \
                   frontend/public/data/certified_stocks_robusta.json \
-                  frontend/public/data/run_degradations.json
+                  frontend/public/data/run_degradations.json \
+                  data/ice_block_state.json
           git diff --cached --quiet \
             && echo "No changes." \
             || (git commit -m "data: ICE monthly reports (ageing + age-allowance) [skip ci]" \
                 && git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" \
                 && git push origin "HEAD:${GITHUB_REF_NAME}")
 
-      - name: Notify on failure
+      # The observability record has to survive the failure it is about.
+      #
+      # #844 added run_degradations.json so a skipped section shows on the data
+      # map, and ice_block_state.json is what keeps the alert edge-triggered.
+      # Both are written by a blocked run — and both were then thrown away,
+      # because the commit step above is skipped when the scraper step fails.
+      # run_degradations.json is empty on main today for exactly that reason.
+      #
+      # Deliberately NOT committing the two certified_stocks JSONs here. They
+      # carry a `generated_at` stamp that moves on every write, so committing
+      # them from a blocked run would advance a freshness marker on a run that
+      # captured nothing — the precise thing this whole change exists to stop.
+      # The snapshot data itself is unchanged (the merge preserves it), so
+      # nothing is lost by leaving them out.
+      #
+      # `if: failure()` does not mask the failure: a step that succeeds after a
+      # failed one cannot return the job to green. The job still fails, and the
+      # record of why now survives it.
+      - name: Persist the degradation record (blocked run)
         if: failure()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          for f in frontend/public/data/run_degradations.json data/ice_block_state.json; do
+            [ -f "$f" ] && git add "$f"
+          done
+          true
+          git diff --cached --quiet \
+            && echo "Nothing to record." \
+            || (git commit -m "data: ICE block record [skip ci]" \
+                && git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" \
+                && git push origin "HEAD:${GITHUB_REF_NAME}") || true
+
+      # Gated on the block flag: a wholly-refused run has ALREADY sent a
+      # BLOCKED message naming the sections and the totals. Adding a bare
+      # "failed" line on top of it describes the same event twice, in two
+      # different vocabularies — which is how run 33978343636 read as both a
+      # green degradation and a failure.
+      - name: Notify on failure
+        if: ${{ failure() && steps.pull.outputs.ice_blocked != 'true' }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}

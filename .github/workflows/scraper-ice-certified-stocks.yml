@@ -199,6 +199,7 @@ jobs:
         run: pip install requests 'xlrd<2.0' openpyxl pdfplumber sqlalchemy psycopg2-binary python-dotenv jinja2
 
       - name: Pull ICE certified stocks (3 attempts)
+        id: pull
         if: steps.weekday.outputs.skip != 'true'
         working-directory: backend
         env:
@@ -253,11 +254,21 @@ jobs:
           # fault and a second attempt just pays the whole run again — run
           # 33854928072 did exactly that. Fail immediately on it; keep the one
           # retry for everything else.
+          #
+          # `run_scraper || rc=$?`, NOT `if run_scraper; then break; fi` + `rc=$?`.
+          # After an if/fi with no else branch, `$?` is the status of the IF
+          # compound — which is 0 whenever the condition was false — not the
+          # status of the command inside it. So `rc` was always 0 here and the
+          # exit-3 fast path this block describes has never once fired since
+          # #838 added it. `|| rc=$?` keeps the call in a condition context
+          # (so `set -e` does not kill the step) while capturing the real code.
           for attempt in 1 2; do
-            if run_scraper; then break; fi
-            rc=$?
+            rc=0
+            run_scraper || rc=$?
+            [ "$rc" -eq 0 ] && break
             if [ "$rc" -eq 3 ]; then
               echo "Feed refused every request (exit 3) — a retry cannot clear a block."
+              echo "ice_blocked=true" >> "$GITHUB_OUTPUT"
               exit 3
             fi
             [ $attempt -lt 2 ] && echo "Attempt $attempt failed, retrying in 60s..." && sleep 60 || exit 1
@@ -304,6 +315,7 @@ jobs:
           # which under `bash -e` killed the whole step. Run 32955091040 fetched
           # its data successfully and then threw it away on exactly that.
           for f in data/topic_notify_state.json \
+                   data/ice_block_state.json \
                    frontend/public/data/certified_stocks_arabica.json \
                    frontend/public/data/certified_stocks_robusta.json \
                    frontend/public/data/ice_publish_times.json \
@@ -321,8 +333,33 @@ jobs:
                 && git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" \
                 && git push origin "HEAD:${GITHUB_REF_NAME}")
 
-      - name: Notify on failure
+      # The observability record has to survive the failure it is about — the
+      # commit step above is skipped when the scraper step fails, which is how
+      # run_degradations.json ended up empty on main. Only the ledger and the
+      # alert state: the certified_stocks JSONs carry a `generated_at` that
+      # moves on every write, so committing them from a blocked run would
+      # advance a freshness marker on a run that captured nothing. `if:
+      # failure()` cannot return a failed job to green.
+      - name: Persist the degradation record (blocked run)
         if: failure()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          for f in frontend/public/data/run_degradations.json data/ice_block_state.json; do
+            [ -f "$f" ] && git add "$f"
+          done
+          true
+          git diff --cached --quiet \
+            && echo "Nothing to record." \
+            || (git commit -m "data: ICE block record [skip ci]" \
+                && git pull --rebase --autostash --strategy-option=theirs origin "${GITHUB_REF_NAME}" \
+                && git push origin "HEAD:${GITHUB_REF_NAME}") || true
+
+      # See 1.14 for the rationale: a wholly-refused run has already sent a
+      # BLOCKED message, and a bare "failed" line on top of it reports the same
+      # event twice in two vocabularies.
+      - name: Notify on failure
+        if: ${{ failure() && steps.pull.outputs.ice_blocked != 'true' }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
