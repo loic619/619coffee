@@ -96,57 +96,91 @@ def phase_randomise(a: np.ndarray, rng: np.random.Generator) -> np.ndarray:
     return sur + a.mean()
 
 
+def _on_common_axis(x: pd.Series, y: pd.Series) -> tuple[np.ndarray, np.ndarray, pd.PeriodIndex]:
+    lo = min(x.index.min(), y.index.min())
+    hi = max(x.index.max(), y.index.max())
+    idx = pd.period_range(lo, hi, freq="M")
+    return x.reindex(idx).to_numpy(float), y.reindex(idx).to_numpy(float), idx
+
+
+def _lag_slices(T: int, k: int) -> tuple[slice, slice]:
+    """Positions pairing x_{t−k} with y_t on a common monthly axis."""
+    if k >= 0:
+        return slice(0, T - k), slice(k, T)
+    return slice(-k, T), slice(0, T + k)
+
+
 def surrogate_ccf(x: pd.Series, y: pd.Series, lags: range = range(-24, 25), n_sur: int = 2000,
                   seed: int = 7, min_n: int = 24) -> dict:
     """Per-lag surrogate p-values and the family-wise max-|r| test.
 
-    The surrogate is drawn on the FULL x series once, then correlated with y at
-    every lag, so each surrogate goes through the identical 49-lag search the
-    real series did. Returns:
-      per_lag   DataFrame(lag, r_obs, p_surrogate, sur_q95)
-      max_abs_r_obs, p_max (share of surrogates whose best |r| ≥ the observed best),
-      best_lag
+    Surrogates are phase-randomised copies of x on its CONTIGUOUS support, so
+    each keeps x's spectrum; every surrogate is then correlated with y at every
+    lag — the identical search the real series went through. Vectorised: one
+    matrix of surrogates, one matrix-vector product per lag.
+
+    Returns per_lag (lag, r_obs, p_surrogate, sur_q95_abs), max_abs_r_obs,
+    p_max (share of surrogates whose best |r| over the lags ≥ the observed best),
+    best_lag, sur_max_q95.
     """
     rng = np.random.default_rng(seed)
-    xv = x.dropna()
-    obs = []
-    aligned = {}
-    for k in lags:
-        a, b = _align(xv, y, k)
-        aligned[k] = (a, b)
-        obs.append(float(np.corrcoef(a, b)[0, 1]) if len(a) >= min_n else np.nan)
-    obs = np.array(obs)
-    # surrogate x on its own full index; realign per lag through the same indices
-    xs_full = xv.to_numpy(float)
-    sur_r = np.full((n_sur, len(list(lags))), np.nan)
-    idx_full = xv.index
-    for s in range(n_sur):
-        sur = pd.Series(phase_randomise(xs_full, rng), index=idx_full)
-        for j, k in enumerate(lags):
-            a, b = _align(sur, y, k)
-            if len(a) >= min_n:
-                sur_r[s, j] = np.corrcoef(a, b)[0, 1]
-    per = []
+    xv, yv, _ = _on_common_axis(x, y)
+    T = len(xv)
+    # x must be contiguous for the spectrum to mean anything: interpolate only
+    # isolated single-month holes, and only inside x's own span
+    xs = pd.Series(xv).interpolate(limit=1, limit_area="inside").to_numpy(float)
+    support = ~np.isnan(xs)
+    first, last = np.argmax(support), T - 1 - np.argmax(support[::-1])
+    core = xs[first:last + 1]
+    if np.isnan(core).any():
+        # a real gap inside ENSO history: fill with the mean for the surrogate
+        # spectrum only; those months are masked out of every correlation
+        core = np.where(np.isnan(core), np.nanmean(core), core)
+    n_core = len(core)
+    f = np.fft.rfft(core - core.mean())
+    ph = rng.uniform(0, 2 * np.pi, (n_sur, len(f)))
+    ph[:, 0] = 0
+    if n_core % 2 == 0:
+        ph[:, -1] = 0
+    S = np.fft.irfft(np.abs(f)[None, :] * np.exp(1j * ph), n=n_core, axis=1) + core.mean()
+    Sfull = np.full((n_sur, T), np.nan)
+    Sfull[:, first:last + 1] = S
+
+    obs, per, sur_r = [], [], np.full((n_sur, len(list(lags))), np.nan)
     for j, k in enumerate(lags):
-        col = sur_r[:, j]
-        col = col[~np.isnan(col)]
-        if np.isnan(obs[j]) or len(col) == 0:
-            per.append({"lag": k, "r_obs": obs[j], "p_surrogate": np.nan, "sur_q95_abs": np.nan})
+        sx, sy = _lag_slices(T, k)
+        a, b = xv[sx], yv[sy]
+        m = ~np.isnan(a) & ~np.isnan(b)
+        if m.sum() < min_n:
+            obs.append(np.nan)
+            per.append({"lag": k, "r_obs": np.nan, "p_surrogate": np.nan, "sur_q95_abs": np.nan})
             continue
-        p = float((np.abs(col) >= abs(obs[j])).mean())
-        per.append({"lag": k, "r_obs": obs[j], "p_surrogate": p, "sur_q95_abs": float(np.quantile(np.abs(col), 0.95))})
+        aa, bb = a[m], b[m]
+        r_obs = float(np.corrcoef(aa, bb)[0, 1])
+        A = Sfull[:, sx][:, m]
+        A = A - A.mean(axis=1, keepdims=True)
+        bc = bb - bb.mean()
+        denom = np.sqrt((A * A).sum(axis=1) * (bc * bc).sum())
+        with np.errstate(invalid="ignore", divide="ignore"):
+            rs = (A @ bc) / denom
+        rs = rs[np.isfinite(rs)]
+        sur_r[: len(rs), j] = rs
+        obs.append(r_obs)
+        per.append({"lag": k, "r_obs": r_obs, "p_surrogate": float((np.abs(rs) >= abs(r_obs)).mean()),
+                    "sur_q95_abs": float(np.quantile(np.abs(rs), 0.95))})
+    obs = np.array(obs)
     per = pd.DataFrame(per)
-    valid = ~np.isnan(obs)
-    if valid.any():
+    if np.isfinite(obs).any():
         best_j = int(np.nanargmax(np.abs(obs)))
         max_obs = float(abs(obs[best_j]))
         sur_max = np.nanmax(np.abs(sur_r), axis=1)
+        sur_max = sur_max[np.isfinite(sur_max)]
         p_max = float((sur_max >= max_obs).mean())
         best_lag = list(lags)[best_j]
+        q95 = float(np.quantile(sur_max, 0.95))
     else:
-        max_obs, p_max, best_lag = np.nan, np.nan, None
-    return {"per_lag": per, "max_abs_r_obs": max_obs, "p_max": p_max, "best_lag": best_lag,
-            "sur_max_q95": float(np.nanquantile(np.nanmax(np.abs(sur_r), axis=1), 0.95))}
+        max_obs, p_max, best_lag, q95 = np.nan, np.nan, None, np.nan
+    return {"per_lag": per, "max_abs_r_obs": max_obs, "p_max": p_max, "best_lag": best_lag, "sur_max_q95": q95}
 
 
 def block_bootstrap_ci(x: pd.Series, y: pd.Series, lag: int, n_boot: int = 2000, block: int = 12,

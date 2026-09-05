@@ -95,6 +95,10 @@ def transforms(s: pd.Series, discovery_end: pd.Period | None = None, z_window: i
     s = s.astype(float)
     out = {"level": s, "diff1": s.diff(1), "diff3": s.diff(3)}
     base = s[s.index <= discovery_end] if discovery_end is not None else s
+    if base.dropna().shape[0] < 24:
+        # a series that starts after the discovery window (the repo's 2021→
+        # futures premium) has no hold-out to protect; use its full sample
+        base = s
     mm = base.groupby(base.index.month).mean()
     out["sa"] = s - pd.Series(mm.reindex(s.index.month).values, index=s.index)
     if z_window:

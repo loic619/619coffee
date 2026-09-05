@@ -29,6 +29,8 @@ def best_lag(x: pd.Series, y: pd.Series, lags: range) -> dict:
     """The lag with the largest |r|, with its Bartlett p, plus the surrogate
     family-wise p that accounts for having searched the lags."""
     c = st.ccf(x, y, lags)
+    if "pearson" not in c.columns:
+        return {"lag": None}
     c = c.dropna(subset=["pearson"])
     if c.empty:
         return {"lag": None}
