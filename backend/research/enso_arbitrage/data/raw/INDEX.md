@@ -1,6 +1,6 @@
 # Raw external files — what landed
 
-_Generated 2026-09-05T15:30:41Z by fetch_external.py. Previews only; the study reads these through `load_external.py`._
+_Generated 2026-09-05T15:50:59Z by fetch_external.py. Previews only; the study reads these through `load_external.py`._
 
 
 ## data/raw/worldbank_pink_sheet_current/CMO-Historical-Data-Monthly.xlsx
@@ -105,6 +105,15 @@ sub-group
      |  |  | Non-Energy |  |  |  |  | 33 |  |  | 
      |  |  |  |  |  |  |  |  |  |  | 
      | Energy |  |  |  |  |  |  | 100 |  |  | 100
+```
+
+## data/raw/noaa_oni_full/oni.ascii.txt
+
+- source `noaa_oni_full` · 23000 B · sha256 `93f8c86c7a660f46…`
+- url: https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt
+- note: NOAA CPC ONI, 3-month running mean by season, 1950→. Extends the repo seed back from 1980.
+
+```
 ```
 
 ## Not retrieved

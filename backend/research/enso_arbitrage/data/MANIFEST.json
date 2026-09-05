@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-05T15:30:41Z",
- "files_ok": 2,
+ "generated_at": "2026-09-05T15:50:59Z",
+ "files_ok": 3,
  "entries": [
   {
    "source": "ico_historical",
@@ -604,6 +604,19 @@
    "retrieved_at": "2026-09-05T15:30:41Z",
    "note": "IMF Robusta (ICO indicator) via FRED, monthly 1990→. Parse cross-check only.",
    "ok": false
+  },
+  {
+   "source": "noaa_oni_full",
+   "url": "https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt",
+   "final_url": "https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt",
+   "status": 200,
+   "content_type": "text/plain; charset=utf-8",
+   "bytes": 23000,
+   "retrieved_at": "2026-09-05T15:50:59Z",
+   "note": "NOAA CPC ONI, 3-month running mean by season, 1950→. Extends the repo seed back from 1980.",
+   "file": "data/raw/noaa_oni_full/oni.ascii.txt",
+   "sha256": "93f8c86c7a660f46318abe33b38c0479d184812d95a479a1fe869c0c2363a9e4",
+   "ok": true
   }
  ],
  "note": "Raw external inputs for backend/research/enso_arbitrage. Every file is listed with the url it came from, when, its size and sha256. Re-run the fetch workflow to refresh; the study itself never touches the network."
