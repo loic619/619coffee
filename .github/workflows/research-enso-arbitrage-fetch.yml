@@ -1,0 +1,72 @@
+name: "Z – Research: ENSO × arbitrage — fetch external series (manual)"
+
+# The ENSO × coffee-arbitrage study (backend/research/enso_arbitrage) needs a
+# price history longer than the five years this repo holds: ENSO turns every
+# three to seven years, and five years contains one episode per phase. ICO
+# publishes monthly NY/London futures and indicator prices back to 1990; the
+# World Bank Pink Sheet carries the indicators back to 1960.
+#
+# The Claude Code sandbox has no outbound HTTPS, so the fetch runs here and
+# commits the raw files plus a manifest (url, time, size, sha256) to the branch
+# the workflow was dispatched on. The study never touches the network itself.
+#
+# Touches nothing the app renders. Isolated from the export pipeline.
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Space-separated source ids to fetch (blank = all)"
+        required: false
+        default: ""
+
+concurrency:
+  group: research-enso-arbitrage-fetch
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install
+        run: pip install --quiet requests beautifulsoup4 openpyxl xlrd==1.2.0 pdfplumber
+
+      - name: Fetch
+        env:
+          PYTHONPATH: backend
+          IN_ONLY: ${{ inputs.only }}
+        run: |
+          if [ -n "$IN_ONLY" ]; then
+            python -m research.enso_arbitrage.src.fetch_external --only $IN_ONLY
+          else
+            python -m research.enso_arbitrage.src.fetch_external
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          f=backend/research/enso_arbitrage/data/raw/INDEX.md
+          if [ -f "$f" ]; then head -c 60000 "$f" >> "$GITHUB_STEP_SUMMARY"; else echo "No index written." >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Commit to this branch
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backend/research/enso_arbitrage/data
+          git diff --cached --quiet && { echo "Nothing new."; exit 0; }
+          git commit -m "research(enso): fetch external price series [skip ci]"
+          for i in 1 2 3 4; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+            git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 10))
+          done
+          echo "::error::push failed"; exit 1
