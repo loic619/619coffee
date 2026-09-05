@@ -94,17 +94,23 @@ SOURCES: list[dict] = [
         "note": "ICO files by their historical names, in case the crawl pages have moved.",
     },
     {
+        # The document id in the URL changes with every monthly release; the
+        # pinned one below is a Jan-2025 snapshot (data to 2024M12). The CMO
+        # page is crawled FIRST so the current file lands alongside it.
+        "id": "worldbank_pink_sheet_current",
+        "kind": "crawl",
+        "pages": ["https://www.worldbank.org/en/research/commodity-markets"],
+        "match": r"CMO-Historical-Data-Monthly",
+        "note": "World Bank CMO 'Pink Sheet', latest monthly release (approved).",
+    },
+    {
         "id": "worldbank_pink_sheet_monthly",
         "kind": "files",
         "urls": [
             "https://thedocs.worldbank.org/en/doc/5d903e848db1d1b83e0ec8f744e55570-0350012021/related/"
             "CMO-Historical-Data-Monthly.xlsx",
         ],
-        "fallback_crawl": {
-            "pages": ["https://www.worldbank.org/en/research/commodity-markets"],
-            "match": r"CMO-Historical-Data-Monthly",
-        },
-        "note": "World Bank CMO 'Pink Sheet', monthly, 1960→: COFFEE_ARABIC / COFFEE_ROBUS (approved).",
+        "note": "World Bank CMO 'Pink Sheet', monthly, 1960→: COFFEE_ARABIC / COFFEE_ROBUS (approved). Jan-2025 snapshot.",
     },
     {
         "id": "stooq_kc_f_daily",
