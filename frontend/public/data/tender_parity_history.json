@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T08:13:33.450608+00:00",
+  "generated_at": "2026-09-05T07:07:43.607099+00:00",
   "meta": {
     "adders_usd": 58.0,
     "container_mt": 21.6,
@@ -32,7 +32,7 @@
     "vietnam": {
       "name": "Vietnam Robusta FAQ G2",
       "market": "RC",
-      "fobbing_usd": 101.6,
+      "fobbing_usd": 101.9,
       "fobbing_fixed": 55.0,
       "fobbing_pct": 1.29,
       "fobbing_model": 4,
@@ -12996,13 +12996,25 @@
           "differential": 338.4,
           "parity_gap": -611.2,
           "tenderable": false
+        },
+        {
+          "date": "2026-09-05",
+          "farmgate_usd": 3634.3,
+          "fobbing": 101.9,
+          "at_port": 3736.1,
+          "freight": 214.9,
+          "tendering": 4009.0,
+          "rc": 3430.0,
+          "differential": 306.1,
+          "parity_gap": -579.0,
+          "tenderable": false
         }
       ]
     },
     "brazil_conilon": {
       "name": "Brazil Conilon T7",
       "market": "RC",
-      "fobbing_usd": 239.9,
+      "fobbing_usd": 239.7,
       "fobbing_fixed": 62.5,
       "fobbing_pct": 5.83,
       "fobbing_model": 4,
@@ -25810,6 +25822,18 @@
           "differential": -90.9,
           "parity_gap": -91.7,
           "tenderable": false
+        },
+        {
+          "date": "2026-09-04",
+          "farmgate_usd": 3038.8,
+          "fobbing": 239.7,
+          "at_port": 3278.4,
+          "freight": 124.6,
+          "tendering": 3461.0,
+          "rc": 3430.0,
+          "differential": -151.6,
+          "parity_gap": -31.0,
+          "tenderable": false
         }
       ]
     },
@@ -27187,6 +27211,18 @@
           "rc": 3374.0,
           "differential": 545.4,
           "parity_gap": -753.8,
+          "tenderable": false
+        },
+        {
+          "date": "2026-09-05",
+          "farmgate_usd": 3655.9,
+          "fobbing": 263.5,
+          "at_port": 3919.4,
+          "freight": 150.4,
+          "tendering": 4127.8,
+          "rc": 3430.0,
+          "differential": 489.4,
+          "parity_gap": -697.8,
           "tenderable": false
         }
       ]
