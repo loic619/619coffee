@@ -77,7 +77,7 @@ SOURCES: list[dict] = [
             "https://ico.org/resources/historical-data-on-the-global-coffee-trade/",
             "https://icocoffee.org/documents/",
         ],
-        "match": r"(price|futures|indicator|grower|new.?york|london|monthly|averag)",
+        "match": r"(price|futures|indicator|grower|new.?york|london|monthly|averag|histor|xls)",
         "note": "ICO historical data: NY/London futures and indicator prices, monthly, 1990→ (approved).",
     },
     {
@@ -223,14 +223,27 @@ def crawl(pages: list[str], match: str, session: requests.Session, source_id: st
         if status != 200 or not body:
             print(f"  [{source_id}] index {page} → {status}")
             continue
-        links = _links(body.decode("utf-8", "replace"), final)
+        html = body.decode("utf-8", "replace")
+        links = _links(html, final)
+        # Keep the index page and its full link list: when a site has moved,
+        # the diagnostic that matters is "what does it link to", not "0 files".
+        d = RAW / source_id
+        d.mkdir(parents=True, exist_ok=True)
+        tag = re.sub(r"[^a-z0-9]+", "_", urlparse(final).netloc + urlparse(final).path)[:80]
+        (d / f"index_{tag}.html").write_bytes(body)
+        (d / f"links_{tag}.txt").write_text("\n".join(f"{h}\t{t[:100]}" for h, t in links), encoding="utf-8")
         cands = []
         for href, text in links:
             host = urlparse(href).netloc.lower()
             if host not in ALLOWED_HOSTS:
                 continue
             path = urlparse(href).path.lower()
-            if not path.endswith(DOC_EXT):
+            # a document is a known extension, OR a download/upload path whose
+            # text or url talks about prices — sites hide extensions behind
+            # download handlers, and an HTML body is rejected at save time anyway
+            doc_like = path.endswith(DOC_EXT) or "download" in href.lower() or "wp-content/uploads" in href.lower() \
+                or "/documents/" in href.lower()
+            if not doc_like:
                 continue
             if not (rx.search(href) or rx.search(text or "")):
                 continue
@@ -276,7 +289,7 @@ def _preview(path: Path) -> list[str]:
             import openpyxl
             wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
             for ws in wb.worksheets[:12]:
-                lines.append(f"  sheet `{ws.title}` dims={ws.dimensions}")
+                lines.append(f"  sheet `{ws.title}` max_row={getattr(ws, 'max_row', '?')}")
                 for i, row in enumerate(ws.iter_rows(values_only=True)):
                     if i >= 8:
                         break
