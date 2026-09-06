@@ -246,19 +246,7 @@
       "timeframe": "current",
       "score": 0,
       "magnitude": "medium",
-      "text": "colombia/Antioquia: Early canopy stress. Yield impact not locked in yet — monitor.  [vhi=43.8, spei_3=-1.11]"
-    },
-    {
-      "id": "AGRO_colombia_Caldas_drought_stress_watch",
-      "name": "Vegetative Drought Stress — early",
-      "category": "AGRO",
-      "categoryLabel": "Agronomic",
-      "market": "PHYS",
-      "severity": "watch",
-      "timeframe": "current",
-      "score": 0,
-      "magnitude": "medium",
-      "text": "colombia/Caldas: Early canopy stress. Yield impact not locked in yet — monitor.  [vhi=44.87, spei_3=-2.28]"
+      "text": "colombia/Antioquia: Early canopy stress. Yield impact not locked in yet — monitor.  [vhi=44.4, spei_3=-1.11]"
     },
     {
       "id": "AGRO_colombia_Caldas_blossom_drop",
@@ -270,7 +258,55 @@
       "timeframe": "forecast",
       "score": 0,
       "magnitude": "medium",
-      "text": "colombia/Caldas: Potential false flowering or dropped blossoms. Harvest delay.  [spei_3=-2.28, forecast_7d_rain=95.8]"
+      "text": "colombia/Caldas: Potential false flowering or dropped blossoms. Harvest delay.  [spei_3=-2.28, forecast_7d_rain=94.2]"
+    },
+    {
+      "id": "AGRO_honduras_Montecillos_drought_stress_watch",
+      "name": "Vegetative Drought Stress — early",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "watch",
+      "timeframe": "current",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "honduras/Montecillos: Early canopy stress. Yield impact not locked in yet — monitor.  [vhi=40.62, spei_3=-1.47]"
+    },
+    {
+      "id": "AGRO_indonesia_Lampung_drought_stress_watch",
+      "name": "Vegetative Drought Stress — early",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "watch",
+      "timeframe": "current",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "indonesia/Lampung: Early canopy stress. Yield impact not locked in yet — monitor.  [vhi=42.8, spei_3=-1.28]"
+    },
+    {
+      "id": "AGRO_indonesia_Java_drought_stress_watch",
+      "name": "Vegetative Drought Stress — early",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "watch",
+      "timeframe": "current",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "indonesia/Java: Early canopy stress. Yield impact not locked in yet — monitor.  [vhi=39.92, spei_3=-1.23]"
+    },
+    {
+      "id": "AGRO_uganda_Mt_Elgon_blossom_drop",
+      "name": "Flowering Disruption / Blossom Drop",
+      "category": "AGRO",
+      "categoryLabel": "Agronomic",
+      "market": "PHYS",
+      "severity": "watch",
+      "timeframe": "forecast",
+      "score": 0,
+      "magnitude": "medium",
+      "text": "uganda/Mt Elgon: Potential false flowering or dropped blossoms. Harvest delay.  [spei_3=-1.3, forecast_7d_rain=52.5]"
     },
     {
       "id": "AGRO_uganda_Mt_Elgon_severe_defoliation",
@@ -282,7 +318,7 @@
       "timeframe": "current",
       "score": 0,
       "magnitude": "medium",
-      "text": "uganda/Mt Elgon: Irreversible yield reduction likely. Bean size shrinkage. (held — recovery thresholds not yet met)  [spei_3=-1.3, vhi=34.35]"
+      "text": "uganda/Mt Elgon: Irreversible yield reduction likely. Bean size shrinkage. (held — recovery thresholds not yet met)  [vhi=26.95, spei_3=-1.3]"
     },
     {
       "id": "AGRO_ethiopia_Sidama/Yirgacheffe_drought_stress_alert",
@@ -294,7 +330,7 @@
       "timeframe": "current",
       "score": 0,
       "magnitude": "medium",
-      "text": "ethiopia/Sidama/Yirgacheffe: Sustained moisture deficit with visible canopy stress. Bean-fill risk building.  [vhi=32.55, spei_3=-1.43]"
+      "text": "ethiopia/Sidama/Yirgacheffe: Sustained moisture deficit with visible canopy stress. Bean-fill risk building.  [vhi=36.14, spei_3=-1.43]"
     },
     {
       "id": "AGRO_ethiopia_Kaffa_severe_defoliation",
@@ -306,7 +342,7 @@
       "timeframe": "current",
       "score": 0,
       "magnitude": "medium",
-      "text": "ethiopia/Kaffa: Irreversible yield reduction likely. Bean size shrinkage.  [vhi=32.55, spei_3=-1.75]"
+      "text": "ethiopia/Kaffa: Irreversible yield reduction likely. Bean size shrinkage. (held — recovery thresholds not yet met)  [vhi=36.14, spei_3=-1.75]"
     },
     {
       "id": "AGRO_ethiopia_Harrar_drought_stress_alert",
@@ -318,7 +354,7 @@
       "timeframe": "current",
       "score": 0,
       "magnitude": "medium",
-      "text": "ethiopia/Harrar: Sustained moisture deficit with visible canopy stress. Bean-fill risk building.  [vhi=35.47, spei_3=-1.81]"
+      "text": "ethiopia/Harrar: Sustained moisture deficit with visible canopy stress. Bean-fill risk building.  [vhi=38.26, spei_3=-1.81]"
     },
     {
       "id": "AGRO_vn_Lam_Dong_drought_stress_watch",
@@ -330,7 +366,7 @@
       "timeframe": "current",
       "score": 0,
       "magnitude": "medium",
-      "text": "vn/Lam Dong: Early canopy stress. Yield impact not locked in yet — monitor. River/reservoir flows -46% vs normal — irrigation buffer thin.  [vhi=40.23, spei_3=-1.44, water_tbnn_pct=-46.0]"
+      "text": "vn/Lam Dong: Early canopy stress. Yield impact not locked in yet — monitor. River/reservoir flows -46% vs normal — irrigation buffer thin.  [vhi=44.98, spei_3=-1.44, water_tbnn_pct=-46.0]"
     }
   ],
   "history": [
@@ -2432,5 +2468,5 @@
       "priceLDN": 3461
     }
   ],
-  "generatedAt": "2026-09-05T07:08:07.639Z"
+  "generatedAt": "2026-09-06T06:39:47.352Z"
 }
