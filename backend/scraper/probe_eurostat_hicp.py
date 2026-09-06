@@ -226,6 +226,29 @@ def dataset_span(dataflow: str) -> tuple[str | None, str | None, int, str | None
     return periods[0], periods[-1], len(periods), None
 
 
+def item_labels(dataflow: str) -> dict[str, str]:
+    """The item-classification codelist of an arbitrary dataflow.
+
+    The dimension is `coicop` in the old tables and may be named differently in
+    the ECOICOP v2 ones, so the dimension is found by looking for the one whose
+    labels mention consumption items rather than by assuming its name.
+    """
+    body, err = _get(f"{BASE}/data/{dataflow}?format=JSON&lang=EN&geo=DE&lastTimePeriod=1",
+                     timeout=60)
+    if err:
+        print(f"    codelist fetch failed for {dataflow}: {err}")
+        return {}
+    dims = (body or {}).get("dimension") or {}
+    for name in ("coicop", "ecoicop2", "coicop2", "item", "prod"):
+        cat = (dims.get(name) or {}).get("category") or {}
+        if cat.get("label"):
+            print(f"    (item dimension is '{name}')")
+            return cat["label"]
+    # not one of the expected names — say what IS there rather than returning {}
+    print(f"    no known item dimension; dataflow has: {sorted(dims.keys())}")
+    return {}
+
+
 def months_behind(period: str | None, today: date) -> int | None:
     if not period or len(period) < 7:
         return None
@@ -320,11 +343,11 @@ def main() -> int:
     cands = hicp_datasets()
     if not cands:
         print("  catalogue lookup failed — cannot name a replacement from here")
-    for code, title, updated in cands[:25]:
+    for code, title, updated in cands:
         print(f"  {code:24s} last-update {updated or '—':12s} {title[:60]}")
 
     print("\n8. Which of those actually carry a current German all-items index?")
-    for code, _title, _upd in cands[:25]:
+    for code, _title, _upd in cands:
         if "midx" not in code and "mmor" not in code and "manr" not in code:
             continue                      # index / monthly-rate tables only
         first, last, n, err = dataset_span(code)
@@ -332,9 +355,42 @@ def main() -> int:
         flag = "  <<< CURRENT" if lag is not None and lag <= 3 else ""
         print(f"  {code:24s} {first or '—':9s} → {last or '—':9s} n={n:<5d} "
               f"lag={'—' if lag is None else lag}{flag}  {err or ''}")
-    print("\n  A prc_hicp* index dataset that IS current names the replacement.")
-    print("  The scraper then needs its dataflow id and whatever item code coffee")
-    print("  carries there — re-run this probe against that dataflow before editing.")
+    # ── pass 4 ───────────────────────────────────────────────────────────────
+    # Pass 3 named it. The catalogue calls the dataset the scraper uses
+    # "HICP - monthly data (index) (1996-2025)" — Eurostat closed it, last
+    # updated 06.02.2026 — and lists a new "HICP - ECOICOP ver.2" folder beside
+    # it. So this is a classification changeover, and what remains is the
+    # replacement's dataset id and the code coffee carries under ECOICOP v2.
+    # Neither is safe to guess: the whole point of a revision is that codes move.
+    print("\n9. The ECOICOP ver.2 family — every dataset, and which is the index table")
+    v2 = [c for c in cands if "ecoicop2" in c[0] or c[0].endswith("2")]
+    for code, title, updated in v2:
+        print(f"  {code:28s} last-update {updated or '—':12s} {title[:58]}")
+    if not v2:
+        print("  none matched 'ecoicop2' — printing EVERY prc_hicp* dataset instead")
+        for code, title, updated in cands:
+            print(f"  {code:28s} last-update {updated or '—':12s} {title[:58]}")
+
+    print("\n10. Which ECOICOP v2 table carries a CURRENT German series?")
+    live: list[str] = []
+    for code, _t, _u in (v2 or cands):
+        first, last, n, err = dataset_span(code)
+        lag = months_behind(last, today)
+        flag = ""
+        if lag is not None and lag <= 3:
+            flag, _ = "  <<< CURRENT", live.append(code)
+        print(f"  {code:28s} {first or '—':9s} → {last or '—':9s} n={n:<5d} "
+              f"lag={'—' if lag is None else lag}{flag}  {err or ''}")
+
+    print("\n11. Where coffee lives in the replacement")
+    for code in live[:4]:
+        labels = item_labels(code)
+        hits = [(c, lab) for c, lab in labels.items() if "coffee" in lab.lower()]
+        print(f"  {code}: {len(labels)} item codes, {len(hits)} mention coffee")
+        for c, lab in sorted(hits):
+            print(f"      {c:12s} {lab[:56]}")
+    if not live:
+        print("  no replacement table came back current — do not edit the scraper yet")
 
     print("\n4. Raw grid (for the PR)")
     print(json.dumps(grid, indent=1, sort_keys=True))
