@@ -1,0 +1,38 @@
+name: "0.33 – Probe Eurostat coffee HICP base (diagnostic)"
+
+# Dispatch-only. retail_cpi.json's `eu` series stops at 2025-12 while the US and
+# Brazil run to 2026-07, and it has been frozen there across successful runs on
+# 2026-08-16 and 2026-09-01 — same 121 periods, same last value. Both runs took
+# the DE/FR/IT/ES basket fallback, whose whole justification is that member
+# states publish 2-3 weeks after month-end, and the fallback stopped there too.
+#
+# Five geos ending on the same month is not five publication lags, and a lag
+# does not land on a year boundary. The scraper hardcodes `unit=I15` (2015=100)
+# and HICP rebases on the fives, so a 2025=100 base arriving with the January
+# 2026 index would explain it exactly. This asks Eurostat which bases the
+# dataflow actually carries and how far each reaches, per geo, so the fix is
+# based on their answer instead of that reasoning.
+#
+# Writes nothing and commits nothing.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install requests
+
+      - name: Probe Eurostat HICP bases
+        working-directory: backend
+        run: python -m scraper.probe_eurostat_hicp
