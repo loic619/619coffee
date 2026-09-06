@@ -239,7 +239,7 @@ def item_labels(dataflow: str) -> dict[str, str]:
         print(f"    codelist fetch failed for {dataflow}: {err}")
         return {}
     dims = (body or {}).get("dimension") or {}
-    for name in ("coicop", "ecoicop2", "coicop2", "item", "prod"):
+    for name in ("coicop", "coicop18", "ecoicop2", "coicop2", "item", "prod"):
         cat = (dims.get(name) or {}).get("category") or {}
         if cat.get("label"):
             print(f"    (item dimension is '{name}')")
@@ -409,6 +409,31 @@ def main() -> int:
             print(f"      {c:12s} {lab[:56]}")
     if not live:
         print("  no replacement table came back current — do not edit the scraper yet")
+
+    print("\n12. The replacement, measured per geo — everything the fix needs")
+    for code in live[:2]:
+        labels = item_labels(code)
+        dim = "coicop18" if labels else "coicop"
+        for item, lab in sorted((c, l) for c, l in labels.items() if "coffee" in l.lower()):
+            print(f"  {code} / {dim}={item}  ({lab[:40]})")
+            for geo in GEOS:
+                body, err = _get(f"{BASE}/data/{code}?format=JSON&lang=EN"
+                                 f"&{dim}={item}&geo={geo}")
+                if err:
+                    print(f"      {geo:10s} {err}")
+                    continue
+                try:
+                    idx = body["dimension"]["time"]["category"]["index"]
+                    vals = body["value"]
+                    units = list((body["dimension"].get("unit") or {}).get("category", {}).get("index") or [])
+                except (KeyError, TypeError):
+                    print(f"      {geo:10s} unexpected shape")
+                    continue
+                per = sorted(idx, key=lambda x: idx[x]) if isinstance(idx, dict) else list(idx)
+                have = [pp for i, pp in enumerate(per)
+                        if (vals.get(str(i)) if isinstance(vals, dict) else None) is not None]
+                print(f"      {geo:10s} {have[0] if have else '—':9s} → {have[-1] if have else '—':9s} "
+                      f"n={len(have):<5d} units={units}")
 
     print("\n4. Raw grid (for the PR)")
     print(json.dumps(grid, indent=1, sort_keys=True))
