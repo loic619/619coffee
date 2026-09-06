@@ -32,6 +32,7 @@ from database import SessionLocal
 from scraper.exporters.base import OUT_DIR
 from scraper.exporters.cot import export_cot, export_macro_cot
 from scraper.exporters.demand import export_demand_stocks, export_factory_mix_step
+from scraper.exporters.enso_arbitrage import export_enso_arbitrage
 from scraper.exporters.export_expectations import export_expectations
 from scraper.exporters.front_spread import export_front_spread
 from scraper.exporters.futures import (
@@ -137,6 +138,7 @@ def _exporters(db):
         ("vn_midmonth",           lambda: export_vn_midmonth()),
         ("export_expectations",   lambda: export_expectations()),
         ("workflow_failures",     lambda: export_workflow_failures()),
+        ("enso_arbitrage",        lambda: export_enso_arbitrage()),
         ("cot",                   lambda: export_cot(db)),
         ("macro_cot",             lambda: export_macro_cot(db)),
         ("freight",               lambda: export_freight(db)),

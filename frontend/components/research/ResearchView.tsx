@@ -58,6 +58,7 @@ import { nodesForArticle } from "./factor-map/articleNodes";
 import HondurasProfile from "./origins/HondurasProfile";
 import CertStocksSpread from "./CertStocksSpread";
 import SectionNav from "./SectionNav";
+import EnsoArbitrage from "./EnsoArbitrage";
 import VnMidMonth from "./VnMidMonth";
 import WorkflowFailures from "./WorkflowFailures";
 
@@ -1814,6 +1815,7 @@ const BODY: Record<string, React.ReactNode> = {
   "honduras-origin-country-profile": <HondurasProfile />,
   "cert-stocks-and-the-front-spread": <CertStocksSpread />,
   "vietnam-mid-month-customs-bulletin": <VnMidMonth />,
+  "enso-and-the-coffee-arbitrage": <EnsoArbitrage />,
   "workflow-failure-taxonomy": <WorkflowFailures />,
   "origin-logistics-the-fobbing-cost-model": <OriginLogistics />,
   "destination-in-store-cost": <DestinationInstore />,
