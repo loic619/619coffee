@@ -1,48 +1,47 @@
 """
-probe_eurostat_hicp.py — why does the EU coffee HICP series stop at 2025-12?
+probe_eurostat_hicp.py — why did the EU coffee HICP series stop at 2025-12?
 
-Why. `retail_cpi.json`'s `eu` series ends **2025-12** while the US and Brazil
-run to 2026-07, and it has been frozen there across at least two successful
-scraper runs (2026-08-16 and 2026-09-01, identical: 121 periods, same last
-value). The retail pass-through study (#852) had to demote the euro area to a
-robustness check because of it.
+ANSWERED, 2026-09-06. Eurostat retired the dataflow. Kept as the record of how
+that was established, and as the tool to re-run when the EU series next goes
+quiet — the answer here is dated, the method is not.
 
-The scraper is not obviously broken. `_fetch_eurostat` already tries the
-EU27_2020 aggregate, decides it is stale, and falls back to a weighted
-DE/FR/IT/ES basket whose whole justification is that member states publish
-2-3 weeks after month-end. Both runs took the fallback path — the shipped
-series is named "(DE/FR/IT/ES basket proxy)" — and the fallback ALSO ended at
-2025-12.
+    The symptom. `retail_cpi.json`'s `eu` series ended 2025-12 while the US and
+    Brazil ran to 2026-07, frozen there across successful runs on 2026-08-16
+    and 2026-09-01 (identical: 121 periods, same last value). Nothing was
+    failing. The DE/FR/IT/ES fallback fired exactly as designed and produced
+    the same stale answer, because it read the same dead table.
 
-That is the shape worth explaining. Five geos stopping on the same month is not
-five independent publication lags, and a lag does not land exactly on a
-year boundary. The leading hypothesis is that the request is pinned to a
-retired index base: the URL hardcodes `unit=I15` (2015 = 100), and HICP is
-rebased on the fives — 2005, 2015, and on this timing 2025 = 100 arriving with
-the January 2026 index. If that happened, `I15` legitimately has no data after
-2025-12 and the current numbers live under a different `unit` code.
+    What it was NOT, each ruled out against the source rather than argued:
+      * not a retired index base — the dataflow's codelist offers I15/I05/I96
+        and no 2025 base at all, and every unit x geo ended 2025-12;
+      * not a publication lag — five geos do not stop on the same month, and a
+        lag does not land on a year boundary;
+      * not the item code — all-items HICP for Germany (CP00) ended 2025-12 too.
 
-That is a hypothesis, not a finding, and it is exactly the kind that is cheap to
-test against the source and expensive to guess at. So this asks Eurostat three
-things directly:
+    What it was. The catalogue titles the dataset "HICP - monthly data (index)
+    (1996-2025)", last updated 06.02.2026, beside a new "HICP - ECOICOP ver.2"
+    folder. Eurostat closed the table with the January 2026 index. The live
+    replacement is `prc_hicp_minr`, and it moved three things at once:
 
-  1. WHICH UNITS EXIST for prc_hicp_midx, from the dataflow's own codelist —
-     rather than assuming I15 and I25 are the only candidates.
-  2. FOR EACH (unit x geo), the first and last period actually returned, so a
-     retired base and a genuine publication lag can be told apart: a retired
-     base ends on a year boundary for every geo at once; a lag ends raggedly
-     and differently per country.
-  3. WHETHER THE BASKET'S ALL-FOUR RULE is what truncates it. `_fetch_eurostat_basket`
-     keeps only periods present in all of DE/FR/IT/ES, so one laggard country
-     silently caps the whole series. Printed per country so that can be ruled
-     in or out independently of the unit question.
+        dataflow   prc_hicp_midx  ->  prc_hicp_minr
+        dimension  coicop         ->  coicop18
+        item code  CP01211        ->  CP01220 "Coffee and coffee substitutes"
 
-Read the output before changing the scraper. If a newer base is current, the fix
-is to stop hardcoding a base and select the freshest available; if instead every
-unit stops at 2025-12, the series really is discontinued at source and the
-honest fix is to say so on the chart rather than to keep fetching.
+    Each returns an empty answer rather than an error, which is why this was
+    silent for months.
 
-Writes nothing, commits nothing. Run via workflow 0.29 (dispatch-only).
+Two things this probe is built to do that matter more than the specific answer:
+
+  1. It asks the CATALOGUE what exists and what is being updated, instead of
+     testing names someone guessed. Pass 4 shortlisted candidates by name
+     (midx/manr/mmor) and so tested only the frozen tables while the live ones —
+     minr, ainr, fpd — were skipped for being named differently. A
+     classification changeover renames things; that is the whole point of one.
+  2. It ends by calling the scraper's own `_fetch_eurostat()` against the live
+     API, so a proposed fix is verified end to end on a runner before merge
+     rather than at the next scheduled run.
+
+Writes nothing, commits nothing. Run via workflow 0.33 (dispatch-only).
 
     cd backend && python -m scraper.probe_eurostat_hicp
 """

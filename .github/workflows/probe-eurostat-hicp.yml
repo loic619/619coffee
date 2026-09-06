@@ -17,11 +17,6 @@ name: "0.33 – Probe Eurostat coffee HICP base (diagnostic)"
 
 on:
   workflow_dispatch:
-  # TEMPORARY, removed before this PR is opened: GitHub does not register a
-  # workflow_dispatch trigger until the file is on the default branch, so the
-  # probe cannot be run from the branch that introduces it without this.
-  push:
-    branches: [claude/eurostat-hicp-base]
 
 jobs:
   probe:
