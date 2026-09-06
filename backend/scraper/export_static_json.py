@@ -50,6 +50,7 @@ from scraper.exporters.macro import (
 from scraper.exporters.news import export_news
 from scraper.exporters.price_elasticity import export_price_elasticity
 from scraper.exporters.prices import export_latest_prices, export_vn_physical_prices
+from scraper.exporters.retail_passthrough import export_retail_passthrough
 from scraper.exporters.supply import (
     export_colombia,
     export_ethiopia,
@@ -139,6 +140,7 @@ def _exporters(db):
         ("export_expectations",   lambda: export_expectations()),
         ("workflow_failures",     lambda: export_workflow_failures()),
         ("enso_arbitrage",        lambda: export_enso_arbitrage()),
+        ("retail_passthrough",    lambda: export_retail_passthrough()),
         ("cot",                   lambda: export_cot(db)),
         ("macro_cot",             lambda: export_macro_cot(db)),
         ("freight",               lambda: export_freight(db)),

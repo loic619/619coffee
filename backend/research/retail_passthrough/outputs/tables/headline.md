@@ -1,0 +1,9 @@
+- sample: 2011-01 → 2026-07 (n = 186, n_eff = 9.8; missing 2025-10)
+- timing: peak lag 5 months, significant band 3–9, family-wise surrogate p = 0.0025
+- cointegrated: True (Engle–Granger p = 0.0059)
+- long-run elasticity θ = 0.288 (HAC SE 0.046)
+- cumulative short-run pass-through after 12 months = 0.268
+- 12-month-change slope at lag 5 = 0.181 (n = 168, n_eff = 17.8)
+- complete dollar pass-through over 2019-05→2026-07 needs green to have been under 29.0% of the base shelf price
+- θ inverted at the sample-mean green cost implies a shelf price of $16.12/kg ($7.31/lb)
+- asymmetry, bootstrap p (asymptotic in brackets): short-run 0.309 (0.1506), correction 0.071 (0.0236) → not established
