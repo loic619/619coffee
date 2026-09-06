@@ -1,9 +1,9 @@
 {
   "country": "uganda",
-  "scraped_at": "2026-09-05T07:07:19.946158+00:00",
+  "scraped_at": "2026-09-06T07:19:00.301253+00:00",
   "exports": {
     "source": "UCDA Monthly Reports",
-    "last_updated": "2026-06",
+    "last_updated": "2026-07",
     "unit": "thousand 60-kg bags",
     "monthly": [
       {
@@ -347,457 +347,445 @@
         "total_k_bags": 744.5,
         "robusta_k_bags": 668.2,
         "arabica_k_bags": 76.3
+      },
+      {
+        "month": "2026-07",
+        "total_bags": 846376,
+        "robusta_bags": 775148,
+        "arabica_bags": 71228,
+        "robusta_pct": 91.6,
+        "arabica_pct": 8.4,
+        "total_value_usd": 204077645,
+        "yoy_pct": -14.9,
+        "total_k_bags": 846.4,
+        "robusta_k_bags": 775.1,
+        "arabica_k_bags": 71.2
       }
     ]
   },
   "ucda_detail": {
-    "month": "2026-06",
+    "month": "2026-07",
     "grades": [
       {
         "grade": "Washed Robusta",
-        "qty_bags": 1720,
-        "pct_qty": 0.3,
-        "value_usd": 406261,
-        "pct_val": 0.3,
-        "price_usd_kg": 3.9
+        "qty_bags": 4336,
+        "pct_qty": 0.6,
+        "value_usd": 967665,
+        "pct_val": 0.5,
+        "price_usd_kg": 3.7
       },
       {
         "grade": "Screen 17",
-        "qty_bags": 46611,
-        "pct_qty": 7.0,
-        "value_usd": 10809133,
-        "pct_val": 7.3,
-        "price_usd_kg": 3.9
+        "qty_bags": 41324,
+        "pct_qty": 5.3,
+        "value_usd": 9953917,
+        "pct_val": 5.6,
+        "price_usd_kg": 4.0
       },
       {
         "grade": "Screen 14",
-        "qty_bags": 15603,
-        "pct_qty": 2.3,
-        "value_usd": 3385509,
-        "pct_val": 2.3,
-        "price_usd_kg": 3.6
+        "qty_bags": 12288,
+        "pct_qty": 1.6,
+        "value_usd": 2825694,
+        "pct_val": 1.6,
+        "price_usd_kg": 3.8
       },
       {
         "grade": "BHP 1199",
-        "qty_bags": 39132,
-        "pct_qty": 5.9,
-        "value_usd": 6892213,
-        "pct_val": 4.7,
+        "qty_bags": 34963,
+        "pct_qty": 4.5,
+        "value_usd": 6149149,
+        "pct_val": 3.5,
         "price_usd_kg": 2.9
       },
       {
-        "grade": "Mt Elgon A+",
-        "qty_bags": 1089,
-        "pct_qty": 1.4,
-        "value_usd": 722763,
-        "pct_val": 2.6,
-        "price_usd_kg": 11.1
+        "grade": "Organic Drugar",
+        "qty_bags": 320,
+        "pct_qty": 0.4,
+        "value_usd": 116162,
+        "pct_val": 0.4,
+        "price_usd_kg": 6.1
       },
       {
-        "grade": "Organic Drugar",
-        "qty_bags": 1671,
-        "pct_qty": 2.2,
-        "value_usd": 563182,
-        "pct_val": 2.0,
-        "price_usd_kg": 5.6
+        "grade": "Mt Elgon A",
+        "qty_bags": 999,
+        "pct_qty": 1.4,
+        "value_usd": 418896,
+        "pct_val": 1.6,
+        "price_usd_kg": 7.0
       },
       {
         "grade": "BugisuAA",
-        "qty_bags": 4857,
-        "pct_qty": 6.4,
-        "value_usd": 1886518,
-        "pct_val": 6.7,
-        "price_usd_kg": 6.5
+        "qty_bags": 3295,
+        "pct_qty": 4.6,
+        "value_usd": 1303982,
+        "pct_val": 5.0,
+        "price_usd_kg": 6.6
       },
       {
         "grade": "BugisuAB",
-        "qty_bags": 6685,
-        "pct_qty": 8.8,
-        "value_usd": 2483895,
-        "pct_val": 8.8,
-        "price_usd_kg": 6.2
+        "qty_bags": 5181,
+        "pct_qty": 7.3,
+        "value_usd": 2043804,
+        "pct_val": 7.8,
+        "price_usd_kg": 6.6
       },
       {
-        "grade": "BugisuCPB",
-        "qty_bags": 1383,
-        "pct_qty": 1.8,
-        "value_usd": 504463,
-        "pct_val": 1.8,
-        "price_usd_kg": 6.1
+        "grade": "BugisuB",
+        "qty_bags": 150,
+        "pct_qty": 0.2,
+        "value_usd": 109723,
+        "pct_val": 0.4,
+        "price_usd_kg": 12.2
       },
       {
         "grade": "Wugar",
-        "qty_bags": 16225,
-        "pct_qty": 21.3,
-        "value_usd": 5958135,
-        "pct_val": 21.1,
-        "price_usd_kg": 6.1
+        "qty_bags": 10999,
+        "pct_qty": 15.4,
+        "value_usd": 4371248,
+        "pct_val": 16.7,
+        "price_usd_kg": 6.6
       },
       {
-        "grade": "Other Arabicas",
-        "qty_bags": 3964,
-        "pct_qty": 5.2,
-        "value_usd": 1235125,
-        "pct_val": 4.4,
-        "price_usd_kg": 5.2
+        "grade": "OtherArabica",
+        "qty_bags": 9704,
+        "pct_qty": 13.6,
+        "value_usd": 2554165,
+        "pct_val": 9.8,
+        "price_usd_kg": 4.4
       }
     ],
     "exporters": [
       {
         "rank": 1,
         "company": "Ugacof(U) Ltd",
-        "total_bags": 81867,
-        "robusta_bags": 67268,
-        "arabica_bags": 14599,
-        "pct_individual": 11.0
+        "total_bags": 109050,
+        "robusta_bags": 96495,
+        "arabica_bags": 12555,
+        "pct_individual": 12.9
       },
       {
         "rank": 3,
         "company": "Ideal Quality Commodities Ltd",
-        "total_bags": 61614,
-        "robusta_bags": 61614,
-        "pct_individual": 8.28
+        "total_bags": 73884,
+        "robusta_bags": 73884,
+        "pct_individual": 8.7
       },
       {
         "rank": 5,
-        "company": "Kyagalanyi Coffee Ltd",
-        "total_bags": 43621,
-        "robusta_bags": 28934,
-        "arabica_bags": 14687,
-        "pct_individual": 5.86
+        "company": "JKCC General Supplies Ltd",
+        "total_bags": 52474,
+        "robusta_bags": 52474,
+        "pct_individual": 6.2
       },
       {
         "rank": 7,
-        "company": "Louis Dreyfus Company (U) Ltd",
-        "total_bags": 37732,
-        "robusta_bags": 37732,
-        "pct_individual": 5.07
+        "company": "Kyagalanyi Coffee Ltd",
+        "total_bags": 48386,
+        "robusta_bags": 27048,
+        "arabica_bags": 21338,
+        "pct_individual": 5.7
       },
       {
         "rank": 9,
-        "company": "Ibero (U) Ltd",
-        "total_bags": 29689,
-        "robusta_bags": 25291,
-        "arabica_bags": 4398,
-        "pct_individual": 3.99
+        "company": "Kawacom(U) Ltd",
+        "total_bags": 39376,
+        "robusta_bags": 34863,
+        "arabica_bags": 4513,
+        "pct_individual": 4.7
       },
       {
         "rank": 11,
-        "company": "Kawacom(U) Ltd",
-        "total_bags": 24430,
-        "robusta_bags": 17437,
-        "arabica_bags": 6993,
-        "pct_individual": 3.28
+        "company": "Louis Dreyfus Company (U) Ltd",
+        "total_bags": 28618,
+        "robusta_bags": 28618,
+        "pct_individual": 3.4
       },
       {
         "rank": 13,
-        "company": "ToutonUganda Limited",
-        "total_bags": 22488,
-        "robusta_bags": 22138,
-        "arabica_bags": 350,
-        "pct_individual": 3.02
+        "company": "Ibero (U) Ltd",
+        "total_bags": 20221,
+        "robusta_bags": 17833,
+        "arabica_bags": 2388,
+        "pct_individual": 2.4
       },
       {
         "rank": 15,
         "company": "African Trade Winds Ltd",
-        "total_bags": 14746,
-        "robusta_bags": 13346,
-        "arabica_bags": 1400,
-        "pct_individual": 1.98
+        "total_bags": 18328,
+        "robusta_bags": 17328,
+        "arabica_bags": 1000,
+        "pct_individual": 2.2
       },
       {
         "rank": 17,
         "company": "Noble Commodities (U) Ltd",
-        "total_bags": 14028,
-        "robusta_bags": 14028,
-        "pct_individual": 1.88
+        "total_bags": 16624,
+        "robusta_bags": 16624,
+        "pct_individual": 2.0
       },
       {
         "rank": 19,
         "company": "Equatorial Beans Factory Ltd",
-        "total_bags": 6680,
-        "robusta_bags": 3340,
-        "arabica_bags": 3340,
+        "total_bags": 7580,
+        "robusta_bags": 2972,
+        "arabica_bags": 4608,
         "pct_individual": 0.9
       },
       {
         "rank": 21,
-        "company": "AgriEvolve",
-        "total_bags": 4519,
-        "arabica_bags": 4519,
-        "pct_individual": 0.61
+        "company": "Coffee World Ltd",
+        "total_bags": 6077,
+        "robusta_bags": 5357,
+        "arabica_bags": 720,
+        "pct_individual": 0.7
       },
       {
         "rank": 23,
-        "company": "Aroma Commodities Limited",
-        "total_bags": 4200,
-        "robusta_bags": 3560,
-        "arabica_bags": 640,
-        "pct_individual": 0.56
+        "company": "ZigotiCoffee Works Ltd",
+        "total_bags": 5633,
+        "robusta_bags": 5633,
+        "pct_individual": 0.7
       },
       {
         "rank": 25,
-        "company": "RubangaCooperative Society Ltd",
-        "total_bags": 4000,
-        "robusta_bags": 4000,
-        "pct_individual": 0.54
+        "company": "Discovery Trading Limited",
+        "total_bags": 4809,
+        "robusta_bags": 4809,
+        "pct_individual": 0.6
       },
       {
         "rank": 27,
-        "company": "Darley Investments Ltd",
-        "total_bags": 3522,
-        "robusta_bags": 3088,
-        "arabica_bags": 434,
-        "pct_individual": 0.47
+        "company": "AbbarciIndustries Limited",
+        "total_bags": 3500,
+        "robusta_bags": 3500,
+        "pct_individual": 0.4
       }
     ],
     "destinations": [
       {
-        "rank": 83,
-        "country": "BalambuliKwigateCoffee Ltd",
-        "total_bags": 174,
-        "robusta_bags": 58,
-        "arabica_bags": 174,
-        "pct_individual": 0.02
+        "rank": 2,
+        "country": "Sudan",
+        "total_bags": 127975,
+        "robusta_bags": 127975,
+        "pct_individual": 15.1
       },
       {
-        "rank": 85,
-        "country": "United Organic Coffee Growers Limited",
-        "total_bags": 139,
-        "arabica_bags": 139,
-        "pct_individual": 0.02
+        "rank": 4,
+        "country": "Morocco",
+        "total_bags": 50222,
+        "robusta_bags": 49905,
+        "arabica_bags": 317,
+        "pct_individual": 5.9
       },
       {
-        "rank": 87,
-        "country": "WakandaCoffee And Grains Uganda Ltd",
-        "total_bags": 8,
-        "arabica_bags": 8
+        "rank": 6,
+        "country": "Spain",
+        "total_bags": 30585,
+        "robusta_bags": 26662,
+        "arabica_bags": 3923,
+        "pct_individual": 3.6
+      },
+      {
+        "rank": 8,
+        "country": "U.S.A",
+        "total_bags": 21686,
+        "robusta_bags": 11285,
+        "arabica_bags": 10401,
+        "pct_individual": 2.6
+      },
+      {
+        "rank": 10,
+        "country": "Portugal",
+        "total_bags": 17605,
+        "robusta_bags": 15287,
+        "arabica_bags": 2318,
+        "pct_individual": 2.1
+      },
+      {
+        "rank": 12,
+        "country": "Netherlands",
+        "total_bags": 15508,
+        "robusta_bags": 12088,
+        "arabica_bags": 3420,
+        "pct_individual": 1.8
+      },
+      {
+        "rank": 14,
+        "country": "Turkey",
+        "total_bags": 11478,
+        "robusta_bags": 10838,
+        "arabica_bags": 640,
+        "pct_individual": 1.4
+      },
+      {
+        "rank": 16,
+        "country": "Slovenia",
+        "total_bags": 11309,
+        "robusta_bags": 11309,
+        "pct_individual": 1.3
+      },
+      {
+        "rank": 18,
+        "country": "U.A.E",
+        "total_bags": 9162,
+        "robusta_bags": 8842,
+        "arabica_bags": 320,
+        "pct_individual": 1.1
+      },
+      {
+        "rank": 20,
+        "country": "Latvia",
+        "total_bags": 8041,
+        "robusta_bags": 4353,
+        "arabica_bags": 3688,
+        "pct_individual": 1.0
+      },
+      {
+        "rank": 22,
+        "country": "France",
+        "total_bags": 7800,
+        "robusta_bags": 7800,
+        "pct_individual": 0.9
+      },
+      {
+        "rank": 24,
+        "country": "Israel",
+        "total_bags": 6400,
+        "robusta_bags": 6400,
+        "pct_individual": 0.8
+      },
+      {
+        "rank": 26,
+        "country": "Poland",
+        "total_bags": 4328,
+        "robusta_bags": 4328,
+        "pct_individual": 0.5
       }
     ],
     "buyers": [
       {
-        "rank": 28,
-        "company": "Finland",
-        "total_bags": 2906,
-        "robusta_bags": 2586,
-        "arabica_bags": 320,
-        "pct_individual": 0.4
-      },
-      {
-        "rank": 30,
-        "company": "South Africa",
-        "total_bags": 2266,
-        "robusta_bags": 1306,
-        "arabica_bags": 960,
-        "pct_individual": 0.3
-      },
-      {
-        "rank": 32,
-        "company": "Lebanon",
-        "total_bags": 1575,
-        "robusta_bags": 1575,
-        "pct_individual": 0.2
-      },
-      {
-        "rank": 34,
-        "company": "Canada",
-        "total_bags": 1336,
-        "robusta_bags": 1336,
-        "pct_individual": 0.2
-      },
-      {
-        "rank": 36,
-        "company": "Tunisia",
-        "total_bags": 1316,
-        "robusta_bags": 1316,
-        "pct_individual": 0.2
-      },
-      {
-        "rank": 38,
-        "company": "Romania",
-        "total_bags": 1000,
-        "robusta_bags": 1000,
-        "pct_individual": 0.1
-      },
-      {
-        "rank": 40,
-        "company": "Estonia",
-        "total_bags": 960,
-        "arabica_bags": 960,
-        "pct_individual": 0.1
-      },
-      {
-        "rank": 41,
-        "company": "South Korea",
-        "total_bags": 810,
-        "robusta_bags": 320,
-        "arabica_bags": 490,
-        "pct_individual": 0.1
-      },
-      {
-        "rank": 42,
-        "company": "Mexico",
-        "total_bags": 666,
-        "robusta_bags": 666,
-        "pct_individual": 0.1
-      },
-      {
-        "rank": 43,
-        "company": "Cape Verde",
-        "total_bags": 640,
-        "robusta_bags": 640,
-        "pct_individual": 0.1
-      },
-      {
-        "rank": 44,
-        "company": "New Zealand",
-        "total_bags": 487,
-        "arabica_bags": 487,
-        "pct_individual": 0.1
-      },
-      {
-        "rank": 45,
-        "company": "Malta",
-        "total_bags": 350,
-        "robusta_bags": 350
-      },
-      {
-        "rank": 46,
-        "company": "Sri Lanka",
-        "total_bags": 320,
-        "arabica_bags": 320
-      },
-      {
-        "rank": 47,
-        "company": "Czech Republic",
-        "total_bags": 167,
-        "arabica_bags": 167
-      },
-      {
         "rank": 1,
         "company": "SucafinaSA",
-        "total_bags": 81934,
-        "robusta_bags": 68935,
-        "arabica_bags": 12999,
-        "pct_individual": 11.0
+        "total_bags": 111358,
+        "robusta_bags": 101323,
+        "arabica_bags": 10035,
+        "pct_individual": 13.2
       },
       {
         "rank": 3,
-        "company": "Louis Dreyfus",
-        "total_bags": 38402,
-        "robusta_bags": 38082,
-        "arabica_bags": 320,
-        "pct_individual": 5.2
+        "company": "Ecom Agroindustrialst",
+        "total_bags": 42812,
+        "robusta_bags": 38299,
+        "arabica_bags": 4513,
+        "pct_individual": 5.1
       },
       {
         "rank": 5,
-        "company": "Olam International",
-        "total_bags": 31087,
-        "robusta_bags": 30467,
-        "arabica_bags": 620,
-        "pct_individual": 4.2
+        "company": "Bernhard Rothfos",
+        "total_bags": 32207,
+        "robusta_bags": 27726,
+        "arabica_bags": 4481,
+        "pct_individual": 3.8
       },
       {
         "rank": 7,
         "company": "EurocafSrl",
-        "total_bags": 22738,
-        "robusta_bags": 22738,
-        "pct_individual": 3.1
+        "total_bags": 25712,
+        "robusta_bags": 25712,
+        "pct_individual": 3.0
       },
       {
         "rank": 9,
-        "company": "Altasheel",
-        "total_bags": 20300,
-        "robusta_bags": 20300,
-        "pct_individual": 2.7
+        "company": "Volcafe",
+        "total_bags": 20173,
+        "robusta_bags": 12671,
+        "arabica_bags": 7502,
+        "pct_individual": 2.4
       },
       {
         "rank": 11,
-        "company": "To Order",
-        "total_bags": 17217,
-        "robusta_bags": 15817,
-        "arabica_bags": 1400,
-        "pct_individual": 2.3
+        "company": "AlharamainFor Investment 21",
+        "total_bags": 1,
+        "arabica_bags": 14350,
+        "pct_individual": 48.4
       },
       {
         "rank": 13,
-        "company": "SlnCoffee PvtLtd",
-        "total_bags": 13120,
-        "robusta_bags": 13120,
-        "pct_individual": 1.8
+        "company": "CaffeBorbone",
+        "total_bags": 12675,
+        "robusta_bags": 12341,
+        "arabica_bags": 334,
+        "pct_individual": 1.5
       },
       {
         "rank": 15,
-        "company": "Volcafe",
-        "total_bags": 12483,
-        "robusta_bags": 11553,
-        "arabica_bags": 930,
-        "pct_individual": 1.7
-      },
-      {
-        "rank": 17,
-        "company": "PacoriniSilocafSrl",
-        "total_bags": 10498,
-        "robusta_bags": 9178,
-        "arabica_bags": 1320,
+        "company": "Frey A/S",
+        "total_bags": 12092,
+        "robusta_bags": 10994,
+        "arabica_bags": 1098,
         "pct_individual": 1.4
       },
       {
-        "rank": 19,
-        "company": "Greatlakes Import & Export",
-        "total_bags": 9420,
-        "robusta_bags": 9420,
-        "pct_individual": 1.3
-      },
-      {
-        "rank": 21,
-        "company": "AlharamainFor Investment",
-        "total_bags": 8750,
-        "robusta_bags": 8750,
+        "rank": 17,
+        "company": "ETG Commodities B.V",
+        "total_bags": 10381,
+        "robusta_bags": 10381,
         "pct_individual": 1.2
       },
       {
+        "rank": 19,
+        "company": "AldwamiCo Ltd",
+        "total_bags": 9780,
+        "robusta_bags": 9780,
+        "pct_individual": 1.2
+      },
+      {
+        "rank": 21,
+        "company": "Ballahane",
+        "total_bags": 9450,
+        "robusta_bags": 9450,
+        "pct_individual": 1.1
+      },
+      {
         "rank": 23,
-        "company": "BallahaneLimited",
-        "total_bags": 7350,
-        "robusta_bags": 7000,
-        "arabica_bags": 350,
+        "company": "Coffee Tea",
+        "total_bags": 8750,
+        "robusta_bags": 8750,
         "pct_individual": 1.0
       },
       {
         "rank": 25,
-        "company": "N.V Group Sopex",
-        "total_bags": 5782,
-        "robusta_bags": 4112,
-        "arabica_bags": 1670,
-        "pct_individual": 0.8
+        "company": "Vow For Zoegas",
+        "total_bags": 8120,
+        "robusta_bags": 2520,
+        "arabica_bags": 5600,
+        "pct_individual": 1.0
       },
       {
         "rank": 27,
-        "company": "Vow For Jde",
-        "total_bags": 5160,
-        "robusta_bags": 3400,
-        "arabica_bags": 1760,
-        "pct_individual": 0.7
+        "company": "BercherCoffee",
+        "total_bags": 7540,
+        "robusta_bags": 7540,
+        "pct_individual": 0.9
       },
       {
         "rank": 29,
-        "company": "Rich Coop Limited",
-        "total_bags": 4920,
-        "robusta_bags": 4920,
+        "company": "Tata Consumer Products",
+        "total_bags": 6165,
+        "robusta_bags": 6165,
         "pct_individual": 0.7
       }
     ],
     "farmgate": {
       "kiboko_ugx_kg": 5500.0,
       "faq_ugx_kg": 11500.0,
-      "drugar_ugx_kg": 14500.0,
-      "mt_elgon_aplus_usd_kg": 6.2
+      "drugar_ugx_kg": 14500.0
     }
   },
   "ucda_price": {
     "usd_cwt": 165.83,
-    "as_of": "2026-09-05",
+    "as_of": "2026-09-06",
     "grade": "Screen 15",
     "grades": {
       "Screen 15": 165.83,
@@ -806,7 +794,7 @@
     }
   },
   "weather": {
-    "scraped_at": "2026-09-05T05:47:01.964939Z",
+    "scraped_at": "2026-09-06T05:59:48.056389Z",
     "regions": [
       {
         "name": "Greater Masaka",
@@ -843,13 +831,13 @@
       {
         "name": "Mt Elgon",
         "drought": "MED",
-        "csi_30d": 0.934,
+        "csi_30d": 0.886,
         "csi_60d": 0.654,
         "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH",
-        "rain_mtd_mm": 13.0,
-        "rain_hist_min": 30.9,
-        "rain_hist_max": 118.2
+        "rain_mtd_mm": 26.4,
+        "rain_hist_min": 35.5,
+        "rain_hist_max": 134.9
       },
       {
         "name": "West Nile",
@@ -971,10 +959,10 @@
           "M",
           "M",
           "M",
+          "L",
+          "L",
+          "L",
           "M",
-          "L",
-          "L",
-          "L",
           "M",
           "M",
           "M",
@@ -1079,7 +1067,7 @@
           "M",
           "M",
           "M",
-          "M",
+          "H",
           "M",
           "M",
           "M"
@@ -1113,9 +1101,9 @@
           "M",
           "M",
           "M",
+          "L",
+          "L",
           "M",
-          "L",
-          "L",
           "M",
           "M",
           "M",
@@ -1178,7 +1166,6 @@
           "M",
           "M",
           "M",
-          "M",
           "L",
           "L",
           "L",
@@ -1212,6 +1199,7 @@
           "L",
           "L",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1232,7 +1220,6 @@
       {
         "region": "West Nile",
         "days": [
-          "L",
           "M",
           "M",
           "-",
@@ -1293,6 +1280,7 @@
           "M",
           "M",
           "L",
+          "-",
           "-",
           "-",
           "-",
@@ -1309,7 +1297,6 @@
           "M",
           "M",
           "M",
-          "M",
           "L",
           "-",
           "L",
@@ -1349,6 +1336,7 @@
           "M",
           "M",
           "L",
+          "M",
           "M",
           "M",
           "M",
@@ -1504,7 +1492,7 @@
       }
     ],
     "historical_stat": "El Nino years: Uganda coffee output -10 to -20% vs neutral (UCDA)",
-    "last_updated": "2026-09-05"
+    "last_updated": "2026-09-06"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Feb",

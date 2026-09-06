@@ -4,7 +4,7 @@
   "tile_days": 7,
   "method": "Both legs in USD/t. Local changes are measured print to print (never off a carried-forward value), the futures change is taken over the same span shifted by each origin's publication lag, and a trailing 90-day through-origin OLS slope of \u0394local on \u0394futures gives the pass-through. Reported as a percentage: 50% means half of each futures move reaches that origin's local price. The leading origin is the highest pass-through that day, named only when at least two origins have a reading.",
   "caveat": "Pass-through is not causation \u2014 a high reading says an origin's local market is tracking the futures closely, not that it is pushing them. Read the near-total readings with that in mind: UCDA and ANACAFE publish indicative prices referenced off the terminal market, so for Uganda and Guatemala a high number is partly mechanical, and their lags rest on ~55 weekly observations against Vietnam's ~970. The informative comparisons are between origins that set their own price \u2014 Vietnam's farmgate against Brazil's domestic market.",
-  "updated": "2026-09-05T07:07:43.821175+00:00",
+  "updated": "2026-09-06T07:19:24.337531+00:00",
   "markets": {
     "robusta": {
       "label": "Robusta \u00b7 ICE London (RC)",

@@ -1,6 +1,6 @@
 {
   "country": "ethiopia",
-  "scraped_at": "2026-09-05T07:07:20.759136Z",
+  "scraped_at": "2026-09-06T07:19:01.035375Z",
   "exports": {
     "source": "USDA FAS PSD",
     "last_updated": "2026-06-01",
@@ -351,18 +351,18 @@
     "grade": "All grades avg"
   },
   "weather": {
-    "scraped_at": "2026-09-05T05:47:55.828519Z",
+    "scraped_at": "2026-09-06T06:02:27.788661Z",
     "regions": [
       {
         "name": "Sidama/Yirgacheffe",
         "drought": "LOW",
         "csi_30d": 0.0,
-        "csi_60d": 0.326,
+        "csi_60d": 0.35,
         "csi_30d_level": "OK",
         "csi_60d_level": "MED",
-        "rain_mtd_mm": 93.9,
-        "rain_hist_min": 9.0,
-        "rain_hist_max": 51.1
+        "rain_mtd_mm": 79.4,
+        "rain_hist_min": 14.0,
+        "rain_hist_max": 59.0
       },
       {
         "name": "Harrar",
@@ -374,10 +374,10 @@
       },
       {
         "name": "Kaffa",
-        "drought": "NONE",
-        "csi_30d": 0.466,
-        "csi_60d": 0.676,
-        "csi_30d_level": "MED",
+        "drought": "MED",
+        "csi_30d": 0.746,
+        "csi_60d": 0.84,
+        "csi_30d_level": "HIGH",
         "csi_60d_level": "HIGH"
       },
       {
@@ -403,7 +403,6 @@
         "days": [
           "L",
           "L",
-          "L",
           "-",
           "-",
           "-",
@@ -465,6 +464,7 @@
           "M",
           "M",
           "M",
+          "L",
           "M",
           "M",
           "M"
@@ -475,7 +475,6 @@
         "days": [
           "M",
           "M",
-          "M",
           "-",
           "-",
           "-",
@@ -537,6 +536,7 @@
           "M",
           "-",
           "L",
+          "M",
           "M",
           "M",
           "M"
@@ -545,16 +545,15 @@
       {
         "region": "Kaffa",
         "days": [
-          "-",
-          "-",
-          "-",
-          "-",
-          "-",
-          "-",
-          "-",
-          "-",
-          "-",
-          "-",
+          "M",
+          "M",
+          "L",
+          "L",
+          "L",
+          "M",
+          "M",
+          "M",
+          "M",
           "M",
           "L",
           "L",
@@ -606,9 +605,10 @@
           "M",
           "M",
           "M",
+          "L",
           "M",
-          "L",
-          "L",
+          "M",
+          "M",
           "M",
           "M",
           "M"
@@ -733,7 +733,7 @@
       }
     ],
     "historical_stat": "El Nino years: Ethiopia coffee output -5 to -15% vs neutral; worst impacts in eastern highlands",
-    "last_updated": "2026-09-05"
+    "last_updated": "2026-09-06"
   },
   "harvest_cal": {
     "main_crop_harvest": "Oct-Jan",

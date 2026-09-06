@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-05T07:08:00.220551+00:00",
+  "generated_at": "2026-09-06T07:19:40.467523+00:00",
   "meta": {
     "x_axis": "crop-year rainfall total (mm), production-weighted across growing regions",
     "y_axis": "yield as % of normal \u2014 theory: potential vs max; scatter: production vs log-linear trend (=100)",
@@ -221,11 +221,11 @@
       "theory_fit_corr_biennial_adj": 0.51,
       "current_year_live": {
         "year": 2026,
-        "rain_mm_to_date": 1198.0,
+        "rain_mm_to_date": 1226.0,
         "months_observed": 12,
-        "projected_end": 1198.0,
-        "projected_potential_pct": 90.0,
-        "in_optimal_band": false
+        "projected_end": 1226.0,
+        "projected_potential_pct": 91.0,
+        "in_optimal_band": true
       }
     },
     "robusta_vietnam": {
@@ -432,10 +432,10 @@
       "theory_fit_corr_biennial_adj": null,
       "current_year_live": {
         "year": 2026,
-        "rain_mm_to_date": 1336.0,
+        "rain_mm_to_date": 1352.0,
         "months_observed": 11,
-        "projected_end": 1525.0,
-        "projected_potential_pct": 82.0,
+        "projected_end": 1541.0,
+        "projected_potential_pct": 84.0,
         "in_optimal_band": false
       }
     },
