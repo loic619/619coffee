@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-05T21:15:00.894938+00:00",
+ "generated_at": "2026-09-06T06:05:19.628430+00:00",
  "window_days": 7,
  "capped_workflows": [],
  "errored_workflows": [],
@@ -7,24 +7,24 @@
   "0.21 \u2013 Probe: ICE expiry calendar (FND ground truth) \u2192 0.30 \u2013 Probe: ICE expiry calendar (FND ground truth)",
   "1.18 \u2013 Threshold alerts (admin Telegram) \u2192 1.26 \u2013 Threshold alerts (admin Telegram)"
  ],
- "since": "2026-08-29T21:15:00+00:00",
+ "since": "2026-08-30T06:05:19+00:00",
  "repo": "loic619/619coffee",
  "totals": {
-  "runs": 1212,
-  "success": 1149,
+  "runs": 1228,
+  "success": 1165,
   "failure": 39,
   "cancelled": 20,
   "other": 4
  },
  "days": [
-  "2026-08-29",
   "2026-08-30",
   "2026-08-31",
   "2026-09-01",
   "2026-09-02",
   "2026-09-03",
   "2026-09-04",
-  "2026-09-05"
+  "2026-09-05",
+  "2026-09-06"
  ],
  "workflows": [
   {
@@ -36,12 +36,12 @@
    "cancelled": 7,
    "by_day": [
     0,
-    0,
     52,
     53,
     54,
     54,
     56,
+    0,
     0
    ],
    "events": {
@@ -55,208 +55,233 @@
   {
    "name": "9.1 \u2013 CI Tests",
    "file": "ci-tests.yml",
-   "runs": 166,
-   "success": 145,
+   "runs": 167,
+   "success": 146,
    "failure": 21,
    "cancelled": 0,
    "by_day": [
-    0,
-    6,
+    5,
     15,
     17,
     12,
     39,
     72,
-    5
+    6,
+    1
    ],
    "events": {
     "push": 87,
-    "pull_request": 72,
+    "pull_request": 73,
     "workflow_dispatch": 6,
     "schedule": 1
    },
-   "last_run": "2026-09-05T20:46:56Z",
+   "last_run": "2026-09-06T04:16:39Z",
    "last_conclusion": "success",
    "avg_seconds": 67
   },
   {
    "name": "9.2 \u2013 Backend Lint",
    "file": "lint-backend.yml",
-   "runs": 110,
-   "success": 107,
+   "runs": 111,
+   "success": 108,
    "failure": 3,
    "cancelled": 0,
    "by_day": [
-    0,
-    5,
+    4,
     10,
     2,
     10,
     21,
     58,
-    4
+    5,
+    1
    ],
    "events": {
     "push": 54,
-    "pull_request": 50,
+    "pull_request": 51,
     "workflow_dispatch": 6
    },
-   "last_run": "2026-09-05T20:33:21Z",
+   "last_run": "2026-09-06T04:16:39Z",
    "last_conclusion": "success",
    "avg_seconds": 17
   },
   {
    "name": "1.17 \u2013 Source Sentinel (monthly supply releases)",
    "file": "source-sentinel.yml",
-   "runs": 77,
+   "runs": 78,
    "success": 77,
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    1,
     12,
     11,
     11,
     11,
     11,
     12,
-    8
+    8,
+    2
    ],
    "events": {
-    "workflow_run": 69,
+    "workflow_run": 70,
     "schedule": 7,
     "workflow_dispatch": 1
    },
-   "last_run": "2026-09-05T21:15:33Z",
-   "last_conclusion": "success",
+   "last_run": "2026-09-06T06:05:56Z",
+   "last_conclusion": "in_progress",
    "avg_seconds": 22
   },
   {
    "name": "1.12 \u2013 Daily Publish (Vercel redeploy)",
    "file": "redeploy-vercel.yml",
    "runs": 74,
-   "success": 73,
+   "success": 74,
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    1,
     10,
     11,
     11,
     10,
     11,
     12,
-    8
+    8,
+    1
    ],
    "events": {
     "workflow_run": 67,
     "schedule": 7
    },
-   "last_run": "2026-09-05T21:15:33Z",
-   "last_conclusion": "in_progress",
+   "last_run": "2026-09-06T06:05:11Z",
+   "last_conclusion": "success",
    "avg_seconds": 17
   },
   {
    "name": "9.4 \u2013 CI Frontend",
    "file": "ci-frontend.yml",
-   "runs": 72,
-   "success": 69,
+   "runs": 74,
+   "success": 71,
    "failure": 0,
    "cancelled": 3,
    "by_day": [
-    0,
     3,
     6,
     6,
     8,
     19,
     29,
+    2,
     1
    ],
    "events": {
-    "push": 37,
-    "pull_request": 35
+    "push": 38,
+    "pull_request": 36
    },
-   "last_run": "2026-09-05T02:46:11Z",
+   "last_run": "2026-09-06T04:16:39Z",
    "last_conclusion": "success",
-   "avg_seconds": 134
+   "avg_seconds": 132
   },
   {
    "name": "1.4 \u2013 Export and Publish Static JSON",
    "file": "export-and-publish.yml",
-   "runs": 66,
-   "success": 65,
+   "runs": 68,
+   "success": 67,
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    0,
     9,
     10,
     10,
     9,
     10,
     11,
-    7
+    7,
+    2
    ],
    "events": {
-    "workflow_run": 52,
+    "workflow_run": 54,
     "schedule": 7,
     "workflow_dispatch": 7
    },
-   "last_run": "2026-09-05T21:14:15Z",
+   "last_run": "2026-09-06T06:04:38Z",
    "last_conclusion": "in_progress",
-   "avg_seconds": 79
+   "avg_seconds": 78
   },
   {
    "name": "9.3 \u2013 Smart-quote guard (TS/TSX)",
    "file": "lint-smart-quotes.yml",
-   "runs": 63,
-   "success": 62,
+   "runs": 65,
+   "success": 64,
    "failure": 1,
    "cancelled": 0,
    "by_day": [
-    0,
     3,
     6,
     6,
     6,
     16,
     25,
+    2,
     1
    ],
    "events": {
-    "push": 33,
-    "pull_request": 30
+    "push": 34,
+    "pull_request": 31
    },
-   "last_run": "2026-09-05T02:46:11Z",
+   "last_run": "2026-09-06T04:16:39Z",
    "last_conclusion": "success",
    "avg_seconds": 14
   },
   {
    "name": "1.13 \u2013 ICE Certified Stocks (arabica + robusta)",
    "file": "scraper-ice-certified-stocks.yml",
-   "runs": 30,
-   "success": 20,
+   "runs": 31,
+   "success": 21,
    "failure": 1,
    "cancelled": 9,
    "by_day": [
-    0,
     3,
     3,
     4,
     4,
     4,
     8,
-    4
+    4,
+    1
    ],
    "events": {
-    "workflow_run": 21,
+    "workflow_run": 22,
     "schedule": 5,
     "workflow_dispatch": 4
    },
-   "last_run": "2026-09-05T21:14:03Z",
+   "last_run": "2026-09-06T06:04:24Z",
    "last_conclusion": "success",
-   "avg_seconds": 2645
+   "avg_seconds": 2560
+  },
+  {
+   "name": "1.3 \u2013 Daily OI Snapshot",
+   "file": "daily_oi.yml",
+   "runs": 27,
+   "success": 27,
+   "failure": 0,
+   "cancelled": 0,
+   "by_day": [
+    3,
+    4,
+    4,
+    4,
+    4,
+    4,
+    3,
+    1
+   ],
+   "events": {
+    "workflow_run": 22,
+    "schedule": 5
+   },
+   "last_run": "2026-09-06T06:04:24Z",
+   "last_conclusion": "success",
+   "avg_seconds": 70
   },
   {
    "name": "0.2 \u2013 Refresh Workflow Inventory",
@@ -266,14 +291,14 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    0,
     1,
     2,
     1,
     2,
     10,
     8,
-    2
+    2,
+    0
    ],
    "events": {
     "push": 26
@@ -283,104 +308,79 @@
    "avg_seconds": 19
   },
   {
-   "name": "1.3 \u2013 Daily OI Snapshot",
-   "file": "daily_oi.yml",
-   "runs": 26,
-   "success": 26,
-   "failure": 0,
-   "cancelled": 0,
-   "by_day": [
-    0,
-    3,
-    4,
-    4,
-    4,
-    4,
-    4,
-    3
-   ],
-   "events": {
-    "workflow_run": 21,
-    "schedule": 5
-   },
-   "last_run": "2026-09-05T21:14:03Z",
-   "last_conclusion": "success",
-   "avg_seconds": 73
-  },
-  {
    "name": "1.26 \u2013 Threshold alerts (admin Telegram)",
    "file": "threshold-alerts.yml",
-   "runs": 23,
-   "success": 23,
+   "runs": 25,
+   "success": 25,
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    0,
     0,
     0,
     0,
     0,
     5,
     11,
-    7
+    7,
+    2
    ],
    "events": {
-    "workflow_run": 22,
+    "workflow_run": 24,
     "workflow_dispatch": 1
    },
-   "last_run": "2026-09-05T21:15:33Z",
+   "last_run": "2026-09-06T06:05:56Z",
    "last_conclusion": "success",
-   "avg_seconds": 19
+   "avg_seconds": 18
   },
   {
    "name": "0.17 \u2013 Refresh Workflow Activity (7-day run record)",
    "file": "build-workflow-activity.yml",
-   "runs": 22,
-   "success": 19,
+   "runs": 24,
+   "success": 21,
    "failure": 1,
    "cancelled": 0,
    "by_day": [
-    0,
     1,
     1,
     1,
     1,
     1,
     9,
-    8
+    8,
+    2
    ],
    "events": {
-    "workflow_run": 15,
+    "workflow_run": 17,
     "schedule": 7
    },
-   "last_run": "2026-09-05T21:15:33Z",
+   "last_run": "2026-09-06T06:05:56Z",
    "last_conclusion": "pending",
-   "avg_seconds": 46
+   "avg_seconds": 49
   },
   {
    "name": "1.1 \u2013 Daily News Scraper",
    "file": "scraper-daily.yml",
-   "runs": 21,
-   "success": 21,
+   "runs": 22,
+   "success": 22,
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    0,
     3,
     3,
     3,
     3,
     3,
     3,
-    3
+    3,
+    1
    ],
    "events": {
-    "schedule": 14,
+    "schedule": 15,
     "workflow_dispatch": 7
    },
-   "last_run": "2026-09-05T21:00:52Z",
+   "last_run": "2026-09-06T05:49:15Z",
    "last_conclusion": "success",
-   "avg_seconds": 547
+   "avg_seconds": 563
   },
   {
    "name": "1.6 \u2013 B3 at KC close + final fechamento",
@@ -391,12 +391,12 @@
    "cancelled": 0,
    "by_day": [
     0,
-    0,
     2,
     4,
     3,
     3,
     3,
+    0,
     0
    ],
    "events": {
@@ -415,12 +415,12 @@
    "cancelled": 0,
    "by_day": [
     0,
-    0,
     2,
     3,
     3,
     3,
     4,
+    0,
     0
    ],
    "events": {
@@ -439,14 +439,14 @@
    "failure": 5,
    "cancelled": 0,
    "by_day": [
-    0,
     2,
     2,
     2,
     2,
     2,
     2,
-    2
+    2,
+    0
    ],
    "events": {
     "schedule": 14
@@ -464,12 +464,12 @@
    "cancelled": 0,
    "by_day": [
     0,
+    2,
+    2,
+    2,
+    2,
+    2,
     0,
-    2,
-    2,
-    2,
-    2,
-    2,
     0
    ],
    "events": {
@@ -488,14 +488,14 @@
    "failure": 4,
    "cancelled": 0,
    "by_day": [
-    0,
     2,
     1,
     1,
     1,
     1,
     1,
-    1
+    1,
+    0
    ],
    "events": {
     "schedule": 7,
@@ -513,14 +513,14 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    0,
     1,
     1,
     1,
     1,
     1,
     1,
-    1
+    1,
+    0
    ],
    "events": {
     "schedule": 7
@@ -537,14 +537,14 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    0,
     1,
     1,
     1,
     1,
     1,
     1,
-    1
+    1,
+    0
    ],
    "events": {
     "schedule": 7
@@ -561,14 +561,14 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    0,
     1,
     1,
     1,
     1,
     1,
     1,
-    1
+    1,
+    0
    ],
    "events": {
     "schedule": 7
@@ -585,14 +585,14 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    0,
     1,
     1,
     1,
     1,
     1,
     1,
-    1
+    1,
+    0
    ],
    "events": {
     "schedule": 7
@@ -610,12 +610,12 @@
    "cancelled": 0,
    "by_day": [
     0,
+    1,
+    1,
+    1,
+    1,
+    1,
     0,
-    1,
-    1,
-    1,
-    1,
-    1,
     0
    ],
    "events": {
@@ -634,12 +634,12 @@
    "cancelled": 0,
    "by_day": [
     0,
+    1,
+    1,
+    1,
+    1,
+    1,
     0,
-    1,
-    1,
-    1,
-    1,
-    1,
     0
    ],
    "events": {
@@ -658,12 +658,12 @@
    "cancelled": 0,
    "by_day": [
     0,
+    1,
+    1,
+    1,
+    1,
+    1,
     0,
-    1,
-    1,
-    1,
-    1,
-    1,
     0
    ],
    "events": {
@@ -683,11 +683,11 @@
    "by_day": [
     0,
     0,
-    0,
     2,
     1,
     1,
     1,
+    0,
     0
    ],
    "events": {
@@ -706,12 +706,12 @@
    "cancelled": 0,
    "by_day": [
     0,
+    1,
+    1,
+    1,
+    1,
+    1,
     0,
-    1,
-    1,
-    1,
-    1,
-    1,
     0
    ],
    "events": {
@@ -731,11 +731,11 @@
    "by_day": [
     0,
     0,
-    0,
     2,
     1,
     1,
     1,
+    0,
     0
    ],
    "events": {
@@ -757,9 +757,9 @@
     0,
     0,
     0,
-    0,
     3,
     1,
+    0,
     0
    ],
    "events": {
@@ -779,12 +779,12 @@
    "by_day": [
     0,
     0,
-    0,
     1,
     1,
     1,
     0,
-    1
+    1,
+    0
    ],
    "events": {
     "schedule": 4
@@ -801,13 +801,13 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    0,
     2,
     0,
     0,
     0,
     0,
     2,
+    0,
     0
    ],
    "events": {
@@ -832,8 +832,8 @@
     0,
     0,
     0,
-    0,
-    4
+    4,
+    0
    ],
    "events": {
     "workflow_dispatch": 3,
@@ -856,8 +856,8 @@
     0,
     0,
     0,
-    0,
     3,
+    0,
     0
    ],
    "events": {
@@ -880,8 +880,8 @@
     0,
     0,
     0,
-    0,
     2,
+    0,
     0
    ],
    "events": {
@@ -903,8 +903,8 @@
     0,
     0,
     0,
-    0,
     2,
+    0,
     0,
     0
    ],
@@ -927,10 +927,10 @@
     0,
     0,
     0,
-    0,
     1,
     0,
-    1
+    1,
+    0
    ],
    "events": {
     "schedule": 2
@@ -947,14 +947,14 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    0,
     1,
     0,
     0,
     0,
     0,
     0,
-    1
+    1,
+    0
    ],
    "events": {
     "workflow_dispatch": 2
@@ -974,10 +974,10 @@
     0,
     0,
     0,
-    0,
     1,
     0,
     1,
+    0,
     0
    ],
    "events": {
@@ -1001,8 +1001,8 @@
     0,
     0,
     0,
-    0,
-    1
+    1,
+    0
    ],
    "events": {
     "workflow_dispatch": 1
@@ -1021,8 +1021,8 @@
    "by_day": [
     0,
     0,
-    0,
     1,
+    0,
     0,
     0,
     0,
@@ -1044,8 +1044,8 @@
    "cancelled": 0,
    "by_day": [
     0,
-    0,
     1,
+    0,
     0,
     0,
     0,
@@ -1068,8 +1068,8 @@
    "cancelled": 0,
    "by_day": [
     0,
-    0,
     1,
+    0,
     0,
     0,
     0,
@@ -1092,20 +1092,20 @@
    "cancelled": 0,
    "by_day": [
     0,
-    1,
     0,
     0,
     0,
     0,
     0,
-    0
+    0,
+    1
    ],
    "events": {
     "schedule": 1
    },
-   "last_run": "2026-08-30T00:52:42Z",
+   "last_run": "2026-09-06T00:21:13Z",
    "last_conclusion": "success",
-   "avg_seconds": 39
+   "avg_seconds": 48
   },
   {
    "name": "0.7 \u2013 Weekly \u2014 ENSO indices (Ni\u00f1o 3.4 SST + SOI \u00b7 NOAA CPC)",
@@ -1117,8 +1117,8 @@
    "by_day": [
     0,
     0,
-    0,
     1,
+    0,
     0,
     0,
     0,
@@ -1141,8 +1141,8 @@
    "by_day": [
     0,
     0,
-    0,
     1,
+    0,
     0,
     0,
     0,
@@ -1166,8 +1166,8 @@
     0,
     0,
     0,
-    0,
     1,
+    0,
     0,
     0,
     0
@@ -1189,8 +1189,8 @@
    "by_day": [
     0,
     0,
-    0,
     1,
+    0,
     0,
     0,
     0,
@@ -1213,8 +1213,8 @@
    "by_day": [
     0,
     0,
-    0,
     1,
+    0,
     0,
     0,
     0,
@@ -1237,8 +1237,8 @@
    "by_day": [
     0,
     0,
-    0,
     1,
+    0,
     0,
     0,
     0,
@@ -1262,8 +1262,8 @@
     0,
     0,
     0,
-    0,
     1,
+    0,
     0,
     0,
     0
@@ -1283,8 +1283,8 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    0,
     1,
+    0,
     0,
     0,
     0,
@@ -1313,8 +1313,8 @@
     0,
     0,
     0,
-    0,
-    1
+    1,
+    0
    ],
    "events": {
     "workflow_dispatch": 1
@@ -1331,8 +1331,8 @@
    "failure": 0,
    "cancelled": 0,
    "by_day": [
-    0,
     1,
+    0,
     0,
     0,
     0,
@@ -1356,8 +1356,8 @@
    "cancelled": 0,
    "by_day": [
     0,
-    0,
     1,
+    0,
     0,
     0,
     0,
@@ -1380,8 +1380,8 @@
    "cancelled": 0,
    "by_day": [
     0,
-    0,
     1,
+    0,
     0,
     0,
     0,
@@ -1409,8 +1409,8 @@
     0,
     0,
     0,
-    0,
-    1
+    1,
+    0
    ],
    "events": {
     "schedule": 1
