@@ -129,6 +129,40 @@ def span(unit: str, geo: str) -> tuple[str | None, str | None, int, str | None]:
     return have[0], have[-1], len(have), None
 
 
+def span_coicop(unit: str, geo: str, coicop: str) -> tuple[str | None, str | None, int, str | None]:
+    """`span`, but for an arbitrary item code rather than the configured one."""
+    global COICOP
+    saved, COICOP = COICOP, coicop
+    try:
+        return span(unit, geo)
+    finally:
+        COICOP = saved
+
+
+def coffee_codes() -> list[tuple[str, str]]:
+    """Every coicop code in the dataflow whose label mentions coffee.
+
+    Asked of the source rather than guessed: HICP's item classification was
+    revised for the 2026 index, so the code coffee is published under today is
+    not something to assume from the code it used in 2025.
+    """
+    body, err = _get(f"{BASE}/data/{DATAFLOW}?format=JSON&lang=EN&unit=I15&geo=DE"
+                     f"&lastTimePeriod=1")
+    if err:
+        print(f"  coicop codelist lookup failed ({err})")
+        return []
+    try:
+        cat = body["dimension"]["coicop"]["category"]
+        labels = cat.get("label") or {}
+    except (KeyError, TypeError):
+        print("  coicop codelist absent from response")
+        return []
+    hits = [(c, lab) for c, lab in labels.items() if "coffee" in lab.lower()]
+    if not hits:
+        print(f"  no coicop label mentions coffee (codelist has {len(labels)} entries)")
+    return sorted(hits)
+
+
 def months_behind(period: str | None, today: date) -> int | None:
     if not period or len(period) < 7:
         return None
@@ -180,12 +214,36 @@ def main() -> int:
     ends = {g: p for g, p in i15.items() if p}
     if ends and len(set(ends.values())) == 1:
         print(f"\n  Every geo on I15 ends at the SAME period ({next(iter(set(ends.values())))}).")
-        print("  That is a retired base, not five independent publication lags.")
+        print("  That is one structural cause, not five independent publication lags.")
     elif ends:
         print(f"\n  I15 end dates DIFFER by geo: {ends}")
         print("  That is a publication lag. Note the basket keeps only periods present")
         print("  in all four countries, so the earliest of these caps the whole series —")
         print("  which would be a scraper bug independent of the unit question.")
+
+    # ── pass 2 ───────────────────────────────────────────────────────────────
+    # The first run of this probe (2026-09-06) ruled the base out: the codelist
+    # offers only I15 / I05 / I96 — there is no 2025 base — and EVERY unit x geo
+    # ends at 2025-12. So the dataflow is either wholly stalled, or CP01211 has
+    # stopped being the code coffee is published under. Those need telling apart
+    # before anything is changed, and only the source can do it.
+    print("\n5. Is the DATAFLOW stalled, or just this item code?")
+    for probe_coicop, what in (("CP00", "all-items HICP"), ("CP0121", "coffee/tea/cocoa parent")):
+        first, last, n, err = span_coicop("I15", "DE", probe_coicop)
+        lag = months_behind(last, today)
+        print(f"  DE {probe_coicop:8s} ({what:26s}) {first or '—':9s} → {last or '—':9s} "
+              f"n={n:<5d} lag={'—' if lag is None else lag}  {err or ''}")
+    print("  If all-items is CURRENT and CP01211 is not, the dataflow is healthy and")
+    print("  the item code is the problem — HICP's classification was revised for the")
+    print("  2026 index, so coffee may simply live under a different code now.")
+
+    print("\n6. Which coicop codes carry coffee, and how far do they reach?")
+    for code, label in coffee_codes():
+        first, last, n, err = span_coicop("I15", "DE", code)
+        lag = months_behind(last, today)
+        flag = "  <<< CURRENT" if lag is not None and lag <= 3 else ""
+        print(f"  {code:10s} {label[:44]:44s} {first or '—':9s} → {last or '—':9s} "
+              f"n={n:<5d} lag={'—' if lag is None else lag}{flag}  {err or ''}")
 
     print("\n4. Raw grid (for the PR)")
     print(json.dumps(grid, indent=1, sort_keys=True))
