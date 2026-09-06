@@ -49,6 +49,7 @@ Writes nothing, commits nothing. Run via workflow 0.29 (dispatch-only).
 from __future__ import annotations
 
 import json
+import re
 import sys
 from datetime import date
 
@@ -178,18 +179,30 @@ def hicp_datasets() -> list[tuple[str, str, str]]:
     except Exception as e:
         print(f"  catalogue fetch failed: {e}")
         return []
+    # The TOC indents the title column with tabs to show hierarchy, so column
+    # positions shift by depth. Find the field that IS a dataset code instead of
+    # trusting an index — the first parse assumed parts[1] and silently matched
+    # nothing, which reads exactly like "Eurostat has no such dataset".
+    code_re = re.compile(r"^prc_hicp[a-z0-9_]*$")
     out: list[tuple[str, str, str]] = []
+    shown = 0
     for line in text.splitlines():
-        parts = line.split("\t")
-        if len(parts) < 4:
+        parts = [p.strip().strip('"') for p in line.split("\t")]
+        codes = [p for p in parts if code_re.match(p)]
+        if not codes:
             continue
-        title, code, kind = parts[0].strip().strip('"'), parts[1].strip(), parts[2].strip()
-        if kind != "dataset" or not code.startswith("prc_hicp"):
-            continue
-        updated = parts[3].strip() if len(parts) > 3 else ""
+        code = codes[0]
+        title = next((p for p in parts if p and p != code and not code_re.match(p)), "")
+        dates = [p for p in parts if re.match(r"^\d{2}[./]\d{2}[./]\d{4}", p)]
+        updated = dates[0] if dates else ""
+        if shown < 3:                      # so a future shape change is visible
+            print(f"    raw: {parts}")
+            shown += 1
         out.append((code, title, updated))
+    if not out:
+        print(f"  TOC fetched ({len(text)} chars) but no prc_hicp* code matched")
     # newest last-update first, so a live replacement surfaces at the top
-    out.sort(key=lambda t: t[2], reverse=True)
+    out.sort(key=lambda t: t[2][-4:] + t[2][3:5] + t[2][:2], reverse=True)
     return out
 
 
