@@ -163,6 +163,56 @@ def coffee_codes() -> list[tuple[str, str]]:
     return sorted(hits)
 
 
+def hicp_datasets() -> list[tuple[str, str, str]]:
+    """(code, title, last-update) for every prc_hicp* dataset Eurostat publishes.
+
+    Read from the dissemination inventory rather than guessed, because the point
+    of this pass is to find a dataset id nobody in this repo knows about yet.
+    """
+    url = ("https://ec.europa.eu/eurostat/api/dissemination/catalogue/toc/txt"
+           "?lang=en")
+    try:
+        r = requests.get(url, headers={**HEADERS, "Accept": "text/plain"}, timeout=90)
+        r.raise_for_status()
+        text = r.text
+    except Exception as e:
+        print(f"  catalogue fetch failed: {e}")
+        return []
+    out: list[tuple[str, str, str]] = []
+    for line in text.splitlines():
+        parts = line.split("\t")
+        if len(parts) < 4:
+            continue
+        title, code, kind = parts[0].strip().strip('"'), parts[1].strip(), parts[2].strip()
+        if kind != "dataset" or not code.startswith("prc_hicp"):
+            continue
+        updated = parts[3].strip() if len(parts) > 3 else ""
+        out.append((code, title, updated))
+    # newest last-update first, so a live replacement surfaces at the top
+    out.sort(key=lambda t: t[2], reverse=True)
+    return out
+
+
+def dataset_span(dataflow: str) -> tuple[str | None, str | None, int, str | None]:
+    """First/last period of the German all-items series in an arbitrary dataflow.
+
+    coicop and unit are left unfiltered on purpose — a replacement table may well
+    use different codes for both, and the question here is only whether the table
+    is being updated at all.
+    """
+    body, err = _get(f"{BASE}/data/{dataflow}?format=JSON&lang=EN&geo=DE", timeout=60)
+    if err:
+        return None, None, 0, err
+    try:
+        idx = body["dimension"]["time"]["category"]["index"]
+    except (KeyError, TypeError):
+        return None, None, 0, "no time dimension"
+    periods = (sorted(idx, key=lambda p: idx[p]) if isinstance(idx, dict) else list(idx))
+    if not periods:
+        return None, None, 0, "no periods"
+    return periods[0], periods[-1], len(periods), None
+
+
 def months_behind(period: str | None, today: date) -> int | None:
     if not period or len(period) < 7:
         return None
@@ -244,6 +294,34 @@ def main() -> int:
         flag = "  <<< CURRENT" if lag is not None and lag <= 3 else ""
         print(f"  {code:10s} {label[:44]:44s} {first or '—':9s} → {last or '—':9s} "
               f"n={n:<5d} lag={'—' if lag is None else lag}{flag}  {err or ''}")
+
+    # ── pass 3 ───────────────────────────────────────────────────────────────
+    # The second run ruled the item code out too: all-items HICP for Germany
+    # (CP00) also ends 2025-12. Every unit, every geo, every coicop — including
+    # the headline aggregate — stops on the same month. A flagship monthly
+    # release does not go nine months late, so the remaining explanation is that
+    # this DATASET has been frozen and superseded, which is what a classification
+    # revision does to the old table. Ask the catalogue which prc_hicp datasets
+    # exist and which of them are actually being updated.
+    print("\n7. Every prc_hicp* dataset in the catalogue, newest data first")
+    cands = hicp_datasets()
+    if not cands:
+        print("  catalogue lookup failed — cannot name a replacement from here")
+    for code, title, updated in cands[:25]:
+        print(f"  {code:24s} last-update {updated or '—':12s} {title[:60]}")
+
+    print("\n8. Which of those actually carry a current German all-items index?")
+    for code, _title, _upd in cands[:25]:
+        if "midx" not in code and "mmor" not in code and "manr" not in code:
+            continue                      # index / monthly-rate tables only
+        first, last, n, err = dataset_span(code)
+        lag = months_behind(last, today)
+        flag = "  <<< CURRENT" if lag is not None and lag <= 3 else ""
+        print(f"  {code:24s} {first or '—':9s} → {last or '—':9s} n={n:<5d} "
+              f"lag={'—' if lag is None else lag}{flag}  {err or ''}")
+    print("\n  A prc_hicp* index dataset that IS current names the replacement.")
+    print("  The scraper then needs its dataflow id and whatever item code coffee")
+    print("  carries there — re-run this probe against that dataflow before editing.")
 
     print("\n4. Raw grid (for the PR)")
     print(json.dumps(grid, indent=1, sort_keys=True))
