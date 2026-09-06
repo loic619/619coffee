@@ -4,7 +4,8 @@ retail_cpi.py — Retail coffee CPI scraper for the demand-tab cost-pass-through
 Three free public sources:
   US     — Bureau of Labor Statistics, series CUSR0000SEFP02
            (Roasted coffee, U.S. city average, all urban consumers, SA)
-  EU     — Eurostat HICP, COICOP CP01211 ("Coffee"), area EU27_2020
+  EU     — Eurostat HICP, ECOICOP v2 CP01220 ("Coffee and coffee
+           substitutes"), area EU27_2020, dataflow prc_hicp_minr
   Brazil — Banco Central do Brasil SGS series 1635
            (IPCA — sub-item Café moído, monthly index)
 
@@ -56,14 +57,44 @@ _BLS_SERIES = {
     "us":        {"id": "CUSR0000SEFP02", "name": "US — Roasted coffee (BLS CPI, SA)"},
     "us_coffee": {"id": "CUSR0000SEFP01", "name": "US — Coffee, all (BLS CPI, SA)"},
 }
-_EUROSTAT_DATAFLOW = "prc_hicp_midx"
+#: Eurostat closed `prc_hicp_midx` with the January 2026 index. Its catalogue
+#: title now reads "HICP - monthly data (index) **(1996-2025)**", last updated
+#: 06.02.2026, and every slice of it — every unit, every geo, every item code,
+#: including all-items CP00 — stops at 2025-12. That is why the `eu` series sat
+#: frozen there through successful runs on 2026-08-16 and 2026-09-01: nothing
+#: was failing, the table had simply been retired underneath us.
+#:
+#: The live replacement is `prc_hicp_minr`, which runs to 2026-07 for all five
+#: geos we query. Three things changed with it and all three matter:
+#:   * the item DIMENSION is `coicop18`, not `coicop`;
+#:   * coffee's item CODE is `CP01220` "Coffee and coffee substitutes (ND)",
+#:     not `CP01211` "Coffee";
+#:   * the published base is 2025 = 100 (`I25`) alongside the old `I15`.
+#: Measured by workflow 0.33 (`scraper/probe_eurostat_hicp.py`) on 2026-09-06 —
+#: none of it is inferred from the naming.
+_EUROSTAT_DATAFLOW = "prc_hicp_minr"
+_EUROSTAT_ITEM_DIM = "coicop18"
+_EUROSTAT_COFFEE_ITEM = "CP01220"
+#: Preferred first because the 121 points already shipped are on the 2015 base:
+#: taking I15 where it exists extends that series instead of splicing a rebased
+#: one onto it, which would show up as a cliff in the YoY the panel draws. I25
+#: is the fallback, and `_fetch_eurostat` records in the series name which was
+#: actually used rather than leaving the reader to guess at a level shift.
+_EUROSTAT_UNITS = ("I15", "I25")
 _BCB_SGS = 1635
 
 # Max acceptable lag (in months) on the EU27_2020 aggregate before falling
-# back to the DE/FR/IT/ES weighted basket. Eurostat publishes the aggregate
-# 2-3 weeks after the member-state releases, so a lag of 1-2 months on the
-# 1st of the month is the steady state. >2 months means Eurostat itself is
-# behind (observed at ~5 months for CP01211 in mid-2026).
+# back to the DE/FR/IT/ES weighted basket. HICP publishes ~17 days after
+# month-end, so early in a month the latest period is two months back and
+# later in it, one — a lag of 1-2 is the steady state and >2 means something
+# is wrong upstream.
+#
+# NOTE on the history here: this fallback was added in mid-2026 against an
+# aggregate "running ~5 months late". It was not late. prc_hicp_midx had been
+# retired (see the dataflow constants above) and the basket read the same dead
+# table, so it inherited the same 2025-12 end and the fallback looked like it
+# had worked. A staleness threshold cannot tell "behind" from "discontinued";
+# only asking the catalogue can, which is what workflow 0.33 now does.
 _EUROSTAT_FRESHNESS_THRESHOLD_MONTHS = 2
 
 _PERIOD_TO_MONTH = {f"M{i:02d}": f"{i:02d}" for i in range(1, 13)}
@@ -122,7 +153,7 @@ def _fetch_bls() -> dict[str, dict] | None:
     return out or None
 
 
-def _fetch_eurostat_series(geo: str) -> list[dict] | None:
+def _fetch_eurostat_series(geo: str, unit: str = _EUROSTAT_UNITS[0]) -> list[dict] | None:
     """Fetch one Eurostat HICP coffee series for the given geo code.
 
     Returns a sorted list of {"period": "YYYY-MM", "index": float} dicts
@@ -132,14 +163,15 @@ def _fetch_eurostat_series(geo: str) -> list[dict] | None:
     url = (
         "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/"
         f"{_EUROSTAT_DATAFLOW}"
-        f"?format=JSON&lang=EN&unit=I15&coicop=CP01211&geo={geo}"
+        f"?format=JSON&lang=EN&unit={unit}"
+        f"&{_EUROSTAT_ITEM_DIM}={_EUROSTAT_COFFEE_ITEM}&geo={geo}"
     )
     try:
         r = requests.get(url, headers=_HEADERS, timeout=30)
         r.raise_for_status()
         body = r.json()
     except Exception as e:
-        logger.warning(f"[retail_cpi] Eurostat {geo} fetch failed: {e}")
+        logger.warning(f"[retail_cpi] Eurostat {geo} ({unit}) fetch failed: {e}")
         return None
 
     try:
@@ -147,7 +179,7 @@ def _fetch_eurostat_series(geo: str) -> list[dict] | None:
         time_idx = time_cat["index"]
         values   = body["value"]
     except (KeyError, TypeError):
-        logger.warning(f"[retail_cpi] Eurostat {geo}: unexpected JSON-stat shape")
+        logger.warning(f"[retail_cpi] Eurostat {geo} ({unit}): unexpected JSON-stat shape")
         return None
 
     if isinstance(time_idx, dict):
@@ -173,8 +205,9 @@ def _fetch_eurostat_series(geo: str) -> list[dict] | None:
 # Coffee-consumption weights for the EU member-state fallback basket.
 # Source: ICO consumption stats 2023/24 — DE/FR/IT/ES cover ~68% of EU27
 # bag volume and publish HICP coffee 2-3 weeks after month-end, well
-# ahead of the EU27_2020 aggregate (which has been running a ~5-month lag
-# on CP01211 — observed Dec 2025 latest as of mid-May 2026). Weights here
+# ahead of the EU27_2020 aggregate when that aggregate is genuinely late.
+# (The Dec-2025 end observed from mid-2026 was NOT lateness — it was the
+# retired dataflow, and this basket read it too.) Weights here
 # are normalised within the four-country basket; the resulting index is a
 # proxy, not a true EU27 figure, but it tracks the aggregate closely and
 # lets the demand-tab chart stay current.
@@ -186,6 +219,21 @@ _EU_BASKET_WEIGHTS: dict[str, float] = {
 }
 
 
+def _fetch_eurostat_geo(geo: str) -> tuple[list[dict] | None, str | None]:
+    """One geo's series on the best available base, and which base that was.
+
+    Tries `_EUROSTAT_UNITS` in order and takes the first that returns data. The
+    order matters: the shipped history is on the 2015 base, so preferring I15
+    extends it rather than splicing a 2025-based index onto it. Returning the
+    unit alongside means a base change can be SAID rather than silently shipped.
+    """
+    for unit in _EUROSTAT_UNITS:
+        rows = _fetch_eurostat_series(geo, unit)
+        if rows:
+            return rows, unit
+    return None, None
+
+
 def _fetch_eurostat_basket() -> list[dict] | None:
     """Synthesise an EU coffee CPI from DE/FR/IT/ES weighted average.
 
@@ -195,12 +243,19 @@ def _fetch_eurostat_basket() -> list[dict] | None:
     last-known values would smear the YoY signal).
     """
     per_country: dict[str, list[dict]] = {}
+    bases: set[str] = set()
     for geo in _EU_BASKET_WEIGHTS:
-        series = _fetch_eurostat_series(geo)
+        series, unit = _fetch_eurostat_geo(geo)
         if not series:
             logger.warning(f"[retail_cpi] EU basket: {geo} fetch returned no data")
             return None
         per_country[geo] = series
+        bases.add(unit or "?")
+    if len(bases) > 1:
+        # Averaging indices on different bases produces a number that is not an
+        # index of anything. Refuse rather than emit a plausible-looking one.
+        logger.warning(f"[retail_cpi] EU basket: contributors on mixed bases {sorted(bases)} — refusing")
+        return None
 
     # Build a (period -> { geo: index }) map, then keep periods with all 4.
     by_period: dict[str, dict[str, float]] = {}
@@ -221,19 +276,17 @@ def _fetch_eurostat_basket() -> list[dict] | None:
 
 
 def _fetch_eurostat() -> dict | None:
-    """Eurostat HICP monthly index for coffee (CP01211).
+    """Eurostat HICP monthly index for coffee (see the dataflow constants above).
 
-    Tries EU27_2020 aggregate first — that's the true headline figure
-    when it's current. If the aggregate is more than 2 months behind
-    today (Eurostat's lag for this series has been observed at ~5 months
-    in mid-2026), falls back to a weighted DE/FR/IT/ES member-state
-    basket which publishes 2-3 weeks after month-end. The series name in
-    the JSON cache marks which path was used so the frontend can label
-    accordingly.
+    Tries the EU27_2020 aggregate first — that's the true headline figure when
+    it's current. If it is more than 2 months behind today, falls back to a
+    weighted DE/FR/IT/ES member-state basket. The series name in the JSON cache
+    marks which path was used AND on which index base, so neither a fallback
+    nor a rebase can arrive unannounced.
     """
     from datetime import date
 
-    aggregate = _fetch_eurostat_series("EU27_2020")
+    aggregate, agg_unit = _fetch_eurostat_geo("EU27_2020")
     today = date.today()
     aggregate_latest = aggregate[-1]["period"] if aggregate else None
 
@@ -249,10 +302,11 @@ def _fetch_eurostat() -> dict | None:
     aggregate_lag = _months_behind(aggregate_latest)
     if aggregate and aggregate_lag <= _EUROSTAT_FRESHNESS_THRESHOLD_MONTHS:
         logger.info(f"[retail_cpi] Eurostat EU27_2020 fresh ({aggregate_latest}, "
-                    f"{aggregate_lag}mo lag) — using aggregate")
+                    f"{aggregate_lag}mo lag, base {agg_unit}) — using aggregate")
         return {
-            "name":       "EU — Coffee HICP (Eurostat CP01211, EU27)",
-            "source_url": "https://ec.europa.eu/eurostat/databrowser/view/prc_hicp_midx",
+            "name":       f"EU — Coffee HICP (Eurostat {_EUROSTAT_COFFEE_ITEM}, EU27, "
+                          f"{'2015' if agg_unit == 'I15' else '2025'}=100)",
+            "source_url": f"https://ec.europa.eu/eurostat/databrowser/view/{_EUROSTAT_DATAFLOW}",
             "monthly":    _yoy_series(aggregate),
         }
 
@@ -266,7 +320,7 @@ def _fetch_eurostat() -> dict | None:
                     f"{len(basket)} periods")
         return {
             "name":       "EU — Coffee HICP (DE/FR/IT/ES basket proxy)",
-            "source_url": "https://ec.europa.eu/eurostat/databrowser/view/prc_hicp_midx",
+            "source_url": f"https://ec.europa.eu/eurostat/databrowser/view/{_EUROSTAT_DATAFLOW}",
             "monthly":    _yoy_series(basket),
         }
 
@@ -274,8 +328,8 @@ def _fetch_eurostat() -> dict | None:
     if aggregate:
         logger.warning("[retail_cpi] EU basket failed — returning stale aggregate")
         return {
-            "name":       "EU — Coffee HICP (Eurostat CP01211, EU27 — stale)",
-            "source_url": "https://ec.europa.eu/eurostat/databrowser/view/prc_hicp_midx",
+            "name":       f"EU — Coffee HICP (Eurostat {_EUROSTAT_COFFEE_ITEM}, EU27 — stale)",
+            "source_url": f"https://ec.europa.eu/eurostat/databrowser/view/{_EUROSTAT_DATAFLOW}",
             "monthly":    _yoy_series(aggregate),
         }
     return None

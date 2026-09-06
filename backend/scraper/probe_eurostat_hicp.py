@@ -435,6 +435,28 @@ def main() -> int:
                 print(f"      {geo:10s} {have[0] if have else '—':9s} → {have[-1] if have else '—':9s} "
                       f"n={len(have):<5d} units={units}")
 
+    # ── the fix, exercised ───────────────────────────────────────────────────
+    # A probe that only reports facts leaves the actual fix untested until the
+    # scheduled run. Call the production code path here so the change is
+    # verified end to end against the live API before it is merged.
+    print("\n13. The scraper's own _fetch_eurostat(), as patched")
+    try:
+        from scraper.sources import retail_cpi as R
+        got = R._fetch_eurostat()
+    except Exception as e:                                    # noqa: BLE001
+        print(f"  raised: {type(e).__name__}: {e}")
+        got = None
+    if not got:
+        print("  returned None — the EU series would be dropped and the cached one kept")
+    else:
+        m = got["monthly"]
+        lag = months_behind(m[-1]["period"], today) if m else None
+        print(f"  name : {got['name']}")
+        print(f"  url  : {got['source_url']}")
+        print(f"  span : {m[0]['period']} → {m[-1]['period']}  n={len(m)}  lag={lag}")
+        print(f"  last : index={m[-1]['index']}  yoy={m[-1]['yoy_pct']}")
+        print(f"  {'PASS — current' if (lag or 99) <= 2 else 'STILL STALE — do not merge'}")
+
     print("\n4. Raw grid (for the PR)")
     print(json.dumps(grid, indent=1, sort_keys=True))
     return 0
