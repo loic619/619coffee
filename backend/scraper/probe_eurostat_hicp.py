@@ -362,18 +362,36 @@ def main() -> int:
     # it. So this is a classification changeover, and what remains is the
     # replacement's dataset id and the code coffee carries under ECOICOP v2.
     # Neither is safe to guess: the whole point of a revision is that codes move.
-    print("\n9. The ECOICOP ver.2 family — every dataset, and which is the index table")
-    v2 = [c for c in cands if "ecoicop2" in c[0] or c[0].endswith("2")]
-    for code, title, updated in v2:
-        print(f"  {code:28s} last-update {updated or '—':12s} {title[:58]}")
+    # ── pass 5 ───────────────────────────────────────────────────────────────
+    # Pass 4's shortlist was wrong in an instructive way: it filtered candidates
+    # by NAME (midx/manr/mmor) and so tested only the three frozen tables, while
+    # the ones the catalogue shows being updated on 01.09.2026 — minr, ainr,
+    # fpd, ct, iw — were skipped precisely because they are named differently.
+    # A classification changeover renames things; that is the whole point. So
+    # shortlist by LAST-UPDATE DATE instead, which is a fact about whether a
+    # table is alive rather than a guess about what it is called.
+    print("\n9. Datasets Eurostat is still updating (last-update within ~90 days)")
+    def _upd_key(u: str) -> str:
+        return (u[-4:] + u[3:5] + u[:2]) if len(u) == 10 else ""
+    cutoff = _upd_key(today.strftime("%d.%m.%Y"))
+    cutoff = f"{int(cutoff[:4]):04d}{int(cutoff[4:6]) - 3:02d}{cutoff[6:]}" if cutoff else ""
+    seen: set[str] = set()
+    v2 = []
+    for code, title, updated in cands:
+        if code in seen or not _upd_key(updated) or _upd_key(updated) < cutoff:
+            continue
+        seen.add(code)
+        v2.append((code, title, updated))
+        print(f"  {code:28s} last-update {updated:12s} {title[:58]}")
     if not v2:
-        print("  none matched 'ecoicop2' — printing EVERY prc_hicp* dataset instead")
-        for code, title, updated in cands:
+        print("  none updated recently — printing EVERY prc_hicp* dataset instead")
+        v2 = [c for c in cands if c[0] not in seen and not seen.add(c[0])]
+        for code, title, updated in v2:
             print(f"  {code:28s} last-update {updated or '—':12s} {title[:58]}")
 
-    print("\n10. Which ECOICOP v2 table carries a CURRENT German series?")
+    print("\n10. Which of the LIVE tables carries a current German series?")
     live: list[str] = []
-    for code, _t, _u in (v2 or cands):
+    for code, _t, _u in v2:
         first, last, n, err = dataset_span(code)
         lag = months_behind(last, today)
         flag = ""
